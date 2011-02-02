@@ -1,0 +1,14 @@
+; $Id: statistics.info,v 1.12 2010/12/20 19:59:43 webchick Exp $
+name = Statistics
+description = Logs access statistics for your site.
+package = Core
+version = VERSION
+core = 7.x
+files[] = statistics.test
+configure = admin/config/system/statistics
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

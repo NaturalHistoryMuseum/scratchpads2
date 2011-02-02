@@ -1,0 +1,21 @@
+; $Id: seven.info,v 1.6 2010/11/07 00:27:20 dries Exp $
+name = Seven
+description = A simple one-column, tableless, fluid width administration theme.
+package = Core
+version = VERSION
+core = 7.x
+stylesheets[screen][] = reset.css
+stylesheets[screen][] = style.css
+settings[shortcut_module_link] = 1
+regions[content] = Content
+regions[help] = Help
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+regions[sidebar_first] = First sidebar
+regions_hidden[] = sidebar_first
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

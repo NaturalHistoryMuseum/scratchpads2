@@ -1,0 +1,47 @@
+/* $Id: forum.css,v 1.9 2010/10/03 00:41:14 dries Exp $ */
+
+#forum .description {
+  font-size: 0.9em;
+  margin: 0.5em;
+}
+#forum td.created,
+#forum td.posts,
+#forum td.topics,
+#forum td.last-reply,
+#forum td.replies,
+#forum td.pager {
+  white-space: nowrap;
+}
+#forum tr td.forum {
+  padding-left: 25px; /* LTR */
+  background-position: 2px 2px; /* LTR */
+  background-image: url(../../misc/forum-default.png);
+  background-repeat: no-repeat;
+}
+#forum tr.new-topics td.forum {
+  background-image: url(../../misc/forum-new.png);
+}
+#forum div.indent {
+  margin-left: 20px;
+}
+#forum .icon div {
+  background-image: url(../../misc/forum-icons.png);
+  background-repeat: no-repeat;
+  width: 24px;
+  height: 24px;
+}
+#forum .icon .topic-status-new {
+  background-position: -24px 0;
+}
+#forum .icon .topic-status-hot {
+  background-position: -48px 0;
+}
+#forum .icon .topic-status-hot-new {
+  background-position: -72px 0;
+}
+#forum .icon .topic-status-sticky {
+  background-position: -96px 0;
+}
+#forum .icon .topic-status-closed {
+  background-position: -120px 0;
+}

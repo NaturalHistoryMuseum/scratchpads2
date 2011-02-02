@@ -1,0 +1,11 @@
+/* $Id: node.css,v 1.18 2010/09/17 14:53:21 dries Exp $ */
+
+.node-unpublished {
+  background-color: #fff4f4;
+}
+.preview .node {
+  background-color: #ffffea;
+}
+td.revision-current {
+  background: #ffc;
+}

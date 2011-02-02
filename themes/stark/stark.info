@@ -1,0 +1,13 @@
+; $Id: stark.info,v 1.4 2010/11/07 00:27:20 dries Exp $
+name = Stark
+description = This theme demonstrates Drupal's default HTML markup and CSS styles. To learn how to build your own theme and override Drupal's default code, see the <a href="http://drupal.org/theme-guide">Theming Guide</a>.
+package = Core
+version = VERSION
+core = 7.x
+stylesheets[all][] = layout.css
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

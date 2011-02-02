@@ -1,0 +1,17 @@
+; $Id: comment.info,v 1.15 2010/12/20 19:59:41 webchick Exp $
+name = Comment
+description = Allows users to comment on and discuss published content.
+package = Core
+version = VERSION
+core = 7.x
+dependencies[] = text
+files[] = comment.module
+files[] = comment.test
+configure = admin/content/comment
+stylesheets[all][] = comment.css
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

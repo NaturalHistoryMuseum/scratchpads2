@@ -1,0 +1,13 @@
+; $Id: module_test.info,v 1.3 2010/12/20 19:59:43 webchick Exp $
+name = "Module test"
+description = "Support module for module system testing."
+package = Testing
+version = VERSION
+core = 7.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

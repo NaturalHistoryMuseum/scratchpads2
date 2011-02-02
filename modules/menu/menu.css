@@ -1,0 +1,13 @@
+/* $Id: menu.css,v 1.7 2009/10/17 12:10:31 dries Exp $ */
+
+.menu-operations {
+  width: 100px;
+}
+
+.menu-enabled {
+  width: 70px;
+}
+
+.menu-enabled input {
+  margin-left:25px;
+}

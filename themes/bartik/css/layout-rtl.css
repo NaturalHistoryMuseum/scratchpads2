@@ -1,0 +1,23 @@
+/* $Id: layout-rtl.css,v 1.5 2010/11/30 17:43:52 dries Exp $ */
+
+/* ---------- Basic Layout RTL Styles ----------- */
+
+#content,
+#sidebar-first,
+#sidebar-second,
+.region-triptych-first,
+.region-triptych-middle,
+.region-triptych-last,
+.region-footer-firstcolumn,
+.region-footer-secondcolumn,
+.region-footer-thirdcolumn,
+.region-footer-fourthcolumn {
+  float: right;
+}
+.region-header {
+  float: left;
+}
+#secondary-menu {
+  left: 0;
+  right: auto;
+}

@@ -1,0 +1,15 @@
+; $Id: aggregator.info,v 1.15 2010/12/20 19:59:40 webchick Exp $
+name = Aggregator
+description = "Aggregates syndicated content (RSS, RDF, and Atom feeds)."
+package = Core
+version = VERSION
+core = 7.x
+files[] = aggregator.test
+configure = admin/config/services/aggregator/settings
+stylesheets[all][] = aggregator.css
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

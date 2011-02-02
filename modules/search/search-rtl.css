@@ -1,0 +1,14 @@
+/* $Id: search-rtl.css,v 1.5 2010/05/29 07:50:33 dries Exp $ */
+
+.search-advanced .criterion {
+  float: right;
+  margin-right: 0;
+  margin-left: 2em;
+}
+.search-advanced .action {
+  float: right;
+  clear: right;
+}
+.search-results .search-snippet-info {
+  padding-right: 1em; /* LTR */
+}

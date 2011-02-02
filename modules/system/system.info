@@ -1,0 +1,20 @@
+; $Id: system.info,v 1.21 2010/12/20 19:59:43 webchick Exp $
+name = System
+description = Handles general site configuration for administrators.
+package = Core
+version = VERSION
+core = 7.x
+files[] = system.archiver.inc
+files[] = system.mail.inc
+files[] = system.queue.inc
+files[] = system.tar.inc
+files[] = system.updater.inc
+files[] = system.test
+required = TRUE
+configure = admin/config/system
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+

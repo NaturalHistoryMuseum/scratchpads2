@@ -1,0 +1,13 @@
+; $Id: requirements1_test.info,v 1.2 2010/12/20 19:59:43 webchick Exp $
+name = Requirements 1 Test
+description = "Tests that a module is not installed when it fails hook_requirements('install')."
+package = Core
+version = VERSION
+core = 7.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.0"
+project = "drupal"
+datestamp = "1294208756"
+
