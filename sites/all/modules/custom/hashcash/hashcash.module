@@ -1,1 +1,249 @@
 <?php
+
+/**
+ * Implementation of hashcash for prevention of SPAM
+ * 
+ * S.D.Rycroft
+ * 
+ * 4/2/2011
+ * 
+ * The intention of this module is to allow site administrators to add a 
+ * hashcash hidden form field to any form for anonymoous (or any defined role)
+ * on their site.  This will prevent posting of values to the form without
+ * a hashcash value also being submitted.  The form DOES NOT degrade when
+ * javascript is not available, although this may be changed so that it
+ * degrades to use a CAPTCHA.
+ */
+/**
+ * Variables set by this module:
+ * 
+ * hashcash_addorignore (boolean):
+ * This value states whether the following variable defines form_ids to add
+ * hashcash to, or to NOT add hashcash to.  True if add, false if ignore.  By
+ * default this is setup to "ignore" the listed forms.
+ * 
+ * hashcash_form_ids (array):
+ * The IDs of the forms which are either being ignored, or are having hashcash
+ * added to.  By default this is setup to ignore the user_login form.
+ * 
+ * hashcash_expire (date string):
+ * The length of time for which a hashcash string should be valid.  The default
+ * recommended by the writers of hashcash is set quite high, however, given the
+ * original implementation of hashcash was for email, I feel we can set this
+ * much lower, infact, one day is probably long enough.
+ */
+/**
+ * Implementation of hook_permission
+ * 
+ * States the roles that DO NOT have to calculate a HASHCASH value for any 
+ * form.
+ */
+function hashcash_permission(){
+  return array(
+    'submit form without hashcash' => array(
+      'title' => t('Submit form without hashcash')
+    ),
+    'administer hashcash' => array(
+      'title' => t('Administer hashcash')
+    )
+  );
+}
+
+/**
+ * Implementation of hook_menu
+ */
+function hashcash_menu(){
+  return array(
+    'admin/config/system/hashcash' => array(
+      'title' => 'Hashcash settings',
+      'description' => 'Change the default hashcash settings to include or exclude forms.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'hashcash_admin_settings'
+      ),
+      'access arguments' => array(
+        'administer hashcash'
+      ),
+      'file' => 'hashcash.admin.inc'
+    ),
+    'hashcash/%' => array(
+      'title' => 'Get Hashcash',
+      'description' => 'Returns the start part of a hashcash string',
+      'page callback' => 'hashcash_get_hashcash',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'hashcash.js.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_init
+ */
+function hashcash_init(){
+  // Add the js file if required.
+  if(!user_access('submit form without hashcash')){
+    drupal_add_js(drupal_get_path('module', 'hashcash') . '/js/hashcash.js');
+    drupal_add_js(array(
+      'hashcash' => array(
+        'url' => url('hashcash')
+      )
+    ), 'setting');
+  }
+}
+
+/**
+ * Implementation of hook_form_alter
+ * 
+ * This enables the addition of the hidden hashcash field to the form, and 
+ * also changes the validate function of the form.  It is also necesary to
+ * include the necesary JavaScript files which allow the client to calculate
+ * the hashcash.
+ *
+ * @param String $form_id
+ * @param Array $form
+ */
+function hashcash_form_alter(&$form, &$form_state, $form_id){
+  // Firstl check to see if this user's role requires hashcash, or if we're
+  // being called by the pesky upload_js form.
+  if(user_access('submit form without hashcash') || $form_id == 'upload_js'){return;}
+  // Secondly lets check if we actually want to add Hashcash to this form.
+  $hc_addorignore = variable_get('hashcash_addorignore', false);
+  $hc_form_ids = preg_split('/[\n\r]+/', variable_get('hashcash_form_ids', "user_login\nuser_login_block\nlegal_login"));
+  // Check to see if this form wants hashcash
+  if(($hc_addorignore && in_array($form_id, $hc_form_ids)) || (!$hc_addorignore && !in_array($form_id, $hc_form_ids))){
+    // Looks like we're adding the hashcash.
+    // Hidden form field which will contain the hashcash once the client
+    // "changes" it
+    $form['hashcash'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $form_id,
+      '#id' => 'hashcash-' . $form_id,
+      '#after_build' => array(
+        'hashcash_after_build'
+      )
+    );
+    // Alter validation to check the hashcash once submitted
+    $form['#validate'][] = 'hashcash_validate';
+    // Javascript which produces the hashcash
+    $form['#attributes'] = array(
+      'onsubmit' => 'return hashcash_create("hashcash-' . $form_id . '");'
+    );
+    // Finally, and VERY importantly, prevent caching of the form
+    $form['#cache'] = FALSE;
+    // Check to see if the user has Javascript, and if not, we'll show a polite
+    // warning, and disable the form submission button(s)     
+    if(count($_COOKIE) && (!isset($_COOKIE['has_js']) || (!$_COOKIE['has_js'])) && variable_get('hashcash_add_warning', 0)){
+      // Don't add the message if we're localhost, or the same IP as the server
+      if(!($_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMOTE_ADDR'] == $_SERVER['SERVER_ADDR'])){
+        drupal_set_message(t(variable_get('hashcash_submit_disabled', 'Submission of a form on this page may not work as you do not appear to have JavaScript enabled in your browser.')), 'error', FALSE);
+      }
+    }
+  }
+}
+
+/**
+ * After build, used to remove the value from the form if it has been set - 
+ * basically enables preview to work.
+ */
+function hashcash_after_build($form_element, &$form_state){
+  $form_element['#value'] = $form_element['#default_value'];
+  return $form_element;
+}
+
+/**
+ * Validation function to check the hashcash sent is actually SORTED!
+ */
+function hashcash_validate($form, $form_state){
+  // Only validate the form if the form has been posted (views executes the form
+  // validation bananas when rendering a view - me thinks).
+  if($_SERVER['REQUEST_METHOD'] == 'POST' && $form['hashcash']['#default_value'] != 'views_exposed_form'){
+    // Check the hashcash passes
+    $hashcash = $form_state['values']['hashcash'];
+    if(substr(sha1($hashcash), 0, 2) != "00"){
+      // failed;
+      form_set_error('hashcash', t('Your hashcash value failed.  Please ensure you have JavaScript enabled in your browser.'));
+    }else{
+      // Hashcash passed, now check the parts.
+      $hashcash_parts = explode(':', $hashcash);
+      global $cookie_domain;
+      if($hashcash_parts[0] != '1' || ($hashcash_parts[1] != date('ymd') && $hashcash_parts != date('ymd', time() - (24 * 60 * 60))) || $hashcash_parts[2] != $form['form_id']['#value'] || $hashcash_parts[3] != ip_address() || $hashcash_parts[4] != $cookie_domain || !(isset($hashcash_parts[5]) && strlen($hashcash_parts[5]) > 10)){
+        if(!isset($hashcash_parts[5])){
+          $hashcash_parts[5] = 'NOT SET';
+        }
+        watchdog('hashcash', $hashcash_parts[1] . ':' . date('ymd') . ' - ' . $hashcash_parts[2] . ':' . $form['form_id']['#value'] . ' - ' . $hashcash_parts[3] . ':' . ip_address() . ' - ' . $hashcash_parts[4] . ':' . $cookie_domain . ' - ' . $hashcash_parts[5]);
+        form_set_error('hashcash', '<p>' . t('Your hashcash string is not valid.') . '</p><p>' . t('Please try "Hard-refreshing" this page (Most users should press Ctrl-F5)'));
+      }else{
+        // Everything fine so far, final check.
+        // Has this been used before?
+        // First thing, delete all the stale hashcash values from the database.
+        db_query("DELETE FROM {hashcash} WHERE hcdate < '%s'", date('ymd', time() - (24 * 60 * 60 * variable_get('hashcash_expire', 2))));
+        $result = db_query("SELECT COUNT(*) FROM {hashcash} WHERE hashcash = '%s'", $hashcash);
+        if(array_pop(db_fetch_array($result)) == 0){
+          // No rows, add it, and we're HOT TO TROT!
+          db_query("INSERT INTO {hashcash} (hcdate,hashcash) VALUES('%s','%s')", date('ymd'), $hashcash);
+        }else{
+          // There must be a row, eep, SPAM
+          form_set_error('hashcash', t('Your hashcash has already been submitted before.  Have you attempted to submit this form twice?'));
+        }
+      }
+    }
+  }
+}
+
+/**
+ * hashcash settings page
+ */
+function hashcash_admin_settings(){
+  $form['hashcash_submit_disabled'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Warning message for those with JavaScript disabled'),
+    '#default_value' => t(variable_get('hashcash_submit_disabled', 'Submission of a form on this page has been disabled as you do not have JavaScript enabled in your browser.'))
+  );
+  $form['hashcash_addorignore'] = array(
+    '#type' => 'radios',
+    '#title' => t('Use hashcash on specific forms'),
+    '#default_value' => variable_get('hashcash_addorignore', 0),
+    '#options' => array(
+      0 => t('Add to every form except the listed ones'),
+      1 => t('Add to only the listed forms')
+    )
+  );
+  $form['hashcash_form_ids'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Form IDs'),
+    '#default_value' => variable_get('hashcash_form_ids', "user_login\nuser_login_block"),
+    '#description' => t('Enter one form ID per line.')
+  );
+  $form['hashcash_add_warning'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display warning if hashcash is required for a form, and user doesn\'t appear to have Javascript'),
+    '#default_value' => variable_get('hashcash_add_warning', 0),
+    '#options' => array(
+      0 => t('Do not display warning'),
+      1 => t('Display warning')
+    )
+  );
+  $days = array(
+    1 => 1,
+    2 => 2,
+    3 => 3,
+    4 => 4,
+    5 => 5,
+    6 => 6,
+    7 => 7
+  );
+  $form['hashcash_expire'] = array(
+    '#type' => 'select',
+    '#title' => t('Expire time (days)'),
+    '#default_value' => variable_get('hashcash_expire', 2),
+    '#description' => t('Time after which hashcash values can be repeated'),
+    '#options' => $days
+  );
+  return system_settings_form($form);
+}
