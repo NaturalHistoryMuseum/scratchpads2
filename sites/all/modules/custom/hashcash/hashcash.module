@@ -88,10 +88,11 @@ function hashcash_menu(){
 function hashcash_init(){
   // Add the js file if required.
   if(!user_access('submit form without hashcash')){
-    drupal_add_js(drupal_get_path('module', 'hashcash') . '/js/hashcash.js');
     drupal_add_js(array(
       'hashcash' => array(
-        'url' => url('hashcash')
+        'url' => url('hashcash', array(
+          'absolute' => TRUE
+        ))
       )
     ), 'setting');
   }
@@ -126,6 +127,9 @@ function hashcash_form_alter(&$form, &$form_state, $form_id){
       '#id' => 'hashcash-' . $form_id,
       '#after_build' => array(
         'hashcash_after_build'
+      ),
+      '#attributes' => array(
+        'id' => 'hashcash-' . $form_id
       )
     );
     // Alter validation to check the hashcash once submitted
@@ -182,11 +186,16 @@ function hashcash_validate($form, $form_state){
         // Everything fine so far, final check.
         // Has this been used before?
         // First thing, delete all the stale hashcash values from the database.
-        db_query("DELETE FROM {hashcash} WHERE hcdate < '%s'", date('ymd', time() - (24 * 60 * 60 * variable_get('hashcash_expire', 2))));
-        $result = db_query("SELECT COUNT(*) FROM {hashcash} WHERE hashcash = '%s'", $hashcash);
-        if(array_pop(db_fetch_array($result)) == 0){
+        db_delete('hashcash')->condition('hcdate', date('ymd', time() - (24 * 60 * 60 * variable_get('hashcash_expire', 2))), '<')->execute();
+        $count = db_query("SELECT COUNT(*) FROM {hashcash} WHERE hashcash = :hashcash", array(
+          ':hashcash' => $hashcash
+        ))->fetchField();
+        if($count == 0){
           // No rows, add it, and we're HOT TO TROT!
-          db_query("INSERT INTO {hashcash} (hcdate,hashcash) VALUES('%s','%s')", date('ymd'), $hashcash);
+          db_insert('hashcash')->fields(array(
+            'hcdate' => date('ymd'),
+            'hashcash' => $hashcash
+          ))->execute();
         }else{
           // There must be a row, eep, SPAM
           form_set_error('hashcash', t('Your hashcash has already been submitted before.  Have you attempted to submit this form twice?'));
@@ -194,56 +203,4 @@ function hashcash_validate($form, $form_state){
       }
     }
   }
-}
-
-/**
- * hashcash settings page
- */
-function hashcash_admin_settings(){
-  $form['hashcash_submit_disabled'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Warning message for those with JavaScript disabled'),
-    '#default_value' => t(variable_get('hashcash_submit_disabled', 'Submission of a form on this page has been disabled as you do not have JavaScript enabled in your browser.'))
-  );
-  $form['hashcash_addorignore'] = array(
-    '#type' => 'radios',
-    '#title' => t('Use hashcash on specific forms'),
-    '#default_value' => variable_get('hashcash_addorignore', 0),
-    '#options' => array(
-      0 => t('Add to every form except the listed ones'),
-      1 => t('Add to only the listed forms')
-    )
-  );
-  $form['hashcash_form_ids'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Form IDs'),
-    '#default_value' => variable_get('hashcash_form_ids', "user_login\nuser_login_block"),
-    '#description' => t('Enter one form ID per line.')
-  );
-  $form['hashcash_add_warning'] = array(
-    '#type' => 'radios',
-    '#title' => t('Display warning if hashcash is required for a form, and user doesn\'t appear to have Javascript'),
-    '#default_value' => variable_get('hashcash_add_warning', 0),
-    '#options' => array(
-      0 => t('Do not display warning'),
-      1 => t('Display warning')
-    )
-  );
-  $days = array(
-    1 => 1,
-    2 => 2,
-    3 => 3,
-    4 => 4,
-    5 => 5,
-    6 => 6,
-    7 => 7
-  );
-  $form['hashcash_expire'] = array(
-    '#type' => 'select',
-    '#title' => t('Expire time (days)'),
-    '#default_value' => variable_get('hashcash_expire', 2),
-    '#description' => t('Time after which hashcash values can be repeated'),
-    '#options' => $days
-  );
-  return system_settings_form($form);
 }

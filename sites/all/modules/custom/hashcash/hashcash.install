@@ -1,14 +1,8 @@
 <?php
 
 /**
- * Installing of the hashcash module
+ * Implementation of hook_schema
  */
-function hashcash_install(){
-  // Create the database to link images with users.  
-  // Create tables.
-  drupal_install_schema('hashcash');
-}
-
 function hashcash_schema(){
   $schema['hashcash'] = array(
     'description' => 'Stores the hashcash values that have been submitted, ensuring that none are used twice.',

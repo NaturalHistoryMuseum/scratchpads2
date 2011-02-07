@@ -8,7 +8,7 @@ function hashcash_create(formfield) {
       set_form_field(formfield, formfield_value);
     }
   };
-  $.ajax(ajax_options);
+  jQuery.ajax(ajax_options);
 }
 
 function set_form_field(formfield, formfield_value){

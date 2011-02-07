@@ -4,4 +4,5 @@ core = 7.x
 files[] = hashcash.module
 files[] = hashcash.install
 files[] = hashcash.admin.inc
+scripts[] = js/hashcash.js
 package = Scratchpads
