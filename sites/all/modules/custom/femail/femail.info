@@ -1,0 +1,8 @@
+name = "Forum e-mail (femail)"
+description = "Adds e-mail messages to the forum"
+core = 7.x
+files[] = femail.module
+files[] = femail.install
+files[] = femail.admin.inc
+dependencies[] = forum
+package = Scratchpads
