@@ -1,0 +1,164 @@
+<?php
+
+/**
+ * Implementation of hook_install
+ */
+function femail_install(){
+  // All we need to do here is loop through all of the forums, and set the email
+  // variable accordingly.
+  $forum_containers = variable_get('forum_containers', array());
+  if($forum_containers){
+    $container_sql = 'AND tid NOT IN (' . implode(",", $forum_containers) . ')';
+  }
+  $results = db_query("SELECT * FROM {term_data} WHERE vid = %d $container_sql", variable_get('forum_nav_vocabulary', 0));
+  $emails = array();
+  global $base_url;
+  $parts = parse_url($base_url);
+  while($row = db_fetch_array($results)){
+    $email = preg_replace("/[^0-9a-z\-]/", "", strtolower(str_replace(" ", "-", $row['name'])));
+    if(array_search($email, $emails)){
+      $i = 2;
+      while(array_search($email . "_" . $i, $emails)){
+        $i++;
+      }
+      $email = $email . "_" . $i;
+    }
+    $emails[$row['tid']] = $email . '@' . $parts['host'];
+  }
+  variable_set('femail_emails', $emails);
+  /*
+   * 
+   * 
+   * 
+   * 
+   * 
+   * 
+   */
+  // Set the install time for use in hashes
+  variable_set('femail_install_time', time());
+  // Add the femail table (which simply stores message IDs
+  drupal_install_schema('femail');
+  // Set a message to tell users to go and set the permission.
+  drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
+    '!url' => url('')
+  )));
+  // Add a new input format specifically for Forum posts sent by email.
+  module_load_include('admin.inc', 'filter');
+  $roles = user_roles(TRUE);
+  $form_state = array(
+    'values' => array(
+      'name' => 'Femail mail message',
+      'filters' => array(
+        'femail/0' => TRUE,
+        'femail/1' => TRUE,
+        'filter/0' => TRUE,
+        'filter/1' => TRUE,
+        'filter/2' => TRUE
+      ),
+      'roles' => $roles
+    )
+  );
+  filter_admin_format_form_submit(NULL, $form_state);
+  // Update the allowed tags for this format
+  $format = db_result(db_query("SELECT MAX(format) AS format FROM {filter_formats}"));
+  variable_set('allowed_html_' . $format, '');
+  // Finally set a variable so that we know what the id is of this format
+  variable_set('femail_input_format', $format);
+  // Set the order, so that the line break thingy is after the html thingy
+  // and also set a few variables.
+  variable_set('allowed_html_' . $format, '');
+  variable_set('filter_html_' . $format, '2');
+  variable_set('filter_html_help_' . $format, 1);
+  variable_set('filter_html_nofollow_' . $format, 0);
+  variable_set('filter_url_length_' . $format, '72');
+  // Set the order, so that the line break thingy is after the html thingy
+  $form_state = array(
+    'values' => array(
+      'weights' => array(
+        'filter/0' => -10,
+        'filter/1' => -9,
+        'filter/2' => -8,
+        'femail/0' => -7,
+        'femail/1' => -6
+      ),
+      'format' => $format
+    )
+  );
+  filter_admin_order_submit(NULL, $form_state);
+}
+
+/**
+ * Implementation of hook_schema
+ */
+function femail_schema(){
+  return array(
+    'femail_msgs' => array(
+      'description' => 'Holds the e-mail message ID for all outbound messages sent.',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'Node ID of the message (or parent)',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'cid' => array(
+          'description' => 'Comment ID of the message (or 0 if the root post)',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'msgid' => array(
+          'description' => 'The actual e-mail message ID',
+          'type' => 'varchar',
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'nid',
+        'msgid',
+        'cid'
+      )
+    ),
+    'femail_user_emails' => array(
+      'description' => 'Holds additional email addresses that users register',
+      'fields' => array(
+        'uid' => array(
+          'description' => 'User\'s ID',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'email' => array(
+          'description' => 'Additional email address',
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'status' => array(
+          'description' => 'Whether or not the email address has been validated',
+          'type' => 'int',
+          'not null' => true
+        )
+      ),
+      'primary key' => array(
+        'uid',
+        'email'
+      )
+    ),
+    'femail_user_subscriptions' => array(
+      'description' => 'Links a user with a forum, resulting in the user being subscribed to that forum',
+      'fields' => array(
+        'uid' => array(
+          'description' => 'User\'s ID',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'tid' => array(
+          'ID of the Forum that the user is subscribed to, or 0 for all',
+          'type' => 'int',
+          'not null' => true
+        )
+      ),
+      'primary key' => array(
+        'uid',
+        'tid'
+      )
+    )
+  );
+}
