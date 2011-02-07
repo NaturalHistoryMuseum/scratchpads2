@@ -42,4 +42,5 @@ function hashcash_uninstall(){
   variable_del('hashcash_expire');
   variable_del('hashcash_form_ids');
   variable_del('hashcash_addorignore');
+  variable_del('hashcash_log');
 }
