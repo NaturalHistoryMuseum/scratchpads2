@@ -118,25 +118,50 @@ function hashcash_form_alter(&$form, &$form_state, $form_id){
   $hc_form_ids = preg_split('/[\n\r]+/', variable_get('hashcash_form_ids', "user_login\nuser_login_block\nlegal_login"));
   // Check to see if this form wants hashcash
   if(($hc_addorignore && in_array($form_id, $hc_form_ids)) || (!$hc_addorignore && !in_array($form_id, $hc_form_ids))){
-    // Looks like we're adding the hashcash.
-    // Hidden form field which will contain the hashcash once the client
-    // "changes" it
-    $form['hashcash'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $form_id,
-      '#after_build' => array(
-        'hashcash_after_build'
-      ),
-      '#attributes' => array(
-        'id' => 'hashcash-' . $form_id
-      )
-    );
-    // Alter validation to check the hashcash once submitted
-    $form['#validate'][] = 'hashcash_validate';
-    // Javascript which produces the hashcash
-    $form['#attributes'] = array(
-      'onsubmit' => 'return hashcash_create("hashcash-' . $form_id . '");'
-    );
+    // Check to see if we've already failed a check.  If we have, and the
+    // Captcha module is installed, we'll present the user with a Captcha,
+    // rather than adding Hashcash again.
+    if(count($form_state['input']) && isset($form_state['input']['hashcash']) && module_exists('captcha') && !hashcash_passes($form_state['input']['hashcash'])){
+      // Get CAPTCHA type and module for given form_id.
+      $captcha_point = new stdClass();
+      $captcha_point->module = 'image_captcha';
+      $captcha_point->captcha_type = 'Image';
+      module_load_include('inc', 'captcha');
+      // Build CAPTCHA form element.
+      $captcha_element = array(
+        '#type' => 'captcha',
+        '#captcha_type' => $captcha_point->module . '/' . $captcha_point->captcha_type
+      );
+      // Add a CAPTCHA description if required.
+      if(variable_get('captcha_add_captcha_description', TRUE)){
+        $captcha_element['#description'] = _captcha_get_description();
+      }
+      // Get placement in form and insert in form.
+      $captcha_placement = _captcha_get_captcha_placement($form_id, $form);
+      _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
+      unset($form['hashcash']);
+    }else{
+      $form_state['cache'] = FALSE;
+      // Looks like we're adding the hashcash.
+      // Hidden form field which will contain the hashcash once the client
+      // "changes" it    
+      $form['hashcash'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $form_id,
+        '#after_build' => array(
+          'hashcash_after_build'
+        ),
+        '#attributes' => array(
+          'id' => 'hashcash-' . $form_id
+        )
+      );
+      // Alter validation to check the hashcash once submitted
+      $form['#validate'][] = 'hashcash_validate';
+      // Javascript which produces the hashcash
+      $form['#attributes'] = array(
+        'onsubmit' => 'return hashcash_create("hashcash-' . $form_id . '");'
+      );
+    }
   }
 }
 
@@ -147,6 +172,25 @@ function hashcash_form_alter(&$form, &$form_state, $form_id){
 function hashcash_after_build($form_element, &$form_state){
   $form_element['#value'] = $form_element['#default_value'];
   return $form_element;
+}
+
+/**
+ * Helper function for form_alter - simply returns true if the form passes
+ */
+function hashcash_passes($hashcash){
+  if(substr(sha1($hashcash), 0, 2) != "00"){return FALSE;}
+  // Hashcash passed, now check the parts.
+  $hashcash_parts = explode(':', $hashcash);
+  global $cookie_domain;
+  if($hashcash_parts[0] != '1' || ($hashcash_parts[1] != date('ymd') && $hashcash_parts != date('ymd', time() - (24 * 60 * 60))) || $hashcash_parts[2] != $form['form_id']['#value'] || $hashcash_parts[3] != ip_address() || $hashcash_parts[4] != $cookie_domain || !(isset($hashcash_parts[5]) && strlen($hashcash_parts[5]) > 10)){return FALSE;}
+  // Parts passed. Check not submitted already
+  // First thing, delete all the stale hashcash values from the database.
+  db_delete('hashcash')->condition('hcdate', date('ymd', time() - (24 * 60 * 60 * variable_get('hashcash_expire', 2))), '<')->execute();
+  $count = db_query("SELECT COUNT(*) FROM {hashcash} WHERE hashcash = :hashcash", array(
+    ':hashcash' => $hashcash
+  ))->fetchField();
+  if($count != 0){return FALSE;}
+  return TRUE;
 }
 
 /**
@@ -166,6 +210,12 @@ function hashcash_validate($form, $form_state){
           '!hashcash' => $hashcash
         ));
       }
+      $form['extra'] = array(
+        '#title' => 'Something',
+        '#type' => 'textfield',
+        '#description' => 'Something'
+      );
+      return $form;
     }else{
       // Hashcash passed, now check the parts.
       $hashcash_parts = explode(':', $hashcash);
