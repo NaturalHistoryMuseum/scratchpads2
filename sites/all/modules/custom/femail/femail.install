@@ -7,15 +7,26 @@ function femail_install(){
   // All we need to do here is loop through all of the forums, and set the email
   // variable accordingly.
   $forum_containers = variable_get('forum_containers', array());
+  // Select the name of the forums
+  $dbs = db_select('taxonomy_term_data', 't');
+  $dbs->fields('t', array('name', 'tid'));
+  $dbs->condition('vid', variable_get('forum_nav_vocabulary'));
+  // No containers
   if($forum_containers){
-    $container_sql = 'AND tid NOT IN (' . implode(",", $forum_containers) . ')';
+    foreach($forum_containers as $forum_container){
+      $dbs->condition('tid', $forum_container, '!=');
+    }
   }
-  $results = db_query("SELECT * FROM {term_data} WHERE vid = %d $container_sql", variable_get('forum_nav_vocabulary', 0));
+  // Prepare end of email.
   $emails = array();
   global $base_url;
   $parts = parse_url($base_url);
-  while($row = db_fetch_array($results)){
-    $email = preg_replace("/[^0-9a-z\-]/", "", strtolower(str_replace(" ", "-", $row['name'])));
+  // Get results
+  $results = $dbs->execute();
+  foreach($results as $row){
+    // Create the email address.
+    $email = preg_replace("/[^0-9a-z\-]/", "", strtolower(str_replace(" ", "-", $row->name)));
+    // Check it doesn't already exist.
     if(array_search($email, $emails)){
       $i = 2;
       while(array_search($email . "_" . $i, $emails)){
@@ -23,26 +34,19 @@ function femail_install(){
       }
       $email = $email . "_" . $i;
     }
-    $emails[$row['tid']] = $email . '@' . $parts['host'];
+    $emails[$row->tid] = $email . '@' . $parts['host'];
   }
   variable_set('femail_emails', $emails);
-  /*
-   * 
-   * 
-   * 
-   * 
-   * 
-   * 
-   */
   // Set the install time for use in hashes
   variable_set('femail_install_time', time());
-  // Add the femail table (which simply stores message IDs
-  drupal_install_schema('femail');
   // Set a message to tell users to go and set the permission.
+  // FIXME - The following fragment doesn't work as expected - this needs to be
+  // altered.
   drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
-    '!url' => url('')
+    '!url' => url(current_path(), array('fragment' => 'overlay=admin/people/permissions'))
   )));
   // Add a new input format specifically for Forum posts sent by email.
+  /*
   module_load_include('admin.inc', 'filter');
   $roles = user_roles(TRUE);
   $form_state = array(
@@ -85,6 +89,7 @@ function femail_install(){
     )
   );
   filter_admin_order_submit(NULL, $form_state);
+  */
 }
 
 /**
@@ -93,8 +98,8 @@ function femail_install(){
 function femail_requirements($phase){
   // Check that the function user_roles exists, else we're probably installing
   // from scratch
+  // FIXME - Is this check still required - has Drupal 7 fixed issues with 6?
   if(!function_exists('user_roles')){return array();}
-  // Check that we have the mailparse functions installed
   $t = get_t();
   $requirements = array(
     'femail_mailparse' => array(
@@ -110,6 +115,7 @@ function femail_requirements($phase){
       'title' => $t('Femail: Comments & comment upload')
     )
   );
+  // Check that we have the mailparse functions installed
   if(!(function_exists('mailparse_msg_create') && function_exists('mailparse_msg_get_part_data') && function_exists('mailparse_msg_parse'))){
     $requirements['femail_mailparse']['severity'] = REQUIREMENT_ERROR;
     if($phase == 'runtime'){
@@ -177,22 +183,26 @@ function femail_requirements($phase){
   }
   // Check the permissions, and give a warning if any roles have the post by
   // femail permission, but don't have sufficient privileges to post files.
-  $result = db_query('SELECT perm, rid FROM {permission}');
-  $roles = user_roles();
   $requirements['femail_permissions']['severity'] = REQUIREMENT_OK;
+  $roles = user_roles();
   if($phase == 'runtime'){
     $requirements['femail_permissions']['value'] = '<p>The following roles do not have all the recommended permissions ("post comments"; "upload files to comments"; "create forum topics"; "upload files")<ul>';
   }
-  while($row = db_fetch_array($result)){
-    $perms = explode(", ", $row['perm']);
-    if(in_array('post by femail', $perms)){
-      // User has permission, we need to check whether they also have
-      if(!(in_array('post comments', $perms) && in_array('upload files to comments', $perms) && in_array('create forum topics', $perms) && in_array('upload files', $perms))){
-        if($phase == 'runtime'){
-          $requirements['femail_permissions']['value'] .= '<li>' . $roles[$row['rid']] . '</li>';
-        }
-        $requirements['femail_permissions']['severity'] = REQUIREMENT_WARNING;
+  $results = db_select('role_permission', 'r')->fields('r', array('rid'))->condition('permission', 'post by femail')->execute();
+  foreach($results as $row){
+    // Here we have a role that is able to "post by femail", lets check they
+    // have the correct permissions.
+    $results2 = db_select('role_permission', 'r')->fields('r', array('permission'))->condition('rid', $row->rid)->where("permission IN ('post comments', 'upload files to comments', 'create forum topics', 'upload files')")->execute();
+    $permissions = array();
+    foreach($results2 as $row2){
+      $permissions[] = $row2->permission;
+    }
+    if(count($permissions<4)){
+      // We don't have all the permissions, list the ones we have.
+      if($phase == 'runtime'){
+        $requirements['femail_permissions']['value'] .= '<li>' . $roles[$row->rid] .':'. theme('item_list', array('items' => $permissions)) . '</li>';        
       }
+      $requirements['femail_permissions']['severity'] = REQUIREMENT_WARNING;
     }
   }
   if($phase == 'runtime'){
@@ -285,8 +295,8 @@ function femail_schema(){
  * Implementation of hook_uninstall
  */
 function femail_uninstall(){
-  // Delete variables
-  variable_del('femail_emails');
   // FIXME - Should probably remove the filter format, although it may still be
   // in use, so could be risky.
+  // Delete variables
+  variable_del('femail_emails');
 }

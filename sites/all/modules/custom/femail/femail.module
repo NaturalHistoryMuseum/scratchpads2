@@ -1,0 +1,363 @@
+<?php
+
+/**
+ * Implementation of hook_menu
+ */
+function femail_menu(){
+  return array(
+    'user/%user/femail' => array(
+      'title' => 'Forum/E-mail integration',
+      'page callback' => 'femail_user_settings',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'user_edit_access',
+      'access arguments' => array(
+        1
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'femail.pages.inc'
+    ),
+    'femail/verify/%/%' => array(
+      'title' => 'Forum/E-mail integration',
+      'page callback' => 'femail_email_verify',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'femail.pages.inc'
+    ),
+    'femail/remove/%user/%' => array(
+      'title' => 'Forum/E-mail integration',
+      'page callback' => 'femail_email_remove',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'access callback' => 'user_edit_access',
+      'access arguments' => array(
+        2
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'femail.pages.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_og
+ * 
+ * Couldn't really find much documentation for this, so this is a guess!
+ * 
+    module_invoke_all('og', 'admin new', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user approve', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user broadcast', $node->nid, $recipients, $message);
+    module_invoke_all('og', 'user delete', $gid, $uid, $args);
+    module_invoke_all('og', 'user deny', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user insert', $gid, $uid, $args);
+    module_invoke_all('og', 'user request', $gid, $admins, $message);
+    module_invoke_all('og', 'user update', $gid, $uid, $args);
+ * 
+ * Following function temporarily removed until it can be tested with Og 7.
+function femail_og($op, $gid, $uid, $args){
+  switch($op){
+    case 'user insert':
+      // Add the subscription if we're using og_forum
+      if(module_exists('og_forum')){
+        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
+        if($tid && $uid){
+          // Use replace, incase they've already subscribed.
+          db_query('REPLACE INTO {femail_user_subscriptions} (uid, tid) VALUES (%d, %d)', $uid, $tid);
+        }
+      }
+      break;
+    case 'user delete':
+      // Remove the subscription if we're using og_forum
+      if(module_exists('og_forum')){
+        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
+        if($tid && $uid){
+          // Use replace, incase they've already subscribed.
+          db_query('DELETE FROM {femail_user_subscriptions} WHERE uid = %d AND tid = %d', $uid, $tid);
+        }
+      }
+      break;
+    case 'admin new':
+    case 'user approve':
+    case 'user broadcast':
+    case 'user update':
+    case 'user request':
+    case 'user deny':
+      break;
+  }
+}
+ */
+
+/**
+ * Implementation of hook_form_alter
+function femail_form_alter($form, $form_state, $form_id){
+  if($form_id == 'forum_node_form' || $form_id == 'comment_form'){
+    if($form_id == 'forum_node_form'){
+      $part = 'body_field';
+    }else{
+      $part = 'comment_filter';
+    }
+    $format = variable_get('femail_input_format', 4);
+    foreach($form[$part]['format'] as $key => $array){
+      if(is_numeric($key) && isset($array['#default_value'])){
+        $form[$part]['format'][$key]['#default_value'] = $format;
+      }
+    }
+  }
+}
+ */
+
+/**
+ * Implementation of hook_mail
+ */
+function femail_mail($key, &$message, $params){
+  $language = $message['language'];
+  switch($key){
+    case 'verify':
+      $message['subject'] = t('!site requests verification', array(
+        '!site' => variable_get('site_name', 'Drupal')
+      ), $language->language);
+      $message['body'] = t('Please click on the following link to verify your email address');
+      $message['body'] .= "\n\n";
+      $message['body'] .= url('femail/verify/' . $params . '/' . md5($params . variable_get('femail_install_time', 'INSTALLTIME')), array(
+        'absolute' => TRUE
+      ));
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_filter
+ */
+function femail_filter($op, $delta = 0, $format = -1, $text = ''){
+  switch($op){
+    case 'list':
+      return array(
+        t('Femail: Remove signature'),
+        t('Femail: Blockquote reply text')
+      );
+    case 'description':
+      switch($delta){
+        case 0:
+          return t('Removes email signatures from posts created from an email message');
+        case 1:
+          return t('Alters message so that lines starting with ">" are marked as "blockquotes"');
+      }
+    case 'settings':
+      break;
+    case 'no cache':
+      return TRUE;
+    case 'prepare':
+      // Nothing to do here!
+      return $text;
+    case 'process':
+      switch($delta){
+        case 0:
+          return femail_filter_remove_signature($text);
+        case 1:
+          return femail_filter_blockquote($text);
+      }
+    default:
+      return $text;
+  }
+}
+
+/**
+ * Implementation of hook_init
+ * 
+ * Gah!  I hate doing this, I'm adding JS and CSS files on init as there doesn't
+ * seem to be any other location (due to caching) where I can add them.
+ */
+function femail_init(){
+  drupal_add_js(drupal_get_path('module', 'femail') . '/femail.js');
+  drupal_add_css(drupal_get_path('module', 'femail') . '/femail.css');
+}
+
+/**
+ * Helper function for femail_filter
+ */
+function femail_filter_remove_signature($text){
+  // Split by lines, and look for a line that starts with "--".  Anything after
+  // this line is the signature
+  $lines = preg_split('/[\n\r]+/', $text);
+  $return_text = '';
+  $started_sig = FALSE;
+  foreach($lines as $line){
+    if((substr($line, 0, 2) == '--' || substr($line, 0, 5) == '<p>--') && !$started_sig){
+      $return_text .= '<div class="femail-signature"><p>--</p><div>';
+      $line = substr($line, strpos($line, '--') + 2);
+      $started_sig = TRUE;
+    }
+    $return_text .= $line . "\n";
+  }
+  if($started_sig){
+    $return_text .= '</div></div>';
+  }
+  return $return_text;
+}
+
+/**
+ * helper function for femail_filter
+ */
+function femail_filter_blockquote($text){
+  $lines = preg_split('/[\n\r]+/', $text);
+  $return_text = '';
+  $started_block = FALSE;
+  foreach($lines as $line){
+    if(substr($line, 0, 1) == '>' || substr($line, 0, 5) == '&#62;' || substr($line, 0, 4) == '&gt;' || substr($line, 0, 8) == '<p>&#62;' || substr($line, 0, 7) == '<p>&gt;'){
+      if(!$started_block){
+        $return_text .= '<blockquote>';
+      }
+      // We'll remove the ">" if it isn't encoded, then we'll replace the first
+      // instance of an html entity encoded ">"
+      if(substr($line, 0, 1) == '>'){
+        $line = substr($line, 1);
+      }
+      // replace entity encoded ">"
+      $line = preg_replace("/(&#62;|&gt;)/", "", $line, 1);
+      $return_text .= $line . "\n";
+      $started_block = TRUE;
+    }else{
+      if($started_block){
+        $return_text .= '</blockquote>';
+        $started_block = FALSE;
+      }
+      $return_text .= $line . "\n";
+    }
+  }
+  return $return_text;
+}
+
+/**
+ * Implementation of hook_perm
+ */
+function femail_perm(){
+  return array(
+    'post by femail'
+  );
+}
+
+/**
+ * Implementation of hook_theme_registry_alter
+ */
+function femail_theme_registry_alter(&$theme_registry){
+  $theme_registry['forums']['preprocess functions'] = array_merge($theme_registry['forums']['preprocess functions'], array(
+    'template_preprocess_femail_forums'
+  ));
+}
+
+/**
+ * Defined above in hook_theme_registry_alter
+ */
+function template_preprocess_femail_forums(&$variables){
+  if($variables['tid']){
+    // We're viewing a Forum, or a Container, lets check this isn't a container
+    if(!in_array($variables['tid'], variable_get('forum_containers', array()))){
+      // We're viewing a forum
+      $emails = variable_get('femail_emails', array());
+      if(isset($emails[$variables['tid']])){
+        if(user_access('post by femail')){
+          $variables['links']['femail'] = array(
+            'title' => t('Or post by email:') . ' ' . $emails[$variables['tid']],
+            'href' => 'mailto:' . $emails[$variables['tid']],
+            'absolute' => TRUE
+          );
+        }
+      }else{
+        // This should be set, we need to warn the admin
+        watchdog('femail', 'Femail address not set %term_id', array(
+          '%term_id',
+          $variables['tid']
+        ));
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy
+ */
+function femail_taxonomy($op, $type, $array = NULL){
+  if($type == 'term'){
+    $emails = variable_get('femail_emails', array());
+    if($op == 'delete'){
+      unset($emails[$array['tid']]);
+      variable_set('femail_emails', $emails);
+    }else{
+      // Check if this is a term from the forum vocab
+      if($array['vid'] == variable_get('forum_nav_vocabulary', 0)){
+        unset($emails[$array['tid']]);
+        global $base_url;
+        $parts = parse_url($base_url);
+        $email = preg_replace("/[^0-9a-z-]/", "", strtolower(str_replace(" ", "-", $array['name'])));
+        // Make sure this email isn't already in use.
+        if(array_search($email . '@' . $parts['host'], $emails)){
+          $i = 2;
+          while(array_search($email . "_" . $i . '@' . $parts['host'], $emails)){
+            $i++;
+          }
+          $email = $email . "_" . $i;
+        }
+        // Set it and save it
+        $emails[$array['tid']] = $email . '@' . $parts['host'];
+        variable_set('femail_emails', $emails);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_user
+ */
+function femail_user($op, &$edit, &$account, $category = NULL){
+  if($op == 'delete'){
+    db_query('DELETE FROM {femail_user_subscriptions} WHERE uid = %d', $account->uid);
+  }
+}
+
+/**
+ * Implementation of hook_comment
+ */
+function femail_comment($comment, $op){
+  if($op == 'publish'){
+    $comment = @(array)$comment;
+    $node = node_load($comment['nid']);
+    if(isset($node->forum_tid) && $node->forum_tid){
+      // Get the parent msgid so that we can set the "In-reply-to" header, Note,
+      // this may not be set if there are no users subscribed to the forum, OR
+      // if the only user subscribed posted the comment.  We'll still caryy on
+      // trying to send the message though.
+      $row = db_fetch_array(db_query("SELECT msgid FROM {femail_msgs} WHERE nid = %d AND cid = %d", $node->nid, $comment['pid'] ? $comment['pid'] : 0));
+      // Include file
+      module_load_include('mail.inc', 'femail');
+      if(is_array($row)){
+        _femail_send_message($node->forum_tid, $comment['subject'], $comment['comment'], $node->nid, $comment['files'], $comment['cid'], array_pop($row));
+      }else{
+        _femail_send_message($node->forum_tid, $comment['subject'], $comment['comment'], $node->nid, $comment['files'], $comment['cid']);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi
+ */
+function femail_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
+  if(($op == 'insert' || $op == 'update') && $node->type == 'forum' && $node->status){
+    // We've added/updated a forum post, lets mail it out
+    // First, we'll get the forum that this has been posted to.
+    $forum_tid = $node->taxonomy[variable_get('forum_nav_vocabulary', 0)];
+    if($forum_tid){
+      module_load_include('mail.inc', 'femail');
+      _femail_send_message($forum_tid, $node->title, $node->body, $node->nid, $node->files);
+    }
+  }
+}
