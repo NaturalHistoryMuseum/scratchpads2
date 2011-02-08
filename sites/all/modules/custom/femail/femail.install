@@ -40,11 +40,14 @@ function femail_install(){
   // Set the install time for use in hashes
   variable_set('femail_install_time', time());
   // Set a message to tell users to go and set the permission.
-  // FIXME - The following fragment doesn't work as expected - this needs to be
+  // FIXME - The url fragment doesn't work as expected - this needs to be
   // altered.
   drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
     '!url' => url(current_path(), array('fragment' => 'overlay=admin/people/permissions'))
   )));
+  // FIXME - Add a file field to the forum content type, and to the forum
+  // comments content type.
+  // FIXME - Add the input format.
   // Add a new input format specifically for Forum posts sent by email.
   /*
   module_load_include('admin.inc', 'filter');
@@ -110,9 +113,6 @@ function femail_requirements($phase){
     ),
     'femail_permissions' => array(
       'title' => $t('Femail: User permissions')
-    ),
-    'femail_forum_comment_upload' => array(
-      'title' => $t('Femail: Comments & comment upload')
     )
   );
   // Check that we have the mailparse functions installed
@@ -159,55 +159,33 @@ function femail_requirements($phase){
       $requirements['femail_mx']['value'] = $t('No MX Records found');
     }
   }
-  // Check for comment_upload module, and that it is set for the forum content
-  // type.
-  if(module_exists('comment_upload')){
-    if(variable_get('comment_upload_forum', FALSE)){
-      $requirements['femail_forum_comment_upload']['severity'] = REQUIREMENT_OK;
-      if($phase == 'runtime'){
-        $requirements['femail_forum_comment_upload']['value'] = $t('Comment Upload module enabled and correctly setup.');
-      }
-    }else{
-      $requirements['femail_forum_comment_upload']['severity'] = REQUIREMENT_WARNING;
-      if($phase == 'runtime'){
-        $requirements['femail_forum_comment_upload']['value'] = $t('Comment Upload module enabled but incorrectly setup.  Please enable uploads for comments on the Forum content type');
-      }
-    }
-  }else{
-    // Give a polite message that this module "ROCKS" when the comment_upload 
-    // module is also enabled.
-    $requirements['femail_forum_comment_upload']['severity'] = REQUIREMENT_WARNING;
-    if($phase == 'runtime'){
-      $requirements['femail_forum_comment_upload']['value'] = $t('We recommend using this module with the <a href="http://drupal.org/project/comment_upload">Comment upload</a> module.');
-    }
-  }
   // Check the permissions, and give a warning if any roles have the post by
   // femail permission, but don't have sufficient privileges to post files.
   $requirements['femail_permissions']['severity'] = REQUIREMENT_OK;
   $roles = user_roles();
   if($phase == 'runtime'){
-    $requirements['femail_permissions']['value'] = '<p>The following roles do not have all the recommended permissions ("post comments"; "upload files to comments"; "create forum topics"; "upload files")<ul>';
+    $requirements['femail_permissions']['value'] = '<p>The following roles, that have the permission "post by femail", do not have all the recommended permissions ("post comments"; "create forum content")<ul>';
   }
   $results = db_select('role_permission', 'r')->fields('r', array('rid'))->condition('permission', 'post by femail')->execute();
   foreach($results as $row){
     // Here we have a role that is able to "post by femail", lets check they
     // have the correct permissions.
-    $results2 = db_select('role_permission', 'r')->fields('r', array('permission'))->condition('rid', $row->rid)->where("permission IN ('post comments', 'upload files to comments', 'create forum topics', 'upload files')")->execute();
+    $results2 = db_select('role_permission', 'r')->fields('r', array('permission'))->condition('rid', $row->rid)->where("permission IN ('post comments', 'create forum content')")->execute();
     $permissions = array();
     foreach($results2 as $row2){
       $permissions[] = $row2->permission;
     }
-    if(count($permissions<4)){
+    if(count($permissions)<2){
       // We don't have all the permissions, list the ones we have.
       if($phase == 'runtime'){
-        $requirements['femail_permissions']['value'] .= '<li>' . $roles[$row->rid] .':'. theme('item_list', array('items' => $permissions)) . '</li>';        
+        $requirements['femail_permissions']['value'] .= '<li>'.t('Role "!role" only has:', array('!role' => $roles[$row->rid])) . theme('item_list', array('items' => $permissions)) . '</li>';        
       }
       $requirements['femail_permissions']['severity'] = REQUIREMENT_WARNING;
     }
   }
   if($phase == 'runtime'){
     if($requirements['femail_permissions']['severity'] == REQUIREMENT_OK){
-      $requirements['femail_permissions']['value'] = $t('All roles with the permission "post by femail" have the other required permissions "post comments"; "upload files to comments"; "create forum topics"; "upload files"');
+      $requirements['femail_permissions']['value'] = $t('All roles with the permission "post by femail" have the other required permissions "post comments"; "create forum content"');
     }else{
       $requirements['femail_permissions']['value'] .= '</ul></p>';
     }
