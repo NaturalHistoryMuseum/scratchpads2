@@ -5,6 +5,6 @@ files[] = femail.module
 files[] = femail.install
 files[] = femail.admin.inc
 scripts[] = js/femail.js
-stylesheets[] = css/femail.css
+stylesheets[all][] = css/femail.css
 dependencies[] = forum
 package = Scratchpads
