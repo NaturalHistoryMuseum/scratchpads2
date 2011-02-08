@@ -46,7 +46,8 @@ function femail_menu_local_tasks_alter(&$data, $router_item, $root_path){
                   '@node_type' => node_type_get_name($type)
                 )),
                 'href' => 'mailto:' . $emails[$tid]
-              )
+              ),
+              '#weight' => 100
             );
           }
         }
