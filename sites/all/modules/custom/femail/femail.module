@@ -268,16 +268,6 @@ function femail_filter_blockquote_reply_process($text, $filter, $format, $langco
 }
 
 /**
- * Implementation of hook_theme_registry_alter
- * 
- * THIS IS NO LONGER REQUIRED.  INSTEAD USE "hook_page_alter"
-function femail_theme_registry_alter(&$theme_registry){
-  $theme_registry['forums']['preprocess functions'] = array_merge($theme_registry['forums']['preprocess functions'], array(
-    'template_preprocess_femail_forums'
-  ));
-}
- */
-/**
  * Defined above in hook_theme_registry_alter
  */
 function template_preprocess_femail_forums(&$variables){
