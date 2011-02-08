@@ -37,8 +37,6 @@ function hashcash_schema(){
  * Kick that loser to touch.
  */
 function hashcash_uninstall(){
-  // Remove tables.
-  drupal_uninstall_schema('hashcash');
   // Delete variables.
   variable_del('hashcash_expire');
   variable_del('hashcash_form_ids');
