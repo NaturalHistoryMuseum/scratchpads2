@@ -298,6 +298,8 @@ function template_preprocess_femail_forums(&$variables){
 
 /**
  * Implementation of hook_taxonomy
+ * 
+ * FIXME - These need altering to use hook_taxonomy_term_[load|save|insert|update]
  */
 function femail_taxonomy($op, $type, $array = NULL){
   if($type == 'term'){
