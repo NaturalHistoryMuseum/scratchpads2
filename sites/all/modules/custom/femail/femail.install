@@ -3,7 +3,6 @@
 /**
  * 7.x
  */
-
 /**
  * Implementation of hook_install
  */
@@ -13,7 +12,10 @@ function femail_install(){
   $forum_containers = variable_get('forum_containers', array());
   // Select the name of the forums
   $dbs = db_select('taxonomy_term_data', 't');
-  $dbs->fields('t', array('name', 'tid'));
+  $dbs->fields('t', array(
+    'name',
+    'tid'
+  ));
   $dbs->condition('vid', variable_get('forum_nav_vocabulary'));
   // No containers
   if($forum_containers){
@@ -47,56 +49,54 @@ function femail_install(){
   // FIXME - The url fragment doesn't work as expected - this needs to be
   // altered.
   drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
-    '!url' => url(current_path(), array('fragment' => 'overlay=admin/people/permissions'))
+    '!url' => url(current_path(), array(
+      'fragment' => 'overlay=admin/people/permissions'
+    ))
   )));
-  // FIXME - Add a file field to the forum content type, and to the forum
-  // comments content type.
-  // FIXME - Add the input format.
-  // Add a new input format specifically for Forum posts sent by email.
-  /*
-  module_load_include('admin.inc', 'filter');
-  $roles = user_roles(TRUE);
-  $form_state = array(
-    'values' => array(
-      'name' => 'Femail mail message',
-      'filters' => array(
-        'femail/0' => TRUE,
-        'femail/1' => TRUE,
-        'filter/0' => TRUE,
-        'filter/1' => TRUE,
-        'filter/2' => TRUE
-      ),
-      'roles' => $roles
-    )
-  );
-  filter_admin_format_form_submit(NULL, $form_state);
-  // Update the allowed tags for this format
-  $format = db_result(db_query("SELECT MAX(format) AS format FROM {filter_formats}"));
-  variable_set('allowed_html_' . $format, '');
-  // Finally set a variable so that we know what the id is of this format
-  variable_set('femail_input_format', $format);
-  // Set the order, so that the line break thingy is after the html thingy
-  // and also set a few variables.
-  variable_set('allowed_html_' . $format, '');
-  variable_set('filter_html_' . $format, '2');
-  variable_set('filter_html_help_' . $format, 1);
-  variable_set('filter_html_nofollow_' . $format, 0);
-  variable_set('filter_url_length_' . $format, '72');
-  // Set the order, so that the line break thingy is after the html thingy
-  $form_state = array(
-    'values' => array(
-      'weights' => array(
-        'filter/0' => -10,
-        'filter/1' => -9,
-        'filter/2' => -8,
-        'femail/0' => -7,
-        'femail/1' => -6
-      ),
-      'format' => $format
-    )
-  );
-  filter_admin_order_submit(NULL, $form_state);
-  */
+  // Create a file field that will can be used by both the comment and forum
+  // entities.
+  $new_field = field_create_field(array(
+    'field_name' => 'femail_files',
+    'type' => 'file',
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'locked' => TRUE
+  ));
+  // Check to see if the Forum/Comments have files.
+  // Check comments first
+  module_load_include('info.inc', 'field');
+  $field_instance = field_info_instances('comment', 'comment_node_forum');
+  $file_field_found = FALSE;
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $file_field_found = TRUE;
+    }
+  }
+  if(!$file_field_found){
+    // We didn't find a file field, so lets add the $new_field
+    field_create_instance(array(
+      'field_name' => 'femail_files',
+      'entity_type' => 'comment',
+      'bundle' => 'comment_node_forum',
+      'label' => 'Files'
+    ));
+  }
+  // Next check the forum content type.
+  $field_instance = field_info_instances('node', 'forum');
+  $file_field_found = FALSE;
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $file_field_found = TRUE;
+    }
+  }
+  if(!$file_field_found){
+    // We didn't find a file field, so lets add the $new_field
+    field_create_instance(array(
+      'field_name' => 'femail_files',
+      'entity_type' => 'node',
+      'bundle' => 'forum',
+      'label' => 'Files'
+    ));
+  }
 }
 
 /**
@@ -170,19 +170,27 @@ function femail_requirements($phase){
   if($phase == 'runtime'){
     $requirements['femail_permissions']['value'] = '<p>The following roles, that have the permission "post by femail", do not have all the recommended permissions ("post comments"; "create forum content")<ul>';
   }
-  $results = db_select('role_permission', 'r')->fields('r', array('rid'))->condition('permission', 'post by femail')->execute();
+  $results = db_select('role_permission', 'r')->fields('r', array(
+    'rid'
+  ))->condition('permission', 'post by femail')->execute();
   foreach($results as $row){
     // Here we have a role that is able to "post by femail", lets check they
     // have the correct permissions.
-    $results2 = db_select('role_permission', 'r')->fields('r', array('permission'))->condition('rid', $row->rid)->where("permission IN ('post comments', 'create forum content')")->execute();
+    $results2 = db_select('role_permission', 'r')->fields('r', array(
+      'permission'
+    ))->condition('rid', $row->rid)->where("permission IN ('post comments', 'create forum content')")->execute();
     $permissions = array();
     foreach($results2 as $row2){
       $permissions[] = $row2->permission;
     }
-    if(count($permissions)<2){
+    if(count($permissions) < 2){
       // We don't have all the permissions, list the ones we have.
       if($phase == 'runtime'){
-        $requirements['femail_permissions']['value'] .= '<li>'.t('Role "!role" only has:', array('!role' => $roles[$row->rid])) . theme('item_list', array('items' => $permissions)) . '</li>';        
+        $requirements['femail_permissions']['value'] .= '<li>' . t('Role "!role" only has:', array(
+          '!role' => $roles[$row->rid]
+        )) . theme('item_list', array(
+          'items' => $permissions
+        )) . '</li>';
       }
       $requirements['femail_permissions']['severity'] = REQUIREMENT_WARNING;
     }
@@ -195,6 +203,8 @@ function femail_requirements($phase){
     }
   }
   // FIXME - Need to add a check that drush is properly installed.
+  // FIXME - Need to add a check that the forum and forum/comment entities both
+  // have file fields
   return $requirements;
 }
 

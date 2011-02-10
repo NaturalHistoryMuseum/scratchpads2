@@ -112,6 +112,7 @@ function femail_menu(){
     )
   );
 }
+
 /**
  * Implementation of hook_mail
  */
@@ -133,26 +134,6 @@ function femail_mail($key, &$message, $params){
       break;
   }
 }
-// -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
-
-/**
- * Implementation of hook_form_alter
-function femail_form_alter($form, $form_state, $form_id){
-  if($form_id == 'forum_node_form' || $form_id == 'comment_form'){
-    if($form_id == 'forum_node_form'){
-      $part = 'body_field';
-    }else{
-      $part = 'comment_filter';
-    }
-    $format = variable_get('femail_input_format', 4);
-    foreach($form[$part]['format'] as $key => $array){
-      if(is_numeric($key) && isset($array['#default_value'])){
-        $form[$part]['format'][$key]['#default_value'] = $format;
-      }
-    }
-  }
-}
- */
 
 /**
  * Implementation of hook_filter_info
@@ -244,77 +225,60 @@ function femail_theme($existing, $type, $theme, $path){
 }
 
 /**
- * Implementation of hook_taxonomy
- * 
- * FIXME - These need altering to use hook_taxonomy_term_[load|save|insert|update]
+ * Implementation of hook_taxonomy_term_delete
  */
-function femail_taxonomy($op, $type, $array = NULL){
-  if($type == 'term'){
+function femail_taxonomy_term_delete($term){
+  $emails = variable_get('femail_emails', array());
+  unset($emails[$term->tid]);
+  variable_set('femail_emails', $emails);
+}
+
+/**
+ * Implementation of hook_taxonomy_term_update
+ */
+function femail_taxonomy_term_update($term){
+  // Simply call insert
+  //femail_taxonomy_term_delete($term);
+  femail_taxonomy_term_insert($term);
+}
+
+/**
+ * Implementation of hook_taxonomy_term_insert
+ */
+function femail_taxonomy_term_insert($term){
+  // Check that we're handling a term from the forum vocabulary.
+  if($term->vid == variable_get('forum_nav_vocabulary', 0)){
     $emails = variable_get('femail_emails', array());
-    if($op == 'delete'){
-      unset($emails[$array['tid']]);
-      variable_set('femail_emails', $emails);
-    }else{
-      // Check if this is a term from the forum vocab
-      if($array['vid'] == variable_get('forum_nav_vocabulary', 0)){
-        unset($emails[$array['tid']]);
-        global $base_url;
-        $parts = parse_url($base_url);
-        $email = preg_replace("/[^0-9a-z-]/", "", strtolower(str_replace(" ", "-", $array['name'])));
-        // Make sure this email isn't already in use.
-        if(array_search($email . '@' . $parts['host'], $emails)){
-          $i = 2;
-          while(array_search($email . "_" . $i . '@' . $parts['host'], $emails)){
-            $i++;
-          }
-          $email = $email . "_" . $i;
-        }
-        // Set it and save it
-        $emails[$array['tid']] = $email . '@' . $parts['host'];
-        variable_set('femail_emails', $emails);
+    unset($emails[$term->tid]);
+    global $base_url;
+    $parts = parse_url($base_url);
+    $email = preg_replace("/[^0-9a-z-]/", "", strtolower(str_replace(" ", "-", $term->name)));
+    // Make sure this email isn't already in use.
+    if(array_search($email . '@' . $parts['host'], $emails)){
+      $i = 2;
+      while(array_search($email . "_" . $i . '@' . $parts['host'], $emails)){
+        $i++;
       }
+      $email = $email . "_" . $i;
     }
+    // Set it and save it
+    $emails[$term->tid] = $email . '@' . $parts['host'];
+    variable_set('femail_emails', $emails);
   }
 }
 
 /**
- * Implementation of hook_user
+ * Implementation of hook_user_delete
  */
-function femail_user($op, &$edit, &$account, $category = NULL){
-  if($op == 'delete'){
-    db_query('DELETE FROM {femail_user_subscriptions} WHERE uid = %d', $account->uid);
-  }
+function femail_user_delete($account){
+  db_delete('femail_user_subscriptions')->condition('uid', $account->uid)->execute();
 }
 
 /**
- * Implementation of hook_comment
+ * Implementation of hook_node_insert
  */
-function femail_comment($comment, $op){
-  if($op == 'publish'){
-    $comment = @(array)$comment;
-    $node = node_load($comment['nid']);
-    if(isset($node->forum_tid) && $node->forum_tid){
-      // Get the parent msgid so that we can set the "In-reply-to" header, Note,
-      // this may not be set if there are no users subscribed to the forum, OR
-      // if the only user subscribed posted the comment.  We'll still caryy on
-      // trying to send the message though.
-      $row = db_fetch_array(db_query("SELECT msgid FROM {femail_msgs} WHERE nid = %d AND cid = %d", $node->nid, $comment['pid'] ? $comment['pid'] : 0));
-      // Include file
-      module_load_include('mail.inc', 'femail');
-      if(is_array($row)){
-        _femail_send_message($node->forum_tid, $comment['subject'], $comment['comment'], $node->nid, $comment['files'], $comment['cid'], array_pop($row));
-      }else{
-        _femail_send_message($node->forum_tid, $comment['subject'], $comment['comment'], $node->nid, $comment['files'], $comment['cid']);
-      }
-    }
-  }
-}
-
-/**
- * Implementation of hook_nodeapi
- */
-function femail_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
-  if(($op == 'insert' || $op == 'update') && $node->type == 'forum' && $node->status){
+function femail_node_insert($node){
+  if($node->type == 'forum' && $node->status){
     // We've added/updated a forum post, lets mail it out
     // First, we'll get the forum that this has been posted to.
     $forum_tid = $node->taxonomy[variable_get('forum_nav_vocabulary', 0)];
@@ -324,6 +288,59 @@ function femail_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
     }
   }
 }
+
+/**
+ * Implementation of hook_node_update
+ */
+function femail_node_update($node){
+  // Do we want to send out a message when a node is updated?  Not sure!  We
+// may make this an option in the future, but for now, this is disabled.
+/*
+   * DISABLED
+   * 
+   * femail_node_insert($node);
+   */
+}
+
+/**
+ * Implementation of hook_comment
+ */
+function femail_comment_publish($comment){
+  $node = node_load($comment->nid);
+  if(isset($node->forum_tid) && $node->forum_tid){
+    // Get the parent msgid so that we can set the "In-reply-to" header, Note,
+    // this may not be set if there are no users subscribed to the forum, OR
+    // if the only user subscribed posted the comment.  We'll still caryy on
+    // trying to send the message though.
+    $msgid = db_select('femail_msgs', 'f')->fields('f', array(
+      'msgid'
+    ))->condition('nid', $node->nid)->condition('cid', $comment->pid ? $comment->pid : 0)->execute()->fetchField();
+    // Include file
+    module_load_include('mail.inc', 'femail');
+    // FIXME - Needs the "files" stuff changing.
+    drupal_set_message(print_r($comment, 1));
+     //_femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $comment->files, $comment->cid, $msgid);
+  }
+}
+// -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
+/**
+ * Implementation of hook_form_alter
+function femail_form_alter($form, $form_state, $form_id){
+  if($form_id == 'forum_node_form' || $form_id == 'comment_form'){
+    if($form_id == 'forum_node_form'){
+      $part = 'body_field';
+    }else{
+      $part = 'comment_filter';
+    }
+    $format = variable_get('femail_input_format', 4);
+    foreach($form[$part]['format'] as $key => $array){
+      if(is_numeric($key) && isset($array['#default_value'])){
+        $form[$part]['format'][$key]['#default_value'] = $format;
+      }
+    }
+  }
+}
+ */
 
 /**
  * Implementation of hook_og
