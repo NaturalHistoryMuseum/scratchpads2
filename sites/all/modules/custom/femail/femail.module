@@ -281,7 +281,8 @@ function femail_node_insert($node){
   if($node->type == 'forum' && $node->status){
     // We've added/updated a forum post, lets mail it out
     // First, we'll get the forum that this has been posted to.
-    $forum_tid = $node->taxonomy[variable_get('forum_nav_vocabulary', 0)];
+    drupal_set_message('<pre>'.print_r($node, 1).'</pre>');
+    $forum_tid = $node->taxonomy_forums['und'][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
       // FIXME - Needs the files stuff fixing (as with comments below).

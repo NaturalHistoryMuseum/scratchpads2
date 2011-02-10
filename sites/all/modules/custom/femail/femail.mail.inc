@@ -7,10 +7,10 @@
  */
 function _femail_get_emails($tid, $account){
   // We'll let our SQL do the magic
-  $results = db_query("SELECT DISTINCT CONCAT('<', LOWER(mail), '>') as mail FROM {users} u, {femail_user_subscriptions} f WHERE u.uid = f.uid AND (tid = %d OR tid = 0) AND u.uid != %d", $tid, $account->uid);
+  $results = db_query("SELECT DISTINCT CONCAT('<', LOWER(mail), '>') as mail FROM {users} u, {femail_user_subscriptions} f WHERE u.uid = f.uid AND (tid = :tid OR tid = 0) AND u.uid != :uid", array(':tid' => $tid, ':uid' => $account->uid));
   $emails = array();
-  while($row = db_fetch_array($results)){
-    $emails[] = $row['mail'];
+  foreach($results as $row){
+    $emails[] = $row->mail;
   }
   return $emails;
 }
