@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * 7.x
+ */
+
+/**
  * Implementation of hook_install
  */
 function femail_install(){
@@ -190,6 +194,7 @@ function femail_requirements($phase){
       $requirements['femail_permissions']['value'] .= '</ul></p>';
     }
   }
+  // FIXME - Need to add a check that drush is properly installed.
   return $requirements;
 }
 

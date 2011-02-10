@@ -1,7 +1,9 @@
 <?php
 
 /**
+ * 7.x
  * 
+ * femail.module
  */
 /**
  * Implementation of hook_permission
@@ -110,54 +112,29 @@ function femail_menu(){
     )
   );
 }
-
 /**
- * Implementation of hook_og
- * 
- * Couldn't really find much documentation for this, so this is a guess!
- * 
-    module_invoke_all('og', 'admin new', $node->nid, $account->uid, $message);
-    module_invoke_all('og', 'user approve', $node->nid, $account->uid, $message);
-    module_invoke_all('og', 'user broadcast', $node->nid, $recipients, $message);
-    module_invoke_all('og', 'user delete', $gid, $uid, $args);
-    module_invoke_all('og', 'user deny', $node->nid, $account->uid, $message);
-    module_invoke_all('og', 'user insert', $gid, $uid, $args);
-    module_invoke_all('og', 'user request', $gid, $admins, $message);
-    module_invoke_all('og', 'user update', $gid, $uid, $args);
- * 
- * Following function temporarily removed until it can be tested with Og 7.
-function femail_og($op, $gid, $uid, $args){
-  switch($op){
-    case 'user insert':
-      // Add the subscription if we're using og_forum
-      if(module_exists('og_forum')){
-        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
-        if($tid && $uid){
-          // Use replace, incase they've already subscribed.
-          db_query('REPLACE INTO {femail_user_subscriptions} (uid, tid) VALUES (%d, %d)', $uid, $tid);
-        }
-      }
-      break;
-    case 'user delete':
-      // Remove the subscription if we're using og_forum
-      if(module_exists('og_forum')){
-        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
-        if($tid && $uid){
-          // Use replace, incase they've already subscribed.
-          db_query('DELETE FROM {femail_user_subscriptions} WHERE uid = %d AND tid = %d', $uid, $tid);
-        }
-      }
-      break;
-    case 'admin new':
-    case 'user approve':
-    case 'user broadcast':
-    case 'user update':
-    case 'user request':
-    case 'user deny':
+ * Implementation of hook_mail
+ */
+function femail_mail($key, &$message, $params){
+  $language = $message['language'];
+  switch($key){
+    case 'verify':
+      $message['subject'] = t('!site requests verification', array(
+        '!site' => variable_get('site_name', 'Drupal')
+      ), array(
+        'langcode' => $language->language
+      ));
+      $message['body'] = array(
+        t('Please click on the following link to verify your email address'),
+        url('femail/verify/' . $message['to'] . '/' . md5($message['to'] . variable_get('femail_install_time', 'INSTALLTIME')), array(
+          'absolute' => TRUE
+        ))
+      );
       break;
   }
 }
- */
+// -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
+
 /**
  * Implementation of hook_form_alter
 function femail_form_alter($form, $form_state, $form_id){
@@ -176,24 +153,6 @@ function femail_form_alter($form, $form_state, $form_id){
   }
 }
  */
-/**
- * Implementation of hook_mail
- */
-function femail_mail($key, &$message, $params){
-  $language = $message['language'];
-  switch($key){
-    case 'verify':
-      $message['subject'] = t('!site requests verification', array(
-        '!site' => variable_get('site_name', 'Drupal')
-      ), $language->language);
-      $message['body'] = t('Please click on the following link to verify your email address');
-      $message['body'] .= "\n\n";
-      $message['body'] .= url('femail/verify/' . $params . '/' . md5($params . variable_get('femail_install_time', 'INSTALLTIME')), array(
-        'absolute' => TRUE
-      ));
-      break;
-  }
-}
 
 /**
  * Implementation of hook_filter_info
@@ -203,12 +162,12 @@ function femail_filter_info(){
     'femail_remove_sig' => array(
       'title' => t('Femail: Remove signature'),
       'description' => t('Hides any text marked as a signature according to <a href="http://tools.ietf.org/html/rfc3676#section-4.3">http://tools.ietf.org/html/rfc3676#section-4.3</a>'),
-      'process callback' => 'femail_filter_remove_sig_process'
+      'process callback' => '_femail_filter_remove_sig_process'
     ),
     'femail_blockquote_reply' => array(
       'title' => t('Femail: Blockquote reply text'),
       'description' => t('Wraps &lt;blockquote&gt tags around portions of an email message whose lines start with ">"'),
-      'process callback' => 'femail_filter_blockquote_reply_process'
+      'process callback' => '_femail_filter_blockquote_reply_process'
     )
   );
 }
@@ -216,7 +175,7 @@ function femail_filter_info(){
 /**
  * Implementation of hook_filter_FILTER_process
  */
-function femail_filter_remove_sig_process($text, $filter, $format, $langcode, $cache, $cache_id){
+function _femail_filter_remove_sig_process($text, $filter, $format, $langcode, $cache, $cache_id){
   // Split by lines, and look for a line that starts with "--".  Anything after
   // this line is the signature
   $lines = preg_split('/[\n\r]+/', $text);
@@ -239,7 +198,7 @@ function femail_filter_remove_sig_process($text, $filter, $format, $langcode, $c
 /**
  * Implementation of hook_filter_FILTER_process
  */
-function femail_filter_blockquote_reply_process($text, $filter, $format, $langcode, $cache, $cache_id){
+function _femail_filter_blockquote_reply_process($text, $filter, $format, $langcode, $cache, $cache_id){
   $lines = preg_split('/[\n\r]+/', $text);
   $return_text = '';
   $started_block = FALSE;
@@ -269,31 +228,19 @@ function femail_filter_blockquote_reply_process($text, $filter, $format, $langco
 }
 
 /**
- * Defined above in hook_theme_registry_alter
+ * Implementation of hook_theme
  */
-function template_preprocess_femail_forums(&$variables){
-  if($variables['tid']){
-    // We're viewing a Forum, or a Container, lets check this isn't a container
-    if(!in_array($variables['tid'], variable_get('forum_containers', array()))){
-      // We're viewing a forum
-      $emails = variable_get('femail_emails', array());
-      if(isset($emails[$variables['tid']])){
-        if(user_access('post by femail')){
-          $variables['links']['femail'] = array(
-            'title' => t('Or post by email:') . ' ' . $emails[$variables['tid']],
-            'href' => 'mailto:' . $emails[$variables['tid']],
-            'absolute' => TRUE
-          );
-        }
-      }else{
-        // This should be set, we need to warn the admin
-        watchdog('femail', 'Femail address not set %term_id', array(
-          '%term_id',
-          $variables['tid']
-        ));
-      }
-    }
-  }
+function femail_theme($existing, $type, $theme, $path){
+  return array(
+    'femail_box' => array(
+      'variables' => array(
+        'title' => NULL,
+        'content' => NULL,
+        'region' => 'main'
+      ),
+      'file' => 'femail.pages.inc'
+    )
+  );
 }
 
 /**
@@ -377,3 +324,50 @@ function femail_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
     }
   }
 }
+
+/**
+ * Implementation of hook_og
+ * 
+ * Couldn't really find much documentation for this, so this is a guess!
+ * 
+    module_invoke_all('og', 'admin new', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user approve', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user broadcast', $node->nid, $recipients, $message);
+    module_invoke_all('og', 'user delete', $gid, $uid, $args);
+    module_invoke_all('og', 'user deny', $node->nid, $account->uid, $message);
+    module_invoke_all('og', 'user insert', $gid, $uid, $args);
+    module_invoke_all('og', 'user request', $gid, $admins, $message);
+    module_invoke_all('og', 'user update', $gid, $uid, $args);
+ * 
+ * Following function temporarily removed until it can be tested with Og 7.
+function femail_og($op, $gid, $uid, $args){
+  switch($op){
+    case 'user insert':
+      // Add the subscription if we're using og_forum
+      if(module_exists('og_forum')){
+        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
+        if($tid && $uid){
+          // Use replace, incase they've already subscribed.
+          db_query('REPLACE INTO {femail_user_subscriptions} (uid, tid) VALUES (%d, %d)', $uid, $tid);
+        }
+      }
+      break;
+    case 'user delete':
+      // Remove the subscription if we're using og_forum
+      if(module_exists('og_forum')){
+        $tid = db_result(db_query('SELECT tid FROM {og_term} WHERE nid = %d', $gid));
+        if($tid && $uid){
+          // Use replace, incase they've already subscribed.
+          db_query('DELETE FROM {femail_user_subscriptions} WHERE uid = %d AND tid = %d', $uid, $tid);
+        }
+      }
+      break;
+    case 'admin new':
+    case 'user approve':
+    case 'user broadcast':
+    case 'user update':
+    case 'user request':
+    case 'user deny':
+      break;
+  }
+}*/

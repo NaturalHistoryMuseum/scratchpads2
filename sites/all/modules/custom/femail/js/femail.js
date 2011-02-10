@@ -1,5 +1,5 @@
-$(document).ready(function () {
-  $('.femail-signature > p').bind('click', function(e){
-    $(this).parent().children('div').toggle('slow');
+jQuery(document).ready(function () {
+  jQuery('.femail-signature > p').bind('click', function(e){
+    jQuery(this).parent().children('div').toggle('slow');
   });
 });
