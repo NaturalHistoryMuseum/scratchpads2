@@ -1,5 +1,5 @@
 <?php
-// $Id: devel.module,v 1.472 2011/01/04 19:47:31 weitzman Exp $
+// $Id: devel.module,v 1.473 2011/01/16 00:17:13 salvis Exp $
 
 // This module holds functions useful for Drupal development.
 // Please contribute!
@@ -1204,6 +1204,7 @@ function devel_switch_user($name = NULL) {
   if (isset($name) && $account = user_load_by_name($name)) {
     $old_uid = $user->uid;
     $user = $account;
+    $user->timestamp = time() - 9999;
     if (!$old_uid) {
       // Switch from anonymous to authorized.
       drupal_session_regenerate();

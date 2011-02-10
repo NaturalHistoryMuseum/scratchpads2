@@ -1,5 +1,5 @@
 <?php
-// $Id: devel_node_access.module,v 1.62 2011/01/04 19:26:47 weitzman Exp $
+// $Id: devel_node_access.module,v 1.64 2011/01/15 20:16:49 salvis Exp $
 /**
  * @file
  *
@@ -1156,7 +1156,7 @@ function _devel_node_access_get_grant_list($nid, $ng_alter_data) {
 }
 
 /**
- * Implementation of hook_node_access_explain().
+ * Implements hook_node_access_explain().
  */
 function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {

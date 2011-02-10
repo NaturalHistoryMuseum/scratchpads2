@@ -5,9 +5,9 @@ package = Development
 core = 7.x
 tags[] = developer
 
-; Information added by drupal.org packaging script on 2011-01-04
-version = "7.x-1.0"
+; Information added by drupal.org packaging script on 2011-01-16
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "devel"
-datestamp = "1294172175"
+datestamp = "1295179819"
 
