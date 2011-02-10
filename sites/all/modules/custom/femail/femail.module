@@ -284,7 +284,9 @@ function femail_node_insert($node){
     $forum_tid = $node->taxonomy[variable_get('forum_nav_vocabulary', 0)];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
-      _femail_send_message($forum_tid, $node->title, $node->body, $node->nid, $node->files);
+      // FIXME - Needs the files stuff fixing (as with comments below).
+      $files = array();
+      _femail_send_message($forum_tid, $node->title, $node->body, $node->nid, $files);
     }
   }
 }
@@ -318,12 +320,16 @@ function femail_comment_publish($comment){
     // Include file
     module_load_include('mail.inc', 'femail');
     // FIXME - Needs the "files" stuff changing.
+    $files = array();
     drupal_set_message(print_r($comment, 1));
-     //_femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $comment->files, $comment->cid, $msgid);
+    _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
 // -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
 /**
+ * FIXME - This needs to be altered ASAP to ensure that the plain text content
+ * type is being used.
+ * 
  * Implementation of hook_form_alter
 function femail_form_alter($form, $form_state, $form_id){
   if($form_id == 'forum_node_form' || $form_id == 'comment_form'){

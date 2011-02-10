@@ -145,13 +145,15 @@ function _femail_post_comment($msg, $user, $status){
   // First we'll make sure the in-reply-to is in the msgid table, if not, we
   // will have to add this as a new thread.
   if(isset($msg['in-reply-to'])){
-    $result = db_query("SELECT cid, nid FROM {femail_msgs} WHERE msgid = '%s'", $msg['in-reply-to']);
+    //$result = db_query("SELECT cid, nid FROM {femail_msgs} WHERE msgid = '%s'", $msg['in-reply-to']);
+    $row = db_select('femail_msgs', 'f')->fields('f', array('cid', 'nid'))->condition('msgid', $msg['in-reply-to'])->execute()->fetch();
   }else{
     // We need to select the nid and 0 as cid from node where title is the same
     // as the subject line (less "re:")
-    $result = db_query("SELECT 0 AS cid, nid FROM node WHERE title = '%s' AND type = 'forum' LIMIT 1", trim(substr($msg['title'], 3)));
+    //$result = db_query("SELECT 0 AS cid, nid FROM node WHERE title = '%s' AND type = 'forum' LIMIT 1", trim(substr($msg['title'], 3)));
+    $row = db_select('node', 'n')->fields('n', array('0' => 'cid', 'nid'))->condition('title', trim(substr($msg['title'], 3)))->condition('type', 'forum')->execute()->fetch();
   }
-  $row = db_fetch_array($result);
+  
   if($row){
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
@@ -228,7 +230,8 @@ function femail_drush_callback(){
   if($account){
     $user = $account;
   }else{
-    $row = db_fetch_array(db_query("SELECT uid FROM {femail_user_emails} WHERE email = '%s' AND status !=0", $msg['from']));
+    $row = db_select('femail_user_emails', 'f')->fields('f', array('uid'))->condition('email', $msg['from'])->condition('status', '0', '!=')->execute()->fetch();
+    //$row = db_fetch_array(db_query("SELECT uid FROM {femail_user_emails} WHERE email = '%s' AND status !=0", $msg['from']));
     if(is_array($row)){
       $user = user_load(array(
         'uid' => array_pop($row)
