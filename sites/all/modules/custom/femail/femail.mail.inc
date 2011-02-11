@@ -30,10 +30,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
     global $base_url;
     $parts = parse_url($base_url);
     $msgid = '<' . md5(microtime()) . '@' . $parts['host'] . '>';
-    $node = node_load(array(
-      'nid' => $nid
-    ));
-    //db_query("INSERT INTO {femail_msgs} (nid, cid, msgid) VALUES (%d, %d, '%s')", $nid, $cid, $msgid);
+    $node = node_load($nid);
     db_insert('femail_msgs')->fields(array(
       'nid',
       'cid',
