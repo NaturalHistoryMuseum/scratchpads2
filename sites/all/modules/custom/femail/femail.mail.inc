@@ -7,7 +7,12 @@
  */
 function _femail_get_emails($tid, $account){
   // We'll let our SQL do the magic
-  $results = db_query("SELECT DISTINCT CONCAT('<', LOWER(mail), '>') as mail FROM {users} u, {femail_user_subscriptions} f WHERE u.uid = f.uid AND (tid = :tid OR tid = 0) AND u.uid != :uid", array(':tid' => $tid, ':uid' => $account->uid));
+  // Note, we're not using db_select here -> no idea how you would do the concat
+  // below using it (any suggestions anyone?).
+  $results = db_query("SELECT DISTINCT CONCAT('<', LOWER(mail), '>') as mail FROM {users} u, {femail_user_subscriptions} f WHERE u.uid = f.uid AND (tid = :tid OR tid = 0) AND u.uid != :uid", array(
+    ':tid' => $tid,
+    ':uid' => $account->uid
+  ));
   $emails = array();
   foreach($results as $row){
     $emails[] = $row->mail;
@@ -18,7 +23,7 @@ function _femail_get_emails($tid, $account){
 function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $cid = 0, $inreplyto = FALSE){
   global $user;
   $emails = _femail_get_emails($tid, $user);
-  $forum_term = taxonomy_get_term($tid);
+  $forum_term = taxonomy_term_load($tid);
   if(count($emails)){
     $from_emails = variable_get('femail_emails', array());
     $from = ($user->name ? '=?UTF-8?B?' . base64_encode($user->name) . '?= ' : '') . '<' . ($user->mail ? $user->mail : $from_emails[$tid]) . '>';
@@ -28,7 +33,16 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
     $node = node_load(array(
       'nid' => $nid
     ));
-    db_query("INSERT INTO {femail_msgs} (nid, cid, msgid) VALUES (%d, %d, '%s')", $nid, $cid, $msgid);  
+    //db_query("INSERT INTO {femail_msgs} (nid, cid, msgid) VALUES (%d, %d, '%s')", $nid, $cid, $msgid);
+    db_insert('femail_msgs')->fields(array(
+      'nid',
+      'cid',
+      'msgid'
+    ), array(
+      $nid,
+      $cid,
+      $msgid
+    ))->execute();
     if(count($files)){
       $additional_text = "Files:\n";
       foreach($files as $file){
@@ -43,6 +57,8 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
       'id' => 'femail_message',
       'from' => $from,
       'subject' => $subject,
+      // How fucking ridiculous is this that we can no longer send a string as 
+      // the body for a mail message!
       'body' => drupal_wrap_mail(strip_tags($body)),
       'to' => $from_emails[$tid],
       'headers' => array(
@@ -65,6 +81,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
     if($inreplyto){
       $message['headers']['In-reply-to'] = $inreplyto;
     }
-    drupal_mail_send($message);
+    $system = drupal_mail_system('femail', $msgid);
+    $system->mail($message);
   }
 }
