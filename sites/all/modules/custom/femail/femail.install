@@ -117,6 +117,12 @@ function femail_requirements($phase){
     ),
     'femail_permissions' => array(
       'title' => $t('Femail: User permissions')
+    ),
+    'femail_drush' => array(
+      'title' => $t('Femail: Drush installed and in the path')
+    ),
+    'femail_file_fields' => array(
+      'title' => $t('Femail: File fields')
     )
   );
   // Check that we have the mailparse functions installed
@@ -202,9 +208,49 @@ function femail_requirements($phase){
       $requirements['femail_permissions']['value'] .= '</ul></p>';
     }
   }
-  // FIXME - Need to add a check that drush is properly installed.
-  // FIXME - Need to add a check that the forum and forum/comment entities both
-  // have file fields
+  // Checking for Drush.
+  exec('drush', $output_lines, $return_status);
+  $three_lines = array();
+  for($i = 0; $i < 5 && $i < count($output_lines); $i++){
+    $three_lines[$i] = $output_lines[$i];
+  }
+  if($phase == 'runtime'){
+    if(!$return_status){
+      // Drush looks to be installed OK.
+      $requirements['femail_drush']['severity'] = REQUIREMENT_OK;
+      $requirements['femail_drush']['value'] = $t('Drush looks to be installed correctly.  Output of "drush" is:<br/><span style="font-size:80%">').implode("<br/>", $three_lines).'<br/>...</span>';
+    } else {
+      // Drush NOT ok.
+      $requirements['femail_drush']['severity'] = REQUIREMENT_WARNING;
+      $requirements['femail_drush']['value'] = $t('Drush does not look to be installed correctly, please ensure it is in the path for all users (/usr/local/bin/drush is a good start).');      
+    }
+  }
+  // Check comments first
+  $node_field_found = FALSE;
+  $comment_field_found = FALSE;
+  module_load_include('info.inc', 'field');
+  $field_instance = field_info_instances('comment', 'comment_node_forum');
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $comment_field_found = TRUE;
+    }
+  }
+  // Next check the forum content type.
+  $field_instance = field_info_instances('node', 'forum');
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $node_field_found = TRUE;
+    }
+  }
+  if($phase == 'runtime'){
+    if($comment_field_found && $node_field_found){
+      $requirements['femail_file_fields']['severity'] = REQUIREMENT_OK;
+      $requirements['femail_file_fields']['value'] = $t('Both Forum node and Forum node comment entities have a file field.');
+    }else{
+      $requirements['femail_file_fields']['severity'] = REQUIREMENT_WARNING;
+      $requirements['femail_file_fields']['value'] = $t('Please ensure that both the "Forum topic" and the comments for "Forum topic" have a file field.');
+    }
+  }
   return $requirements;
 }
 
@@ -288,8 +334,6 @@ function femail_schema(){
  * Implementation of hook_uninstall
  */
 function femail_uninstall(){
-  // FIXME - Should probably remove the filter format, although it may still be
-  // in use, so could be risky.
   // Delete variables
   variable_del('femail_emails');
 }
