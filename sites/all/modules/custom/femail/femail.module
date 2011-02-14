@@ -281,7 +281,7 @@ function femail_node_insert($node){
   if($node->type == 'forum' && $node->status){
     // We've added/updated a forum post, lets mail it out
     // First, we'll get the forum that this has been posted to.
-    drupal_set_message('<pre>'.print_r($node, 1).'</pre>');
+    //drupal_set_message('<pre>'.print_r($node, 1).'</pre>');
     $forum_tid = $node->taxonomy_forums['und'][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
@@ -322,33 +322,50 @@ function femail_comment_publish($comment){
     module_load_include('mail.inc', 'femail');
     // FIXME - Needs the "files" stuff changing.
     $files = array();
-    drupal_set_message(print_r($comment, 1));
+    //drupal_set_message(print_r($comment, 1));
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
-// -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
+
 /**
  * FIXME - This needs to be altered ASAP to ensure that the plain text content
  * type is being used.
  * 
  * Implementation of hook_form_alter
-function femail_form_alter($form, $form_state, $form_id){
-  if($form_id == 'forum_node_form' || $form_id == 'comment_form'){
-    if($form_id == 'forum_node_form'){
-      $part = 'body_field';
-    }else{
-      $part = 'comment_filter';
-    }
-    $format = variable_get('femail_input_format', 4);
-    foreach($form[$part]['format'] as $key => $array){
-      if(is_numeric($key) && isset($array['#default_value'])){
-        $form[$part]['format'][$key]['#default_value'] = $format;
-      }
-    }
+ */
+function femail_form_alter(&$form, &$form_state, $form_id){
+  drupal_set_message(print_r($form_id, 1));
+  if($form_id == 'forum_node_form'){
+    // Add an after build to shizzle stuff up
+    $form['body']['#pre_render'] = (isset($form['body']['#pre_render']) && is_array($form['body']['#pre_render'])) ? array_merge($form['body']['#pre_render'], array(
+      'femail_after_build'
+    )) : array(
+      'femail_after_build'
+    );
+  }else if($form_id == 'comment_node_forum_form'){
+    $form['comment_body']['#pre_render'] = (isset($form['comment_body']['#pre_render']) && is_array($form['comment_body']['#pre_render'])) ? array_merge($form['comment_body']['#pre_render'], array(
+      'femail_after_build'
+    )) : array(
+      'femail_after_build'
+    );
   }
 }
- */
 
+/**
+ * After build function to enable us to tweak shit.
+ */
+function femail_after_build($element){
+  $element['und'][0]['#format'] = 'plain_text';
+  $new_options = array(
+    $element['und'][0]['format']['format']['#options']['plain_text']
+  );
+  $element['und'][0]['format']['format']['#options'] = $new_options;
+  $element['und'][0]['format']['format']['#default_value'] = 'plain_text';
+  $element['und'][0]['format']['format']['#value'] = 'plain_text';
+  return $element;
+}
+
+// -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
 /**
  * Implementation of hook_og
  * 
