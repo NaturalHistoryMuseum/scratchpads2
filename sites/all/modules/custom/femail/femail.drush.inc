@@ -19,9 +19,9 @@ function femail_drush_help($section){
 function _femail_decode_text($text){
   if(strtolower(substr($text, 0, 8)) == '=?utf-8?'){
     if(strtolower(substr($text, 0, 9)) == '=?utf-8?q'){
-      $text = quoted_printable_decode(substr($text, 10, strpos($text, '?=')-10));
-    } elseif(strtolower(substr($text, 0, 9)) == '=?utf-8?b'){
-      $text = base64_decode(substr($text, 10, strpos($text, '?=')-10));
+      $text = quoted_printable_decode(substr($text, 10, strpos($text, '?=') - 10));
+    }elseif(strtolower(substr($text, 0, 9)) == '=?utf-8?b'){
+      $text = base64_decode(substr($text, 10, strpos($text, '?=') - 10));
     }
   }
   return $text;
@@ -65,7 +65,7 @@ function _femail_get_msg(){
     if(!$body_is_set){
       if(isset($part_data['headers']['content-type'])){
         if(strpos($part_data['headers']['content-type'], 'text/plain') !== FALSE){
-          if($part_data['headers']['content-transfer-encoding'] == 'base64'){
+          if(isset($part_data['headers']['content-transfer-encoding']) && $part_data['headers']['content-transfer-encoding'] == 'base64'){
             $msg['body'] = base64_decode(substr($msg['body'], $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body']));
           }else{
             $msg['body'] = quoted_printable_decode(substr($msg['body'], $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body']));
@@ -90,7 +90,7 @@ function _femail_get_msg(){
       }
     }
     // We'll attempt to save the attachments
-    if(isset($part_data['content-disposition']) && $part_data['content-disposition'] == 'attachment' || $part_data['content-disposition'] == 'inline'){
+    if(isset($part_data['content-disposition']) && ($part_data['content-disposition'] == 'attachment' || $part_data['content-disposition'] == 'inline')){
       // First we check the file extension, and only continue if we're allowed 
       // to
       $allowed_extensions = explode(" ", variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'));
@@ -110,7 +110,7 @@ function _femail_get_msg(){
           // As we're using Drush, we need the server root.
           $temp_name = tempnam(file_directory_temp(), 'fem');
           if($part_data['transfer-encoding'] == 'base64'){
-            file_put_contents($temp_name, base64_decode(substr($original_message, $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body'])));            
+            file_put_contents($temp_name, base64_decode(substr($original_message, $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body'])));
           }else{
             // Default to no decoding.
             file_put_contents($temp_name, substr($original_message, $part_data['starting-pos-body'], $part_data['ending-pos-body'] - $part_data['starting-pos-body']));
@@ -146,14 +146,19 @@ function _femail_post_comment($msg, $user, $status){
   // will have to add this as a new thread.
   if(isset($msg['in-reply-to'])){
     //$result = db_query("SELECT cid, nid FROM {femail_msgs} WHERE msgid = '%s'", $msg['in-reply-to']);
-    $row = db_select('femail_msgs', 'f')->fields('f', array('cid', 'nid'))->condition('msgid', $msg['in-reply-to'])->execute()->fetch();
+    $row = db_select('femail_msgs', 'f')->fields('f', array(
+      'cid',
+      'nid'
+    ))->condition('msgid', $msg['in-reply-to'])->execute()->fetch();
   }else{
     // We need to select the nid and 0 as cid from node where title is the same
     // as the subject line (less "re:")
     //$result = db_query("SELECT 0 AS cid, nid FROM node WHERE title = '%s' AND type = 'forum' LIMIT 1", trim(substr($msg['title'], 3)));
-    $row = db_select('node', 'n')->fields('n', array('0' => 'cid', 'nid'))->condition('title', trim(substr($msg['title'], 3)))->condition('type', 'forum')->execute()->fetch();
+    $row = db_select('node', 'n')->fields('n', array(
+      '0' => 'cid',
+      'nid'
+    ))->condition('title', trim(substr($msg['title'], 3)))->condition('type', 'forum')->execute()->fetch();
   }
-  
   if($row){
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
@@ -198,19 +203,34 @@ function _femail_post_forum_topic($msg, $user, $status){
   // Get the tid of the forum that this post will go into
   $emails = variable_get('femail_emails', array());
   $tid = array_search($msg['to'], $emails);
-  $term = taxonomy_get_term($tid);
+  $term = taxonomy_term_load($tid);
   $node = new stdClass();
   $node->uid = $user->uid;
-  $node->body = $msg['body'];
-  $node->comment = variable_get('comment_forum', COMMENT_NODE_READ_WRITE);
+  $node->body = array(
+    'und' => array(
+      array(
+        'value' => $msg['body']
+      )
+    )
+  );
+  $node->comment = variable_get('comment_forum', COMMENT_NODE_OPEN);
   $node->title = $msg['title'];
   $node->type = 'forum';
   $node->taxonomy = array(
     $term->vid => $tid
   );
+  $node->taxonomy_forums = array(
+    'und' => array(
+      array(
+        'tid' => $tid
+      )
+    )
+  );
   $node->status = $status;
   $node->format = variable_get('femail_input_format', NULL);
-  $node->files = $msg['files'];
+  if(isset($msg['files'])){
+    $node->files = $msg['files'];
+  }
   node_save($node);
   watchdog('femail', 'Posted forum topic: ' . l($node->title, 'node/' . $node->nid), array(), WATCHDOG_INFO);
 }
@@ -220,26 +240,22 @@ function femail_drush_callback(){
   if(!module_exists('femail')){return;}
   $msg = _femail_get_msg();
   // Check to see this isn't a message that we've just sent out
-  if($msg['reply-to'] == $msg['to']){return;}
+  if(isset($msg['reply-to']) && $msg['reply-to'] == $msg['to']){return;}
   watchdog('femail', "Following message was received:\n\n" . print_r($msg, TRUE), array(), WATCHDOG_INFO);
   // User needed for both comments, and nodes, so load first.
   global $user;
-  $account = user_load(array(
-    'mail' => $msg['from']
-  ));
+  $account = user_load_by_mail($msg['from']);
   if($account){
     $user = $account;
   }else{
-    $row = db_select('femail_user_emails', 'f')->fields('f', array('uid'))->condition('email', $msg['from'])->condition('status', '0', '!=')->execute()->fetch();
+    $row = db_select('femail_user_emails', 'f')->fields('f', array(
+      'uid'
+    ))->condition('email', $msg['from'])->condition('status', '0', '!=')->execute()->fetch();
     //$row = db_fetch_array(db_query("SELECT uid FROM {femail_user_emails} WHERE email = '%s' AND status !=0", $msg['from']));
     if(is_array($row)){
-      $user = user_load(array(
-        'uid' => array_pop($row)
-      ));
+      $user = user_load($row);
     }else{
-      $user = user_load(array(
-        'uid' => 0
-      ));
+      $user = drupal_anonymous_user();
     }
   }
   // Now that we have a UID, we can upload the files.  We'll check for the 

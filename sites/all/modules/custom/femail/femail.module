@@ -334,7 +334,6 @@ function femail_comment_publish($comment){
  * Implementation of hook_form_alter
  */
 function femail_form_alter(&$form, &$form_state, $form_id){
-  drupal_set_message(print_r($form_id, 1));
   if($form_id == 'forum_node_form'){
     // Add an after build to shizzle stuff up
     $form['body']['#pre_render'] = (isset($form['body']['#pre_render']) && is_array($form['body']['#pre_render'])) ? array_merge($form['body']['#pre_render'], array(
@@ -355,13 +354,14 @@ function femail_form_alter(&$form, &$form_state, $form_id){
  * After build function to enable us to tweak shit.
  */
 function femail_after_build($element){
-  $element['und'][0]['#format'] = 'plain_text';
+  // FIXME - Appears to be an issue with setting the input format.
+  /*$element['und'][0]['#format'] = 'plain_text';
   $new_options = array(
     $element['und'][0]['format']['format']['#options']['plain_text']
   );
   $element['und'][0]['format']['format']['#options'] = $new_options;
   $element['und'][0]['format']['format']['#default_value'] = 'plain_text';
-  $element['und'][0]['format']['format']['#value'] = 'plain_text';
+  $element['und'][0]['format']['format']['#value'] = 'plain_text';*/
   return $element;
 }
 
