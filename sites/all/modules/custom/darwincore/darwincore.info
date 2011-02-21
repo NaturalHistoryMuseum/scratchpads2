@@ -1,0 +1,8 @@
+name = "Specimens and Locations (DwC)"
+description = "Provides the Specimen and Location content types based upon the TDWG Darwincore standard"
+package = Scratchpads
+dependencies[] = taxonomy
+core = 7.x
+files[] = darwincore.install
+files[] = darwincore.module
+files[] = darwincore.fields.inc
