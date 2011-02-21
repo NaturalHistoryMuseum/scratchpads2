@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Inorder for the script to work properly, the "drush" script MUST be in the
+# path, and drushrc.php MUST be set up with the root directory of the Drupal
+# install.
+
+TMPFILE=`mktemp`
+# Why is the following step required?  Silly
+chmod 700 $TMPFILE
+# Populate the temp file
+cat <&0 > $TMPFILE
+# Find the domain name
+DOMAIN=`cat $TMPFILE | grep ^Envelope-to | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+# Execute Drush
+echo -n $TMPFILE | drush -l http://$DOMAIN femail

@@ -4,40 +4,39 @@
  * Implementation of hook_schema
  */
 function hashcash_schema(){
-  $schema['hashcash'] = array(
-    'description' => 'Stores the hashcash values that have been submitted, ensuring that none are used twice.',
-    'fields' => array(
-      'hashcash' => array(
-        'description' => 'The hashcash value',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE
+  return array(
+    'hashcash' => array(
+      'description' => 'Stores the hashcash values that have been submitted, ensuring that none are used twice.',
+      'fields' => array(
+        'hashcash' => array(
+          'description' => 'The hashcash value',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'hcdate' => array(
+          'description' => 'When this hashcash was submitted',
+          'type' => 'varchar',
+          'length' => 6,
+          'not null' => TRUE
+        )
       ),
-      'hcdate' => array(
-        'description' => 'When this hashcash was submitted',
-        'type' => 'varchar',
-        'length' => 6,
-        'not null' => TRUE
+      'indexes' => array(
+        'hashcash_date_index' => array(
+          'hcdate'
+        )
+      ),
+      'primary key' => array(
+        'hashcash'
       )
-    ),
-    'indexes' => array(
-      'hashcash_date_index' => array(
-        'hcdate'
-      )
-    ),
-    'primary key' => array(
-      'hashcash'
     )
   );
-  return $schema;
 }
 
 /**
  * Kick that loser to touch.
  */
 function hashcash_uninstall(){
-  // Remove tables.
-  drupal_uninstall_schema('hashcash');
   // Delete variables.
   variable_del('hashcash_expire');
   variable_del('hashcash_form_ids');

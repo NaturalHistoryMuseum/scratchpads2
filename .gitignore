@@ -1,3 +1,5 @@
+.buildpath
 .cache
 .project
 .settings
+monkeydrupal7.after_install.sql

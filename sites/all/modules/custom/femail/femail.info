@@ -1,0 +1,13 @@
+name = "Forum e-mail (femail)"
+description = "Adds e-mail messages to the forum"
+core = 7.x
+files[] = femail.admin.inc
+files[] = femail.drush.inc
+files[] = femail.install
+files[] = femail.mail.inc
+files[] = femail.module
+files[] = femail.pages.inc
+scripts[] = js/femail.js
+stylesheets[all][] = css/femail.css
+dependencies[] = forum
+package = Scratchpads
