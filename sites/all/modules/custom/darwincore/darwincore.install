@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Install file for the Darwincore module
+ */
+function darwincore_install(){
+  // Add the fields to the specimen content type.
+  
+  // Add the fields to the location content type.
+}
+
+/**
+ * In order to avoid confusion, and to make things a little cleaner, the 
+ * "darwincore" content type has been renamed to "specimen", and the 
+ * "darwincorelocation" content type has been renamed to "location".
+ */
+function darwincore_update_7000(){
+  // First, we need to check that there isn't already a conflict with the new
+  // names that we're proposing, if there is, we'll have to rename those!!
+}
