@@ -1,0 +1,16 @@
+<?php
+// $Id
+
+/**
+ * @file
+ * Defines common base features for the various reference field types.
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function references_views_api() {
+  return array(
+    'api' => '3.0',
+  );
+}

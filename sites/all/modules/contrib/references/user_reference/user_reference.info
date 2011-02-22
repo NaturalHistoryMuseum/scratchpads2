@@ -1,0 +1,15 @@
+; $Id: user_reference.info,v 1.1.2.4 2011/02/15 21:11:52 yched Exp $
+name = User Reference
+description = Defines a field type for referencing a user from a node.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = references
+dependencies[] = options
+
+; Information added by drupal.org packaging script on 2011-02-16
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "references"
+datestamp = "1297816283"
+
