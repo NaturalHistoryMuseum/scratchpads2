@@ -13,7 +13,7 @@
  */
 function darwincore_help($path, $arg){
   switch($path){
-    case 'node/add/darwincore':
+    case 'node/add/specimen_observation':
       return t('');// FIXME - Add help text here.
     case 'node/add/darwincorelocation':
       return t('');// FIXME - Add help text here.
@@ -24,14 +24,14 @@ function darwincore_help($path, $arg){
  */
 function darwincore_node_info(){
   return array(
-    'darwincore' => array(
+    'specimen_observation' => array(
       'name' => t('Specimen/Observation'),
-      'base' => 'darwincore',
+      'base' => 'specimen_observation',
       'description' => t('Specimen/Observation data type for storing information about a museum specimen, or field observation.'),
-      'help' => darwincore_help('node/add/darwincore', array()),
+      'help' => darwincore_help('node/add/specimen_observation', array()),
       'has_title' => FALSE,
       'has_body' => FALSE,
-      'locked' => TRUE
+      'locked' => FALSE
     ),
     'darwincorelocation' => array(
       'name' => t('Location'),
@@ -44,3 +44,7 @@ function darwincore_node_info(){
     )
   );
 }
+
+/**
+ * 
+ */

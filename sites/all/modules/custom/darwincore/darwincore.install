@@ -5,8 +5,15 @@
  * Install file for the Darwincore module
  */
 function darwincore_install(){
+  // Rebuild the node types to ensure we have the ones defined by this module.
+  node_types_rebuild();
   // Add the fields to the specimen content type.
-  
+  module_load_include('fields.inc', 'darwincore');
+  $fields = darwincore_fields();
+  foreach($fields as $fieldid => $field){
+    field_create_field($field['field_config']);
+    field_create_instance($field['field_instance']);
+  }
   // Add the fields to the location content type.
 }
 
