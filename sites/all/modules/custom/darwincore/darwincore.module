@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * 
+ * This is the main module file for the Darwincore module.  This provides the 
+ * Specimen and Location content types.
+ * 
+ * Changes from Drupal 6.x
+ */
+/**
+ * Implementation of hook_help
+ */
+function darwincore_help($path, $arg){
+  switch($path){
+    case 'node/add/darwincore':
+      return t('');// FIXME - Add help text here.
+    case 'node/add/darwincorelocation':
+      return t('');// FIXME - Add help text here.
+  }
+}
+/**
+ * Implementation of hook_node_info
+ */
+function darwincore_node_info(){
+  return array(
+    'darwincore' => array(
+      'name' => t('Specimen/Observation'),
+      'base' => 'darwincore',
+      'description' => t('Specimen/Observation data type for storing information about a museum specimen, or field observation.'),
+      'help' => darwincore_help('node/add/darwincore', array()),
+      'has_title' => FALSE,
+      'has_body' => FALSE,
+      'locked' => TRUE
+    ),
+    'darwincorelocation' => array(
+      'name' => t('Location'),
+      'base' => 'darwincorelocation',
+      'description' => t('Location data type for storing localities associated with a Specimen/Observation'),
+      'help' => darwincore_help('node/add/darwincorelocation', array()),
+      'has_title' => FALSE,
+      'has_body' => FALSE,
+      'locked' => TRUE    
+    )
+  );
+}
