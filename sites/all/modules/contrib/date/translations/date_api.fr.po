@@ -1,0 +1,327 @@
+# $Id: date_api.fr.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.2 2009/03/19 23:22:32 karens
+#  date_locale.module,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_tools.module,v 1.1.2.14 2009/03/18 12:43:54 karens
+#  date_api_elements.inc,v 1.49.2.1.2.47 2009/03/25 15:31:42 karens
+#  date_popup.module,v 1.42.2.1.2.43 2009/03/25 15:31:42 karens
+#  date_api_ical.inc,v 1.35.4.26 2009/02/21 12:53:25 karens
+#  date_api_sql.inc,v 1.9.2.3.2.35 2009/02/26 18:48:00 karens
+#  date_admin.inc,v 1.40.2.3.2.38 2009/03/03 15:16:54 karens
+#  date_api_argument_handler.inc,v 1.1.2.36 2009/03/20 18:29:42 karens
+#  date_api.module,v 1.64.2.5.2.78 2009/03/25 12:04:38 karens
+#  date_api.install,v 1.16.2.1.2.19 2009/03/21 10:18:00 karens
+#  date_api.info,v 1.6 2008/02/18 19:32:28 karens
+#  date.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_copy.info,v 1.2 2008/02/18 19:32:28 karens
+#  date_locale.info,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_php4.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_repeat.info,v 1.5 2008/02/18 19:32:29 karens
+#  date_timezone.info,v 1.3.4.1 2008/06/27 14:14:01 karens
+#  date_tools.info,v 1.1.2.1 2009/01/10 20:06:10 karens
+#  date_elements.inc,v 1.46.2.2.2.57 2009/03/20 00:28:33 karens
+#  date_api_filter_handler.inc,v 1.1.2.33 2009/03/25 15:31:42 karens
+#  date_handler_field_multiple.inc,v 1.1.2.12 2009/02/27 14:48:34 karens
+#  date_repeat.inc,v 1.22.2.1.2.22 2009/02/21 12:53:25 karens
+#  date_token.inc,v 1.2.2.1.2.7 2009/03/20 12:07:51 karens
+#  date.module,v 1.61.2.4.2.53 2009/03/19 23:22:32 karens
+#  date.theme,v 1.6.4.42 2009/03/01 22:35:22 karens
+#  date.install,v 1.37.2.5.2.28 2009/03/25 12:04:38 karens
+#  date_copy.module,v 1.16.2.1.2.10 2008/11/01 13:06:26 karens
+#  date_api.views.inc,v 1.1.2.7 2009/03/20 15:03:49 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#  date_repeat_form.inc,v 1.15.4.13 2009/02/16 23:46:08 karens
+#  date_repeat.module,v 1.30.4.11 2009/02/27 16:37:38 karens
+#  date_timezone.module,v 1.18.2.3.2.11 2009/01/13 14:37:48 karens
+#  date_timezone.install,v 1.7.2.2.2.6 2008/09/06 14:20:10 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.9 2009/01/24 00:41:45 karens
+#  theme.inc,v 1.1.4.33 2009/02/17 17:04:31 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal6 date_api module\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-31 16:23+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+
+#: date_api.admin.inc:40;243
+msgid "remove"
+msgstr "supprimer"
+
+#: date_api.admin.inc:48
+msgid "No custom formats configured. Please <a href=\"@link\">add</a> some."
+msgstr "Aucun format personnalisé configuré. Veuiller en <a href=\"@link\">ajouter</a> un."
+
+#: date_api.admin.inc:64
+msgid "Format string"
+msgstr "Formater la chaîne"
+
+#: date_api.admin.inc:66
+msgid "A user-defined date format. See the <a href=\"@url\">PHP manual</a> for available options. This format is currently set to display as <span>%date</span>."
+msgstr "Un format de date défini par l'utilisateur. Veuillez consulter le <a href=\"@url\">manuel PHP</a> pour les options disponibles. Ce format est actuellement défini pour l'affichage comme <span>%date</span>."
+
+#: date_api.admin.inc:72
+msgid "Save configuration"
+msgstr "Enregistrer la configuration"
+
+#: date_api.admin.inc:91
+msgid "Date formats"
+msgstr "Formats de date"
+
+#: date_api.admin.inc:162
+msgid "Are you sure you want to remove the format %format?"
+msgstr "Etes-vous sûr(e) de supprimer le format %format ?"
+
+#: date_api.admin.inc:164;200
+msgid "This action cannot be undone."
+msgstr "Cette action est irréversible."
+
+#: date_api.admin.inc:165;201
+msgid "Remove"
+msgstr "Ôter"
+
+#: date_api.admin.inc:179
+msgid "Removed date format %format."
+msgstr "Le format %format a été supprimé."
+
+#: date_api.admin.inc:198
+msgid "Are you sure you want to remove the format type %format?"
+msgstr "Etes-vous sûr(e) de supprimer le type de format %format ?"
+
+#: date_api.admin.inc:215
+msgid "Removed date format type %format."
+msgstr "Le type de format %format a été supprimé."
+
+#: date_api.admin.inc:231
+msgid "!type date format"
+msgstr "format de date de !type"
+
+#: date_api_elements.inc:404
+msgid "The year must be a number between %min and %max."
+msgstr "Le champ année doit être un nombre compris entre %min et %max."
+
+#: date_api_elements.inc:413
+msgid "The month must be a number between 1 and 12."
+msgstr "Le champ mois doit être un nombre compris entre 1 et 12."
+
+#: date_api_elements.inc:423
+msgid "The day must be a number between !min and !max."
+msgstr "Le champ jour doit être un nombre compris entre !min and !max."
+
+#: date_api_elements.inc:430
+msgid "The hour must be a number between !min and !max."
+msgstr "Le champ heure doit être un nombre compris entre !min and !max."
+
+#: date_api_elements.inc:437
+msgid "The minute must be a number between !min and !max."
+msgstr "Le champ minute doit être un nombre compris entre !min and !max."
+
+#: date_api_elements.inc:444
+msgid "The second must be a number between !min and !max."
+msgstr "Le champ seconde doit être un nombre compris entre !min and !max."
+
+#: date_api_elements.inc:457
+msgid "A valid value is required."
+msgstr "Une valeur valide est requise."
+
+#: date_api_elements.inc:460
+msgid "Field %field has errors."
+msgstr "Le champ %field contient des erreurs."
+
+#: date_api_elements.inc:501
+msgid "A valid date is required for %title."
+msgstr "Une date valide est obligatoire pour %title."
+
+#: date_api_elements.inc:504
+msgid "%title is invalid."
+msgstr "%title n'est pas valide"
+
+#: date_api_ical.inc:86;95;101;122
+msgid "date ical"
+msgstr "date ical"
+
+#: date_api_ical.inc:86
+msgid "HTTP Request Error importing %filename: @error"
+msgstr "Erreur de Requête HTTP lors de l'import de %filename : @error"
+
+#: date_api_ical.inc:95
+msgid "Failed to open file: %filename"
+msgstr "Echec lors de l'ouverture du fichier : %filename"
+
+#: date_api_ical.inc:101
+msgid "Invalid calendar file: %filename"
+msgstr "Fichier calendrier non valide : %filename"
+
+#: date_api_ical.inc:122
+msgid "Invalid calendar file."
+msgstr "Fichier calendrier non valide."
+
+#: date_api.module:421
+msgid "Long"
+msgstr "Long"
+
+#: date_api.module:422
+msgid "Medium"
+msgstr "Moyen"
+
+#: date_api.module:423
+msgid "Short"
+msgstr "Court"
+
+#: date_api.module:529
+msgid "!timezone"
+msgstr "!timezone"
+
+#: date_api.module:615
+msgid "!day-name Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday"
+msgstr "!day-name Dimanche|Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi"
+
+#: date_api.module:616
+msgid "!day-abbreviation Sun|Mon|Tue|Wed|Thu|Fri|Sat"
+msgstr "!day-abbreviation Di|Lu|Ma|Me|Je|Ve|Sa"
+
+#: date_api.module:617
+msgid "!day-abbreviation S|M|T|W|T|F|S"
+msgstr "!day-abbreviation D|L|M|Me|J|V|S"
+
+#: date_api.module:618
+msgid "!day-abbreviation SU|MO|TU|WE|TH|FR|SA"
+msgstr "!day-abbreviation DI|LU|MA|ME|JE|VE|SA"
+
+#: date_api.module:619
+msgid "!ampm-abbreviation am|pm|AM|PM"
+msgstr "ampm-abbreviation am|pm|AM|PM"
+
+#: date_api.module:620
+msgid "!datetime Year|Month|Day|Week|Hour|Minute|Second|All Day|All day"
+msgstr "!datetime Année|Mois|Jour|Semaine|Heure|Minute|Seconde|Toute la Journée|Toute la journée"
+
+#: date_api.module:621
+msgid "!datetime_plural Years|Months|Days|Weeks|Hours|Minutes|Seconds"
+msgstr "!datetime_plural Années|Mois|Jours|Semaines|Heures|Minutes|Secondes"
+
+#: date_api.module:622
+msgid "!date_order Every|First|Second|Third|Fourth|Fifth"
+msgstr "!date_order Tous les|Premier|Deuxième|Troisième|Quatrième|Cinquième"
+
+#: date_api.module:623
+msgid "!date_order |Last|Next to last|Third from last|Fourth from last|Fifth from last"
+msgstr "!date_order |Dernier|Avant-dernier|Avant-avant-dernier|Avant-avant-avant-dernier|Avant-avant-avant-avant-dernier"
+
+#: date_api.module:624
+msgid "!date_nav Prev|Next|Today"
+msgstr "!date_nav Préc.|Suiv.|Auj."
+
+#: date_api.module:627
+msgid "!month-name |January|February|March|April|May|June|July|August|September|October|November|December"
+msgstr "!month-name |Janvier|Février|Mars|Avril|Mai|Juin|Juillet|Août|Septembre|Octobre|Novembre|Décembre"
+
+#: date_api.module:628
+msgid "!month-abbreviation |Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+msgstr "!month-abbreviation |Jan|Fév|Mar|Avr|Mai|Juin|Juil|Août|Sep|Oct|Nov|Déc"
+
+#: date_api.module:735
+msgid "!time ago"
+msgstr "il y a !time"
+
+#: date_api.module:54
+msgid "Formats"
+msgstr "Formats"
+
+#: date_api.module:55;65
+msgid "Allow users to configure date formats"
+msgstr "Permet aux utilisateurs de configurer les formats de date"
+
+#: date_api.module:64
+msgid "Configure"
+msgstr "Configurer"
+
+#: date_api.module:74
+msgid "Date and time lookup"
+msgstr "Consultation de date et heure"
+
+#: date_api.module:80
+msgid "Custom formats"
+msgstr "Formats personnalisés"
+
+#: date_api.module:81
+msgid "Allow users to configure custom date formats."
+msgstr "Permet aux utilisateurs de configurer des formats de date personnalisés."
+
+#: date_api.module:89
+msgid "Add format"
+msgstr "Ajouter un format"
+
+#: date_api.module:90
+msgid "Allow users to add additional date formats."
+msgstr "Permet aux utilisateurs d'ajouter des formats de date additionnels."
+
+#: date_api.module:99
+msgid "Delete date format"
+msgstr "Supprimer le format de date"
+
+#: date_api.module:100
+msgid "Allow users to delete a configured date format."
+msgstr "Permet aux utilisateurs de supprimer un format de date."
+
+#: date_api.module:108
+msgid "Delete date format type"
+msgstr "Supprimer un type de format de date"
+
+#: date_api.module:109
+msgid "Allow users to delete a configured date format type."
+msgstr "Permet aux utilisateurs de supprimer un format de date configuré."
+
+#: date_api.module:0
+msgid "date_api"
+msgstr "date_api"
+
+#: date_api.install:152
+msgid "Per-user timezone name."
+msgstr "Nom du fuseau horaire par utilisateur."
+
+#: date_api.install:286;304;330
+msgid "date module cannot be updated until after Views has been updated. Please return to <a href=\"@update-php\">update.php</a> and run the remaining updates."
+msgstr "Le module date ne peut être mis à jour avant que le module Views n'ait été mis à jour. Veuillez retourner sur la page <a href=\"@update-php\">update.php</a> et exécuter les mises à jour restantes."
+
+#: date_api.install:287;305;331
+msgid "date.module has updates, but cannot be updated until views.module is updated first."
+msgstr "date.module possède des mises à jour, mais ne peut pas être mis à jour si views.module ne l'est pas."
+
+#: (duplicate) date_api.install:234
+msgid "The Date API module requires the <a href=\"@link\">Date PHP4 module</a> for PHP versions less than 5.2."
+msgstr "Le module Date API requiert le <a href=\"@link\">module Date PHP4</a> pour des versions de PHP inférieures à 5.2."
+
+#: (duplicate) date_api.install:238
+msgid "Date API requirements"
+msgstr "Pré-requis pour Date API"
+
+#: date_api.info:0
+#: date_tools/date_tools.module:410
+msgid "Date API"
+msgstr "Date API"
+
+#: date_api.info:0
+msgid "A Date API that can be used by other modules."
+msgstr "Une API de date pouvant être utilisée par d'autres modules"
+
+#: date_api.info:0
+#: date/date.info:0
+#: date_locale/date_locale.info:0
+#: date_php4/date_php4.info:0
+#: date_popup/date_popup.info:0
+#: date_repeat/date_repeat.info:0
+#: date_timezone/date_timezone.info:0
+#: date_tools/date_tools.info:0
+msgid "Date/Time"
+msgstr "Date/Heure"

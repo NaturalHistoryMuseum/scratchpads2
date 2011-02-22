@@ -1,0 +1,491 @@
+# $Id: date_tools.fr.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.2 2009/03/19 23:22:32 karens
+#  date_locale.module,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_tools.module,v 1.1.2.14 2009/03/18 12:43:54 karens
+#  date_api_elements.inc,v 1.49.2.1.2.47 2009/03/25 15:31:42 karens
+#  date_popup.module,v 1.42.2.1.2.43 2009/03/25 15:31:42 karens
+#  date_api_ical.inc,v 1.35.4.26 2009/02/21 12:53:25 karens
+#  date_api_sql.inc,v 1.9.2.3.2.35 2009/02/26 18:48:00 karens
+#  date_admin.inc,v 1.40.2.3.2.38 2009/03/03 15:16:54 karens
+#  date_api_argument_handler.inc,v 1.1.2.36 2009/03/20 18:29:42 karens
+#  date_api.module,v 1.64.2.5.2.78 2009/03/25 12:04:38 karens
+#  date_api.install,v 1.16.2.1.2.19 2009/03/21 10:18:00 karens
+#  date_api.info,v 1.6 2008/02/18 19:32:28 karens
+#  date.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_copy.info,v 1.2 2008/02/18 19:32:28 karens
+#  date_locale.info,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_php4.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_repeat.info,v 1.5 2008/02/18 19:32:29 karens
+#  date_timezone.info,v 1.3.4.1 2008/06/27 14:14:01 karens
+#  date_tools.info,v 1.1.2.1 2009/01/10 20:06:10 karens
+#  date_elements.inc,v 1.46.2.2.2.57 2009/03/20 00:28:33 karens
+#  date_api_filter_handler.inc,v 1.1.2.33 2009/03/25 15:31:42 karens
+#  date_handler_field_multiple.inc,v 1.1.2.12 2009/02/27 14:48:34 karens
+#  date_repeat.inc,v 1.22.2.1.2.22 2009/02/21 12:53:25 karens
+#  date_token.inc,v 1.2.2.1.2.7 2009/03/20 12:07:51 karens
+#  date.module,v 1.61.2.4.2.53 2009/03/19 23:22:32 karens
+#  date.theme,v 1.6.4.42 2009/03/01 22:35:22 karens
+#  date.install,v 1.37.2.5.2.28 2009/03/25 12:04:38 karens
+#  date_copy.module,v 1.16.2.1.2.10 2008/11/01 13:06:26 karens
+#  date_api.views.inc,v 1.1.2.7 2009/03/20 15:03:49 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#  date_repeat_form.inc,v 1.15.4.13 2009/02/16 23:46:08 karens
+#  date_repeat.module,v 1.30.4.11 2009/02/27 16:37:38 karens
+#  date_timezone.module,v 1.18.2.3.2.11 2009/01/13 14:37:48 karens
+#  date_timezone.install,v 1.7.2.2.2.6 2008/09/06 14:20:10 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.9 2009/01/24 00:41:45 karens
+#  theme.inc,v 1.1.4.33 2009/02/17 17:04:31 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal6 date_tools module\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-31 16:44+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+
+#: date_tools/date_tools.module:10
+msgid "Tools for creating and importing dates and calendars."
+msgstr "Outils pour créer et importer des dates et des calendriers."
+
+#: date_tools/date_tools.module:15
+msgid "The following modules are required for the wizard to work:"
+msgstr "Les modules suivants sont nécessaires au fonctionnement de l'assistant :"
+
+#: date_tools/date_tools.module:18
+#, fuzzy
+msgid "Fill out the following form to auto-create a date content type, with a datetime field and matching pre-configured calendar. A calendar and upcoming events block will be created, an ical feed will be added to the calendar, and the mini calendar, calendar legend, and upcoming events blocks will be added to the sidebar of the default theme. Nodes created from this new content type will include a link to the calendar, and the calendar will have a link to the 'add new date' form. If the Signup module is enabled, Signups will also be enabled for this field."
+msgstr "Remplissez le formulaire suivant pour créer automatiquement un type de contenu date, avec un champ date/heure et le calendrier associé pré-configuré. Un bloc calendrier et un bloc événement à venir seront créés, un flux ical sera ajouté au calendrier, et les blocs mini-calendrier, légende du calendrier et événements à venir seront ajoutés à la barre latérale du thème par défaut. Les noeuds de ce type de contenu créés incluront un lien vers le calendrier, et le calendrier possédera un lien vers le formulaire 'ajouter une nouvelle date'. Les inscriptions seront aussi activées pour ce champ. Vous pouvez aussi ajouter de nouveaux champs date à un type de contenu existant, en saisissant le nom du type de contenu au lieu d'en créer un nouveau."
+
+#: date_tools/date_tools.module:20
+msgid "Only a limited set of options are displayed here to make this easy to set up. Once the date has been created you will be able to make other changes to the date settings and add other fields to your new content type on the Manage fields screen, and make changes to the calendar on the Views edit page."
+msgstr "Seul un nombre limité d'options est affiché ici, afin de faciliter l'installation. Une fois la date créée, vous pourrez effectuer d'autres modifications aux paramètres de date, et ajouter d'autres champs à votre nouveau type de contenu sur l'écran Gérer les champs, et apporter des modifications au calendrier sur la page de modification des Vues."
+
+#: date_tools/date_tools.module:99
+msgid "Dates and calendars can be complicated to set up. The !date_wizard makes it easy to create a simple date content type and related calendar."
+msgstr "Les dates et les calendriers peuvent être compliqués à paramétrer. L'!date_wizard facilite la création d'un type de contenu date et du calendrier associé."
+
+#: date_tools/date_tools.module:99;50
+msgid "Date wizard"
+msgstr "Assistant Date"
+
+#: date_tools/date_tools.module:109
+msgid "Content type name"
+msgstr "Nom du type de contenu"
+
+#: date_tools/date_tools.module:110
+#, fuzzy
+msgid "Machine-readable name. Allowed values: (a-z, 0-9, _). Must not be an existing content type name."
+msgstr "Le nom lisible par une machine. Valeurs autorisées : (a-z, 0-9, _). Ne doit pas être un nom de champ existant."
+
+#: date_tools/date_tools.module:115
+msgid "Content type label"
+msgstr "Etiquette du type de contenu"
+
+#: date_tools/date_tools.module:116
+#, fuzzy
+msgid "The human-readable name for this content type."
+msgstr "Le nom lisible par un humain de ce type de format."
+
+#: date_tools/date_tools.module:120
+msgid "A date content type that is linked to a Views calendar."
+msgstr "Un type de contenu date qui est lié à la Vue calendrier."
+
+#: date_tools/date_tools.module:121
+msgid "Content type description"
+msgstr "Description du type de contenu"
+
+#: date_tools/date_tools.module:127
+msgid "Date field name"
+msgstr "Nom du champ date"
+
+#: date_tools/date_tools.module:128
+msgid "Machine-readable name. Allowed values: (a-z, 0-9, _) Must not be an existing field name."
+msgstr "Le nom lisible par une machine. Valeurs autorisées : (a-z, 0-9, _). Ne doit pas être un nom de champ existant."
+
+#: date_tools/date_tools.module:134
+msgid "Date field label"
+msgstr "Etiquette du champ date"
+
+#: date_tools/date_tools.module:135
+msgid "The human-readable label for this field."
+msgstr "L'étiquette nom lisible par un humain pour ce champ."
+
+#: date_tools/date_tools.module:141
+msgid "Date field type"
+msgstr "Type de champ date"
+
+#: date_tools/date_tools.module:147
+msgid "Date widget type"
+msgstr "Type de widget Date"
+
+#: date_tools/date_tools.module:159
+msgid "Date timezone handling"
+msgstr "Gestion des fuseaux horaires de date"
+
+#: date_tools/date_tools.module:164;170;175;186;972
+msgid "No"
+msgstr "Non"
+
+#: date_tools/date_tools.module:164;170;175;186;972
+msgid "Yes"
+msgstr "Oui"
+
+#: date_tools/date_tools.module:165
+msgid "Show repeating date options"
+msgstr "Afficher les options de répétition de date"
+
+#: date_tools/date_tools.module:171
+msgid "Create a calendar for this date field"
+msgstr "Créer un calendrier pour ce champ date"
+
+#: date_tools/date_tools.module:177
+msgid "Add calendar blocks to the current theme"
+msgstr "Ajouter des blocs de calendrier au thème actuel"
+
+#: date_tools/date_tools.module:182
+msgid "Location field name"
+msgstr "Nom du champ emplacement"
+
+#: date_tools/date_tools.module:188
+msgid "Turn on signup"
+msgstr "Activer l'inscription"
+
+#: date_tools/date_tools.module:202
+#, fuzzy
+msgid "This content type name already exists."
+msgstr "Le nom du champ existe déjà."
+
+#: date_tools/date_tools.module:205
+msgid "This field name already exists."
+msgstr "Le nom du champ existe déjà."
+
+#: date_tools/date_tools.module:212
+msgid "Change the calendar as needed and save the view."
+msgstr "Modifiez le calendrier selon vos besoins et enregistrez la vue."
+
+#: date_tools/date_tools.module:412
+msgid "Content"
+msgstr "Contenu"
+
+#: date_tools/date_tools.module:413
+msgid "Calendar"
+msgstr "Calendrier"
+
+#: date_tools/date_tools.module:414
+msgid "Calendar iCal"
+msgstr "Calendar iCal"
+
+#: date_tools/date_tools.module:415
+msgid "Date Repeat"
+msgstr "Date Repeat"
+
+#: date_tools/date_tools.module:417
+msgid "Calendar Popup"
+msgstr "Calendar Popup"
+
+#: date_tools/date_tools.module:418
+msgid "Signup"
+msgstr "Signup"
+
+#: date_tools/date_tools.module:420
+msgid "Optionwidgets"
+msgstr "Optionwidgets"
+
+#: date_tools/date_tools.module:421
+msgid "Nodereference"
+msgstr "Nodereference"
+
+#: date_tools/date_tools.module:422
+msgid "Feed API"
+msgstr "Feed API"
+
+#: date_tools/date_tools.module:423
+msgid "Parser iCal"
+msgstr "Parser iCal"
+
+#: date_tools/date_tools.module:424
+msgid "Feed API Node"
+msgstr "Feed API Node"
+
+#: date_tools/date_tools.module:425
+msgid "Feed API Mapper"
+msgstr "Feed API Mapper"
+
+#: date_tools/date_tools.module:426
+msgid "Views"
+msgstr "Vues"
+
+#: date_tools/date_tools.module:427
+msgid "Views UI"
+msgstr "UI Vues (Interface Utilisateur)"
+
+#: date_tools/date_tools.module:437
+msgid "enabled"
+msgstr "activé"
+
+#: date_tools/date_tools.module:449
+msgid "disabled"
+msgstr "désactivé"
+
+#: date_tools/date_tools.module:717;779
+msgid "There are no date fields in this database to import the data into. Please add a date field to the desired node types and be sure to indicate it uses both a \"from\" and a \"to\" date."
+msgstr "Il n'existe pas de champs date dans cette base de données pour y importer des données. Veuillez ajouter un champ date aux types de noeud souhaités et vous assurer qu'il utilise à la fois une \"date de début\" et une \"date de fin\""
+
+#: date_tools/date_tools.module:721
+msgid "Target type"
+msgstr "Type cible"
+
+#: date_tools/date_tools.module:721;948
+msgid "Source type"
+msgstr "Type source"
+
+#: date_tools/date_tools.module:726
+msgid "Only content types with date fields appear in this list as possible target types."
+msgstr "Seuls les types de contenu possédant des champs date apparaissent dans la liste des types cibles possibles"
+
+#: date_tools/date_tools.module:734
+msgid "Add"
+msgstr "Ajouter"
+
+#: date_tools/date_tools.module:735
+msgid "If your desired target type does not already have a date field, follow this link and select a content type to add a date field to that type."
+msgstr "Si le type cible souhaité ne possède pas encore de champ date, suivant ce lien et sélectionnez un type de contenu auquel ajouter un champ date."
+
+#: date_tools/date_tools.module:741
+msgid "Add new date field"
+msgstr "Ajouter un nouveau champ date"
+
+#: date_tools/date_tools.module:777
+msgid "body"
+msgstr "corps"
+
+#: date_tools/date_tools.module:785
+msgid "Date field"
+msgstr "Champ date"
+
+#: date_tools/date_tools.module:787
+msgid "The field which will contain the source dates in target content type."
+msgstr "Le champ qui contiendra les dates sources dans le type de contenu cible"
+
+#: date_tools/date_tools.module:792
+msgid "Description field"
+msgstr "Champ description"
+
+#: date_tools/date_tools.module:794
+msgid "The text or body field which will contain the source description in the target content type."
+msgstr "Le champ texte ou corps qui contiendra la description source dans le type de contenu cible"
+
+#: date_tools/date_tools.module:800
+msgid "Url field"
+msgstr "Champ url"
+
+#: date_tools/date_tools.module:802
+msgid "The text or link field which will contain the source url in the target content type."
+msgstr "Le champ texte ou lien qui contiendra l'url source dans le type de contenu cible"
+
+#: date_tools/date_tools.module:807
+msgid "Location field"
+msgstr "Champ emplacement"
+
+#: date_tools/date_tools.module:809
+msgid "The text field which will contain the source location text in the target content type."
+msgstr "Le champ texte qui contiendra l'emplacement source dans le type de contenu cible"
+
+#: date_tools/date_tools.module:814
+msgid "Uid field"
+msgstr "Champ uid"
+
+#: date_tools/date_tools.module:816
+msgid "The text field which will contain the source uid in the target content type."
+msgstr "Le champ texte qui contiendra l'uid source dans le type de contenu cible"
+
+#: date_tools/date_tools.module:843
+msgid "Categories"
+msgstr "Catégories"
+
+#: date_tools/date_tools.module:844
+msgid "Select the categories that should be used for the imported nodes."
+msgstr "Sélectionnez les catégories à utiliser pour les noeuds importés."
+
+#: date_tools/date_tools.module:853
+msgid "Authored by"
+msgstr "Ecrit par"
+
+#: date_tools/date_tools.module:856
+msgid "Leave blank for %anonymous."
+msgstr "Laisser vide pour %anonymous."
+
+#: date_tools/date_tools.module:857
+msgid "Anonymous"
+msgstr "Anonyme"
+
+#: date_tools/date_tools.module:859
+msgid "Published"
+msgstr "Publié"
+
+#: date_tools/date_tools.module:862
+msgid "Promoted to front page"
+msgstr "Promu en page d'accueil"
+
+#: date_tools/date_tools.module:865
+msgid "Sticky at top of lists"
+msgstr "Epinglé en haut des listes"
+
+#: date_tools/date_tools.module:868
+msgid "Create new revision"
+msgstr "Créer une révision"
+
+#: date_tools/date_tools.module:895
+msgid "Importing dates into CCK from a comma separated file can be done using the <a href=\"@link\">Node Import module</a>."
+msgstr "L'import de dates dans des champs CCK depuis un fichier à séparateur virgule peut être réalisé en utilisant le <a href=\"@link\">module Node Import</a>."
+
+#: date_tools/date_tools.module:902
+msgid "Use <a href=\"@link\">Feed API</a> to import ical dates into nodes."
+msgstr "Utilisez <a href=\"@link\">l'API Feed</a> pour importer des dates ical dans des noeuds."
+
+#: date_tools/date_tools.module:904
+msgid "See complete instructions on how to do it in the <a href=\"@link\">Advanced help</a>."
+msgstr "Voir les instructions complètes sur la manière de le faire dans l'<a href=\"@link\">Aide avancée</a>."
+
+#: date_tools/date_tools.module:907
+msgid "Enable the <a href=\"http://drupal.org/project/advanced_help\">Advanced help module</a> for more instructions."
+msgstr "Activez le <a href=\"http://drupal.org/project/advanced_help\">module Advanced help</a> pour plus d'instructions."
+
+#: date_tools/date_tools.module:919
+msgid "There is no event table in this database. No event import options are available."
+msgstr "Il n'y a pas de table d'événements dans cette base de données. Aucune option d'import d'événements n'est disponible"
+
+#: date_tools/date_tools.module:935
+msgid "Create a new CCK content type to import your events into, or, if you do not want to create new nodes for your events, add a date field to the existing event type. Make sure the target content type has a date field that has an optional or required To date so it can accept the From date and To date of the event. If your source event has its own timezone field, make sure you set the target date timezone handling to 'date'. Test the target type by trying to create a node manually and make sure all the right options are available in the form before attempting an import."
+msgstr "Créez un nouveau type de contenu CCK pour y importer vos événements, ou bien, si vous ne souhaitez pas créer de nouveaux noeuds pour vos événements, ajoutez un champ date au type d'événement existant. Assurez-vous que le type de contenu cible possède un champ date avec une Date de fin obligatoire ou optionnelle, pour qu'il puisse accepter les Date de début et Date de Fin de l'événement. Si votre événement source possède son propre champ de fuseau horaire, assurez-vous de définir la gestion du fuseau horaire du champ cible à 'date'. Testez le type cible en essayant de créer manuellement un noeud, et assurez-vous que toutes les bonnes options sont disponibles dans le formulaire ci-dessous avant de tenter un import."
+
+#: date_tools/date_tools.module:935
+msgid "The import will create new nodes and trigger all related hooks, so you may want to turn off automatic email messaging for this node type while performing the import!"
+msgstr "L'import créera de nouveaux noeuds et déclenchera tous les hooks liés, aussi vous voudrez surement désactiver les messages de courriel automatiques pour ce type de noeud lors de l'import !"
+
+#: date_tools/date_tools.module:942
+msgid "There are no event nodes in this database. No event import options are available."
+msgstr "Il n'y aucun noeud évenement dans cette base de données. Aucune option d'import d'événements n'est disponible."
+
+#: date_tools/date_tools.module:952;975;60
+msgid "Import"
+msgstr "Importer"
+
+#: date_tools/date_tools.module:968
+msgid "!type Fields"
+msgstr "Champs de !type"
+
+#: date_tools/date_tools.module:972
+msgid "Delete original event?"
+msgstr "Supprimer l'événement original ?"
+
+#: date_tools/date_tools.module:972
+msgid "Should the original entry be deleted once it has been copied to the new content type? If so, be sure to back up your database first."
+msgstr "L'entrée originale doit-elle être supprimée une fois copiée dans le nouveau type de contenu ? Si oui, assurez-vous de sauvegarder votre base de données au préalable"
+
+#: date_tools/date_tools.module:973
+msgid "Limit"
+msgstr "Limite"
+
+#: date_tools/date_tools.module:973
+msgid "The maximum number of nodes to convert in this pass."
+msgstr "Le nombre maximum de noeuds à convertir au cours de cette passe"
+
+#: date_tools/date_tools.module:974
+msgid "Starting nid"
+msgstr "Nid de départ"
+
+#: date_tools/date_tools.module:974
+msgid "Convert nodes with nids greater than or equal to this number."
+msgstr "Convertit les noeuds aux nids supérieur ou égal à ce nombre"
+
+#: date_tools/date_tools.module:1017
+msgid "Node Title"
+msgstr "Titre du Noeud"
+
+#: date_tools/date_tools.module:1017
+msgid "Original Node ID"
+msgstr "ID de noeud original"
+
+#: date_tools/date_tools.module:1017
+msgid "New Node ID"
+msgstr "Nouvel ID de noeud"
+
+#: date_tools/date_tools.module:1017
+msgid "Start date"
+msgstr "Date de début"
+
+#: date_tools/date_tools.module:1017
+msgid "End date"
+msgstr "Date de fin"
+
+#: date_tools/date_tools.module:1020
+msgid "No events have been converted."
+msgstr "Aucun événement n'a été converti"
+
+#: date_tools/date_tools.module:1147;1157
+msgid "view"
+msgstr "voir"
+
+#: date_tools/date_tools.module:1143;1153;0
+msgid "date_tools"
+msgstr "date_tools"
+
+#: date_tools/date_tools.module:1143
+msgid "!type: %title has been created."
+msgstr "!type: %title a été créé."
+
+#: date_tools/date_tools.module:1153
+msgid "!type: %title has been updated."
+msgstr "!type: %title a été mis à jour."
+
+#: date_tools/date_tools.module:1016
+msgid "1 event has been converted."
+msgid_plural "@count events have been converted."
+msgstr[0] "1 événement a été mis à jour."
+msgstr[1] "@count événements ont été mis à jour."
+
+#: date_tools/date_tools.module:27
+msgid "use date tools"
+msgstr "utiliser les outils de date"
+
+#: date_tools/date_tools.module:34
+#: date_tools/date_tools.info:0
+msgid "Date Tools"
+msgstr "Date Tools"
+
+#: date_tools/date_tools.module:35;42
+#: date_tools/date_tools.info:0
+msgid "Tools to import and auto-create dates and calendars."
+msgstr "Outils pour importer et créer automatiquement des dates et des calendriers."
+
+#: date_tools/date_tools.module:41
+msgid "About"
+msgstr "A propos"
+
+#: date_tools/date_tools.module:51
+msgid "Easy creation of date content types and calendars."
+msgstr "Création aisée de types de contenu date et de calendriers."
+
+#: date_tools/date_tools.module:68
+msgid "iCal import"
+msgstr "Import iCal"
+
+#: date_tools/date_tools.module:76
+msgid "Event import"
+msgstr "Import d'Evénement"
+
+#: date_tools/date_tools.module:84
+msgid "CSV import"
+msgstr "Import CSV"

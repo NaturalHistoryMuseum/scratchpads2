@@ -1,0 +1,28 @@
+; $Id: date_views.info,v 1.2 2011/01/17 02:50:34 karens Exp $
+name = Date Views 
+description = Views integration for date fields and date functionality.
+package = Date/Time
+core = 7.x
+php = 5.2
+files[] = date_views.module
+files[] = includes/date_handler_field_multiple.inc
+files[] = includes/date_views_argument_handler.inc
+files[] = includes/date_views_fields.inc
+files[] = includes/date_views_filter_handler.inc
+files[] = includes/date_views_filter_single_handler.inc
+files[] = includes/date_views.views_default.inc
+files[] = includes/date_views.views.inc
+files[] = includes/date_navigation_plugin_style.inc
+files[] = includes/date_plugin_display_attachment.inc
+files[] = theme/theme.inc
+files[] = theme/date-navigation.tpl.php
+files[] = theme/date-valarm.tpl.php
+files[] = theme/date-vcalendar.tpl.php
+files[] = theme/date-vevent.tpl.php
+files[] = theme/date-views-filter-form.tpl.php
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "date"
+datestamp = "1295529406"
+

@@ -1,0 +1,143 @@
+# $Id: general.nl.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api_elements.inc,v 1.49.2.1.2.37 2009/01/10 22:38:51 karens
+#  date_popup.module,v 1.42.2.1.2.34 2009/01/10 22:38:51 karens
+#  date_api_sql.inc,v 1.9.2.3.2.32 2008/12/03 20:15:33 karens
+#  date_api.module,v 1.64.2.5.2.57 2009/01/10 22:38:51 karens
+#  theme.inc,v 1.1.4.29 2008/12/03 15:44:27 karens
+#  date_repeat_form.inc,v 1.15.4.12 2009/01/10 22:38:51 karens
+#  date_repeat.module,v 1.30.4.7 2008/11/21 16:27:35 karens
+#  date_admin.inc,v 1.40.2.3.2.27 2009/01/10 22:38:51 karens
+#  date_tools.module,v 1.1.2.2 2009/01/10 22:38:52 karens
+#  date_api_argument_handler.inc,v 1.1.2.29 2009/01/10 22:38:52 karens
+#  date_elements.inc,v 1.46.2.2.2.43 2009/01/10 22:56:13 karens
+#  date_api_filter_handler.inc,v 1.1.2.16 2009/01/11 00:24:26 karens
+#  date.module,v 1.61.2.4.2.40 2009/01/10 22:38:51 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Date 6.x-2.0\n"
+"POT-Creation-Date: 2009-01-11 11:03+0100\n"
+"PO-Revision-Date: 2009-05-05 14:29+0100\n"
+"Last-Translator: seutje <seutje@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: NETHERLANDS\n"
+
+#: date_api_elements.inc:146
+#: date_popup/date_popup.module:256;288
+msgid "Format: @date"
+msgstr "Formaat: @date"
+
+#: date_api_sql.inc:514
+#: date_api.module:432
+#: theme/theme.inc:302
+msgid "Year"
+msgstr "Jaar"
+
+#: date_api_sql.inc:514
+#: date_api.module:432
+#: date_repeat/date_repeat_form.inc:132
+#: theme/theme.inc:305
+msgid "Month"
+msgstr "Maand"
+
+#: date_api_sql.inc:514
+#: date_api.module:432
+#: theme/theme.inc:308
+msgid "Day"
+msgstr "Dag"
+
+#: date_api_sql.inc:515
+#: date_api.module:433
+#: theme/theme.inc:311
+msgid "Hour"
+msgstr "Uur"
+
+#: date_api_sql.inc:515
+#: date_api.module:433
+#: theme/theme.inc:314
+msgid "Minute"
+msgstr "Minuut"
+
+#: date_api_sql.inc:515
+#: date_api.module:433
+#: date_repeat/date_repeat.module:97
+#: theme/theme.inc:317
+msgid "Second"
+msgstr "Seconde"
+
+#: date_api_sql.inc:695
+#: date/date_admin.inc:361
+#: date_tools/date_tools.module:153
+#: includes/date_api_argument_handler.inc:62
+msgid "Granularity"
+msgstr "Nauwkeurigheid"
+
+#: date_api.module:175
+#: date_repeat/date_repeat.module:69
+msgid "Sunday"
+msgstr "zondag"
+
+#: date_api.module:175
+#: date_repeat/date_repeat.module:70
+msgid "Monday"
+msgstr "maandag"
+
+#: date_api.module:175
+#: date_repeat/date_repeat.module:71
+msgid "Tuesday"
+msgstr "dinsdag"
+
+#: date_api.module:176
+#: date_repeat/date_repeat.module:72
+msgid "Wednesday"
+msgstr "woensdag"
+
+#: date_api.module:176
+#: date_repeat/date_repeat.module:73
+msgid "Thursday"
+msgstr "donderdag"
+
+#: date_api.module:176
+#: date_repeat/date_repeat.module:74
+msgid "Friday"
+msgstr "vrijdag"
+
+#: date_api.module:177
+#: date_repeat/date_repeat.module:75
+msgid "Saturday"
+msgstr "zaterdag"
+
+#: date/date_admin.inc:77;95
+#: date_popup/date_popup.module:269
+msgid "Now"
+msgstr "Nu"
+
+#: date/date_elements.inc:335
+#: includes/date_api_filter_handler.inc:240
+msgid "From date"
+msgstr "Begindatum"
+
+#: date/date_elements.inc:337
+#: includes/date_api_filter_handler.inc:243
+msgid "To date"
+msgstr "Einddatum"
+
+#: date/date.module:26
+#: date_repeat/date_repeat.module:171
+msgid "Repeats"
+msgstr "Herhalingen"
+
+#: date_php4/date_php4.module:54
+#: date_tools/date_tools.module:193
+msgid "Save"
+msgstr "Bewaren"

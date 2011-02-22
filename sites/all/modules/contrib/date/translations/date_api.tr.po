@@ -1,0 +1,166 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Date API\n"
+"POT-Creation-Date: 2009-02-17 06:19-0600\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Serkan Arikusu <arikusu@gmail.com>\n"
+"Language-Team: Drupal TR <arikusu@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-Language: Turkish\n"
+"X-Poedit-Country: TURKEY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: date_api.module:421
+msgid "Long"
+msgstr "Uzun"
+
+#: date_api.module:422
+msgid "Medium"
+msgstr "Orta"
+
+#: date_api.module:423
+msgid "Short"
+msgstr "Kısa"
+
+#: date_api.module:529
+msgid "!timezone"
+msgstr "!timezone"
+
+#: date_api.module:615
+msgid "!day-name Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday"
+msgstr "!day-name Pazar|Pazartesi|Salı|Çarşamba|Perşembe|Cuma|Cumartesi"
+
+#: date_api.module:616
+msgid "!day-abbreviation Sun|Mon|Tue|Wed|Thu|Fri|Sat"
+msgstr "!day-abbreviation Paz|Pzt|Sal|Çrş|Prş|Cum|Cts"
+
+#: date_api.module:617
+msgid "!day-abbreviation S|M|T|W|T|F|S"
+msgstr "!day-abbreviation P|P|S|Ç|P|C|C"
+
+#: date_api.module:618
+msgid "!day-abbreviation SU|MO|TU|WE|TH|FR|SA"
+msgstr "!day-abbreviation PA|PT|SA|ÇR|PR|CU|CT"
+
+#: date_api.module:619
+msgid "!ampm-abbreviation am|pm|AM|PM"
+msgstr "!ampm-abbreviation am|pm|AM|PM"
+
+#: date_api.module:620
+msgid "!datetime Year|Month|Day|Week|Hour|Minute|Second|All Day|All day"
+msgstr "!datetime Yıl|Ay|Gün|Hafta|Saat|Dakika|Saniye|Tüm Gün|Tüm gün"
+
+#: date_api.module:621
+msgid "!datetime_plural Years|Months|Days|Weeks|Hours|Minutes|Seconds"
+msgstr "!datetime_plural Yıl|Ay|Gün|Hafta|Saat|Dakika|Saniye|Tüm Gün|Tüm gün"
+
+#: date_api.module:622
+msgid "!date_order Every|First|Second|Third|Fourth|Fifth"
+msgstr "!date_order Her|Birinci|İkinci|Üçüncü|Dördüncü|Beşinci"
+
+#: date_api.module:623
+msgid "!date_order |Last|Next to last|Third from last|Fourth from last|Fifth from last"
+msgstr "!date_order |Sonuncu|Sondan birinci|Sondan ikinci|Sondan üçüncü|Sondan dördüncü"
+
+#: date_api.module:624
+msgid "!date_nav Prev|Next|Today"
+msgstr "!date_nav Önceki|Sonraki|Bugün"
+
+#: date_api.module:627
+msgid "!month-name |January|February|March|April|May|June|July|August|September|October|November|December"
+msgstr "!month-name |Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık"
+
+#: date_api.module:628
+msgid "!month-abbreviation |Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+msgstr "!month-abbreviation |Oca|Şub|Mar|Nis|May|Haz|Tem|Ağu|Eyl|Eki|Kas|Ara"
+
+#: date_api.module:735
+msgid "!time ago"
+msgstr "!time önce"
+
+#: date_api.module:54
+msgid "Formats"
+msgstr "Biçimler"
+
+#: date_api.module:55;65
+msgid "Allow users to configure date formats"
+msgstr "Kullanıcıların tarih biçimlerini ayarlamasına izin ver"
+
+#: date_api.module:64
+msgid "Configure"
+msgstr "Yapılandır"
+
+#: date_api.module:74
+msgid "Date and time lookup"
+msgstr "Tarih ve saat arama"
+
+#: date_api.module:80
+msgid "Custom formats"
+msgstr "Özel biçimler"
+
+#: date_api.module:81
+msgid "Allow users to configure custom date formats."
+msgstr "Kullanıcıların özel tarih biçimlerini ayarlamasına izin ver"
+
+#: date_api.module:89
+msgid "Add format"
+msgstr "Biçim ekle"
+
+#: date_api.module:90
+msgid "Allow users to add additional date formats."
+msgstr "Kullanıcıların ek tarih biçimleri eklemesine izin ver"
+
+#: date_api.module:99
+msgid "Delete date format"
+msgstr "Tarih biçimini sil"
+
+#: date_api.module:100
+msgid "Allow users to delete a configured date format."
+msgstr "Kullanıcıların ayarlanmış bir tarih biçimini silmesine izin ver."
+
+#: date_api.module:108
+msgid "Delete date format type"
+msgstr "Tarih biçimini sil"
+
+#: date_api.module:109
+msgid "Allow users to delete a configured date format type."
+msgstr "Kullanıcıların ayarlanmış bir tarih biçimini silmesine izin ver"
+
+#: date_api.module:0
+msgid "date_api"
+msgstr "date_api"
+
+#: date_api.install:152
+msgid "Per-user timezone name."
+msgstr "Kullanıcıya özel saat dilimi ismi"
+
+#: date_api.install:286;304;330
+msgid "date module cannot be updated until after Views has been updated. Please return to <a href=\"@update-php\">update.php</a> and run the remaining updates."
+msgstr "date eklentisi Views eklentisi güncellenmeden güncellenemez. Lütfen <a href=\"@update-php\">update.php</a> sayfasına dönün ve kalan güncellemeleri çalıştırın."
+
+#: date_api.install:287;305;331
+msgid "date.module has updates, but cannot be updated until views.module is updated first."
+msgstr "date.module güncellemelere sahip, ama önce views.module güncellenmesini yapmalısınız"
+
+#: (duplicate) date_api.install:234
+msgid "The Date API module requires the <a href=\"@link\">Date PHP4 module</a> for PHP versions less than 5.2."
+msgstr "PHP versiyonu 5.2'den küçük ise Date API eklentisi <a href=\"@link\">Date PHP4 eklentisi</a>'ne ihtiyaç duyar"
+
+#: (duplicate) date_api.install:238
+msgid "Date API requirements"
+msgstr "Date API gereksinimleri"
+
+#: date_api.info:0
+msgid "Date API"
+msgstr "Date API"
+
+#: date_api.info:0
+msgid "A Date API that can be used by other modules."
+msgstr "Başka eklentiler tarafından kullanılabilen bir Date API"
+
+#: date_api.info:0
+msgid "Date/Time"
+msgstr "Tarih/Saat"

@@ -1,0 +1,135 @@
+<h3>Preconfigured arrays</h3>
+<p>
+Both translated and untranslated values are available. The date_week_days_ordered()
+function will shift an array of week day names so it starts with the site's
+first day of the week, otherwise the weekday names start with Sunday as the first
+value, the expected order for many php and sql functions.
+</p>
+<ul style="color: rgb(0, 0, 187);">
+<li>
+date_month_names();
+</li><li>
+date_month_names_abbr();
+</li><li>
+date_month_names_untranslated();
+</li><li>
+date_week_days();
+</li><li>
+date_week_days_abbr();
+</li><li>
+date_week_days_untranslated();
+</li><li>
+date_week_days_ordered();
+</li><li>
+date_years();
+</li><li>
+date_hours();
+</li><li>
+date_minutes();
+</li><li>
+date_seconds();
+</li><li>
+date_timezone_names();
+</li><li>
+date_ampm();
+</li>
+</ul>
+
+<h3>Miscellaneous date manipulation functions </h3>
+<p>
+Pre-defined constants and functions that will handle pre-1970 and post-2038 
+dates in both PHP 4 and PHP 5, in any OS. Dates can be converted from one 
+type to another and date parts can be extracted from any date type.
+</p>
+<ul style="color: rgb(0, 0, 187);">
+<li>
+DATE_DATETIME
+</li><li>
+DATE_ISO
+</li><li>
+DATE_UNIX
+</li><li>
+DATE_ARRAY
+</li><li>
+DATE_OBJECT
+</li><li>
+DATE_ICAL
+</li><li>
+date_convert()
+</li><li>
+date_is_valid();
+</li><li>
+date_part_is_valid();
+</li><li>
+date_part_extract();
+</li>
+</ul>
+
+<h3>Date calculation and navigation</h3>
+<p>
+date_diff() will find the time difference between any two days, measured
+in seconds, minutes, hours, days, months, weeks, or years.
+</p>
+
+<ul style="color: rgb(0, 0, 187);">
+<li>
+date_days_in_month();
+</li><li>
+date_days_in_year();
+</li><li>
+date_weeks_in_year();
+</li><li>
+date_last_day_of_month();
+</li><li>
+date_day_of_week();
+</li><li>
+date_day_of_week_name();
+</li><li>
+date_diff();
+</li>
+</ul>
+
+<h3>Date regex and format helpers </h3>
+<p>
+Pre-defined constants, an array of date format strings and their 
+equivalent regex strings.
+</p>
+<p>
+DATE_REGEX_LOOSE is a very loose regex that will pull date parts out
+of an ISO date with or without separators, using either 'T' or a space
+to separate date and time, and with or without time.
+</p>
+<p>
+date_format_date() is similar to format_date(), except it takes a 
+date object instead of a timestamp as the first parameter.
+</p>
+
+<ul style="color: rgb(0, 0, 187);">
+<li>
+DATE_FORMAT_ISO
+</li><li>
+DATE_FORMAT_DATETIME
+</li><li>
+DATE_FORMAT_UNIX
+</li><li>
+DATE_FORMAT_ICAL
+</li><li>
+
+DATE_REGEX_ISO
+</li><li>
+DATE_REGEX_DATETIME
+</li><li>
+DATE_REGEX_LOOSE
+</li><li>
+
+date_format_date();
+</li><li>
+date_short_formats();
+</li><li>
+date_medium_formats();
+</li><li>
+date_long_formats();
+</li><li>
+date_format_patterns();
+</li>
+</ul>

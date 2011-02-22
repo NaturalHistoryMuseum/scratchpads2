@@ -1,0 +1,33 @@
+<?php
+// $Id: date_repeat.install,v 1.8 2010/03/01 00:40:09 karens Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Date Repeat module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function date_repeat_install() {
+  // Make sure this module loads after date_api.
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'date_repeat'");
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function date_repeat_uninstall() {
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function date_repeat_enable() {
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function date_repeat_disable() {
+}

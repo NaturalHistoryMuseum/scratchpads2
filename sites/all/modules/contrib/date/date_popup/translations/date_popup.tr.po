@@ -1,0 +1,70 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: date_popup\n"
+"POT-Creation-Date: 2009-02-17 04:56-0600\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Serkan Arikusu <arikusu@gmail.com>\n"
+"Language-Team: Drupal-tr <arikusu@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-Language: Turkish\n"
+"X-Poedit-Country: TURKEY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: date_popup.module:221
+msgid "Clear"
+msgstr "Temizle"
+
+#: date_popup.module:222
+msgid "Close"
+msgstr "Kapatı"
+
+#: date_popup.module:253;288
+msgid "Format: @date"
+msgstr "Biçim: @date"
+
+#: date_popup.module:266
+msgid "Now"
+msgstr "Şimdi"
+
+#: date_popup.module:266
+msgid "Previous field"
+msgstr "Önceki alan"
+
+#: date_popup.module:266
+msgid "Next field"
+msgstr "Sonraki alan"
+
+#: date_popup.module:266
+msgid "Increment"
+msgstr "Arttır"
+
+#: date_popup.module:266
+msgid "Decrement"
+msgstr "Azalt"
+
+#: date_popup.module:314
+msgid "Field %field is required."
+msgstr "%field alanı gereklidir."
+
+#: date_popup.module:338
+msgid "Field %field is invalid."
+msgstr "%field alanı geçersiz."
+
+#: date_popup.module:0
+msgid "date_popup"
+msgstr "date_popup"
+
+#: date_popup.info:0
+msgid "Date Popup"
+msgstr "Date Popup"
+
+#: date_popup.info:0
+msgid "Enables jquery popup calendars and time entry widgets for selecting dates and times."
+msgstr "Tarih ve saat seçmek için jquery takvim ve saat giriş araçlarını etkinleştirir"
+
+#: date_popup.info:0
+msgid "Date/Time"
+msgstr "Tarih/Saat"

@@ -1,0 +1,185 @@
+# $Id: includes.nl.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+#
+# LANGUAGE translation of Drupal (includes)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.views.inc,v 1.1.2.6 2008/11/30 13:58:27 karens
+#  date_api_argument_handler.inc,v 1.1.2.29 2009/01/10 22:38:52 karens
+#  date_api_filter_handler.inc,v 1.1.2.16 2009/01/11 00:24:26 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.8 2009/01/10 22:38:52 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Date 6.x-2.0\n"
+"POT-Creation-Date: 2009-01-11 11:03+0100\n"
+"PO-Revision-Date: 2009-05-05 14:31+0100\n"
+"Last-Translator: seutje <seutje@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: NETHERLANDS\n"
+
+#: includes/date_api.views.inc:78;85
+msgid "Date browser"
+msgstr "Datum browser"
+
+#: includes/date_api.views.inc:79
+msgid "Date back/next navigation to attach to other displays. Requires the Date argument."
+msgstr "Datum vorige/volgende navigatie om aan andere weergaves te koppelen. Dit vereist de Date parameter."
+
+#: includes/date_api.views.inc:101
+msgid "Date browser style"
+msgstr "Datum browser stijl"
+
+#: includes/date_api.views.inc:102
+msgid "Creates back/next navigation."
+msgstr "Maakt vorige/volgende navigatie aan."
+
+#: includes/date_api.views.inc:129
+msgid "Filter any Views date field by a date argument, using any common ISO date/period format (i.e. YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+msgstr "Filter elke Views datum veld volgens de datumparameter gebruikmakend van iedere voorkomende ISO datum/periode formaat (bijv. YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+
+#: includes/date_api.views.inc:132;142
+msgid "Undated"
+msgstr "Niet-gedateerd"
+
+#: includes/date_api.views.inc:139
+msgid "Filter any Views date field."
+msgstr "Filiet ieder Views datum veld."
+
+#: includes/date_api_argument_handler.inc:60
+#, fuzzy
+msgid "Week"
+msgstr "Week"
+
+#: includes/date_api_argument_handler.inc:67
+msgid "Select the type of date value to be used in defaults, summaries, and navigation. For example, a granularity of 'month' will set the default date to the current month, summarize by month in summary views, and link to the next and previous month when using date navigation."
+msgstr "Kies het type van de datumwaarde om te gebruiken in standaarden, samenvattingen en navigatie. Bijvoorbeeld de nauwkeurigheid van 'maand' zal de standaard datum op de huidige maand instellen, samenvattingen op maand bij samenvattingsoverzichten en linken toevoegen naar de volgende en vorige maand bij gebruik in de datumnavigatie."
+
+#: includes/date_api_argument_handler.inc:71
+#: includes/date_api_filter_handler.inc:108
+msgid "Date year range"
+msgstr "Datumbereik jaar"
+
+#: includes/date_api_argument_handler.inc:74
+#: includes/date_api_filter_handler.inc:111
+msgid "Set the allowable minimum and maximum year range for this argument, either a -X:+X offset from the current year, like '-3:+3' or an absolute minimum and maximum year, like '2005:2010'. When the argument is set to a date outside the range, the page will be returned as 'Page not found (404)'."
+msgstr "Stel het minimale en maximale toegestane bereik van jaren in voor deze parameter. Dat is dan of een -X:+X offset tenopzichte van het huidige jaar zoals '-3:+3' of een absoluut minimum en maximum jaar zoals '2005:2010'. Wanneer de parameter is ingesteld op een datum buiten het bereik, dan wordt er een 'Page not found (404)' pagina teruggegeven. "
+
+#: includes/date_api_argument_handler.inc:83
+#: includes/date_api_filter_handler.inc:120
+msgid "Date field(s)"
+msgstr "Datumveld(en)"
+
+#: includes/date_api_argument_handler.inc:88
+msgid "Select one or more date fields to filter with this argument. Do not select both the 'From date' and 'To date' for CCK date fields, only one of them is needed."
+msgstr "Selecteer één of meerdere datumvelden om op te filteren met deze parameter. Selecteer niet op zowel 'Begindatum' en 'Einddatum' voor de CCK date velden, slecht één er van is nodig."
+
+#: includes/date_api_argument_handler.inc:91
+#: includes/date_api_filter_handler.inc:128
+#, fuzzy
+msgid "Method"
+msgstr "Methode"
+
+#: includes/date_api_argument_handler.inc:93
+#: includes/date_api_filter_handler.inc:130
+msgid "OR"
+msgstr "OR"
+
+#: includes/date_api_argument_handler.inc:93
+#: includes/date_api_filter_handler.inc:130
+msgid "AND"
+msgstr "AND"
+
+#: includes/date_api_argument_handler.inc:95
+#: includes/date_api_filter_handler.inc:132
+msgid "Method of handling multiple date fields in the same query. Return items that have any matching date field (date = field_1 OR field_2), or only those with matches in all selected date fields (date = field_1 AND field_2)."
+msgstr "Methode van afhandeling van meerdere datumvelden in dezelfde query. Geef die items terug die een overeenkomstig datumveld hebben (date - field_1 OR field_2) of alleen die items die overeenkomen met alle geselecteerde datumvelden (date = field_1 AND field_2)."
+
+#: includes/date_api_argument_handler.inc:107
+msgid "You must select at least one date field for this argument."
+msgstr "U moet minimaal één datumveld kiezen voor deze parameter."
+
+#: includes/date_api_argument_handler.inc:111
+#: includes/date_api_filter_handler.inc:143
+msgid "Date year range must be in the format -9:+9 or 2005:2010."
+msgstr "Het datumbereik voor haar moet in het formaat -9:+9 of 2005:2010 zijn."
+
+#: includes/date_api_filter_handler.inc:75
+msgid "Select"
+msgstr "Kies"
+
+#: includes/date_api_filter_handler.inc:98
+msgid "Date form type"
+msgstr "Datum formaattype"
+
+#: includes/date_api_filter_handler.inc:101
+msgid "Choose the form element to use for date selection (more options will be available later)."
+msgstr "Kies het formulierelement om te gebruiken voor de datumselectie (meer opties komen later beschikbaar)."
+
+#: includes/date_api_filter_handler.inc:105
+msgid "Select a granularity for the date filter. For instance, selecting 'day' will create a filter where users can select the year, month, and day."
+msgstr "Kies een nauwkeurigheid voor de datumfilter. Bijvoorbeeld het kiezen van 'dag' zal een filter maken waar gebruiker kunnen kieze uit jaar, maand en dag."
+
+#: includes/date_api_filter_handler.inc:125
+msgid "Select date field(s) to filter with this argument."
+msgstr "Kies het datumveld(en) om op te fitleren met deze parameter."
+
+#: includes/date_api_filter_handler.inc:139
+msgid "You must select at least one date field for this filter."
+msgstr "U moet minimaal één datumveld selecteren voor dit filter."
+
+#: includes/date_api_filter_handler.inc:191
+msgid "Absolute value"
+msgstr "Absolute waarde"
+
+#: includes/date_api_filter_handler.inc:194
+msgid "Date default"
+msgstr "Date standaard"
+
+#: includes/date_api_filter_handler.inc:196
+msgid "Relative value"
+msgstr "Relatieve waarde"
+
+#: includes/date_api_filter_handler.inc:196
+msgid "Relative values will be used if no date is set above. Use 'now' to default to the current date at runtime or add modifiers like 'now +1 day'. The To date default value is used when the operator is set to 'between' or 'not between'."
+msgstr "Relatieve waarden worden gebruikt als hierboven geen datum is ingesteld. Gebruik 'now' om de huidige datum als standaard in te stellen of voeg modifiers zoals 'now +1 day' toe. De standaard waarde voor de begindatum wordt gebruikt als de operator is ingesteld op 'between of 'not between'."
+
+#: includes/date_api_filter_handler.inc:196
+msgid "If the filter is exposed, these values will be used to set the inital value of the exposed filter. Leave both date and default values blank to start with no value in the exposed filter."
+msgstr "Als het filter wordt getoond, dan worden deze waarden gebruikt om de beginwaarde in te stellen van het getoonde filter. Laat zowel de datum als de standaard waarden leeg om zonder waarde te beginnen in het getoonde filter."
+
+#: includes/date_api_filter_handler.inc:200
+msgid "To date default"
+msgstr "Beginwaarde voor einddatum"
+
+#: includes/date_api_filter_handler.inc:310
+msgid "Please set a default value for the To date as well as the From date when using default values with the Between or Not between operators."
+msgstr "Stel een standaard waarde voor zowel de begin- als de einddatum in wanneer gebruik gemaakt wordt van standaard waarden met de Between of Not Between operatoren."
+
+#: includes/date_api_filter_handler.inc:363
+msgid "Missing date fields!"
+msgstr "Ontbrekende datum velden!"
+
+#: includes/date_api_filter_handler.inc:381
+msgid "(@field) <strong>Exposed</strong> @widget @format"
+msgstr "(@field) <strong>Getoond</strong> @widget @format"
+
+#: includes/date_api_filter_handler.inc:387
+msgid "@min and @max"
+msgstr "@min en @max"
+
+#: includes/date_navigation_plugin_style.inc:24
+msgid "The %style cannot use more than one Date: Date argument."
+msgstr "De %style kan niet meer dan één datum gebruiken: Datum parameter."
+
+#: includes/date_navigation_plugin_style.inc:27
+msgid "The %style requires the Date: Date argument be set to default to the current date."
+msgstr "De %style vereist de Datum: Datum parameter is ingestelt op de standaard van de huidge datum."
+
+#: includes/date_navigation_plugin_style.inc:34
+msgid "The %style requires the Date: Date argument."
+msgstr "De %style vereist de Datum: Datum parameter."

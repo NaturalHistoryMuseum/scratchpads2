@@ -1,0 +1,82 @@
+# $Id: general.de.po,v 1.5 2011/01/18 00:37:35 karens Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api_elements.inc,v 1.49.2.1.2.36 2008/12/05 14:06:35 karens
+#  date_popup.module,v 1.42.2.1.2.32 2008/11/30 15:50:24 karens
+#  date_api_sql.inc,v 1.9.2.3.2.32 2008/12/03 20:15:33 karens
+#  date_api.module,v 1.64.2.5.2.56 2008/11/29 16:22:12 karens
+#  theme.inc,v 1.1.4.29 2008/12/03 15:44:27 karens
+#  date_repeat_form.inc,v 1.15.4.10 2008/12/03 14:35:42 karens
+#  date_repeat.module,v 1.30.4.7 2008/11/21 16:27:35 karens
+#  date_admin.inc,v 1.40.2.3.2.26 2008/12/13 23:31:11 karens
+#  date_api_argument_handler.inc,v 1.1.2.28 2008/12/06 12:39:14 karens
+#  date_elements.inc,v 1.46.2.2.2.40 2008/12/05 14:06:35 karens
+#  date_api_filter_handler.inc,v 1.1.2.14 2008/12/08 12:15:57 karens
+#  date.module,v 1.61.2.4.2.38 2008/12/08 11:33:13 karens
+#  date_copy.module,v 1.16.2.1.2.10 2008/11/01 13:06:26 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-08 11:30+0100\n"
+"Last-Translator: Alexander Haß\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+
+#: date_api.admin.inc:147
+#: date_locale/date_locale.module:252
+msgid "Configuration saved."
+msgstr "Konfiguration gespeichert."
+
+#: date_api.admin.inc:165;201
+#: date_locale/date_locale.module:214
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: date_api_elements.inc:148
+#: date_popup/date_popup.module:253;288
+msgid "Format: @date"
+msgstr "Format: @date"
+
+#: date_api_sql.inc:695
+#: date/date_admin.inc:356
+#: date_tools/date_tools.module:153
+#: includes/date_api_argument_handler.inc:62
+msgid "Granularity"
+msgstr "Granularität"
+
+#: date/date_admin.inc:72;78
+#: date_popup/date_popup.module:266
+msgid "Now"
+msgstr "Jetzt"
+
+#: date/date_admin.inc:275;276;277;278
+#: date/date_elements.inc:324
+#: includes/date_api_filter_handler.inc:256
+msgid "From date"
+msgstr "„Von“-Datum"
+
+#: date/date_admin.inc:280;281;282;283
+#: date/date_elements.inc:326
+#: includes/date_api_filter_handler.inc:259
+msgid "To date"
+msgstr "„Bis“-Datum"
+
+#: date_locale/date_locale.module:209
+#: date_php4/date_php4.module:54
+#: date_tools/date_tools.module:193
+msgid "Save"
+msgstr "Speichern"
+
+#: date_tools/date_tools.module:419
+#: includes/date_api_filter_handler.inc:77
+msgid "Text"
+msgstr "Text"

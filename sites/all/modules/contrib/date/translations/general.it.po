@@ -1,0 +1,89 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: \n"
+"Last-Translator: thePanz <thepanz@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: date_api.admin.inc:147
+#: date_locale/date_locale.module:252
+msgid "Configuration saved."
+msgstr "Configurazione salvata."
+
+#: date_api.admin.inc:165;201
+#: date_locale/date_locale.module:214
+msgid "Cancel"
+msgstr "Annulla"
+
+#: date_api_elements.inc:148
+#: date_popup/date_popup.module:253;288
+msgid "Format: @date"
+msgstr "Formato: @date"
+
+#: date_api_sql.inc:695
+#: date/date_admin.inc:356
+#: date_tools/date_tools.module:153
+#: includes/date_api_argument_handler.inc:62
+msgid "Granularity"
+msgstr "Granularità"
+
+#: date/date_admin.inc:72;78
+#: date_popup/date_popup.module:266
+msgid "Now"
+msgstr "Adesso"
+
+#: date/date_admin.inc:275;276;277;278
+#: date/date_elements.inc:324
+#: includes/date_api_filter_handler.inc:256
+msgid "From date"
+msgstr "Data iniziale"
+
+#: date/date_admin.inc:280;281;282;283
+#: date/date_elements.inc:326
+#: includes/date_api_filter_handler.inc:259
+msgid "To date"
+msgstr "Data finale"
+
+#: date_locale/date_locale.module:209
+#: date_php4/date_php4.module:54
+#: date_tools/date_tools.module:193
+msgid "Save"
+msgstr "Salva"
+
+#: date_tools/date_tools.module:419
+#: includes/date_api_filter_handler.inc:77
+msgid "Text"
+msgstr "Testo"
+
+#~ msgid "Year"
+#~ msgstr "Anno"
+#~ msgid "Month"
+#~ msgstr "Mese"
+#~ msgid "Day"
+#~ msgstr "Giorno"
+#~ msgid "Hour"
+#~ msgstr "Ora"
+#~ msgid "Minute"
+#~ msgstr "Minuto"
+#~ msgid "Second"
+#~ msgstr "Secondo"
+#~ msgid "Sunday"
+#~ msgstr "Domenica"
+#~ msgid "Monday"
+#~ msgstr "Lunedì"
+#~ msgid "Tuesday"
+#~ msgstr "Martedì"
+#~ msgid "Wednesday"
+#~ msgstr "Mercoledì"
+#~ msgid "Thursday"
+#~ msgstr "Giovedì"
+#~ msgid "Friday"
+#~ msgstr "Venerdì"
+#~ msgid "Saturday"
+#~ msgstr "Sabato"
+#~ msgid "Repeats"
+#~ msgstr "Ripetizione"

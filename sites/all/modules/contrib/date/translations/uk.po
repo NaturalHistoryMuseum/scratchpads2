@@ -1,0 +1,2075 @@
+# Ukrainian translation of Date (all releases)
+# Copyright (c) 2009 by the Ukrainian translation team
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Date (all releases)\n"
+"POT-Creation-Date: 2009-10-08 19:44+0000\n"
+"PO-Revision-Date: 2009-10-08 22:45+0200\n"
+"Language-Team: Ukrainian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"Last-Translator: podarok <podarok@ua.fm>\n"
+"X-Poedit-Language: Ukrainian\n"
+"X-Poedit-Country: UKRAINE\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+msgid "Title"
+msgstr "Назва"
+
+msgid "Next"
+msgstr "Наступний"
+
+msgid "CCK"
+msgstr "CCK"
+
+msgid "Save configuration"
+msgstr "Запам'ятати конфігурацію"
+
+msgid "enabled"
+msgstr "ввімкнено"
+
+msgid "Delete"
+msgstr "Видалити"
+
+msgid "Submit"
+msgstr "Надіслати"
+
+msgid "Operations"
+msgstr "Дії"
+
+msgid "Content"
+msgstr "Вміст"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "disabled"
+msgstr "вимкнено"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "Remove"
+msgstr "Вилучити"
+
+msgid "Description"
+msgstr "Опис"
+
+msgid "Language"
+msgstr "Мова"
+
+msgid "More"
+msgstr "Ще"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "Categories"
+msgstr "Категорії"
+
+msgid "view"
+msgstr "переглянути"
+
+msgid "Advanced options"
+msgstr "Додаткові налаштування"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "None"
+msgstr "Жодного"
+
+msgid "default"
+msgstr "типовий"
+
+msgid "This action cannot be undone."
+msgstr "Цю дію не можна буде скасувати."
+
+msgid "Multiple"
+msgstr "Численний"
+
+msgid "Required"
+msgstr "Необхідний"
+
+msgid "Feed"
+msgstr "RSS стрічка"
+
+msgid "Name"
+msgstr "Назва"
+
+msgid "Import"
+msgstr "Імпорт"
+
+msgid "Export"
+msgstr "Експорт"
+
+msgid "Description field"
+msgstr "Поле опису"
+
+msgid "Save"
+msgstr "Зберегти"
+
+msgid "Help"
+msgstr "Довідка"
+
+msgid "Default"
+msgstr "Типовий"
+
+msgid "Blank"
+msgstr "Порожньо"
+
+msgid "Sunday"
+msgstr "Неділя"
+
+msgid "Monday"
+msgstr "Понеділок"
+
+msgid "Tuesday"
+msgstr "Вівторок"
+
+msgid "Wednesday"
+msgstr "Середа"
+
+msgid "Thursday"
+msgstr "Четвер"
+
+msgid "Friday"
+msgstr "П'ятниця"
+
+msgid "Saturday"
+msgstr "Субота"
+
+msgid " and "
+msgstr " і "
+
+msgid "Time"
+msgstr "Час"
+
+msgid "Views"
+msgstr "Views"
+
+msgid "Add"
+msgstr "Додати"
+
+msgid "remove"
+msgstr "видалити"
+
+msgid "Text"
+msgstr "Текст"
+
+msgid "Timestamp"
+msgstr "Мітка часу"
+
+msgid "<all>"
+msgstr "<all>"
+
+msgid "Content type"
+msgstr "Тип вмісту"
+
+msgid "Configure"
+msgstr "Управління"
+
+msgid "Expanded"
+msgstr "Розширене"
+
+msgid "Year"
+msgstr "Рік"
+
+msgid "Configuration saved."
+msgstr "Налаштування збережені."
+
+msgid "Never"
+msgstr "Нескінченний"
+
+msgid "To"
+msgstr "До"
+
+msgid "From"
+msgstr "Від"
+
+msgid "Published"
+msgstr "Опубліковано"
+
+msgid "Input format"
+msgstr "Формат вводу"
+
+msgid "Promoted to front page"
+msgstr "Розміщене на першій сторінці"
+
+msgid "Sticky at top of lists"
+msgstr "Прикріплене зверху сторінки"
+
+msgid "N/A"
+msgstr "н/п"
+
+msgid "Authored by"
+msgstr "Створено"
+
+msgid "Advanced"
+msgstr "Додатково"
+
+msgid "Medium"
+msgstr "Середня"
+
+msgid "help"
+msgstr "довідка"
+
+msgid "Month"
+msgstr "Місяць"
+
+msgid "Prev"
+msgstr "Попередн."
+
+msgid "Id"
+msgstr "Ід"
+
+msgid "Unlimited"
+msgstr "Необмежено"
+
+msgid "OR"
+msgstr "АБО"
+
+msgid "Calendar"
+msgstr "Календар"
+
+msgid "Method"
+msgstr "Метод"
+
+msgid "Egypt"
+msgstr "Єгипет"
+
+msgid "Namibia"
+msgstr "Намібія"
+
+msgid "Israel"
+msgstr "Ізраїль"
+
+msgid "Palestine"
+msgstr "Палестина"
+
+msgid "Iran"
+msgstr "Іран"
+
+msgid "South Australia"
+msgstr "Південна Австралія"
+
+msgid "New Zealand"
+msgstr "Нова Зеландія"
+
+msgid "Tonga"
+msgstr "Тонґа"
+
+msgid "Russian Federation"
+msgstr "Російська Федерація"
+
+msgid "North America"
+msgstr "Північна Америка"
+
+msgid "Cuba"
+msgstr "Куба"
+
+msgid "Brazil"
+msgstr "Бразилія"
+
+msgid "Chile"
+msgstr "Чилі"
+
+msgid "Paraguay"
+msgstr "Парагвай"
+
+msgid "Africa/Addis_Ababa"
+msgstr "Африка/Аддис_Абеба"
+
+msgid "Africa/Algiers"
+msgstr "Африка/Алжир"
+
+msgid "Africa/Asmera"
+msgstr "Африка/Асмара"
+
+msgid "Africa/Bangui"
+msgstr "Африка/Банґі"
+
+msgid "Africa/Blantyre"
+msgstr "Африка/Блантир"
+
+msgid "Africa/Brazzaville"
+msgstr "Африка/Браззавіль"
+
+msgid "Africa/Bujumbura"
+msgstr "Африка/Буджумбура"
+
+msgid "Africa/Cairo"
+msgstr "Африка/Каїр"
+
+msgid "Africa/Ceuta"
+msgstr "Африка/Сеута"
+
+msgid "Africa/Dar_es_Salaam"
+msgstr "Африка/Дар-ес-Салам"
+
+msgid "Africa/Djibouti"
+msgstr "Африка/Джибуті"
+
+msgid "Africa/Douala"
+msgstr "Африка/Дуала"
+
+msgid "Africa/Gaborone"
+msgstr "Африка/Ґабороне"
+
+msgid "Africa/Harare"
+msgstr "Африка/Хараре"
+
+msgid "Africa/Johannesburg"
+msgstr "Африка/Йоганнесбург"
+
+msgid "Africa/Kampala"
+msgstr "Африка/Кампала"
+
+msgid "Africa/Khartoum"
+msgstr "Африка/Хартум"
+
+msgid "Africa/Kigali"
+msgstr "Африка/Кіґалі"
+
+msgid "Africa/Kinshasa"
+msgstr "Африка/Кіншаса"
+
+msgid "Africa/Lagos"
+msgstr "Африка/Лагос"
+
+msgid "Africa/Libreville"
+msgstr "Африка/Лібревіль"
+
+msgid "Africa/Luanda"
+msgstr "Африка/Луанда"
+
+msgid "Africa/Lubumbashi"
+msgstr "Африка/Лубумбаши"
+
+msgid "Africa/Lusaka"
+msgstr "Африка/Лусака"
+
+msgid "Africa/Malabo"
+msgstr "Африка/Малабо"
+
+msgid "Africa/Maputo"
+msgstr "Африка/Мапуту"
+
+msgid "Africa/Maseru"
+msgstr "Африка/Масеру"
+
+msgid "Africa/Mbabane"
+msgstr "Африка/Мбабане"
+
+msgid "Africa/Mogadishu"
+msgstr "Африка/Могадішо"
+
+msgid "Africa/Nairobi"
+msgstr "Африка/Найробі"
+
+msgid "Africa/Ndjamena"
+msgstr "Африка/Нджамена"
+
+msgid "Africa/Niamey"
+msgstr "Африка/Ніамей"
+
+msgid "Africa/Porto-Novo"
+msgstr "Африка/Порто-Ново"
+
+msgid "Africa/Tripoli"
+msgstr "Африка/Тріполі"
+
+msgid "Africa/Tunis"
+msgstr "Африка/Туніс"
+
+msgid "Africa/Windhoek"
+msgstr "Африка/Віндхук"
+
+msgid "America/Adak"
+msgstr "Америка/Адак"
+
+msgid "America/Anchorage"
+msgstr "Америка/Анкорідж"
+
+msgid "America/Anguilla"
+msgstr "Америка/Анґілья"
+
+msgid "America/Antigua"
+msgstr "Америка/Антігуа"
+
+msgid "America/Araguaina"
+msgstr "Америка/Араґуяна"
+
+msgid "America/Aruba"
+msgstr "Америка/Аруба"
+
+msgid "America/Asuncion"
+msgstr "Америка/Асунсьон"
+
+msgid "America/Atka"
+msgstr "Америка/Атка"
+
+msgid "America/Barbados"
+msgstr "Америка/Барбадос"
+
+msgid "America/Belem"
+msgstr "Америка/Белем"
+
+msgid "America/Belize"
+msgstr "Америка/Беліз"
+
+msgid "America/Boa_Vista"
+msgstr "Америка/Боавішта"
+
+msgid "America/Bogota"
+msgstr "Америка/Богота"
+
+msgid "America/Boise"
+msgstr "Америка/Бойсе"
+
+msgid "America/Buenos_Aires"
+msgstr "Америка/Буенос-Айрес"
+
+msgid "America/Cambridge_Bay"
+msgstr "Америка/Кембрідж-Бей"
+
+msgid "America/Cancun"
+msgstr "Америка/Канкун"
+
+msgid "America/Caracas"
+msgstr "Америка/Каракас"
+
+msgid "America/Catamarca"
+msgstr "Америка/Катамарка"
+
+msgid "America/Cayenne"
+msgstr "Америка/Кайєнна"
+
+msgid "America/Cayman"
+msgstr "Америка/Кайманові острови"
+
+msgid "America/Chicago"
+msgstr "Америка/Чикаго"
+
+msgid "America/Chihuahua"
+msgstr "Америка/Чіхуахуа"
+
+msgid "America/Cordoba"
+msgstr "Америка/Кордоба"
+
+msgid "America/Costa_Rica"
+msgstr "Америка/Коста-Ріка"
+
+msgid "America/Cuiaba"
+msgstr "Америка/Куяба"
+
+msgid "America/Curacao"
+msgstr "Америка/Куракао"
+
+msgid "America/Dawson"
+msgstr "Америка/Досон"
+
+msgid "America/Dawson_Creek"
+msgstr "Америка/Доусон-Крік"
+
+msgid "America/Denver"
+msgstr "Америка/Денвер"
+
+msgid "America/Detroit"
+msgstr "Америка/Детройт"
+
+msgid "America/Dominica"
+msgstr "Америка/Домініка"
+
+msgid "America/Edmonton"
+msgstr "Америка/Едмонтон"
+
+msgid "America/Eirunepe"
+msgstr "Америка/Ірунепе"
+
+msgid "America/El_Salvador"
+msgstr "Америка/Ель-Сальвадор"
+
+msgid "America/Ensenada"
+msgstr "Америка/Енсенада"
+
+msgid "America/Fort_Wayne"
+msgstr "Америка/Форт-Вейн"
+
+msgid "America/Fortaleza"
+msgstr "Америка/Форталеза"
+
+msgid "America/Glace_Bay"
+msgstr "Америка/Глейс-Бей"
+
+msgid "America/Godthab"
+msgstr "Америка/Ґодтаб"
+
+msgid "America/Goose_Bay"
+msgstr "Америка/Гуз-Бей"
+
+msgid "America/Grand_Turk"
+msgstr "Америка/Гранд-Тюрк"
+
+msgid "America/Grenada"
+msgstr "Америка/Гренада"
+
+msgid "America/Guadeloupe"
+msgstr "Америка/Гваделупа"
+
+msgid "America/Guatemala"
+msgstr "Америка/Гватемала"
+
+msgid "America/Guayaquil"
+msgstr "Америка/Ґуаякіль"
+
+msgid "America/Guyana"
+msgstr "Америка/Гаяна"
+
+msgid "America/Halifax"
+msgstr "Америка/Галіфакс"
+
+msgid "America/Havana"
+msgstr "Америка/Гавана"
+
+msgid "America/Hermosillo"
+msgstr "Америка/Ермосійо"
+
+msgid "America/Indiana/Indianapolis"
+msgstr "Америка/Індіана/Індіанаполіс"
+
+msgid "America/Indiana/Knox"
+msgstr "Америка/Індіана/Нокс"
+
+msgid "America/Indiana/Marengo"
+msgstr "Америка/Індіана/Маренґо"
+
+msgid "America/Indiana/Vevay"
+msgstr "Америка/Індіана/Вевей"
+
+msgid "America/Indianapolis"
+msgstr "Америка/Індіанаполіс"
+
+msgid "America/Inuvik"
+msgstr "Америка/Інувік"
+
+msgid "America/Iqaluit"
+msgstr "Америка/Ікалуіт"
+
+msgid "America/Jamaica"
+msgstr "Америка/Ямайка"
+
+msgid "America/Jujuy"
+msgstr "Америка/Джуждуй"
+
+msgid "America/Juneau"
+msgstr "Америка/Джуно"
+
+msgid "America/Kentucky/Louisville"
+msgstr "Америка/Кентуккі/Луїсвілль"
+
+msgid "America/Kentucky/Monticello"
+msgstr "Америка/Кентуккі/Монтічелло"
+
+msgid "America/Knox_IN"
+msgstr "Америка/Індіана-Нокс"
+
+msgid "America/La_Paz"
+msgstr "Америка/Ла-Паз"
+
+msgid "America/Lima"
+msgstr "Америка/Ліма"
+
+msgid "America/Los_Angeles"
+msgstr "Америка/Лос-Анжелес"
+
+msgid "America/Louisville"
+msgstr "Америка/Луїсвілль"
+
+msgid "America/Maceio"
+msgstr "Америка/Масейо"
+
+msgid "America/Managua"
+msgstr "Америка/Манагуа"
+
+msgid "America/Manaus"
+msgstr "Америка/Манаус"
+
+msgid "America/Martinique"
+msgstr "Америка/Мартініка"
+
+msgid "America/Mazatlan"
+msgstr "Америка/Мазатлан"
+
+msgid "America/Mendoza"
+msgstr "Америка/Мендоза"
+
+msgid "America/Menominee"
+msgstr "Америка/Меноміні"
+
+msgid "America/Merida"
+msgstr "Америка/Меріда"
+
+msgid "America/Mexico_City"
+msgstr "Америка/Мехіко"
+
+msgid "America/Miquelon"
+msgstr "Америка/Мікелон"
+
+msgid "America/Monterrey"
+msgstr "Америка/Монтерей"
+
+msgid "America/Montevideo"
+msgstr "Америка/Монтевідео"
+
+msgid "America/Montreal"
+msgstr "Америка/Монреаль"
+
+msgid "America/Montserrat"
+msgstr "Америка/Монсеррат"
+
+msgid "America/Nassau"
+msgstr "Америка/Насау"
+
+msgid "America/New_York"
+msgstr "Америка/Нью-Йорк"
+
+msgid "America/Nipigon"
+msgstr "Америка/Ніпіґон"
+
+msgid "America/Nome"
+msgstr "Америка/Ном"
+
+msgid "America/Noronha"
+msgstr "Америка/Норонга"
+
+msgid "America/Panama"
+msgstr "Америка/Панама"
+
+msgid "America/Pangnirtung"
+msgstr "Америка/Панґніртунґ"
+
+msgid "America/Paramaribo"
+msgstr "Америка/Парамарібо"
+
+msgid "America/Phoenix"
+msgstr "Америка/Фенікс"
+
+msgid "America/Port-au-Prince"
+msgstr "Америка/Порт-о-Пренс"
+
+msgid "America/Port_of_Spain"
+msgstr "Америка/Порт-оф-Спейн"
+
+msgid "America/Porto_Acre"
+msgstr "Америка/Порту-Акрі"
+
+msgid "America/Porto_Velho"
+msgstr "Америка/Порто-Велго"
+
+msgid "America/Puerto_Rico"
+msgstr "Америка/Пуерто-Ріко"
+
+msgid "America/Rainy_River"
+msgstr "Америка/Рейні-Ривер"
+
+msgid "America/Rankin_Inlet"
+msgstr "Америка/Ранклін-Інлет"
+
+msgid "America/Recife"
+msgstr "Америка/Ресіфе"
+
+msgid "America/Regina"
+msgstr "Америка/Реджина"
+
+msgid "America/Rio_Branco"
+msgstr "Америка/Ріо-Бранко"
+
+msgid "America/Rosario"
+msgstr "Америка/Розаріо"
+
+msgid "America/Santiago"
+msgstr "Америка/Сантьяґо"
+
+msgid "America/Santo_Domingo"
+msgstr "Америка/Санто-Домінго"
+
+msgid "America/Sao_Paulo"
+msgstr "Америка/Сан-Паулу"
+
+msgid "America/Scoresbysund"
+msgstr "Америка/Скорсбайзунд"
+
+msgid "America/Shiprock"
+msgstr "Америка/Шіпрок"
+
+msgid "America/St_Johns"
+msgstr "Америка/Сент-Джонс"
+
+msgid "America/St_Kitts"
+msgstr "Америка/Сент-Кітс"
+
+msgid "America/St_Lucia"
+msgstr "Америка/Санта-Лючія"
+
+msgid "America/St_Thomas"
+msgstr "Америка/Сент-Томас"
+
+msgid "America/St_Vincent"
+msgstr "Америка/Сент-Вісент"
+
+msgid "America/Swift_Current"
+msgstr "Америка/Свіфт-Карент"
+
+msgid "America/Tegucigalpa"
+msgstr "Америка/Теґучіґальпа"
+
+msgid "America/Thule"
+msgstr "Америка/Тулє"
+
+msgid "America/Thunder_Bay"
+msgstr "Америка/Сандер-Бей"
+
+msgid "America/Tijuana"
+msgstr "Америка/Тіхуана"
+
+msgid "America/Tortola"
+msgstr "Америка/Тортола"
+
+msgid "America/Vancouver"
+msgstr "Америка/Ванкувер"
+
+msgid "America/Virgin"
+msgstr "Америка/Віргінські острови"
+
+msgid "America/Whitehorse"
+msgstr "Америка/Вайтхорс"
+
+msgid "America/Winnipeg"
+msgstr "Америка/Вінніпег"
+
+msgid "America/Yakutat"
+msgstr "Америка/Якутат"
+
+msgid "America/Yellowknife"
+msgstr "Америка/Єллоунайф"
+
+msgid "Antarctica/Casey"
+msgstr "Антарктика/Кейсі"
+
+msgid "Antarctica/Davis"
+msgstr "Антарктика/Девіс"
+
+msgid "Antarctica/DumontDUrville"
+msgstr "Антарктика/Дюмон-д'Юрвиль"
+
+msgid "Antarctica/Mawson"
+msgstr "Антарктика/Моусон"
+
+msgid "Antarctica/McMurdo"
+msgstr "Антарктика/Макмердо"
+
+msgid "Antarctica/Palmer"
+msgstr "Антарктика/Палмер"
+
+msgid "Antarctica/South_Pole"
+msgstr "Антарктика/Південний полюс"
+
+msgid "Antarctica/Syowa"
+msgstr "Антарктика/Сєва"
+
+msgid "Antarctica/Vostok"
+msgstr "Антарктика/Восток"
+
+msgid "Arctic/Longyearbyen"
+msgstr "Арктика/Лонґєрбєн"
+
+msgid "Asia/Aden"
+msgstr "Азія/Аден"
+
+msgid "Asia/Almaty"
+msgstr "Азія/Алмати"
+
+msgid "Asia/Amman"
+msgstr "Азія/Амман"
+
+msgid "Asia/Anadyr"
+msgstr "Азія/Анадир"
+
+msgid "Asia/Aqtau"
+msgstr "Азія/Актау"
+
+msgid "Asia/Aqtobe"
+msgstr "Азія/Актобе (Актюбинськ)"
+
+msgid "Asia/Ashgabat"
+msgstr "Азія/Ашхабад"
+
+msgid "Asia/Ashkhabad"
+msgstr "Азія/Ашгабад"
+
+msgid "Asia/Baghdad"
+msgstr "Азія/Багдад"
+
+msgid "Asia/Bahrain"
+msgstr "Азія/Бахрейн"
+
+msgid "Asia/Baku"
+msgstr "Азія/Баку"
+
+msgid "Asia/Bangkok"
+msgstr "Азія/Бангкок"
+
+msgid "Asia/Beirut"
+msgstr "Азія/Бейрут"
+
+msgid "Asia/Bishkek"
+msgstr "Азія/Бішкек"
+
+msgid "Asia/Brunei"
+msgstr "Азія/Бруней"
+
+msgid "Asia/Calcutta"
+msgstr "Азія/Калькутта"
+
+msgid "Asia/Chungking"
+msgstr "Азія/Чунцин"
+
+msgid "Asia/Colombo"
+msgstr "Азія/Коломбо"
+
+msgid "Asia/Dacca"
+msgstr "Азія/Дакка"
+
+msgid "Asia/Damascus"
+msgstr "Азія/Дамаск"
+
+msgid "Asia/Dhaka"
+msgstr "Азія/Дакка"
+
+msgid "Asia/Dili"
+msgstr "Азія/Ділі"
+
+msgid "Asia/Dubai"
+msgstr "Азія/Дубаї"
+
+msgid "Asia/Dushanbe"
+msgstr "Азія/Душанбе"
+
+msgid "Asia/Gaza"
+msgstr "Азія/Ґаза"
+
+msgid "Asia/Harbin"
+msgstr "Азія/Гарбін"
+
+msgid "Asia/Hong_Kong"
+msgstr "Азія/Гонґ_Конґ"
+
+msgid "Asia/Hovd"
+msgstr "Азія/Ховд"
+
+msgid "Asia/Irkutsk"
+msgstr "Азія/Іркутськ"
+
+msgid "Asia/Istanbul"
+msgstr "Азія/Стамбул"
+
+msgid "Asia/Jakarta"
+msgstr "Азія/Джакарта"
+
+msgid "Asia/Jayapura"
+msgstr "Азія/Джаяпура"
+
+msgid "Asia/Jerusalem"
+msgstr "Азія/Єрусалим"
+
+msgid "Asia/Kabul"
+msgstr "Азія/Кабул"
+
+msgid "Asia/Kamchatka"
+msgstr "Азія/Камчатка"
+
+msgid "Asia/Karachi"
+msgstr "Азія/Карачі"
+
+msgid "Asia/Kashgar"
+msgstr "Азія/Кашгар"
+
+msgid "Asia/Katmandu"
+msgstr "Азія/Катманду"
+
+msgid "Asia/Krasnoyarsk"
+msgstr "Азія/Красноярськ"
+
+msgid "Asia/Kuala_Lumpur"
+msgstr "Азія/Куала-Лумпур"
+
+msgid "Asia/Kuching"
+msgstr "Азія/Кучінґ"
+
+msgid "Asia/Kuwait"
+msgstr "Азія/Кувейт"
+
+msgid "Asia/Macao"
+msgstr "Азія/Макао"
+
+msgid "Asia/Magadan"
+msgstr "Азія/Магадан"
+
+msgid "Asia/Manila"
+msgstr "Азія/Маніла"
+
+msgid "Asia/Muscat"
+msgstr "Азія/Мускат"
+
+msgid "Asia/Nicosia"
+msgstr "Азія/Нікосія"
+
+msgid "Asia/Novosibirsk"
+msgstr "Азія/Новосибірськ"
+
+msgid "Asia/Omsk"
+msgstr "Азія/Омськ"
+
+msgid "Asia/Phnom_Penh"
+msgstr "Азія/Пномпень"
+
+msgid "Asia/Pyongyang"
+msgstr "Азія/Пхеньян"
+
+msgid "Asia/Qatar"
+msgstr "Азія/Катар"
+
+msgid "Asia/Rangoon"
+msgstr "Азія/Раґун"
+
+msgid "Asia/Riyadh"
+msgstr "Азія/Ер-Ріяд"
+
+msgid "Asia/Riyadh87"
+msgstr "Азія/Riyadh87"
+
+msgid "Asia/Riyadh88"
+msgstr "Азія/Riyadh88"
+
+msgid "Asia/Riyadh89"
+msgstr "Азія/Riyadh89"
+
+msgid "Asia/Saigon"
+msgstr "Азія/Сайгон"
+
+msgid "Asia/Samarkand"
+msgstr "Азія/Самарканд"
+
+msgid "Asia/Seoul"
+msgstr "Азія/Сеул"
+
+msgid "Asia/Shanghai"
+msgstr "Азія/Шанхай"
+
+msgid "Asia/Singapore"
+msgstr "Азія/Сінгапур"
+
+msgid "Asia/Taipei"
+msgstr "Азія/Тайпей"
+
+msgid "Asia/Tashkent"
+msgstr "Азія/Ташкент"
+
+msgid "Asia/Tbilisi"
+msgstr "Азія/Тбілісі"
+
+msgid "Asia/Tehran"
+msgstr "Азія/Тегеран"
+
+msgid "Asia/Tel_Aviv"
+msgstr "Азія/Тель-Авів"
+
+msgid "Asia/Thimbu"
+msgstr "Азія/Тхімпху"
+
+msgid "Asia/Thimphu"
+msgstr "Азія/Тімфу"
+
+msgid "Asia/Tokyo"
+msgstr "Азія/Токіо"
+
+msgid "Asia/Ujung_Pandang"
+msgstr "Азія/Уйжунг-Панданг"
+
+msgid "Asia/Ulaanbaatar"
+msgstr "Азія/Улан-Батор"
+
+msgid "Asia/Ulan_Bator"
+msgstr "Азія/Улан-Батор"
+
+msgid "Asia/Urumqi"
+msgstr "Азія/Урумкі"
+
+msgid "Asia/Vientiane"
+msgstr "Азія/В'єнтьян"
+
+msgid "Asia/Vladivostok"
+msgstr "Азія/Владивосток"
+
+msgid "Asia/Yakutsk"
+msgstr "Азія/Якутськ"
+
+msgid "Asia/Yekaterinburg"
+msgstr "Азія/Єкатеринбург"
+
+msgid "Asia/Yerevan"
+msgstr "Азія/Єреван"
+
+msgid "Atlantic/Azores"
+msgstr "Атлантика/Азори"
+
+msgid "Atlantic/Bermuda"
+msgstr "Атлантика/Бермуди"
+
+msgid "Atlantic/Canary"
+msgstr "Атлантика/Канари"
+
+msgid "Atlantic/Cape_Verde"
+msgstr "Атлантика/Кабо-Верде"
+
+msgid "Atlantic/Faeroe"
+msgstr "Атлантика/Фарери"
+
+msgid "Atlantic/Jan_Mayen"
+msgstr "Атлантика/Ян-Майєн"
+
+msgid "Atlantic/Madeira"
+msgstr "Атлантика/Мадейра"
+
+msgid "Atlantic/South_Georgia"
+msgstr "Атлантика/Південна Джорджія"
+
+msgid "Atlantic/Stanley"
+msgstr "Атлантика/Стенлі"
+
+msgid "Australia/ACT"
+msgstr "Австралія/Австралійська столична територія"
+
+msgid "Australia/Adelaide"
+msgstr "Австралія/Аделаїда"
+
+msgid "Australia/Brisbane"
+msgstr "Австралія/Брісбен"
+
+msgid "Australia/Broken_Hill"
+msgstr "Австралія/Брокен-Хіл"
+
+msgid "Australia/Canberra"
+msgstr "Австралія/Канберра"
+
+msgid "Australia/Darwin"
+msgstr "Австралія/Дарвін"
+
+msgid "Australia/Hobart"
+msgstr "Австралія/Гобарт"
+
+msgid "Australia/LHI"
+msgstr "Австралія/Острів Лорд-Хау"
+
+msgid "Australia/Lindeman"
+msgstr "Австралія/Ліндеман"
+
+msgid "Australia/Lord_Howe"
+msgstr "Австралія/Лорд-Хау"
+
+msgid "Australia/Melbourne"
+msgstr "Австралія/Мельбурн"
+
+msgid "Australia/NSW"
+msgstr "Австралія/Новий Південний Уельс"
+
+msgid "Australia/North"
+msgstr "Австралія/Північ"
+
+msgid "Australia/Perth"
+msgstr "Австралія/Перт"
+
+msgid "Australia/Queensland"
+msgstr "Австралія/Квінсленд"
+
+msgid "Australia/South"
+msgstr "Австралія/Південь"
+
+msgid "Australia/Sydney"
+msgstr "Австралія/Сідней"
+
+msgid "Australia/Tasmania"
+msgstr "Австралія/Тасманія"
+
+msgid "Australia/Victoria"
+msgstr "Австралія/Вікторія"
+
+msgid "Australia/West"
+msgstr "Австралія/Захід"
+
+msgid "Australia/Yancowinna"
+msgstr "Австралія/Якнковінна"
+
+msgid "Brazil/Acre"
+msgstr "Бразилія/Акрі"
+
+msgid "Brazil/DeNoronha"
+msgstr "Бразилія/Фернанду-ді-Норонья"
+
+msgid "Brazil/East"
+msgstr "Бразилія/Схід"
+
+msgid "Brazil/West"
+msgstr "Бразилія/Захід"
+
+msgid "Canada/Atlantic"
+msgstr "Канада/Атлантичне узбережжя"
+
+msgid "Canada/Central"
+msgstr "Канада/Центральна частина"
+
+msgid "Canada/Eastern"
+msgstr "Канада/Східна частина"
+
+msgid "Canada/Mountain"
+msgstr "Канада/Гори"
+
+msgid "Canada/Newfoundland"
+msgstr "Канада/Ньюфаундленд"
+
+msgid "Canada/Pacific"
+msgstr "Канада/Тихоокеанське узбережжя"
+
+msgid "Canada/Saskatchewan"
+msgstr "Канада/Саскачеван"
+
+msgid "Canada/Yukon"
+msgstr "Канада/Юкон"
+
+msgid "Chile/Continental"
+msgstr "Чилі/Континентальна частина"
+
+msgid "Chile/EasterIsland"
+msgstr "Чилі/Острів Пасхи"
+
+msgid "EST"
+msgstr "EST"
+
+msgid "Eire"
+msgstr "Ірландія"
+
+msgid "Etc/GMT-1"
+msgstr "Etc/GMT-1"
+
+msgid "Etc/GMT-10"
+msgstr "Etc/GMT-10"
+
+msgid "Etc/GMT-11"
+msgstr "Etc/GMT-11"
+
+msgid "Etc/GMT-12"
+msgstr "Etc/GMT-12"
+
+msgid "Etc/GMT-2"
+msgstr "Etc/GMT-2"
+
+msgid "Etc/GMT-3"
+msgstr "Etc/GMT-3"
+
+msgid "Etc/GMT-4"
+msgstr "Etc/GMT-4"
+
+msgid "Etc/GMT-5"
+msgstr "Etc/GMT-5"
+
+msgid "Etc/GMT-6"
+msgstr "Etc/GMT-6"
+
+msgid "Etc/GMT-7"
+msgstr "Etc/GMT-7"
+
+msgid "Etc/GMT-8"
+msgstr "Etc/GMT-8"
+
+msgid "Etc/GMT-9"
+msgstr "Etc/GMT-9"
+
+msgid "Etc/GMT"
+msgstr "Etc/GMT"
+
+msgid "Etc/GMT+1"
+msgstr "Etc/GMT+1"
+
+msgid "Etc/GMT+10"
+msgstr "Etc/GMT+10"
+
+msgid "Etc/GMT+11"
+msgstr "Etc/GMT+11"
+
+msgid "Etc/GMT+12"
+msgstr "Etc/GMT+12"
+
+msgid "Etc/GMT+2"
+msgstr "Etc/GMT+2"
+
+msgid "Etc/GMT+3"
+msgstr "Etc/GMT+3"
+
+msgid "Etc/GMT+4"
+msgstr "Etc/GMT+4"
+
+msgid "Etc/GMT+5"
+msgstr "Etc/GMT+5"
+
+msgid "Etc/GMT+6"
+msgstr "Etc/GMT+6"
+
+msgid "Etc/GMT+7"
+msgstr "Etc/GMT+7"
+
+msgid "Etc/GMT+8"
+msgstr "Etc/GMT+8"
+
+msgid "Etc/GMT+9"
+msgstr "Etc/GMT+9"
+
+msgid "Europe/Amsterdam"
+msgstr "Європа/Амстердам"
+
+msgid "Europe/Andorra"
+msgstr "Європа/Андорра"
+
+msgid "Europe/Athens"
+msgstr "Європа/Афіни"
+
+msgid "Europe/Belfast"
+msgstr "Європа/Белфаст"
+
+msgid "Europe/Belgrade"
+msgstr "Європа/Белград"
+
+msgid "Europe/Berlin"
+msgstr "Європа/Берлін"
+
+msgid "Europe/Bratislava"
+msgstr "Європа/Братислава"
+
+msgid "Europe/Brussels"
+msgstr "Європа/Брюссель"
+
+msgid "Europe/Bucharest"
+msgstr "Європа/Бухарест"
+
+msgid "Europe/Budapest"
+msgstr "Європа/Будапешт"
+
+msgid "Europe/Chisinau"
+msgstr "Європа/Кишинів"
+
+msgid "Europe/Copenhagen"
+msgstr "Європа/Копенгаген"
+
+msgid "Europe/Dublin"
+msgstr "Європа/Дублін"
+
+msgid "Europe/Gibraltar"
+msgstr "Європа/Гібралтар"
+
+msgid "Europe/Helsinki"
+msgstr "Європа/Хельсінкі"
+
+msgid "Europe/Istanbul"
+msgstr "Європа/Стамбул"
+
+msgid "Europe/Kaliningrad"
+msgstr "Європа/Калінінград"
+
+msgid "Europe/Kiev"
+msgstr "Європа/Київ"
+
+msgid "Europe/Lisbon"
+msgstr "Європа/Лісабон"
+
+msgid "Europe/Ljubljana"
+msgstr "Європа/Любляна"
+
+msgid "Europe/London"
+msgstr "Європа/Лондон"
+
+msgid "Europe/Luxembourg"
+msgstr "Європа/Люксембург"
+
+msgid "Europe/Madrid"
+msgstr "Європа/Мадрид"
+
+msgid "Europe/Malta"
+msgstr "Європа/Мальта"
+
+msgid "Europe/Minsk"
+msgstr "Європа/Мінськ"
+
+msgid "Europe/Monaco"
+msgstr "Європа/Монако"
+
+msgid "Europe/Moscow"
+msgstr "Європа/Москва"
+
+msgid "Europe/Nicosia"
+msgstr "Європа/Нікосія"
+
+msgid "Europe/Oslo"
+msgstr "Європа/Осло"
+
+msgid "Europe/Paris"
+msgstr "Європа/Париж"
+
+msgid "Europe/Prague"
+msgstr "Європа/Прага"
+
+msgid "Europe/Riga"
+msgstr "Європа/Рига"
+
+msgid "Europe/Rome"
+msgstr "Європа/Рим"
+
+msgid "Europe/Samara"
+msgstr "Європа/Самара"
+
+msgid "Europe/San_Marino"
+msgstr "Європа/Сан-Маріно"
+
+msgid "Europe/Sarajevo"
+msgstr "Європа/Сараєво"
+
+msgid "Europe/Simferopol"
+msgstr "Європа/Сімферополь"
+
+msgid "Europe/Skopje"
+msgstr "Європа/Скоп'є"
+
+msgid "Europe/Sofia"
+msgstr "Європа/Софія"
+
+msgid "Europe/Stockholm"
+msgstr "Європа/Стокгольм"
+
+msgid "Europe/Tallinn"
+msgstr "Європа/Таллін"
+
+msgid "Europe/Tirane"
+msgstr "Європа/Тірана"
+
+msgid "Europe/Tiraspol"
+msgstr "Європа/Тирасполь"
+
+msgid "Europe/Uzhgorod"
+msgstr "Європа/Ужгород"
+
+msgid "Europe/Vaduz"
+msgstr "Європа/Вадуц"
+
+msgid "Europe/Vatican"
+msgstr "Європа/Ватикан"
+
+msgid "Europe/Vienna"
+msgstr "Європа/Відень"
+
+msgid "Europe/Vilnius"
+msgstr "Європа/Вільнюс"
+
+msgid "Europe/Warsaw"
+msgstr "Європа/Варшава"
+
+msgid "Europe/Zagreb"
+msgstr "Європа/Загреб"
+
+msgid "Europe/Zaporozhye"
+msgstr "Європа/Запоріжжя"
+
+msgid "Europe/Zurich"
+msgstr "Європа/Цюріх"
+
+msgid "GB"
+msgstr "ГБ"
+
+msgid "GB-Eire"
+msgstr "Великобританія-Ірландія"
+
+msgid "Hongkong"
+msgstr "Гонконг"
+
+msgid "Indian/Antananarivo"
+msgstr "Індійський океан/Антананаріву"
+
+msgid "Indian/Chagos"
+msgstr "Індійський океан/Чагос"
+
+msgid "Indian/Christmas"
+msgstr "Індійський океан/Різдва острів"
+
+msgid "Indian/Cocos"
+msgstr "Індійський океан/Кокосові острови"
+
+msgid "Indian/Comoro"
+msgstr "Індійський океан/Коморо"
+
+msgid "Indian/Kerguelen"
+msgstr "Індійський/Керґелен"
+
+msgid "Indian/Mahe"
+msgstr "Індійський океан/Маге"
+
+msgid "Indian/Maldives"
+msgstr "Індійський океан/Мальдіви"
+
+msgid "Indian/Mauritius"
+msgstr "Індійський океан/Маврикій"
+
+msgid "Indian/Mayotte"
+msgstr "Індійський океан/Майотт"
+
+msgid "Indian/Reunion"
+msgstr "Індійський океан/Реюніон"
+
+msgid "Jamaica"
+msgstr "Ямайка"
+
+msgid "Japan"
+msgstr "Японія"
+
+msgid "Kwajalein"
+msgstr "Кваджалейн"
+
+msgid "Libya"
+msgstr "Лівія"
+
+msgid "Mexico/BajaNorte"
+msgstr "Мексика/Північна Нижня Каліфорнія"
+
+msgid "Mexico/BajaSur"
+msgstr "Мексика/Південна Нижня Каліфорнія"
+
+msgid "Mexico/General"
+msgstr "Мексика/Загальний"
+
+msgid "Mideast/Riyadh87"
+msgstr "Mideast/Riyadh87"
+
+msgid "Mideast/Riyadh88"
+msgstr "Mideast/Riyadh88"
+
+msgid "Mideast/Riyadh89"
+msgstr "Mideast/Riyadh89"
+
+msgid "NZ"
+msgstr "NZ"
+
+msgid "Navajo"
+msgstr "Навахо"
+
+msgid "Pacific/Apia"
+msgstr "Тихий океан/Апіа"
+
+msgid "Pacific/Auckland"
+msgstr "Тихий океан/Окленд"
+
+msgid "Pacific/Chatham"
+msgstr "Тихий океан/Чатем"
+
+msgid "Pacific/Easter"
+msgstr "Тихий океан/Пасхи острів"
+
+msgid "Pacific/Efate"
+msgstr "Тихий океан/Ефат"
+
+msgid "Pacific/Enderbury"
+msgstr "Тихий океан/Енденбері"
+
+msgid "Pacific/Fakaofo"
+msgstr "Тихий океан/Факаофо"
+
+msgid "Pacific/Fiji"
+msgstr "Тихий океан/Фіджі"
+
+msgid "Pacific/Funafuti"
+msgstr "Тихий океан/Фунафуті"
+
+msgid "Pacific/Galapagos"
+msgstr "Тихий океан/Галапагосові острови"
+
+msgid "Pacific/Gambier"
+msgstr "Тихий океан/Ґамб'єр"
+
+msgid "Pacific/Guadalcanal"
+msgstr "Тихий океан/Ґуадальканал"
+
+msgid "Pacific/Guam"
+msgstr "Тихий океан/Ґуам"
+
+msgid "Pacific/Honolulu"
+msgstr "Тихий океан/Гонолулу"
+
+msgid "Pacific/Johnston"
+msgstr "Тихий океан/Джонстон"
+
+msgid "Pacific/Kiritimati"
+msgstr "Тихий океан/Кіріматі"
+
+msgid "Pacific/Kosrae"
+msgstr "Тихий океан/Косрае"
+
+msgid "Pacific/Kwajalein"
+msgstr "Тихий океан/Кваялейн"
+
+msgid "Pacific/Majuro"
+msgstr "Тихий океан/Махуро"
+
+msgid "Pacific/Marquesas"
+msgstr "Тихий океан/Маркізські острови"
+
+msgid "Pacific/Midway"
+msgstr "Тихий океан/Мідуей"
+
+msgid "Pacific/Nauru"
+msgstr "Тихий океан/Науру"
+
+msgid "Pacific/Niue"
+msgstr "Тихий океан/Ніуе"
+
+msgid "Pacific/Norfolk"
+msgstr "Тихий океан/Норфолк"
+
+msgid "Pacific/Noumea"
+msgstr "Тихий океан/Нумея"
+
+msgid "Pacific/Pago_Pago"
+msgstr "Тихий океан/Паґо_Паґо"
+
+msgid "Pacific/Palau"
+msgstr "Тихий океан/Палау"
+
+msgid "Pacific/Pitcairn"
+msgstr "Тихий океан/Піткерн"
+
+msgid "Pacific/Ponape"
+msgstr "Тихий океан/Понапе"
+
+msgid "Pacific/Port_Moresby"
+msgstr "Тихий океан/Порт_Морсбі"
+
+msgid "Pacific/Rarotonga"
+msgstr "Тихий океан/Раротонга"
+
+msgid "Pacific/Saipan"
+msgstr "Тихий океан/Сайпан"
+
+msgid "Pacific/Samoa"
+msgstr "Тихий океан/Самоа"
+
+msgid "Pacific/Tahiti"
+msgstr "Тихий океан/Таїті"
+
+msgid "Pacific/Tarawa"
+msgstr "Тихий океан/Тарава"
+
+msgid "Pacific/Tongatapu"
+msgstr "Тихий океан/Тонгатапу"
+
+msgid "Pacific/Truk"
+msgstr "Тихий океан/Трак"
+
+msgid "Pacific/Wake"
+msgstr "Тихий океан/Вейк"
+
+msgid "Pacific/Wallis"
+msgstr "Тихий океан/Волліс"
+
+msgid "Pacific/Yap"
+msgstr "Тихий океан/Яп"
+
+msgid "Poland"
+msgstr "Польща"
+
+msgid "Portugal"
+msgstr "Португалія"
+
+msgid "Singapore"
+msgstr "Сингапур"
+
+msgid "Turkey"
+msgstr "Туреччина"
+
+msgid "US/Alaska"
+msgstr "США/Аляска"
+
+msgid "US/Aleutian"
+msgstr "США/Алеутські острови"
+
+msgid "US/Arizona"
+msgstr "США/Аризона"
+
+msgid "US/Central"
+msgstr "США/Центральна частина"
+
+msgid "US/East-Indiana"
+msgstr "США/Схід-Індіана"
+
+msgid "US/Eastern"
+msgstr "США/Схід"
+
+msgid "US/Hawaii"
+msgstr "США/Гавайї"
+
+msgid "US/Indiana-Starke"
+msgstr "США/Індіана-Старке"
+
+msgid "US/Michigan"
+msgstr "США/Мічиган"
+
+msgid "US/Mountain"
+msgstr "США/Гірська частина"
+
+msgid "US/Pacific"
+msgstr "США/Тихийокеан"
+
+msgid "US/Samoa"
+msgstr "США/Самоа"
+
+msgid "Day"
+msgstr "День"
+
+msgid "Events"
+msgstr "Події"
+
+msgid "Start"
+msgstr "Запуск"
+
+msgid "End"
+msgstr "Кінець"
+
+msgid "Mon"
+msgstr "Пн"
+
+msgid "Tue"
+msgstr "Втр"
+
+msgid "Wed"
+msgstr "Срд"
+
+msgid "Thu"
+msgstr "Чтв"
+
+msgid "Fri"
+msgstr "Птн"
+
+msgid "Sat"
+msgstr "Сбт"
+
+msgid "Sun"
+msgstr "Ндл"
+
+msgid "January"
+msgstr "Січень"
+
+msgid "February"
+msgstr "Лютий"
+
+msgid "March"
+msgstr "Березень"
+
+msgid "April"
+msgstr "Квітень"
+
+msgid "May"
+msgstr "Травень"
+
+msgid "June"
+msgstr "Червень"
+
+msgid "July"
+msgstr "Липень"
+
+msgid "August"
+msgstr "Серпень"
+
+msgid "September"
+msgstr "Вересень"
+
+msgid "October"
+msgstr "Жовтень"
+
+msgid "November"
+msgstr "Листопад"
+
+msgid "December"
+msgstr "Грудень"
+
+msgid "am"
+msgstr "до"
+
+msgid "pm"
+msgstr "по"
+
+msgid "Now"
+msgstr "Зараз"
+
+msgid "Start date"
+msgstr "Дата початку"
+
+msgid "End date"
+msgstr "Дата завершення"
+
+msgid "now"
+msgstr "зараз"
+
+msgid "!time ago"
+msgstr "!time тому"
+
+msgid "Repeat"
+msgstr "Повторювати"
+
+msgid "Last"
+msgstr "Останнє"
+
+msgid "Anonymous"
+msgstr "Гість"
+
+msgid "Optional"
+msgstr "Необов'язкове"
+
+msgid "Views UI"
+msgstr "Views UI"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "Collapsed"
+msgstr "Звернуто"
+
+msgid "Leave blank for %anonymous."
+msgstr "Залиште пустим для %anonymous."
+
+msgid "second"
+msgstr "другий"
+
+msgid "minute"
+msgstr "хвилина"
+
+msgid "Clear"
+msgstr "Очистити"
+
+msgid "Date/Time"
+msgstr "Дата/Час"
+
+msgid "Today"
+msgstr "Сьогодні"
+
+msgid "Create new revision"
+msgstr "Створити нову версію"
+
+msgid "First"
+msgstr "Перше"
+
+msgid "Limit"
+msgstr "Обмежувати"
+
+msgid "day"
+msgstr "день"
+
+msgid "month"
+msgstr "місяць"
+
+msgid "year"
+msgstr "рік"
+
+msgid "hour"
+msgstr "час"
+
+msgid "Jan"
+msgstr "Січ"
+
+msgid "Feb"
+msgstr "Лют"
+
+msgid "Mar"
+msgstr "Бер"
+
+msgid "Apr"
+msgstr "Кві"
+
+msgid "Jun"
+msgstr "Чер"
+
+msgid "Jul"
+msgstr "Лип"
+
+msgid "Aug"
+msgstr "Сер"
+
+msgid "Sep"
+msgstr "Вер"
+
+msgid "Oct"
+msgstr "Жов"
+
+msgid "Nov"
+msgstr "Лис"
+
+msgid "Dec"
+msgstr "Гру"
+
+msgid "Hour"
+msgstr "Година"
+
+msgid "Minute"
+msgstr "Хвилина"
+
+msgid "Second"
+msgstr "Секунда"
+
+msgid "Select List"
+msgstr "Список"
+
+msgid "Site default"
+msgstr "Базове для сайту"
+
+msgid "Select list"
+msgstr "Список"
+
+msgid "Text field"
+msgstr "Текстове поле"
+
+msgid "Granularity"
+msgstr "Деталізація"
+
+msgid "Long"
+msgstr "Довго"
+
+msgid "Short"
+msgstr "Коротко"
+
+msgid "GMT"
+msgstr "По Грінвічу"
+
+msgid "Canada/East-Saskatchewan"
+msgstr "Канада/Схід-Саскачеван"
+
+msgid "is equal to"
+msgstr "є рівним"
+
+msgid "is not equal to"
+msgstr "не дорівнює"
+
+msgid "greater than"
+msgstr "більше, ніж"
+
+msgid "greater than or equal to"
+msgstr "більше або дорівнює"
+
+msgid "less than"
+msgstr "менше, ніж"
+
+msgid "less than or equal to"
+msgstr "менше або дорівнює"
+
+msgid "ISO"
+msgstr "ISO"
+
+msgid "Date Import/Export"
+msgstr "Втягнути/Вивантажити Дати"
+
+msgid "Import and export date data."
+msgstr "Втягування і вивантаження даних дати"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Target type"
+msgstr "Тип цілі"
+
+msgid "body"
+msgstr "тіло"
+
+msgid "AND"
+msgstr "І"
+
+msgid "Day(s)"
+msgstr "день"
+
+msgid "Week(s)"
+msgstr "Тиждень(і)"
+
+msgid "Month(s)"
+msgstr "Місяці"
+
+msgid "Year(s)"
+msgstr "Рік(років)"
+
+msgid "Formats"
+msgstr "Формати"
+
+msgid "Content Type"
+msgstr "Тип матеріалу"
+
+msgid "TRUE"
+msgstr "ІСТИНА"
+
+msgid "FALSE"
+msgstr "False"
+
+msgid "date"
+msgstr "дата"
+
+msgid "Default value"
+msgstr "Базове значення"
+
+msgid "Timezone"
+msgstr "Часовий пояс"
+
+msgid "Select"
+msgstr "Вибір"
+
+msgid "Date PHP4 module"
+msgstr "Модуль Date PHP4"
+
+msgid "Relative"
+msgstr "Відносний"
+
+msgid "Above"
+msgstr "Над"
+
+msgid "Within"
+msgstr "Протягом"
+
+msgid "Number of values"
+msgstr "Кількість значень"
+
+msgid "Warning! Changing this setting after data has been created could result in the loss of data!"
+msgstr "Попередження! Зміна цих значень після створення даних можуть призвести до втрат даних!"
+
+msgid "The raw date value."
+msgstr "Неочищена дата"
+
+msgid "The formatted date."
+msgstr "Форматована дата"
+
+msgid "Date year (four digit)"
+msgstr "Рік (чотири цифри)"
+
+msgid "Date year (two digit)"
+msgstr "Рік (дві цифри)"
+
+msgid "Date month (full word)"
+msgstr "Місяць (ціле слово)"
+
+msgid "Date month (abbreviated)"
+msgstr "Місяць (скорочено)"
+
+msgid "Date month (two digit, zero padded)"
+msgstr "Місяць (дві цифри, нуль додається)"
+
+msgid "Date month (one or two digit)"
+msgstr "Місяць (одна або дві цифри)"
+
+msgid "Date week (two digit)"
+msgstr "Тиждень (дві цифри)"
+
+msgid "Date date (day of month)"
+msgstr "День місяця"
+
+msgid "Date day (full word)"
+msgstr "День місяця (словом)"
+
+msgid "Date day (abbreviation)"
+msgstr "День місяця (скорочено)"
+
+msgid "Date day (two digit, zero-padded)"
+msgstr "День місяця (дві цифри, нуль додається)"
+
+msgid "Date day (one or two digit)"
+msgstr "День місяця (одна або дві цифри)"
+
+msgid "Adjustment"
+msgstr "Вирівнювання"
+
+msgid "@min and @max"
+msgstr "@min та @max"
+
+msgid "Date PHP4"
+msgstr "Date PHP4"
+
+msgid "Increment"
+msgstr "Крок"
+
+msgid "Until"
+msgstr "До"
+
+msgid "Every"
+msgstr "Кожен"
+
+msgid "every month "
+msgstr "щомісяця "
+
+msgid "every day "
+msgstr "щодня "
+
+msgid "set the site timezone name"
+msgstr "встановлення імені часового поясу"
+
+msgid "Default time zone"
+msgstr "Стандартна (default) часова зона"
+
+msgid "Date Timezone requirements"
+msgstr "Вимоги Часового Поясу"
+
+msgid "Group multiple values"
+msgstr "Багато значень групи"
+
+msgid "About"
+msgstr "Про"
+
+msgid "and"
+msgstr "і"
+
+msgid "Popup"
+msgstr "Спливаючий"
+
+msgid "Show @count value(s)"
+msgstr "Відображення @count значень"
+
+msgid "starting from @count"
+msgstr "починаючи з @count"
+
+msgid "UTC"
+msgstr "UTC"
+
+msgid "Format: @date"
+msgstr "Формат дати: @date"
+
+msgid "User timezone"
+msgstr "Часовий пояс користувача"
+
+msgid "Date and time lookup"
+msgstr "Запит дати і часу"
+
+msgid "If unchecked, each item in the field will create a new row, which may appear to cause duplicates. This setting is not compatible with click-sorting in table displays."
+msgstr "Якщо не обрано, кожен елемент поля буде створювати новий рядок, що може привести до дублів. Ці параметри несумісні з сортуванням таблиць при кліках на відображенні."
+
+msgid "Some updates are still pending. Please return to <a href=\"@update-php\">update.php</a> and run the remaining updates."
+msgstr "Деякі оновлення все ще в черзі. Прохання повернутись до <a href=\"@update-php\">update.php</a> і запустити необхідні оновлення"
+
+msgid "Some updates are still pending.<br/>Please re-run the update script."
+msgstr "Деякі оновлення ще знаходяться в черзі. <br/>Будь ласка, заново запустіть скрипт оновлення."
+
+msgid "Remove calendar"
+msgstr "Вилучити календар"

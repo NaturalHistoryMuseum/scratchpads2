@@ -1,0 +1,123 @@
+<?php
+// $Id: date_validation.test,v 1.3 2011/01/18 00:37:35 karens Exp $
+class DateValidationTestCase extends DrupalWebTestCase {
+  protected $privileged_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Date Validation',
+      'description' => 'Test date validation.',
+      'group' => 'Date',
+    );
+  }
+
+  public function setUp() {
+    // Load the date_api module.
+    parent::setUp('field', 'field_ui', 'date_api', 'date', 'date_popup');
+
+    // Create and log in our privileged user.
+    $this->privileged_user = $this->drupalCreateUser(array(
+      'administer content types', 'administer nodes', 'bypass node access'
+    ));
+    $this->drupalLogin($this->privileged_user);
+
+    variable_set('date_format_long', 'D, m/d/Y - H:i');
+  }
+
+  public function testValidation() {    
+    $edit = array();
+    $edit['name'] = 'Story';
+    $edit['type'] = 'story';
+    $this->drupalPost('admin/structure/types/add', $edit, t('Save content type'));
+    $this->assertText('The content type Story has been added.', 'Content type added.');
+
+    // Attempts to create text date field stored as a date with default settings (from input which is not valid).
+    $this->createDateField($type = 'date', $widget = 'date_text');
+    $edit = array();
+    $this->drupalPost(NULL, $edit, t('Save field settings'));
+    $this->malFormedDate($options = 'text');
+    $this->deleteDateField();
+  }
+
+  function malFormedDate($options, $date_format = 'mm/dd/yyyy') {
+    // Tests that date field filters improper dates.
+    $edit = array();
+    $edit['title'] = $this->randomName(8);
+    $edit['body[und][0][value]'] = $this->randomName(16);
+    if ($options == 'select') {
+      $edit['field_test[und][0][value][year]'] = '2011';
+      $edit['field_test[und][0][value][month]'] = '15';
+      $edit['field_test[und][0][value][day]'] = '49';
+      $edit['field_test[und][0][value][hour]'] = '10';
+      $edit['field_test[und][0][value][minute]'] = '30';
+    }
+    elseif ($options == 'text') {
+      $edit['field_test[und][0][value][date]'] = '15/49/2011 - 10:30';
+    }
+    elseif ($options == 'popup') {
+      $edit['field_test[und][0][value][date]'] = '15/49/2011';
+      $edit['field_test[und][0][value][time]'] = '10:30';
+    }
+    $this->drupalPost('node/add/story', $edit, t('Save'));
+    $this->assertNoText('Test node has been created');
+    $this->assertText('The month is invalid.');
+    $this->assertText('The day is invalid.');
+
+    // Test two-digit entry for year where 4-digit is expected
+    if ($options == 'select') {
+      $edit['field_test[und][0][value][year]'] = '11';
+      $edit['field_test[und][0][value][month]'] = '12';
+      $edit['field_test[und][0][value][day]'] = '10';
+      $edit['field_test[und][0][value][hour]'] = '10';
+      $edit['field_test[und][0][value][minute]'] = '30';
+    }
+    elseif ($options == 'text') {
+      $edit['field_test[und][0][value][date]'] = '12/10/11 - 10:30';
+    }
+    elseif ($options == 'popup') {
+      $edit['field_test[und][0][value][date]'] = '12/10/11';
+      $edit['field_test[und][0][value][time]'] = '10:30';
+    }
+    $this->drupalPost('node/add/story', $edit, t('Save'));
+    $this->assertNoText('Test node has been created');
+    $this->assertText('The year is invalid. Please check that entry includes four digits.');
+
+    // Test invalid hour/minute entry for time
+    if ($options == 'select') {
+      $edit['field_test[und][0][value][year]'] = '2011';
+      $edit['field_test[und][0][value][month]'] = '12';
+      $edit['field_test[und][0][value][day]'] = '10';
+      $edit['field_test[und][0][value][hour]'] = '29';
+      $edit['field_test[und][0][value][minute]'] = '95';
+    }
+    elseif ($options == 'text') {
+      $edit['field_test[und][0][value][date]'] = '12/10/2011 - 29:95';
+    }
+    elseif ($options == 'popup') {
+      $edit['field_test[und][0][value][date]'] = '12/10/2011';
+      $edit['field_test[und][0][value][time]'] = '29:95';
+    }
+    $this->drupalPost('node/add/story', $edit, t('Save'));
+    $this->assertNoText('Test node has been created');
+    $this->assertText('The hour is invalid.');
+    $this->assertText('The minute is invalid.');
+  }
+
+  function createDateField($type, $widget) {
+    $edit = array();
+    $edit['fields[_add_new_field][label]'] = 'Test';
+    $edit['fields[_add_new_field][field_name]'] = 'test';
+    $edit['fields[_add_new_field][weight]'] = '-4';
+    $edit['fields[_add_new_field][type]'] = $type;
+    $edit['fields[_add_new_field][widget_type]'] = $widget;
+    $this->drupalPost('admin/structure/types/manage/story/fields', $edit, t('Save'));
+  }
+
+  function deleteDateField() {
+    $this->drupalGet('admin/structure/types/manage/story/fields');
+    $this->clickLink('delete');
+    $this->drupalPost(NULL, NULL, t('Delete'));
+    $this->assertText('The field Test has been deleted from the Story content type.', 'Removed date field.');
+  }
+
+}
