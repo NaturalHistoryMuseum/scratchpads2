@@ -1,3 +1,4 @@
+*.sql
 .buildpath
 .cache
 .project
