@@ -12,7 +12,23 @@
  * Note, the following field definitions were created using the standard fields
  * module, and then exported using the features module.
  */
-function darwincore_fields(){
+/*
+      'islandgroup' => array('type' => 'varchar', 'length' => 255),
+      'island' => array('type' => 'varchar', 'length' => 255),
+      'stateprovince' => array('type' => 'varchar', 'length' => 255),
+      'county' => array('type' => 'varchar', 'length' => 255),
+      'locality' => array('type' => 'varchar', 'length' => 255),
+      'geodeticdatum' => array('type' => 'varchar', 'length' => 255),
+      'verbatimcoordinatesystem' => array('type' => 'varchar', 'length' => 255),
+      'georeferenceprotocol' => array('type' => 'varchar', 'length' => 255),
+      'coordinateuncertainty' => array('type' => 'varchar', 'length' => 255),
+      'georeferenceremarks' => array('type' => 'varchar', 'length' => 255),
+      'minelevation' => array('type' => 'int', 'length' => 5),
+      'maxelevation' => array('type' => 'int', 'length' => 5),
+      'mindepth' => array('type' => 'int', 'length' => 5),
+      'maxdepth' => array('type' => 'int', 'length' => 5)
+ */
+function darwincore_field_default_fields(){
   return array(
     'node-specimen_observation-field_basis_of_record' => array(
       'field_config' => array(

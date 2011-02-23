@@ -5,6 +5,7 @@
  * Install file for the Darwincore module
  */
 function darwincore_install(){
+  /*
   // Rebuild the node types to ensure we have the ones defined by this module.
   node_types_rebuild();
   // Add the fields to the specimen content type.
@@ -15,6 +16,7 @@ function darwincore_install(){
     field_create_instance($field['field_instance']);
   }
   // Add the fields to the location content type.
+  */
 }
 
 /**
