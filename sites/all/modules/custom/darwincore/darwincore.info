@@ -1,6 +1,7 @@
 core = "7.x"
 
 dependencies[] = "date"
+dependencies[] = "auto_nodetitle"
 dependencies[] = "features"
 dependencies[] = "field_group"
 dependencies[] = "list"
@@ -10,6 +11,7 @@ dependencies[] = "strongarm"
 dependencies[] = "taxonomy"
 dependencies[] = "user_reference"
 dependencies[] = "views"
+dependencies[] = "token"
 
 description = "Provides the Specimen/Observation content type and the Location content type.  Both content types are based on DwC 1.2."
 
@@ -77,7 +79,6 @@ features[variable][] = "comment_subject_field_specimen_observation"
 features[variable][] = "node_options_location"
 features[variable][] = "node_options_specimen_observation"
 features[views][] = "specimens_table"
-
 features[views_api][] = "api:3.0-alpha1"
 
 name = "Darwincore"
