@@ -36,7 +36,7 @@ function contemplate_schema() {
 }
 
 function contemplate_install() {
-  drupal_install_schema('contemplate');
+  //drupal_install_schema('contemplate');
   db_query("UPDATE {system} SET weight = 10 WHERE name = 'contemplate'");
   drupal_set_message(st('Database tables for ConTemplate module have been installed.'));
 }
