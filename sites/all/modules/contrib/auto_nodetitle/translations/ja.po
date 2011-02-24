@@ -1,0 +1,87 @@
+# $Id: ja.po,v 1.1.2.1 2008/04/02 09:43:09 imagine Exp $
+#
+# Japanese translation of Drupal (auto_nodetitle)
+# Copyright 2008 0829 <hixarg+0829@gmail.com>
+# Generated from files:
+#  auto_nodetitle.module,v 1.20 2007/11/05 15:26:07 fago Exp
+#  auto_nodetitle.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Drupal 6.x\n"
+"POT-Creation-Date: 2008-03-09 12:56+0900\n"
+"PO-Revision-Date: 2008-03-09 12:59+0900\n"
+"Last-Translator: 0829 <hixarg+0829@gmail.com>\n"
+"Language-Team: DRUPAL*DRUPAL <hixarg+0829@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:68
+msgid "@type @node-id"
+msgstr "@type @node-id"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:71
+msgid "@type"
+msgstr "@type"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:99
+msgid "Automatic title generation"
+msgstr "タイトル自動作成"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:108
+msgid "Disabled"
+msgstr "無効"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:109
+msgid "Automatically generate the title and hide the title field"
+msgstr "コンテンツタイトルを自動生成し、タイトルフィールドを非表示にする"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:110
+msgid "Automatically generate the title if the title field is left empty"
+msgstr "タイトルフィールドが空欄の場合、コンテンツタイトルを自動生成する"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:116
+msgid "Leave blank for using the per default generated title. Otherwise this string will be used as title."
+msgstr "デフォルトのタイトルを使用する場合は空欄のままにしてください。 そうでない場合はここで入力した文字列がタイトルとして利用されます。"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:118
+msgid "Use the syntax [token] if you want to insert a replacement pattern."
+msgstr "タイトルの置換パターンを追加したい場合は、[トークン] 構文を使用して入力してください。"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:122
+msgid "Pattern for the title"
+msgstr "タイトルのパターン"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:130
+msgid "Replacement patterns"
+msgstr "置換パターン"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:134
+msgid "Prefer raw-text replacements for text to avoid problems with HTML entities!"
+msgstr "HTML エンティティに関する問題を回避するためのテキストとして、RAW-TEXT による置換を行うようにしてください！"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:143
+msgid "Evaluate PHP in pattern."
+msgstr "パターンに PHP を検討する"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:144
+msgid "Put PHP code above that returns your string, but make sure you surround code in &lt;?php and ?&gt;"
+msgstr "上記のタイトルパターン部分に、返される文字列を表す PHP コードを入力します。 入力したコードが &lt;?php と ?&gt; で囲まれていることを確認してください。"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:17
+msgid "use PHP for title patterns"
+msgstr "タイトルパターンでの PHP の利用"
+
+#: modules/auto_nodetitle/auto_nodetitle.module:0
+msgid "auto_nodetitle"
+msgstr "自動コンテンツタイトル"
+
+#: modules/auto_nodetitle/auto_nodetitle.info:0
+msgid "Automatic Nodetitles"
+msgstr "自動コンテンツタイトル"
+
+#: modules/auto_nodetitle/auto_nodetitle.info:0
+msgid "Allows hiding of the content title field and automatic title creation."
+msgstr "タイトルフィールドを非表示にし、タイトルを自動的に生成します。"
