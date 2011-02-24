@@ -7,6 +7,7 @@ dependencies[] = "node_reference"
 dependencies[] = "number"
 dependencies[] = "taxonomy"
 dependencies[] = "user_reference"
+dependencies[] = "views"
 
 description = "Provides the Specimen/Observation content type and the Location content type.  Both content types are based on DwC 1.2."
 
@@ -49,11 +50,13 @@ features[field][] = "node-specimen_observation-field_type_status"
 features[node][] = "location"
 features[node][] = "specimen_observation"
 
+features[views][] = "specimens_table"
+
+features[views_api][] = "api:3.0-alpha1"
+
 name = "Darwincore"
-
 package = "Specimens"
-
+php = "5.2.4"
 project = "darwincore"
 project status url = "http://modules.scratchpads.eu/"
-
 version = "7.x-1.0"
