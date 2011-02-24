@@ -1,0 +1,267 @@
+# $Id: uk.po,v 1.1.2.2 2009/05/19 09:26:19 podarok Exp $
+#
+# Ukrainian translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  contemplate.module,v 1.8.4.52 2008/11/14 06:36:38 jrglasgow
+#  contemplate.info,v 1.2.4.1 2008/02/28 18:16:27 jrglasgow
+#  contemplate.install,v 1.5.2.2 2008/02/28 19:05:38 jrglasgow
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: contemplate uk Ukrainian Translation\n"
+"POT-Creation-Date: 2009-05-19 11:47+0300\n"
+"PO-Revision-Date: 2009-05-19 12:25+0300\n"
+"Last-Translator: Andriy Podanenko <podarok@ua.fm>\n"
+"Language-Team: uk <podarok@ua.fm>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Ukrainian\n"
+"X-Poedit-Country: UKRAINE\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: contemplate.module:18
+msgid ""
+"<p>Enable the textareas by enabling the checkbox above each. Expand the variables section to display. Then click on content attributes to insert the appropriate PHP <code>print</code> statements at your cursor position in the textarea.</p>\n"
+"<p>It is also possible to create disk-based templates."
+msgstr ""
+
+#: contemplate.module:20
+msgid "Find more information about that <a href=\"!link\">here</a>"
+msgstr ""
+
+#: contemplate.module:20
+msgid "For help on this enable the 'help' module, and you will find a link here."
+msgstr ""
+
+#: contemplate.module:21
+msgid "<p>Please note that by creating a template for this content type, you are taking full control of its output and you will need to manually add all of the fields that you would like to see in the output. Click <em>reset</em> to remove template control for this content type.</p>"
+msgstr ""
+
+#: contemplate.module:32
+msgid ""
+"<p>The Content Templates (a.k.a. contemplate) module allows modification of the teaser and body fields using administrator defined templates. These templates use PHP code and all of the node object variables are available for use in the template. An example node object is displayed and it is as simple as clicking on its properties to add them to the current template.</p>\n"
+"\n"
+"<p>This module was written to solve a need with the Content Construction Kit (CCK), where it had a tendency toward outputting content in a not-very-pretty way. And as such, it dovetails nicely with CCK, adding a \"template\" tab to CCK content-type editing pages and pre-populating the templates with CCK's default layout. This makes it easy to rearrange fields, output different fields for teaser and body, remove the field title headers, output fields wrapped for use with tabs.module (part of JSTools), or anything you need.</p>\n"
+"\n"
+"<p>But Content Templates can actually be used on any content type and allows modification of the teaser and body properties before they go out in an RSS feed or are handed off to the theme.</p>\n"
+"\n"
+"<h3>Creating templates</h3>\n"
+"\n"
+"<p>Enter PHP code similar to <a href=\"http://drupal.org/node/11816\">PHPTemplate</a>. The main difference is that you only have access to the $node object. However, PHPTemplate templates only affect output to the page. Contemplate affects display in all site themes as well as RSS feeds and search results.</p>\n"
+"\n"
+"<h3 id=\"disk-based\">Disk-based templates</h3>\n"
+"<p>It is also possible to create disk-based template files. To do this, copy the contents of a contemplate textarea and paste it into a file called \"node-<em>nodetype</em>-<em>field</em>.tpl.php\" where <em>nodetype</em> is the content type and <em>field</em> is either \"body\", \"teaser\", or \"rss\". It is also possible to create a template called \"node-<em>nodetype</em>.tpl.php\" which will affect all cases, and \"node.tpl.php\" which will affect all node types.</p>\n"
+"\n"
+"<p>Place these files into a directory called \"contemplates\" inside of either your \"sites/all\" directory or \"sites/<em>yoursite</em>\" depending on your setup. It is also possible to have multiple \"contemplate\" directories with \"sites/all/contemplates\" being the fallback for templates the contemplate does not find in the more specific site directory.</p>\n"
+"\n"
+"<p>When adding or removing template files, you will need to visit the <a href=\"!link\">Content Templates admin page</a> to refresh the template list cache. You do not need to do this again when making changes to the content of the templates.</p>\n"
+msgstr ""
+
+#: contemplate.module:80
+msgid "Template"
+msgstr "Шаблон"
+
+#: contemplate.module:90;465
+msgid "Templates"
+msgstr "Шаблони"
+
+#: contemplate.module:214
+msgid "Enabled"
+msgstr "Ввімкнений"
+
+#: contemplate.module:215
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#: contemplate.module:222
+msgid "edit template"
+msgstr "правка шаблона"
+
+#: contemplate.module:222
+msgid "create template"
+msgstr "створити шаблон"
+
+#: contemplate.module:223
+msgid "delete template"
+msgstr "стерти шаблон"
+
+#: contemplate.module:227
+msgid "content type"
+msgstr "тип матеріалу"
+
+#: contemplate.module:228;283
+msgid "Teaser"
+msgstr "Анонс"
+
+#: contemplate.module:229;327
+msgid "Body"
+msgstr "Тіло"
+
+#: contemplate.module:230;374
+msgid "RSS"
+msgstr "RSS"
+
+#: contemplate.module:246;469
+msgid "Are you sure you want to delete the template for %type?"
+msgstr "Ви впевнені, що бажаєте видалити шаблон для %type?"
+
+#: contemplate.module:248
+msgid "This action cannot be undone."
+msgstr "Цю дію не можна буде скасувати."
+
+#: contemplate.module:249
+msgid "Delete"
+msgstr "Стерти"
+
+#: contemplate.module:249
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: contemplate.module:267
+msgid ""
+"\n"
+"    <p>An example node has been loaded and its properties appear below. Click on the the property names to add them to your template.</p>\n"
+"  "
+msgstr ""
+
+#: contemplate.module:271
+msgid "Click property to add to your template. Fields marked with <span style=\"color:red\">**</span> are insecure and need to be wrapped with either <a href=\"http://api.drupal.org/api/5/function/check_plain\">check_plain()</a> or <a href=\"http://api.drupal.org/api/5/function/check_markup\">check_markup()</a>"
+msgstr ""
+
+#: contemplate.module:292
+msgid "Affect teaser output"
+msgstr "Зміна на вивід анонсу"
+
+#: contemplate.module:298
+msgid "Teaser Template"
+msgstr "Шаблон Анонсу"
+
+#: contemplate.module:301
+msgid "Leave this field blank to leave teaser unaffected."
+msgstr "Залишіть поле чистим для базового виводу анонса."
+
+#: contemplate.module:309;354;401
+msgid "<p>This template is being read from<br />%file<br />Please make changes to this file or remove it to continue editing here.</p>"
+msgstr ""
+
+#: contemplate.module:315
+msgid "Teaser Variables"
+msgstr "Змінні анонсу"
+
+#: contemplate.module:335
+msgid "Affect body output"
+msgstr "Зміна виводу тіла"
+
+#: contemplate.module:342
+msgid "Body Template"
+msgstr "Шаблон тіла"
+
+#: contemplate.module:345
+msgid "Leave this field blank to leave body unaffected."
+msgstr "Залишіть це поле чистим для виведення базового тіла"
+
+#: contemplate.module:360
+msgid "Body Variables"
+msgstr "Змінні тіла"
+
+#: contemplate.module:382
+msgid "Affect RSS output"
+msgstr "Зміна виводу RSS"
+
+#: contemplate.module:385
+msgid "Note that if you do not enable this, Drupal will use either the teaser or body as specified in your <a href=\"@url\">RSS publishing settings</a>."
+msgstr ""
+
+#: contemplate.module:390
+msgid "RSS Template"
+msgstr "Шаблон RSS"
+
+#: contemplate.module:393
+msgid "Leave this field blank to leave RSS unaffected. To add <a href=\"!link\">XML elements</a> create an array $xml_elements."
+msgstr ""
+
+#: contemplate.module:407
+msgid "RSS Variables"
+msgstr "Змінні RSS"
+
+#: contemplate.module:426
+msgid "&lt;none&gt; (other modules may add)"
+msgstr ""
+
+#: contemplate.module:429
+msgid "RSS enclosures"
+msgstr "RSS елементи"
+
+#: contemplate.module:444;534
+msgid "Reset"
+msgstr "Повернути"
+
+#: contemplate.module:445
+msgid ""
+"Are you sure you want to reset this form?\\n"
+"Any customizations will be lost."
+msgstr ""
+
+#: contemplate.module:450
+msgid "Submit"
+msgstr "Надіслати"
+
+#: contemplate.module:462
+msgid "Template for %type"
+msgstr "Шаблон для %type"
+
+#: contemplate.module:536
+msgid "%type template has been reset."
+msgstr "%type шаблон перевстановлено"
+
+#: contemplate.module:540
+msgid "%type template saved."
+msgstr "%type шаблон збережено"
+
+#: contemplate.module:674
+msgid "No %type content items exist to use as an example. Please create a %type item and then come back here to see an output of its parts."
+msgstr ""
+
+#: contemplate.module:762
+msgid " <span style='color:red;font-weight:bold'>**</span>"
+msgstr " <span style='color:red;font-weight:bold'>**</span>"
+
+#: contemplate.module:141
+msgid "administer templates"
+msgstr "адмініструвати шаблони"
+
+#: contemplate.module:72
+msgid "Content templates"
+msgstr "Шаблони Матеріалів"
+
+#: contemplate.module:73
+#: contemplate.info:0
+msgid "Create templates to customize output of teaser and body content."
+msgstr "Створення шаблонів для модифікації виводу анонса, тіла і RSS матеріалів"
+
+#: contemplate.module:98
+msgid "Content Template Settings"
+msgstr "Параметри Шаблонів Матеріалів"
+
+#: contemplate.module:0
+msgid "contemplate"
+msgstr "contemplate"
+
+#: contemplate.install:44
+msgid "Database tables for ConTemplate module have been installed."
+msgstr "Таблиці модуля ConTemplate проінстальовано"
+
+#: contemplate.install:83
+msgid "The ConTemplate tables have been removed from the database"
+msgstr "Таблиці ConTemplate видалено з бази даних"
+
+#: contemplate.info:0
+msgid "Content Templates"
+msgstr "Шаблони Матеріалів"
+
+#: contemplate.info:0
+msgid "CCK"
+msgstr "CCK"
+

@@ -1,0 +1,167 @@
+# $Id: ru.po,v 1.1.2.1 2008/10/14 16:53:26 jrglasgow Exp $
+#
+# LANGUAGE translation of Drupal (modules/contact/contact.module)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  contact.module,v 1.74 2007/01/10 15:17:51 dries
+#  contact.info,v 1.3 2006/11/21 20:55:34 dries
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: contemplate\n"
+"POT-Creation-Date: 2007-01-14 15:05+0600\n"
+"PO-Revision-Date: 2007-02-17 01:32+0600\n"
+"Last-Translator: Maynichev <maynich@gmail.com>\n"
+"Language-Team: Maynichev <maynich@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIAN FEDERATION\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: ../..\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: modules/contemplate/contemplate.module:26
+#, fuzzy
+msgid ""
+"<p>The Content Templates (a.k.a. contemplate) module allows modification of the teaser and body fields using administrator defined templates. These templates use PHP code and all of the node object variables are available for use in the template. An example node object is displayed and it is as simple as clicking on its properties to add them to the current template.</p>\r\n"
+"\r\n"
+"<p>This module was written to solve a need with the Content Construction Kit (CCK), where it had a tendency toward outputting content in a not-very-pretty way. And as such, it dovetails nicely with CCK, adding a \"template\" tab to CCK content-type editing pages and pre-populating the templates with CCK's default layout. This makes it easy to rearrange fields, output different fields for teaser and body, remove the field title headers, output fields wrapped for use with tabs.module (part of JSTools), or anything you need.</p>\r\n"
+"\r\n"
+"<p>But Content Template can actually be used on any content type and allows modification of the teaser and body properties before they go out in an RSS feed or are handed off to the theme.</p>\r\n"
+"\r\n"
+"<h3>Creating templates</h3>\r\n"
+"\r\n"
+"<p>Enter PHP code similar to <a href=\"http://drupal.org/node/11816\">PHPTemplate</a>. The main difference is that you only have access to the $node object. However, PHPTemplate templates only affect output to the page. Contemplate additionally affects display in RSS feeds and search results.</p>"
+msgstr ""
+"<p>Модуль Шаблоны материалов (или contemplate module) позволяет модифицировать teaser and body поля с помощью шаблонов, заданных администратором. Эли шаблоны используют код PHP и другие переменные и объекты для узла. Например, отображается объект node и можно простыми нажатиями мыши выбрать его элементы для отображения в текущем шаблоне.</p>\r\n"
+"\r\n"
+"<p>Этот модуль был написан для решения проблем использования CCK, где эта функция имеет тенденцию к излишнему усложнению.  And as such, it dovetails nicely with CCK, adding a \"template\" tab to CCK content-type editing pages and pre-populating the templates with CCK's default layout. This makes it easy to rearrange fields, output different fields for teaser and body, remove the field title headers, output fields wrapped for use with tabs.module (part of JSTools), or anything you need.</p>\r\n"
+"\r\n"
+"<p>But Content Template can actually be used on any content type and allows modification of the teaser and body properties before they go out in an RSS feed or are handed off to the theme.</p>\r\n"
+"\r\n"
+"<h3>Creating templates</h3>\r\n"
+"\r\n"
+"<p>Enter PHP code similar to <a href=\"http://drupal.org/node/11816\">PHPTemplate</a>. The main difference is that you only have access to the $node object. However, PHPTemplate templates only affect output to the page. Contemplate additionally affects display in RSS feeds and search results.</p>"
+
+#: modules/contemplate/contemplate.module:48
+msgid "Content templates"
+msgstr "Шаблоны материалов"
+
+#: modules/contemplate/contemplate.module:49
+#: modules/contemplate/contemplate.info:0
+msgid "Create templates to customize output of teaser and body content."
+msgstr "Создать шаблон для ручной настройки вывода материалов."
+
+#: modules/contemplate/contemplate.module:61
+msgid "Template"
+msgstr "Шаблон"
+
+#: modules/contemplate/contemplate.module:140
+msgid "edit template"
+msgstr "изменить шаблон"
+
+#: modules/contemplate/contemplate.module:140
+msgid "create template"
+msgstr "создать шаблон"
+
+#: modules/contemplate/contemplate.module:144
+msgid "content type"
+msgstr "тип материала"
+
+#: modules/contemplate/contemplate.module:174
+msgid "teaser"
+msgstr "Заголовки с сопроводительными надписями"
+
+#: modules/contemplate/contemplate.module:181
+msgid "Affect teaser output"
+msgstr "Применить к выводу teaser"
+
+#: modules/contemplate/contemplate.module:188
+msgid "Teaser Template"
+msgstr "Шаблон для заголовков с сопроводительными надписями"
+
+#: modules/contemplate/contemplate.module:191
+msgid "Leave this field blank to leave teaser unaffected."
+msgstr "Оставьте это поле пустым, чтобы шаблон не применялся к teaser."
+
+#: modules/contemplate/contemplate.module:197
+#: ;231;267
+msgid ""
+"\r\n"
+"    <p>An example node has been loaded and it's properties appear below. Click on the the property names to add them to your template.</p>\r\n"
+"  "
+msgstr ""
+"\r\n"
+"    <p>Пример материала загружен, ниже показаны все его компоненты. Кликните на имени компонента и добавьте его в Ваш шаблон.</p>\r\n"
+"  "
+
+#: modules/contemplate/contemplate.module:215
+msgid "Affect body output"
+msgstr "Применить к выводу body"
+
+#: modules/contemplate/contemplate.module:222
+msgid "Body Template"
+msgstr "Тело шаблона"
+
+#: modules/contemplate/contemplate.module:225
+msgid "Leave this field blank to leave body unaffected."
+msgstr "Оставьте это поле пустым, чтобы шаблон не применялся к body."
+
+#: modules/contemplate/contemplate.module:251
+msgid "Affect RSS output"
+msgstr "Применить к выводу RSS"
+
+#: modules/contemplate/contemplate.module:254
+msgid "Note that if you do not enable this, Drupal will use either the teaser or body as specified in your <a href=\"@url\">RSS publishing settings</a>."
+msgstr "Если вы не включите это, Drupal будет использовать параметры для краткого представления или для самого материала, как это представлено в <a href=\"@url\">Настройке публикации RSS</a>."
+
+#: modules/contemplate/contemplate.module:259
+msgid "RSS Template"
+msgstr "Шаблон для RSS"
+
+#: modules/contemplate/contemplate.module:262
+msgid "Leave this field blank to leave RSS unaffected."
+msgstr "Оставьте это поле пустым, чтобы шаблон не применялся к RSS/"
+
+#: modules/contemplate/contemplate.module:287
+msgid "&lt;none&gt; (other modules may add)"
+msgstr "&lt;нет&gt; (можно добавить другие модули)"
+
+#: modules/contemplate/contemplate.module:290
+msgid "RSS enclosures"
+msgstr "Содержимое RSS"
+
+#: modules/contemplate/contemplate.module:306
+msgid ""
+"Are you sure you want to reset this form?\\n"
+"Any customizations will be lost."
+msgstr ""
+"Вы действительно желаете сбросить данные этой формы?\\n"
+"Все данные будут утеряны."
+
+#: modules/contemplate/contemplate.module:324
+msgid "Template for %type"
+msgstr "Шаблон для %type"
+
+#: modules/contemplate/contemplate.module:327
+msgid "Templates"
+msgstr "Шаблоны"
+
+#: modules/contemplate/contemplate.module:370
+msgid "%type template has been reset."
+msgstr "Шаблон %type был сборшен."
+
+#: modules/contemplate/contemplate.module:374
+msgid "%type template saved."
+msgstr "Шаблон %type сохранен."
+
+#: modules/contemplate/contemplate.module:453
+msgid "No %type content items exist to use as an example. Please create a %type item and then come back here to see an output of its parts."
+msgstr "Не существует материала типа %type, который может использоваться в качестве образца. Создайте  материал %type, а затем вернитесь сюда, чтобы посмотреть его обработку."
+
+#: modules/contemplate/contemplate.module:0
+msgid "contemplate"
+msgstr "contemplate"
+

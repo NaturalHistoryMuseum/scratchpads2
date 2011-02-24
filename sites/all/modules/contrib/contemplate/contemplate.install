@@ -1,0 +1,84 @@
+<?php
+// $Id: contemplate.install,v 1.5.2.5.2.5 2010/06/13 00:37:17 jrglasgow Exp $
+
+/**
+ * @file
+ * Content template module install/schema hooks.
+ */
+
+function contemplate_schema() {
+  $schema['contemplate_files'] = array(
+    'fields' => array(
+      'site' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'description' => 'Which site in the site\s directory this is listed under' ),
+      'data' => array('type' => 'blob', 'size' => 'big', 'not null' => TRUE, 'description' => 'the data in the template file?')
+    ),
+    'unique keys' => array(
+      'site' => array('site')
+    ),
+    'description' => 'This tables lists the files that are use as templates',
+  );
+  $schema['contemplate'] = array(
+    'fields'  => array(
+      'type'        => array('type' => 'varchar', 'length'    => '32',  'not null'    => TRUE, 'default' => '', 'description' => 'What node type is this Template for?'),
+      'teaser'      => array('type' => 'text',    'not null'  => TRUE,  'description' => 'tempalte for teaser'),
+      'body'        => array('type' => 'text',    'not null'  => TRUE,  'description' => 'tempalte for body'),
+      'rss'         => array('type' => 'text',    'not null'  => TRUE,  'description' => 'tempalte for rss'),
+      'enclosure'   => array('type' => 'varchar', 'length'    => '128', 'not null'    => TRUE, 'description' => 'enclosure information to be used with this node type.'),
+     'flags'        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 7, 'disp-width' => '10', 'description' => 'Bitmask of flags for this node type, which are enabled, etc...')
+    ),
+    'indexes' => array(
+      'type' => array('type')
+    ),
+    'description' => 'Store data for Content Templates for each node type, if there be any.',
+  );
+  return $schema;
+
+}
+
+function contemplate_install() {
+  drupal_install_schema('contemplate');
+  db_query("UPDATE {system} SET weight = 10 WHERE name = 'contemplate'");
+  drupal_set_message(st('Database tables for ConTemplate module have been installed.'));
+}
+
+function contemplate_update_1() {
+  $ret = array();
+
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $ret[] = update_sql('ALTER TABLE {contemplate} ADD rss text NOT NULL');
+      $ret[] = update_sql('ALTER TABLE {contemplate} ADD enclosure varchar(128) NOT NULL');
+      $ret[] = update_sql("ALTER TABLE {contemplate} ADD flags int(8) unsigned NOT NULL default '7'");
+      break;
+    }
+
+  return $ret;
+}
+
+function contemplate_update_2() {
+  $ret = array();
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $ret[] = update_sql('CREATE TABLE {contemplate_files} (
+      site varchar(255) NOT NULL,
+      data longblob NOT NULL,
+      UNIQUE KEY site (site(255))
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;');
+      break;
+    }
+  return $ret;
+}
+
+/**
+ * clear the cache to get the updates to the menu().
+ */
+function contemplate_update_6102() {
+  cache_clear_all();
+}
+
+function contemplate_uninstall() {
+  drupal_uninstall_schema('contemplate');
+  drupal_set_message(t('The ConTemplate tables have been removed from the database'));
+}

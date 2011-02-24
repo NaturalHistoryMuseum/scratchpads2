@@ -1,0 +1,244 @@
+# $Id: ja.po,v 1.1 2007/05/08 18:25:56 imagine Exp $
+# -----------------------------------------------------------------------------
+# Japanese translation of Drupal (contemplate.module)
+#
+# Copyright (c) 2006-2007  Drupal Japan  ( http://drupal.jp/ )  /
+#                          Drupal Nippon ( http://drupon.org/ ) /
+#                          Takafumi      ( jp.drupal@imagine **reverse order**)
+#
+# Generated from file:
+#  contemplate.module,v 1.8.2.2 2007/04/04 21:54:19 jjeff
+#  contemplate.info,v 1.2.2.1 2007/03/25 19:23:09 jjeff
+#  contemplate.install,v 1.4.2.2 2007/03/25 19:23:09 jjeff
+#
+# -----------------------------------------------------------------------------
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2007-05-08 23:41+0900\n"
+"Last-Translator: Takafumi <jp.drupal@imagine **reverse order**>\n"
+"Language-Team: Drupal Japan / Drupal Nippon\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: contemplate.module:24
+msgid ""
+"<p>Enable the textareas by enabling the checkbox above each. Click on content attributes on the right to insert the appropriate PHP <code>print</code> statements at your cursor position in the textareas on the left.</p>\n"
+"<p>Please note that by creating a template for this content type, you are taking full control of its output and you will need to manually add all of the fields that you would like to see in the output. Click <em>reset</em> to remove template control for this content type.</p>"
+msgstr ""
+"<p>はじめに、各項目の上部にあるチェックボックスにチェックを入れ、テキストエリアを有効化してください。 次に、右側テキストエリアのコンテンツ属性をクリックして、左側テキストエリアのカーソル位置に適切なPHPの <code>print</code> 文を挿入してください。</p>"
+"<p>このコンテンツタイプのテンプレートを作成することにより、出力が完全にコントロールされ、表示したいすべてのフィールドを手作業で追加する必要があることに留意してください。 このコンテンツタイプのテンプレートコントロールを解除したい場合は、「リセット」ボタンを押してください。</p>"
+
+#: contemplate.module:27
+msgid ""
+"<p>The Content Templates (a.k.a. contemplate) module allows modification of the teaser and body fields using administrator defined templates. These templates use PHP code and all of the node object variables are available for use in the template. An example node object is displayed and it is as simple as clicking on its properties to add them to the current template.</p>\n"
+"\n"
+"<p>This module was written to solve a need with the Content Construction Kit (CCK), where it had a tendency toward outputting content in a not-very-pretty way. And as such, it dovetails nicely with CCK, adding a \"template\" tab to CCK content-type editing pages and pre-populating the templates with CCK's default layout. This makes it easy to rearrange fields, output different fields for teaser and body, remove the field title headers, output fields wrapped for use with tabs.module (part of JSTools), or anything you need.</p>\n"
+"\n"
+"<p>But Content Template can actually be used on any content type and allows modification of the teaser and body properties before they go out in an RSS feed or are handed off to the theme.</p>\n"
+"\n"
+"<h3>Creating templates</h3>\n"
+"\n"
+"<p>Enter PHP code similar to <a href=\"http://drupal.org/node/11816\">PHPTemplate</a>. The main difference is that you only have access to the $node object. However, PHPTemplate templates only affect output to the page. Contemplate affects display in all site themes as well as RSS feeds and search results.</p>"
+msgstr ""
+"<p>コンテンツテンプレート（別名：コンテンプレート）モジュールは、管理者が定義したテンプレートを使用して、ティーザーや本文フィールドの出力を変更できるようにします。 これらのテンプレートは、ノードオブジェクトの全変数が利用できる PHP コードを使用します。 ノードオブジェクトの実例が表示されるので、それらのプロパティ（変数）をクリックするだけで、現在のテンプレートに追加することができます。 </p>\n"
+"\n"
+"<p>このモジュールは、コンテンツコンストラクションキット（CCK）を利用する際、あまり技巧的でない方法でコンテンツを出力する傾向があったため、要求に応えるために書かれました。 そのため、当然のことながら、CCK との親和性は高くなっています。 CCK のコンテンツタイプ編集ページに「テンプレート」タブを加え、テンプレートには CCK のデフォルトレイアウトが予め代入されています。 これは、フィールドの再整理、ティーザーと本文で異なるフィールドの出力、フィールドタイトルのヘッダ除去、tabs.module（JSTools の一部）で使用するためにラップされたフィールドを出力、その他もろもろ、必要とされるものすべてが容易になります。</p>\n"
+"\n"
+"<p>CCK との親和性ばかりを強調しましたが、実際にはどんなコンテンツタイプにも使用でき、RSS フィードに出力されたり、テーマに渡される前に、ティーザーや本文のプロパティを変更することができます。</p>\n"
+"\n"
+"<h3>テンプレートの作成法</h3>\n"
+"\n"
+"<p><a href=\"http://drupal.org/node/11816\">PHPTemplate</a> と同じように、PHP コードを記入してください。 主な違いは、$node オブジェクトのみにアクセスできる点です。 しかし、PHPTemplate のテンプレートはページへの出力に影響を与えるだけですが、コンテンプレートはすべてのサイトテーマ、RSS フィード、検索結果の表示に影響を与えます。</p>"
+
+#: contemplate.module:49
+msgid "Content templates"
+msgstr "コンテンツテンプレート"
+
+#: contemplate.module:50
+#: contemplate.info:0
+msgid "Create templates to customize output of teaser and body content."
+msgstr "ティーザーや本文の出力内容をカスタマイズするテンプレートを作成できます。"
+
+#: contemplate.module:62
+msgid "Template"
+msgstr "テンプレート"
+
+#: contemplate.module:80
+msgid "administer templates"
+msgstr "テンプレートの管理"
+
+#: contemplate.module:148
+msgid "edit template"
+msgstr "テンプレートの編集"
+
+#: contemplate.module:148
+msgid "create template"
+msgstr "テンプレートの作成"
+
+#: contemplate.module:152
+msgid "content type"
+msgstr "コンテンツタイプ"
+
+#: contemplate.module:182
+msgid "teaser"
+msgstr "ティーザー"
+
+#: contemplate.module:189
+msgid "Affect teaser output"
+msgstr "ティーザーの出力に適用する"
+
+#: contemplate.module:196
+msgid "Teaser Template"
+msgstr "ティーザーのテンプレート"
+
+#: contemplate.module:199
+msgid "Leave this field blank to leave teaser unaffected."
+msgstr "ティーザーに適用したいテンプレートを記入してください。 このフィールドを空欄にした場合、ティーザーには何の影響も与えません。"
+
+#: contemplate.module:205;239;275
+msgid ""
+"\n"
+"    <p>An example node has been loaded and it's properties appear below. Click on the the property names to add them to your template.</p>\n"
+"  "
+msgstr ""
+"\n"
+"<p>実例のノードがロードされ、以下にそれらのプロパティが表示されています。 プロパティ名をクリックし、左側のテンプレートに追加してください。</p>\n"
+
+#: contemplate.module:211
+msgid "Teaser Variables:"
+msgstr "ティーザーの変数："
+
+#: contemplate.module:211;245;281
+msgid "Fields marked with <span style=\"color:red\">**</span> are insecure and need to be wrapped with either <a href=\"http://api.drupal.org/api/5/function/check_plain\">check_plain()</a> or <a href=\"http://api.drupal.org/api/5/function/check_markup\">check_markup()</a>"
+msgstr "<span style=\"color:red\">**</span> のマークが付いたフィールドは、安全性が保証されないため、<a href=\"http://api.drupal.org/api/5/function/check_plain\">check_plain()</a> か <a href=\"http://api.drupal.org/api/5/function/check_markup\">check_markup()</a> 関数を経由させる必要があります。"
+
+#: contemplate.module:216
+msgid "body"
+msgstr "本文"
+
+#: contemplate.module:223
+msgid "Affect body output"
+msgstr "本文の出力に適用する"
+
+#: contemplate.module:230
+msgid "Body Template"
+msgstr "本文のテンプレート"
+
+#: contemplate.module:233
+msgid "Leave this field blank to leave body unaffected."
+msgstr "本文に適用したいテンプレートを記入してください。 このフィールドを空欄にした場合、本文には何の影響も与えません。"
+
+#: contemplate.module:245
+msgid "Body Variables:"
+msgstr "本文の変数："
+
+# ----------
+#: contemplate.module:252
+#msgid "RSS"
+#msgstr "RSS"
+
+#: contemplate.module:259
+msgid "Affect RSS output"
+msgstr "RSSの出力に適用する"
+
+#: contemplate.module:262
+msgid "Note that if you do not enable this, Drupal will use either the teaser or body as specified in your <a href=\"@url\">RSS publishing settings</a>."
+msgstr "ここを有効にしない場合、Drupal は <a href=\"@url\">RSS 配信の設定</a>で指定された、ティーザーか本文のどちらかを使用することに留意してください。"
+
+#: contemplate.module:267
+msgid "RSS Template"
+msgstr "RSSのテンプレート"
+
+#: contemplate.module:270
+msgid "Leave this field blank to leave RSS unaffected."
+msgstr "RSSに適用したいテンプレートを記入してください。 このフィールドを空欄にした場合、RSSには何の影響も与えません。"
+
+#: contemplate.module:281
+msgid "Node Variables:"
+msgstr "ノードの変数："
+
+#: contemplate.module:295
+msgid "&lt;none&gt; (other modules may add)"
+msgstr "&lt;なし&gt; （他のモジュールが付加する可能性あり）"
+
+#: contemplate.module:298
+msgid "RSS enclosures"
+msgstr "RSSエンクロージャー"
+
+# ----------
+#: contemplate.module:313;376
+#msgid "Reset"
+#msgstr "リセット"
+
+#: contemplate.module:314
+msgid "Are you sure you want to reset this form?\\nAny customizations will be lost."
+msgstr "本当に、このフォームをリセットしてもよろしいですか？\\nカスタマイズした内容はすべて失われますので、十分に注意して実行してください。"
+
+# ----------
+#: contemplate.module:319
+#msgid "Submit"
+#msgstr "送信"
+
+#: contemplate.module:332
+msgid "Template for %type"
+msgstr "%type のテンプレート"
+
+#: contemplate.module:335
+msgid "Templates"
+msgstr "テンプレート"
+
+#: contemplate.module:378
+msgid "%type template has been reset."
+msgstr "%type のテンプレートはリセットされました。"
+
+#: contemplate.module:382
+msgid "%type template saved."
+msgstr "%type のテンプレートは保存されました。"
+
+#: contemplate.module:447
+msgid "No %type content items exist to use as an example. Please create a %type item and then come back here to see an output of its parts."
+msgstr "実例として使用する %type コンテンツのアイテムが存在しません。 %type のアイテムを作成した後、出力されたパーツを見るために、ここに戻ってください。"
+
+# 何故にt() ……
+#: contemplate.module:502
+msgid " <span style='color:red;font-weight:bold'>**</span>"
+msgstr " <span style='color:red;font-weight:bold'>**</span>"
+
+#: contemplate.module:510
+msgid "insert this variable into @target"
+msgstr "この変数を@targetに挿入"
+
+#: contemplate.module:0
+msgid "contemplate"
+msgstr "contemplate"
+
+#: contemplate.install:28
+msgid "Database tables for ConTemplate module have been installed."
+msgstr "コンテンプレートモジュールのデータベーステーブルがインストールされました。"
+
+#: contemplate.install:48
+msgid "The ConTemplate tables have been removed from the database"
+msgstr "コンテンプレートモジュールのテーブルがデータベースから削除されました。"
+
+#: contemplate.info:0
+msgid "Content Templates"
+msgstr "コンテンツテンプレート"
+
+#: contemplate.info:0
+msgid "CCK"
+msgstr "CCK"
+
+#:
+msgid "bodyfield"
+msgstr "本文フィールド"
+
+#:
+msgid "teaserfield"
+msgstr "ティーザーフィールド"
+
+#:
+msgid "rss"
+msgstr "RSS"
+
