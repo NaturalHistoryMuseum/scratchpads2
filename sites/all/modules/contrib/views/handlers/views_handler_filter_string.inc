@@ -1,5 +1,5 @@
 <?php
-// $Id: views_handler_filter_string.inc,v 1.8.4.6 2011/01/05 18:18:40 dereine Exp $
+// $Id: views_handler_filter_string.inc,v 1.8.4.8 2011/02/06 14:08:33 dereine Exp $
 
 /**
  * Basic textfield filter to handle string filtering commands
@@ -8,6 +8,15 @@
 class views_handler_filter_string extends views_handler_filter {
   // exposed filter options
   var $no_single = TRUE;
+  var $no_optional = TRUE;
+
+  function option_defintion() {
+    $options = parent::option_defintion();
+
+    $options['expose']['contains']['optional'] = array('default' => FALSE);
+
+    return $options;
+  }
 
   /**
    * This kind of construct makes it relatively easy for a child class
@@ -225,7 +234,7 @@ class views_handler_filter_string extends views_handler_filter {
 
   function op_contains($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field LIKE $placeholder", array($placeholder => '%' . db_like($this->value) . '%'), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field LIKE $placeholder", array($placeholder => '%' . db_like($this->value) . '%'));
   }
 
   function op_word($field) {
@@ -258,27 +267,27 @@ class views_handler_filter_string extends views_handler_filter {
 
   function op_starts($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field LIKE $placeholder", array($placeholder => db_like($this->value) . '%'), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field LIKE $placeholder", array($placeholder => db_like($this->value) . '%'));
   }
 
   function op_not_starts($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => db_like($this->value) . '%'), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => db_like($this->value) . '%'));
   }
 
   function op_ends($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field LIKE $placeholder", array($placeholder => '%' . db_like($this->value)), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field LIKE $placeholder", array($placeholder => '%' . db_like($this->value)));
   }
 
   function op_not_ends($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => '%' . db_like($this->value)), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => '%' . db_like($this->value)));
   }
 
   function op_not($field) {
     $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => '%' . db_like($this->value) . '%'), 'formula');
+    $this->query->add_where_expression($this->options['group'], "$field NOT LIKE $placeholder", array($placeholder => '%' . db_like($this->value) . '%'));
   }
 
   function op_shorter($field) {

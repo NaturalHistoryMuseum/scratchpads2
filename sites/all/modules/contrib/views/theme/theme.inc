@@ -1,5 +1,5 @@
 <?php
-// $Id: theme.inc,v 1.84.4.43 2011/01/04 00:00:20 dereine Exp $
+// $Id: theme.inc,v 1.84.4.47 2011/02/18 01:50:22 merlinofchaos Exp $
 
 /**
  * @file theme.inc
@@ -73,7 +73,13 @@ function template_preprocess_views_view(&$vars) {
   $vars['exposed']    = !empty($view->exposed_widgets) ? $view->exposed_widgets : '';
   $vars['more']       = $view->display_handler->render_more_link();
   $vars['feed_icon']  = !empty($view->feed_icon) ? $view->feed_icon : '';
-  $vars['pager']      = $view->query->render_pager();
+
+  $vars['pager']      = '';
+
+  if ($view->display_handler->render_pager()) {
+    $exposed_input = isset($view->exposed_data_raw) ? $view->exposed_data_raw : NULL;
+    $vars['pager']      = $view->query->render_pager($exposed_input);
+  }
 
   $vars['attachment_before'] = !empty($view->attachment_before) ? $view->attachment_before : '';
   $vars['attachment_after'] = !empty($view->attachment_after) ? $view->attachment_after : '';
@@ -127,7 +133,7 @@ function template_preprocess_views_view(&$vars) {
   }
 
   // If using AJAX, send identifying data about this view.
-  if ($view->use_ajax && empty($view->is_attachment)) {
+  if ($view->use_ajax && empty($view->is_attachment) && empty($view->live_preview)) {
     $settings = array(
       'views' => array(
         'ajax_path' => url('views/ajax'),
@@ -231,7 +237,7 @@ function template_preprocess_views_view_fields(&$vars) {
           if ($class) {
             $class .= ' ';
           }
-          $class .= ' ' . $classes;
+          $class .= $classes;
         }
 
         $object->wrapper_prefix = '<' . $object->inline_html;
@@ -522,7 +528,7 @@ function template_preprocess_views_view_table(&$vars) {
     drupal_add_js('misc/tableheader.js');
     $vars['classes_array'][] = "sticky-enabled";
   }
-  $vars['classes_array'][] = 'cols-'. count($vars['rows']);
+  $vars['classes_array'][] = 'cols-'. count($vars['header']);
 
   if (!empty($handler->options['summary'])) {
     $vars['attributes_array'] = array('summary' => $handler->options['summary']);
@@ -626,7 +632,7 @@ function template_preprocess_views_view_grid(&$vars) {
     }
   }
   $vars['rows'] = $rows;
-
+  $vars['class'] = 'views-view-grid cols-' . $columns;
   if (!empty($handler->options['summary'])) {
     $vars['attributes_array'] = array('summary' => $handler->options['summary']);
   }

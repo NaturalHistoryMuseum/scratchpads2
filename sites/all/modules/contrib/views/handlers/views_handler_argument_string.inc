@@ -1,5 +1,5 @@
 <?php
-// $Id: views_handler_argument_string.inc,v 1.5.4.7 2011/01/05 22:40:08 dereine Exp $
+// $Id: views_handler_argument_string.inc,v 1.5.4.11 2011/02/04 23:40:25 merlinofchaos Exp $
 
 /**
  * Basic argument handler to implement string arguments that may have length
@@ -27,6 +27,7 @@ class views_handler_argument_string extends views_handler_argument {
     $options['case'] = array('default' => 'none');
     $options['path_case'] = array('default' => 'none');
     $options['transform_dash'] = array('default' => FALSE);
+    $options['break_phrase'] = array('default' => FALSE);
 
     if (!empty($this->definition['many to one'])) {
       $options['add_table'] = array('default' => FALSE);
@@ -103,12 +104,21 @@ class views_handler_argument_string extends views_handler_argument {
         '#default_value' => !empty($this->options['require_value']),
       );
     }
+ 
+    // allow + for or, , for and
+    $form['break_phrase'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow multiple terms per argument.'),
+      '#description' => t('If selected, users can enter multiple arguments in the form of 1+2+3 or 1,2,3.'),
+      '#default_value' => !empty($this->options['break_phrase']),
+    );
   }
 
   /**
    * Build the summary query based on a string
    */
   function summary_query() {
+    $this->placeholder_length = $this->placeholder();
     if (empty($this->definition['many to one'])) {
       $this->ensure_my_table();
     }
@@ -118,23 +128,23 @@ class views_handler_argument_string extends views_handler_argument {
 
     if (empty($this->options['glossary'])) {
       // Add the field.
-      $this->base_alias = $this->name_alias = $this->query->add_field($this->table_alias, $this->real_field);
+      $this->base_alias = $this->query->add_field($this->table_alias, $this->real_field);
       $this->query->set_count_field($this->table_alias, $this->real_field);
     }
     else {
       // Add the field.
       $formula = $this->get_formula();
-      $placeholder_length = $this->placeholder_length;
       $params = array(
         'placeholders' => array(
-          $placeholder_length => intval($this->options['limit']),
+          $this->placeholder_length => intval($this->options['limit']),
         ),
       );
 
-      $this->base_alias = $this->name_alias = $this->query->add_field(NULL, $formula, $this->field . '_truncated', $params);
+      $this->base_alias = $this->query->add_field(NULL, $formula, $this->field . '_truncated', $params);
       $this->query->set_count_field(NULL, $formula, $this->field, $this->field . '_truncated');
     }
 
+    $this->summary_name_field();
     return $this->summary_basics(FALSE);
   }
 
@@ -157,11 +167,18 @@ class views_handler_argument_string extends views_handler_argument {
     }
     $this->placeholder_length = $this->placeholder();
 
+    if (!empty($this->options['break_phrase'])) {
+      views_break_phrase_string($argument, $this);
+    }
+    else {
+      $this->value = array($argument);
+      $this->operator = 'or';
+    }
+
     if (!empty($this->definition['many to one'])) {
       if (!empty($this->options['glossary'])) {
         $this->helper->formula = TRUE;
       }
-      $this->value = array($argument);
       $this->helper->ensure_my_table();
 
       $this->helper->placeholders = array($this->placeholder_length => intval($this->options['limit']));
@@ -179,10 +196,23 @@ class views_handler_argument_string extends views_handler_argument {
       $field = $this->get_formula();
     }
 
+    if (count($this->value) > 1) {
+      $operator = 'IN';
+      $argument = $this->value;
+    }
+    else {
+      $operator = '=';
+    }
+
     if ($formula) {
       $placeholder = $this->placeholder();
       $placeholder_length = $this->placeholder_length;
-      $field .= ' = ' . $placeholder;
+      if ($operator == 'IN') {
+        $field .= " IN($placeholder)";
+      }
+      else {
+        $field .= ' = ' . $placeholder;
+      }
       $placeholders = array(
         $placeholder_length => intval($this->options['limit']),
         $placeholder => $argument,
@@ -190,7 +220,7 @@ class views_handler_argument_string extends views_handler_argument {
       $this->query->add_where_expression(0, $field, $placeholders);
     }
     else {
-      $this->query->add_where(0, $field, $argument);
+      $this->query->add_where(0, $field, $argument, $operator);
     }
   }
 
@@ -224,12 +254,35 @@ class views_handler_argument_string extends views_handler_argument {
   }
 
   function title() {
-    $title = $this->case_transform($this->argument, 'case');
+    $this->argument = $this->case_transform($this->argument, 'case');
     if (!empty($this->options['transform_dash'])) {
-      $title = strtr($title, '-', ' ');
+      $this->argument = strtr($this->argument, '-', ' ');
     }
 
-    return check_plain($title);
+    if (!empty($this->options['break_phrase'])) {
+      views_break_phrase($this->argument, $this);
+    }
+    else {
+      $this->value = array($this->argument);
+      $this->operator = 'or';
+    }
+
+    if (empty($this->value)) {
+      return !empty($this->definition['empty field name']) ? $this->definition['empty field name'] : t('Uncategorized');
+    }
+
+    if ($this->value === array(-1)) {
+      return !empty($this->definition['invalid input']) ? $this->definition['invalid input'] : t('Invalid input');
+    }
+
+    return implode($this->operator == 'or' ? ' + ' : ', ', $this->title_query());
+  }
+  
+  /**
+   * Override for specific title lookups.
+   */
+  function title_query() {
+    return drupal_map_assoc($this->value, 'check_plain');
   }
 
   function summary_name($data) {

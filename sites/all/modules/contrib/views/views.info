@@ -1,4 +1,4 @@
-; $Id: views.info,v 1.7.6.60 2011/01/05 21:34:52 dereine Exp $
+; $Id: views.info,v 1.7.6.63 2011/02/05 16:45:32 dereine Exp $
 name = Views
 description = Create customized lists and queries from your database.
 package = Views
@@ -150,6 +150,7 @@ files[] = modules/taxonomy/views_handler_relationship_node_term_data.inc
 files[] = modules/taxonomy/views_plugin_argument_validate_taxonomy_term.inc
 files[] = modules/taxonomy/views_plugin_argument_default_taxonomy_tid.inc
 ;files[] = modules/translation/views_handler_argument_node_language.inc
+files[] = modules/system/views_handler_filter_system_type.inc
 files[] = modules/translation/views_handler_argument_node_tnid.inc
 files[] = modules/translation/views_handler_field_node_language.inc
 files[] = modules/translation/views_handler_field_node_link_translate.inc
@@ -166,6 +167,7 @@ files[] = modules/user/views_handler_argument_users_roles_rid.inc
 files[] = modules/user/views_handler_field_user.inc
 files[] = modules/user/views_handler_field_user_language.inc
 files[] = modules/user/views_handler_field_user_link.inc
+files[] = modules/user/views_handler_field_user_link_cancel.inc
 files[] = modules/user/views_handler_field_user_link_delete.inc
 files[] = modules/user/views_handler_field_user_link_edit.inc
 files[] = modules/user/views_handler_field_user_mail.inc
@@ -263,10 +265,11 @@ files[] = tests/views_test.views_default.inc
 files[] = tests/user/views_user_argument_default.test
 files[] = tests/user/views_user_argument_validate.test
 files[] = tests/views_cache.test
+files[] = tests/views_view.test
 
-; Information added by drupal.org packaging script on 2011-01-06
-version = "7.x-3.0-alpha1"
+; Information added by drupal.org packaging script on 2011-02-23
+version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1294276880"
+datestamp = "1298422164"
 

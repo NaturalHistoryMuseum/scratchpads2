@@ -1,5 +1,5 @@
 <?php
-// $Id: admin.inc,v 1.161.4.86 2011/01/04 23:54:35 dereine Exp $
+// $Id: admin.inc,v 1.161.4.91 2011/02/16 18:48:28 dereine Exp $
 /**
  * @file admin.inc
  * Provides the Views' administrative interface.
@@ -50,6 +50,9 @@ function template_preprocess_views_ui_list_views(&$vars) {
   $sorts = array();
 
   $views = views_get_all_views();
+
+  $token_enable = drupal_get_token('views-enable');
+  $token_disable = drupal_get_token('views-disable');
 
   // Respond to a reset command by clearing session and doing a drupal goto
   // back to the base URL.
@@ -131,10 +134,10 @@ function template_preprocess_views_ui_list_views(&$vars) {
     }
     else {
       if (empty($view->disabled)) {
-        $item->ops[] = l(t('Disable'), "admin/structure/views/disable/$view->name", array('query' => drupal_get_destination()));
+        $item->ops[] = l(t('Disable'), "admin/structure/views/disable/$view->name", array('query' => drupal_get_destination() + array('token' => $token_disable)));
       }
       else {
-        $item->ops[] = l(t('Enable'), "admin/structure/views/enable/$view->name", array('query' => drupal_get_destination()));
+        $item->ops[] = l(t('Enable'), "admin/structure/views/enable/$view->name", array('query' => drupal_get_destination() + array('token' => $token_enable)));
       }
     }
 
@@ -2634,8 +2637,8 @@ function views_ui_rearrange_form($form, &$form_state) {
   }
 
   foreach ($display->handler->get_option($types[$type]['plural']) as $id => $field) {
-    $form[$id] = array('#tree' => TRUE);
-    $form[$id]['weight'] = array(
+    $form['fields'][$id] = array('#tree' => TRUE);
+    $form['fields'][$id]['weight'] = array(
       '#type' => 'textfield',
       '#default_value' => ++$count,
     );
@@ -2646,14 +2649,14 @@ function views_ui_rearrange_form($form, &$form_state) {
         $name = '(' . $relationships[$field['relationship']] . ') ' . $name;
       }
 
-      $form[$id]['name'] = array(
+      $form['fields'][$id]['name'] = array(
         '#markup' => $name,
       );
     }
     else {
-      $form[$id]['name'] = array('#value' => t('Broken field @id', array('@id' => $id)));
+      $form['fields'][$id]['name'] = array('#markup' => t('Broken field @id', array('@id' => $id)));
     }
-    $form[$id]['removed'] = array(
+    $form['fields'][$id]['removed'] = array(
       '#type' => 'checkbox',
       '#id' => 'views-removed-' . $id,
       '#attributes' => array('class' => array('views-remove-checkbox')),
@@ -2687,13 +2690,13 @@ function theme_views_ui_rearrange_form($variables) {
   $form = $variables['form'];
 
   $rows = array();
-  foreach (element_children($form) as $id) {
-    if (isset($form[$id]['name'])) {
+  foreach (element_children($form['fields']) as $id) {
+    if (isset($form['fields'][$id]['name'])) {
       $row = array();
-      $row[] = drupal_render($form[$id]['name']);
-      $form[$id]['weight']['#attributes']['class'] = array('weight');
-      $row[] = drupal_render($form[$id]['weight']);
-      $row[] = drupal_render($form[$id]['removed']) . l('<span>' . t('Remove') . '</span>', 'javascript:void()', array('attributes' => array('id' => 'views-remove-link-' . $id, 'class' => array('views-hidden', 'views-button-remove', 'views-remove-link'), 'alt' => t('Remove this item'), 'title' => t('Remove this item')), 'html' => TRUE));
+      $row[] = drupal_render($form['fields'][$id]['name']);
+      $form['fields'][$id]['weight']['#attributes']['class'] = array('weight');
+      $row[] = drupal_render($form['fields'][$id]['weight']);
+      $row[] = drupal_render($form['fields'][$id]['removed']) . l('<span>' . t('Remove') . '</span>', 'javascript:void()', array('attributes' => array('id' => 'views-remove-link-' . $id, 'class' => array('views-hidden', 'views-button-remove', 'views-remove-link'), 'alt' => t('Remove this item'), 'title' => t('Remove this item')), 'html' => TRUE));
       $rows[] = array('data' => $row, 'class' => array('draggable'), 'id' => 'views-row-' . $id);
     }
   }
@@ -2979,7 +2982,7 @@ function theme_views_ui_rearrange_filter_form(&$vars) {
         $row[] = drupal_render($form['filters'][$id]['weight']);
         $form['filters'][$id]['group']['#attributes']['class'] = array('views-group-select views-group-' . $group_id);
         $row[] = drupal_render($form['filters'][$id]['group']);
-        $row[] = drupal_render($form['filters'][$id]['removed']) . l('<span>' . t('Remove') . '</span>', 'javascript:void()', array('attributes' => array('id' => 'views-remove-link-' . $id, 'class' => array('views-hidden', 'views-button-remove', 'views-groups-remove-link'), 'alt' => t('Remove this item'), 'title' => t('Remove this item')), 'html' => true));
+        $row[] = drupal_render($form['filters'][$id]['removed']) . l('<span>' . t('Remove') . '</span>', 'javascript:void()', array('attributes' => array('id' => 'views-remove-link-' . $id, 'class' => array('views-hidden', 'views-button-remove', 'views-groups-remove-link', 'views-remove-link'), 'alt' => t('Remove this item'), 'title' => t('Remove this item')), 'html' => true));
 
         $row = array('data' => $row, 'class' => array('draggable'), 'id' => 'views-row-' . $id);
         if ($group_id !== 'ungroupable') {
@@ -3248,7 +3251,7 @@ function views_ui_config_item_form($form, &$form_state) {
   if ($item) {
     $handler = $view->display_handler->get_handler($type, $id);
     if (empty($handler)) {
-      $form['markup'] = array('#value' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
+      $form['markup'] = array('#markup' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
     }
     else {
       $types = views_object_types();
@@ -3415,7 +3418,7 @@ function views_ui_config_item_group_form($type, &$form_state) {
   if ($item) {
     $handler = $view->display_handler->get_handler($type, $id);
     if (empty($handler)) {
-      $form['markup'] = array('#value' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
+      $form['markup'] = array('#markup' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
     }
     else {
       $handler->init($view, $item);
@@ -3498,7 +3501,7 @@ function views_ui_config_item_extra_form($form, &$form_state) {
   if ($item) {
     $handler = views_get_handler($item['table'], $item['field'], $type);
     if (empty($handler)) {
-      $form['markup'] = array('#value' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
+      $form['markup'] = array('#markup' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
     }
     else {
       $handler->init($view, $item);
@@ -3564,7 +3567,7 @@ function views_ui_change_style_form($form, &$form_state) {
   if ($item) {
     $handler = views_get_handler($item['table'], $item['field'], $type);
     if (empty($handler)) {
-      $form['markup'] = array('#value' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
+      $form['markup'] = array('#markup' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
     }
     else {
       $handler->init($view, $item);
@@ -3649,7 +3652,7 @@ function views_ui_config_style_form($form, &$form_state) {
   if ($item) {
     $handler = views_get_handler($item['table'], $item['field'], $type);
     if (empty($handler)) {
-      $form['markup'] = array('#value' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
+      $form['markup'] = array('#markup' => t("Error: handler for @table > @field doesn't exist!", array('@table' => $item['table'], '@field' => $item['field'])));
     }
     else {
       $handler->init($view, $item);
@@ -3716,24 +3719,34 @@ function views_ui_get_roles() {
  * Page callback for the Views enable page.
  */
 function views_ui_enable_page($view) {
-  $views_status = variable_get('views_defaults', array());
-  $views_status[$view->name] = FALSE; // FALSE is enabled
-  variable_set('views_defaults', $views_status);
-  views_invalidate_cache();
-  menu_rebuild();
-  drupal_goto('admin/structure/views');
+  if (isset($_GET['token']) && drupal_valid_token($_GET['token'], 'views-enable')) {
+    $views_status = variable_get('views_defaults', array());
+    $views_status[$view->name] = FALSE; // FALSE is enabled
+    variable_set('views_defaults', $views_status);
+    views_invalidate_cache();
+    menu_rebuild();
+    drupal_goto('admin/structure/views');
+  }
+  else {
+    return drupal_access_denied();
+  }
 }
 
 /**
  * Page callback for the Views enable page
  */
 function views_ui_disable_page($view) {
-  $views_status = variable_get('views_defaults', array());
-  $views_status[$view->name] = TRUE; // True is disabled
-  variable_set('views_defaults', $views_status);
-  views_invalidate_cache();
-  menu_rebuild();
-  drupal_goto('admin/structure/views');
+  if (isset($_GET['token']) && drupal_valid_token($_GET['token'], 'views-disable')) {
+    $views_status = variable_get('views_defaults', array());
+    $views_status[$view->name] = TRUE; // True is disabled
+    variable_set('views_defaults', $views_status);
+    views_invalidate_cache();
+    menu_rebuild();
+    drupal_goto('admin/structure/views');
+  }
+  else {
+    return drupal_access_denied();
+  }
 }
 
 /**
@@ -4008,6 +4021,10 @@ function views_fetch_fields($base, $type, $grouping = FALSE) {
               foreach ((array) $info['skip base'] as $base_name) {
                 $skip_bases[$field][$key][$base_name] = TRUE;
               }
+            }
+            // Don't show old fields. The real field will be added right.
+            if (isset($info[$key]['moved to'])) {
+              continue;
             }
             foreach (array('title', 'group', 'help', 'base') as $string) {
               // First, try the lowest possible level

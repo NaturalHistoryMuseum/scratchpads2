@@ -1,5 +1,5 @@
 <?php
-// $Id: views.module,v 1.341.4.53 2011/01/06 00:37:05 dereine Exp $
+// $Id: views.module,v 1.341.4.57 2011/02/19 06:51:45 dereine Exp $
 /**
  * @file
  * Primarily Drupal hooks and global API functions to manipulate views.
@@ -133,7 +133,7 @@ function views_theme($existing, $type, $theme, $path) {
  *   The existing cache of theme hooks to test against.
  * @param $path
  *   The path to search.
- *
+ * 
  * @see drupal_find_theme_templates
  */
 function _views_find_module_templates($cache, $path) {
@@ -239,7 +239,7 @@ function views_permission() {
       'description' => t('Access the views administration pages.'),
     ),
     'access all views' => array(
-      'title' => t('Access all views'),
+      'title' => t('Bypass views access control'),
       'description' => t('Bypass access control when accessing views.'),
     ),
   );
@@ -817,10 +817,34 @@ function views_include_default_views($reset = FALSE) {
  *   An instance of a handler object. May be views_handler_broken.
  */
 function views_get_handler($table, $field, $key, $override = NULL) {
+  static $recursion_protection = array();
+
   $data = views_fetch_data($table);
   $handler = NULL;
 
   if (isset($data[$field][$key])) {
+    // Support old views_data entries conversion.
+    if (isset($data[$field][$key]['moved to'])) {
+      list($moved_table, $moved_field) = $data[$field][$key]['moved to'];
+      if (!empty($recursion_protection[$moved_table][$moved_field])) {
+        // recursion detected!
+        return NULL;
+      }
+      $recursion_protection[$moved_table][$moved_field] = TRUE;
+      $handler = views_get_handler($moved_table, $moved_field, $key, $override);
+      $recursion_protection = array();
+      if ($handler) {
+        // store these values so we know what we were originally called.
+        $handler->original_table = $table;
+        $handler->original_field = $field;
+        if (empty($handler->actual_table)) {
+          $handler->actual_table = $moved_table;
+          $handler->actual_field = $moved_field;
+        }
+      }
+      return $handler;
+    }
+
     // Set up a default handler:
     if (empty($data[$field][$key]['handler'])) {
       $data[$field][$key]['handler'] = 'views_handler_' . $key;
@@ -830,7 +854,7 @@ function views_get_handler($table, $field, $key, $override = NULL) {
       $data[$field][$key]['override handler'] = $override;
     }
 
-    $handler = _views_prepare_handler($data[$field][$key], $data, $field);
+    $handler = _views_prepare_handler($data[$field][$key], $data, $field, $key);
   }
 
   if ($handler) {
@@ -838,14 +862,14 @@ function views_get_handler($table, $field, $key, $override = NULL) {
   }
 
   // DEBUG -- identify missing handlers
-  debug("Missing handler: $table $field $key");
+  vpr("Missing handler: $table $field $key");
   $broken = array(
     'title' => t('Broken handler @table.@field', array('@table' => $table, '@field' => $field)),
     'handler' => 'views_handler_' . $key . '_broken',
     'table' => $table,
     'field' => $field,
   );
-  return _views_create_handler($broken);
+  return _views_create_handler($broken, 'handler', $type);
 }
 
 /**
@@ -1089,7 +1113,7 @@ function views_debug($message) {
       $output = var_export($message, TRUE);
     }
     if (variable_get('views_devel_region', 'footer') != 'watchdog') {
-      drupal_set_content(variable_get('views_devel_region', 'footer'), '<pre>' . $output . '</pre>');
+      drupal_add_region_content(variable_get('views_devel_region', 'footer'), '<pre>' . $output . '</pre>');
     }
     else {
       watchdog('views_logging', '<pre>' . $output . '</pre>');
@@ -1242,7 +1266,7 @@ function views_exposed_form_submit(&$form, &$form_state) {
   $exclude = array('q', 'submit', 'form_build_id', 'form_id', 'form_token', 'exposed_form_plugin', '');
   $exposed_form_plugin = $form_state['exposed_form_plugin'];
   $exposed_form_plugin->exposed_form_submit($form, $form_state, $exclude);
-
+  
   foreach ($form_state['values'] as $key => $value) {
     if (!in_array($key, $exclude)) {
       $form_state['view']->exposed_raw_input[$key] = $value;

@@ -1,5 +1,5 @@
 <?php
-// $Id: views_plugin_row_comment_view.inc,v 1.1.6.2 2010/01/28 00:00:56 dereine Exp $
+// $Id: views_plugin_row_comment_view.inc,v 1.1.6.3 2011/02/22 16:08:39 dereine Exp $
 /**
  * @file
  * Contains the node RSS row style plugin.
@@ -36,8 +36,6 @@ class views_plugin_row_comment_view extends views_plugin_row {
 
     $cresult = comment_load_multiple($cids);
     foreach ($cresult as $comment) {
-      $comment = drupal_unpack($comment);
-      $comment->name = $comment->uid ? $comment->registered_name : $comment->name;
       $comment->depth = count(explode('.', $comment->thread)) - 1;
       $this->comments[$comment->cid] = $comment;
     }

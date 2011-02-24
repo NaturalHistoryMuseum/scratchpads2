@@ -1,5 +1,5 @@
 <?php
-// $Id: handlers.inc,v 1.119.4.22 2011/01/05 22:40:08 dereine Exp $
+// $Id: handlers.inc,v 1.119.4.27 2011/02/06 14:29:02 dereine Exp $
 /**
  * @file handlers.inc
  * Defines the various handler objects to help build and display views.
@@ -8,7 +8,7 @@
 /**
  * Instantiate and construct a new handler
  */
-function _views_create_handler($definition, $type = 'handler') {
+function _views_create_handler($definition, $type = 'handler', $handler_type = NULL) {
 //  debug('Instantiating handler ' . $definition['handler']);
   if (empty($definition['handler'])) {
     return;
@@ -32,6 +32,15 @@ function _views_create_handler($definition, $type = 'handler') {
    }
 
   $handler->set_definition($definition);
+  if ($type == 'handler') {
+    $handler->is_handler = TRUE;
+    $handler->handler_type = $handler_type;
+  }
+  else {
+    $handler->is_plugin = TRUE;
+    $handler->plugin_type = $type;
+  }
+
   // let the handler have something like a constructor.
   $handler->construct();
 
@@ -41,7 +50,7 @@ function _views_create_handler($definition, $type = 'handler') {
 /**
  * Prepare a handler's data by checking defaults and such.
  */
-function _views_prepare_handler($definition, $data, $field) {
+function _views_prepare_handler($definition, $data, $field, $type) {
   foreach (array('group', 'title', 'title short', 'help', 'real field') as $key) {
     if (!isset($definition[$key])) {
       // First check the field level
@@ -55,7 +64,7 @@ function _views_prepare_handler($definition, $data, $field) {
     }
   }
 
-  return _views_create_handler($definition);
+  return _views_create_handler($definition, 'handler', $type);
 }
 
 /**
@@ -123,6 +132,20 @@ function views_get_table_join($table, $base_table) {
  */
 class views_handler extends views_object {
   /**
+   * The top object of a view.
+   * 
+   * @var view
+   */
+  var $view = NULL;
+
+  /**
+   * Where the $query object will reside:
+   *
+   * @var views_plugin_query
+   */
+  var $query = NULL;
+
+  /**
    * init the handler with necessary data.
    * @param $view
    *   The $view object this handler is attached to.
@@ -132,6 +155,26 @@ class views_handler extends views_object {
    */
   function init(&$view, &$options) {
     $this->view = &$view;
+    $display_id = $this->view->current_display;
+    // Check to see if this handler type is defaulted. Note that
+    // we have to do a lookup because the type is singular but the
+    // option is stored as the plural.
+    $types = views_object_types();
+    $plural = $this->handler_type;
+    if (isset($types[$this->handler_type]['plural'])) {
+      $plural = $types[$this->handler_type]['plural'];
+    }
+    if ($this->view->display_handler->is_defaulted($plural)) {
+      $display_id = 'default';
+    }
+
+    $this->localization_keys = array(
+      $display_id,
+      $this->handler_type,
+      $options['table'],
+      $options['field']
+    );
+
     $this->unpack_options($this->options, $options);
 
     // This exist on most handlers, but not all. So they are still optional.
@@ -829,6 +872,7 @@ class views_many_to_one_helper {
     $options = $this->handler->options;
     $operator = $this->handler->operator;
     $formula = !empty($this->formula);
+    $value = $this->handler->value;
     if (empty($options['group'])) {
       $options['group'] = 0;
     }
@@ -851,21 +895,23 @@ class views_many_to_one_helper {
       $add_condition = FALSE;
     }
 
-    if ($formula) {
-      $placeholder = $this->placeholder();
-      if ($operator == 'IN') {
-        $operator = "$operator IN($placeholder)";
+    if (!$add_condition) {
+      if ($formula) {
+        $placeholder = $this->placeholder();
+        if ($operator == 'IN') {
+          $operator = "$operator IN($placeholder)";
+        }
+        else {
+          $operator = "$operator $placeholder";
+        }
+        $placeholders = array(
+          $placeholder => $value,
+        ) + $this->placeholders;
+        $this->handler->query->add_where_expression($options['group'], "$field $operator", $placeholders);
       }
       else {
-        $operator = "$operator $placeholder";
+        $this->handler->query->add_where($options['group'], $field, $value, $operator);
       }
-      $placeholders = array(
-        $placeholder => $value,
-      ) + $this->placeholders;
-      $this->handler->query->add_where_expression($options['group'], "$field $operator", $placeholders);
-    }
-    else {
-      $this->handler->query->add_where($options['group'], $field, $value, $operator);
     }
 
     if ($add_condition) {
@@ -886,6 +932,58 @@ class views_many_to_one_helper {
  *
  * @param $str
  *   The string to parse.
+ * @param $handler
+ *   The handler object to use as a base.
+ *
+ * @return $handler
+ *   The new handler object.
+ */
+function views_break_phrase_string($str, &$handler) {
+  if (!$handler) {
+    $handler = new stdClass();
+  }
+
+  // Set up defaults:
+  if (!isset($handler->value)) {
+    $handler->value = array();
+  }
+
+  if (!isset($handler->operator)) {
+    $handler->operator = 'or';
+  }
+
+  if ($str == '') {
+    return $handler;
+  }
+
+  if (preg_match('/^(\w+[+ ])+\w+$/', $str)) {
+    // The '+' character in a query string may be parsed as ' '.
+    $handler->operator = 'or';
+    $handler->value = preg_split('/[+ ]/', $str);
+  }
+  else if (preg_match('/^(\w+,)*\w+$/', $str)) {
+    $handler->operator = 'and';
+    $handler->value = explode(',', $str);
+  }
+
+  // Keep an 'error' value if invalid strings were given.
+  if (!empty($str) && (empty($handler->value) || !is_array($handler->value))) {
+    $handler->value = array(-1);
+    return $handler;
+  }
+
+  // Doubly ensure that all values are strings only.
+  foreach ($handler->value as $id => $value) {
+    $handler->value[$id] = (string) $value;
+  }
+
+  return $handler;
+}
+/*
+ * Break x,y,z and x+y+z into an array. Numeric only.
+ *
+ * @param $str
+ *   The string to parse.
  * @param $filter
  *   The filter object to use as a base. If not specified one will
  *   be created.
@@ -893,47 +991,47 @@ class views_many_to_one_helper {
  * @return $filter
  *   The new filter object.
  */
-function views_break_phrase($str, $filter = NULL) {
-  if (!$filter) {
-    $filter = new stdClass();
+function views_break_phrase($str, $handler = NULL) {
+  if (!$handler) {
+    $handler = new stdClass();
   }
 
   // Set up defaults:
 
-  if (!isset($filter->value)) {
-    $filter->value = array();
+  if (!isset($handler->value)) {
+    $handler->value = array();
   }
 
-  if (!isset($filter->operator)) {
-    $filter->operator = 'or';
+  if (!isset($handler->operator)) {
+    $handler->operator = 'or';
   }
 
   if (empty($str)) {
-    return $filter;
+    return $handler;
   }
 
   if (preg_match('/^([0-9]+[+ ])+[0-9]+$/', $str)) {
     // The '+' character in a query string may be parsed as ' '.
-    $filter->operator = 'or';
-    $filter->value = preg_split('/[+ ]/', $str);
+    $handler->operator = 'or';
+    $handler->value = preg_split('/[+ ]/', $str);
   }
   elseif (preg_match('/^([0-9]+,)*[0-9]+$/', $str)) {
-    $filter->operator = 'and';
-    $filter->value = explode(',', $str);
+    $handler->operator = 'and';
+    $handler->value = explode(',', $str);
   }
 
   // Keep an 'error' value if invalid strings were given.
-  if (!empty($str) && (empty($filter->value) || !is_array($filter->value))) {
-    $filter->value = array(-1);
-    return $filter;
+  if (!empty($str) && (empty($handler->value) || !is_array($handler->value))) {
+    $handler->value = array(-1);
+    return $handler;
   }
 
   // Doubly ensure that all values are numeric only.
-  foreach ($filter->value as $id => $value) {
-    $filter->value[$id] = intval($value);
+  foreach ($handler->value as $id => $value) {
+    $handler->value[$id] = intval($value);
   }
 
-  return $filter;
+  return $handler;
 }
 
 // --------------------------------------------------------------------------
