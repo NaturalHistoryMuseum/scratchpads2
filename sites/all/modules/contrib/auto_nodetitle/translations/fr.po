@@ -1,0 +1,94 @@
+# $Id: fr.po,v 1.1.2.2 2009/03/26 17:20:06 slybud Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  auto_nodetitle.module,v 1.20.2.4 2009/02/10 10:06:09 fago
+#  auto_nodetitle.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal auto_nodetitle module\n"
+"POT-Creation-Date: 2009-03-26 16:41+0100\n"
+"PO-Revision-Date: 2009-03-26 16:50+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+"X-Poedit-Country: FRANCE\n"
+
+#: auto_nodetitle.module:88
+msgid "@type @node-id"
+msgstr "@type @node-id"
+
+#: auto_nodetitle.module:91
+msgid "@type"
+msgstr "@type"
+
+#: auto_nodetitle.module:103
+msgid "Update automatic nodetitles"
+msgstr "Mettre à jour les titres automatiques de noeud"
+
+#: auto_nodetitle.module:151
+msgid "Automatic title generation"
+msgstr "Génération automatique du titre"
+
+#: auto_nodetitle.module:160
+msgid "Disabled"
+msgstr "Désactivé"
+
+#: auto_nodetitle.module:161
+msgid "Automatically generate the title and hide the title field"
+msgstr "Générer automatiquement le titre et cacher le champ titre"
+
+#: auto_nodetitle.module:162
+msgid "Automatically generate the title if the title field is left empty"
+msgstr "Générer automatiquement le titre si le champ titre est laissé vide"
+
+#: auto_nodetitle.module:168
+msgid "Leave blank for using the per default generated title. Otherwise this string will be used as title."
+msgstr "Laisser vide pour utiliser le titre généré par défaut. Sinon, cette chaîne de caractères sera utilisée pour le titre."
+
+#: auto_nodetitle.module:170
+msgid "Use the syntax [token] if you want to insert a replacement pattern."
+msgstr "Utilisez la syntaxe [jeton] ([token]) si vous souhaitez insérer un motif de remplacement."
+
+#: auto_nodetitle.module:174
+msgid "Pattern for the title"
+msgstr "Motif pour le titre"
+
+#: auto_nodetitle.module:182
+msgid "Replacement patterns"
+msgstr "Motifs de remplacement"
+
+#: auto_nodetitle.module:186
+msgid "Prefer raw-text replacements for text to avoid problems with HTML entities!"
+msgstr "Préférez les substitutions de texte par du texte brut (raw-text), afin d'éviter les problèmes avec les entités HTML !"
+
+#: auto_nodetitle.module:195
+msgid "Evaluate PHP in pattern."
+msgstr "Evaluer le PHP du motif."
+
+#: auto_nodetitle.module:196
+msgid "Put PHP code above that returns your string, but make sure you surround code in &lt;?php and ?&gt;. Note that $node is available and can be used by your code."
+msgstr "Insérer ci-dessus du code PHP qui retourne votre chaîne de caractères, mais assurez-vous de placer le code entre &lt;?php et ?&gt;. Notez que $node est disponible et peut être utilisé dans votre code."
+
+#: auto_nodetitle.module:17
+msgid "use PHP for title patterns"
+msgstr "utiliser PHP pour les motifs de titre"
+
+#: auto_nodetitle.module:0
+msgid "auto_nodetitle"
+msgstr "auto_nodetitle"
+
+#: auto_nodetitle.info:0
+msgid "Automatic Nodetitles"
+msgstr "Automatic Nodetitles"
+
+#: auto_nodetitle.info:0
+msgid "Allows hiding of the content title field and automatic title creation."
+msgstr "Permet de cacher le champ titre du contenu ainsi que la création automatique du titre."
+

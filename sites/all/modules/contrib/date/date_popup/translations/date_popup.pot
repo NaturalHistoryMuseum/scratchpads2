@@ -1,0 +1,66 @@
+# $Id: date_popup.pot,v 1.4 2010/02/28 14:28:00 karens Exp $
+#
+# LANGUAGE translation of Drupal (date_popup)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_popup.module,v 1.42.2.1.2.42 2009/02/24 15:54:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_tools.module,v 1.1.2.10 2009/02/27 15:04:28 karens
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: date_popup/date_popup.module:221
+msgid "Clear"
+msgstr ""
+
+#: date_popup/date_popup.module:222
+msgid "Close"
+msgstr ""
+
+#: date_popup/date_popup.module:266
+msgid "Previous field"
+msgstr ""
+
+#: date_popup/date_popup.module:266
+msgid "Next field"
+msgstr ""
+
+#: date_popup/date_popup.module:266
+msgid "Increment"
+msgstr ""
+
+#: date_popup/date_popup.module:266
+msgid "Decrement"
+msgstr ""
+
+#: date_popup/date_popup.module:315
+msgid "Field %field is required."
+msgstr ""
+
+#: date_popup/date_popup.module:339
+msgid "Field %field is invalid."
+msgstr ""
+
+#: date_popup/date_popup.module:0
+msgid "date_popup"
+msgstr ""
+
+#: date_popup/date_popup.info:0 date_tools/date_tools.module:416
+msgid "Date Popup"
+msgstr ""
+
+#: date_popup/date_popup.info:0
+msgid "Enables jquery popup calendars and time entry widgets for selecting dates and times."
+msgstr ""
+

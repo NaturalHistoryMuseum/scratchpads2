@@ -1,0 +1,13 @@
+The Date Copy module allows you to import date data into CCK nodes. Currently you can convert Event nodes to CCK nodes or import date data from an iCal feed.
+
+<h3>Importing from Event Nodes</h3>
+If you currently have date information in Event nodes and want to get the event dates into CCK Date fields instead, you can do this using the Date Copy module included with the Date module. 
+
+<ol>
+<li>First, create the content type you want to import your events into and make sure the content type has a CCK date field and a field to hold the event description (either a body or a text field). You can create a new content type for this purpose or add a CCK date field to the current event type, depending on whether you want to create new nodes and nids or use the current ones.</li>
+<li>Make sure you set up the CCK date field to have both a 'From Date' and a 'To Date'. If your events have event-specific timezones, make sure the CCK date field is set up to use the date's timezone.</li>
+<li>Go to Admin >> Content management >> Date Import/Export >> Import >> Events and select 'Events' as the content type to import from and your new content type as the type to import to. Only content types that have date fields will appear in the list of available content types.</li>
+<li>If you have added the new date fields to the current content type, be sure to select the option to NOT delete the old node after the import. If you have created a new content type, you will probably want to delete the old nodes.</li>
+<li>You can select the number of items to import and the starting nid (import will be done in ascending nid order). Use that to import a single node as a test to be sure the results are what you want.</li>
+<li>Once your nodes seem to be importing correctly, go ahead and import more of them. You may want to do them in batches to keep the server from timing out.</li>
+</ol>

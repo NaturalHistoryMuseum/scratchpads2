@@ -1,0 +1,27 @@
+# translation of theme.po to
+# $Id: theme.es.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+# LANGUAGE translation of Drupal (theme)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from file: theme.inc,v 1.1.4.33 2009/02/17 17:04:31 karens
+#
+# Ricardo Sanz Ante <rsante@eresmas.net>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: theme\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-04-05 19:23+0200\n"
+"Last-Translator: Ricardo Sanz Ante <rsante@eresmas.net>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: theme/theme.inc:90
+msgid "Week of @date"
+msgstr "Semana de @date"
+
+#: theme/theme.inc:327
+msgid "Timezone"
+msgstr "Zona horaria"

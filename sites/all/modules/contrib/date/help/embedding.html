@@ -1,0 +1,16 @@
+<h3>Embedding Views</h3>
+<p>Embed a date browser view anywhere using the format:</p>
+<pre>date_embed_view($view_name, $display_name, $settings, $args)</pre> 
+<p>Settings are used to override some values of the view.</p>
+<p>The primary setting that is useful here is a setting for 'block_identifier'. The view's block_identifier is used to control individual instances of regular and embedded views that contain date navigation so that they move separately or together. All views that use the same identifier will move together. 
+All views that use different identifiers will move independently. The identifier will show up in the url as a querystring, like node/275?mini=calendar/2008-10. 
+</p>
+<h3>Examples:</h3>
+<dl>
+<dt>&lt;?php print date_embed_view('myview', 'page_1'); ?&gt;</dt>
+<dd>This will embed the first page display in the view 'myview'.</dd>
+<dt>&lt;?php print date_embed_view('myview', 'page_1', array('block_identifer' => 'embedded'), array('2008-W45')); ?&gt;</dt>
+<dd>This will embed the first page display of the view and use 'embedded' as an identifier, set to show the week view for week 45 of 2008.</dd>
+<dt>&lt;?php print date_embed_view('myview', 'block_1', array('block_identifier' => 'mini'), array('2008-07')); ?&gt;</dt>
+<dd>This will embed the first block view of the view and use 'mini' as an identifier, set to show the month view for July 2008.</dd>
+</dl>

@@ -1,0 +1,19 @@
+//$Id: CHANGELOG.txt,v 1.9 2010/10/10 12:51:33 karens Exp $
+Date Module 6.x
+=================
+Version 7.2-dev
+=================
+  may break things that lacked a deliminator between year and month
+Added flexible granularity and redid date_make_date workflow using objects
+Removed all but the 'date' type, 'datestamp' and 'datetime' gone.
+
+TODO
+Made Y allow negative and larger or smaller than 4 digit years (ie BC, etc) (NOT WORKING YET)
+
+=================
+Version 7.1-dev
+=================
+
+- 
+- Remove Date PHP4, no longer needed because PHP4 is not supported any more. 
+- Remove Date Timezone, now handled by core.

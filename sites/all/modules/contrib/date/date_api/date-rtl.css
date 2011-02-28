@@ -1,0 +1,19 @@
+.container-inline-date {
+  margin-left: 0.5em;
+  margin-right: 0;
+}
+.container-inline-date .form-item .form-item {
+  float: right;
+}
+
+.container-inline-date .form-item input,
+.container-inline-date .form-item select,
+.container-inline-date .form-item option {
+  margin-left: 5px;
+  margin-right: 0;
+}
+
+.container-inline-date .date-spacer {
+  margin-left: 0;
+  margin-right: -5px;
+}

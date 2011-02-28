@@ -1,0 +1,25 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: \n"
+"Last-Translator: thePanz <thepanz@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: theme/theme.inc:90
+msgid "Week of @date"
+msgstr "Settimana @date"
+
+#: theme/theme.inc:327
+msgid "Timezone"
+msgstr "Fuso-orario"
+
+#~ msgid "« prev"
+#~ msgstr "« indietro"
+#~ msgid "next »"
+#~ msgstr "avanti »"
+#~ msgid "am/pm"
+#~ msgstr "am/pm"

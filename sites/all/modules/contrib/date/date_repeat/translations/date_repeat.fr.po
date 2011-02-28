@@ -1,0 +1,195 @@
+# $Id: date_repeat.fr.po,v 1.4 2011/01/18 00:37:34 karens Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.2 2009/03/19 23:22:32 karens
+#  date_locale.module,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_tools.module,v 1.1.2.14 2009/03/18 12:43:54 karens
+#  date_api_elements.inc,v 1.49.2.1.2.47 2009/03/25 15:31:42 karens
+#  date_popup.module,v 1.42.2.1.2.43 2009/03/25 15:31:42 karens
+#  date_api_ical.inc,v 1.35.4.26 2009/02/21 12:53:25 karens
+#  date_api_sql.inc,v 1.9.2.3.2.35 2009/02/26 18:48:00 karens
+#  date_admin.inc,v 1.40.2.3.2.38 2009/03/03 15:16:54 karens
+#  date_api_argument_handler.inc,v 1.1.2.36 2009/03/20 18:29:42 karens
+#  date_api.module,v 1.64.2.5.2.78 2009/03/25 12:04:38 karens
+#  date_api.install,v 1.16.2.1.2.19 2009/03/21 10:18:00 karens
+#  date_api.info,v 1.6 2008/02/18 19:32:28 karens
+#  date.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_copy.info,v 1.2 2008/02/18 19:32:28 karens
+#  date_locale.info,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_php4.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_repeat.info,v 1.5 2008/02/18 19:32:29 karens
+#  date_timezone.info,v 1.3.4.1 2008/06/27 14:14:01 karens
+#  date_tools.info,v 1.1.2.1 2009/01/10 20:06:10 karens
+#  date_elements.inc,v 1.46.2.2.2.57 2009/03/20 00:28:33 karens
+#  date_api_filter_handler.inc,v 1.1.2.33 2009/03/25 15:31:42 karens
+#  date_handler_field_multiple.inc,v 1.1.2.12 2009/02/27 14:48:34 karens
+#  date_repeat.inc,v 1.22.2.1.2.22 2009/02/21 12:53:25 karens
+#  date_token.inc,v 1.2.2.1.2.7 2009/03/20 12:07:51 karens
+#  date.module,v 1.61.2.4.2.53 2009/03/19 23:22:32 karens
+#  date.theme,v 1.6.4.42 2009/03/01 22:35:22 karens
+#  date.install,v 1.37.2.5.2.28 2009/03/25 12:04:38 karens
+#  date_copy.module,v 1.16.2.1.2.10 2008/11/01 13:06:26 karens
+#  date_api.views.inc,v 1.1.2.7 2009/03/20 15:03:49 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#  date_repeat_form.inc,v 1.15.4.13 2009/02/16 23:46:08 karens
+#  date_repeat.module,v 1.30.4.11 2009/02/27 16:37:38 karens
+#  date_timezone.module,v 1.18.2.3.2.11 2009/01/13 14:37:48 karens
+#  date_timezone.install,v 1.7.2.2.2.6 2008/09/06 14:20:10 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.9 2009/01/24 00:41:45 karens
+#  theme.inc,v 1.1.4.33 2009/02/17 17:04:31 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal6 date_repeat module\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-31 16:35+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+
+#: date_repeat/date_repeat_form.inc:68
+msgid "Repeat"
+msgstr "Répéter"
+
+#: date_repeat/date_repeat_form.inc:69
+msgid "Choose a frequency and period to repeat this date. If nothing is selected, the date will not repeat."
+msgstr "Choisissez une fréquence et une période de répétition de cette date. Si rien n'est sélectionné, la date ne se répétera pas"
+
+#: date_repeat/date_repeat_form.inc:101
+msgid "Until"
+msgstr "Jusqu'à"
+
+#: date_repeat/date_repeat_form.inc:102
+msgid "Date to stop repeating this item."
+msgstr "Date à laquelle arrêter la répétition de cet élément."
+
+#: date_repeat/date_repeat_form.inc:122
+msgid "Advanced"
+msgstr "Avancé"
+
+#: date_repeat/date_repeat_form.inc:125
+msgid "If no advanced options are selected, the date will repeat on the day of week of the start date for weekly repeats, otherwise on the month and day of the start date. Use the options below to override that behavior to select specific months and days to repeat on. Use the 'Except' box to input dates that should be omitted from the results."
+msgstr "Si aucune option avancée n'est sélectionnée, la date se répétera le jour de la semaine de la date de début pour des répétitions mensuelles, sinon le jour et le mois de la date de début. Utilisez les options ci-dessous pour remplacer ce comportement et sélectionnez des jours et mois spécifiques pour la répétition. Utilisez le cadre 'Excepté' pour saisir des dates devant être omises des résultats."
+
+#: date_repeat/date_repeat_form.inc:134;145;156
+msgid "-- Any"
+msgstr "-- N'importe quel"
+
+#: date_repeat/date_repeat_form.inc:143
+msgid "Day of Month"
+msgstr "Jour du Mois"
+
+#: date_repeat/date_repeat_form.inc:154
+msgid "Day of Week"
+msgstr "Jour de la Semaine"
+
+#: date_repeat/date_repeat_form.inc:168
+msgid "Except"
+msgstr "Excepté"
+
+#: date_repeat/date_repeat_form.inc:169
+msgid "Dates to omit from the list of repeating dates."
+msgstr "Dates à omettre de la liste des dates se répétant."
+
+#: date_repeat/date_repeat_form.inc:258
+msgid "Delete"
+msgstr "Supprimer"
+
+#: date_repeat/date_repeat_form.inc:258
+msgid "Current exceptions"
+msgstr "Exceptions en cours"
+
+#: date_repeat/date_repeat.module:41
+msgid "-- Period"
+msgstr "-- Période"
+
+#: date_repeat/date_repeat.module:51
+msgid "-- Frequency"
+msgstr "-- Fréquence"
+
+#: date_repeat/date_repeat.module:55
+msgid "Every @number"
+msgstr "Tous les @number"
+
+#: date_repeat/date_repeat.module:205
+msgid "!repeats_every_interval on the !date_order !day_of_week"
+msgstr "!repeats_every_interval le !date_order !day_of_week"
+
+#: date_repeat/date_repeat.module:208
+msgid "!repeats_every_interval every !day_of_week"
+msgstr "!repeats_every_interval tous les !day_of_week"
+
+#: date_repeat/date_repeat.module:211
+msgid "and"
+msgstr "et"
+
+#: date_repeat/date_repeat.module:221
+msgid "!repeats_every_interval on the !month_days of !month_names"
+msgstr "!repeats_every_interval le(s) !month_days de !month_names"
+
+#: date_repeat/date_repeat.module:224
+msgid "!repeats_every_interval on !month_names"
+msgstr "!repeats_every_interval en !month_names"
+
+#: date_repeat/date_repeat.module:232
+msgid "!repeats_every_interval !count times"
+msgstr "!repeats_every_interval !count fois"
+
+#: date_repeat/date_repeat.module:236
+msgid "!repeats_every_interval until !until_date"
+msgstr "!repeats_every_interval jusqu'au !until_date"
+
+#: date_repeat/date_repeat.module:243
+msgid "!repeats_every_interval except !except_dates"
+msgstr "!repeats_every_interval excepté le(s) !except_dates"
+
+#: date_repeat/date_repeat.module:247
+msgid "!repeats_every_interval where the week start on !day_of_week"
+msgstr "!repeats_every_interval où la semaine commence le !day_of_week"
+
+#: date_repeat/date_repeat.module:249
+msgid "Repeats !interval !bymonth !byday !count !until !except."
+msgstr "Se répète !interval !bymonth !byday !count !until !except."
+
+#: date_repeat/date_repeat.module:184
+msgid "every week"
+msgid_plural "every @count weeks"
+msgstr[0] "toutes les semaines"
+msgstr[1] "toutes les @count semaines"
+
+#: date_repeat/date_repeat.module:187
+msgid "every month"
+msgid_plural "every @count months"
+msgstr[0] "tous les mois"
+msgstr[1] "tous les @count mois"
+
+#: date_repeat/date_repeat.module:190
+msgid "every year"
+msgid_plural "every @count years"
+msgstr[0] "tous les ans"
+msgstr[1] "tous les @count ans"
+
+#: date_repeat/date_repeat.module:193
+msgid "every day"
+msgid_plural "every @count days"
+msgstr[0] "tous les jours"
+msgstr[1] "tous les @count jours"
+
+#: date_repeat/date_repeat.module:0
+msgid "date_repeat"
+msgstr "date_repeat"
+
+#: date_repeat/date_repeat.info:0
+msgid "Date Repeat API"
+msgstr "Date Repeat API"
+
+#: date_repeat/date_repeat.info:0
+msgid "A Date Repeat API to calculate repeating dates and times from iCal rules."
+msgstr "Une API de Répétition de Date pour calculer les dates et heures se répétant à partir de règles iCal"

@@ -1,0 +1,190 @@
+# $Id: includes.de.po,v 1.5 2011/01/18 00:37:35 karens Exp $
+#
+# LANGUAGE translation of Drupal (includes)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.views.inc,v 1.1.2.6 2008/11/30 13:58:27 karens
+#  date_api_argument_handler.inc,v 1.1.2.28 2008/12/06 12:39:14 karens
+#  date_api_filter_handler.inc,v 1.1.2.14 2008/12/08 12:15:57 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.7 2008/12/02 17:32:35 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-08 11:33+0100\n"
+"Last-Translator: Alexander Haß\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+
+#: includes/date_api.views.inc:78;85
+#, fuzzy
+msgid "Date browser"
+msgstr "Datumssuche"
+
+#: includes/date_api.views.inc:79
+msgid "Date back/next navigation to attach to other displays. Requires the Date argument."
+msgstr "Die vorwärts/rückwärts Navigation für ein Datum an anderen Anzeigen anhängen. Hierfür ist das Datumsargument erforderlich."
+
+#: includes/date_api.views.inc:101
+#, fuzzy
+msgid "Date browser style"
+msgstr "Design der Datumssuche"
+
+#: includes/date_api.views.inc:102
+msgid "Creates back/next navigation."
+msgstr "Erstellt eine vorwärts/rückwärts Navigation."
+
+#: includes/date_api.views.inc:129
+msgid "Filter any Views date field by a date argument, using any common ISO date/period format (i.e. YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+msgstr "Alle Datumsfelder in Ansichten nach dem Datumsargument filtern, unter Verwendung eines gebräuchlichen ISO Datums-/Zeitformates (z.B. YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+
+#: includes/date_api.views.inc:132;142
+msgid "Undated"
+msgstr "Undatiert"
+
+#: includes/date_api.views.inc:139
+#, fuzzy
+msgid "Filter any Views date field."
+msgstr "Alle Datumsfelder in Ansichten filtern."
+
+#: includes/date_api_argument_handler.inc:67
+msgid "Select the type of date value to be used in defaults, summaries, and navigation. For example, a granularity of 'month' will set the default date to the current month, summarize by month in summary views, and link to the next and previous month when using date navigation."
+msgstr ""
+
+#: includes/date_api_argument_handler.inc:71
+#: includes/date_api_filter_handler.inc:109
+msgid "Date year range"
+msgstr ""
+
+#: includes/date_api_argument_handler.inc:74
+#: includes/date_api_filter_handler.inc:112
+msgid "Set the allowable minimum and maximum year range for this argument, either a -X:+X offset from the current year, like '-3:+3' or an absolute minimum and maximum year, like '2005:2010'. When the argument is set to a date outside the range, the page will be returned as 'Page not found (404)'."
+msgstr ""
+
+#: includes/date_api_argument_handler.inc:83
+#: includes/date_api_filter_handler.inc:121
+msgid "Date field(s)"
+msgstr "Datumsfeld(er)"
+
+#: includes/date_api_argument_handler.inc:88
+msgid "Select one or more date fields to filter with this argument. Do not select both the 'From date' and 'To date' for CCK date fields, only one of them is needed."
+msgstr "Eines oder mehrere Daten zum Filtern mit diesem Argument auswählen. Für CCK-Datumsfelder sollten nicht das „Von“-Datum und „Bis“-Datum ausgewählt werden, da nur eins benötigt wird."
+
+#: includes/date_api_argument_handler.inc:91
+#: includes/date_api_filter_handler.inc:129
+msgid "Method"
+msgstr "Methode"
+
+#: includes/date_api_argument_handler.inc:93
+#: includes/date_api_filter_handler.inc:131
+msgid "OR"
+msgstr "ODER"
+
+#: includes/date_api_argument_handler.inc:93
+#: includes/date_api_filter_handler.inc:131
+msgid "AND"
+msgstr "UND"
+
+#: includes/date_api_argument_handler.inc:95
+#: includes/date_api_filter_handler.inc:133
+msgid "Method of handling multiple date fields in the same query. Return items that have any matching date field (date = field_1 OR field_2), or only those with matches in all selected date fields (date = field_1 AND field_2)."
+msgstr ""
+
+#: includes/date_api_argument_handler.inc:107
+msgid "You must select at least one date field for this argument."
+msgstr "Für dieses Argument muss mindestens ein Datumsfeld ausgewählt werden."
+
+#: includes/date_api_argument_handler.inc:111
+#: includes/date_api_filter_handler.inc:144
+msgid "Date year range must be in the format -9:+9 or 2005:2010."
+msgstr "Der Datumsbereich der Jahre muss in dem Format -9:+9 oder 2005:2010 angegeben werden."
+
+#: includes/date_api_filter_handler.inc:76
+msgid "Select"
+msgstr "Auswahl"
+
+#: includes/date_api_filter_handler.inc:78
+msgid "Popup"
+msgstr "Popup"
+
+#: includes/date_api_filter_handler.inc:99
+msgid "Date form type"
+msgstr "Datumsformulartyp"
+
+#: includes/date_api_filter_handler.inc:102
+msgid "Choose the form element to use for date selection."
+msgstr "Das Formularelement zur Datumsauswahl auswählen."
+
+#: includes/date_api_filter_handler.inc:106
+msgid "Select a granularity for the date filter. For instance, selecting 'day' will create a filter where users can select the year, month, and day."
+msgstr "Die Granularität für den Datumsfilter auswählen. Beispielsweise wird die Auswahl von „Tag“ einen Filter erstellen, indem Benutzer das Jahr, den Monat und Tag auswählen können."
+
+#: includes/date_api_filter_handler.inc:126
+msgid "Select date field(s) to filter with this argument."
+msgstr "Datumsfeld(er) auswählen, die mit diesem Argument gefiltert werden."
+
+#: includes/date_api_filter_handler.inc:140
+msgid "You must select at least one date field for this filter."
+msgstr "Für diesen Filter muss mindestens ein Datumsfeld ausgewählt werden."
+
+#: includes/date_api_filter_handler.inc:207
+msgid "Absolute value"
+msgstr "Absoluter Wert"
+
+#: includes/date_api_filter_handler.inc:210
+msgid "Date default"
+msgstr "Standardmäßiges Datum"
+
+#: includes/date_api_filter_handler.inc:212
+msgid "Relative value"
+msgstr "Relativer Wert"
+
+#: includes/date_api_filter_handler.inc:212
+msgid "Relative values will be used if no date is set above. Use 'now' to default to the current date at runtime or add modifiers like 'now +1 day'. The To date default value is used when the operator is set to 'between' or 'not between'."
+msgstr ""
+
+#: includes/date_api_filter_handler.inc:212
+msgid "If the filter is exposed, these values will be used to set the inital value of the exposed filter. Leave both date and default values blank to start with no value in the exposed filter."
+msgstr ""
+
+#: includes/date_api_filter_handler.inc:216
+msgid "To date default"
+msgstr "Standardmäßiges „Bis“-Datum"
+
+#: includes/date_api_filter_handler.inc:328
+msgid "Please set a default value for the To date as well as the From date when using default values with the Between or Not between operators."
+msgstr "Bei Verwendung der „Zwischen“ und „Nicht zwischen“-Operatoren sollte ein standardmäßiger Wert, sowohl für das „Bis“-Datum als auch „Von“-Datum angegeben werden."
+
+#: includes/date_api_filter_handler.inc:341
+msgid "Missing date fields!"
+msgstr "Datumsfelder fehlen!"
+
+# Offen
+#: includes/date_api_filter_handler.inc:359
+msgid "(@field) <strong>Exposed</strong> @widget @format"
+msgstr "(@field) <strong>Hervorgehoben</strong> @widget @format"
+
+#: includes/date_api_filter_handler.inc:365
+msgid "@min and @max"
+msgstr "@min und @max"
+
+#: includes/date_navigation_plugin_style.inc:24
+#, fuzzy
+msgid "The %style cannot use more than one Date: Date argument."
+msgstr "Das %style kann nicht mehr als ein Datum verwenden: Datumsargument."
+
+#: includes/date_navigation_plugin_style.inc:27
+#, fuzzy
+msgid "The %style requires the Date: Date argument be set to default to the current date."
+msgstr "Das %style erfordert das Datum: Für das Datumsargument wird das aktuelle Datum verwendet."
+
+#: includes/date_navigation_plugin_style.inc:34
+#, fuzzy
+msgid "The %style requires the Date: Date argument."
+msgstr "Das %style erfordert das Datum: Datumsargument."

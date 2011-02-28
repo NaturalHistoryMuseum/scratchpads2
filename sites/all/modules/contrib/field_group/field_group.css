@@ -1,0 +1,25 @@
+/* $Id: field_group.css,v 1.1.2.12 2010/12/22 22:22:35 stalski Exp $ */
+@CHARSET "UTF-8";
+
+/**
+ * Override for fieldsets in vertical tabs.
+ * All legends where displayed none, breaking the 
+ * nested field_group formatters.
+ */
+.vertical-tabs legend {
+  display: block;
+}
+.vertical-tabs-pane>legend {
+  display: none;
+}
+
+/**
+ * Override the accordion default style for view_modes.
+ */
+form .ui-accordion h3, form .ui-accordion h3.ui-state-active {
+  padding-left: 2em;
+}
+
+.ui-accordion h3.ui-state-active {
+  background: url("misc/ui/images/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #E6E6E6;
+}

@@ -1,0 +1,34 @@
+<?php
+// $Id: date_popup.install,v 1.10 2010/03/01 00:40:09 karens Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Date Popup module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function date_popup_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function date_popup_uninstall() {
+
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function date_popup_enable() {
+
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function date_popup_disable() {
+
+}

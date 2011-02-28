@@ -1,0 +1,175 @@
+# translation of includes.po to
+# $Id: includes.es.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+# LANGUAGE translation of Drupal (includes)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.views.inc,v 1.1.2.6 2008/11/30 13:58:27 karens
+#  date_api_argument_handler.inc,v 1.1.2.34 2009/02/26 17:18:53 karens
+#  date_api_filter_handler.inc,v 1.1.2.30 2009/02/28 13:08:30 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.9 2009/01/24 00:41:45 karens
+#
+# Ricardo Sanz Ante <rsante@eresmas.net>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: includes\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-04-05 21:45+0200\n"
+"Last-Translator: Ricardo Sanz Ante <rsante@eresmas.net>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: includes/date_api.views.inc:78;85
+msgid "Date browser"
+msgstr "Navegador de fecha"
+
+#: includes/date_api.views.inc:79
+msgid "Date back/next navigation to attach to other displays. Requires the Date argument."
+msgstr "Navegación atrás/adelante para adjuntar a otras visualizaciones. Requiere el argumento Date."
+
+#: includes/date_api.views.inc:101
+msgid "Date browser style"
+msgstr "Estilo de navegación de fecha.¡"
+
+#: includes/date_api.views.inc:102
+msgid "Creates back/next navigation."
+msgstr "Crea navegación atrás/adelante."
+
+#: includes/date_api.views.inc:129
+msgid "Filter any Views date field by a date argument, using any common ISO date/period format (i.e. YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+msgstr "Filtrar un campo de fecha de una vista mediante un argumento de fecha, usando cualquier formato común ISO de fecha/período (ej: YYYY, YYYY-MM, YYYY-MM-DD, YYYY-W99, YYYY-MM-DD--P3M, P90D, etc)."
+
+#: includes/date_api.views.inc:132;142
+msgid "Undated"
+msgstr "Sin fechar"
+
+#: includes/date_api.views.inc:139
+msgid "Filter any Views date field."
+msgstr "Filtrar un campo de fecha de una vista."
+
+#: includes/date_api_argument_handler.inc:67
+msgid "Select the type of date value to be used in defaults, summaries, and navigation. For example, a granularity of 'month' will set the default date to the current month, summarize by month in summary views, and link to the next and previous month when using date navigation."
+msgstr "Seleccione el tipo de valor de fecha a ser usado por defecto, en resúmenes y navegación. Por ejemplo, una granularidad de mes fijará la fecha actual al mes actual, resumido por mes en las vistas resumen, y enlazado al mes anterior y siguiente cuando se use la navegación de fecha."
+
+#: includes/date_api_argument_handler.inc:71 includes/date_api_filter_handler.inc:109
+msgid "Date year range"
+msgstr "Rango de años de la fecha"
+
+#: includes/date_api_argument_handler.inc:74 includes/date_api_filter_handler.inc:112
+msgid "Set the allowable minimum and maximum year range for this argument, either a -X:+X offset from the current year, like '-3:+3' or an absolute minimum and maximum year, like '2005:2010'. When the argument is set to a date outside the range, the page will be returned as 'Page not found (404)'."
+msgstr "Especifique el máximo y mínimo rango de años permitidos para este argumento, ya sea como un desplazamiento -X:+X desde el año actual, como '-3:+3', o un año absoluto máximo y mínimo, como '2005:2010'. Cuando el argumento sea una fecha fuera del rango la página será devuelta como 'Página no encontrada (404)'."
+
+#: includes/date_api_argument_handler.inc:83 includes/date_api_filter_handler.inc:121
+msgid "Date field(s)"
+msgstr "Campo(s) de fecha"
+
+#: includes/date_api_argument_handler.inc:88
+msgid "Select one or more date fields to filter with this argument. Do not select both the 'From date' and 'To date' for CCK date fields, only one of them is needed."
+msgstr "Selecciona uno o más campos de fechas a filtrar mediante este argumento. No seleccione las dos fechas \"Desde\" y \"Hasta\" de campos de fecha CCK, solo una de ellas es necesaria."
+
+#: includes/date_api_argument_handler.inc:91 includes/date_api_filter_handler.inc:129
+msgid "Method"
+msgstr "Método"
+
+#: includes/date_api_argument_handler.inc:93 includes/date_api_filter_handler.inc:131
+msgid "OR"
+msgstr "Ó"
+
+#: includes/date_api_argument_handler.inc:93 includes/date_api_filter_handler.inc:131
+msgid "AND"
+msgstr "Y"
+
+#: includes/date_api_argument_handler.inc:95 includes/date_api_filter_handler.inc:133
+msgid "Method of handling multiple date fields in the same query. Return items that have any matching date field (date = field_1 OR field_2), or only those with matches in all selected date fields (date = field_1 AND field_2)."
+msgstr "Método para manejar múltiples campos de fecha en la misma consulta. Devuelve los items que tienen cualquier campo de fecha coincidente (fecha = campo_1 Ó campo_2), o solo aquellos que coincidan con todos los campos de fecha seleccionados (fecha = campo_1 Y campo_2)."
+
+#: includes/date_api_argument_handler.inc:107
+msgid "You must select at least one date field for this argument."
+msgstr "Debe seleccionar al menos un campo de fecha para este argumento."
+
+#: includes/date_api_argument_handler.inc:111 includes/date_api_filter_handler.inc:144
+msgid "Date year range must be in the format -9:+9 or 2005:2010."
+msgstr "El rango de años de la fecha debe estar en el formato -9:+9 ó 2005:2010."
+
+#: includes/date_api_filter_handler.inc:76
+msgid "Select"
+msgstr "Seleccionar"
+
+#: includes/date_api_filter_handler.inc:78
+msgid "Popup"
+msgstr "Emergente"
+
+#: includes/date_api_filter_handler.inc:99
+msgid "Date form type"
+msgstr "Tipo de formulario de fecha"
+
+#: includes/date_api_filter_handler.inc:102
+msgid "Choose the form element to use for date selection."
+msgstr "Elija el elemento de formulario a usar para la selección de la fecha."
+
+#: includes/date_api_filter_handler.inc:106
+msgid "Select a granularity for the date filter. For instance, selecting 'day' will create a filter where users can select the year, month, and day."
+msgstr "Selecciona una granularidad para el filtro de fecha. Por ejemplo, seleccionando 'día' se creará un filtro en el que los usuarios podrán seleccionar el año, el mes y el día."
+
+#: includes/date_api_filter_handler.inc:126
+msgid "Select date field(s) to filter with this argument."
+msgstr "Seleccione el(los) campo(s) de fecha a filtrar mediante este argumento."
+
+#: includes/date_api_filter_handler.inc:140
+msgid "You must select at least one date field for this filter."
+msgstr "Debe seleccionar al menos un campo de fecha para el filtro."
+
+#: includes/date_api_filter_handler.inc:207
+msgid "Absolute value"
+msgstr "Valor absoluto"
+
+#: includes/date_api_filter_handler.inc:210
+msgid "Date default"
+msgstr "Fecha por defecto"
+
+#: includes/date_api_filter_handler.inc:212
+msgid "Relative value"
+msgstr "Valor relativo"
+
+#: includes/date_api_filter_handler.inc:212
+msgid "Relative values will be used if no date is set above. Use 'now' to default to the current date at runtime or add modifiers like 'now +1 day'. The To date default value is used when the operator is set to 'between' or 'not between'."
+msgstr "Los valores relativos serán usados si no se ha especificado una fecha más arriba. Use 'now' para usar por defecto la fecha del momento de la ejecución o añada modificadores como 'now + 1 day'. La fecha \"Hasta\" por defecto se usa cuando se especifica el operador 'entre' o 'no entre'."
+
+#: includes/date_api_filter_handler.inc:212
+msgid "If the filter is exposed, these values will be used to set the inital value of the exposed filter. Leave both date and default values blank to start with no value in the exposed filter."
+msgstr "Si el filtro es expuesto, estos valores serán usados para fijar los valores iniciales del filtro expuesto. Deje ambos valores de fecha y por defecto vacíos para comenzar sinun valor en el filtro expuesto."
+
+#: includes/date_api_filter_handler.inc:216
+msgid "To date default"
+msgstr "Fecha \"Hasta\" por defecto"
+
+#: includes/date_api_filter_handler.inc:328
+msgid "Please set a default value for the To date as well as the From date when using default values with the Between or Not between operators."
+msgstr "Por favor, especifique un valor por defecto tanto para la fecha \"Desde\" como para la fecha \"Hasta\" cuando use valores por defecto con los operadores 'Entre' y 'No entre'."
+
+#: includes/date_api_filter_handler.inc:341
+msgid "Missing date fields!"
+msgstr "!Faltan campos de fecha!"
+
+#: includes/date_api_filter_handler.inc:359
+msgid "(@field) <strong>Exposed</strong> @widget @format"
+msgstr "(@field) <strong>Expuesto</strong> @widget @format"
+
+#: includes/date_api_filter_handler.inc:365
+msgid "@min and @max"
+msgstr "@min y @max"
+
+#: includes/date_navigation_plugin_style.inc:24
+msgid "The %style cannot use more than one Date: Date argument."
+msgstr "El %style no puede usar más de un argumento Fecha:Date."
+
+#: includes/date_navigation_plugin_style.inc:27
+msgid "The %style requires the Date: Date argument be set to default to the current date."
+msgstr "El %style requiere que el argumento Fecha:Date tenga la fecha actual como valor por defecto."
+
+#: includes/date_navigation_plugin_style.inc:34
+msgid "The %style requires the Date: Date argument."
+msgstr "El %style requiere un argumento Fecha:Date."

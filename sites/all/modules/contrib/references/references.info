@@ -1,0 +1,15 @@
+; $Id: references.info,v 1.1.2.1 2011/02/15 21:11:52 yched Exp $
+name = References
+description = Defines common base features for the various reference field types.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = options
+files[] = views/references_handler_relationship.inc
+
+; Information added by drupal.org packaging script on 2011-02-16
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "references"
+datestamp = "1297816283"
+

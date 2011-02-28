@@ -1,0 +1,98 @@
+<?php
+// $Id: date.install,v 1.25 2011/01/18 00:37:34 karens Exp $
+/**
+ * @file
+ * Installation code for CCK date module.
+ */
+function date_field_schema($field) {
+  $db_columns = array();
+  switch ($field['type']) {
+    case 'datestamp':
+      $db_columns['value'] = array(
+        'type' => 'int', 
+        'not null' => FALSE, 
+        'sortable' => TRUE, 
+        'views' => TRUE,
+      );
+      break;
+    case 'datetime':
+      $db_columns['value'] = array(
+        'type' => 'datetime',
+        'mysql_type' => 'DATETIME',
+        'pgsql_type' => 'timestamp without time zone', 
+        'not null' => FALSE, 
+        'sortable' => TRUE, 
+        'views' => TRUE,
+      );
+      break;
+    default:
+      $db_columns['value'] = array(
+        'type' => 'varchar', 
+        'length' => 20, 
+        'not null' => FALSE, 
+        'sortable' => TRUE, 
+        'views' => TRUE,
+      );
+      break;
+  }
+
+  // If a second date is needed for 'To date', just make a copy of the first one.
+  if (!empty($field['settings']['todate'])) {
+    $db_columns['value2'] = $db_columns['value'];
+
+    // We don't want CCK to create additional columns, just the first.
+    // We modify them our own way in views data.
+    $db_columns['value2']['views'] = FALSE;
+  }
+  // timezone and offset columns are used only if date-specific dates are chosen.
+  if (isset($field['settings']['tz_handling']) && $field['settings']['tz_handling'] == 'date') {
+    $db_columns['timezone'] = array(
+      'type' => 'varchar', 
+      'length' => 50, 
+      'not null' => FALSE, 
+      'sortable' => TRUE, 
+      'views' => FALSE,
+    );
+    $db_columns['offset'] = array(
+      'type' => 'int', 
+      'not null' => FALSE, 
+      'sortable' => TRUE, 
+      'views' => FALSE,
+    );
+    if (!empty($field['settings']['todate'])) $db_columns['offset2'] = array('type' => 'int', 'not null' => FALSE, 'sortable' => TRUE, 'views' => FALSE);
+  }
+  if (isset($field['settings']['repeat']) && $field['settings']['repeat'] == 1) {
+    $db_columns['rrule'] = array(
+      'type' => 'text', 
+      'not null' => FALSE, 
+      'sortable' => FALSE, 
+      'views' => FALSE,
+    );
+  }
+  return array('columns' => $db_columns);  
+}
+
+function date_update_last_removed() {
+  return 6005;
+}
+
+/**
+ * Move settings that were stored in variables to field formatter settings.
+ */
+// TODO, update field formatter settings with the variables, once we know
+// how the field update process will work.
+
+/**
+ * A copy of a D6 function we can use to retrive the formatter settings
+ * and return them as an option array.
+ */
+function date_formatter_get_settings($field_name, $bundle, $context) {
+  $options = array();
+  $value = 'date:' . $bundle . ':' . $context . ':' . $field_name;
+  $options['repeat']['show_repeat_rule'] = variable_get($value . '_show_repeat_rule', 'show');
+  $options['multiple']['multiple_number'] = variable_get($value . '_multiple_number', '');
+  $options['multiple']['multiple_from'] = variable_get($value . '_multiple_from', '');
+  $options['multiple']['multiple_to'] = variable_get($value . '_multiple_to', '');
+  $options['fromto']['fromto'] = variable_get($value . '_fromto', 'both');
+  return $options;
+}

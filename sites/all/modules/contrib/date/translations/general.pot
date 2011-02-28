@@ -1,0 +1,66 @@
+# $Id: general.pot,v 1.3 2010/02/28 14:28:01 karens Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_locale.module,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_api_elements.inc,v 1.49.2.1.2.44 2009/02/24 15:54:28 karens
+#  date_popup.module,v 1.42.2.1.2.42 2009/02/24 15:54:28 karens
+#  date_api_sql.inc,v 1.9.2.3.2.35 2009/02/26 18:48:00 karens
+#  date_admin.inc,v 1.40.2.3.2.38 2009/03/03 15:16:54 karens
+#  date_tools.module,v 1.1.2.10 2009/02/27 15:04:28 karens
+#  date_api_argument_handler.inc,v 1.1.2.34 2009/02/26 17:18:53 karens
+#  date_elements.inc,v 1.46.2.2.2.52 2009/02/27 15:47:39 karens
+#  date_api_filter_handler.inc,v 1.1.2.30 2009/02/28 13:08:30 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: date_api.admin.inc:147 date_locale/date_locale.module:252
+msgid "Configuration saved."
+msgstr ""
+
+#: date_api.admin.inc:165;201 date_locale/date_locale.module:214
+msgid "Cancel"
+msgstr ""
+
+#: date_api_elements.inc:148 date_popup/date_popup.module:253;288
+msgid "Format: @date"
+msgstr ""
+
+#: date_api_sql.inc:695 date/date_admin.inc:356 date_tools/date_tools.module:153 includes/date_api_argument_handler.inc:62
+msgid "Granularity"
+msgstr ""
+
+#: date/date_admin.inc:72;78 date_popup/date_popup.module:266
+msgid "Now"
+msgstr ""
+
+#: date/date_admin.inc:275;276;277;278 date/date_elements.inc:324 includes/date_api_filter_handler.inc:256
+msgid "From date"
+msgstr ""
+
+#: date/date_admin.inc:280;281;282;283 date/date_elements.inc:326 includes/date_api_filter_handler.inc:259
+msgid "To date"
+msgstr ""
+
+#: date_locale/date_locale.module:209 date_php4/date_php4.module:54 date_tools/date_tools.module:193
+msgid "Save"
+msgstr ""
+
+#: date_tools/date_tools.module:419 includes/date_api_filter_handler.inc:77
+msgid "Text"
+msgstr ""
+

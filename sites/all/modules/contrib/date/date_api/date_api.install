@@ -1,0 +1,76 @@
+<?php
+// $Id: date_api.install,v 1.1 2011/01/15 11:49:32 karens Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the date_api module.
+ *
+ */
+
+function date_api_set_variables() {
+  // Set absolute minimum and maximum year for dates on this site.
+  // There is actually no maximum and minimum year in PHP 5, but a date with
+  // a year less than 0 would result in negative ISO and DATETIME dates,
+  // like -1250-01-01T00:00:00, which probably won't make sense or work
+  // correctly anywhere.
+  //
+  // The odd construct of using variable_get() instead of variable_set()
+  // is so we don't accidentally write over an existing value. If
+  // no value is set, variable_get() will set it.
+  variable_get('date_max_year', 4000);
+  variable_get('date_min_year', 1);
+  variable_get('date_php_min_year', 1901);
+
+  // Set an API version in a way that other modules can test for compatibility.
+  variable_set('date_api_version', '5.2');
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function date_api_install() {
+
+  // date_api_set_variables can install date_timezone and date_php4.  The
+  // date_timezone_install() function does a module_enable('date_api').  This
+  // means that date_api_enable() can be called before date_api_install()
+  // finishes!  So the date_api schema needs to be installed before this line!
+  date_api_set_variables();
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function date_api_enable() {
+  date_api_set_variables();
+
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function date_api_uninstall() {
+  cache_clear_all('date_timezone_identifiers_list', 'cache');
+  $variables = array(
+    'date_api_version',
+    'date_min_year',
+    'date_max_year',
+    'date_php_min_year',
+    'date_db_tz_support',
+    'date_api_use_iso8601',
+    );
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+
+  if (db_table_exists('views_display')) {
+    $displays = array(
+      'date_nav', 
+    );
+    db_query("DELETE FROM {views_display} WHERE display_plugin IN ('" . implode("','", $displays) . "')");
+    db_query("DELETE FROM {cache_views}");
+  }
+}
+
+function date_api_update_last_removed() {
+  return 6005;
+}

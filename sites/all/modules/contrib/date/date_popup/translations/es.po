@@ -1,0 +1,92 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: date_popup 6.x-2.x-dev\n"
+"POT-Creation-Date: 2008-09-06 16:20-0500\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Sandro Franchi <sandro.franchi@gmail.com>\n"
+"Language-Team: Sandro Franchi <sandro.franchi@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Spanish\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: date_popup.module:223
+msgid "Prev"
+msgstr "Ant."
+
+#: date_popup.module:224
+msgid "Next"
+msgstr "Próx."
+
+#: date_popup.module:225
+msgid "Today"
+msgstr "Hoy"
+
+#: date_popup.module:226
+msgid "Clear"
+msgstr "Limpiar"
+
+#: date_popup.module:227
+msgid "Close"
+msgstr "Cerrar"
+
+#: date_popup.module:255
+msgid " Format: @date"
+msgstr " Formato: @date"
+
+#: date_popup.module:268
+msgid "Now"
+msgstr "Ahora"
+
+#: date_popup.module:268
+msgid "Previous field"
+msgstr "Campo anterior"
+
+#: date_popup.module:268
+msgid "Next field"
+msgstr "Siguiente campo"
+
+#: date_popup.module:268
+msgid "Increment"
+msgstr "Incremento"
+
+#: date_popup.module:268
+msgid "Decrement"
+msgstr "Decremento"
+
+#: date_popup.module:287
+msgid "Format: @date"
+msgstr "Formato: @date"
+
+#: date_popup.module:313
+msgid "%field is required."
+msgstr "el campo %field es requerido."
+
+#: date_popup.module:337
+msgid "%field is invalid."
+msgstr "el campo %field es inválido."
+
+#: date_popup.module:0
+msgid "date_popup"
+msgstr "date_popup"
+
+#: date_popup.install:14
+msgid "<p>Download jquery.timeentry.pack.js and jquery.timeentry.css from the jquery-timeentry home page at !link and install them in the /lib/ folder of the Date Popup module.</p>"
+msgstr "<p>Descargue jquery.timeentry.pack.js y jquery.timeentry.css desde la página jquery-timeentry en !link e instálelos en la carpeta /lib/ del módulo Date Popup.</p>"
+
+#: (duplicate) date_popup.install:18
+msgid "Date Popup requirements"
+msgstr "Requerimientos de Date Popup"
+
+#: date_popup.info:0
+msgid "Date Popup"
+msgstr "Date Popup"
+
+#: date_popup.info:0
+msgid "Enables jquery popup calendars and time entry widgets for selecting dates and times."
+msgstr "Habilita calendarios emergentes y widgets de ingreso y selección de fechas y horas basados en jquery."
+
+#: date_popup.info:0
+msgid "Date/Time"
+msgstr "Fecha/Hora"

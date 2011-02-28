@@ -1,0 +1,68 @@
+# $Id: date_popup.de.po,v 1.4 2011/01/18 00:37:34 karens Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_popup.module,v 1.42.2.1.2.27 2008/08/30 13:57:40 karens
+#  date_popup.install,v 1.5 2007/09/29 16:30:16 karens
+#  date_popup.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-07 19:49+0100\n"
+"Last-Translator: Alexander Haß\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+
+#: date_popup/date_popup.module:221
+msgid "Clear"
+msgstr "Leeren"
+
+#: date_popup/date_popup.module:222
+msgid "Close"
+msgstr "Schließen"
+
+#: date_popup/date_popup.module:266
+msgid "Previous field"
+msgstr "Vorheriges Feld"
+
+#: date_popup/date_popup.module:266
+msgid "Next field"
+msgstr "Nächstes Feld"
+
+#: date_popup/date_popup.module:266
+msgid "Increment"
+msgstr "Hochzählen"
+
+#: date_popup/date_popup.module:266
+msgid "Decrement"
+msgstr "Herunterzählen"
+
+#: date_popup/date_popup.module:315
+msgid "Field %field is required."
+msgstr "Das Feld %field muss ausgefüllt werden."
+
+# not literally
+#: date_popup/date_popup.module:339
+msgid "Field %field is invalid."
+msgstr "Das Feld %field enthält einen ungültigen Wert."
+
+#: date_popup/date_popup.module:0
+msgid "date_popup"
+msgstr "date_popup"
+
+#: date_popup/date_popup.info:0
+#: date_tools/date_tools.module:416
+msgid "Date Popup"
+msgstr "Datumspopup"
+
+#: date_popup/date_popup.info:0
+msgid "Enables jquery popup calendars and time entry widgets for selecting dates and times."
+msgstr "Aktiviert jQuery-Popup-Kalender und Zeit-Steuerelemente für die Auswahl von Terminen und Zeiten."

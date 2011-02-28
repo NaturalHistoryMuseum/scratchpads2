@@ -1,0 +1,19 @@
+; $Id: date_api.info,v 1.3 2011/01/16 16:14:27 karens Exp $
+name = Date API
+description = A Date API that can be used by other modules.
+package = Date/Time
+core = 7.x
+php = 5.2
+files[] = date_api.module
+files[] = date_api_elements.inc
+files[] = date_api_ical.inc
+files[] = date_api_sql.inc
+files[] = date_api.admin.inc
+files[] = date_api.install
+files[] = theme/theme.inc
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "date"
+datestamp = "1295529406"
+

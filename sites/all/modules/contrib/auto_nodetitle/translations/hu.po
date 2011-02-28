@@ -1,0 +1,107 @@
+# Hungarian translation of auto_nodetitle (6.x-1.1)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  auto_nodetitle.module,v 1.20.2.4 2009/02/10 10:06:09 fago
+#  auto_nodetitle/auto_nodetitle.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: auto_nodetitle (6.x-1.1)\n"
+"POT-Creation-Date: 2009-02-15 06:58-0600\n"
+"PO-Revision-Date: 2008-10-24 14:32-0500\n"
+"Last-Translator: Balogh Zoltán\n"
+"Language-Team: Hungarian http://forditas.mindworks.hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: auto_nodetitle.module:160
+msgid "Disabled"
+msgstr "Tiltott"
+
+#: auto_nodetitle.module:88
+msgid "@type @node-id"
+msgstr "@type @node-id"
+
+#: auto_nodetitle.module:91
+msgid "@type"
+msgstr "@type"
+
+#: auto_nodetitle.module:151
+msgid "Automatic title generation"
+msgstr "Automatikus cím létrehozás"
+
+#: auto_nodetitle.module:161
+msgid "Automatically generate the title and hide the title field"
+msgstr "Automatikusan generálja a címet, és elrejti a cím mezőt"
+
+#: auto_nodetitle.module:162
+msgid "Automatically generate the title if the title field is left empty"
+msgstr "Automatikusan generálja a címet, ha a cím mező üresen marad"
+
+#: auto_nodetitle.module:168
+msgid ""
+"Leave blank for using the per default generated title. Otherwise this "
+"string will be used as title."
+msgstr ""
+"Az alapértelmezés szerint generált címhez üresen kell hagyni. "
+"Egyébként a megadott karaktersorozat lesz felhasználva címnek."
+
+#: auto_nodetitle.module:170
+msgid "Use the syntax [token] if you want to insert a replacement pattern."
+msgstr "[token] formátumban helyettesítési minta is használható."
+
+#: auto_nodetitle.module:174
+msgid "Pattern for the title"
+msgstr "Minta a címnek"
+
+#: auto_nodetitle.module:182
+msgid "Replacement patterns"
+msgstr "Helyettesítési minták"
+
+#: auto_nodetitle.module:186
+msgid ""
+"Prefer raw-text replacements for text to avoid problems with HTML "
+"entities!"
+msgstr ""
+"A HTML entitás problémák miatt a szövegben a raw-text "
+"helyettesítők részesülnek előnyben!"
+
+#: auto_nodetitle.module:195
+msgid "Evaluate PHP in pattern."
+msgstr "PHP kód kiértékelése a mintában."
+
+#: auto_nodetitle.module:196
+msgid ""
+"Put PHP code above that returns your string, but make sure you "
+"surround code in &lt;?php and ?&gt;. Note that $node is available and "
+"can be used by your code."
+msgstr ""
+"A fenti mezőbe PHP kód illeszthető, mely a kívánt "
+"karaktersorozatot adja vissza, de körül kell zárni azt a &lt;?php "
+"és a ?&gt; jelekkel. A $node értéke elérhető és használható a "
+"kódban."
+
+#: auto_nodetitle.module:17
+msgid "use PHP for title patterns"
+msgstr "PHP kód használata a cím mintákhoz"
+
+#: auto_nodetitle.module:0
+msgid "auto_nodetitle"
+msgstr "auto_nodetitle"
+
+#: auto_nodetitle.info:0
+msgid "Automatic Nodetitles"
+msgstr "Automatic Nodetitles"
+
+#: auto_nodetitle.info:0
+msgid "Allows hiding of the content title field and automatic title creation."
+msgstr ""
+"Lehetővé teszi a cím mező elrejtését és a cím automatikus "
+"létrehozását."
+
+#: auto_nodetitle.module:103
+msgid "Update automatic nodetitles"
+msgstr "Automatikus tartalomcím frissítése"
+

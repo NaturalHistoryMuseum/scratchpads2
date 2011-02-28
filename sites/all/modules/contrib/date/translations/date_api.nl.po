@@ -1,0 +1,170 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2009-02-17 06:19-0600\n"
+"PO-Revision-Date: 2009-05-05 14:25+0100\n"
+"Last-Translator: seutje <seutje@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: NETHERLANDS\n"
+
+#: date_api.module:421
+#, fuzzy
+msgid "Long"
+msgstr "Lang"
+
+#: date_api.module:422
+#, fuzzy
+msgid "Medium"
+msgstr "Halflang"
+
+#: date_api.module:423
+#, fuzzy
+msgid "Short"
+msgstr "Kort"
+
+#: date_api.module:529
+msgid "!timezone"
+msgstr "!timezone"
+
+#: date_api.module:615
+msgid "!day-name Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday"
+msgstr "!day-name zondag|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag"
+
+#: date_api.module:616
+msgid "!day-abbreviation Sun|Mon|Tue|Wed|Thu|Fri|Sat"
+msgstr "!day-abbreviation zon|maa|din|woe|don|vri|zat"
+
+#: date_api.module:617
+msgid "!day-abbreviation S|M|T|W|T|F|S"
+msgstr "!day-abbreviation Z|M|D|W|D|V|Z"
+
+#: date_api.module:618
+msgid "!day-abbreviation SU|MO|TU|WE|TH|FR|SA"
+msgstr "!day-abbreviation zo|ma|di|wo|do|vr|za"
+
+#: date_api.module:619
+msgid "!ampm-abbreviation am|pm|AM|PM"
+msgstr "!ampm-abbreviation am|pm|AM|PM"
+
+#: date_api.module:620
+msgid "!datetime Year|Month|Day|Week|Hour|Minute|Second|All Day|All day"
+msgstr "!datetime Jaar|Maand|Dag|Week|Uur|Minuut|Seconde|Gehele dag|Gehele dag"
+
+#: date_api.module:621
+msgid "!datetime_plural Years|Months|Days|Weeks|Hours|Minutes|Seconds"
+msgstr "!datetime_plural Jaren|Maanden|Dagen|Weken|Uren|Minuten|Seconden"
+
+#: date_api.module:622
+msgid "!date_order Every|First|Second|Third|Fourth|Fifth"
+msgstr "!date_order Iedere|Eerste|Tweede|Derde|Vierde|Vijfde"
+
+#: date_api.module:623
+msgid "!date_order |Last|Next to last|Third from last|Fourth from last|Fifth from last"
+msgstr "!date_order |Laatste|Voorlaatste|Tweedelaatste|Derdelaatste|Vierdelaatste"
+
+#: date_api.module:624
+msgid "!date_nav Prev|Next|Today"
+msgstr "!date_nav Vorige|Volgende|Vandaag"
+
+#: date_api.module:627
+msgid "!month-name |January|February|March|April|May|June|July|August|September|October|November|December"
+msgstr "!month-name |januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december"
+
+#: date_api.module:628
+msgid "!month-abbreviation |Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+msgstr "!month-abbreviation |jan|feb|mar|apr|mei|jun|jul|aug|sep|okt|nov|dec"
+
+#: date_api.module:735
+#, fuzzy
+msgid "!time ago"
+msgstr "!time geleden"
+
+#: date_api.module:54
+msgid "Formats"
+msgstr "Formaten"
+
+#: date_api.module:55;65
+msgid "Allow users to configure date formats"
+msgstr "Laat gebruikers de datumformaten instellen"
+
+#: date_api.module:64
+msgid "Configure"
+msgstr "Instellen"
+
+#: date_api.module:74
+msgid "Date and time lookup"
+msgstr "Datum en tijd opzoeken"
+
+#: date_api.module:80
+msgid "Custom formats"
+msgstr "Aangepaste formaten"
+
+#: date_api.module:81
+msgid "Allow users to configure custom date formats."
+msgstr "Sta toe dat gebruikers aangepaste datumformaten kunnen instellen."
+
+#: date_api.module:89
+msgid "Add format"
+msgstr "Formaat toevoegen"
+
+#: date_api.module:90
+msgid "Allow users to add additional date formats."
+msgstr "Sta toe dat gebruikers extra datumformaten toe kunnen voegen."
+
+#: date_api.module:99
+msgid "Delete date format"
+msgstr "Datumformaat verwijderen"
+
+#: date_api.module:100
+msgid "Allow users to delete a configured date format."
+msgstr "Sta toe dat gebruikers een ingestelde datumformaat kunnen verwijderen."
+
+#: date_api.module:108
+msgid "Delete date format type"
+msgstr "Verwijder een datumformaat type"
+
+#: date_api.module:109
+msgid "Allow users to delete a configured date format type."
+msgstr "Sta toe date gebruikers een ingestelde datumformaat type kunnen verwijderen."
+
+#: date_api.module:0
+msgid "date_api"
+msgstr "date_apiFormaat: @date"
+
+#: date_api.install:152
+msgid "Per-user timezone name."
+msgstr "Naam van tijdzone per gebruiker."
+
+#: date_api.install:286;304;330
+msgid "date module cannot be updated until after Views has been updated. Please return to <a href=\"@update-php\">update.php</a> and run the remaining updates."
+msgstr "date module kan niet worden bijgewerkt totdate Views is bijgewerkt. Ga terug naar <a href=\"@update-php\">update.php</a> en voer de overige updates uit."
+
+#: date_api.install:287;305;331
+msgid "date.module has updates, but cannot be updated until views.module is updated first."
+msgstr "date.modules heeft updates maar kan niet worden bijgewerkt totdat views.module als eerste is bijgewerkt."
+
+#: (duplicate) date_api.install:234
+msgid "The Date API module requires the <a href=\"@link\">Date PHP4 module</a> for PHP versions less than 5.2."
+msgstr "De Date API module vereist de <a href=\"@link\">Date PHP4 module</a> voor PHP versies kleiner dan 5.2."
+
+#: (duplicate) date_api.install:238
+msgid "Date API requirements"
+msgstr "Date API vereisten"
+
+#: date_api.info:0
+msgid "Date API"
+msgstr "Date API"
+
+#: date_api.info:0
+msgid "A Date API that can be used by other modules."
+msgstr "Een Date API dat gebruikt kan worden door andere modules."
+
+#: date_api.info:0
+#, fuzzy
+msgid "Date/Time"
+msgstr "Datum/Tijd"

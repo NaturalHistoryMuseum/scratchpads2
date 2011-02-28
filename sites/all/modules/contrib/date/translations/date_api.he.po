@@ -1,0 +1,297 @@
+# $Id: date_api.he.po,v 1.3 2011/01/18 00:37:35 karens Exp $
+#
+# LANGUAGE translation of Drupal (root)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_api_elements.inc,v 1.49.2.1.2.44 2009/02/24 15:54:28 karens
+#  date_api_ical.inc,v 1.35.4.26 2009/02/21 12:53:25 karens
+#  date_api.module,v 1.64.2.5.2.72 2009/03/01 22:35:21 karens
+#  date_api.install,v 1.16.2.1.2.16 2009/02/28 15:01:55 karens
+#  date_api.info,v 1.6 2008/02/18 19:32:28 karens
+#  date_tools.module,v 1.1.2.10 2009/02/27 15:04:28 karens
+#  date.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_locale.info,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_php4.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_repeat.info,v 1.5 2008/02/18 19:32:29 karens
+#  date_timezone.info,v 1.3.4.1 2008/06/27 14:14:01 karens
+#  date_tools.info,v 1.1.2.1 2009/01/10 20:06:10 karens
+#
+# diego <diego@softtailors.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-07-06 14:04+0300\n"
+"Last-Translator: diego <diego@softtailors.com>\n"
+"Language-Team: Hebrew <kde-i18n-doc@kde.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 0.3\n"
+
+#: date_api.admin.inc:40;243
+msgid "remove"
+msgstr "הסר"
+
+#: date_api.admin.inc:48
+msgid "No custom formats configured. Please <a href=\"@link\">add</a> some."
+msgstr "לא הוגדרו תסדירים מותאמים אישית של תאריך. אנא <a href=\"@link\">הוסף</a> כמה."
+
+#: date_api.admin.inc:64
+msgid "Format string"
+msgstr "תסדיר מחרוזת"
+
+#: date_api.admin.inc:66
+msgid "A user-defined date format. See the <a href=\"@url\">PHP manual</a> for available options. This format is currently set to display as <span>%date</span>."
+msgstr "תסדיר תאריך מותאם אישית. אנא פנה <a href=\"@url\">למדריך של PHP</a> לאפשרויות הזמינות. התסדיר כרגע מוגדר להציג בתור <span>%date</span>."
+
+#: date_api.admin.inc:72
+msgid "Save configuration"
+msgstr "שמור תצורה"
+
+#: date_api.admin.inc:91
+msgid "Date formats"
+msgstr "תסדירי תאריך"
+
+#: date_api.admin.inc:162
+msgid "Are you sure you want to remove the format %format?"
+msgstr "האם אתה בטוח כי ברצונך להסיר את התסדיר %format?"
+
+#: date_api.admin.inc:164;200
+msgid "This action cannot be undone."
+msgstr "אין אפשרות לבטל את הפעולה הנ\"ל."
+
+#: date_api.admin.inc:165;201
+msgid "Remove"
+msgstr "הסר"
+
+#: date_api.admin.inc:179
+msgid "Removed date format %format."
+msgstr "תבנית תאריך %format הוסרה."
+
+#: date_api.admin.inc:198
+msgid "Are you sure you want to remove the format type %format?"
+msgstr "האם אתה בטוח כי ברצונך להסיר את התסדיר %format?"
+
+#: date_api.admin.inc:215
+msgid "Removed date format type %format."
+msgstr "תסדיר התאריך %format הוסר."
+
+#: date_api.admin.inc:231
+msgid "!type date format"
+msgstr "תסדיר תאריך !type"
+
+#: date_api_elements.inc:404
+msgid "The year must be a number between %min and %max."
+msgstr "התאריך חייב להיות מספר בין %min לבין %max."
+
+#: date_api_elements.inc:413
+msgid "The month must be a number between 1 and 12."
+msgstr "החודש חייב להיות מספר בין 1 ובין 12."
+
+#: date_api_elements.inc:423
+msgid "The day must be a number between !min and !max."
+msgstr "היום חייב להיות מספר בין %min לבין %max."
+
+#: date_api_elements.inc:430
+msgid "The hour must be a number between !min and !max."
+msgstr "השעה חייבת להיות מספר בין %min לבין %max."
+
+#: date_api_elements.inc:437
+msgid "The minute must be a number between !min and !max."
+msgstr "הדקה חייבת להיות מספר בין %min לבין %max."
+
+#: date_api_elements.inc:444
+msgid "The second must be a number between !min and !max."
+msgstr "השנייה חייבת להיות מספר בין %min לבין %max."
+
+#: date_api_elements.inc:457
+msgid "A valid value is required."
+msgstr "נדרש ערך תקין."
+
+#: date_api_elements.inc:460
+msgid "Field %field has errors."
+msgstr "השדה %field מכיל שגיאות."
+
+#: date_api_elements.inc:501
+msgid "A valid date is required for %title."
+msgstr "נדרש תאריך תקין עבור %title."
+
+#: date_api_elements.inc:504
+msgid "%title is invalid."
+msgstr "%title לא תקין."
+
+#: date_api_ical.inc:86;95;101;122
+msgid "date ical"
+msgstr "date ical"
+
+#: date_api_ical.inc:86
+msgid "HTTP Request Error importing %filename: @error"
+msgstr "שגיאת HTTP בעת ייבור של הקובץ %filename, השגיאה היא: @error"
+
+#: date_api_ical.inc:95
+msgid "Failed to open file: %filename"
+msgstr "אין אפשרות לפתוח את הקובץ: %filename"
+
+#: date_api_ical.inc:101
+msgid "Invalid calendar file: %filename"
+msgstr "קובץ calendar לא תקין: %filename"
+
+#: date_api_ical.inc:122
+msgid "Invalid calendar file."
+msgstr "קובץ calendar לא תקין."
+
+#: date_api.module:421
+msgid "Long"
+msgstr "ארוך"
+
+#: date_api.module:422
+msgid "Medium"
+msgstr "מדיה"
+
+#: date_api.module:423
+msgid "Short"
+msgstr "קצר"
+
+#: date_api.module:529
+msgid "!timezone"
+msgstr "!timezone"
+
+#: date_api.module:615
+msgid "!day-name Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday"
+msgstr "!day-name ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת"
+
+#: date_api.module:616
+msgid "!day-abbreviation Sun|Mon|Tue|Wed|Thu|Fri|Sat"
+msgstr "!day-abbreviation יום א'| יום ב'|יום ג'|יום ד'|יום ה'|יום ו'|שבת"
+
+#: date_api.module:617
+msgid "!day-abbreviation S|M|T|W|T|F|S"
+msgstr "!day-abbreviation א|ב|ג|ד|ה|ו|ש"
+
+#: date_api.module:618
+msgid "!day-abbreviation SU|MO|TU|WE|TH|FR|SA"
+msgstr "!day-abbreviation א|ב|ג|ד|ה|ו|ש"
+
+#: date_api.module:619
+msgid "!ampm-abbreviation am|pm|AM|PM"
+msgstr "!ampm-abbreviation am|pm|AM|PM"
+
+#: date_api.module:620
+msgid "!datetime Year|Month|Day|Week|Hour|Minute|Second|All Day|All day"
+msgstr "!datetime שנה|חודש|יום|שבוע|שעה|דקה|שנייה|כל היום|כל היום"
+
+#: date_api.module:621
+msgid "!datetime_plural Years|Months|Days|Weeks|Hours|Minutes|Seconds"
+msgstr "!datetime_plural שנים|חודשים|ימים|שבועות|שעות|דקות|שניות"
+
+#: date_api.module:622
+msgid "!date_order Every|First|Second|Third|Fourth|Fifth"
+msgstr "!date_order כל|ראשון|שני|שלישי|רביעי|חמישי"
+
+#: date_api.module:623
+msgid "!date_order |Last|Next to last|Third from last|Fourth from last|Fifth from last"
+msgstr "!date_order |אחרון|לפני אחרון|שלישי מהסוף|רביעי מהסוף|חמישי מהסוף"
+
+#: date_api.module:624
+msgid "!date_nav Prev|Next|Today"
+msgstr "!date_nav הקודם|הבא|היום"
+
+#: date_api.module:627
+msgid "!month-name |January|February|March|April|May|June|July|August|September|October|November|December"
+msgstr "!month-name |ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר"
+
+#: date_api.module:628
+msgid "!month-abbreviation |Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
+msgstr "!month-abbreviation |ינ'|פב'|מר'|אפ'|מאי|ינ'|יו'|אג'|ספ'|או'|נוב'|דצ'"
+
+#: date_api.module:735
+msgid "!time ago"
+msgstr "לפני !time"
+
+#: date_api.module:54
+msgid "Formats"
+msgstr "תסדירים"
+
+#: date_api.module:55;65
+msgid "Allow users to configure date formats"
+msgstr "אפשר למשתמשים להגדיר את תסדירי התאריך"
+
+#: date_api.module:64
+msgid "Configure"
+msgstr "הגדרה"
+
+#: date_api.module:74
+msgid "Date and time lookup"
+msgstr "חיפוש תאריך ושעה"
+
+#: date_api.module:80
+msgid "Custom formats"
+msgstr "תסדירים מותאמים אישית"
+
+#: date_api.module:81
+msgid "Allow users to configure custom date formats."
+msgstr "אפשר למשתמשים להגדיר תסדירים מותאמים אישית"
+
+#: date_api.module:89
+msgid "Add format"
+msgstr "הוסף תסדיר"
+
+#: date_api.module:90
+msgid "Allow users to add additional date formats."
+msgstr "אפשר למשתמשים להוסיף תסדיר תאריך חדשים."
+
+#: date_api.module:99
+msgid "Delete date format"
+msgstr "מחק תסדיר תאריך"
+
+#: date_api.module:100
+msgid "Allow users to delete a configured date format."
+msgstr "אפשר למשתמשים להסיר תסדירי תאריך מוגדרים."
+
+#: date_api.module:108
+msgid "Delete date format type"
+msgstr "מחק תסדיר סוג של תאריך"
+
+#: date_api.module:109
+msgid "Allow users to delete a configured date format type."
+msgstr "אפשר למשתמשים למחוק תסדיר תאריך מוגדר."
+
+#: date_api.module:0
+msgid "date_api"
+msgstr "date_api"
+
+#: date_api.install:152
+msgid "Per-user timezone name."
+msgstr "שם איזור זמן עבור כל משתמש."
+
+#: date_api.install:286;304;330
+msgid "date module cannot be updated until after Views has been updated. Please return to <a href=\"@update-php\">update.php</a> and run the remaining updates."
+msgstr "אין אפשרות לעדכן את המודול date עד שהמודול Views מעודכן. אנא חזור אל <a href=\"@update-php\">update.php</a> והפעל את העדכונים הנותרים."
+
+#: date_api.install:287;305;331
+msgid "date.module has updates, but cannot be updated until views.module is updated first."
+msgstr "המודול date.module יש לו עדכונים, אך אין אפשרות לעדכן אותו עד ש־views.module מעודכן."
+
+#: (duplicate) date_api.install:234
+msgid "The Date API module requires the <a href=\"@link\">Date PHP4 module</a> for PHP versions less than 5.2."
+msgstr "המודול Date API דורש את <a href=\"@link\">המודול Date PHP4</a> עבור PHP מגרסה שקטנה מ־5.2."
+
+#: (duplicate) date_api.install:238
+msgid "Date API requirements"
+msgstr "דרישות של Date API"
+
+#: date_api.info:0 date_tools/date_tools.module:410
+msgid "Date API"
+msgstr "Date API"
+
+#: date_api.info:0
+msgid "A Date API that can be used by other modules."
+msgstr "ממשק תכנותי של תאריכים (Date API) עבור מודולים אחרים."
+
+#: date_api.info:0 date/date.info:0 date_locale/date_locale.info:0 date_php4/date_php4.info:0 date_popup/date_popup.info:0 date_repeat/date_repeat.info:0 date_timezone/date_timezone.info:0 date_tools/date_tools.info:0
+msgid "Date/Time"
+msgstr "תאריך/שעה"

@@ -1,0 +1,63 @@
+# $Id: theme.fr.po,v 1.4 2011/01/18 00:37:35 karens Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  date_api.admin.inc,v 1.1.2.2 2009/03/19 23:22:32 karens
+#  date_locale.module,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_tools.module,v 1.1.2.14 2009/03/18 12:43:54 karens
+#  date_api_elements.inc,v 1.49.2.1.2.47 2009/03/25 15:31:42 karens
+#  date_popup.module,v 1.42.2.1.2.43 2009/03/25 15:31:42 karens
+#  date_api_ical.inc,v 1.35.4.26 2009/02/21 12:53:25 karens
+#  date_api_sql.inc,v 1.9.2.3.2.35 2009/02/26 18:48:00 karens
+#  date_admin.inc,v 1.40.2.3.2.38 2009/03/03 15:16:54 karens
+#  date_api_argument_handler.inc,v 1.1.2.36 2009/03/20 18:29:42 karens
+#  date_api.module,v 1.64.2.5.2.78 2009/03/25 12:04:38 karens
+#  date_api.install,v 1.16.2.1.2.19 2009/03/21 10:18:00 karens
+#  date_api.info,v 1.6 2008/02/18 19:32:28 karens
+#  date.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_copy.info,v 1.2 2008/02/18 19:32:28 karens
+#  date_locale.info,v 1.1.2.1 2009/01/25 13:03:13 karens
+#  date_php4.info,v 1.3 2008/02/18 19:32:28 karens
+#  date_popup/date_popup.info: n/a
+#  date_repeat.info,v 1.5 2008/02/18 19:32:29 karens
+#  date_timezone.info,v 1.3.4.1 2008/06/27 14:14:01 karens
+#  date_tools.info,v 1.1.2.1 2009/01/10 20:06:10 karens
+#  date_elements.inc,v 1.46.2.2.2.57 2009/03/20 00:28:33 karens
+#  date_api_filter_handler.inc,v 1.1.2.33 2009/03/25 15:31:42 karens
+#  date_handler_field_multiple.inc,v 1.1.2.12 2009/02/27 14:48:34 karens
+#  date_repeat.inc,v 1.22.2.1.2.22 2009/02/21 12:53:25 karens
+#  date_token.inc,v 1.2.2.1.2.7 2009/03/20 12:07:51 karens
+#  date.module,v 1.61.2.4.2.53 2009/03/19 23:22:32 karens
+#  date.theme,v 1.6.4.42 2009/03/01 22:35:22 karens
+#  date.install,v 1.37.2.5.2.28 2009/03/25 12:04:38 karens
+#  date_copy.module,v 1.16.2.1.2.10 2008/11/01 13:06:26 karens
+#  date_api.views.inc,v 1.1.2.7 2009/03/20 15:03:49 karens
+#  date_php4.module,v 1.4.6.5 2008/10/05 17:05:20 karens
+#  date_repeat_form.inc,v 1.15.4.13 2009/02/16 23:46:08 karens
+#  date_repeat.module,v 1.30.4.11 2009/02/27 16:37:38 karens
+#  date_timezone.module,v 1.18.2.3.2.11 2009/01/13 14:37:48 karens
+#  date_timezone.install,v 1.7.2.2.2.6 2008/09/06 14:20:10 karens
+#  date_navigation_plugin_style.inc,v 1.1.2.9 2009/01/24 00:41:45 karens
+#  theme.inc,v 1.1.4.33 2009/02/17 17:04:31 karens
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal6 date (theme) module\n"
+"POT-Creation-Date: 2009-03-07 19:12+0100\n"
+"PO-Revision-Date: 2009-03-31 16:25+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+"X-Poedit-Language: French\n"
+
+#: theme/theme.inc:90
+msgid "Week of @date"
+msgstr "Semaine du @date"
+
+#: theme/theme.inc:327
+msgid "Timezone"
+msgstr "Fuseau Horaire"

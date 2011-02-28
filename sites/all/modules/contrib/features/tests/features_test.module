@@ -1,0 +1,4 @@
+<?php
+// $Id: features_test.module,v 1.1.2.1.2.2 2010/09/10 22:35:33 yhahn Exp $
+
+include_once('features_test.features.inc');

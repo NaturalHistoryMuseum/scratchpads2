@@ -1,0 +1,328 @@
+<?php
+// $Id: date.theme,v 1.2 2011/01/18 00:37:34 karens Exp $
+/**
+ * @file
+ * Theme functions.
+ */
+/**
+ * @addtogroup themeable
+ * @{
+ *
+ * Formatter themes
+ */
+/**
+ * Theme from/to date combination in the view.
+ *
+ *   $node->date_id 
+ *     If set, this will show only an individual date on a field with 
+ *     multiple dates. The value should be a string that contains
+ *     the following values, separated with periods:
+ *     - module name of the module adding the item
+ *     - node nid
+ *     - field name
+ *     - delta value of the field to be displayed
+ *     - other information the module's custom theme might need
+ * 
+ *     Used by the calendar module and available for other uses.
+ *     example: 'date.217.field_date.3.test'
+ * 
+ *   $node->date_repeat_show
+ *     If true, tells the theme to show all the computed values
+ *     of a repeating date. If not true or not set, only the
+ *     start date and the repeat rule will be displayed.
+ * 
+ *   $dates['format'] - the format string used on these dates
+ *   $dates['value']['local']['object'] - the local date object for the From date
+ *   $dates['value2']['local']['object'] - the local date object for the To date
+ *   $dates['value']['local']['datetime'] - the datetime value of the From date database (GMT) value
+ *   $dates['value2']['local']['datetime'] - the datetime value of the To date database (GMT) value
+ *   $dates['value']['formatted'] = formatted From date, i.e. 'February 15, 2007 2:00 pm';
+ *   $dates['value']['formatted_date'] - only the date part of the formatted From date
+ *   $dates['value']['formatted_time'] - only the time part of the formatted From date
+ *   $dates['value2']['formatted'] = formatted To date, i.e. 'February 15, 2007 6:00 pm';
+ *   $dates['value2']['formatted_date'] - only the date part of the formatted To date
+ *   $dates['value2']['formatted_time'] - only the time part of the formatted To date
+ */
+function theme_date_display_combination($vars) {
+  static $repeating_ids = array();
+
+  $entity_type = $vars['entity_type'];
+  $entity      = $vars['entity'];
+  $field       = $vars['field'];
+  $instance    = $vars['instance'];
+  $langcode    = $vars['langcode'];
+  $item        = $vars['item'];
+  $delta       = $vars['delta'];
+  $display     = $vars['display'];
+  $field_name  = $field['field_name'];
+  $formatter   = $display['type'];
+  $options     = $display['settings'];
+  $dates       = $vars['dates'];
+  $output = ''; 
+
+  // If date_id is set for this field and the delta doesn't match, don't display it.
+  if (!empty($node->date_id)) {
+    foreach ((array) $node->date_id as $key => $id) {
+      list($module, $nid, $field_name, $item_delta, $other) = explode('.', $id);
+      if ($field_name == $field['field_name'] && isset($delta) && $item_delta != $delta) {
+        return $output;
+      }
+    }
+  }
+
+  // Check the formatter settings to see if the repeat rule should be
+  // displayed. Show it only with the first multiple value date.
+  list($id) = entity_extract_ids($entity_type, $entity);
+  if (!in_array($id, $repeating_ids) && module_exists('date_repeat') 
+  && !empty($item['rrule']) && $options['show_repeat_rule'] == 'show') {
+    module_load_include('inc', 'date', 'date_repeat');
+    $repeat_vars = array(
+      'field' => $field, 
+      'item' => $item, 
+      'entity_type' => $entity_type,
+      'entity' => $entity,
+    );
+    $output .= theme('date_repeat_display', $repeat_vars);
+    $repeating_ids[] = $id;
+  }
+
+  // If this is a full node or a pseudo node created by grouping
+  // multiple values, see exactly which values are supposed to be visible.
+  if (isset($entity->$field_name)) {
+    $entity = date_prepare_entity($formatter, $entity_type, $entity, $field, $instance, $langcode, $item, $display);
+    // Did the current value get removed by formatter settings?
+    if (empty($entity->{$field_name}[$langcode][$delta])) {
+      return $output;
+    }
+    // Adjust the $element values to match the changes.
+    $element['#entity'] = $entity;
+  }
+
+  switch ($options['fromto']) {
+    case 'value':
+      $date1 = $dates['value']['formatted'];
+      $date2 = $date1;
+      break;    
+    case 'value2':
+      $date2 = $dates['value2']['formatted'];
+      $date1 = $date2;
+      break;
+    default:
+      $date1 = $dates['value']['formatted'];
+      $date2 = $dates['value2']['formatted'];  
+      break;
+  }
+
+  // Pull the timezone, if any, out of the formatted result and tack it
+  // back on at the end, if it is in the current formatted date.
+  $timezone = $dates['value']['formatted_timezone'];
+  if ($timezone) {
+    $timezone = ' ' . $timezone;
+  }
+  $date1 = str_replace($timezone, '', $date1);
+  $date2 = str_replace($timezone, '', $date2);
+
+  // No date values, display nothing.
+  if (empty($date1) && empty($date2)) {
+    $output .= '';
+  }
+  // From and To dates match or there is no To date, display a complete single date.
+  elseif ($date1 == $date2 || empty($date2)) {
+    $output .= theme('date_display_single', array(
+      'date' => $date1, 
+      'timezone' => $timezone
+    ));
+  }
+  // Same day, different times, don't repeat the date but show both From and To times.
+  elseif (date_has_time($field['settings']['granularity']) && $dates['value']['formatted_date'] == $dates['value2']['formatted_date']) {
+    // Replace the original time with the from/to time in the formatted start date.  
+    // Make sure that parentheses or brackets wrapping the time will be retained in the
+    // final result.
+    $time1 = preg_replace('`^([\(\[])`', '', $dates['value']['formatted_time']);
+    $time1 = preg_replace('([\)\]]$)', '', $time1);
+    $time2 = preg_replace('`^([\(\[])`', '', $dates['value2']['formatted_time']);
+    $time2 = preg_replace('([\)\]]$)', '', $time2);
+    $time = theme('date_display_range', array('date1' => $time1, 'date2' => $time2));
+    $replaced = str_replace($time1, $time, $date1);
+    $output .= theme('date_display_single', array('date' => $replaced, 'timezone' => $timezone));
+  }
+  // Different days, display both in their entirety.
+  else {
+    $output .= theme('date_display_range', array('date1' => $date1, 'date2' => $date2, 'timezone' => $timezone));
+  }
+
+  return $output;
+}
+
+function theme_date_display_single($vars) {
+  $date = $vars['date'];
+  $timezone = !empty($vars['timezone']) ? $vars['timezone'] : NULL;
+  return '<span class="date-display-single">' . $date . $timezone . '</span>';
+}
+
+function theme_date_display_range($vars) {
+  $date1 = $vars['date1'];
+  $date2 = $vars['date2'];
+  $timezone = !empty($vars['timezone']) ? $vars['timezone'] : NULL;
+  return '<span class="date-display-start">' . $date1 . '</span>' .
+      '<span class="date-display-separator"> - </span>' .
+      '<span class="date-display-end">' . $date2 . $timezone. '</span>';
+}
+
+/**
+ * Theme a format interval for a date element
+ *
+ *  @param $field = the field settings
+ *  @param $entity = node information, this is not always available and not
+ *     always the full node, it depends on what value was provided to the formatter.
+ *     Only the nid is always guaranteed to be available.
+ *  @param $dates - an array of date information, see explanation for date_field_object for details.
+ *  @return a formatted display
+ *
+ */
+function theme_date_display_interval($vars) {
+  $entity_type = $vars['entity_type'];
+  $entity      = $vars['entity'];
+  $field       = $vars['field'];
+  $instance    = $vars['instance'];
+  $langcode    = $vars['langcode'];
+  $item        = $vars['item'];
+  $delta       = $vars['delta'];
+  $display     = $vars['display'];
+  $field_name  = $field['field_name'];
+  $options     = $display['settings'];
+  $dates       = $vars['dates'];
+  $formatter   = $display['type'];
+
+  // Get the formatter settings, either the default settings for this node
+  // type or the View settings stored in $entity->date_info.
+  if (!empty($entity->date_info) && !empty($entity->date_info->formatter_settings)) {
+    $options = $entity->date_info->formatter_settings;
+  }
+
+  $time_ago_vars = array(
+    'start_date' => $dates['value']['local']['object'], 
+    'end_date' => $dates['value2']['local']['object'],
+    'interval' => $options['interval'],
+  );
+  return theme('date_time_ago', $time_ago_vars);
+}
+
+/**
+ * Theme the human-readable description for a Date Repeat rule.
+ *
+ * TODO -
+ * add in ways to store the description in the date so it isn't regenerated
+ * over and over and find a way to allow description to be shown or hidden.
+ */
+function theme_date_repeat_display($vars) {
+  $field = $vars['field'];
+  $item = $vars['item'];
+  $entity = !empty($vars['node']) ? $vars['node'] : NULL;
+  $output = '';
+  if (!empty($item['rrule'])) {
+    $output = date_repeat_rrule_description($item['rrule']);
+    $output = '<div>' . $output . '</div>';
+  }
+  return $output;
+}
+
+/**
+ * Adjust from/to date format to account for 'all day' .
+ *
+ * @param array $field, the field definition for this date field.
+ * @param string $which, which value to return, 'date1' or 'date2' .
+ * @param object $date1, a date/time object for the 'from' date.
+ * @param object $date2, a date/time object for the 'to' date.
+ * @param string $format
+ * @param object $entity, the node this date comes from (may be incomplete, always contains nid).
+ * @param object $view, the view this node comes from, if applicable.
+ * @return formatted date.
+ */
+function theme_date_all_day($vars) {
+  $field    = $vars['field'];
+  $instance = $vars['instance'];
+  $which    = $vars['which'];
+  $date1    = $vars['date1'];
+  $date2    = $vars['date2'];
+  $format   = $vars['format'];
+  $entity   = $vars['entity'];
+  $view     = !empty($vars['view']) ? $vars['view'] : NULL;
+
+  if (empty($date1) || !is_object($date1) || $format == 'format_interval') {
+    return;
+  }
+  if (empty($date2)) {
+    $date2 = $date1;
+  }
+
+  if (!date_has_time($field['settings']['granularity'])) {
+    $format = date_limit_format($format, array('year', 'month', 'day'));
+    return date_format_date($$which, 'custom', $format);
+  }
+
+  if ($all_day = date_field_all_day($field, $instance, $date1, $date2)) {
+    $format = date_limit_format($format, array('year', 'month', 'day'));
+    return trim(date_format_date($$which, 'custom', $format) .' '. theme('date_all_day_label'));
+  }
+  else {
+    return date_format_date($$which, 'custom', $format);
+  }
+
+}
+
+/**
+ * Theme the way an 'all day' label will look.
+ */
+function theme_date_all_day_label() {
+  return '(' . t('All day', array(), array('context' => 'datetime')) .')';
+}
+
+/**
+ *  Theme from/to date combination on form.
+ */
+function theme_date_combo($vars) {
+  $element = $vars['element'];
+  $field = field_info_field($element['#field_name']);
+  $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+  if (!$field['settings']['todate']) {
+    return $element['#children'];
+  }
+
+  // Group from/to items together in fieldset.
+  $fieldset = array(
+    '#title' => check_plain($instance['label']) . ' ' . ($element['#delta'] > 0 ? intval($element['#delta'] + 1) : ''),
+    '#value' => '',
+    '#description' => $element['#fieldset_description'],
+    '#attributes' => array(),
+    '#children' => $element['#children'],
+  );
+  return theme('fieldset', array('element' => $fieldset));
+}
+
+/**
+ * Display the text/select options for date parts in a table
+ * for easier readability.
+ */
+function theme_date_text_parts($vars) {
+  $element = $vars['element'];
+  $names = date_granularity_names();
+  $rows = array();
+  foreach ($names as $key => $part) {
+    if ($element[$key]['#type'] == 'hidden') {
+      $rows[] = drupal_render($element[$key]);
+    }
+    else {
+      $rows[] = array($names[$key], drupal_render($element[$key][0]), drupal_render($element[$key][1]));
+    }
+  }
+  if ($element['year']['#type'] == 'hidden') {
+    return implode($rows) . drupal_render_children($element);
+  }
+  else {
+    $header = array(t('Input Type'), t('Select list'), t('Text field'));
+    return theme('table', array('header' => $header, 'rows' => $rows)) . drupal_render_children($element);
+  }
+}
+
+/** @} End of addtogroup themeable */

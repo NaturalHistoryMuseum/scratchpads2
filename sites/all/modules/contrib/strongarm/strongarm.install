@@ -1,0 +1,59 @@
+<?php
+// $Id: strongarm.install,v 1.1.2.1.2.3.2.2 2010/09/09 17:53:02 yhahn Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the strongarm module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function strongarm_enable() {
+  // Weight strongarm exceptionally light.
+  db_update('system')
+    ->fields(array('weight' =>  -1000))
+    ->condition('name', 'strongarm')
+    ->condition('type', 'module')
+    ->execute();
+}
+
+/**
+ * Update 6100: Weight strongarm exceptionally light.
+ */
+function strongarm_update_6100() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = -1000 WHERE name = 'strongarm' AND type = 'module'");
+  return $ret;
+}
+
+/**
+ * Update 6200: Install CTools
+ */
+function strongarm_update_6200() {
+  drupal_install_modules(array('ctools'));
+  $modules = module_list();
+  if (!isset($modules['ctools'])) {
+    return array('#abort' => array('success' => FALSE, 'query' => 'Could not enable CTools.'));
+  }
+  return array(array('success' => TRUE, 'query' => 'Enabled CTools successfully.'));
+}
+
+/**
+ * Update 6201: Set all strongarm 1.x variables that are not already set.
+ */
+function strongarm_update_6201() {
+  $ret = array();
+  $modules = module_implements('strongarm');
+  foreach ($modules as $module) {
+    $variables = module_invoke($module, 'strongarm');
+    foreach ($variables as $variable => $value) {
+      $exists = db_result(db_query("SELECT name FROM {variable} WHERE name = '%s'", $variable));
+      if (!$exists && !(is_object($value) && isset($value->api_version))) {
+        variable_set($variable, $value);
+        $ret[] = array('success' => TRUE, 'query' => "Set 1.x strongarmed variable {$variable} in the database.");
+      }
+    }
+  }
+  return $ret;
+}
