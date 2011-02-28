@@ -10,7 +10,8 @@
  */
 function hidenodeoptions_form_alter(&$form, &$form_alter, $form_id){
   if(isset($form['additional_settings'])){
-    // Ensure the shortcut module CSS is added.
+    // Ensure the shortcut module CSS is added (prevents us from adding too
+    // much to our own CSS).
     drupal_add_css(drupal_get_path('module', 'shortcut') . '/shortcut.css');
     $show = t('Show advanced settings');
     drupal_add_js(array(
@@ -20,7 +21,7 @@ function hidenodeoptions_form_alter(&$form, &$form_alter, $form_id){
       )
     ), 'setting');
     $form['additional_settings']['#prefix'] = '<div>
-  <div class="add-or-remove-shortcuts add-shortcut hidenodeoptions-link">
+  <div class="hidenodeoptions-add-or-remove-shortcuts add-shortcut hidenodeoptions-link">
   	<a href="#">
   		<span class="icon"></span>
   		<span class="text hide hidenodeoptions-text">' . $show . '</span>

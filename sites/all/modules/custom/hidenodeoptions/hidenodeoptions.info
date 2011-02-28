@@ -3,4 +3,5 @@ description = Collapses the node options at the bottom of a node form into an "A
 core = 7.x
 files[] = hidenodeoptions.module
 scripts[] = js/hidenodeoptions.js
+stylesheets[all][] = css/hidenodeoptions.css
 package = Scratchpads
