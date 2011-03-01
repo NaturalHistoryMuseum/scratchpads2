@@ -105,7 +105,7 @@ Drupal.fieldUIDisplayOverview.group.prototype = {
     }
 
     return refreshRows;
-  },
+  }
 };
 
 })(jQuery);
