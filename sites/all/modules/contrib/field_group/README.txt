@@ -1,4 +1,3 @@
-/* $Id: README.txt,v 1.4.2.3 2011/01/08 20:56:10 stalski Exp $ */
 
 History:
   Field_group was written for Drupal 7. For drupal 6, the module is 
