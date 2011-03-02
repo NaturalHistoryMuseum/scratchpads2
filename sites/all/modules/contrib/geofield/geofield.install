@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ */
+function geofield_field_schema($field) {
+  return array(
+    'columns' => array(
+      'lat' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'lon' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'left' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'top' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'right' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'bottom' => array(
+        'type' => 'float',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+  );
+}

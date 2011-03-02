@@ -1,0 +1,8 @@
+name = Geofield
+description = Defines a six column field for storing lat/lon data and bounding box data.
+core = 7.x
+dependencies[] = views
+files[] = geofield.module
+files[] = geofield.install
+files[] = "views/geofield.views.inc"
+files[] = "views/geofield_handler_field_point.inc"
