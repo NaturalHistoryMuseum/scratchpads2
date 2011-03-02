@@ -1,0 +1,153 @@
+<?php
+
+/**
+ * @defgroup mapbox MapBox: Provides MapBox layers to OpenLayers
+ * This module has no UI; it only implements hooks in OpenLayers 2.x
+ * and Gmap
+ */
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function mapbox_ctools_plugin_api($module, $api) {
+  if ($module == "openlayers") {
+    switch ($api) {
+      case 'openlayers_layers':
+        return array('version' => 1);
+      case 'openlayers_styles':
+        return array('version' => 1);
+    }
+  }
+}
+
+/**
+ * OpenLayers pre-alpha3 compatibility
+ */
+function mapbox_openlayers_styles_info() {
+  return mapbox_openlayers_styles();
+}
+
+/**
+ * Implementation of hook_openlayers_styles()
+ */
+function mapbox_openlayers_styles() {
+  module_load_include('inc', 'mapbox', 'includes/mapbox.styles');
+  return _mapbox_openlayers_styles();
+}
+
+/**
+ * @file
+ * MapBox Layer Type Definition
+ *
+ * This file holds the main Drupal hook functions,
+ * and the openlayers API functions for the openlayers module.
+ */
+function mapbox_layers_info() {
+  $info = array();
+    // Define info array
+  $info['MapBox_world-print'] = array(
+    'name' => t('MapBox World Print'),
+    'description' => t('Printable World Map'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 0,
+    'maxzoom' => 19,
+  );
+  // Define info array
+  $info['MapBox_world-dark'] = array(
+    'name' => t('MapBox World Dark'),
+    'description' => t('Dark World Map'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 0,
+    'maxzoom' => 11,
+  );
+  $info['MapBox_dc-nightvision'] = array(
+    'name' => t('MapBox DC Nightvision'),
+    'description' => t('DC Nightvision'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 0,
+    'maxzoom' => 17,
+  );
+  $info['MapBox_world-light'] = array(
+    'name' => t('World Light'),
+    'description' => t('World Light'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 0,
+    'maxzoom' => 13,
+  );
+  $info['MapBox_afghanistan-summer'] = array(
+    'name' => t('Afghanistan Summer'),
+    'description' => t('Afghanistan Summer'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 5,
+    'maxzoom' => 13,
+  );
+  $info['MapBox_afghanistan-winter'] = array(
+    'name' => t('Afghanistan Winter'),
+    'description' => t('Afghanistan Winter'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 5,
+    'maxzoom' => 13,
+  );
+  $info['MapBox_afghanistan-grey'] = array(
+    'name' => t('Afghanistan Grey'),
+    'description' => t('Afghanistan Grey'),
+    'projection' => array('900913'),
+    'baselayer' => TRUE,
+    'minzoom' => 5,
+    'maxzoom' => 13,
+  );
+  return $info;
+}
+
+/**
+ * Implementation of hook_gmap()
+ */
+function mapbox_gmap($op, &$map) {
+  $info = mapbox_layers_info();
+  $layers = array();
+  foreach ($info as $name => $layer) {
+    $layers['Mapbox'][str_replace('MapBox_', '', $name)] = array(
+      'title' => $layer['name'],
+      'default' => TRUE,
+      'help' => $layer['description'],
+      'minzoom' => $layer['minzoom'],
+      'maxzoom' => $layer['maxzoom'],
+    );
+  }
+  switch ($op) {
+    case 'pre_theme_map':
+      drupal_add_js(drupal_get_path('module', 'mapbox') .'/js/gmapbox.js');
+      drupal_add_js(array('gmapbox' => array('mapdefs' => $layers['Mapbox'])), 'setting');
+      $js = 'http://js.mapbox.com/g/2/mapbox.js';
+      drupal_set_html_head('<script src="'. $js .'" type="text/javascript"></script>');
+      break;
+    case 'baselayers':
+      $map = array_merge($map, $layers);
+      break;
+  }
+}
+
+/**
+ * Implementation of openlayers_layer_type
+ */
+function mapbox_openlayers_layer_types() {
+  return array(
+    'openlayers_layer_type_mapbox' => array(
+      'title' => t('MapBox'),
+      'description' => t('MapBox Maps'),
+      'type' => 'layer',
+      'path' => drupal_get_path('module', 'mapbox') .'/includes/layer_types',
+      'file' => 'mapbox.inc',
+      'layer_type' => array(
+        'class' => 'openlayers_layer_type_mapbox',
+        'parent' => 'openlayers_layer_type',
+      ),
+    ),
+  );
+}

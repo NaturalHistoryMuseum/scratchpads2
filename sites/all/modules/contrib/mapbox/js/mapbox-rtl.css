@@ -1,0 +1,18 @@
+.mapbox-branding {
+  float: right;
+  clear: right;
+  margin-right: 0px;
+  margin-left: 10px;
+}
+
+div.olMapViewport div.olControlPermalink {
+  right: auto;
+  left: 10px;
+  text-align: right;
+}
+
+div.olMapViewport div.olControlAttribution {
+  right: 15px;
+  left: auto;
+}
+
