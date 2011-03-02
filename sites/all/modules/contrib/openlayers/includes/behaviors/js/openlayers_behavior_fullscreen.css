@@ -1,0 +1,25 @@
+.openlayers_map_fullscreen {
+  position: fixed;
+  z-index: 9999;
+  background-color: #fff;
+  top: 0;
+  left: 0;
+  height: 100% !important;
+  width: 100% !important;
+  }
+
+.openlayers_behavior_fullscreen_button_panel {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  }
+
+.openlayers_behavior_fullscreen_buttonItemInactive {
+  background:url(openlayers_behavior_fullscreen.png);
+  width:20px;
+  height:20px;
+  }
+ 
+.openlayers_map_fullscreen .openlayers_behavior_fullscreen_buttonItemInactive {
+  background-position:20px 0;
+  }

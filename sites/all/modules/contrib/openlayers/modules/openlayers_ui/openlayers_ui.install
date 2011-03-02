@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * This file holds the functions for the installing
+ * and enabling of the openlayers_ui module.
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function openlayers_ui_uninstall() {
+  // Get module variables
+  $variables = db_query("SELECT v.name FROM {variable} AS v WHERE v.name LIKE ':pattern'",
+    array(':pattern' => db_like('openlayers_ui_') . '%'))->fetchAll();
+  // Remove variables
+  foreach($variables as $v) {
+    variable_del($v);
+  }
+}

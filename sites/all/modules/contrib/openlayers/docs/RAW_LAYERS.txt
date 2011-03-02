@@ -1,0 +1,65 @@
+
+Raw layers are an addition to OpenLayers post-alpha7 which allow users to 
+manually add points to a layer type. In comparison to the layer_type 
+method of pulling in custom data, this allows you to 'push' data into the 
+layer data array itself. In any case where reusability is a priority, 
+layer_types should be utilized (as documented in LAYER_TYPES.txt). However, 
+this is a quick method for success that may be more accessible to more 
+developers.
+
+A brief, example-only implementation of an arbitrary layer is below.
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ * Required to provide layers
+ */
+function geolocator_ctools_plugin_api($module, $api) {
+  if ($module == "openlayers") {
+    switch ($api) {
+      case 'openlayers_layers':
+        return array('version' => 1);
+    }
+  }
+}
+
+/**
+ * One can have the 'features' => element point to a function 
+ * or be built on the fly within the _layers method. However, 
+ * close attention must be paid to ctools caching in order to 
+ * insure that dynamic data stays dynamic
+ */
+function geolocator_openlayers_layers() {
+  $layers = array();
+  $layer = new stdClass();
+  $layer->api_version = 1;
+  $layer->name = 'afghanistan';
+  $layer->title = 'One Point on Afghanistan';
+  $layer->description = '';
+  $layer->data = array(
+    'layer_type' => 'openlayers_layer_type_raw',
+    'projection' => array('900913'),
+    'features' => array(
+      array(
+      "wkt"=> "POINT(65 33)",
+      "projection"=> "4326",
+      "attributes"=> 
+        array(
+          "name"=> "Afghanistan",
+          "description"=> "248"
+        )
+      )
+    )
+  );
+  $layers[$layer->name] = $layer;
+  return $layers;
+}
+
+/**
+ * map_preprocess_alter allows one to add a new layer to a map
+ * before layers are rendered and data is pulled from them.
+ */
+function geolocator_openlayers_map_preprocess_alter(&$map) {
+  $map['layers']['afghanistan'] = 'afghanistan';
+  $map['layer_activated']['afghanistan'] = 'afghanistan';
+  $map['layer_switcher']['afghanistan'] = 'afghanistan';
+}

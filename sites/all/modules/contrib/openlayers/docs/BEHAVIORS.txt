@@ -1,0 +1,124 @@
+
+Current for 6.x-2.0-alpha6
+
+
+# Creating a new OpenLayers Behavior from Scratch
+
+First, you'll need to create a module. Of course, skip through this step if
+there's already a module that exists to which this behavior will be added. But
+if not, create a file called `modulename.info` with the contents
+
+    core = "6.x"
+    dependencies[] = "openlayers"
+    name = "modulename"
+    package = "OpenLayers"
+    project = "modulename"
+
+In this case, you're creating a module just for this feature. So you'll need to
+implement a hook to notify OpenLayers that your module can do something for it.
+There's a hook called `hook_openlayers_behaviors` for this, and since your
+module is called modulename, its implementation should be
+`modulename_openlayers_behaviors`. A basic implementation would be
+
+    function modulename_openlayers_behaviors() {
+      return array(
+        'openlayers_behavior_mybehavior' => array(
+          'title' => t('My Behavior'),
+          'description' => t('Does something'),
+          'type' => 'layer',
+          'path' => drupal_get_path('module', 'modulename')
+            .'/includes/behaviors',
+          'file' => 'openlayers_behavior_mybehavior.inc',
+          'behavior' => array(
+            'class' => 'openlayers_behavior_mybehavior',
+            'parent' => 'openlayers_behavior',
+          ),
+        ),
+      );
+    }
+
+Note the essentials here: this tells the OpenLayers module that there is a file
+in `modules/modulename/includes/behaviors/` which implements a class called
+`openlayers_behavior_mybehavior`. It isn't strictly necessary to create an
+includes folder and a behaviors folder under it, but it's good practice so that
+your module doesn't become cluttered.
+
+So on to the PHP that this hook refers to: usually there's only a small amount
+of PHP written for each behavior. On the first level, the file simply must
+include a class that extends the class openlayers_behavior:
+
+    class openlayers_behavior_mybehavior extends openlayers_behavior {}
+
+There'll be a little bit for this one, but it's not very functional - only
+adding JavaScript code and declaring forms.
+
+Here's what you'll write for this behavior:
+
+    class openlayers_behavior_mybehavior extends openlayers_behavior {}
+
+      function options_init() {
+        return array(
+        );
+      }
+    
+      function options_form($defaults) {
+        return array(
+          'filteredlayer' => array(
+            '#type' => 'select',
+            '#options' => $this->map['layers'],
+            '#description' => t('Select layer to filter'),
+            '#default_value' => isset($defaults['filteredlayer']) ? 
+              $defaults['filteredlayer'] : NULL
+          ),
+        );
+      }
+    
+      function render(&$map) {
+        drupal_add_js(drupal_get_path('module', 'mybehavior') 
+          .'/includes/behaviors/js/openlayers_behavior_mybehavior.js');
+        return $this->options;
+      }
+    }
+
+As you can see, there's an options_form method which is called when the list of
+behaviors is generated for each preset, and given a `$defaults` array if there
+have already been values saved. It isn't required to implement this method,
+although many behaviors will need it. And at this level - in the options_form,
+you have access to the preset/map with $this - so you can get layers, styles,
+and other parts of the preset to play around with The `render(&$map)` function
+is indeed required, since it is called for every behavior.
+
+There's quite a bit of Javascript to write for this behavior:
+
+    /**
+     * Maptimeline Behavior
+     */
+    Drupal.behaviors.openlayers_behavior_mybehavior = function(context) {
+
+      var data = $(context).data('openlayers');
+      var slider_div = {};
+      if (data && data.map.behaviors['openlayers_behavior_mybehavior']) {
+        behavior = data.map.behaviors['openlayers_behavior_mybehavior'];
+        layer = data.openlayers.getLayersBy(
+          'drupalID', 
+          behavior.filteredlayer)[0];
+          // Do things with this feature, etc.
+        });
+      }
+    }
+
+Note the essentials of this file: all of the functionality needed is contained
+in a single function, `Drupal.behaviors.openlayers_behavior_mybehavior`. The
+facts that the containing function is called `openlayers_behavior_mybehavior`
+and that it receives a single argument, `context`, are essential, but besides
+those restrictions, behaviors can contain any Javascript code whatsoever.
+Behaviors are called after all layers and styles are added to the map and the
+map is rendered.
+
+This code demonstrates a few core concepts of behavior-writing:
+
+* The OpenLayers [Map object](http://dev.openlayers.org/releases/OpenLayers-2.8/doc/apidocs/files/OpenLayers/Map-js.html)
+  is accessible via `$(context).data('openlayers').openlayers`
+* The [jQuery Data function](http://api.jquery.com/jQuery.data/) is used in the 
+  OpenLayers module to simplify variable scope and avoid the possibility of
+  memory leaks.

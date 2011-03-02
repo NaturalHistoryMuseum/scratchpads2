@@ -1,0 +1,41 @@
+
+OpenLayers 6.x-2.0-alpha7, XXXX-XX-XX
+----------------------
+Notable changes:
+
+## OpenLayers Map Alters
+
+[Ticket](http://drupal.org/node/763832)
+
+* Update hook/alter definitions from:
+  hook_openlayers_alter(&$map) 
+    -> hook_openlayers_map_alter(&$map)
+* Update hook/alter definitions from:
+  hook_openlayers_postrender_alter(&$map) 
+    -> hook_openlayers_map_preprocess_alter(&$map)
+
+
+OpenLayers 6.x-2.0-alpha4, 2010-04-08
+----------------------
+Between the OpenLayers 2.0-alpha3 and 2.0-alpha4 releases, there were 
+several changes which clarified the module but are not backwards-
+compatible with alpha3.
+
+## OpenLayers Hooks
+
+[Ticket](http://drupal.org/node/723530)
+
+Upgrading:
+
+* Update hook definitions to implement `openlayers_openlayers_layers`
+  instead of `openlayers_openlayers_layers_info`
+* Update hook definitions to implement `openlayers_openlayers_styles`
+  instead of `openlayers_openlayers_styles_info`
+
+## Grouped OpenLayers Data Views
+
+[Ticket](http://drupal.org/node/736576)
+
+* Update CSS for h2.point-title to h2.openlayers-views-group-feature-name
+* Update CSS for div.point-content to 
+  div.openlayers-views-group-feature-description

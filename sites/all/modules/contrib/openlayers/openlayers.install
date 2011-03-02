@@ -1,0 +1,169 @@
+<?php
+
+/**
+ * @file
+ * This file holds the functions for the installing
+ * and enabling of the openlayers module.
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Implements hook_install().
+ */
+function openlayers_install() {
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function openlayers_uninstall() {
+  // Get module variables
+  $variables = db_query("SELECT v.name FROM {variable} AS v WHERE v.name LIKE ':pattern'",
+    array(':pattern' => db_like('openlayers_') . '%'))->fetchAll();
+  // Remove variables
+  foreach ($variables as $v) {
+    variable_del($v);
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function openlayers_schema() {
+  $schema = array();
+  // Maps table (ctools extras)
+  $schema['openlayers_map_presets'] = array(
+    'description' => 'Storage for User defined OpenLayers map presets.',
+    'export' => array(
+      'key' => 'name',
+      'identifier' => 'openlayers_presets',
+      'default hook' => 'openlayers_presets',
+      'api' => array(
+        'owner' => 'openlayers',
+        'api' => 'openlayers_presets',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'name' => array(
+        'description' => 'The primary identifier for the preset.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'The title of the preset.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'The description of the preset.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => 'The serialized map.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+  // Layer table (ctools extras)
+  $schema['openlayers_layers'] = array(
+    'description' => 'Storage for user defined OpenLayers layers.',
+    'export' => array(
+      'key' => 'name',
+      'identifier' => 'openlayers_layers',
+      'default hook' => 'openlayers_layers',
+      'api' => array(
+        'owner' => 'openlayers',
+        'api' => 'openlayers_layers',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Layer name.',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Layer title.',
+      ),
+      'description' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'Layer description.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Layer data serialized.',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('name'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+  );
+  // Styles table (ctools extras)
+  $schema['openlayers_styles'] = array(
+    'description' => 'Storage for user defined OpenLayers styles.',
+    'export' => array(
+      'key' => 'name',
+      'identifier' => 'openlayers_styles',
+      'default hook' => 'openlayers_styles',
+      'api' => array(
+        'owner' => 'openlayers',
+        'api' => 'openlayers_styles',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Style name.',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Style title.',
+      ),
+      'description' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'Style description.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Style data serialized.',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('name'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+  );
+  return $schema;
+}

@@ -1,0 +1,53 @@
+name = OpenLayers
+description = OpenLayers base API module
+core = 7.x
+package = OpenLayers
+php = 5.2
+dependencies[] = ctools
+; Core files
+files[] = openlayers.module
+; Presets
+files[] = includes/openlayers.presets.inc
+; Layer types
+files[] = includes/layer_types/cloudmade.inc
+files[] = includes/layer_types/google.inc
+files[] = includes/layer_types/kml.inc
+files[] = includes/layer_types/maptiler.inc
+files[] = includes/layer_types/osm.inc
+files[] = includes/layer_types/raw.inc
+files[] = includes/layer_types/tms.inc
+files[] = includes/layer_types/virtualearth.inc
+files[] = includes/layer_types/wms.inc
+files[] = includes/layer_types/xyz.inc
+files[] = includes/layer_types/yahoo.inc
+; Behaviors
+files[] = includes/behaviors/openlayers_behavior_argparser.inc
+files[] = includes/behaviors/openlayers_behavior_attribution.inc
+files[] = includes/behaviors/openlayers_behavior_boxselect.inc
+files[] = includes/behaviors/openlayers_behavior_cluster.inc
+files[] = includes/behaviors/openlayers_behavior_dragpan.inc
+files[] = includes/behaviors/openlayers_behavior_drawfeatures.inc
+files[] = includes/behaviors/openlayers_behavior_fullscreen.inc
+files[] = includes/behaviors/openlayers_behavior_keyboarddefaults.inc
+files[] = includes/behaviors/openlayers_behavior_layerswitcher.inc
+files[] = includes/behaviors/openlayers_behavior_mapformvalues.inc
+files[] = includes/behaviors/openlayers_behavior_mouseposition.inc
+files[] = includes/behaviors/openlayers_behavior_navigation.inc
+files[] = includes/behaviors/openlayers_behavior_overviewmap.inc
+files[] = includes/behaviors/openlayers_behavior_panzoom.inc
+files[] = includes/behaviors/openlayers_behavior_panzoombar.inc
+files[] = includes/behaviors/openlayers_behavior_permalink.inc
+files[] = includes/behaviors/openlayers_behavior_popup.inc
+files[] = includes/behaviors/openlayers_behavior_scaleline.inc
+files[] = includes/behaviors/openlayers_behavior_tooltip.inc
+files[] = includes/behaviors/openlayers_behavior_zoombox.inc
+files[] = includes/behaviors/openlayers_behavior_zoompanel.inc
+files[] = includes/behaviors/openlayers_behavior_zoomtolayer.inc
+files[] = includes/behaviors/openlayers_behavior_zoomtomaxextent.inc
+
+; Information added by drupal.org packaging script on 2011-03-01
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "openlayers"
+datestamp = "1298981375"
+

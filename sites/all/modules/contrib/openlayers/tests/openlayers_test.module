@@ -1,0 +1,457 @@
+<?php
+
+/**
+ * @file
+ * Main OpenLayers Test Module file
+ *
+ * This file contains a test module to help with automated
+ * testing.
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function openlayers_test_menu() {
+  $items = array();
+
+  $items['admin/build/openlayers/test'] = array(
+    'title' => 'OpenLayers Test Page',
+    'description' => 'Test Page for OpenLayers.',
+    'page callback' => 'openlayers_test_page',
+    'access arguments' => array('administer openlayers'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9999,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function openlayers_test_ctools_plugin_api($module, $api) {
+  // Define plugins for OpenLayers plugins api
+  if ($module == "openlayers") {
+    switch ($api) {
+      case 'openlayers_presets':
+        return array('version' => 1);
+
+    }
+  }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function openlayers_test_views_api() {
+  return array(
+    'api' => 2,
+  );
+}
+
+/**
+ * Implementation of hook_openlayers_presets().
+ */
+function openlayers_test_openlayers_presets() {
+  $items = array();
+
+  // Map with some behaviors
+  $behaviors_test = new stdClass();
+  $behaviors_test->api_version = 1;
+  $behaviors_test->name = 'behaviors_test';
+  $behaviors_test->title = t('Test: Behaviors');
+  $behaviors_test->description = t('This is a test preset.');
+  $behaviors_test->data = array(
+    'projection' => '4326',
+    'projection' => '900913',
+    'width' => 'auto',
+    'default_layer' => 'osm_mapnik',
+    'height' => '400px',
+    'center' => array(
+      'initial' => array(
+        'centerpoint' => '0,0',
+        'zoom' => '2'
+      )
+    ),
+    'options' => array(
+      'displayProjection' => '4326',
+      'maxExtent' => openlayers_get_extent('4326'),
+    ),
+    'behaviors' => array(
+      'openlayers_behavior_panzoombar' => array(),
+      'openlayers_behavior_layerswitcher' => array(),
+      'openlayers_behavior_attribution' => array(),
+      'openlayers_behavior_keyboarddefaults' => array(),
+      'openlayers_behavior_navigation' => array(),
+      'openlayers_behavior_fullscreen' => array(),
+      'openlayers_behavior_mouseposition' => array(),
+      'openlayers_behavior_dragpan' => array(),
+      'openlayers_behavior_boxselect' => array(),
+      'openlayers_behavior_permalink' => array(),
+      'openlayers_behavior_scaleline' => array(),
+      'openlayers_behavior_zoombox' => array(),
+      'openlayers_behavior_zoomtomaxextent' => array(),
+    ),
+    'layers' => array(
+      'osm_mapnik' => 'osm_mapnik',
+    )
+  );
+  $items['behaviors_test'] = $behaviors_test;
+
+  /*
+  // Map with popups
+  $popup_test = new stdClass();
+  $popup_test->api_version = 1;
+  $popup_test->name = 'popup_test';
+  $popup_test->title = t('Test: Popups');
+  $popup_test->description = t('This is a test preset.');
+  $popup_test->data = array(
+    'projection' => '4326',
+    'projection' => '900913',
+    'width' => 'auto',
+    'default_layer' => 'osm_mapnik',
+    'height' => '400px',
+    'center' => array(
+      'initial' => array(
+        'centerpoint' => '0,0',
+        'zoom' => '2'
+      )
+    ),
+    'options' => array(
+      'displayProjection' => '4326',
+      'maxExtent' => openlayers_get_extent('4326'),
+    ),
+    'behaviors' => array(
+      'openlayers_behavior_panzoombar' => array(),
+      'openlayers_behavior_layerswitcher' => array(),
+      'openlayers_behavior_attribution' => array(),
+      'openlayers_behavior_keyboarddefaults' => array(),
+      'openlayers_behavior_navigation' => array(),
+    ),
+    'layers' => array(
+      'osm_mapnik' => 'osm_mapnik',
+    )
+  );
+  // Add features
+  $features = array();
+  for ($i = 0; $i < 30; $i++) {
+    $x = 2 + rand(-30, 30);
+    $y = 2 + rand(-30, 30);
+    $features['feature_' . $i . $j] = array(
+      'wkt' => 'POINT(' . $x . ' ' . $y . ')',
+      'projection' => '4326',
+    );
+  }
+  $popup_test->data['layers']['style_vector']['features'] = $features;
+
+  $items['popup_test'] = $popup_test;
+  */
+
+  $openlayers_map_presets_cck_views = new stdClass;
+  $openlayers_map_presets_cck_views->disabled = FALSE; /* Edit this to true to make a default openlayers_presets disabled initially */
+  $openlayers_map_presets_cck_views->api_version = 1;
+  $openlayers_map_presets_cck_views->name = 'openlayers_test_preset_cck_views';
+  $openlayers_map_presets_cck_views->title = 'Test: OpenLayers Test Views';
+  $openlayers_map_presets_cck_views->description = 'This preset tests a custom content type with a WKT field and a views layer.';
+  $openlayers_map_presets_cck_views->data = array(
+    'width' => 'auto',
+    'height' => '400px',
+    'image_path' => '',
+    'css_path' => '',
+    'proxy_host' => '',
+    'center' => array(
+      'initial' => array(
+        'centerpoint' => '0,0',
+        'zoom' => '2',
+      ),
+      'restrict' => array(
+        'restrictextent' => 0,
+        'restrictedExtent' => '',
+      ),
+    ),
+    'behaviors' => array(
+      'openlayers_behavior_attribution' => array(),
+      'openlayers_behavior_keyboarddefaults' => array(),
+      'openlayers_behavior_layerswitcher' => array(),
+      'openlayers_behavior_navigation' => array(),
+      'openlayers_behavior_panzoombar' => array(),
+      'openlayers_behavior_popup' => array(),
+    ),
+    'default_layer' => 'osm_mapnik',
+    'layers' => array(
+      'osm_mapnik' => 'osm_mapnik',
+      'openlayers_test_view_openlayers_1' => 'openlayers_test_view_openlayers_1',
+    ),
+    'layer_styles' => array(),
+    'layer_activated' => array(
+      'openlayers_test_view_openlayers_1' => 'openlayers_test_view_openlayers_1',
+    ),
+    'layer_switcher' => array(
+      'openlayers_test_view_openlayers_1' => 'openlayers_test_view_openlayers_1',
+    ),
+    'projection' => '900913',
+    'displayProjection' => '4326',
+    'styles' => array(
+      'default' => 'default',
+      'select' => 'default',
+      'temporary' => 'default',
+    ),
+    'options' => NULL,
+  );
+
+  // We only want to provide the Views/CCK preset if the
+  // modules are installed and the view is provide
+  if (module_exists('content') && module_exists('views') && module_exists('content_copy')) {
+    $layers = openlayers_layers_load();
+    if (!empty($layers['openlayers_test_view_openlayers_1'])) {
+      $items['openlayers_test_preset_cck_views'] = $openlayers_map_presets_cck_views;
+    }
+  }
+
+  // Return presets
+  return $items;
+}
+
+/**
+ * Callback for OpenLayers Test Page
+ */
+function openlayers_test_page() {
+  $output = '';
+  $js_test_link = l(t('JS Testing Page.'), 
+    drupal_get_path('module', 'openlayers_test') . '/js/index.html');
+  
+  // Add link to JS testing page for easy access.  
+  $output .= '
+    <h3>' . t('Info') . '</h3>
+    <ul>
+      <li>' . $js_test_link . '</li>
+    </ul>';
+
+  // Render all presets
+  $presets = openlayers_presets();
+  foreach ($presets as $name => $preset) {
+    $output .= '
+      <h3>' . $preset->title . '</h3>
+      ' . openlayers_render_map($preset->data) . '
+    ';
+  }
+
+  /*
+  // Create collapsed fieldset
+  //$render_fieldset = openlayers_render_map();
+  $element = array(
+    '#value' => $render_fieldset['themed'],
+    '#title' => t('Fieldset Example'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  );
+  $fieldset = theme_fieldset($element);
+  */
+
+  // Create output
+  $output .= '
+    <!-- Not including fieldset cause its broken -->
+  ';
+
+  return $output;
+}
+
+/**
+ * Implementation of hook_views_default_views().
+ */
+function openlayers_test_views_default_views() {
+  // Only provide view if everything is already setup properly
+  if (module_exists('content') && module_exists('content_copy')) {
+    $field = content_fields('field_openlayers_test_wkt', 'openlayers_test_type');
+    if (!empty($field)) {
+      $view = new view;
+      $view->name = 'openlayers_test_view';
+      $view->description = 'OpenLayers Test View';
+      $view->tag = '';
+      $view->view_php = '';
+      $view->base_table = 'node';
+      $view->is_cacheable = FALSE;
+      $view->api_version = 2;
+      $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+      $handler = $view->new_display('default', 'OpenLayers Test View Default Display', 'default');
+      $handler->override_option('fields', array(
+        'field_openlayers_test_wkt_openlayers_wkt' => array(
+          'label' => '',
+          'alter' => array(
+            'alter_text' => 0,
+            'text' => '',
+            'make_link' => 0,
+            'path' => '',
+            'link_class' => '',
+            'alt' => '',
+            'prefix' => '',
+            'suffix' => '',
+            'target' => '',
+            'help' => '',
+            'trim' => 0,
+            'max_length' => '',
+            'word_boundary' => 1,
+            'ellipsis' => 1,
+            'strip_tags' => 0,
+            'html' => 0,
+          ),
+          'empty' => '',
+          'hide_empty' => 0,
+          'empty_zero' => 0,
+          'link_to_node' => 0,
+          'label_type' => 'none',
+          'format' => 'openlayers_wkt',
+          'multiple' => array(
+            'group' => TRUE,
+            'multiple_number' => '',
+            'multiple_from' => '',
+            'multiple_reversed' => FALSE,
+          ),
+          'exclude' => 0,
+          'id' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'table' => 'node_data_field_openlayers_test_wkt',
+          'field' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'relationship' => 'none',
+        ),
+        'teaser' => array(
+          'label' => '',
+          'alter' => array(
+            'alter_text' => 0,
+            'text' => '',
+            'make_link' => 0,
+            'path' => '',
+            'link_class' => '',
+            'alt' => '',
+            'prefix' => '',
+            'suffix' => '',
+            'target' => '',
+            'help' => '',
+            'trim' => 0,
+            'max_length' => '',
+            'word_boundary' => 1,
+            'ellipsis' => 1,
+            'strip_tags' => 0,
+            'html' => 0,
+          ),
+          'empty' => '',
+          'hide_empty' => 0,
+          'empty_zero' => 0,
+          'exclude' => 0,
+          'id' => 'teaser',
+          'table' => 'node_revisions',
+          'field' => 'teaser',
+          'relationship' => 'none',
+        ),
+        'title' => array(
+          'label' => '',
+          'alter' => array(
+            'alter_text' => 0,
+            'text' => '',
+            'make_link' => 0,
+            'path' => '',
+            'link_class' => '',
+            'alt' => '',
+            'prefix' => '',
+            'suffix' => '',
+            'target' => '',
+            'help' => '',
+            'trim' => 0,
+            'max_length' => '',
+            'word_boundary' => 1,
+            'ellipsis' => 1,
+            'strip_tags' => 0,
+            'html' => 0,
+          ),
+          'empty' => '',
+          'hide_empty' => 0,
+          'empty_zero' => 0,
+          'link_to_node' => 1,
+          'exclude' => 0,
+          'id' => 'title',
+          'table' => 'node',
+          'field' => 'title',
+          'relationship' => 'none',
+        ),
+      ));
+      $handler->override_option('filters', array(
+        'type' => array(
+          'operator' => 'in',
+          'value' => array(
+            'openlayers_test_type' => 'openlayers_test_type',
+          ),
+          'group' => '0',
+          'exposed' => FALSE,
+          'expose' => array(
+            'operator' => FALSE,
+            'label' => '',
+          ),
+          'id' => 'type',
+          'table' => 'node',
+          'field' => 'type',
+          'relationship' => 'none',
+        ),
+      ));
+      $handler->override_option('access', array(
+        'type' => 'none',
+      ));
+      $handler->override_option('cache', array(
+        'type' => 'none',
+      ));
+      $handler->override_option('title', 'OpenLayers Test View Layer');
+      $handler->override_option('items_per_page', 200);
+      $handler->override_option('style_plugin', 'openlayers_data');
+      $handler->override_option('style_options', array(
+        'grouping' => '',
+        'data_source' => array(
+          'value' => array(
+            'openlayers_wkt' => 'openlayers_wkt',
+          ),
+          'other_lat' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'other_lon' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'openlayers_wkt' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'other_top' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'other_right' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'other_bottom' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'other_left' => 'field_openlayers_test_wkt_openlayers_wkt',
+          'name_field' => 'title',
+          'description_field' => 'teaser',
+        ),
+      ));
+      $handler = $view->new_display('openlayers', 'OpenLayers Test View OpenLayers Display', 'openlayers_1');
+      $handler->override_option('row_plugin', '');
+      $handler->override_option('displays', array());
+
+      // Return
+      $views['openlayers_test_view'] = $view;
+      return $views;
+    }
+  }
+}
+
+/**
+ * Impements hook_openlayers_map_preprocess_alter().
+ */
+function openlayers_test_openlayers_map_preprocess_alter(&$map) {
+  // For testing purposes, display a message on the only the Test
+  // page, and only once.
+  static $performed = FALSE;
+  if (!$performed && $_GET['q'] == 'admin/build/openlayers/test') {
+    drupal_set_message(t('OpenLayers preprocess map alter hook fired.'));
+    $performed = TRUE;
+  }
+}
+
+/**
+ * Impements hook_openlayers_map_alter().
+ */
+function openlayers_test_openlayers_map_alter(&$map) {
+  // For testing purposes, display a message on the only the Test
+  // page, and only once.
+  static $performed = FALSE;
+  if (!$performed && $_GET['q'] == 'admin/build/openlayers/test') {
+    drupal_set_message(t('OpenLayers map alter hook fired.'));
+    $performed = TRUE;
+  }
+}

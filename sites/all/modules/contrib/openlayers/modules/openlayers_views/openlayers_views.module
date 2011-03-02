@@ -1,0 +1,205 @@
+<?php
+
+/**
+ * @file
+ * This file holds the main Drupal hook functions 
+ * and private functions for the openlayers_views module.
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Implements hook_help().
+ */
+function openlayers_views_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#openlayers_views':
+      return '<p>'
+        . t('The OpenLayers Views module provides a set of plugins '
+        . 'for Views.')
+        . '</p>';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function openlayers_views_theme($existing, $type, $theme, $path) {
+  return array(
+    'openlayers_views_group_display_item' => array(
+      'arguments' => array(
+        'name' => '',
+        'description' => '',
+      ),
+      'file' => 'includes/openlayers_views.theme.inc',
+    ),
+    'openlayers_views_render_feature' => array(
+      'arguments' => array(
+        'feature' => '',
+        'record' => '',
+      ),
+      'file' => 'includes/openlayers_views.theme.inc',
+    ),
+    'openlayers_views_map' => array(
+      'arguments' => array(
+        'map' => array(),
+        'title' => '',
+      ),
+      'file' => 'views/openlayers_views.views.theme.inc',
+    ),
+    'openlayers_row_geometry' => array(
+      'arguments' => array(
+        'view' => '',
+        'options' => '',
+        'row' => '',
+        'field_alias' => '',
+      ),
+      'file' => 'views/openlayers_views.views.theme.inc',
+    ),
+
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function openlayers_views_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'openlayers_views') .'/views',
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function openlayers_views_ctools_plugin_api($module, $api) {
+  if ($module == "openlayers") {
+    switch ($api) {
+      case 'openlayers_layers':
+        return array('version' => 1);
+    }
+  }
+}
+
+/**
+ * Implements hook_openlayers_layers().
+ */
+function openlayers_views_openlayers_layers() {
+  $layers = array();
+
+  // Attempt to load information from cache.
+  // For now use a arg based check for skipping cache.
+  if (arg(0) != 'admin') {
+    $cache = cache_get('openlayers_views');
+    if (isset($cache->data)) {
+      return $cache->data;
+    }
+  }
+
+  $views = views_get_all_views();
+
+  // Provide each OpenLayers Data display as a layer
+  foreach ($views as $view) {
+    foreach ($view->display as $display => $data) {
+      $view->set_display($display);
+      if ($data->display_plugin == 'openlayers') {
+        //Build Layer
+        $layer = new stdClass();
+        $layer->api_version = 1;
+        $layer->name = $view->name . '_' . $display;
+        $layer->title = 
+          !empty($view->display['default']->handler->options['title']) ?
+            $view->display['default']->handler->options['title'] : 
+            $view->name;
+        $layer->description = $view->description . ' - ' . $data->display_title;
+        $layer->data = array(
+          'layer_type' => 'openlayers_views_vector',
+          'projection' => array('4326'),
+          'baselayer' => FALSE,
+          'type' => 'Vector',
+          'url' => array(),
+          'options' => array(),
+          'events' => array(),
+          'views' => array('view' => $view->name, 'display' => $display),
+        );
+        $layers[$layer->name] = $layer;
+      }
+    }
+    $view->destroy();
+  }
+  cache_set('openlayers_views', $layers);
+  return $layers;
+} 
+
+/**
+ * Implements hook_openlayers_layer_types()
+ */
+function openlayers_views_openlayers_layer_types() {
+  return array(
+    'openlayers_views_vector' => array(
+      'title' => t('OpenLayers_Views'),
+      'description' => t('OpenLayers Views Vector'),
+      'layer_type' => array(
+        'path' => drupal_get_path('module', 'openlayers_views') 
+          .'/includes/layer_types',
+        'file' => 'openlayers_views_vector.inc',
+        'class' => 'openlayers_layer_type_openlayers_views_vector',
+        'parent' => 'openlayers_layer_type',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function openlayers_views_form_alter(&$form, $form_state, $form_id) {
+  switch ($form_id) {
+    case 'openlayers_ui_object_export':
+      // prevent exporting in the openlayers interface
+      if (isset($form['#parameters'][3]->data['layer_type']) &&
+        $form['#parameters'][3]->data['layer_type'] == 'openlayers_views_vector') {
+        if (module_exists('views_ui')) {
+          $form['export'] = array(
+            '#value' => t(
+              'This layer is provided by a view, so it must be exported via the 
+              Views interface as a view. <a href="@url">Export this view 
+              using the views module.</a>',
+              array(
+                '@url' => url('admin/build/views/export/' . 
+                $form['#parameters'][3]->data['views']['view'])
+              )
+            )
+          );
+          unset($form['done']);
+        }
+        else {
+          $form['export'] = array(
+            '#value' => t(
+              'This layer is provided by a view, so it must be exported via the 
+              Views interface as a view. Enable the Views UI 
+              module to export it.'));
+          unset($form['done']);
+        }
+      }
+      break;
+    case 'openlayers_ui_layers_form':
+      // prevent cloning in the openlayers interface
+      if (isset($form['#parameters'][2]->data['layer_type']) && 
+        $form['#parameters'][2]->data['layer_type'] == 'openlayers_views_vector') {
+        $form = array(
+          'message' => array(
+            '#value' => t(
+              'This layer is provided by a view, so it can be cloned by cloning 
+              the view in the <a href="@url">Views interface.</a>',
+              array(
+                '@url' => url('admin/build/views/')
+              )
+            )
+          )
+          );
+      }
+      break;
+  }
+}

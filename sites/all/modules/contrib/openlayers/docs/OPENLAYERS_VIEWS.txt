@@ -1,0 +1,11 @@
+
+Current for 6.x-2.x
+
+# Filtering map views
+
+The best way to handle filtering the points on maps is to use normal OpenLayers
+exposed filters, whose input is passed through to the underlying Data
+view. If there are no other views on the same page, like tabular listings, 
+that can 'own' and display the exposed filters, it is recommended to make the 
+filters blocks via the views interface and make sure that they appear on 
+the specified page with the block system or context module.

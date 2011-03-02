@@ -1,0 +1,67 @@
+
+/**
+ * @file
+ * OpenLayers Admin CSS
+ *
+ * This file holds CSS for the openlayers ui module
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Map Form
+ */
+.openlayers-form-projection-description,
+.openlayers-form-layer-description {
+  font-size: smaller;
+  font-style: italic;
+}
+
+#openlayers-form-proj-msg {
+  display:none;
+}
+
+/**
+ * Preset form
+ */
+div.openlayers-column-right input.form-text,
+div.openlayers-column-left input.form-text { width:90%; }
+
+div.openlayers-column-left {
+  width:20%;
+  float:left;
+  }
+
+div.openlayers-column-right {
+  width:80%;
+  float:right;
+  }
+
+span.openlayers-dependency-value {
+  display: none;
+}
+
+span.openlayers-dependency-broken {
+  font-size: smaller;
+  display: none;
+  color: red;
+  }
+
+
+/**
+ * Behaviors table
+ */
+ /*
+.openlayers-form-behaviors-table .openlayers-form-behaviors-enable {
+  width: 15%;
+}
+.openlayers-form-behaviors-table .openlayers-form-behaviors-title {
+  width: 35%;
+}
+.openlayers-form-behaviors-table .openlayers-form-behaviors-options {
+  width: 50%;
+}
+*/
+div.openlayers-column-right .openlayers-form-behaviors-table .openlayers-form-behaviors-options input.form-text {
+  width: 200px;
+}

@@ -1,0 +1,39 @@
+
+/**
+ * @file
+ * OpenLayers Main CSS
+ *
+ * This file holds the base CSS for the openlayers module
+ *
+ * @ingroup openlayers
+ */
+
+.openlayers-cck-feature-selected { border: 2px solid blue; }
+
+.openlayers-map {
+  z-index:0;
+  position:relative;
+}
+
+/**
+ * prevent rtl translations from mirroring 
+ * vector layers
+ */
+.openlayers-map .olLayerDiv {
+  direction: ltr;
+}
+
+/**
+ * Controls
+ */
+.openlayers-controls {
+	z-index:1000;
+}
+
+/**
+ * This is a 'sensible default' for a weird decision
+ * by OpenLayers to make 404 tiles pink.
+ */
+.olImageLoadError {
+  background: transparent;
+}
