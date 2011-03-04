@@ -73,6 +73,14 @@ div.vertical-tabs .vertical-tabs-panes {
 div.vertical-tabs .vertical-tabs-panes legend {
   display: none;
 }
+div.vertical-tabs .vertical-tabs-panes fieldset fieldset {
+  border: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 2.5em 0 0;
+}
+div.vertical-tabs .vertical-tabs-panes fieldset fieldset legend {
+  display: inline-block;
+}
 .vertical-tabs-pane .fieldset-wrapper > div:first-child {
   padding-top: 5px;
 }
