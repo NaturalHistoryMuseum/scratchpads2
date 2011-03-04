@@ -22,31 +22,32 @@
 function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   $search_services = module_invoke_all('tag_suggestion_info');
   $options = array();
+  $options_forms = array();
   foreach($search_services as $key => $search_service){
     $options[$key] = $search_service['label'];
+    if(isset($search_service['options']) && function_exists($search_service['options'])){
+      $options_forms[$key] = $search_service['options']();
+    }
   }
   $form['tagtag'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tag options'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
     '#group' => 'additional_settings',
     'tag_search' => array(
       '#title' => t('Search services'),
-      '#type' => 'select',
-      '#multiple' => TRUE,
+      '#type' => 'checkboxes',
       '#options' => $options,
       '#description' => t('Select the search services you would like to use to provide tags to this content type')
-    ),
-    'fieldset' => array(
-      '#title' => 'fieldset',
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      'somethingfield' => array(
-        '#type' => 'textfield',
-        '#title' => 'Something field'
-      )
     )
   );
+  foreach($options_forms as $key => $options_form){
+    $form['tagtag'][$key] = $options_form;
+    $form['tagtag'][$key]['#type'] = 'fieldset';
+    $form['tagtag'][$key]['#title'] = $options[$key];
+    $form['tagtag'][$key]['#states'] = array(
+      'visible' => array(
+        ':input[name="tag_search['.$key.']"]' => array('checked' => TRUE)
+      )
+    );
+  }
 }
