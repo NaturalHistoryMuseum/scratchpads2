@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Implements the API on tag suggestion/autotagging modules as outlined at
+ * http://groups.drupal.org/node/100179
+ */
+
+/**
+ * Implementation of hook_tag_suggestion_info().
+ */
+function autotag_tag_suggestion_info(){
+  return array(
+    'autotag' => array(
+      'label' => t('Taxonomy term searcher'),
+      'description' => t('Automatically associates terms from a taxonomy if the term appears within the text of the node'),
+      'uses_args' => array('text', 'vids'),
+      'provides_keys' => array('name', 'tid'),
+      'request_callback' => 'autotag_tag_suggesions'
+    )
+  );
+}
+
+/**
+ * Callback as defined above in hook_tag_suggestion_info
+ */
+function autotag_tag_suggestions($args){
+  // We should have been passed a node object, along with an array of vids to
+  // search for matching terms.
+  $terms = array();
+  foreach($args['vids'] as $vid){
+    // Here we'll loop through each of the elements of the node, and search for
+    // them in the specified vocabulary.
+    
+  }
+  return $terms;
+}

@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Simple module that allows a user to select when entities/fields should be
+ * used to autotag an entity.  This currently supports:
+ * 
+ * - node/all fields
+ * ...
+ * 
+ * The module allows a user to specify the search module to use, and where the
+ * resulting terms should be saved.  The following entities are supported out of
+ * the box:
+ * - comment
+ * - node
+ * - user
+ */
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
+  $search_services = module_invoke_all('tag_suggestion_info');
+  $options = array();
+  foreach($search_services as $key => $search_service){
+    $options[$key] = $search_service['label'];
+  }
+  $form['tagtag'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tag options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    'tag_search' => array(
+      '#title' => t('Search services'),
+      '#type' => 'select',
+      '#multiple' => TRUE,
+      '#options' => $options,
+      '#description' => t('Select the search services you would like to use to provide tags to this content type')
+    ),
+    'fieldset' => array(
+      '#title' => 'fieldset',
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'somethingfield' => array(
+        '#type' => 'textfield',
+        '#title' => 'Something field'
+      )
+    )
+  );
+}

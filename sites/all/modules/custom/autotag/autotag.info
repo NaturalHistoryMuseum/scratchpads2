@@ -1,0 +1,5 @@
+name = Taxonomy term searcher
+description = Implements the Tags API to help link entities to terms already present on a site.
+core = 7.x
+files[] = autotag.module
+package = Tags
