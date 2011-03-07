@@ -45,18 +45,20 @@ function autotag_tag_suggestions($args){
 /**
  * Callback for the options form
  */
-function autotag_tag_options(){
+function autotag_tag_options($node_type){
   $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
   $options = array();
   foreach($vocabularies as $vid => $vocabulary){
     $options[$vid] = $vocabulary->name;
   }
   return array(
-    'vids' => array(
+    'autotag_vids' => array(
       '#title' => t('Vocabularies'),
       '#type' => 'select',
       '#options' => $options,
-      '#multiple' => TRUE
+      '#multiple' => TRUE,
+      '#description' => t('Select the vocabularies you would like to search.'),
+      '#default_value' => variable_get('autotag_vids_' . $node_type, array())
     )
   );
 }
