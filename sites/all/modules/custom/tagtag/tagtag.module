@@ -32,14 +32,12 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   }
   // Get a list of fields that this data can be saved to
   $field_options = array(
-    '-- Select --'
+    0 => '-- Select --'
   );
   $instances = field_info_instances('node', $form['#node_type']->type);
   foreach($instances as $key => $instance){
     $field_options[$key] = $instance['label'];
   }
-  //kprint_r($form_state);
-  //kprint_r($form);
   // Form
   $form['tagtag'] = array(
     '#type' => 'fieldset',
@@ -53,7 +51,8 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       '#description' => t('Select the search services you would like to use to provide tags to this content type.  Additional options for each search service will be displayed below.')
     ),
     'tagtag_field' => array(
-      '#title' => t('Field'),
+      '#required' => TRUE,
+      '#title' => t('Field to populate'),
       '#default_value' => variable_get('tagtag_field_' . $form['#node_type']->type, ''),
       '#type' => 'select',
       '#options' => $field_options,
@@ -73,5 +72,20 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
         )
       )
     );
+  }
+  $form['#validate'][] = 'tagtag_node_type_form_validate';
+}
+
+/**
+ * Callback for the above to validate the form
+ */
+function tagtag_node_type_form_validate($form, &$form_state){
+  // Simply check that a field has been selected ONLY if a search method has
+  // been specified.
+  foreach($form_state['input']['tagtag_search'] as $key => $value){
+    if($value && !$form_state['input']['tagtag_field']){
+      // We've selected a search, but not a field.
+      form_set_error('tagtag_field', t('Please select a field to save tags to'));
+    }
   }
 }
