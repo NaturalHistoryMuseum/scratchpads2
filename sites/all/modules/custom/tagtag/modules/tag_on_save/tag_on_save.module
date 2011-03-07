@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ */
+/**
+ * Implementation of hook_tag_ui_info().
+ */
+function tag_on_save_tag_ui_info(){
+  return array(
+    'tag_on_save' => array(
+      'label' => 'Tag on save',
+      'description' => t('Saves all found tags to a node without any user interaction required.'),
+      'request_callback' => 'tag_on_save_tag_update',
+      'options' => 'tag_on_save_tag_options'
+    )
+  );
+}
+
+/**
+ * Callback defined above to provide the options form.
+ */
+function tag_on_save_tag_options($entity_type = NULL, $bundle_name = NULL){
+  
+}
