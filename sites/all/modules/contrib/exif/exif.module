@@ -79,7 +79,7 @@ function _exif_node_insert_update($node) {
     $ar_exif_fields = $exif->getMetadataFields($ar_exif_fields);
     $image_fields = _exif_get_image_fields($fields);
     //first simple case, image fields not found.
-    $metadata_image_fields = _exif_get_image_fields_metadata($node,&$ar_exif_fields,$image_fields);
+    $metadata_image_fields = _exif_get_image_fields_metadata($node,$ar_exif_fields,$image_fields);
 //    foreach ($metadata_image_fields as $image_field => $fullmetadata ) {
 //      $data = $exif->filterMetadataTags($fullmetadata,$ar_exif_fields);
 //    }
