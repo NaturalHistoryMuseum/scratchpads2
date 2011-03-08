@@ -42,31 +42,58 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     }
   }
   // Get a list of fields that this data can be saved to
-  $field_options = array(
-    0 => '-- Select --'
-  );
+  $field_options = array();
   $instances = field_info_instances('node', $form['#node_type']->type);
+  $search_fields = array();
   foreach($instances as $key => $instance){
     $field_options[$key] = $instance['label'];
+    if(substr($instance['widget']['type'], 0, 5) == 'text_'){
+      $search_fields[$key] = $instance['label'];
+    }
+  }
+  // Set the default value to the search fields to be ALL text fields.
+  $search_fields_default = array();//variable_get('tagtag_search_fields_' . $form['#node_type']->type, array());
+  if(!count($search_fields_default)){
+    $search_fields_default = array_keys($search_fields);
   }
   // Form
   $form['tagtag'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tag options'),
     '#group' => 'additional_settings',
+    'tagtag_search_fields' => array(
+      '#weight' => -10,
+      '#default_value' => $search_fields_default,
+      '#title' => t('Fields to search for tags'),
+      '#type' => 'checkboxes',
+      '#options' => $search_fields,
+      '#description' => t('Select the fields that the Tag search modules should search within when suggesting appropriate tags.  You MUST select at least one field if you have selected a search service below.')
+    ),
     'tagtag_search' => array(
+      '#weight' => 0,
       '#default_value' => variable_get('tagtag_search_' . $form['#node_type']->type, array()),
       '#title' => t('Search services'),
       '#type' => 'checkboxes',
       '#options' => $options,
       '#description' => t('Select the search services you would like to use to provide tags to this content type.  Additional options for each search service will be displayed below.')
     ),
+    'tagtag_ui' => array(
+      '#weight' => 10,
+      '#default_value' => (count($ui_options) === 1) ? array_pop(array_keys($ui_options)) : variable_get('tagtag_ui_' . $form['#node_type']->type, ''),
+      '#title' => t('Interface'),
+      '#type' => 'radios',
+      '#options' => $ui_options,
+      '#description' => t('Select the user interface that you would like to use to select suggested tags.')
+    ),
     'tagtag_field' => array(
+      '#weight' => 20,
       '#required' => TRUE,
       '#title' => t('Field to populate'),
       '#default_value' => variable_get('tagtag_field_' . $form['#node_type']->type, ''),
       '#type' => 'select',
-      '#options' => $field_options,
+      '#options' => array_merge(array(
+        0 => '-- Select --'
+      ), $field_options),
       '#description' => t('Please select the field you would like tags saving to.  Note, all content in the field will be replaced by tag data.')
     )
   );
@@ -74,6 +101,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   // isn't selected.
   foreach($options_forms as $key => $options_form){
     $form['tagtag'][$key] = $options_form;
+    $form['tagtag'][$key]['#weight'] = 5;
     $form['tagtag'][$key]['#type'] = 'fieldset';
     $form['tagtag'][$key]['#title'] = $options[$key];
     $form['tagtag'][$key]['#states'] = array(
@@ -84,7 +112,84 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       )
     );
   }
+  // Additional settings for each module - hopefully hidden if the interface
+  // isn't selected.
+  foreach($ui_options_forms as $key => $options_form){
+    $form['tagtag'][$key] = $options_form;
+    $form['tagtag'][$key]['#weight'] = 15;
+    $form['tagtag'][$key]['#type'] = 'fieldset';
+    $form['tagtag'][$key]['#title'] = $ui_options[$key];
+    $form['tagtag'][$key]['#states'] = array(
+      'visible' => array(
+        ':input[value="' . $key . '"]' => array(
+          'checked' => TRUE
+        )
+      )
+    );
+  }
   $form['#validate'][] = 'tagtag_node_type_form_validate';
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function tagtag_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['#node_edit_form']) && $form['#node_edit_form']){
+    // We're here, we should call our form_alter functions, and add a submit
+    // handler.
+    // First get what search services we're using.
+    $implementation = variable_get('tagtag_ui_' . $form['type']['#value'], '');
+    $search_services = module_invoke_all('tag_ui_info');
+    if(isset($search_services[$implementation]['form_alter_callback']) && function_exists($search_services[$implementation]['form_alter_callback'])){
+      $function = $search_services[$implementation]['form_alter_callback'];
+      $function($form, $form_state);
+    }
+    // Finally, we add a submit function to ensure that we can update the data
+    // when we're finished.
+    $additional_submit = array(
+      'tagtag_submit_form'
+    );
+    $form['#submit'] = is_array($form['#submit']) ? array_merge($form['#submit'], $additional_submit) : $additional_submit;
+  }
+}
+
+/**
+ * Callback for the submit
+ * 
+ * This does a lot of the heavy lifting, ensuring that tags are saved to the
+ * correct fields.
+ */
+function tagtag_submit_form($form, &$form_state){
+  // At this point, we're relying on the magic of the UI and Search modules to 
+  // have correctly populated each field, there shouldn't be any need to do much
+  // more. For flexibility's sake however, we'll execute a submit function (if
+  // specified) for the UI and each of the search modules that have been
+  // enabled.
+  // First get what UI service we're using.
+  $implementation = variable_get('tagtag_ui_' . $form['type']['#value'], '');
+  $ui_service = module_invoke_all('tag_ui_info');
+  if(isset($ui_service[$implementation]['form_submit_callback']) && function_exists($ui_service[$implementation]['form_submit_callback'])){
+    $function = $ui_service[$implementation]['form_submit_callback'];
+    $function($form, $form_state);
+  }
+  // Next we get what search services we're using.
+  $implementations = variable_get('tagtag_search_' . $form['type']['#value'], array());
+  $search_services = module_invoke_all('tag_suggestion_info');
+  foreach($implementations as $implementation){
+    if(isset($search_services[$implementation]['form_submit_callback']) && function_exists($ui_service[$implementation]['form_submit_callback'])){
+      $function = $ui_service[$implementation]['form_submit_callback'];
+      $function($form, $form_state);
+    }
+  }
+  // Now we actually do the searches
+  // Loop through each of the fields that we're interested in.
+  foreach($implementations as $implementation){
+    if(isset($search_services[$implementation]['request_callback']) && function_exists($ui_service[$implementation]['request_callback'])){
+      $function = $ui_service[$implementation]['request_callback'];
+      $function($form, $form_state);
+    }
+  }
+  
 }
 
 /**

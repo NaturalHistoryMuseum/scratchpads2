@@ -12,14 +12,38 @@ function tag_on_save_tag_ui_info(){
       'label' => 'Tag on save',
       'description' => t('Saves all found tags to a node without any user interaction required.'),
       'request_callback' => 'tag_on_save_tag_update',
-      'options' => 'tag_on_save_tag_options'
+     	'form_alter_callback' => 'tag_on_save_tag_form_alter',
+      'options' => 'tag_on_save_options_form'
     )
   );
 }
 
 /**
- * Callback defined above to provide the options form.
+ * Form alter callback as defined above.  Note, this is different to using the
+ * hook, as it means we don't have to do any checks here to see if we should be
+ * doing anything.  It also reduces the number of callbacks to execute.
  */
-function tag_on_save_tag_options($entity_type = NULL, $bundle_name = NULL){
+function tag_on_save_tag_form_alter(&$form, &$form_state){
+  // Do we actually need to do anything here?
+}
+
+/**
+ * Options form for this module.
+ */
+function tag_on_save_options_form($node_type){
+  return array(
+    'tag_on_save' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Replace tags on update'),
+      '#description' => t('If this box is checked, the node will be analysed every time it is updated, resulting in tags being added or removed.'),
+      '#default_value' => variable_get('tag_on_save_' . $node_type, array())
+    )
+  );
+}
+
+/**
+ * Callback as defined above.  Does the hard work of adding tags to the node.
+ */
+function tag_on_save_tag_update($node){
   
 }
