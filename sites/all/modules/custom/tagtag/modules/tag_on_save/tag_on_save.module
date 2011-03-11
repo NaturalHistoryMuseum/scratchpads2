@@ -11,9 +11,14 @@ function tag_on_save_tag_ui_info(){
     'tag_on_save' => array(
       'label' => 'Tag on save',
       'description' => t('Saves all found tags to a node without any user interaction required.'),
-      'request_callback' => 'tag_on_save_tag_update',
-     	'form_alter_callback' => 'tag_on_save_tag_form_alter',
-      'options' => 'tag_on_save_options_form'
+      'submit_callback' => 'tag_on_save_tag_update',
+      'form_alter_callback' => 'tag_on_save_tag_form_alter',
+      /*'options' => array(
+        'callback' => 'tag_on_save_options_form',
+        'keys' => array(
+          'tag_on_save'
+        )
+      )*/
     )
   );
 }
@@ -29,7 +34,6 @@ function tag_on_save_tag_form_alter(&$form, &$form_state){
 
 /**
  * Options form for this module.
- */
 function tag_on_save_options_form($node_type){
   return array(
     'tag_on_save' => array(
@@ -40,10 +44,14 @@ function tag_on_save_options_form($node_type){
     )
   );
 }
+ */
 
 /**
  * Callback as defined above.  Does the hard work of adding tags to the node.
  */
-function tag_on_save_tag_update($node){
-  
+function tag_on_save_tag_update($form, &$form_state){
+  // Simplest of all the UI submit functions.  This simply calls the 
+  // tagtag supplied function tagtag_add_tags.  Other modules should probably
+  // alter the tags array, depending on UI elements (or previously saved data).
+  tagtag_add_tags($form_state);
 }

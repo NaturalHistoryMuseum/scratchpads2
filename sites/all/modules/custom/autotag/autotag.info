@@ -3,3 +3,4 @@ description = Implements the Tags API to help link entities to terms already pre
 core = 7.x
 files[] = autotag.module
 package = Tags
+php = 5.2

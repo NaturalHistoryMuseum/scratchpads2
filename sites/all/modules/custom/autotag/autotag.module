@@ -14,16 +14,13 @@ function autotag_tag_suggestion_info(){
     'autotag' => array(
       'label' => t('Taxonomy term searcher'),
       'description' => t('Automatically associates terms from a taxonomy if the term appears within the text of the node'),
-      'uses_args' => array(
-        'text',
-        'vids'
-      ),
-      'provides_keys' => array(
-        'name',
-        'tid'
-      ),
-      'request_callback' => 'autotag_tag_suggesions',
-      'options' => 'autotag_tag_options'
+      'request_callback' => 'autotag_tag_suggestions',
+      'options' => array(
+        'callback' => 'autotag_tag_options',
+        'keys' => array(
+          'autotag_vids'
+        )
+      )
     )
   );
 }
@@ -31,15 +28,92 @@ function autotag_tag_suggestion_info(){
 /**
  * Callback as defined above in hook_tag_suggestion_info
  */
-function autotag_tag_suggestions($args){
-  // We should have been passed a node object, along with an array of vids to
-  // search for matching terms.
-  $terms = array();
-  foreach($args['vids'] as $vid){
-    // Here we'll loop through each of the elements of the node, and search for
-  // them in the specified vocabulary.
+function autotag_tag_suggestions($text, $options){
+  // Simply passed the text.  We now need to get the vids that we're interested
+  // in (specific for this module).
+  $tags = array();
+  foreach($options['autotag_vids'] as $vid){
+    // Depending on the number of words in the text, and the number of terms in
+    // the vocabulary, we check either terms against text, or words against
+    // terms.
+    // Lets get the counts
+    $term_count = db_query("SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = ?", array(
+      $vid
+    ))->fetchField();
+    // If we have more terms than words, we'll compare words against terms.
+    if($term_count > 0 && strlen(trim($text))){
+      $tags = array_merge($tags, autotag_search_text($text, $vid));
+    }
   }
-  return $terms;
+  return $tags;
+}
+
+/**
+ * Compare functions
+ */
+function autotag_search_text($text, $vid){
+  $tags_to_return = array();
+  /**
+   * Discovered that the following only seems to work in PHP 5.2, FARP!
+   * Thanks to 
+   * http://stackoverflow.com/questions/790596/split-a-text-into-single-words
+   * $words_including_small = preg_split('/[\p{P}\s\{\}\[\]\(\)]/', strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
+   * 
+   * Note, we split the string only once, so we have to pass the body text
+   * to the search functions
+   */
+  // Lower the text!
+  $text = strtolower($text);
+  $words = array_unique(preg_split('/[\ `!"£$%^&*()_\-+={\[}\]:;@\'~#<,>.?\/|\\\]/', $text, -1, PREG_SPLIT_NO_EMPTY));
+  // We have the words, we need to check
+  // We create a temporary table with all the words in it, and then compare this
+  // temporary table against the taxonomy_term_data table.
+  // First, we create the temporary table
+  $temporary_table_name = db_query_temporary('SELECT ? AS words', array(
+    array_pop($words)
+  ));
+  // Now we insert the rest of the data into the table.  We also add an index
+  // to ensure that searching the data is quick, and update the column to be
+  // a varchar(255)
+  // Update the words column to be a varchar of length 255
+  db_change_field($temporary_table_name, 'words', 'words', array(
+    'type' => 'varchar',
+    'length' => 255
+  ), array(
+    'primary key' => array(
+      'words'
+    )
+  ));
+  $values = array();
+  $insert = db_insert($temporary_table_name);
+  $insert->fields(array('words'));
+  foreach($words as $word){
+    if(strlen($word < 256)){
+      $insert->values(array('words' => $word));
+    }
+  }
+  $insert->execute();
+  // Select the direct single word matches.
+  $select = db_select('taxonomy_term_data', 't');
+  $select->join($temporary_table_name, 'a', 'a.words LIKE t.name');
+  $select->addField('t', 'tid');
+  $select->addField('t', 'name');
+  $results = $select->execute();
+  foreach($results as $term){
+    $tags_to_return[] = taxonomy_term_load($term->tid);
+  }
+  // Next we need to get the multiple word terms
+  $select = db_select('taxonomy_term_data', 't');
+  $select->condition('name', '% %', 'LIKE');
+  $select->addField('t', 'tid');
+  $select->addField('t', 'name');
+  $results = $select->execute();
+  foreach($results as $term){
+    if(strpos($text, strtolower($term->name))){
+      $tags_to_return[] = taxonomy_term_load($term->tid);
+    }
+  }
+  return $tags_to_return;
 }
 
 /**
