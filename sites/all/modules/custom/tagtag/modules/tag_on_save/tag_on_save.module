@@ -12,42 +12,13 @@ function tag_on_save_tag_ui_info(){
       'label' => 'Tag on save',
       'description' => t('Saves all found tags to a node without any user interaction required.'),
       'submit_callback' => 'tag_on_save_tag_update',
-      'form_alter_callback' => 'tag_on_save_tag_form_alter',
-      /*'options' => array(
-        'callback' => 'tag_on_save_options_form',
-        'keys' => array(
-          'tag_on_save'
-        )
-      )*/
+      'form_alter_callback' => 'tag_on_save_tag_form_alter'
     )
   );
 }
 
 /**
- * Form alter callback as defined above.  Note, this is different to using the
- * hook, as it means we don't have to do any checks here to see if we should be
- * doing anything.  It also reduces the number of callbacks to execute.
- */
-function tag_on_save_tag_form_alter(&$form, &$form_state){
-  // Do we actually need to do anything here?
-}
-
-/**
- * Options form for this module.
-function tag_on_save_options_form($node_type){
-  return array(
-    'tag_on_save' => array(
-      '#type' => 'checkbox',
-      '#title' => t('Replace tags on update'),
-      '#description' => t('If this box is checked, the node will be analysed every time it is updated, resulting in tags being added or removed.'),
-      '#default_value' => variable_get('tag_on_save_' . $node_type, array())
-    )
-  );
-}
- */
-
-/**
- * Callback as defined above.  Does the hard work of adding tags to the node.
+ * Callback as defined above.
  */
 function tag_on_save_tag_update($form, &$form_state){
   // Simplest of all the UI submit functions.  This simply calls the 
