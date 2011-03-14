@@ -156,6 +156,20 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
 }
 
 /**
+ * Callback for the above to validate the form
+ */
+function tagtag_node_type_form_validate($form, &$form_state){
+  // Simply check that a field has been selected ONLY if a search method has
+  // been specified.
+  foreach($form_state['input']['tagtag_search'] as $key => $value){
+    if($value && !$form_state['input']['tagtag_field']){
+      // We've selected a search, but not a field.
+      form_set_error('tagtag_field', t('Please select a field to save tags to'));
+    }
+  }
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function tagtag_form_alter(&$form, &$form_state, $form_id){
@@ -301,20 +315,6 @@ function tagtag_add_tags(&$form_state){
         // this field, and default to saving the tags as if it's a taxonomy
         // field.
         break;
-    }
-  }
-}
-
-/**
- * Callback for the above to validate the form
- */
-function tagtag_node_type_form_validate($form, &$form_state){
-  // Simply check that a field has been selected ONLY if a search method has
-  // been specified.
-  foreach($form_state['input']['tagtag_search'] as $key => $value){
-    if($value && !$form_state['input']['tagtag_field']){
-      // We've selected a search, but not a field.
-      form_set_error('tagtag_field', t('Please select a field to save tags to'));
     }
   }
 }
