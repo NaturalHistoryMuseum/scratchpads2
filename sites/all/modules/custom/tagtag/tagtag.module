@@ -55,9 +55,14 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   $instances = field_info_instances('node', $form['#node_type']->type);
   $search_fields = array();
   foreach($instances as $key => $instance){
-    $field_options[$key] = $instance['label'];
-    if(substr($instance['widget']['type'], 0, 5) == 'text_'){
-      $search_fields[$key] = $instance['label'];
+    if(in_array($instance['widget']['module'], array(
+      'taxonomy',
+      'text'
+    ))){
+      $field_options[$key] = $instance['label'];
+      if(substr($instance['widget']['type'], 0, 5) == 'text_'){
+        $search_fields[$key] = $instance['label'];
+      }
     }
   }
   // Set the default value to the search fields to be ALL text fields.
@@ -277,7 +282,7 @@ function tagtag_add_tags(&$form_state){
         $tag_text = array();
         foreach($form_state['values']['tagtag'] as $tag){
           if(strpos($tag->name, ';')){
-            $tag_text[] = '"'.str_replace('"', '\"', $tag->name).'"';
+            $tag_text[] = '"' . str_replace('"', '\"', $tag->name) . '"';
           }else{
             $tag_text[] = $tag->name;
           }
