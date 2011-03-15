@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * hook_menu
+ */
+function uwho_site_menu(){
+  return array(
+    'admin/settings/uwho-site' => array(
+      'title' => 'UWho - Site settings',
+      'description' => 'Alter the settings that allow other sites to automatically log users into this site',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'uwho_site_settings'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'uwho_site.settings.inc'
+    ),
+    'uwho' => array(
+      'type' => MENU_CALLBACK,
+      'title' => 'UWho callback',
+      'page callback' => 'uwho_site_callback',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'uwho_site.callback.inc'
+    )
+  );
+}
+
+/**
+ * hook_user
+ * 
+ * - We need to delete the entry from uwho if a user is deleted
+ * - Also add some pretty info to the view page.
+ */
+function uwho_site_user($op, &$edit, &$account, $category = NULL){
+  switch($op){
+    case 'delete':
+      db_query('DELETE FROM {uwho} WHERE uid = %d', $account->uid);
+      break;
+    case 'view':
+      $data = db_result(db_query('SELECT data FROM {uwho} WHERE uid = %d', $account->uid));
+      if($data){
+        $data = unserialize($data);
+        $account->content['uwho_site'] = array(
+          '#title' => 'UWho Original Details',
+          '#type' => 'user_profile_category',
+          '#weight' => 0,
+          'site' => array(
+            '#type' => 'user_profile_item',
+            '#title' => t('Site'),
+            '#value' => '<a href="' . $data['site_url'] . '">' . $data['site_url'] . '</a>'
+          ),
+          'user_account' => array(
+            '#type' => 'user_profile_item',
+            '#title' => t('User account'),
+            '#value' => '<a href="' . $data['user']['url'] . '">' . $data['user']['url'] . '</a>'
+          ),
+          'name' => array(
+            '#type' => 'user_profile_item',
+            '#title' => t('Account name'),
+            '#value' => $data['user']['name']
+          )
+        );
+      }
+      break;
+  }
+}
