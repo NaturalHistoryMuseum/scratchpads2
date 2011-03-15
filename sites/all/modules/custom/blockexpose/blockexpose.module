@@ -62,9 +62,9 @@ function blockexpose_block_view_alter(&$data, $block){
 function theme_blockexpose($data){
   drupal_add_js(drupal_get_path('module', 'blockexpose') . '/js/blockexpose.js');
   drupal_add_css(drupal_get_path('module', 'blockexpose') . '/css/blockexpose.css');
-  return '<div id="remote-issue-tab">
+  return '<div class="blockexpose">
   <div class="content">
-    <div id="open-close">
+    <div class="open-close">
       <p>' . $data['subject'] . '</p>
     </div>
     <div class="subcontent">

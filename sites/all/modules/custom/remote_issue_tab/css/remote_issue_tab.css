@@ -1,92 +1,41 @@
-#remote-issue-tab,
-#remote-issue-tab .content,
-#open-close,
-#open-close p,
-#remote-issue-tab .subcontent,
-#remote-issue-tab .subcontent .new-items,
-#remote-issue-tab .subcontent .new-items h1 a,
-#remote-issue-tab .subcontent .items,
-#remote-issue-tab .subcontent .items h1,
-#remote-issue-tab .subcontent .items ul,
-#remote-issue-tab .subcontent .items ul li,
-#remote-issue-tab .subcontent .items ul li h3 a,
-#remote-issue-tab .subcontent .footer,
-#remote-issue-tab .subcontent .footer h1,
-#remote-issue-tab .subcontent .footer h3,
-#remote-issue-tab .subcontent .footer h1 a{
-	font-family:arial,sans-serif;
-	font-size:12px;
-	font-weight:400;
-	font-style:normal;
-	letter-spacing:normal;
-	word-spacing:0;
-	line-height:170%;
-	text-align:left;
-	z-index:1001;
-}
-#remote-issue-tab{
- position:fixed;
- top:20px;
- right:-375px;
- width:400px;
- background-color:transparent;
- padding:0 !important;
+
  font-family:arial,sans-serif;
- text-align:left;
- opacity:0.95;
+
+.blockexpose,
+.blockexpose .content,
+.open-close,
+.open-close p,
+.blockexpose .subcontent,
+.blockexpose .subcontent .new-items,
+.blockexpose .subcontent .new-items h1 a,
+.blockexpose .subcontent .items,
+.blockexpose .subcontent .items h1,
+.blockexpose .subcontent .items ul,
+.blockexpose .subcontent .items ul li,
+.blockexpose .subcontent .items ul li h3 a,
+.blockexpose .subcontent .footer,
+.blockexpose .subcontent .footer h1,
+.blockexpose .subcontent .footer h3,
+.blockexpose .subcontent .footer h1 a{
+  font-family:arial,sans-serif;
+  font-size:12px;
+  font-weight:400;
+  font-style:normal;
+  letter-spacing:normal;
+  word-spacing:0;
+  line-height:170%;
+  text-align:left;
 }
-#remote-issue-tab .content{
- margin:0 !important;
- padding-right:0;
-}
-#open-close{
- top:30px;
- position:absolute;
- height:100px;
- width:20px;
- border:solid 1px black;
- border-right: solid 1px #f5f5f5;
- float:left;
- padding:10px 0 10px 0;
- overflow:hidden;
-}
-#open-close:hover{
- cursor:pointer;
-}
-#open-close p{
-	font-size:14px;
- color:#333;
- border:0px solid red;
- writing-mode:tb-rl;
- -webkit-transform:rotate(90deg);
- -moz-transform:rotate(90deg);
- -o-transform: rotate(90deg);
- white-space:nowrap;
- display:block;
- bottom:0;
- padding:0;
- margin:0;
-}
-#remote-issue-tab .subcontent{
- font-size:80%;
- min-height:200px;
- float:right;
- width:373px;
- border: solid 1px black;
- border-right:none;
- padding:5px;
- padding-right:0;
-}
-#remote-issue-tab .subcontent .new-items{
+.blockexpose .subcontent .new-items{
  margin-bottom:10px !important;
 }
-#remote-issue-tab .subcontent .new-items h1 a{
-	font-size:15px;
-	font-weight:bold;
+.blockexpose .subcontent .new-items h1 a{
+  font-size:15px;
+  font-weight:bold;
 }
-#remote-issue-tab .subcontent .items{
+.blockexpose .subcontent .items{
 }
-#remote-issue-tab .subcontent .items h1{
+.blockexpose .subcontent .items h1{
  color:white;
  background-color:#555555;
  padding:3px;
@@ -95,11 +44,11 @@
  margin:0;
  line-height:20px;
 }
-#remote-issue-tab .subcontent .items ul{
+.blockexpose .subcontent .items ul{
  margin:0.5em 0 1em;
  padding:0;
 }
-#remote-issue-tab .subcontent .items ul li{
+.blockexpose .subcontent .items ul li{
  font-size:11px;
  background:none !important;
  padding:0.2em !important;
@@ -108,46 +57,30 @@
  padding:0.2em !important;
  margin: 0.15em 0 0.15em 0.5em !important;
 }
-#remote-issue-tab .subcontent .items ul li.first{
+.blockexpose .subcontent .items ul li.first{
  border-top:none;
 }
-#remote-issue-tab .subcontent .items ul li h3 a{
-	font-size:13px;
+.blockexpose .subcontent .items ul li h3 a{
+  font-size:13px;
 }
-#remote-issue-tab .subcontent .items ul li p{
+.blockexpose .subcontent .items ul li p{
  padding:0;
  margin:0;
  display:none;
 }
-#remote-issue-tab .subcontent .footer{
+.blockexpose .subcontent .footer{
  background-color:#FFFFAA;
  padding:3px 3px 3px 10px;
 }
-#remote-issue-tab .subcontent .footer h1{
+.blockexpose .subcontent .footer h1{
 font-size:15px;
 font-weight:bold;
 }
-#remote-issue-tab .subcontent .footer h3{
+.blockexpose .subcontent .footer h3{
 font-size:13px;
 font-weight:400;
 }
-#remote-issue-tab .subcontent .footer h3 a{
+.blockexpose .subcontent .footer h3 a{
 font-size:13px;
 font-weight:400;
-}
-
-#remote-issue-tab #open-close, #remote-issue-tab .subcontent, #remote-issue-tab .footer{
- -moz-border-radius-topleft:5px;
- -webkit-border-top-left-radius:5px;
- -moz-border-radius-bottomleft:5px;
- -webkit-border-bottom-left-radius:5px;
-}
-#remote-issue-tab #open-close, #remote-issue-tab .subcontent{
- -moz-box-shadow: -3px 3px 3px #bbb;
- -webkit-box-shadow: -3px 3px 3px #bbb;
- box-shadow: -3px 3px 3px #bbb;
-}
-
-#open-close, #remote-issue-tab .subcontent{
- background-color:#f5f5f5;
 }

@@ -15,8 +15,9 @@ function theme_remote_issue_tab_block($variables = array()){
   // Note, we cache by user due to the fact that the user details are embeded in
   // each of the links.
   if($variables['feed'] && $variables['uwho_key'] && $variables['uwho_url']){
-    // Add the CSS
+    // Add the CSS & JS
     drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
+    drupal_add_js(drupal_get_path('module', 'remote_issue_tab') . '/js/remote_issue_tab.js');
     // Load the required file
     module_load_include('pages.inc', 'aggregator');
     // This defaults to 20, which is more than enough for us!
