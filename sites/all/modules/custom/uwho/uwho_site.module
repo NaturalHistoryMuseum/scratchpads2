@@ -5,7 +5,7 @@
  */
 function uwho_site_menu(){
   return array(
-    'admin/settings/uwho-site' => array(
+    'admin/config/services/uwho-site' => array(
       'title' => 'UWho - Site settings',
       'description' => 'Alter the settings that allow other sites to automatically log users into this site',
       'page callback' => 'drupal_get_form',
@@ -33,41 +33,39 @@ function uwho_site_menu(){
 }
 
 /**
- * hook_user
- * 
- * - We need to delete the entry from uwho if a user is deleted
- * - Also add some pretty info to the view page.
+ * Implementation of hook_user_delete()
  */
-function uwho_site_user($op, &$edit, &$account, $category = NULL){
-  switch($op){
-    case 'delete':
-      db_query('DELETE FROM {uwho} WHERE uid = %d', $account->uid);
-      break;
-    case 'view':
-      $data = db_result(db_query('SELECT data FROM {uwho} WHERE uid = %d', $account->uid));
-      if($data){
-        $data = unserialize($data);
-        $account->content['uwho_site'] = array(
-          '#title' => 'UWho Original Details',
-          '#type' => 'user_profile_category',
-          '#weight' => 0,
-          'site' => array(
-            '#type' => 'user_profile_item',
-            '#title' => t('Site'),
-            '#value' => '<a href="' . $data['site_url'] . '">' . $data['site_url'] . '</a>'
-          ),
-          'user_account' => array(
-            '#type' => 'user_profile_item',
-            '#title' => t('User account'),
-            '#value' => '<a href="' . $data['user']['url'] . '">' . $data['user']['url'] . '</a>'
-          ),
-          'name' => array(
-            '#type' => 'user_profile_item',
-            '#title' => t('Account name'),
-            '#value' => $data['user']['name']
-          )
-        );
-      }
-      break;
+function uwho_site_user_delete($account){
+  db_delete('uwho')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implementation of hook_user_view()
+ */
+function uwho_site_user_view($account, $view_mode, $langcode){
+  $data = db_select('uwho', 'u')->fields('u', array('data'))->condition('uid', $account->uid)->execute()->fetchField();
+  if($data){
+    $data = unserialize($data);
+    $account->content['uwho_site'] = array(
+      '#title' => 'UWho Original Details',
+      '#type' => 'user_profile_category',
+      '#weight' => 0,
+      '#markup' => '',
+      'site' => array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Site'),
+        '#markup' => '<a href="' . $data['site_url'] . '">' . $data['site_url'] . '</a>'
+      ),
+      'user_account' => array(
+        '#type' => 'user_profile_item',
+        '#title' => t('User account'),
+        '#markup' => '<a href="' . $data['user']['url'] . '">' . $data['user']['url'] . '</a>'
+      ),
+      'name' => array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Account name'),
+        '#markup' => $data['user']['name']
+      )
+    );
   }
 }

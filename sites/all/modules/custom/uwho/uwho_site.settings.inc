@@ -17,7 +17,7 @@ function uwho_site_settings(){
         '#title' => t('UWho Key'),
         '#collapsible' => FALSE,
         'uwho_site_key' => array(
-          '#value' => '<h2>' . variable_get('uwho_site_key', '') . '</h2>'
+          '#markup' => '<h2>' . variable_get('uwho_site_key', '') . '</h2>'
         )
       ),
       'uwho_site_url_fieldset' => array(
@@ -25,7 +25,7 @@ function uwho_site_settings(){
         '#title' => t('UWho URL'),
         '#collapsible' => FALSE,
         'uwho_site_url' => array(
-          '#value' => '<h2>' . url('uwho', array(
+          '#markup' => '<h2>' . url('uwho', array(
             'absolute' => TRUE
           )) . '</h2>'
         )
