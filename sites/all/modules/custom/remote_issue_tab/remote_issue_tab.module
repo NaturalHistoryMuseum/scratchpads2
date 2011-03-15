@@ -21,8 +21,7 @@ function remote_issue_tab_block_configure($delta = ''){
   $feeds = array(
     t('-- Not Set --')
   );
-  $results = db_query('SELECT fid, title, url FROM {aggregator_feed}');
-  db_select('aggregator_feed', 'a')->fields('a', array(
+  $results = db_select('aggregator_feed', 'a')->fields('a', array(
     'title',
     'fid',
     'url'

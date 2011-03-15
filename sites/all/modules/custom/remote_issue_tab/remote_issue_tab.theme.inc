@@ -87,8 +87,3 @@ function theme_remote_issue_tab_feed_item($variables = array()){
   // logged in by uwho.
   return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><p>' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $variables['item']->description) . '</p></div></li>';
 }
-
-// FIXME - Remove me!!
-function uwho_client_block_content(){
-  return '';
-}
