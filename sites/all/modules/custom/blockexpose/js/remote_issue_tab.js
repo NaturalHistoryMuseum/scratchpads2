@@ -1,4 +1,6 @@
-Drupal.behaviors.remote_issues_block = function(context){
+(function($){
+Drupal.behaviors.remote_issues_block = {
+ attach: function (context, settings){
   var remote_issues_block_hidden = true;
   $('#remote-issue-tab #open-close', context).click(function(){
     if(remote_issues_block_hidden){
@@ -15,4 +17,6 @@ Drupal.behaviors.remote_issues_block = function(context){
       $(this).children().children('p').slideUp(500);
     });
   });
-};
+ }
+}
+})(jQuery);

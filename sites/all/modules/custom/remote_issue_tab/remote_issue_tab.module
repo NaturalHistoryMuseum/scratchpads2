@@ -118,8 +118,8 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
     'remote_issue_tab_feed_items' => array(
       'variables' => array(
         'items' => NULL,
-        'key' => NULL,
-        'url' => NULL
+        'uwho_key' => NULL,
+        'uwho_url' => NULL
       ),
       'file' => 'remote_issue_tab.theme.inc'
     ),
@@ -127,8 +127,8 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
       'variables' => array(
         'item' => NULL,
         'item_count' => NULL,
-        'key' => NULL,
-        'url' => NULL
+        'uwho_key' => NULL,
+        'uwho_url' => NULL
       ),
       'file' => 'remote_issue_tab.theme.inc'
     )
