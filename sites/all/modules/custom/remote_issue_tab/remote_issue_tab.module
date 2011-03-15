@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * Implementation of hook_block_info()
+ */
+function remote_issue_tab_block_info(){
+  // Note, we cache by user, as the user details are embeded in the URLs that
+  // are added to the block.
+  return array(
+    array(
+      'info' => t('Remote issue block'),
+      'cache' => DRUPAL_CACHE_PER_USER
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_configure() 
+ */
+function remote_issue_tab_block_configure($delta = ''){
+  $feeds = array(
+    t('-- Not Set --')
+  );
+  $results = db_query('SELECT fid, title, url FROM {aggregator_feed}');
+  db_select('aggregator_feed', 'a')->fields('a', array(
+    'title',
+    'fid',
+    'url'
+  ))->execute();
+  foreach($results as $row){
+    $feeds[$row->fid] = check_plain($row->title . ' (' . $row->url . ')');
+  }
+  return array(
+    'remote_issue_tab_feed' => array(
+      '#title' => t('Please select the feed to be used by the Remote Issue Block'),
+      '#type' => 'select',
+      '#options' => $feeds,
+      '#default_value' => variable_get('remote_issue_tab_feed', 0),
+      '#description' => t('Select the RSS Feed (A new RSS feed can be added using the <a href="!agg_url">Aggregator interface</a>, after which you will be redirected here.)', array(
+        '!agg_url' => url('admin/config/services/aggregator/add/feed', array(
+          'query' => array(
+            'destination' => 'admin/structure/block/manage/remote_issue_tab/0/configure'
+          )
+        ))
+      ))
+    ),
+    'remote_issue_tab_uwho_client_key' => array(
+      '#title' => t('UWho Client Key'),
+      '#description' => t('Enter the key from the site you\'d like to enable your users to login to.'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('remote_issue_tab_uwho_client_key', ''),
+      '#required' => TRUE
+    ),
+    'remote_issue_tab_uwho_url' => array(
+      '#title' => t('UWho Client URL'),
+      '#description' => t('Enter the URL of the site you\'d like to enable your users to login to.  This must be EXACTLY as provided by the other site.'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('remote_issue_tab_uwho_url', ''),
+      '#required' => TRUE
+    ),
+    'remote_issue_tab_redirect_path' => array(
+      '#title' => t('UWho Redirect PATH'),
+      '#description' => t('Enter the path of the page on the remote site that you\'d like users to be redirected to (leave blank to use the default)'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('remote_issue_tab_redirect_path', '')
+    ),
+    'remote_issue_tab_footer' => array(
+      '#title' => t('Footer'),
+      '#type' => 'textarea',
+      '#default_value' => variable_get('remote_issue_tab_footer', ''),
+      '#description' => t('Enter text to be displayed below the Recent Issues.')
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_save()
+ */
+function remote_issue_tab_block_save($delta = '', $edit = array()){
+  variable_set('remote_issue_tab_feed', $edit['remote_issue_tab_feed']);
+  variable_set('remote_issue_tab_uwho_client_key', $edit['remote_issue_tab_uwho_client_key']);
+  variable_set('remote_issue_tab_uwho_url', $edit['remote_issue_tab_uwho_url']);
+  variable_set('remote_issue_tab_redirect_path', $edit['remote_issue_tab_redirect_path']);
+  variable_set('remote_issue_tab_footer', $edit['remote_issue_tab_footer']);
+}
+
+/**
+ * Implementation of hook_block_view()
+ */
+function remote_issue_tab_block_view($delta = ''){
+  return array(
+    'subject' => t('Issues...'),
+    'content' => theme('remote_issue_tab_block', array(
+      'feed' => variable_get('remote_issue_tab_feed', 0),
+      'uwho_key' => variable_get('remote_issue_tab_uwho_client_key', ''),
+      'uwho_url' => variable_get('remote_issue_tab_uwho_url', ''),
+      'uwho_redirect_path' => variable_get('remote_issue_tab_redirect_path', ''),
+      'footer' => variable_get('remote_issue_tab_footer', '')
+    ))
+  );
+}
+
+/**
+ * hook_theme
+ */
+function remote_issue_tab_theme($existing, $type, $theme, $path){
+  return array(
+    'remote_issue_tab_block' => array(
+      'variables' => array(
+        'feed' => 0,
+        'uwho_key' => FALSE,
+        'uwho_url' => FALSE,
+        'uwho_redirect_path' => FALSE,
+        'footer' => ''
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    ),
+    'remote_issue_tab_feed_items' => array(
+      'variables' => array(
+        'items' => NULL,
+        'key' => NULL,
+        'url' => NULL
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    ),
+    'remote_issue_tab_feed_item' => array(
+      'variables' => array(
+        'item' => NULL,
+        'item_count' => NULL,
+        'key' => NULL,
+        'url' => NULL
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    )
+  );
+}
