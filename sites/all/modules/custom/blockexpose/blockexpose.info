@@ -1,0 +1,4 @@
+name = "Block expose"
+description = "Allows a user to specify that a block should be displayed as a tab on the side of a page."
+package = "Scratchpads"
+core = 7.x

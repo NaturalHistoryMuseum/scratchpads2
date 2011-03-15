@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  $settings = variable_get('display_as_tab', array());
+  $form['blockexpose'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tabify the block'),
+    '#group' => 'visibility',
+    'display_as_tab' => array(
+      '#type' => 'checkbox',
+      '#default_value' => isset($settings[$form['module']['#value']][$form['delta']['#value']]) ? $settings[$form['module']['#value']][$form['delta']['#value']] : 0,
+      '#description' => t('Tick the box to display this block as a tab hidden at the edge of a page'),
+      '#title' => t('Display as tab')
+    )
+  );
+  $blockexpose_submit = array(
+    'blockexpose_block_admin_configure_form_submit'
+  );
+  $form['#submit'] = is_array($form['#submit']) ? array_merge($form['#submit'], $blockexpose_submit) : $blockexpose_submit;
+}
+
+/**
+ * Submit function for saving the above settings.
+ */
+function blockexpose_block_admin_configure_form_submit($form, &$form_state){
+  $settings = variable_get('display_as_tab', array());
+  $settings[$form_state['values']['module']][$form_state['values']['delta']] = $form_state['values']['display_as_tab'];
+  variable_set('display_as_tab', $settings);
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function blockexpose_theme($existing, $type, $theme, $path){
+  return array(
+    'blockexpose' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function blockexpose_block_view_alter(&$data, $block){
+  // Are we changing this block?
+  $settings = variable_get('display_as_tab', array());
+  if(isset($settings[$block->module][$block->delta]) && $settings[$block->module][$block->delta]){
+    $data['content'] = theme('blockexpose', $data);
+    $data['subject'] = '';
+  }
+}
+
+/**
+ * Theme function to add JS
+ */
+function theme_blockexpose($data){
+  drupal_add_js(drupal_get_path('module', 'blockexpose') . '/js/blockexpose.js');
+  drupal_add_css(drupal_get_path('module', 'blockexpose') . '/css/blockexpose.css');
+  return '<div id="remote-issue-tab">
+  <div class="content">
+    <div id="open-close">
+      <p>' . $data['subject'] . '</p>
+    </div>
+    <div class="subcontent">
+    	' . $data['content'] . '
+    </div>
+  </div>
+</div>';
+}
