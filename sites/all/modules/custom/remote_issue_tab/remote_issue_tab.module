@@ -119,7 +119,8 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
       'variables' => array(
         'items' => NULL,
         'uwho_key' => NULL,
-        'uwho_url' => NULL
+        'uwho_url' => NULL,
+        'feed' => 0
       ),
       'file' => 'remote_issue_tab.theme.inc'
     ),

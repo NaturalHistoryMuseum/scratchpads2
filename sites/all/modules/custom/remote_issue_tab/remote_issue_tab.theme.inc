@@ -15,9 +15,8 @@ function theme_remote_issue_tab_block($variables = array()){
   // Note, we cache by user due to the fact that the user details are embeded in
   // each of the links.
   if($variables['feed'] && $variables['uwho_key'] && $variables['uwho_url']){
-    // Add the JS and CSS
-    drupal_add_css(drupal_get_path('module', 'remote_issue_tab').'/css/remote_issue_tab.css');
-    drupal_add_js(drupal_get_path('module', 'remote_issue_tab').'/js/remote_issue_tab.js');
+    // Add the CSS
+    drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
     // Load the required file
     module_load_include('pages.inc', 'aggregator');
     // This defaults to 20, which is more than enough for us!
@@ -26,27 +25,19 @@ function theme_remote_issue_tab_block($variables = array()){
     $items = aggregator_feed_items_load('source', (object)array(
       'fid' => $variables['feed']
     ));
-    return '<div id="remote-issue-tab">
-  <div class="content">
-    <div id="open-close">
-      <p>' . variable_get('remote_issue_tab_tab_title', t('Issues') . '...') . '</p>
-    </div>
-    <div class="subcontent">
-      <div class="new-items">
-        <h1>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h1>
-      </div>
-      <div class="items">
-        ' . theme('remote_issue_tab_feed_items', array(
+    return '<div class="new-items">
+ <h1>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h1>
+</div>
+<div class="items">
+ ' . theme('remote_issue_tab_feed_items', array(
       'items' => $items,
       'uwho_key' => $variables['uwho_key'],
-      'uwho_url' => $variables['uwho_url']
+      'uwho_url' => $variables['uwho_url'],
+      'feed' => $variables['feed']
     )) . '
-      </div>
-      <div class="footer">
-        ' . variable_get('remote_issue_tab_footer', '') . '
-      </div>
-    </div>
-  </div>
+</div>
+<div class="footer">
+ ' . variable_get('remote_issue_tab_footer', '') . '
 </div>';
   }else{
     // Something is wrong, we'll return content that is effectively a warning
@@ -63,23 +54,26 @@ function theme_remote_issue_tab_block($variables = array()){
  */
 function theme_remote_issue_tab_feed_items($variables = array()){
   // We only want 10 items, so we'll count
-  kprint_r($variables);
-  return '';
   $content = '';
-  if(count($items)){
+  if(count($variables['items'])){
     $item_count = 0;
     $content = '<h1>Recent Issues:</h1><ul>';
-    foreach($items as $item){
+    foreach($variables['items'] as $item){
       if($item_count == 10){
         break;
       }
-      $content .= theme('remote_issue_tab_feed_item', $item, $item_count, $key, $url);
+      $content .= theme('remote_issue_tab_feed_item', array(
+        'item' => $item,
+        'item_count' => $item_count,
+        'uwho_key' => $variables['uwho_key'],
+        'uwho_url' => $variables['uwho_url']
+      ));
       $item_count++;
     }
     $content .= '</ul>';
   }else{
     return t('There are no issues to display.  You may need to <a href="!agg_url">update</a> the issue feed.', array(
-      '!agg_url' => url('admin/content/aggregator/update/' . variable_get('remote_issue_tab_feed', 0))
+      '!agg_url' => url('admin/config/services/aggregator/update/' . $variables['feed'])
     ));
   }
   return $content;
@@ -91,7 +85,7 @@ function theme_remote_issue_tab_feed_items($variables = array()){
 function theme_remote_issue_tab_feed_item($variables = array()){
   // Note, we remove the "read more" link, as it could prevent users being
   // logged in by uwho.
-  return '<li class="' . ($item_count % 2 ? 'odd' : 'even') . ($item_count ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($key, $url, $item->link, $item->title) . '</h3><p>' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $item->description) . '</p></div></li>';
+  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><p>' . preg_replace('/<a href[^>]*>read more<\/a>/', '', $variables['item']->description) . '</p></div></li>';
 }
 
 // FIXME - Remove me!!
