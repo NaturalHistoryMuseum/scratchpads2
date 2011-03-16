@@ -1,10 +1,10 @@
 (function($){
   Drupal.behaviors.remote_issues_block = {
     attach: function(context, settings){
-      $('.items li').bind('mouseenter', function(){
-        $(this).children().children('p').slideDown(500);
+      $('#remote-issue-tab .items li').bind('mousemove', function(){
+        $(this).children().children('p').slideDown(200);
         $(this).siblings().each(function(){
-          $(this).children().children('p').slideUp(500);
+          $(this).children().children('p').slideUp(1000);
         });
       });
     }
