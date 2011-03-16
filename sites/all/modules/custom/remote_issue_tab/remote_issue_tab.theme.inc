@@ -10,6 +10,11 @@
  * Main theme that creates the whole block content.
  */
 function theme_remote_issue_tab_block($variables = array()){
+  // First ensure the user is logged in, else it's pointless continuing (all
+  // links will be broken by uWho).
+  /*if(user_is_anonymous()){
+    return '';
+  }*/
   // As creating the tab is very processor heavy (due to the number of 
   // encryptions were performing), we'll cache the footer, by user, for 15 mins
   // Note, we cache by user due to the fact that the user details are embeded in
@@ -26,19 +31,21 @@ function theme_remote_issue_tab_block($variables = array()){
     $items = aggregator_feed_items_load('source', (object)array(
       'fid' => $variables['feed']
     ));
-    return '<div class="new-items">
- <h1>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h1>
-</div>
-<div class="items">
- ' . theme('remote_issue_tab_feed_items', array(
-      'items' => $items,
-      'uwho_key' => $variables['uwho_key'],
-      'uwho_url' => $variables['uwho_url'],
-      'feed' => $variables['feed']
-    )) . '
-</div>
-<div class="footer">
- ' . variable_get('remote_issue_tab_footer', '') . '
+    return '<div id="remote-issue-tab">
+ <div class="new-items">
+  <h1>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h1>
+ </div>
+ <div class="items">
+  ' . theme('remote_issue_tab_feed_items', array(
+       'items' => $items,
+       'uwho_key' => $variables['uwho_key'],
+       'uwho_url' => $variables['uwho_url'],
+       'feed' => $variables['feed']
+     )) . '
+ </div>
+ <div class="footer">
+  ' . variable_get('remote_issue_tab_footer', '') . '
+ </div>
 </div>';
   }else{
     // Something is wrong, we'll return content that is effectively a warning
