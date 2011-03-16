@@ -2,7 +2,7 @@
   Drupal.behaviors.remote_issues_block = {
     attach: function(context, settings){
       var timeoutid = false;
-      $('#remote-issue-tab .items li').mousemove(function(){
+      $('#remote-issue-tab .items li', context).mousemove(function(){
         var parentthis = this;    
         if(timeoutid){
           window.clearTimeout(timeoutid);    
