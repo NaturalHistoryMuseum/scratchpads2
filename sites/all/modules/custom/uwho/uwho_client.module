@@ -68,14 +68,18 @@ function uwho_client_block_view($delta = ''){
  * helper function for above which returns the block content
  */
 function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE){
+  // If we're not logged in, and the text is set, then we'll simply return a
+  // link
+  global $user;
+  if(!$user->uid){
+    return ($text != '') ? '<a href="'.($redirect ? $redirect : $url).'">'.$text.'</a>' : '';
+  }
   if(!$text){
     $text = t('Login to remote site');
   }
   // First, we need to get the key that has been set, if no key is set, we 
   // return the empty string.
-  global $user;
-  // If one of the essential settings hasn't been set, or we're not logged in!
-  if(!$user->uid){return '';}
+  // If one of the essential settings hasn't been set, error!
   if(!($key && $url)){return t('Please set the Key and URL on the <a href="!settings_page">settings page</a>', array(
       '!settings_page' => url('admin/structure/block/manage/uwho_client/0/configure')
     ));}
