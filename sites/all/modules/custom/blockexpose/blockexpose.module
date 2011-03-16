@@ -5,6 +5,7 @@
  */
 function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
   $settings = variable_get('display_as_tab', array());
+  $settings_side = variable_get('display_as_tab_side', array());
   $form['blockexpose'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tabify the block'),
@@ -14,6 +15,16 @@ function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $for
       '#default_value' => isset($settings[$form['module']['#value']][$form['delta']['#value']]) ? $settings[$form['module']['#value']][$form['delta']['#value']] : 0,
       '#description' => t('Tick the box to display this block as a tab hidden at the edge of a page'),
       '#title' => t('Display as tab')
+    ),
+    'display_as_tab_side' => array(
+      '#type' => 'select',
+      '#default_value' => isset($settings_side[$form['module']['#value']][$form['delta']['#value']]) ? $settings_side[$form['module']['#value']][$form['delta']['#value']] : 'right',
+      '#description' => t('What side of the page should the tab be displayed on?'),
+      '#title' => t('Side'),
+      '#options' => array(
+        'left' => t('Left'),
+        'right' => t('Right')
+      )
     )
   );
   $blockexpose_submit = array(
@@ -26,9 +37,14 @@ function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $for
  * Submit function for saving the above settings.
  */
 function blockexpose_block_admin_configure_form_submit($form, &$form_state){
+  // Save the tab status
   $settings = variable_get('display_as_tab', array());
   $settings[$form_state['values']['module']][$form_state['values']['delta']] = $form_state['values']['display_as_tab'];
   variable_set('display_as_tab', $settings);
+  // Save the side
+  $settings = variable_get('display_as_tab_side', array());
+  $settings[$form_state['values']['module']][$form_state['values']['delta']] = $form_state['values']['display_as_tab_side'];
+  variable_set('display_as_tab_side', $settings);
 }
 
 /**
@@ -50,9 +66,35 @@ function blockexpose_theme($existing, $type, $theme, $path){
 function blockexpose_block_view_alter(&$data, $block){
   // Are we changing this block?
   $settings = variable_get('display_as_tab', array());
-  if(isset($settings[$block->module][$block->delta]) && $settings[$block->module][$block->delta]){
-    $data['content'] = theme('blockexpose', $data);
-    $data['subject'] = '';
+  // Note, we only change the block if the user has JS
+  if(isset($settings[$block->module][$block->delta]) && $settings[$block->module][$block->delta] && (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
+    // We actually save the $data array for use later in the hook_footer
+    // function.  This prevents an empty block from appearing in the side bar
+    // (depending on theme).
+    $blockexpose = &drupal_static('blockexpose', array());
+    $blockexpose[] = array(
+      'data' => $data,
+      'block' => $block
+    );
+    drupal_static('blockexpose', $blockexpose);
+    // Unset content to prevent this block from being displayed.
+    $data['content'] = '';
+  }
+}
+
+/**
+ * Implementation of hook_page_alter()
+ * 
+ * Note, this adds blocks to the content region, as we can be certain that
+ * the content region will be present in all themes.
+ */
+function blockexpose_page_alter(&$page){
+  $blockexpose = &drupal_static('blockexpose', array());
+  $settings_side = variable_get('display_as_tab_side', array());
+  foreach($blockexpose as $block){
+    $data = $block['data'];
+    $data['leftorright'] = isset($settings_side[$block['block']->module][$block['block']->delta]) ? $settings_side[$block['block']->module][$block['block']->delta] : 'right';
+    $page['content']['blockexpose'][]['#markup'] = theme('blockexpose', $data);
   }
 }
 
@@ -62,14 +104,27 @@ function blockexpose_block_view_alter(&$data, $block){
 function theme_blockexpose($data){
   drupal_add_js(drupal_get_path('module', 'blockexpose') . '/js/blockexpose.js');
   drupal_add_css(drupal_get_path('module', 'blockexpose') . '/css/blockexpose.css');
-  return '<div class="blockexpose">
-  <div class="content">
-    <div class="open-close">
-      <p>' . $data['subject'] . '</p>
+  if(isset($data['content']) && isset($data['subject'])){
+    // Get the number of this tab for the side.
+    $side_number = &drupal_static('blockexpose_'.$data['leftorright'], 0);
+    $side_number ++;
+    drupal_static('blockexpose_'.$data['leftorright'], $side_number);
+    $subject = $data['subject'];
+    if(is_array($data['content'])){
+      $block_html = drupal_render($data);
+    }else{
+      $block_html = $data['content'];
+    }
+    return '<div class="blockexpose '.$data['leftorright'].' side-number-'.$side_number.'">
+    <div class="content">
+      <div class="open-close">
+        <p>' . $subject . '</p>
+      </div>
+      <div class="subcontent">
+      	' . $block_html . '
+      </div>
     </div>
-    <div class="subcontent">
-    	' . $data['content'] . '
-    </div>
-  </div>
-</div>';
+  </div>';
+  }
+  return '';
 }
