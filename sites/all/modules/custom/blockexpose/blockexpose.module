@@ -4,26 +4,39 @@
  * Implementation of hook_form_FORM_ID_alter()
  */
 function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
-  $settings = variable_get('display_as_tab', array());
-  $settings_side = variable_get('display_as_tab_side', array());
+  $settings = variable_get('blockexpose_settings_' . $form['module']['#value'] . '_' . $form['delta']['#value'], array(
+    'show' => 0,
+    'side' => 'right',
+    'event' => 'click'
+  ));
   $form['blockexpose'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tabify the block'),
     '#group' => 'visibility',
     'display_as_tab' => array(
       '#type' => 'checkbox',
-      '#default_value' => isset($settings[$form['module']['#value']][$form['delta']['#value']]) ? $settings[$form['module']['#value']][$form['delta']['#value']] : 0,
+      '#default_value' => $settings['show'],
       '#description' => t('Tick the box to display this block as a tab hidden at the edge of a page'),
       '#title' => t('Display as tab')
     ),
     'display_as_tab_side' => array(
       '#type' => 'select',
-      '#default_value' => isset($settings_side[$form['module']['#value']][$form['delta']['#value']]) ? $settings_side[$form['module']['#value']][$form['delta']['#value']] : 'right',
+      '#default_value' => $settings['side'],
       '#description' => t('What side of the page should the tab be displayed on?'),
       '#title' => t('Side'),
       '#options' => array(
         'left' => t('Left'),
         'right' => t('Right')
+      )
+    ),
+    'display_as_tab_event' => array(
+      '#type' => 'select',
+      '#default_value' => $settings['event'],
+      '#description' => t('On what event should the tab be displayed?'),
+      '#title' => t('Event'),
+      '#options' => array(
+        'click' => t('Click'),
+        'hover' => t('Hover')
       )
     )
   );
@@ -37,14 +50,11 @@ function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $for
  * Submit function for saving the above settings.
  */
 function blockexpose_block_admin_configure_form_submit($form, &$form_state){
-  // Save the tab status
-  $settings = variable_get('display_as_tab', array());
-  $settings[$form_state['values']['module']][$form_state['values']['delta']] = $form_state['values']['display_as_tab'];
-  variable_set('display_as_tab', $settings);
-  // Save the side
-  $settings = variable_get('display_as_tab_side', array());
-  $settings[$form_state['values']['module']][$form_state['values']['delta']] = $form_state['values']['display_as_tab_side'];
-  variable_set('display_as_tab_side', $settings);
+  variable_set('blockexpose_settings_' . $form_state['values']['module'] . '_' . $form_state['values']['delta'], array(
+    'show' => $form_state['values']['display_as_tab'],
+    'side' => $form_state['values']['display_as_tab_side'],
+    'event' => $form_state['values']['display_as_tab_event']
+  ));
 }
 
 /**
@@ -54,7 +64,12 @@ function blockexpose_theme($existing, $type, $theme, $path){
   return array(
     'blockexpose' => array(
       'variables' => array(
-        'data' => array()
+        'block' => array(),
+        'settings' => array(
+          'side' => 'right',
+          'show' => 1,
+          'event' => 'click'
+        )
       )
     )
   );
@@ -65,16 +80,19 @@ function blockexpose_theme($existing, $type, $theme, $path){
  */
 function blockexpose_block_view_alter(&$data, $block){
   // Are we changing this block?
-  $settings = variable_get('display_as_tab', array());
-  // Note, we only change the block if the user has JS
-  if(isset($settings[$block->module][$block->delta]) && $settings[$block->module][$block->delta] && (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
+  $settings = variable_get('blockexpose_settings_' . $block->module . '_' . $block->delta, array(
+    'show' => 0
+  ));
+  // Note, we only change the block if the user has JS  
+  if($settings['show'] && (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
     // We actually save the $data array for use later in the hook_footer
     // function.  This prevents an empty block from appearing in the side bar
     // (depending on theme).
     $blockexpose = &drupal_static('blockexpose', array());
     $blockexpose[] = array(
       'data' => $data,
-      'block' => $block
+      'block' => $block,
+      'settings' => $settings
     );
     drupal_static('blockexpose', $blockexpose);
     // Unset content to prevent this block from being displayed.
@@ -90,35 +108,36 @@ function blockexpose_block_view_alter(&$data, $block){
  */
 function blockexpose_page_alter(&$page){
   $blockexpose = &drupal_static('blockexpose', array());
-  $settings_side = variable_get('display_as_tab_side', array());
   foreach($blockexpose as $block){
     $data = $block['data'];
-    $data['leftorright'] = isset($settings_side[$block['block']->module][$block['block']->delta]) ? $settings_side[$block['block']->module][$block['block']->delta] : 'right';
-    $page['content']['blockexpose'][]['#markup'] = theme('blockexpose', $data);
+    $page['content']['blockexpose'][]['#markup'] = theme('blockexpose', array(
+      'block' => $data,
+      'settings' => $block['settings']
+    ));
   }
 }
 
 /**
  * Theme function to add JS
  */
-function theme_blockexpose($data){
+function theme_blockexpose($variables){
   drupal_add_js(drupal_get_path('module', 'blockexpose') . '/js/blockexpose.js');
   drupal_add_css(drupal_get_path('module', 'blockexpose') . '/css/blockexpose.css');
-  if(isset($data['content']) && isset($data['subject'])){
+  if(isset($variables['block']['content']) && isset($variables['block']['subject'])){
     // Get the number of this tab for the side.
-    $side_number = &drupal_static('blockexpose_'.$data['leftorright'], 0);
-    $side_number ++;
-    drupal_static('blockexpose_'.$data['leftorright'], $side_number);
-    $subject = $data['subject'];
-    if(is_array($data['content'])){
-      $block_html = drupal_render($data);
+    $side_number = &drupal_static('blockexpose_' . $variables['settings']['side'], 0);
+    $side_number++;
+    drupal_static('blockexpose_' . $variables['settings']['side'], $side_number);
+    $subject = $variables['block']['subject'];
+    if(is_array($variables['block']['content'])){
+      $block_html = drupal_render($variables['block']);
     }else{
-      $block_html = $data['content'];
+      $block_html = $variables['block']['content'];
     }
-    return '<div class="blockexpose '.$data['leftorright'].' side-number-'.$side_number.'">
+    return '<div class="blockexpose ' . $variables['settings']['side'] . ' side-number-' . $side_number . '">
     <div class="content">
-      <div class="open-close">
-        <p>' . $subject . '</p>
+      <div class="open-close '.$variables['settings']['event'].'">
+        <p'.($variables['settings']['event'] == 'click' ? ' title="Click"' : '').'>' . $subject . '</p>
       </div>
       <div class="subcontent">
       	' . $block_html . '
