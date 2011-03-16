@@ -36,12 +36,12 @@
 }
 .blockexpose.right .open-close{
  float:left;
- border-right: solid 1px #f5f5f5;
+ border-right: solid 1px #fff;
  left:0;
 }
 .blockexpose.left .open-close{
  float:right;
- border-left: solid 1px #f5f5f5;
+ border-left: solid 1px #fff;
  right:0;
 }
 .open-close:hover{
@@ -105,5 +105,5 @@
  box-shadow: 3px 3px 3px #bbb;
 }
 .open-close, .blockexpose .subcontent{
- background-color:#f5f5f5;
+ background-color:#fff;
 }
