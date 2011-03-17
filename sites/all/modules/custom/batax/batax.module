@@ -41,6 +41,10 @@ function batax_form_alter(&$form, &$form_state, $form_id){
  * Implementation of hook_form_FORM_ID_alter()
  */
 function batax_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){
+  // Only add the options for options taxonomy fields
+  if($form['#field']['type'] != 'taxonomy_term_reference' || $form['instance']['widget']['module']['#value'] != 'options'){
+    return;
+  }
   $widgets = field_info_widget_types();
   $taxonomy_widgets = array(
     0 => '-- None --'
