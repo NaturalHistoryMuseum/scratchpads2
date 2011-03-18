@@ -1,0 +1,100 @@
+<?php
+
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Group theme module.
+ */
+
+
+/**
+ * Upgrade from 6.x version of Organic groups theme.
+ */
+function og_theme_update_7000(&$sandbox) {
+  $sandbox['#finished'] = 0;
+
+  if (!isset($sandbox['total'])) {
+    // Initialize state for future calls.
+    $sandbox['last'] = 0;
+    $sandbox['count'] = 0;
+
+    // Get the group types. Group update has ran already, so we can use
+    // Group's API.
+    // @see og_theme_update_dependencies()
+    $groups = FALSE;
+    foreach (node_type_get_types() as $type) {
+      if (og_is_group_type('node', $type->type)) {
+        // Add group theme field to the content type.
+        og_create_field(OG_THEME_FIELD, 'node', $type->type);
+        $groups = TRUE;
+
+      }
+    }
+
+    if ($groups) {
+      $query = db_select('node_revision', 'nr');
+      $query->innerJoin('node', 'n', 'n.vid = nr.vid');
+      $query->innerJoin('og', 'og', 'n.nid = og.nid');
+
+      $sandbox['total'] = $query
+        ->isNotNull('og.og_theme')
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+    }
+  }
+  else {
+    $found = FALSE;
+    if ($sandbox['total']) {
+      // Operate on every revision of every node, in batches.
+      $batch_size = 200;
+      $query = db_select('node_revision', 'nr');
+      $query->innerJoin('node', 'n', 'n.vid = nr.vid');
+      $query->innerJoin('og', 'og', 'n.nid = og.nid');
+      $query
+        ->fields('nr', array('nid', 'vid'))
+        ->fields('n', array('type'))
+        ->fields('og', array('og_theme'))
+        ->condition('nr.vid', $sandbox['last'], '>')
+        ->isNotNull('og.og_theme')
+        ->orderBy('nr.vid', 'ASC')
+        ->range(0, $batch_size);
+      $revisions = $query->execute();
+
+      foreach ($revisions as $revision) {
+        // Create a dummy node object.
+        $node = (object) array(
+          'nid' => $revision->nid,
+          'vid' => $revision->vid,
+          'type' => $revision->type,
+        );
+
+        // Set field values.
+        $node->{OG_THEME_FIELD}[LANGUAGE_NONE][0]['value'] = $revision->og_theme;
+
+        field_attach_update('node', $node);
+
+        $sandbox['last'] = $revision->vid;
+        $sandbox['count'] += 1;
+      }
+
+      $sandbox['#finished'] = min(0.99, $sandbox['count'] / $sandbox['total']);
+    }
+
+    if (!$found) {
+      // All nodes are processed.
+      $sandbox['#finished'] = 1;
+    }
+  }
+}
+
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function og_theme_update_dependencies() {
+  $dependencies['og_theme'][7000] = array(
+    'og' => 7000,
+  );
+  return $dependencies;
+}

@@ -1,0 +1,15 @@
+; $Id:$
+name = Organic groups language
+description = "Associate language interface to a group."
+package = "Organic groups"
+dependencies[] = og_context
+dependencies[] = locale
+core = 7.x
+files[] = og_language.module
+files[] = og_language.install
+; Information added by drupal.org packaging script on 2011-03-17
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "og"
+datestamp = "1300320996"
+

@@ -1,0 +1,14 @@
+; $Id:$
+name = Organic groups Views integration
+description = "Use Views to search and display groups."
+package = "Organic groups"
+dependencies[] = og
+dependencies[] = views
+core = 7.x
+files[] = og_views.module
+; Information added by drupal.org packaging script on 2011-03-17
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "og"
+datestamp = "1300320996"
+

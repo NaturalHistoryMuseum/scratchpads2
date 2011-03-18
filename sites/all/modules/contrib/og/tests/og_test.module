@@ -1,0 +1,19 @@
+<?php
+
+
+/**
+ * @file
+ * Test module for Organic groups.
+ */
+
+/**
+ * Implements hook_node_access().
+ */
+function og_test_node_access($node, $op, $account) {
+  $return = NODE_ACCESS_IGNORE;
+
+  if ($op == 'update' && $node->title == 'deny access') {
+    $return = NODE_ACCESS_DENY;
+  }
+  return $return;
+}

@@ -1,0 +1,167 @@
+<?php
+
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Organic groups UI module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function og_ui_uninstall() {
+  variable_del('og_ui_global_roles');
+}
+
+/**
+ * Upgrade from Organic groups 6 to 7 the selective state of a group (e.g. open,
+ * moderated, etc'.).
+ */
+function og_ui_update_7000(&$sandbox) {
+  if (!module_exists('og')) {
+    // If OG module isn't enabled we can't create the OG specific fields.
+    throw new DrupalUpdateException('You must enable Organic groups module to perform an upgrade from Drupal 6.');
+  }
+
+  // Check this is an upgrade from Drupal 6.
+  if (db_table_exists('d6_og')) {
+    $sandbox['#finished'] = 0;
+    // If this is the first time this functions is called in the batch process,
+    // create fields for the content types.
+    if (!isset($sandbox['total'])) {
+      // Check if there are groups defined.
+      $group_types = array();
+      foreach (node_type_get_types() as $type) {
+        if (og_is_group_type('node', $type->type)) {
+          $group_types[] = $type->type;
+
+          // Add the "Group roles and permissions" field to the bundle.
+          og_create_field(OG_DEFAULT_ACCESS_FIELD, 'node', $type->type);
+        }
+      }
+
+      if ($group_types) {
+        // Get the total number of groups that need to be upgraded.
+        $query = db_select('d6_og', 'og');
+        $sandbox['total'] = $query
+          ->countQuery()
+          ->execute()
+          ->fetchField();
+
+        // Initialize state for future calls.
+        $sandbox['last'] = 0;
+        $sandbox['count'] = 0;
+      }
+    }
+    else {
+      if (!empty($sandbox['total'])) {
+        $batch_size = 200;
+        $query = db_select('node_revision', 'nr');
+        $query->innerJoin('node', 'n', 'n.vid = nr.vid');
+        $query->innerJoin('d6_og', 'og', 'n.nid = og.nid');
+        $query
+          ->fields('nr', array('nid', 'vid'))
+          ->fields('n', array('type', 'created'))
+          ->fields('og', array('og_selective'))
+          ->condition('nr.vid', $sandbox['last'], '>')
+          ->orderBy('nr.vid', 'ASC')
+          ->range(0, $batch_size);
+        $revisions = $query->execute();
+
+        // Hold the node IDs so we can later change the permissions accordingly.
+        $nids = array();
+        foreach ($revisions as $revision) {
+          // Create a dummy node object.
+          $node = (object) array(
+            'nid' => $revision->nid,
+            'vid' => $revision->vid,
+            'type' => $revision->type,
+          );
+
+          $nids[$revision->nid] = $revision->og_selective;
+
+          // Set field values.
+          $node->{OG_DEFAULT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] = 1;
+
+          field_attach_update('node', $node);
+
+          $sandbox['last'] = $revision->vid;
+        }
+
+        // Set the correct permissions.
+        if ($nids) {
+          foreach ($nids as $nid => $state) {
+            if ($group = og_get_group('node', $nid)) {
+              $anon_permissions = array();
+              $auth_permissions = array('unsubscribe' => TRUE);
+              switch ($state) {
+                // Open
+                case 0:
+                  $anon_permissions = array(
+                    'subscribe' => FALSE,
+                    'subscribe without approval' => TRUE,
+                  );
+                  break;
+
+                // Moderated.
+                case 1:
+                  $anon_permissions = array(
+                    'subscribe' => TRUE,
+                    'subscribe without approval' => FALSE,
+                  );
+                  break;
+
+                // Invite only.
+                case 2:
+                  $anon_permissions = array(
+                    'subscribe' => FALSE,
+                    'subscribe without approval' => FALSE,
+                  );
+                  break;
+
+                // Closed.
+                case 3:
+                  $anon_permissions = array(
+                    'subscribe' => FALSE,
+                    'subscribe without approval' => FALSE,
+                  );
+
+                  $auth_permissions = array('unsubscribe' => FALSE);
+                  break;
+              }
+
+              // Since the node is already a group we have to manually override
+              // the roles, as og_group() isn't called.
+              $roles = og_roles_override($group->gid);
+              $roles = array_flip($roles);
+
+              // Set the new permissions.
+              og_role_change_permissions($roles[OG_ANONYMOUS_ROLE], $anon_permissions);
+              og_role_change_permissions($roles[OG_AUTHENTICATED_ROLE], $auth_permissions);
+
+              // Increment total count.
+              $sandbox['count'] += 1;
+            }
+          }
+        }
+
+        $sandbox['#finished'] = min(0.99, $sandbox['count'] / $sandbox['total']);
+      }
+    }
+    if (!empty($sandbox['total']) && $sandbox['count'] == $sandbox['total']) {
+      // All nodes and are processed.
+      $sandbox['#finished'] = 1;
+      return t("Groups selective state (e.g. open group, moderated group, etc.') were upgraded.");
+    }
+  }
+}
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function og_ui_update_dependencies() {
+  $dependencies['og_ui'][7000] = array(
+    'og' => 7000,
+  );
+  return $dependencies;
+}
