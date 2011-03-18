@@ -1,4 +1,4 @@
-API.txt: $Id: API.txt,v 1.16 2010/10/11 22:18:22 sdboyer Exp $
+API.txt: $Id$
 
 This file contains a log of changes to the API.
 API Version 2.0

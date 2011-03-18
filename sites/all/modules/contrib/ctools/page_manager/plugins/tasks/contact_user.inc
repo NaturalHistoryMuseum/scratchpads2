@@ -1,5 +1,4 @@
 <?php
-// $Id: contact_user.inc,v 1.4 2010/01/21 05:59:29 sdboyer Exp $
 
 /**
  * Specialized implementation of hook_page_manager_task_tasks(). See api-task.html for
@@ -44,9 +43,13 @@ function page_manager_contact_user_menu_alter(&$items, $task) {
   if (variable_get('page_manager_contact_user_disabled', TRUE)) {
     return;
   }
+  $callback = $items['user/%user/contact']['page callback'];
+  if ($callback == 'drupal_get_form') {
+    $callback = $items['user/%user/contact']['page arguments'][0];
+  }
 
   // Override the user view handler for our purpose.
-  if ($items['user/%user/contact']['page callback'] == 'contact_user_page' || variable_get('page_manager_override_anyway', FALSE)) {
+  if ($callback == 'contact_personal_form' || variable_get('page_manager_override_anyway', FALSE)) {
     $items['user/%user/contact']['page callback'] = 'page_manager_contact_user';
     $items['user/%user/contact']['file path'] = $task['path'];
     $items['user/%user/contact']['file'] = $task['file'];
@@ -55,7 +58,7 @@ function page_manager_contact_user_menu_alter(&$items, $task) {
     // automatically disable this task if it cannot be enabled.
     variable_set('page_manager_contact_user_disabled', TRUE);
     if (!empty($GLOBALS['page_manager_enabling_contact_user'])) {
-      drupal_set_message(t('Page manager module is unable to enable user/%user/contact because some other module already has overridden with %callback.', array('%callback' => $items['user/%user/contact']['page callback'])), 'error');
+      drupal_set_message(t('Page manager module is unable to enable user/%user/contact because some other module already has overridden with %callback.', array('%callback' => $callback)), 'error');
     }
   }
 }
@@ -67,7 +70,7 @@ function page_manager_contact_user_menu_alter(&$items, $task) {
  * to run with it. If no one does, it passes through to Drupal core's
  * user view, which is user_page_view().
  */
-function page_manager_contact_user($account) {
+function page_manager_contact_user($form_id, $account) {
   // Load my task plugin:
   $task = page_manager_get_task('contact_user');
 
@@ -82,7 +85,7 @@ function page_manager_contact_user($account) {
   }
 
   module_load_include('inc', 'contact', 'contact.pages');
-  $function = 'contact_user_page';
+  $function = 'contact_personal_form';
   foreach (module_implements('page_manager_override') as $module) {
     $call = $module . '_page_manager_override';
     if (($rc = $call('contact_user')) && function_exists($rc)) {
@@ -92,7 +95,7 @@ function page_manager_contact_user($account) {
   }
 
   // Otherwise, fall back.
-  return $function($account);
+  return drupal_get_form($function, $account);
 }
 
 /**

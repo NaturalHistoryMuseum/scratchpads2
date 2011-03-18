@@ -1,5 +1,4 @@
 <?php
-// $Id: vocabulary_terms.inc,v 1.7 2010/10/11 22:18:23 sdboyer Exp $
 
 if (module_exists('taxonomy')) {
   /**
@@ -54,7 +53,7 @@ function _ctools_content_vocabulary_terms($vid, $max_depth, $depth = -1, $tid = 
   $result = db_query('SELECT t.name, t.tid FROM {taxonomy_term_data} t INNER JOIN {taxonomy_term_hierarchy} h ON t.tid = h.tid WHERE t.vid = :vid AND h.parent = :parent ORDER BY t.weight ASC, t.name ASC', array(':vid' => $vid, ':parent' => $tid));
   foreach ($result as $term) {
     $return[] = array(
-      'data' => l($term->name, 'taxonomy/term/'. $term->tid),
+      'data' => l($term->name, 'taxonomy/term/' . $term->tid),
       'children' => _ctools_content_vocabulary_terms($vid, $max_depth, $depth, $term->tid),
     );
   }

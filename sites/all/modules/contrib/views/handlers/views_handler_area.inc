@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_area.inc,v 1.1.4.3 2010/12/17 21:42:19 merlinofchaos Exp $
 /**
  * @file
  * Views area handlers.
@@ -86,7 +85,7 @@ class views_handler_area_broken extends views_handler_area {
   }
 
   function ensure_my_table() { /* No table to ensure! */ }
-  function query() { /* No query to run */ }
+  function query($group_by = FALSE) { /* No query to run */ }
   function render($empty = FALSE) { return ''; }
   function options_form(&$form, &$form_state) {
     $form['markup'] = array(

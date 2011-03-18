@@ -1,4 +1,3 @@
-<!-- $Id: export.html,v 1.4 2010/10/11 22:18:22 sdboyer Exp $ -->
 Exportable objects are objects that can live either in the database or in code, or in both. If they live in both, then the object in code is considered to be "overridden", meaning that the version in code is ignored in favor of the version in the database.
 
 The main benefit to this is that you can move objects that are intended to be structure or feature-related into code, thus removing them entirely from the database. This is a very important part of the deployment path, since in an ideal world, the database is primarily user generated content, whereas site structure and site features should be in code. However, many many features in Drupal rely on objects being in the database and provide UIs to create them.

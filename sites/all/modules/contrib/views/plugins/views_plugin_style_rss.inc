@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_style_rss.inc,v 1.2.6.7 2010/12/18 08:02:38 dereine Exp $
 /**
  * @file
  * Contains the RSS style plugin.
@@ -57,7 +56,6 @@ class views_plugin_style_rss extends views_plugin_style {
       '#title' => t('RSS description'),
       '#default_value' => $this->options['description'],
       '#description' => t('This will appear in the RSS feed itself.'),
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-style-options-override' => array(FALSE)),
     );
   }

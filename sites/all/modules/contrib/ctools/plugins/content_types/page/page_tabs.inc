@@ -1,5 +1,4 @@
 <?php
-// $Id: page_tabs.inc,v 1.4 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -31,7 +30,21 @@ $plugin = array(
  */
 function ctools_page_tabs_content_type_render($subtype, $conf, $panel_args) {
   $block = new stdClass();
-  $block->content = theme('menu_local_tasks');
+  $menus = menu_local_tabs();
+  switch ($conf['type']) {
+    case 'primary':
+      unset($menus['#secondary']);
+      break;
+    case 'secondary':
+      unset($menus['#primary']);
+      break;
+  }
+  if ($conf['id']) {
+    $menus['#theme_wrappers'][] = 'container';
+    $menus['#attributes']['id'] = $conf['id'];
+  }
+
+  $block->content = $menus;
 
   return $block;
 }

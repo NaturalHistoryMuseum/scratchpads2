@@ -1,5 +1,4 @@
 <?php
-// $Id: node.views_default.inc,v 1.11.6.5 2011/01/05 23:14:39 dereine Exp $
 /**
  * @file
  * Contains default views on behalf of the node module.
@@ -14,10 +13,11 @@ function node_views_default_views() {
   $view->description = 'Emulates the default Drupal front page; you may set the default home page path to this view to make it your front page.';
   $view->tag = 'default';
   $view->base_table = 'node';
+  $view->human_name = 'Front page';
   $view->api_version = 2;
   $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('sorts', array(
     'sticky' => array(
       'id' => 'sticky',
@@ -120,10 +120,11 @@ function node_views_default_views() {
   $view->description = 'A list of all content, by letter.';
   $view->tag = 'default';
   $view->base_table = 'node';
+  $view->human_name = 'Glossary';
   $view->api_version = 2;
   $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('fields', array(
     'title' => array(
       'label' => 'Title',
@@ -276,10 +277,11 @@ function node_views_default_views() {
   $view->description = 'Display a list of months that link to content for that month.';
   $view->tag = 'default';
   $view->base_table = 'node';
+  $view->human_name = 'Archive';
   $view->api_version = 2;
   $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('title', 'Monthly archive');
   $handler->override_option('sorts', array(
     'created' => array(

@@ -1,5 +1,4 @@
 <?php
-// $Id: page_secondary_links.inc,v 1.3 2010/12/31 21:22:26 merlinofchaos Exp $
 
 /**
  * @file

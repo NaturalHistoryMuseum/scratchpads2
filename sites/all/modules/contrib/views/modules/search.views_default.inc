@@ -1,5 +1,4 @@
 <?php
-// $Id: search.views_default.inc,v 1.6.6.4 2011/01/05 23:14:39 dereine Exp $
 /**
  * @file
  * Contains default views on behalf of the search module.
@@ -14,10 +13,11 @@ function search_views_default_views() {
   $view->description = 'Displays a list of nodes that link to the node, using the search backlinks table.';
   $view->tag = 'default';
   $view->base_table = 'node';
+  $view->human_name = 'Backlinks';
   $view->api_version = 2;
   $view->version = 7;
   $view->disabled = TRUE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler = $view->new_display('default', 'Master', 'default');
   $handler->override_option('fields', array(
     'title' => array(
       'id' => 'title',

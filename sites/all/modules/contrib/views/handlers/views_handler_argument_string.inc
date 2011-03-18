@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_string.inc,v 1.5.4.11 2011/02/04 23:40:25 merlinofchaos Exp $
 
 /**
  * Basic argument handler to implement string arguments that may have length
@@ -43,23 +42,24 @@ class views_handler_argument_string extends views_handler_argument {
     $form['glossary'] = array(
       '#type' => 'checkbox',
       '#title' => t('Glossary mode'),
-      '#description' => t('Glossary mode applies a limit to the number of characters used in the argument, which allows the summary view to act as a glossary.'),
+      '#description' => t('Glossary mode applies a limit to the number of characters used in the filter value, which allows the summary view to act as a glossary.'),
       '#default_value' => $this->options['glossary'],
+      '#fieldset' => 'more',
     );
 
     $form['limit'] = array(
       '#type' => 'textfield',
       '#title' => t('Character limit'),
-      '#description' => t('How many characters of the argument to filter against. If set to 1, all fields starting with the letter in the argument would be matched.'),
+      '#description' => t('How many characters of the filter value to filter against. If set to 1, all fields starting with the first letter in the filter value would be matched.'),
       '#default_value' => $this->options['limit'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-options-glossary' => array(TRUE)),
+      '#fieldset' => 'more',
     );
 
     $form['case'] = array(
       '#type' => 'select',
       '#title' => t('Case'),
-      '#description' => t('When printing the argument result, how to transform the case.'),
+      '#description' => t('When printing the title and summary, how to transform the case of the filter value.'),
       '#options' => array(
         'none' => t('No transform'),
         'upper' => t('Upper case'),
@@ -68,12 +68,13 @@ class views_handler_argument_string extends views_handler_argument {
         'ucwords' => t('Capitalize each word'),
       ),
       '#default_value' => $this->options['case'],
+      '#fieldset' => 'more',
     );
 
     $form['path_case'] = array(
       '#type' => 'select',
       '#title' => t('Case in path'),
-      '#description' => t('When printing url paths, how to transform the case of the argument. Do not use this unless with Postgres as it uses case sensitive comparisons.'),
+      '#description' => t('When printing url paths, how to transform the case of the filter value. Do not use this unless with Postgres as it uses case sensitive comparisons.'),
       '#options' => array(
         'none' => t('No transform'),
         'upper' => t('Upper case'),
@@ -82,35 +83,40 @@ class views_handler_argument_string extends views_handler_argument {
         'ucwords' => t('Capitalize each word'),
       ),
       '#default_value' => $this->options['path_case'],
+      '#fieldset' => 'more',
     );
 
     $form['transform_dash'] = array(
       '#type' => 'checkbox',
       '#title' => t('Transform spaces to dashes in URL'),
       '#default_value' => $this->options['transform_dash'],
+      '#fieldset' => 'more',
     );
 
     if (!empty($this->definition['many to one'])) {
       $form['add_table'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Allow multiple arguments to work together.'),
-        '#description' => t('If selected, multiple instances of this argument can work together, as though multiple terms were supplied to the same argument. This setting is not compatible with the "Reduce duplicates" setting.'),
+        '#title' => t('Allow multiple filter values to work together.'),
+        '#description' => t('If selected, multiple instances of this filter can work together, as though multiple values were supplied to the same filter. This setting is not compatible with the "Reduce duplicates" setting.'),
         '#default_value' => !empty($this->options['add_table']),
+        '#fieldset' => 'more',
       );
 
       $form['require_value'] = array(
         '#type' => 'checkbox',
         '#title' => t('Do not display items with no value in summary'),
         '#default_value' => !empty($this->options['require_value']),
+        '#fieldset' => 'more',
       );
     }
- 
+
     // allow + for or, , for and
     $form['break_phrase'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Allow multiple terms per argument.'),
-      '#description' => t('If selected, users can enter multiple arguments in the form of 1+2+3 or 1,2,3.'),
+      '#title' => t('Allow multiple values.'),
+      '#description' => t('If selected, users can enter multiple values in the form of 1+2+3 (for OR) or 1,2,3 (for AND).'),
       '#default_value' => !empty($this->options['break_phrase']),
+      '#fieldset' => 'more',
     );
   }
 
@@ -160,7 +166,7 @@ class views_handler_argument_string extends views_handler_argument {
   /**
    * Build the query based upon the formula
    */
-  function query() {
+  function query($group_by = FALSE) {
     $argument = $this->argument;
     if (!empty($this->options['transform_dash'])) {
       $argument = strtr($argument, '-', ' ');
@@ -253,6 +259,10 @@ class views_handler_argument_string extends views_handler_argument {
     }
   }
 
+  function get_sort_name() {
+    return t('Alphabetical', array(), array('context' => 'Sort order'));
+  }
+
   function title() {
     $this->argument = $this->case_transform($this->argument, 'case');
     if (!empty($this->options['transform_dash'])) {
@@ -277,7 +287,7 @@ class views_handler_argument_string extends views_handler_argument {
 
     return implode($this->operator == 'or' ? ' + ' : ', ', $this->title_query());
   }
-  
+
   /**
    * Override for specific title lookups.
    */
@@ -290,4 +300,3 @@ class views_handler_argument_string extends views_handler_argument {
   }
 
 }
-

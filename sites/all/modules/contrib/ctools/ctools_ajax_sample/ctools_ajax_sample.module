@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools_ajax_sample.module,v 1.5 2010/12/31 23:58:52 merlinofchaos Exp $
 
 /**
  * @file
@@ -25,6 +24,13 @@ function ctools_ajax_sample_menu() {
     'page callback' => 'ctools_ajax_simple_form',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
+  );
+  $items['ctools_ajax_sample/%ctools_js/hello'] = array(
+      'title' => 'Hello World',
+      'page callback' => 'ctools_ajax_sample_hello',
+      'page arguments' => array(1),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
   );
   $items['ctools_ajax_sample/%ctools_js/tablenix/%'] = array(
       'title' => 'Hello World',
@@ -260,9 +266,8 @@ function ctools_ajax_sample_login($js = NULL) {
     'ajax' => TRUE,
   );
   $output = ctools_modal_form_wrapper('user_login', $form_state);
-  if (empty($output)) {
-    // empty $output signifies success, so we'll use it as our $commands
-    // array.
+  if (!empty($form_state['executed'])) {
+    // We'll just overwrite the form output if it was successful.
     $output = array();
     $inplace = ctools_ajax_text_button(t('remain here'), 'ctools_ajax_sample/nojs/login/inplace', t('Go to your account'));
     $account = ctools_ajax_text_button(t('your account'), 'ctools_ajax_sample/nojs/login/user', t('Go to your account'));
@@ -282,6 +287,7 @@ function ctools_ajax_sample_login_success($js, $action) {
   }
 
   ctools_include('ajax');
+  ctools_add_js('ajax-responder');
   $commands = array();
   if ($action == 'inplace') {
     // stay here
@@ -709,7 +715,8 @@ function ctools_ajax_sample_show_raptor($object) {
  */
 function ctools_ajax_sample_jump_menu_form() {
   $url = url('ctools_ajax_sample/jumped');
-  $form = ctools_jump_menu(array(), array($url => t('Jump!')), array());
+  $form_state = array();
+  $form = ctools_jump_menu(array(), $form_state, array($url => t('Jump!')), array());
   return $form;
 }
 

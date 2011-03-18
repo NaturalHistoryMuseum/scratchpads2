@@ -1,5 +1,4 @@
 <?php
-// $Id: user_signature.inc,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -14,7 +13,7 @@ $plugin = array(
 );
 
 function ctools_user_signature_content_type_render($subtype, $conf, $panel_args, $context) {
-  $account = isset($context->data) ? drupal_clone($context->data) : NULL;
+  $account = isset($context->data) ? clone($context->data) : NULL;
   $block = new stdClass();
   $block->module = 'term-list';
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_numeric.test,v 1.1.2.1 2010/11/06 14:31:59 dereine Exp $
 
 class viewsHandlerFilterNumericTest extends ViewsSqlTest {
   var $column_map = array();

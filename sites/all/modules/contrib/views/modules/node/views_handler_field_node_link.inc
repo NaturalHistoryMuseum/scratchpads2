@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_node_link.inc,v 1.1.6.2 2010/11/30 20:36:01 merlinofchaos Exp $
 /**
  * Field handler to present a link to the node.
  */
@@ -18,12 +17,12 @@ class views_handler_field_node_link extends views_handler_field {
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['text'] = array(
       '#type' => 'textfield',
       '#title' => t('Text to display'),
       '#default_value' => $this->options['text'],
     );
+    parent::options_form($form, $form_state);
   }
 
   function query() {
@@ -32,13 +31,13 @@ class views_handler_field_node_link extends views_handler_field {
   }
 
   function render($values) {
-    return $this->render_link(check_plain($values->{$this->aliases['nid']}), $values);
+    $value = $this->get_value($values, 'nid');
+    return $this->render_link($this->sanitize_value($value), $values);
   }
 
   function render_link($data, $values) {
-    $nid = $values->{$this->aliases['nid']};
     $this->options['alter']['make_link'] = TRUE;
-    $this->options['alter']['path'] = "node/$nid";
+    $this->options['alter']['path'] = "node/$data";
     $text = !empty($this->options['text']) ? $this->options['text'] : t('view');
     return $text;
   }

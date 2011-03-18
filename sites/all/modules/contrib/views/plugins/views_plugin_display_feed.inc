@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_display_feed.inc,v 1.7.4.6 2011/02/05 16:45:32 dereine Exp $
 /**
  * @file
  * Contains the feed display plugin.
@@ -13,6 +12,19 @@
  * @ingroup views_display_plugins
  */
 class views_plugin_display_feed extends views_plugin_display_page {
+  function init(&$view, &$display, $options = NULL) {
+    parent::init($view, $display, $options);
+
+    // Set the default row style. Ideally this would be part of the option
+    // definition, but in this case it's dependent on the view's base table,
+    // which we don't know until init().
+    $row_plugins = views_fetch_plugin_names('row', $this->get_style_type(), array($view->base_table));
+    $default_row_plugin = key($row_plugins);
+    if ($this->options['row_plugin'] == '') {
+      $this->options['row_plugin'] = $default_row_plugin;
+    }
+  }
+
   function uses_breadcrumb() { return FALSE; }
   function get_style_type() { return 'feed'; }
 
@@ -87,6 +99,10 @@ class views_plugin_display_feed extends views_plugin_display_page {
     // category 'page' but let's override it so it says feed settings.
     $categories['page'] = array(
       'title' => t('Feed settings'),
+      'column' => 'second',
+      'build' => array(
+        '#weight' => -10,
+      ),
     );
 
     if ($this->get_option('sitename_title')) {
@@ -136,7 +152,6 @@ class views_plugin_display_feed extends views_plugin_display_page {
           '#default_value' => $this->get_option('sitename_title'),
         );
         $form['title'] = $title;
-        $form['title']['#process'] = array('ctools_dependent_process');
         $form['title']['#dependency'] = array('edit-sitename-title' => array(FALSE));
         break;
       case 'displays':
@@ -155,7 +170,7 @@ class views_plugin_display_feed extends views_plugin_display_page {
         );
         break;
       case 'path':
-        $form['path']['#description'] = t('This view will be displayed by visiting this path on your site. It is recommended that the path be something like "path/%/%/feed" or "path/%/%/rss.xml", putting one % in the path for each argument you have defined in the view.');
+        $form['path']['#description'] = t('This view will be displayed by visiting this path on your site. It is recommended that the path be something like "path/%/%/feed" or "path/%/%/rss.xml", putting one % in the path for each contextual filter you have defined in the view.');
     }
   }
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: user_picture.inc,v 1.6 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -15,7 +14,7 @@ $plugin = array(
 );
 
 function ctools_user_picture_content_type_render($subtype, $conf, $panel_args, $context) {
-  $account = isset($context->data) ? clone($context->data) : NULL;
+  $account = isset($context->data) ? clone($context->data) : FALSE;
   $block = new stdClass();
   $block->module = 'term-list';
 
@@ -24,7 +23,7 @@ function ctools_user_picture_content_type_render($subtype, $conf, $panel_args, $
   }
 
   $block->title = check_plain($account->name);
-  $block->content = theme('user_picture', $account);
+  $block->content = theme('user_picture', array('account' => $account));
 
   return $block;
 }

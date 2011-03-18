@@ -1,5 +1,4 @@
 <?php
-// $Id: utility.inc,v 1.3 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -18,13 +17,13 @@
  * To save time we pass the $items array in so we don't need to do array
  * addition. It modifies the array by reference and doesn't need to return it.
  */
-function _ctools_passthrough(&$items, $type = 'theme') {
-  $files = drupal_system_listing('/\.' . $type . '\.inc$/', drupal_get_path('module', 'ctools') . '/includes', 'name', 0);
+function ctools_passthrough($module, $type, &$items) {
+  $files = drupal_system_listing('/\.' . $type . '\.inc$/', drupal_get_path('module', $module) . '/includes', 'name', 0);
   foreach ($files as $file) {
     require_once DRUPAL_ROOT . '/' . $file->uri;
     list($tool) = explode('.', $file->name, 2);
 
-    $function = 'ctools_' . str_replace ('-', '_', $tool) . '_' . str_replace('-', '_', $type);
+    $function = $module . '_' . str_replace ('-', '_', $tool) . '_' . str_replace('-', '_', $type);
     if (function_exists($function)) {
       $function($items);
     }

@@ -1,5 +1,4 @@
 <?php
-// $Id: context-admin.inc,v 1.14 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file includes/common-context.inc
@@ -102,7 +101,9 @@ function ctools_context_add_argument_form($module, &$form, &$form_state, &$form_
   $args = ctools_get_arguments();
   $choices = array();
   foreach ($args as $name => $arg) {
-    $choices[$name] = $arg['title'];
+    if (empty($arg['no ui'])) {
+      $choices[$name] = $arg['title'];
+    }
   }
 
   asort($choices);

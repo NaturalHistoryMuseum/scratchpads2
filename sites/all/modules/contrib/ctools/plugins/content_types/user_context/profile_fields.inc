@@ -1,5 +1,4 @@
 <?php
-// $Id: profile_fields.inc,v 1.9 2010/10/18 18:00:48 merlinofchaos Exp $
 
 if (module_exists('profile') && !is_null(profile_user_categories())) {
   /**

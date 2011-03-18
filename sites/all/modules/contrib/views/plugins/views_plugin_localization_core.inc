@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_localization_core.inc,v 1.1.4.3 2011/02/06 14:29:02 dereine Exp $
 
 /**
  * @file

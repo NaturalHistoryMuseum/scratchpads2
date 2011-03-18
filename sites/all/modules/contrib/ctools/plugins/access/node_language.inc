@@ -1,5 +1,4 @@
 <?php
-// $Id: node_language.inc,v 1.11 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file

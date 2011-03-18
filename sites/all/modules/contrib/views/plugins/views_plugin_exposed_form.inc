@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_exposed_form.inc,v 1.2.2.18 2010/12/01 20:05:06 dereine Exp $
 
 /**
  * The base plugin to handle exposed filter forms.
@@ -19,14 +18,6 @@ class views_plugin_exposed_form extends views_plugin {
     $this->display = &$display;
 
     $this->unpack_options($this->options, $options);
-  }
-
-  /**
-   * Return a string to display as the clickable title for the
-   * control.
-   */
-  function summary_title() {
-    return t('Unknown');
   }
 
   function option_definition() {
@@ -65,7 +56,6 @@ class views_plugin_exposed_form extends views_plugin {
       '#dependency' => array(
         'edit-exposed-form-options-reset-button' => array(1)
       ),
-      '#process' => array('ctools_dependent_process'),
     );
 
     $form['exposed_sorts_label'] = array(

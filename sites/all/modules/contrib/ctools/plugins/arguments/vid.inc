@@ -1,5 +1,4 @@
 <?php
-// $Id: vid.inc,v 1.6 2010/01/29 20:18:01 merlinofchaos Exp $
 
 /**
  * @file
@@ -21,6 +20,7 @@ $plugin = array(
     '#type' => 'textfield',
     '#description' => t('Enter the vocabulary ID for this argument'),
   ),
+  'no ui' => TRUE,
 );
 
 /**

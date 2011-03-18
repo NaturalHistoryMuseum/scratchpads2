@@ -1,5 +1,4 @@
 <?php
-// $Id: field.views.inc,v 1.1.2.23 2011/02/19 07:04:50 dereine Exp $
 
 /**
  * @file
@@ -53,6 +52,9 @@ function field_views_field_label($field_name) {
         $label_counter[$bundle[$field_name]['label']] = isset($label_counter[$bundle[$field_name]['label']]) ? ++$label_counter[$bundle[$field_name]['label']] : 1;
       }
     }
+  }
+  if (empty($label_counter)) {
+    return $field_name;
   }
   // Sort the field lables by it most used label and return the most used one.
   arsort($label_counter);
@@ -241,13 +243,13 @@ function field_views_field_default_views_data($field) {
 
       // Expose additional delta column for multiple value fields.
       if ($field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED) {
-        $title = t('@label (!name) - delta', array('@label' => $label, '!name' => $field['field_name']));
-        $title_short = t('!name - delta', array('!name' => $field['field_name']));
+        $title_delta = t('@label (!name) - delta', array('@label' => $label, '!name' => $field['field_name']));
+        $title_short_delta = t('!name - delta', array('!name' => $field['field_name']));
 
         $data[$table]['delta'] = array(
           'group' => $group,
-          'title' => $title,
-          'title short' => $title_short,
+          'title' => $title_delta,
+          'title short' => $title_short_delta,
           'help' => t('Delta - Appears in: @bundles', array('@bundles' => implode(', ', $bundles_names))),
         );
         $data[$table]['delta']['argument'] = array(
@@ -286,9 +288,9 @@ function field_views_field_default_views_data($field) {
 function list_field_views_data($field) {
   $data = field_views_field_default_views_data($field);
   foreach ($data as $table_name => $table_data) {
-    foreach ($table_data as $field_name => $field_data) {
-      if (!in_array($field_name, array('table', 'entity_id', 'revision_id'))) {
-        $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_field_list';
+    foreach ($table_data as $field => $field_data) {
+      if (isset($field_data['filter'])) {
+        $data[$table_name][$field]['filter']['handler'] = 'views_handler_filter_field_list';
       }
     }
   }

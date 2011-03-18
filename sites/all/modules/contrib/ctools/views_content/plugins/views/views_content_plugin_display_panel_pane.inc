@@ -1,5 +1,4 @@
 <?php
-// $Id: views_content_plugin_display_panel_pane.inc,v 1.7 2011/01/01 01:27:38 merlinofchaos Exp $
 
 /**
  * The plugin that handles a panel_pane.
@@ -65,6 +64,10 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
 
     $categories['panel_pane'] = array(
       'title' => t('Pane settings'),
+      'column' => 'second',
+      'build' => array(
+        '#weight' => -10,
+      ),
     );
 
     $pane_title = $this->get_option('pane_title');

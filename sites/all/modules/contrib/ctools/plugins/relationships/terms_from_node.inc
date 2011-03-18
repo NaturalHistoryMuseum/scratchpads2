@@ -1,5 +1,4 @@
 <?php
-// $Id: terms_from_node.inc,v 1.2 2010/10/11 22:18:23 sdboyer Exp $
 
 /**
  * @file

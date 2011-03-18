@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row_search_view.inc,v 1.1.6.1 2009/11/02 22:01:26 merlinofchaos Exp $
 /**
  * @file
  * Contains the search row style plugin.

@@ -1,5 +1,4 @@
 <?php
-// $Id: node.inc,v 1.19 2010/10/26 23:40:43 merlinofchaos Exp $
 
 /**
  * @file
@@ -26,6 +25,7 @@ $plugin = array(
     '#type' => 'textfield',
     '#description' => t('Enter the node ID of a node for this context.'),
   ),
+  'no ui' => TRUE,
 );
 
 /**

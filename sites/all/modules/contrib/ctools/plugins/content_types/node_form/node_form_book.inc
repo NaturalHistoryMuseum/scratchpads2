@@ -1,5 +1,4 @@
 <?php
-// $Id: node_form_book.inc,v 1.4 2010/10/11 22:18:23 sdboyer Exp $
 
 if (module_exists('book')) {
   /**
@@ -20,18 +19,19 @@ function ctools_node_form_book_content_type_render($subtype, $conf, $panel_args,
   $block = new stdClass();
   $block->module = t('node_form');
 
-  $block->title = t('Book options');
-  $block->delta = 'book-options';
+  $block->title = t('Book outline');
+  $block->delta = 'book-outline';
 
   if (isset($context->form)) {
-    if (!empty($context->form['form_id'])) {
-      $block->content = '';
-      if ($context->form['parent']['#type'] != 'value') {
-        $block->content .= drupal_render($context->form['parent']);
-      }
-      if ($context->form['weight']['#type'] != 'value') {
-        $block->content .= drupal_render($context->form['weight']);
-      }
+    if (isset($context->form['book'])) {
+      $block->content['book'] = $context->form['book'];
+      unset($block->content['book']['#pre_render']);
+      unset($block->content['book']['#theme_wrappers']);
+      $block->content['book']['#type'] = '';
+
+      // Set access to false on the original rather than removing so that
+      // vertical tabs doesn't clone it. I think this is due to references.
+      $context->form['book']['#access'] = FALSE;
     }
   }
   else {

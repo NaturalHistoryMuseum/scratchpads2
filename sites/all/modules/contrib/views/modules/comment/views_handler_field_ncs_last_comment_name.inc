@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_ncs_last_comment_name.inc,v 1.1.6.1 2009/11/02 22:01:26 merlinofchaos Exp $
 
 /**
  * Field handler to present the name of the last comment poster
@@ -35,14 +34,14 @@ class views_handler_field_ncs_last_comment_name extends views_handler_field {
   function render($values) {
     if (!empty($this->options['link_to_user'])) {
       $account = new stdClass();
-      $account->name = $values->{$this->field_alias};
+      $account->name = $this->get_value($values);
       $account->uid = $values->{$this->uid};
       return theme('username', array(
         'account' => $account
       ));
     }
     else {
-      return check_plain($values->{$this->field_alias});
+      return $this->sanitize_value($this->get_value($values));
     }
   }
 }

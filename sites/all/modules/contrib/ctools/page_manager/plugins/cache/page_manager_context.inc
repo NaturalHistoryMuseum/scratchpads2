@@ -1,5 +1,4 @@
 <?php
-// $Id: page_manager_context.inc,v 1.1 2010/10/11 22:18:24 sdboyer Exp $
 
 /**
  * @file

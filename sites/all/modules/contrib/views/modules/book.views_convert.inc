@@ -1,6 +1,4 @@
 <?php
-// $Id: book.views_convert.inc,v 1.3.4.1 2009/11/02 22:01:26 merlinofchaos Exp $
-
 /**
  * @file
  * Field conversion for fields handled by this module.

@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.2 2010/10/11 22:18:24 sdboyer Exp $
 
 The CTools Plugin Example is an example for developers of how to CTools
 access, argument, content type, context, and relationship plugins.

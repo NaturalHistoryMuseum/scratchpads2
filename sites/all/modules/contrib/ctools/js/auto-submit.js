@@ -1,4 +1,3 @@
-// $Id: auto-submit.js,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 (function($){
 /**
  * To make a form auto submit, all you have to do is 3 things:

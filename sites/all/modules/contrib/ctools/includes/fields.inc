@@ -1,5 +1,4 @@
 <?php
-// $Id: fields.inc,v 1.1 2010/11/01 19:07:10 merlinofchaos Exp $
 
 /**
  * @file
@@ -84,18 +83,22 @@ function ctools_fields_get_field_formatter_settings_form($field, $formatter_type
 }
 
 /**
- * Helper function for generating all the formatter information associated with any fields.  Especially useful for determining the fields that will be added to form that executes hook_ield_formatter_settings_form().
+ * Helper function for generating all the formatter information associated with
+ * any fields.
+ * Especially useful for determining the fields that will be added to form that
+ * executes hook_field_formatter_settings_form().
  *
  * @param $fields
  *   An array of fully loaded fields.
  */
-
 function ctools_fields_get_field_formatter_info($fields) {
   $info = array();
+  $field_info = module_invoke_all('field_formatter_info');
   foreach ($fields as $field) {
-    $field_info = module_invoke($field['module'], 'field_formatter_info');
-    if ($field_info) {
-      $info += $field_info;
+    foreach ($field_info as $format_name => $formatter_info) {
+      if (in_array($field['type'], $formatter_info['field types'])) {
+        $info += array($format_name => $formatter_info);
+      }
     }
   }
   drupal_alter('field_formatter_info', $info);

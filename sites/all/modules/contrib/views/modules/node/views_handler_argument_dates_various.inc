@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_dates_various.inc,v 1.4.6.3 2010/09/19 08:18:11 dereine Exp $
 /**
  * Argument handler for a full date (CCYYMMDD)
  */

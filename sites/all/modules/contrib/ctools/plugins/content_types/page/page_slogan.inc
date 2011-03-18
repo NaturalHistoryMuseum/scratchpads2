@@ -1,5 +1,4 @@
 <?php
-// $Id: page_slogan.inc,v 1.3 2010/09/07 09:02:51 sdboyer Exp $
 
 /**
  * @file
