@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Services for taxonomy_xml
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1 id="title">
+      Services for taxonomy_xml
+    </h1>
+    <p>
+      Taxonomies can be imported from external service providers
+      and locations.
+    </p>
+    <p>
+      A few samples are built-in to this distribution, and more can be provided by
+      additional modules. Most supported services are direct URL
+      requests, usually with an identifier in the GET string
+      indicating the entry being requested. Others are simply URLs
+      (no ID argument needed) where a third-party document can be
+      downloaded from, provided as a convenience, or to avoid
+      licensing problems, and to ensure you are retrieving the
+      latest version.
+    </p>
+    <p>
+      A lookup may be a simple URI request which 
+      returns an all-in-one resource, eg an RDF/XML or CSV file containing
+      all the terms at once. This is the easiest method of distribution.
+    </p>
+    <p>
+      For larger vocabularies, a recursive spidering option is enabled.
+      Queries can be made using URI strings (REST).
+      Two forms of 'service' are currently supported - search and
+      lookup. Both services are expected to return some form of
+      unique identifer that can be used to locate further terms. A
+      search result will return one or more ids that can be
+      retrieved by lookup. A lookup may return a term definition
+      that includes reference to its parent or child terms. These
+      are usually looked up next.
+    </p>
+    <h3>
+      Search Service
+    </h3>
+    <p>
+      Search is intended to take a text string and return a
+      resource ID relevant to the service provider. Each service
+      has its own form of local ID. It is the job of the service to
+      identify the ID from the result and create an appropriate
+      lookup request using that ID as a key.
+    </p>
+    <h3>
+      Lookup Service
+    </h3>
+    <p>
+      Lookup is used when you have uniquely identified the resource
+      entry to be retrieved, and returns a machine-readable dump of
+      that data in one of the supported formats. Often that result
+      will contain references to further resources that can be
+      retrieved in turn.
+    </p>
+    <h3>
+      Content Negotiation
+    </h3>
+    <p>
+      When requesting remote URIs, this client will attempt to use
+      <b>Content Negotiation</b> to tell the server that it <code>Accept</code>s
+      and prefers <code>application/rdf+xml</code> as a response.
+      <em>If</em> the server supports this and complies, 
+      then subsequent parsing will be much easier. 
+      Such services are currently rare, but 
+      <a href="http://id.loc.gov/authorities/search/">
+      The Library of Congress Subject Headings</a> search 
+      is one such resource!
+      
+    </p>
+    <hr />
+    <p>
+      The service definition array is undergoing development.
+    </p>
+  </body>
+</html>
+

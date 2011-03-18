@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Format specifications for taxonomy_xml
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1 id="title">
+      Format specifications for taxonomy_xml
+    </h1>
+    <p>
+      Describing the currently supported taxonomy formats found in
+      the wild.
+    </p>
+    <p>
+      Note that not all formats are required to provide both an
+      import and export function. CSV and TCS are currently one-way
+      imports.
+      <br />
+       Note also that the Drupal-XML format is supported as legacy
+      only, and its use for export is discouraged. <a
+      href="#format_rdf">RDF</a> is the recommended format for
+      maximum compatibility with other systems into the future.
+    </p>
+    <div class="toc">
+      <h2 class="nonum">
+        <a id="contents" name="contents">Table of Contents</a>
+      </h2>
+      <ol class="toc">
+        <li>
+          <a href="#format_xml">Drupal-only XML</a>
+        </li>
+        <li>
+          <a href="#format_csv">Comma Separated Values - CSV</a>
+        </li>
+        <li>
+          <a href="#format_csvancestry">CSV Ancestry</a>
+        </li>
+        <li>
+          <a href="#format_tcs">Taxon Concept Schema - TCS</a>
+        </li>
+        <li>
+          <a href="#format_rdf">RDF using RDF Schema - RDFS</a>
+        </li>
+      </ol>
+    </div>
+    <div class="section">
+      <h2 id="format_xml">
+        Custom Drupal-only XML
+      </h2>
+      <p>
+        <b>DEPRECATED</b> The basic format for taxonomy files is a
+        custom-made XML schema reflecting the internal data objects
+        of Drupal vocabulary terms pretty directly. It's suitable
+        only for exchanging taxonomies between similar versions of
+        Drupal sites, and not recommended for exporting to other
+        systems. It is supported because a large function of this
+        module is to assist migration from older sites, but
+        <em>should not be used as a recommended
+        representation</em>.
+      </p>
+      <p>
+        An XML schema taxonomy.xsd is available for validation. A
+        snippet looks something like:
+      </p>
+<pre>
+&lt;vocabulary&gt;
+ &lt;vid&gt;5&lt;/vid&gt;
+ &lt;name&gt;Editorial sections&lt;/name&gt;
+ &lt;hierarchy&gt;1&lt;/hierarchy&gt;
+ &lt;nodes&gt;blog,page,story&lt;/nodes&gt;
+ &lt;term&gt;
+  &lt;tid&gt;83&lt;/tid&gt;
+  &lt;vid&gt;5&lt;/vid&gt;
+  &lt;name&gt;Analysis&lt;/name&gt;
+  &lt;description&gt;Examines the connections between known facts.&lt;/description&gt;
+  &lt;parent&gt;0&lt;/parent&gt;
+ &lt;/term&gt;
+ &lt;term&gt;
+ ...
+ &lt;/term&gt;
+&lt;/vocabulary&gt;
+</pre>
+    </div>
+    <div class="section">
+      <h2 id="format_csv">
+        CSV - Comma Separated Values
+      </h2>
+      <p>
+        For compatibility with the widest range of sources, CSV
+        import is possible.
+        <br />
+         See ISO 2788 for notes on expressing thesauri.
+        <br />
+         Flat-file taxonomies (or "thesauri", or "restricted
+        vocabularies") are often notated in files looking something
+        like:
+      </p>
+<pre>
+Cyclones,    Use,            Storms
+Disasters,   Used for,       Natural disasters
+Storms,      Used for,       Cyclones
+Storms,      Broader Terms,  Weather
+Storms,      Related Terms,  Disasters
+Tidal waves, Use,            Tsunami
+Tsunami,     Used for,       Tidal waves
+Tsunami,     Broader Terms,  Disasters
+Tsunami,     Related Terms,  Oceans
+Weather,     Narrower Terms, Rain
+Weather,     Narrower Terms, Storms
+Weather,     Narrower Terms, Wind
+Weather,     Related Terms,  Meteorology
+</pre>
+      This (incomplete) set of data would produce a taxonomy model
+      looking like: 
+<pre>
+-- Disasters (syn: Natural Disasters; rel: Storms)
+---- Tsunami (syn: Tidal Waves; rel: Oceans
+-- Weather (syn: Meteorology)
+---- Storms (rel: Disasters, syn: Cyclones)
+---- Rain
+---- Wind
+</pre>
+      <p>
+        The shape of these files is pretty similar from many
+        sources, <em>however</em> the terminology used varies
+        widely.
+        <br />
+         "Related Term" is sometimes written as ['Related', 'RT',
+        'seeAlso'];
+        <br />
+         The same applies to all the other concepts.
+        <br />
+         Imports from CSV attempt to use any of these synonyms, so
+        it doesn't actually matter which words you use! See
+        <code>taxonomy_xml.module:taxonomy_xml_relationship_synonyms()</code>
+        for the full list. There is no requirement about source
+        order (you can refer to terms before they have been
+        'declared') and there is no requirement for internal
+        consistency. You can declare one term a parent of another,
+        that one a child of the first, with a statement either way,
+        or both.
+      </p>
+      <p>
+        A quick way to prototype up a taxonomy would be to create
+        it in a text file with a term on each line, listing only
+        the parent (or "Broader Term") to simply define an
+        extensive hierarchy. If you are attempting to import from
+        other sources, it should be possible to massage the data
+        into a spreadsheet that can save a CSV looking something
+        like this.
+      </p>
+      <p>
+        CSV format is only supported for import. No export is yet
+        available. A much simpler (less powerful) module project
+        was <a
+        href="http://drupal.org/project/taxonomy_csv">taxonomy_csv.module</a>
+        ... only mentioned for historical/comparison reasons.
+      </p>
+    </div>
+    <div class="section">
+      <h2 id="format_csvancestry">
+        CSV Ancestry - All the parents, all the time.
+      </h2>
+      <p>
+        This is an alternate Comma-Separated-Value format, taking
+        each term on a new line with its ancestors repeated in each
+        previous column.
+      </p>
+<pre>
+    Media,
+    Media, Books
+    Media, Books, Fiction
+    Media, Books, Non-fiction
+    Media, DVDs &amp; Videos
+    Media, Magazines &amp; Newspapers
+    Media, Music
+    Media, Sheet Music
+   
+</pre>
+      <p>
+        ...etc, It's very limited (and wordy), but also about as
+        obvious as possible.
+      </p>
+      <p>
+        This format was used by google base for its merchant
+        product taxonomy, and has been suggested as a primitive
+        format before now. It's not encouraged, but is one of the
+        lowest-common-denominator ways of getting a heirarchy into
+        the system. It is not supported for export.
+      </p>
+    </div>
+    <div class="section">
+      <h2 id="format_rdf">
+        RDF - Portable Metadata
+      </h2>
+      <p>
+        For interchange with the newer information methodologies on
+        the web, <strong>RDF is the preferred syntax</strong>.
+        Although it's very verbose, and much harder for humans to
+        read, it has many advantages when it comes to data
+        interchange over the web, including
+      </p>
+      <ul>
+        <li>
+          The ability to refer to resources (in this case terms)
+          using URIs
+        </li>
+        <li>
+          It can decentralize the information, splitting up
+          definitions over several files, or even servers
+        </li>
+        <li>
+          It's useful for merging data from many sources, or
+          annotating definitions made somewhere else
+        </li>
+        <li>
+          It's a driving force under many Web 2.0 features, like
+          RSS
+        </li>
+      </ul>
+      <p>
+        The dialect of RDF used in this module (even within this
+        strict schema there are markup variations possible) is
+        intended to resemble the (non-normative) examples found in
+        the <a href="http://www.w3.org/TR/owl-guide/">W3C
+        recommendations</a>, specifically the sample Wine Ontology
+        [<a
+        href="http://www.w3.org/TR/owl-guide/wine.rdf">RDF</a>].
+      </p>
+      <p>
+        In practice, this means the following attributes are used
+        to define a taxonomy term.
+      </p>
+      <dl>
+        <dt>
+          rdfs:Class
+        </dt>
+        <dd>
+          The type of element
+        </dd>
+        <dt>
+          rdfs:label
+        </dt>
+        <dd>
+          Human name
+        </dd>
+        <dt>
+          rdfs:comment
+        </dt>
+        <dd>
+          descriptive text
+        </dd>
+        <dt>
+          rdfs:subClassOf
+        </dt>
+        <dd>
+          Reference to parent term
+        </dd>
+        <dt>
+          rdfs:isDefinedBy
+        </dt>
+        <dd>
+          Reference to containing vocabulary
+        </dd>
+        <dt>
+          rdfs:seeAlso
+        </dt>
+        <dd>
+          Reference to related term
+        </dd>
+        <dt>
+          owl:equivalentClass
+        </dt>
+        <dd>
+          Reference to synonym OR synonym text
+        </dd>
+      </dl>
+      <p>
+        Several other dialects are supported for <em>input</em>,
+        (eg <b>skos:Concept</b>, <b>skos:broader</b>,
+        <b>skos:narrower</b>) But are not serialized for output.
+      </p>
+      <p>
+        Remember, <a href="#dependancies">RDF requires an extra
+        library</a>.
+      </p>
+
+      <br />
+    </div>
+    <div class="section">
+      <h3 id="other_rdf">
+        Other dialects within RDF
+      </h3>
+      <p>
+        RDF can use slightly different ways of expressing a similar
+        concept, Other target input sources include :
+      </p>
+      <ul>
+        <li>
+          <strong>supported:</strong> The <a
+          href="http://www.ontologyportal.org/translations/SUMO.owl.txt">
+          OWL/RDF</a> port of the <a
+          href="http://wordnet.princeton.edu/"><strong>WordNet</strong>
+          Lexicon</a> as discussed (but never usefully implimented)
+          <a
+          href="http://www.w3.org/2001/sw/BestPractices/WNET/wn-conversion.html">
+          at the W3C</a>. Relationships in the wordnet lexicon are
+          labelled as 'hyponym' and 'hypernym' etc.
+        </li>
+        <li>
+          <strong>supported:</strong> <a
+          href="http://www.w3.org/TR/wordnet-rdf/">The next
+          generation Wordnet RDF 2.0 from the W3c</a> <a
+          href="http://www.w3.org/2006/03/wn/wn20/schema/">http://www.w3.org/2006/03/wn/wn20/schema/</a>
+        </li>
+        <li>
+          <a href="http://www.ontologyportal.org/">SUMO - The
+          Suggested Upper Merged Ontology</a>
+        </li>
+        <li>
+          <strong>supported:</strong> <a
+          href="http://www.icra.org/vocabulary/">ICRA Content
+          Rating</a>
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <strong>partially supported:</strong> UBIO RDF from the
+          <a href="http://www.ubio.org/">Universal Biological
+          Indexer and Organiser</a>, eg <a
+          href="http://www.ubio.org/authority/metadata.php?lsid=urn:lsid:ubio.org:classificationbank:11150670">
+          a web service LSID lookup</a> and <a
+          href="http://www.ubio.org/portal/index.php?search=Apteryx&amp;category=w&amp;client=ubio&amp;startPage=1">
+          A metasearch portal</a>.
+        </li>
+        <li>
+          <strong>partially supported:</strong> TWDG RDF from the
+          <a href="http://lsid.tdwg.org/">Biodiversity Information
+          Standards / Taxonomic Database Working Group</a>, eg <a
+          href="http://www.ubio.org/authority/metadata.php?lsid=urn:lsid:ubio.org:classificationbank:11150670">
+          a web service LSID lookup</a>.
+        </li>
+        <li style="list-style: none">
+          http://lsid.tdwg.org/
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <strong>experimental:</strong> <a
+          href="http://www.nlm.nih.gov/mesh/">MeSH &uml; (Medical
+          Subject Headings)</a> From the National Library of
+          Medicine. This contains 40,000 terms, mostly relating to
+          organisims, and drugs, but also contains several useful
+          shards describing parts of the body and disease types.
+          The online <a
+          href="http://www.nlm.nih.gov/mesh/MBrowser.html">MeSH
+          Browser</a> is pretty good, but it lacks a web service
+          interface, so decrypting the huge database dump they
+          provide is intimidating.
+        </li>
+      </ul>
+      <ul>
+        <li>
+          <strong>not yet supported:</strong> GBIF 'Darwin' Schema
+          used by <a href="http://data.gbif.org/tutorial/">Global
+          Biodiversity Information Facility</a>, eg <a
+          href="http://data.gbif.org/ws/rest/taxon/get/5125679">a
+          web service lookup</a> that provides XML processed by
+          XSL.
+        </li>
+        <li>
+          DMOZ Open Directory Category Hierarchy in 'RDF' <a
+          href="http://rdf.dmoz.org/">http://rdf.dmoz.org/</a> does
+          not actually look anything like RDF (it predates most of
+          the real work on the RDF spec). But does contain a very
+          useful subject catalog.
+        </li>
+      </ul>
+      <h3 id="dependancies">
+        Dependancies and capabilities
+      </h3>
+      <p>
+        For RDF input parsing, we use a GPL library, ARC from
+        appmosphere <a
+        href="http://arc.semsol.org/">arc.semsol.org</a>. This is
+        PHP4 compatible. RDF processing is seldom efficient, either
+        in memory or time, so there may be difficulties with large
+        imports.
+      </p>
+      <p>
+        For RDF output <strong>creation</strong>, we use PHP5
+        XML/DOM functions <em>this makes RDF output incompatible
+        with PHP4, which had very flaky XML functions</em>. If you
+        are trying these use the Web2.0 features, you really must
+        upgrade from the (now officially unsupported) PHP4, as this
+        legacy support would drag development down.
+        <br />
+         So the situation is, older unpatched servers can take
+        advantage of the distributed RDF vocabularies, but cannot
+        easily distribute their own.
+      </p>
+    </div>
+  </body>
+</html>
+

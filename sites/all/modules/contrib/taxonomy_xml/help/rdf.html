@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Taxonomy XML - Using with RDF
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1>
+      Using Taxonomy XML with RDF
+    </h1>
+    <p>
+      Resource Description Framework : RDF (and the Drupal <a
+      href="http://drupal.org/project/rdf">RDF module</a>) allows
+      us to make arbitrary statements of fact about Drupal
+      resources.
+      <br />
+       In this case, we need to be able to say that <b>a given
+      taxonomy term is equivalent to (sameAs) a term defined in a
+      public dataset</b>. Here's how we can set this up.
+    </p>
+    <h2>
+      Install and setup
+    </h2>
+    <ul>
+      <li>
+        First, download install and enable the <a
+        href="http://drupal.org/project/rdf">RDF.module</a>. This
+        provides the API and storage of such data.
+      </li>
+      <li>
+        Also install the <a
+        href="http://drupal.org/project/evoc">EVOC.module</a> and
+        its required dependency, <a
+        href="http://drupal.org/project/sparql">SPAQRL.module</a>.
+        This makes importing statements from outside sources
+        easier.
+      </li>
+      <li>
+        Next, import the OWL ontology using EVOC. At <a
+        href="/evoc/import">evoc/import</a> (there should be a new
+        menu item called "<em>Import external RDF
+        vocabulary</em>"), enter the URI for the OWL vocabulary
+        "<code>http://www.w3.org/2002/07/owl#</code>" and give it
+        the prefix "<code>owl</code>"
+        <br />
+        <small>Be sure to include the trailing "#"!</small>
+        <br />
+         If successful you will see the message <pre>owl:sameAs successfully imported</pre>
+        <br />
+         ... (amongst a lot of others)
+        <br />
+         Now we know <em>how</em> to say what we need to say. This
+        new <em>predicate</em> (property) is available to use in
+        statements.
+      </li>
+    </ul>
+    <p>
+      Soon, we will be able to tell the system things like :
+    </p>
+    <blockquote>
+      Our taxonomy term <code>Paris</code> represents the same
+      concept as the one used by Freebase or Wordnet to represent
+      the locality of Paris, France, and not the one in Texas or
+      the one in rehab.
+    </blockquote>
+    This will take the form of RDF statements like: 
+     
+<pre>
+&lt;http://example.com/taxonomy/term/4045&gt; &lt;http://www.w3.org/2002/07/owl#sameAs&gt; &lt;http://rdf.freebase.com/ns/en.paris&gt; .
+&lt;http://example.com/taxonomy/term/4045&gt; &lt;http://www.w3.org/2002/07/owl#sameAs&gt; &lt;http://id.loc.gov/authorities/sh2008116535&gt; .
+&lt;http://example.com/taxonomy/term/4045&gt; &lt;http://www.w3.org/2002/07/owl#sameAs&gt; &lt;http://dbpedia.org/resource/Paris&gt; .
+&lt;http://example.com/taxonomy/term/4045&gt; &lt;http://www.w3.org/2002/07/owl#sameAs&gt; &lt;http://d.opencalais.com/er/geo/city/ralg-geo1/797c999a-d455-520d-e5cf-04ca7fb255c1&gt; .
+&lt;http://example.com/taxonomy/term/4045&gt; &lt;http://www.w3.org/2002/07/owl#sameAs&gt; &lt;http://en.wikipedia.org/wiki/Paris&gt; .   
+</pre>
+    in nice RDF/XML: 
+<pre>
+&lt;rdf:RDF 
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+  xmlns:owl="http://www.w3.org/2002/07/owl#" &gt;
+  &lt;rdf:Description rdf:about="http://example.com/taxonomy/term/4045"&gt;
+    &lt;owl:sameAs rdf:resource="http://rdf.freebase.com/ns/en.paris" /&gt;
+    &lt;owl:sameAs rdf:resource="http://id.loc.gov/authorities/sh2008116535" /&gt;
+    &lt;owl:sameAs rdf:resource="http://dbpedia.org/resource/Paris" /&gt;
+    &lt;owl:sameAs rdf:resource="http://en.wikipedia.org/wiki/Paris" /&gt;
+    &lt;owl:sameAs rdf:resource="http://d.opencalais.com/er/geo/city/ralg-geo1/797c999a-d455-520d-e5cf-04ca7fb255c1" /&gt;
+  &lt;/rdf:Description&gt;
+&lt;/rdf:RDF&gt;
+</pre>
+    Or, in Turtle: 
+<pre>
+@prefix owl: &lt;http://www.w3.org/2002/07/owl#&gt; .
+&lt;http://example.com/taxonomy/term/4045&gt;
+  owl:sameAs 
+    &lt;http://rdf.freebase.com/ns/en.paris&gt; ,
+    &lt;http://id.loc.gov/authorities/sh2008116535&gt; ,
+    &lt;http://dbpedia.org/resource/Paris&gt; ,
+    &lt;http://en.wikipedia.org/wiki/Paris&gt; ,
+    &lt;http://d.opencalais.com/er/geo/city/ralg-geo1/797c999a-d455-520d-e5cf-04ca7fb255c1&gt; .    
+</pre>
+... You don't need all these! Only one will do, but I'm listing a handful for comparison to illustrate the variety.
+    <h3>
+      What a mess?
+    </h3>
+    <p>
+      Looks like a load of pointless code, but the point is that
+      NOW we can talk with those other data sources and they will
+      tell us the synonyms, translations, descriptions of that item
+      <em>and</em> its relation with other things - like a list of
+      districts within or the province it's inside. Great for
+      building up <em>real taxonomies</em> that are accurate, 
+      official, and edited without typing.
+      <br/>Once imported, you are free to re-edit or delete
+      any of those values to suit yourself.
+    </p>
+    <p>
+      By using URIs as <b>G</b>lobally <b>U</b>nique <b>ID</b>entifiers, those lookup
+      services are also telling us where we can go to find more.
+      And more.
+    </p>
+    <p>
+      <em>And</em> this is all done for you, now that the API code
+      is in place. The RDF module will make a note of this data in
+      your Repository, and look it up again next time it needs to
+      know anything. Those long URLs are totally hidden from view
+      unless you want to expose them.
+    </p>
+    <h3>
+      Done.
+    </h3>
+    <p>
+      The install steps have enabled this feature in the background. 
+      You won't see much on the surface, but the next vocab you import
+      will be sitting on a framework of semantic data.
+      This data can be inspected directly from the RDF data UI.
+    </p>
+  </body>
+</html>
+

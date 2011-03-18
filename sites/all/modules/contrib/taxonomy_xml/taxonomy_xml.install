@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ *   Install, update and uninstall functions for the taxonomy_xml module.
+ *
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function taxonomy_xml_install() {
+  drupal_set_message(t("
+    Taxonomy Import and Export functions are now available as TABS
+    at !taxonomy_link.
+    Lots of documentation about supported import/export syntaxed
+    is available in the 'help' folder of this module.
+  ", array(
+    '!taxonomy_link' => l('admin/structure/taxonomy', 'admin/structure/taxonomy'),
+  )));
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function taxonomy_xml_uninstall() {
+
+}
+
+
+/**
+ * Implementation of hook_requirements().
+ *
+ * Advice on missing functionality
+ *
+ */
+function taxonomy_xml_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    // Advise that taxonomy_enhancer is useful
+    if (module_exists('rdf')) {
+      $requirements['tx_rdf'] = array(
+        'value' => t('RDF module is available.'),
+        'severity' => REQUIREMENT_OK,
+        'description' => t('
+          !rdf will assist taxonomy imports
+          by enabling a unique Identifier for each imported term.
+        ', array('!rdf' => l('rdf.module', 'http://drupal.org/project/rdf') )
+        ),
+      );
+    }
+    else {
+      $requirements['tx_rdf'] = array(
+        'value' => t('RDF module is not available.'),
+        'severity' => REQUIREMENT_WARNING,
+        'description' => t('
+          !rdf is very useful to taxonomy_xml
+          if you are planning to import external taxonomies from web services.
+          <em>It is not required</em>, but will enable us to add a GUID (unique identifier)
+          field to your terms so that imports can be structured correctly.
+          Without it we cannot import vocabulary heirarchies via spidering,
+          although small all-in-one vocabulary imports (from a single file)
+          should still work.
+        ', array(
+          '!rdf' => l('rdf.module', 'http://drupal.org/project/rdf')
+          )
+        ),
+      );
+    }
+    $requirements['tx_rdf']['title'] = t('RDF (for taxonomy_xml)');
+  }
+  $requirements['taxonomy_xml'] = array(
+    'title' => 'Taxonomy XML is enabled',
+    'value' => "Taxonomy XML is intended as a run-once setup or migration module, you are advised to disable it once it's done its job",
+    'severity' => REQUIREMENT_INFO,
+  );
+
+  return $requirements;
+}

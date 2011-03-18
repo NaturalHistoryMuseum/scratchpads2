@@ -1,0 +1,50 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE taxonomy SYSTEM "taxonomy.dtd">
+<vocabulary>
+	<vid>5</vid>
+	<name>Editorial sections</name>
+	<description></description>
+	<help></help>
+	<relations>0</relations>
+	<hierarchy>1</hierarchy>
+	<multiple>0</multiple>
+	<required>0</required>
+	<nodes>blog,page,story</nodes>
+	<weight>0</weight>
+	<term>
+		<tid>83</tid>
+		<vid>5</vid>
+		<name>Analysis</name>
+		<description>Examines the connections between known facts.</description>
+		<weight>0</weight>
+		<depth>0</depth>
+		<parent>0</parent>
+	</term>
+	<term>
+		<tid>85</tid>
+		<vid>5</vid>
+		<name>Feature</name>
+		<description>Book reviews, profiles and other special reports.</description>
+		<weight>0</weight>
+		<depth>0</depth>
+		<parent>0</parent>
+	</term>
+	<term>
+		<tid>82</tid>
+		<vid>5</vid>
+		<name>News</name>
+		<description>Just the facts about current events.</description>
+		<weight>0</weight>
+		<depth>0</depth>
+		<parent>0</parent>
+	</term>
+	<term>
+		<tid>84</tid>
+		<vid>5</vid>
+		<name>Opinion</name>
+		<description>Editorial commentary.</description>
+		<weight>0</weight>
+		<depth>0</depth>
+		<parent>0</parent>
+	</term>
+</vocabulary>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataSet xmlns="http://www.tdwg.org/schemas/tcs/1.01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.tdwg.org/schemas/tcs/1.01 v101.xsd">
+  <MetaData>
+    <Simple>Some meta data</Simple>
+  </MetaData>
+  <TaxonNames>
+    <TaxonName id="n105895" nomenclaturalCode="Zoological">
+      <Simple>Phocoena phocoena (Linnaeus, 1758)</Simple>
+      <Rank code="sp">Species</Rank>
+      <CanonicalName>
+        <Simple>Phocoena phocoena</Simple>
+      </CanonicalName>
+    </TaxonName>
+  </TaxonNames>
+  <TaxonConcepts>
+    <TaxonConcept id="c19203259">
+      <Name scientific="true" ref="n105895">Phocoena phocoena (Linnaeus, 1758)</Name>
+      <Rank code="sp">Species</Rank>
+      <TaxonRelationships>
+        <TaxonRelationship type="is child taxon of">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;id=18909234" linkType="external"/>
+        </TaxonRelationship>
+        <TaxonRelationship type="is parent taxon of">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;id=20117113" linkType="external"/>
+        </TaxonRelationship>
+        <TaxonRelationship type="is parent taxon of">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;id=20117111" linkType="external"/>
+        </TaxonRelationship>
+        <TaxonRelationship type="has vernacular">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;sid=1120134" linkType="external"/>
+        </TaxonRelationship>
+        <TaxonRelationship type="has vernacular">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;sid=1120135" linkType="external"/>
+        </TaxonRelationship>
+        <TaxonRelationship type="has vernacular">
+          <ToTaxonConcept ref="http://services.eol.org/lifedesk/service.php?function=details_tcs&amp;sid=1120136" linkType="external"/>
+        </TaxonRelationship>
+      </TaxonRelationships>
+    </TaxonConcept>
+  </TaxonConcepts>
+</DataSet>

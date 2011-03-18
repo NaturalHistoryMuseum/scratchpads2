@@ -1,0 +1,95 @@
+# This slice of data was automatically extracted from the files provided at
+# ftp://ftp.ncbi.nih.gov/pub/taxonomy/
+# @see http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=3627
+#
+1  , Broader Terms ,  1 
+1  , Definition ,GenBankID: 1 
+1  , name ,   root  
+1  , Used for ,   all 
+2759   , Broader Terms ,  131567  
+2759   , Definition ,Common Name:   eukaryotes  
+2759   , Definition ,GenBankID: 2759  
+2759   , name ,   Eukaryota 
+2759   , Used for ,   Eucarya 
+2759   , Used for ,   Eucaryotae  
+2759   , Used for ,   Eukarya 
+2759   , Used for ,   Eukaryotae  
+3193   , Broader Terms ,  131221  
+3193   , Definition ,Common Name:   higher plants 
+3193   , Definition ,Common Name:   land plants 
+3193   , Definition ,Common Name:   plants  
+3193   , Definition ,GenBankID: 3193  
+3193   , name ,   Embryophyta 
+3398   , Broader Terms ,  58024 
+3398   , Definition ,Common Name:   angiosperms 
+3398   , Definition ,GenBankID: 3398  
+3398   , name ,   Magnoliophyta 
+3398   , Used for ,   Angiospermae  
+3623   , Broader Terms ,  41945 
+3623   , Definition ,Common Name:   Chinese gooseberry family 
+3623   , Definition ,GenBankID: 3623  
+3623   , name ,   Actinidiaceae 
+3624   , Broader Terms ,  3623  
+3624   , Definition ,GenBankID: 3624  
+3624   , name ,   Actinidia 
+3624   , Used for ,   Actinidia Lindl.  
+3627   , Broader Terms ,  3624  
+3627   , Definition ,Common Name:   Chinese gooseberry  
+3627   , Definition ,Common Name:   kiwifruit 
+3627   , Definition ,GenBankID: 3627  
+3627   , name ,   Actinidia deliciosa 
+3627   , Used for ,   Actinidia chinensis var. deliciosa  
+3627   , Used for ,   Actinidia deliciosa (A.Chev.) C.F.Liang & A.R.Ferguson  
+33090  , Broader Terms ,  2759  
+33090  , Definition ,Common Name:   green plants  
+33090  , Definition ,GenBankID: 33090 
+33090  , name ,   Viridiplantae 
+33090  , Used for ,   Chlorobionta  
+33090  , Used for ,   Chlorobionta Bremer 1985  
+33090  , Used for ,   Chlorophyta/Embryophyta group 
+33090  , Used for ,   chlorophyte/embryophyte group 
+33090  , Used for ,   Viridiplantae Cavalier-Smith 1981 
+35493  , Broader Terms ,  33090 
+35493  , Definition ,GenBankID: 35493 
+35493  , name ,   Streptophyta  
+35493  , Used for ,   Streptophyta Bremer 1985  
+41945  , Broader Terms ,  71274 
+41945  , Definition ,GenBankID: 41945 
+41945  , name ,   Ericales  
+58023  , Broader Terms ,  3193  
+58023  , Definition ,Common Name:   vascular plants 
+58023  , Definition ,GenBankID: 58023 
+58023  , name ,   Tracheophyta  
+58024  , Broader Terms ,  78536 
+58024  , Definition ,Common Name:   seed plants 
+58024  , Definition ,GenBankID: 58024 
+58024  , name ,   Spermatophyta 
+71240  , Broader Terms ,  3398  
+71240  , Definition ,GenBankID: 71240 
+71240  , name ,   eudicotyledons  
+71274  , Broader Terms ,  91827 
+71274  , Definition ,GenBankID: 71274 
+71274  , name ,   asterids  
+78536  , Broader Terms ,  58023 
+78536  , Definition ,GenBankID: 78536 
+78536  , name ,   Euphyllophyta 
+91827  , Broader Terms ,  71240 
+91827  , Definition ,GenBankID: 91827 
+91827  , name ,   core eudicotyledons 
+91827  , Used for ,   core eudicots 
+131221   , Broader Terms ,  35493 
+131221   , Definition ,GenBankID: 131221  
+131221   , name ,   Streptophytina  
+131221   , Used for ,   Charophyta/Embryophyta group  
+131221   , Used for ,   charophyte/embryophyte group  
+131567   , Broader Terms ,  1 
+131567   , Definition ,GenBankID: 131567  
+131567   , name ,   cellular organisms  
+131567   , Used for ,   biota 
+222491   , Broader Terms ,  3627  
+222491   , Definition ,GenBankID: 222491  
+222491   , name ,   Actinidia deliciosa var. chlorocarpa  
+222491   , Used for ,   Actinidia deliciosa var. chlorocarpa (C.F.Liang) C.F.Liang & A.R.Ferguson 
+284548   , Broader Terms ,  3627  
+284548   , Definition ,GenBankID: 284548  
+284548   , name ,   Actinidia deliciosa var. deliciosa  

@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Taxonomy XML - help overview
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1>
+      Taxonomy XML
+    </h1>
+    <p>
+      This module makes it possible to import and export
+      vocabularies and taxonomy terms from various formats. See
+      <a href="!formats">formats.html</a> in the module folder for more detail about the
+      supported syntax.
+    </p>
+    <p>
+      Once installed and enabled, it provides a list of
+      downloadable documents for each vocabulary at <a href="!downloads">"Taxonomy Export"</a>.
+    </p>
+    <p>
+      To import a vocabulary, use <a href="!upload">"Administer > Taxonomy > Import"</a>.
+    </p>
+    <p>
+      As well as importing from other Drupal sites, vocabularies can be imported
+      from a number of different sources and syntaxes, including online 
+      taxonomy servers. For more detail, see the module docs about 
+      <a href="!formats">formats</a> and <a href="!services">services</a>
+    </p>
+    <p>
+      If you want to add the terms to an existing vocabulary, use
+      the "Target vocabulary" selector.<br />
+      If you select "determined by source file", the target
+      vocabulary will be specified by the XML document itself, if
+      possible. Not all formats or inputs support this, 
+      in which case you will get a default container named "Imported Vocabulary".
+    </p>
+    <p>
+      Drupal-specific configurations (such as the related node
+      types, or the free-tagging property) will probably not be
+      imported from anything but the custom format, so you'll want
+      to review the new vocabulary edit page when it's done.<br />
+      To avoid duplications, already-existing terms will not be
+      added unless chosen in the settings. The normal behavior is
+      to attempt to merge with existing vocabs.<br />
+    </p>
+    <h3>Unique IDs for terms</h3>
+    <p>
+      It's highly unlikely that term IDs can be meaningfully shared
+      between systems, so the tid field and vid is NOT retained. Instead,
+      terms are looked up by name (string match) and vocabulary
+      when looking for existing terms. Just because you've
+      duplicated a vocabulary, does not mean it's identically
+      numbered as the original. They will usually get new, unique
+      IDs.
+    </p>
+    <p>
+      String matching has some weaknesses 
+      (compare "Paris", Texas with "Paris", France)
+      <em>which cannot be resolved unless you more to a stricter import method</em>
+      such as GUID/URI described below.
+      Failing that, your terms must include a full unique string 
+      ("Paris, Texas") as the full name.
+    </p>
+    <h3>Shared URIS for terms</h3>
+    <p>
+      For really powerful sharing of taxonomies, you should be able to match
+      you local terms with public URIs from <a href="!services">known data providers</a>.
+      This is semantically useful internally <em>and <b>required</b> for importing
+      large, spidered vocabularies</em>.
+      If you want to usefully import large numbers of structured terms, 
+      you should follow the extra install instructions for <a href="!rdf">enabling URI 
+      and RDF support</a> for terms.
+      <br/>If this is not enabled, remote imports of multi-file lookups
+      will still mostly work, but without any parent-child structure.
+    </p>
+  </body>
+</html>

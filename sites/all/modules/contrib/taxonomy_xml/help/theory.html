@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      About Taxonomies, Thesauri and Drupal
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1 id="title">
+      About Taxonomies, Thesauri and Drupal
+    </h1>
+    <h2>
+      Background Reading on Taxonomies etc.
+    </h2>
+    <h4>
+      A Partial Bibliography
+    </h4>
+    <p>
+      The need for shareable, interchangable, common taxonomies and
+      vocabularies os a hot topic in knowledge management. Many
+      partial solutions, or at least definitions of the problem,
+      have been put forward. A good primer on this is <cite><a
+      href="http://www.ontopia.net/topicmaps/materials/tm-vs-thesauri.html#sect-thesauri">
+      Metadata? Thesauri? Taxonomies? Topic Maps!</a> Making sense
+      of it all
+      <br />
+       By: Lars Marius Garshol</cite>
+    </p>
+    <p>
+      Ian Dickson put out the call for <a
+      href="http://www.iandickson.com/taxonomy/drupal/node/38">a
+      centralized 'Taxonomy Server'</a> for Drupal, describing how
+      such a project may be constructed.
+    </p>
+    <h2>
+      Theory
+    </h2>
+    <p>
+      According to academic papers on the subject, alternative
+      vocabularies used to group different sets or axes of terms
+      are labelled 'facets'. Lots of talk about it, especially in
+      library circles, seems to have been done, but little is
+      available on notation or communication of these concepts.
+    </p>
+    <p>
+      A heavy-duty, but comprehensive read is The ANSI Standard <a
+      href="http://www.niso.org/standards/standard_detail.cfm?std_id=814">
+      Guidelines for the Construction, Format, and Management of
+      Monolingual Controlled Vocabularies
+      <strong>Z39-19-2005</strong></a>
+    </p>
+    <p>
+      As it describes in section 5.3.4, "Facet Analysis" is the
+      task of choosing how to construct your vocabularies, which
+      terms should be grouped with which in the Drupal 'Categories'
+      admin section.
+    </p>
+    <blockquote>
+      Facets are a kind of structural metadata. Attributes that
+      might be selected as facets for content objects are:
+      <br />
+       &bull; Topic &ndash; the subject of the content object
+      <br />
+       &bull; Format &ndash; the format of material (e.g., text,
+      image, sound, etc.).
+      <br />
+       &bull; Target audience &ndash; the appropriate reader for
+      the content (e.g., Children, Adults)
+    </blockquote>
+    <p>
+      That document also contains excellent recommendations on term
+      selection (Grammar, Plural form, Capitalization etc, section
+      6) and illustrates a dozen alternative textual ways that
+      taxonomies/thesauri may be notated (and hence could be useful
+      as import/export formats).
+    </p>
+    <p>
+      Some possible ways of rendering taxonomies are available for
+      inspections from, eg <a
+      href="http://www.loc.gov/rr/print/tgm1/downloadtgm1.html">Library
+      of Congress: Thesaurus for Graphic Materials I: Subject
+      Terms</a>
+    </p>
+    <h4>
+      An Example Entry, LOC thesauri notation:
+    </h4>
+<pre>
+-------------------------------
+  MT: Alphabets (Writing systems)
+  UF: Letters of the alphabet
+  BT: Writing systems
+  NT: Initials
+  NT: Phonetic alphabets
+  Control No.: lctgm000270
+-------------------------------
+</pre>
+    <h5>
+      <a
+      href="http://www.loc.gov/rr/print/tgm1/ic.html">Mini-Glossary/explanation</a>:
+    </h5>
+    <dl>
+      <dt>
+        MT
+      </dt>
+      <dd>
+        Term
+      </dd>
+      <dt>
+        UF
+      </dt>
+      <dd>
+        Used For
+      </dd>
+      <dt>
+        BT
+      </dt>
+      <dd>
+        Broader Term
+      </dd>
+      <dt>
+        NT
+      </dt>
+      <dd>
+        Narrower Term
+      </dd>
+    </dl>
+    <p>
+      Some possibly useful canonic thesauri are accessable for
+      browsing (but not convenient download) at <a
+      href="http://www.itsmarc.com/crs/CRS0000.htm">the Library of
+      Congress</a>
+      <br />
+       In light of current research, the schemas used and defined
+      there are positively archaic ... although they provide an
+      interesting list of terms.
+    </p>
+    <p>
+      A much larger collection of thesauri is indexed at <a
+      href="http://www.taxonomywarehouse.com/">http://www.taxonomywarehouse.com/</a>
+      or <a
+      href="http://www.schemas-forum.org/registry/registry.html">http://www.schemas-forum.org/registry/registry.html</a>
+      , including terms used by the United Nations and various
+      governments.
+      <br />
+       ... However these are just indexes of external sites, and
+      resources found there are often only 'browsable' but not
+      downloadable, and when they are, are each rendered in their
+      own, usually proprietary markup notation scheme! Plus various
+      curious licensing restrictions ... on word lists! Obviously
+      there is a need for a useful, interoperable notation scheme!
+    </p>
+    <p>
+      <a
+      href="http://thesaurus.english-heritage.org.uk/frequentuser.htm">
+      The English Heritage National Monuments Record Thesauri</a>
+      Collection looks like a nice clean resource, listing thesauri
+      for ['Monument Types', 'Building Materials', '<a
+      href="http://thesaurus.english-heritage.org.uk/thesaurus.asp?thes_no=225">
+      Historic Aircraft Type</a>' and more ]. Again, it's
+      browsable, not downloadable.
+    </p>
+    <p>
+      W3C published <a
+      href="http://www.w3.org/TR/2005/WD-swbp-thesaurus-pubguide-20050517/">
+      Quick Guide to Publishing a Thesaurus on the Semantic Web</a>
+      which <em>does</em> recommend a method, (which looks very
+      much like what I ended up doing) but this doesn't seem to
+      have caught on anywhere <a
+      href="http://www.w3.org/2003/03/glossary-project/data/glossaries/">
+      outside of their own glossary project</a> (however that's
+      cool as glossaries go).
+    </p>
+    <p>Also from the W3C in 2008 
+    (after this generation of taxonomy_xml was designed)
+    there is <a href="http://www.w3.org/TR/swbp-vocab-pub/">Best Practice Recipes for Publishing RDF Vocabularies</a>.
+    <br/>
+    <a href="http://www.cs.vu.nl/STITCH/rameau/">Rameau (FRENCH)</a> is working example of this theory,
+    and <a href="http://id.loc.gov/authorities/about.html">The Library of Congress "Authorities and Vocabularies"</a>
+    now provides a public service we can hook into also!
+    <br/>
+    <em>Hooray for getting into standards early! 
+    The taxonomy_xml lookup client was built before there were 
+    <b>any</b> servers in the world for it to talk to. 
+    When the servers were built a year later 
+    - This client started working! (gobsmacked)</em>
+    <br/>
+    The Library of Congress service also publishes its data in RDFa over HTML.
+    </p>
+    
+    <h2>
+      Historical Initiatives.
+    </h2>
+    <p>
+      ... include <a
+      href="http://www.xml.com/pub/a/2003/01/22/xfml.html">XFML</a>
+      (An XML representation of structured Thesauri) ... which
+      appears to have totally died. Apparently giving way to
+      as-yet-undefined RDF-based solutions.
+    </p>
+    <p>
+      There once even was a Drupal XFML module, long since retired
+      apparently.
+    </p>
+    <p>
+      The syntax almost lives on in '<a
+      href="http://facetmap.com/">facetmap</a>', an application and
+      XML dialect that pretty much does the job, only it calls the
+      multiple 'vocabularies' found in Drupal 'facets' and the
+      'terms' within them 'maps' (?). Original XFML at least called
+      them 'topics', which was workable.
+    </p>
+    <p>
+      <a href="http://www.imsglobal.org/vdex/">The Vocabulary
+      Definition Exchange</a> Appears to define a schema for
+      representing terms and relationships within a vocabulary.
+      Although it looks a bit like an awkward attempt, and I've not
+      seen any actual examples of it in use.
+    </p>
+    <p>
+      An academic thesis, <a
+      href="http://www.w3.org/2001/sw/Europe/reports/thes/8.8/">Migrating
+      Thesauri to the Semantic Web</a> gives some good case studies
+      listing existing thesauri :
+    </p>
+    <ul>
+      <li>
+        <a
+        href="http://www.nla.gov.au/apais/thesaurus/index.html">APAIS</a>
+        - Australian Public Affairs Information Service , a subject
+        guide to literature in the social sciences and humanities.
+        Browsable (good) <em>and</em> downloadable (great)
+      </li>
+    </ul>
+    <p>
+      <a href="http://zthes.z3950.org/z3950/zthes-z3950-1.0.html">Zthes</a>
+      was supposed to be the answer to <b><a href="http://www.loc.gov/z3950/agency/">ANSI/NISO Z39.50</a></b> 
+      (a specification for interoperable subject searches - maintained by the Library of Congress, and closely related to Library OPAC systems)
+      but it <em>never</em> got anything working or useful.
+      They tried to publish <a href="http://zthes.z3950.org/schema/index.html">
+      an XML schema for representing taxa</a>, and it's
+      actually OK. But there are no references to anyone using it in the wild. 
+      
+    </p>
+    <h2>
+      Current Implementation of Taxonomy import/export for Drupal
+      (Oct 2007)
+    </h2>
+    <p>
+      I've referred to Wordnet/RDF + <a
+      href="http://www.w3.org/TR/owl-features/">Web Ontology
+      Language</a> (OWL) for the target dialect of XML used in this
+      export schema.
+      <br />
+       Words and Terms come from, and are uniquely identified by
+      the existing wordnet vocabulary, and their relationships are
+      described using the <a
+      href="http://www.w3.org/TR/rdf-schema/">RDF Schema</a>
+      'ParentOf' and 'ChildOf' terms etc.
+    </p>
+    <p>
+      This modification of the taxonomy_xml.module is intended for
+      two uses.
+    </p>
+    <ol>
+      <li>
+        To assist in migrating taxonomies between cloned sites, eg
+        dev and live copies of essentially the same site. To this
+        end, some effort has been put into maintaining vocabulary
+        IDs and term IDs, because once they get out of synch,
+        cloning and replication is almost a lost cause.
+      </li>
+      <li>
+        To become a foundation for a Taxonomy Interchange
+        initiative [<a
+        href="http://www.iandickson.com/taxonomy/drupal/node/38">Taxonomy
+        Server</a>] and therefore, I guess, somewhat similar to all
+        those other 'taxonomy warehouses' <em>but</em> we intend to
+        publish, for import/export, these shared taxonomies in a
+        way that allows Drupal sites (or other related
+        technologies) to share this data.
+      </li>
+    </ol>
+
+    <br />
+     
+    <h2>
+      Sources of Taxonomies
+    </h2>
+    The following sites provide downloadable taxonomies, Thesauri
+    or Glossaries that are at least partly compatable with this
+    import tool. 
+    <ul>
+      <li>
+        <a
+        href="http://www.w3.org/2003/03/glossary-project/data/glossaries/">
+        W3C Glossary Project</a> (RDF downloads) (Also <a
+        href="http://www.w3.org/2003/glossary/">browsable</a>
+      </li>
+      <li>
+        <a
+        href="http://www.e.govt.nz/standards/nzgls/thesauri/downloads.html">
+        Subjects of New Zealand (SONZ) and Functions of New Zealand
+        (FONZ) thesauri</a> (CSV Downloads)
+      </li>
+      <li>
+        <a
+        href="http://www.eionet.europa.eu/gemet/rdf?langcode=en">GEMET
+        provides multilingual versions of extensive topics</a>
+        (SKOS/RDF fractured Downloads - labels are in one file,
+        relationships in another etc) Also browsable
+      </li>
+    </ul>
+  </body>
+</html>
+
