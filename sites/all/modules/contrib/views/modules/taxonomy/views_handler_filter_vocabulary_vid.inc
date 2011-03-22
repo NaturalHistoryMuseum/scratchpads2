@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_vocabulary_vid.inc,v 1.3.4.1 2009/11/02 22:01:26 merlinofchaos Exp $
 
 /**
  * Filter by vocabulary id

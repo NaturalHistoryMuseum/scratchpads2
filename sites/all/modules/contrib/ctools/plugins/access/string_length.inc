@@ -1,5 +1,4 @@
 <?php
-// $Id: string_length.inc,v 1.3 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -55,7 +54,7 @@ function ctools_string_length_ctools_access_check($conf, $context) {
     $length = drupal_strlen($context->data);
   }
 
-  switch($conf['operator']) {
+  switch ($conf['operator']) {
     case '<':
       return $length < $conf['length'];
     case '<=':

@@ -1,5 +1,4 @@
 <?php
-// $Id: compare_users.inc,v 1.6 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -32,7 +31,7 @@ function ctools_compare_users_settings($form, &$form_state, $conf) {
 
   $form['settings']['helptext'] = array(
     '#type' => 'markup',
-    '#value' => '<div>'. t('Grant access based on comparison of the two user contexts. For example, to grant access to a user to view their own profile, choose "logged in user" and "user being viewed" and say "grant access if equal". When they\'re the same, access will be granted.') . '</div>',
+    '#value' => '<div>' . t('Grant access based on comparison of the two user contexts. For example, to grant access to a user to view their own profile, choose "logged in user" and "user being viewed" and say "grant access if equal". When they\'re the same, access will be granted.') . '</div>',
   );
 
   $form['settings']['equality'] = array(

@@ -1,4 +1,3 @@
-// $Id: ajax-responder.js,v 1.25 2010/10/11 22:18:22 sdboyer Exp $
 /**
  * @file
  *
@@ -6,6 +5,8 @@
  */
 
 (function ($) {
+  Drupal.CTools = Drupal.CTools || {};
+  Drupal.CTools.AJAX = Drupal.CTools.AJAX || {};
   /**
    * Grab the response from the server and store it.
    *
@@ -95,29 +96,31 @@
     return url;
   };
 
+  // Hide these in a ready to ensure that Drupal.ajax is set up first.
+  $(function() {
+    Drupal.ajax.prototype.commands.attr = function(ajax, data, status) {
+      $(data.selector).attr(data.name, data.value);
+    };
 
-  Drupal.CTools.AJAX.commands.attr = function(data) {
-    $(data.selector).attr(data.name, data.value);
-  };
 
-
-  Drupal.CTools.AJAX.commands.redirect = function(data) {
-    if (data.delay > 0) {
-      setTimeout(function () {
+    Drupal.ajax.prototype.commands.redirect = function(ajax, data, status) {
+      console.log(redirect);
+      if (data.delay > 0) {
+        setTimeout(function () {
+          location.href = data.url;
+        }, data.delay);
+      }
+      else {
         location.href = data.url;
-      }, data.delay);
+      }
+    };
+
+    Drupal.ajax.prototype.commands.reload = function(ajax, data, status) {
+      location.reload();
+    };
+
+    Drupal.ajax.prototype.commands.submit = function(ajax, data, status) {
+      $(data.selector).submit();
     }
-    else {
-      location.href = data.url;
-    }
-  };
-
-  Drupal.CTools.AJAX.commands.reload = function(data) {
-    location.reload();
-  };
-
-  Drupal.CTools.AJAX.commands.submit = function(data) {
-    $(data.selector).submit();
-  }
-
+  });
 })(jQuery);

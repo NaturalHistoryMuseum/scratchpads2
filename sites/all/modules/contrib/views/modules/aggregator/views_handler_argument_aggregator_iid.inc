@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_aggregator_iid.inc,v 1.1.6.2 2010/10/16 08:19:05 dereine Exp $
 
 /**
  * Argument handler to accept an aggregator item id.

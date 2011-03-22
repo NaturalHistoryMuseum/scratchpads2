@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_history_user_timestamp.inc,v 1.3.4.8 2011/02/04 22:36:27 merlinofchaos Exp $
 /**
  * Filter for new content
  *
@@ -9,8 +8,12 @@ class views_handler_filter_history_user_timestamp extends views_handler_filter {
   // Don't display empty space where the operator would be.
   var $no_operator = TRUE;
 
-  function expose_form_right(&$form, &$form_state) {
-    // We don't want any of the usual options for exposed filters.
+  function expose_form(&$form, &$form_state) {
+    parent::expose_form($form, $form_state);
+    // @todo There are better ways of excluding required and multiple (object flags)
+    unset($form['expose']['required']);
+    unset($form['expose']['multiple']);
+    unset($form['expose']['remember']);
   }
 
   function value_form(&$form, &$form_state) {

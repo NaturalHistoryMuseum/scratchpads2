@@ -1,5 +1,4 @@
 <?php
-// $Id: content.theme.inc,v 1.4 2009/10/17 22:58:25 sdboyer Exp $
 
 /**
  * @file

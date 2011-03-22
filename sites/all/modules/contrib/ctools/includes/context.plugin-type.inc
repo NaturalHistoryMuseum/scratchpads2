@@ -1,5 +1,4 @@
 <?php
-// $Id: context.plugin-type.inc,v 1.2 2011/01/05 20:34:46 merlinofchaos Exp $
 
 /**
  * @file

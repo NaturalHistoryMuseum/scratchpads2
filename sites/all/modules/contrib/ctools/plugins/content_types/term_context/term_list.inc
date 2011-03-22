@@ -1,5 +1,4 @@
 <?php
-// $Id: term_list.inc,v 1.8 2010/10/11 22:18:23 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -10,7 +9,7 @@ $plugin = array(
   'title' => t('List of related terms'),
   'icon' => 'icon_term.png',
   'description' => t('Terms related to an existing term; may be child, siblings or top level.'),
-  'required context' => new ctools_context_required(t('Term'), 'term'),
+  'required context' => new ctools_context_required(t('Term'), array('term', 'taxonomy_term')),
   'category' => t('Taxonomy term'),
   'defaults' => array('title' => '', 'type' => 'child', 'list_type' => 'ul'),
 );

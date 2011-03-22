@@ -1,5 +1,4 @@
 <?php
-// $Id: context.theme.inc,v 1.15 2011/01/05 19:56:46 merlinofchaos Exp $
 
 /**
  * @file

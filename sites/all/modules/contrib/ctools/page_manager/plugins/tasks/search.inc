@@ -1,5 +1,4 @@
 <?php
-// $Id: search.inc,v 1.4 2010/10/11 22:18:23 sdboyer Exp $
 
 /**
  * @file
@@ -256,7 +255,7 @@ function page_manager_search_enable($cache, $status) {
 function page_manager_search_subtasks($task) {
   $return = array();
   foreach (module_implements('search') as $name) {
-    if(module_invoke($name, 'search', 'name')) {
+    if (module_invoke($name, 'search', 'name')) {
       $return[$name] = page_manager_search_build_subtask($task, $name);
     }
   }

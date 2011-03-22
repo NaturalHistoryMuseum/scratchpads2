@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_comment_username.inc,v 1.2.6.1 2009/11/02 22:01:26 merlinofchaos Exp $
 /**
  * Field handler to allow linking to a user account or homepage
  */
@@ -20,19 +19,19 @@ class views_handler_field_comment_username extends views_handler_field {
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['link_to_user'] = array(
       '#title' => t("Link this field to its user or an author's homepage"),
       '#type' => 'checkbox',
       '#default_value' => $this->options['link_to_user'],
     );
+    parent::options_form($form, $form_state);
   }
 
   function render_link($data, $values) {
     if (!empty($this->options['link_to_user'])) {
-      $account->uid = $values->{$this->aliases['uid']};
-      $account->name = $values->{$this->field_alias};
-      $account->homepage = $values->{$this->aliases['homepage']};
+      $account->uid = $this->get_value($values, 'uid');
+      $account->name = $this->get_value($values);
+      $account->homepage = $this->get_value($values, 'homepage');
 
       return theme('username', array(
         'account' => $account
@@ -44,7 +43,7 @@ class views_handler_field_comment_username extends views_handler_field {
   }
 
   function render($values) {
-    return $this->render_link(check_plain($values->{$this->field_alias}), $values);
+    $value = $this->get_value($values);
+    return $this->render_link($this->sanitize_value($value), $values);
   }
-
 }

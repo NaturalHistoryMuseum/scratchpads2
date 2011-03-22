@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_node_new_comments.inc,v 1.7.4.4 2010/11/18 07:50:23 dereine Exp $
 
 /**
  * Field handler to display the number of new comments
@@ -31,13 +30,14 @@ class views_handler_field_node_new_comments extends views_handler_field_numeric 
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['link_to_comment'] = array(
       '#title' => t('Link this field to new comments'),
-      '#description' => t('This will override any other link you have set.'),
+      '#description' => t("Enable to override this field's links."),
       '#type' => 'checkbox',
       '#default_value' => $this->options['link_to_comment'],
     );
+
+    parent::options_form($form, $form_state);
   }
 
   function query() {
@@ -85,11 +85,11 @@ class views_handler_field_node_new_comments extends views_handler_field_numeric 
   function render_link($data, $values) {
     if (!empty($this->options['link_to_comment']) && $data !== NULL && $data !== '') {
       $node = new stdClass();
-      $node->nid = $values->{$this->aliases['nid']};
-      $node->type = $values->{$this->aliases['type']};
+      $node->nid = $this->get_value($values, 'nid');
+      $node->type = $this->get_value($values, 'type');
       $this->options['alter']['make_link'] = TRUE;
       $this->options['alter']['path'] = 'node/' . $node->nid;
-      $this->options['alter']['query'] = comment_new_page_count($values->{$this->aliases['comment_count']}, $values->{$this->field_alias}, $node);
+      $this->options['alter']['query'] = comment_new_page_count($this->get_value($values, 'comment_count'), $this->get_value($values), $node);
       $this->options['alter']['fragment'] = 'new';
     }
 
@@ -97,7 +97,8 @@ class views_handler_field_node_new_comments extends views_handler_field_numeric 
   }
 
   function render($values) {
-    if (!empty($values->{$this->field_alias})) {
+    $value = $this->get_value($values);
+    if (!empty($value)) {
       return $this->render_link(parent::render($values), $values);
     }
     else {

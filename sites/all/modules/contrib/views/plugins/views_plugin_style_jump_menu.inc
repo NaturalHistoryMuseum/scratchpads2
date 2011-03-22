@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_style_jump_menu.inc,v 1.1.6.10 2011/02/05 01:08:29 merlinofchaos Exp $
 /**
  * @file
  * Contains the table style plugin.
@@ -77,7 +76,7 @@ class views_plugin_style_jump_menu extends views_plugin_style {
 
     $form['default_value'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Select the current argument.'),
+      '#title' => t('Select the current contextual filter value.'),
       '#default_value' => !empty($this->options['default_value']),
       '#description' => t('If checked, the current path will be displayed as the default option in the jump menu, if applicable.'),
     );
@@ -146,7 +145,8 @@ class views_plugin_style_jump_menu extends views_plugin_style {
       'default_value' => $default_value,
     );
 
-    return drupal_render(drupal_get_form('ctools_jump_menu', $options, $settings));
+    $form = drupal_get_form('ctools_jump_menu', $options, $settings);
+    return drupal_render($form);
   }
 
   function render_set($title, $records) {

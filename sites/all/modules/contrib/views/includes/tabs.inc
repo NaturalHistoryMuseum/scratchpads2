@@ -1,5 +1,4 @@
 <?php
-// $Id: tabs.inc,v 1.7.6.3 2010/03/20 23:16:37 dereine Exp $
 /**
  * @file
  *

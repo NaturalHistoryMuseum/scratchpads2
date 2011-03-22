@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_user.inc,v 1.3 2009/01/30 00:01:42 merlinofchaos Exp $
 
 /**
  * Field handler to provide simple renderer that allows linking to a user.
@@ -25,24 +24,26 @@ class views_handler_field_user extends views_handler_field {
    * Provide link to node option
    */
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['link_to_user'] = array(
       '#title' => t('Link this field to its user'),
-      '#description' => t('This will override any other link you have set.'),
+      '#description' => t("Enable to override this field's links."),
       '#type' => 'checkbox',
       '#default_value' => $this->options['link_to_user'],
     );
+    parent::options_form($form, $form_state);
   }
 
   function render_link($data, $values) {
-    if (!empty($this->options['link_to_user']) && user_access('access user profiles') && $values->{$this->aliases['uid']} && $data !== NULL && $data !== '') {
+    $uid = $this->get_value($values, 'uid');
+    if (!empty($this->options['link_to_user']) && user_access('access user profiles') && $uid && $data !== NULL && $data !== '') {
       $this->options['alter']['make_link'] = TRUE;
-      $this->options['alter']['path'] = "user/" . $values->{$this->aliases['uid']};
+      $this->options['alter']['path'] = "user/" . $uid;
     }
     return $data;
   }
 
   function render($values) {
-    return $this->render_link(check_plain($values->{$this->field_alias}), $values);
+    $value = $this->get_value($values);
+    return $this->render_link($this->sanitize_value($value), $values);
   }
 }

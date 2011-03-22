@@ -1,5 +1,4 @@
 <?php
-// $Id: context-access-admin.inc,v 1.12 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file

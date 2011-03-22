@@ -1,5 +1,4 @@
 <?php
-// $Id: view.inc,v 1.167.4.43 2011/02/06 14:29:02 dereine Exp $
 /**
  * @file view.inc
  * Provides the view object type and associated methods.
@@ -50,6 +49,9 @@ class view extends views_db_object {
 
   // Used to store views that were previously running if we recurse.
   var $old_view = array();
+
+  // To avoid recursion in views embebed into areas
+  var $parent_views = array();
 
   /**
    * Where the $query object will reside:
@@ -495,8 +497,8 @@ class view extends views_db_object {
           break;
         }
 
-        if ($argument->is_wildcard()) {
-          $arg_title = $argument->wildcard_title();
+        if ($argument->is_exception()) {
+          $arg_title = $argument->exception_title();
         }
         else {
           $arg_title = $argument->get_title();
@@ -511,7 +513,12 @@ class view extends views_db_object {
         if ($this->display_handler->uses_breadcrumb() && $argument->uses_breadcrumb()) {
           $path = $this->get_url($breadcrumb_args);
           if (strpos($path, '%') === FALSE) {
-            $breadcrumb = !empty($argument->options['breadcrumb'])? $argument->options['breadcrumb'] : $title;
+            if (!empty($argument->options['breadcrumb_enable']) && !empty($argument->options['breadcrumb'])) {
+              $breadcrumb = $argument->options['breadcrumb'];
+            }
+            else {
+              $breadcrumb = $title;
+            }
             $this->build_info['breadcrumb'][$path] = str_replace(array_keys($substitutions), $substitutions, $breadcrumb);
           }
         }
@@ -520,7 +527,7 @@ class view extends views_db_object {
         $argument->set_breadcrumb($this->build_info['breadcrumb']);
 
         // Test to see if we should use this argument's title
-        if (!empty($argument->options['title'])) {
+        if (!empty($argument->options['title_enable']) && !empty($argument->options['title'])) {
           $title = $argument->options['title'];
         }
 
@@ -1106,6 +1113,24 @@ class view extends views_db_object {
   }
 
   /**
+   * Return the human readable name for a view.
+   *
+   * When a certain view doesn't have a human readable name return the machine readable name.
+   */
+  function get_human_name() {
+    if (!empty($this->human_name)) {
+      $human_name = $this->human_name;
+    }
+    else {
+      $human_name = $this->get_title();
+      if (empty($human_name)) {
+        $human_name = $this->name;
+      }
+    }
+    return $human_name;
+  }
+
+  /**
    * Force the view to build a title.
    */
   function build_title() {
@@ -1306,42 +1331,39 @@ class view extends views_db_object {
         ->fields('v')
         ->condition(is_numeric($arg) ? 'vid' : 'name', $arg)
         ->execute();
-      foreach ($result as $data) {
-        if (empty($data)) {
-          $cache[$arg] = NULL;
-        }
-        else {
-          $view = new view();
-          $view->load_row($data);
-          $view->type = t('Normal');
-          // Load all of our subtables.
-          foreach ($view->db_objects() as $key) {
-            $object_name = "views_$key";
-            $result = db_select($object_name, 'v')
-              ->fields('v')
-              ->condition('vid', $view->vid)
-              ->orderBy('position')
-              ->execute();
-            foreach ($result as $data) {
-              $object = new $object_name(FALSE);
-              $object->load_row($data);
+      if ($result->rowCount() == 0) {
+        $cache[$arg] = NULL;
+      }
+      else {
+        $view = new view();
+        $view->load_row($result->fetchObject());
+        $view->type = t('Normal');
+        // Load all of our subtables.
+        foreach ($view->db_objects() as $key) {
+          $object_name = "views_$key";
+          $result = db_select($object_name, 'v')
+            ->fields('v')
+            ->condition('vid', $view->vid)
+            ->orderBy('position')
+            ->execute();
+          foreach ($result as $data) {
+            $object = new $object_name(FALSE);
+            $object->load_row($data);
 
-              // Because it can get complicated with this much indirection,
-              // make a shortcut reference.
-              $location = &$view->$key;
+            // Because it can get complicated with this much indirection,
+            // make a shortcut reference.
+            $location = &$view->$key;
 
-              // If we have a basic id field, load the item onto the view based on
-              // this ID, otherwise push it on.
-              if (!empty($object->id)) {
-                $location[$object->id] = $object;
-              }
-              else {
-                $location[] = $object;
-              }
+            // If we have a basic id field, load the item onto the view based on
+            // this ID, otherwise push it on.
+            if (!empty($object->id)) {
+              $location[$object->id] = $object;
+            }
+            else {
+              $location[] = $object;
             }
           }
         }
-
         $view->loaded = TRUE;
         $cache[$arg] = $view;
       }
@@ -1360,7 +1382,6 @@ class view extends views_db_object {
   static function load_views() {
     $result = db_query("SELECT DISTINCT v.* FROM {views_view} v");
     $views = array();
-    $vids = array();
 
     // Load all the views.
     foreach ($result as $data) {
@@ -1377,7 +1398,6 @@ class view extends views_db_object {
       return array();
     }
 
-    $vids = implode(', ', array_keys($names));
     // Now load all the subtables:
     foreach (view::db_objects() as $key) {
       $object_name = "views_$key";
@@ -1487,7 +1507,7 @@ class view extends views_db_object {
 
     foreach ($this->display as $id => $display) {
       $output .= "\n" . $indent . "/* Display: $display->display_title */\n";
-      $output .= $indent . '$handler = $view->new_display(' . views_var_export($display->display_plugin, $indent) . ', ' . views_var_export($display->display_title, $indent) . ', \'' . $id . "');\n";
+      $output .= $indent . '$handler = $view->new_display(' . ctools_var_export($display->display_plugin, $indent) . ', ' . ctools_var_export($display->display_title, $indent) . ', \'' . $id . "');\n";
       if (empty($display->handler)) {
         // @todo -- probably need a method of exporting broken displays as
         // they may simply be broken because a module is not installed. That
@@ -1827,6 +1847,8 @@ class views_db_object {
    *   An optional indentation for prettifying nested code.
    */
   function export_row($identifier = NULL, $indent = '') {
+    ctools_include('export');
+
     if (!$identifier) {
       $identifier = $this->db_table;
     }
@@ -1861,7 +1883,7 @@ class views_db_object {
         }
       }
 
-      $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . views_var_export($value, $indent) . ";\n";
+      $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . ctools_var_export($value, $indent) . ";\n";
     }
     return $output;
   }
@@ -1891,12 +1913,22 @@ class views_db_object {
 
 
     if (empty($id)) {
-      $title = $plugin['title'];
-
       $id = $this->generate_display_id($type);
-      $count = str_replace($type . '_', '', $id);
+      if ($id !== 'default') {
+        preg_match("/[0-9]/", $id, $count);
+        $count = $count[0];
+      }
+      else {
+        $count = '';
+      }
+
       if (empty($title)) {
-        $title = $plugin['title'] . ' ' . $count;
+        if ($count > 1) {
+          $title = $plugin['title'] . ' ' . $count;
+        }
+        else {
+          $title = $plugin['title'];
+        }
       }
     }
 
@@ -2115,10 +2147,10 @@ function views_object_types() {
         'plural' => 'fields',
       ),
       'argument' => array(
-        'title' => t('Arguments'),
-        'ltitle' => t('arguments'),
-        'stitle' => t('Argument'),
-        'lstitle' => t('Argument'),
+        'title' => t('Contextual filters'),
+        'ltitle' => t('contextual filters'),
+        'stitle' => t('Contextual filter'),
+        'lstitle' => t('contextual filter'),
         'plural' => 'arguments',
       ),
       'sort' => array(
@@ -2129,12 +2161,11 @@ function views_object_types() {
         'plural' => 'sorts',
       ),
       'filter' => array(
-        'title' => t('Filters'),
-        'ltitle' => t('filters'),
-        'stitle' => t('Filter'),
-        'lstitle' => t('filter'),
+        'title' => t('Filter criteria'),
+        'ltitle' => t('filter criteria'),
+        'stitle' => t('Filter criterion'),
+        'lstitle' => t('filter criterion'),
         'plural' => 'filters',
-        'options' => 'views_ui_config_filters_form',
       ),
       'relationship' => array(
         'title' => t('Relationships'),
@@ -2160,10 +2191,10 @@ function views_object_types() {
         'type' => 'area',
       ),
       'empty' => array(
-        'title' => t('Empty text'),
-        'ltitle' => t('empty text'),
-        'stitle' => t('Empty text'),
-        'lstitle' => t('Empty text'),
+        'title' => t('No results behavior'),
+        'ltitle' => t('no results behavior'),
+        'stitle' => t('No results behavior'),
+        'lstitle' => t('No results behavior'),
         'plural' => 'empty',
         'type' => 'area',
       ),

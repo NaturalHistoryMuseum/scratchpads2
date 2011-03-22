@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_file_size.test,v 1.1.2.1 2010/11/07 11:32:25 dereine Exp $
 
 /**
  * @see CommonXssUnitTest

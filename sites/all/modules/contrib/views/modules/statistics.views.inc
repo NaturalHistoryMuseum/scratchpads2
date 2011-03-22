@@ -1,5 +1,4 @@
 <?php
-// $Id: statistics.views.inc,v 1.9.6.3 2010/07/19 09:18:42 dereine Exp $
 /**
  * @file
  * Provide views data and handlers for statistics.module
@@ -21,7 +20,7 @@ function statistics_views_data() {
   // ----------------------------------------------------------------
   // node_counter table
 
-  $data['node_counter']['table']['group']  = t('Node statistics');
+  $data['node_counter']['table']['group']  = t('Content statistics');
 
   $data['node_counter']['table']['join'] = array(
     // ...to the node table

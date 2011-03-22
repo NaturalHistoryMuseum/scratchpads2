@@ -23,7 +23,8 @@ class views_handler_field_node_path extends views_handler_field {
       '#type' => 'checkbox',
       '#title' => t('Use absolute link (begins with "http://")'),
       '#default_value' => $this->options['absolute'],
-      '#description' => t('If you want to use this as in "output this field as link" in "link path", you have to enabled this option.'),
+      '#description' => t('Enable this option to output an absolute link. Required if you want to use the path as a link destination (as in "output this field as a link" above).'),
+      '#fieldset' => 'alter',
     );
   }
 
@@ -33,7 +34,7 @@ class views_handler_field_node_path extends views_handler_field {
   }
 
   function render($values) {
-    $nid = $values->{$this->aliases['nid']};
+    $nid = $this->get_value($values, 'nid');
     return url("node/$nid", array('absolute' => $this->options['absolute']));
   }
 }

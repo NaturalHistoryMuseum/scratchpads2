@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_search.inc,v 1.1.2.3 2011/02/18 01:02:48 dereine Exp $
 
 /**
  * Argument that accepts query keys for search.
@@ -23,7 +22,7 @@ class views_handler_argument_search extends views_handler_argument {
   /**
    * Add this argument to the query.
    */
-  function query() {
+  function query($group_by = FALSE) {
     $required = FALSE;
     $this->query_parse_search_expression($this->argument);
     if (!isset($this->search_query)) {

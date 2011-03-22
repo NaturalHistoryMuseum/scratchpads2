@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_argument_default_current_user.inc,v 1.1.6.1 2010/01/28 22:44:36 dereine Exp $
 /**
  * @file
  * Contains the current user argument default plugin.

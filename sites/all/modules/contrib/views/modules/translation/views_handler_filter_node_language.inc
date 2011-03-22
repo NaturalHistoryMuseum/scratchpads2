@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_node_language.inc,v 1.1.6.1 2011/01/06 00:37:05 dereine Exp $
 /**
  * Filter by language
  */

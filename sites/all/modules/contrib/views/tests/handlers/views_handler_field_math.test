@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_math.test,v 1.1.2.1 2010/12/24 14:05:39 dereine Exp $
 
 class ViewsHandlerFieldMath extends ViewsSqlTest {
   public static function getInfo() {

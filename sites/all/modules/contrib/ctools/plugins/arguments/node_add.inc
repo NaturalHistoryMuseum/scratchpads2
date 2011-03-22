@@ -1,5 +1,4 @@
 <?php
-// $Id: node_add.inc,v 1.6 2010/10/15 22:56:51 merlinofchaos Exp $
 
 /**
  * @file

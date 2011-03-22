@@ -1,5 +1,4 @@
 <?php
-// $Id: http_response.inc,v 1.2 2010/10/11 22:18:24 sdboyer Exp $
 
 /**
  * @file
@@ -16,7 +15,7 @@ $plugin = array(
 
   // Administrative fields.
   'title' => t('HTTP response code'),
-  'admin summary' =>'page_manager_http_response_admin_summary',
+  'admin summary' => 'page_manager_http_response_admin_summary',
   'admin title' => 'page_manager_http_response_title',
   'operations' => array(
     'settings' => array(

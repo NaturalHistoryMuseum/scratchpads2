@@ -1,5 +1,4 @@
 <?php
-// $Id: panels.pages.inc,v 1.3 2009/10/17 22:58:26 sdboyer Exp $
 
 /**
  * @file

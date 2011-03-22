@@ -1,5 +1,4 @@
 <?php
-// $Id: views-view-grid.tpl.php,v 1.3.6.4 2011/01/20 20:07:03 merlinofchaos Exp $
 /**
  * @file views-view-grid.tpl.php
  * Default simple view template to display a rows in a grid.

@@ -1,4 +1,3 @@
-; $Id: ctools_plugin_test.info,v 1.2 2011/01/01 00:01:46 merlinofchaos Exp $
 name = Chaos tools plugins test
 description = Provides hooks for testing ctools plugins.
 package = Chaos tool suite
@@ -8,9 +7,9 @@ files[] = ctools.plugins.test
 files[] = object_cache.test
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-01-06
-version = "7.x-1.0-alpha2"
+; Information added by drupal.org packaging script on 2011-03-17
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "ctools"
-datestamp = "1294276864"
+datestamp = "1300363414"
 

@@ -1,5 +1,4 @@
 <?php
-//$Id: profile.views.inc,v 1.10.4.8 2010/12/16 06:50:28 merlinofchaos Exp $
 /**
  * @file
  * Provide views data and handlers for user.module
@@ -15,6 +14,7 @@
  * Implements hook_views_data()
  */
 function profile_views_data() {
+  $data['profile_values']['moved to'] = 'profile_value';
   // Define the base group of this table. Fields that don't
   // have a group defined will go into this field by default.
   $data['profile_value']['table']['group']  = t('Profile');

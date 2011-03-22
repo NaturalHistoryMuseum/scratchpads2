@@ -1,5 +1,4 @@
 <?php
-// $Id: node_title.inc,v 1.5 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -35,7 +34,7 @@ function ctools_node_title_content_type_render($subtype, $conf, $panel_args, $co
   $block = new stdClass();
   $block->module  = 'node_title';
   $block->title   = $type->title_label;
-  $block->content = !empty($conf['link']) ? l($node->title, 'node/'. $node->nid) : check_plain($node->title);
+  $block->content = !empty($conf['link']) ? l($node->title, 'node/' . $node->nid) : check_plain($node->title);
   $block->delta   = $node->nid;
 
   return $block;
