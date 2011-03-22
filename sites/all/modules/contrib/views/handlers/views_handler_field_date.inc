@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_date.inc,v 1.3.4.7 2011/02/19 07:11:01 dereine Exp $
 /**
  * A handler to provide proper displays for dates.
  *
@@ -16,8 +15,6 @@ class views_handler_field_date extends views_handler_field {
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
-
     $form['date_format'] = array(
       '#type' => 'select',
       '#title' => t('Date format'),
@@ -41,13 +38,14 @@ class views_handler_field_date extends views_handler_field {
       '#title' => t('Custom date format'),
       '#description' => t('If "Custom", see <a href="http://us.php.net/manual/en/function.date.php" target="_blank">the PHP docs</a> for date formats. If "Time ago" this is the the number of different units to display, which defaults to two.'),
       '#default_value' => isset($this->options['custom_date_format']) ? $this->options['custom_date_format'] : '',
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-options-date-format' => array('custom', 'raw time ago', 'time ago', 'raw time span', 'time span', 'raw time span', 'inverse time span', 'time span')),
     );
+
+    parent::options_form($form, $form_state);
   }
 
   function render($values) {
-    $value = $values->{$this->field_alias};
+    $value = $this->get_value($values);
     $format = $this->options['date_format'];
     if (in_array($format, array('custom', 'raw time ago', 'time ago', 'raw time span', 'time span', 'raw time span', 'inverse time span', 'time span'))) {
       $custom_format = $this->options['custom_date_format'];

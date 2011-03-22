@@ -1,4 +1,3 @@
-// $Id: field_group.field_ui.js,v 1.1.2.4 2010/12/31 09:56:56 zuuperman Exp $
 
 (function($) {
 
@@ -105,7 +104,7 @@ Drupal.fieldUIDisplayOverview.group.prototype = {
     }
 
     return refreshRows;
-  },
+  }
 };
 
 })(jQuery);

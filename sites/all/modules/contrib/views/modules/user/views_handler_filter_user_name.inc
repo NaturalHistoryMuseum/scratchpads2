@@ -1,11 +1,10 @@
 <?php
-// $Id: views_handler_filter_user_name.inc,v 1.2.6.2 2010/08/26 09:41:55 dereine Exp $
 
 /**
  * Filter handler for usernames
  */
 class views_handler_filter_user_name extends views_handler_filter_in_operator {
-  var $no_single = TRUE;
+  var $always_multiple = TRUE;
 
   function value_form(&$form, &$form_state) {
     $values = array();

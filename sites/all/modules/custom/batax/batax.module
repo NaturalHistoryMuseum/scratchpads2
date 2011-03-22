@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function batax_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form_state['field'])){
+    foreach($form_state['field'] as $key => $field){
+      if(isset($field['und']['field']['batax']) && $field['und']['field']['batax'] && isset($form[$key])){
+        // FIXME - This is currently hard coded for the Autotag module.
+        // Lets get the count and see if that is enough to trigger the use of 
+        // the alternative field
+        $count = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = (SELECT vid FROM {taxonomy_vocabulary} WHERE machine_name = :machine_name )', array(
+          ':machine_name' => $field['und']['field']['settings']['allowed_values'][0]['vocabulary']
+        ))->fetchField();
+        if($count > $field['und']['field']['batax_count']){
+          switch($field['und']['field']['batax']){
+            case 'taxonomy_autocomplete':
+            default:
+              $form[$key]['und']['#type'] = 'textfield';
+              $form[$key]['und']['#autocomplete_path'] = 'taxonomy/autocomplete/' . $key;
+              $form[$key]['und']['#element_validate'] = array(
+                'taxonomy_autocomplete_validate'
+              );
+              $form[$key]['und']['#description'] = t('Description');
+              $form[$key]['und']['#maxlength'] = 1024;
+              $form[$key]['und']['#size'] = 60;
+              $form[$key]['und']['#default_value'] = isset($form[$key]['und']['#default_value']) && is_array($form[$key]['und']['#default_value']) ? taxonomy_implode_tags(taxonomy_term_load_multiple($form[$key]['und']['#default_value'])) : '';
+              unset($form[$key]['und']['#options']);
+              unset($form[$key]['und']['#value_key']);
+              unset($form[$key]['und']['#properties']);
+              break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function batax_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){
+  // Only add the options for options taxonomy fields
+  if($form['#field']['type'] != 'taxonomy_term_reference' || $form['instance']['widget']['module']['#value'] != 'options'){
+    return;
+  }
+  $widgets = field_info_widget_types();
+  $taxonomy_widgets = array(
+    0 => '-- None --'
+  );
+  foreach($widgets as $key => $widget){
+    if(in_array('taxonomy_term_reference', $widget['field types']) && $widget['module'] != 'options'){
+      $taxonomy_widgets[$key] = $widget['label'];
+    }
+  }
+  $form['field']['batax'] = array(
+    '#multiple' => FALSE,
+    '#type' => 'select',
+    '#default_value' => isset($form['#field']['batax']) ? $form['#field']['batax'] : 0,
+    '#options' => $taxonomy_widgets,
+    '#title' => t('Alternative selection interface'),
+    '#description' => t('In the event that the vocabulary is too big to display in a drop down select box, an alternative select interface can be used.'),
+    '#weight' => 1000
+  );
+  $form['field']['batax_count'] = array(
+    '#multiple' => FALSE,
+    '#type' => 'select',
+    '#default_value' => isset($form['#field']['batax_count']) ? $form['#field']['batax_count'] : 100,
+    '#options' => array(
+      10 => 10,
+      20 => 20,
+      50 => 50,
+      100 => 100,
+      200 => 200,
+      500 => 500
+    ),
+    '#title' => t('Alternative selection interface'),
+    '#description' => t('In the event that the vocabulary is too big to display in a drop down select box, an alternative select interface can be used.'),
+    '#weight' => 1000
+  );
+}

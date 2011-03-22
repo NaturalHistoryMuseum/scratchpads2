@@ -1,5 +1,4 @@
 <?php
-// $Id: page_manager.admin.inc,v 1.45 2010/11/03 00:01:14 merlinofchaos Exp $
 
 /**
  * @file
@@ -20,6 +19,12 @@ function page_manager_list_page($js = NULL) {
 
   // TRUE if 'ajax', FALSE if otherwise.
   $js = $js == 'ajax';
+
+  // If we do any form rendering, it's to completely replace a form on the
+  // page, so don't let it force our ids to change.
+  if ($js && isset($_POST['ajax_html_ids'])) {
+    unset($_POST['ajax_html_ids']);
+  }
 
   if (module_exists('advanced_help') && !$js) {
     drupal_set_message(theme('advanced_help_topic', 'page_manager', 'getting-started', t('See the getting started guide for more information.')));
@@ -108,7 +113,7 @@ function page_manager_list_page($js = NULL) {
   $commands = array();
   $commands[] = ajax_command_replace('#page-manager-list-pages', $table);
   if (!empty($replace_form)) {
-    $commands[] = ajax_command_replace('#page-manager-list-pages-form', $form);
+    $commands[] = ajax_command_replace('#page-manager-list-pages-form', drupal_render($form));
   }
   print ajax_render($commands);
   ajax_footer();
@@ -391,7 +396,8 @@ function page_manager_edit_page($page) {
   drupal_set_title($page->subtask['admin title']);
   // Provide and process the save page form before anything else.
   $form_state = array('page' => &$page);
-  $form = drupal_render(drupal_build_form('page_manager_save_page_form', $form_state));
+  $built_form = drupal_build_form('page_manager_save_page_form', $form_state);
+  $form = drupal_render($built_form);
 
   $operations = page_manager_get_operations($page);
   $args = array('summary');
@@ -436,7 +442,8 @@ function page_manager_edit_page_operation() {
   // Since this form should never be submitted to this page, process it late so
   // that we can be sure it notices changes.
   $form_state = array('page' => &$page);
-  $form = drupal_render(drupal_build_form('page_manager_save_page_form', $form_state));
+  $built_form = drupal_build_form('page_manager_save_page_form', $form_state);
+  $form = drupal_render($built_form);
 
   $output = theme('page_manager_edit_page', array('page' => $page, 'save' => $form, 'operations' => $rendered_operations, 'content' => $content));
 
@@ -911,7 +918,8 @@ function _page_manager_get_operation_content($js, &$page, $active, $operation, $
       $form_state['handler'] = &$form_state['page']->new_handler;
     }
 
-    $output = drupal_render(ctools_wizard_multistep_form($form_info, $step, $form_state));
+    $built_form = ctools_wizard_multistep_form($form_info, $step, $form_state);
+    $output = drupal_render($built_form);
     $title = empty($form_state['title']) ? $operation['title'] : $form_state['title'];
     $titles[] = $title;
     $title = implode(' &raquo ', array_filter($titles));
@@ -1387,10 +1395,8 @@ function page_manager_handler_add_form($form, $form_state, $features = array()) 
 
   // This set of checkboxes is not dangerous at all.
   $form['features'] = array(
-    '#type' => 'checkboxes',
-    '#validated' => TRUE,
+    '#type' => 'item',
     '#title' => t('Optional features'),
-    '#options' => array(),
     '#description' => t('Check any optional features you need to be presented with forms for configuring them. If you do not check them here you will still be able to utilize these features once the new page is created. If you are not sure, leave these unchecked.'),
     '#tree' => TRUE,
   );

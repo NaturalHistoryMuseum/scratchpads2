@@ -1,5 +1,4 @@
 <?php
-// $Id: user_contact.inc,v 1.3 2010/01/29 20:18:01 merlinofchaos Exp $
 
 if (module_exists('contact')) {
   /**
@@ -24,7 +23,7 @@ function ctools_user_contact_content_type_render($subtype, $conf, $panel_args, $
     return;
   }
 
-  if (!_contact_user_tab_access($context->data)) {
+  if (!_contact_personal_tab_access($context->data)) {
     return;
   }
 
@@ -35,7 +34,7 @@ function ctools_user_contact_content_type_render($subtype, $conf, $panel_args, $
   $block->title   = t('Contact @name', array('@name' => $context->data->name));
 
   module_load_include('inc', 'contact', 'contact.pages');
-  $block->content = contact_user_page($context->data);
+  $block->content = drupal_get_form('contact_personal_form', $context->data);
   return $block;
 }
 
@@ -44,6 +43,7 @@ function ctools_user_contact_content_type_render($subtype, $conf, $panel_args, $
  */
 function ctools_user_contact_content_type_edit_form(&$form, &$form_state) {
   // Empty so that we can have title override.
+  return $form;
 }
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_many_to_one.inc,v 1.1.6.3 2010/03/22 20:40:31 merlinofchaos Exp $
 /**
  * An argument handler for use in fields that have a many to one relationship
  * with the table(s) to the left. This adds a bunch of options that are
@@ -8,7 +7,7 @@
  * - numeric: If true, the field will be considered numeric. Probably should
  *   always be set TRUE as views_handler_argument_string has many to one
  *   capabilities.
- * - zero is null: If true, a 0 will be handled as empty, so for example 
+ * - zero is null: If true, a 0 will be handled as empty, so for example
  *   a default argument can be provided or a summary can be shown.
  *
  * @ingroup views_argument_handlers
@@ -44,23 +43,26 @@ class views_handler_argument_many_to_one extends views_handler_argument {
     if (!empty($this->definition['numeric'])) {
       $form['break_phrase'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Allow multiple terms per argument.'),
-        '#description' => t('If selected, users can enter multiple arguments in the form of 1+2+3 (for OR) or 1,2,3 (for AND).'),
+        '#title' => t('Allow multiple values.'),
+        '#description' => t('If selected, users can enter multiple values in the form of 1+2+3 (for OR) or 1,2,3 (for AND).'),
         '#default_value' => !empty($this->options['break_phrase']),
+        '#fieldset' => 'more',
       );
     }
 
     $form['add_table'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Allow multiple arguments to work together.'),
-      '#description' => t('If selected, multiple instances of this argument can work together, as though multiple terms were supplied to the same argument. This setting is not compatible with the "Reduce duplicates" setting.'),
+      '#title' => t('Allow multiple filter values to work together.'),
+      '#description' => t('If selected, multiple instances of this filter can work together, as though multiple values were supplied to the same filter. This setting is not compatible with the "Reduce duplicates" setting.'),
       '#default_value' => !empty($this->options['add_table']),
+      '#fieldset' => 'more',
     );
 
     $form['require_value'] = array(
       '#type' => 'checkbox',
       '#title' => t('Do not display items with no value in summary'),
       '#default_value' => !empty($this->options['require_value']),
+      '#fieldset' => 'more',
     );
 
     $this->helper->options_form($form, $form_state);
@@ -74,7 +76,7 @@ class views_handler_argument_many_to_one extends views_handler_argument {
     $this->helper->ensure_my_table();
   }
 
-  function query() {
+  function query($group_by = FALSE) {
     $empty = FALSE;
     if (isset($this->definition['zero is null']) && $this->definition['zero is null']) {
       if (empty($this->argument)) {
@@ -168,4 +170,3 @@ class views_handler_argument_many_to_one extends views_handler_argument {
     return $this->value;
   }
 }
-

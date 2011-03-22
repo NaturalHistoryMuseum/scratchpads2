@@ -1,6 +1,4 @@
 <?php
-// $Id: views_handler_filter_aggregator_category_cid.inc,v 1.2.4.1 2009/11/02 22:01:26 merlinofchaos Exp $
-
 /**
  * Filter by aggregator category cid
  */

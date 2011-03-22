@@ -1,5 +1,4 @@
 <?php
-// $Id: entity_from_schema.inc,v 1.1 2011/01/05 20:34:46 merlinofchaos Exp $
 
 /**
  * @file
@@ -43,7 +42,11 @@ function ctools_entity_from_schema_get_children($plugin, $parent) {
                 $plugin['name'] = $parent . ':' . $this_col . '-' . $from_entity . '-' . $to_entity;
                 $plugin['description'] = t('Builds a @relationship relationship from a @from_entity to a @to_entity', array('@relationship' => $relationship, '@from_entity' => $from_entity, '@to_entity' => $to_entity));
                 $plugin['required context'] = new ctools_context_required(t(ucfirst($from_entity_info['label'])), $from_entity);
-                $plugins[$parent . ':' . $this_col . '-' . $from_entity . '-' . $to_entity] = $plugin;
+                $plugin_id = $parent . ':' . $this_col . '-' . $from_entity . '-' . $to_entity;
+                $plugin_entities = array('to' => $to_entity_info, 'from' => $from_entity_info);
+                $plugin_entities = array('to' => array($to_entity => $to_entity_info), 'from' => array($from_entity => $from_entity_info));
+                drupal_alter('ctools_entity_context', $plugin, $plugin_entities, $plugin_id);
+                $plugins[$plugin_id] = $plugin;
               }
             }
           }
@@ -51,6 +54,7 @@ function ctools_entity_from_schema_get_children($plugin, $parent) {
       }
     }
   }
+  drupal_alter('ctools_entity_contexts', $plugins);
   return $plugins;
 }
 

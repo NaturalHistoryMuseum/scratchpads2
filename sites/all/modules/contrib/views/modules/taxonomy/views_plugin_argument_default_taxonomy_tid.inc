@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_argument_default_taxonomy_tid.inc,v 1.1.2.9 2010/12/03 20:17:14 dereine Exp $
 /**
  * @file
  *   Taxonomy tid default argument.
@@ -34,12 +33,12 @@ class views_plugin_argument_default_taxonomy_tid extends views_plugin_argument_d
   function options_form(&$form, &$form_state) {
     $form['term_page'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Load default argument from term page'),
+      '#title' => t('Load default filter from term page'),
       '#default_value' => $this->options['term_page'],
     );
     $form['node'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Load default argument from node page, thats good for related taxonomy blocks.'),
+      '#title' => t('Load default filter from node page, that\'s good for related taxonomy blocks.'),
       '#default_value' => $this->options['node'],
     );
 

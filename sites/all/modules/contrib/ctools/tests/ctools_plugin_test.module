@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools_plugin_test.module,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 /**
  * Define some plugin systems to test ctools plugin includes.
  */

@@ -1,5 +1,4 @@
 <?php
-/* $Id: css.inc,v 1.18 2010/10/15 20:54:24 merlinofchaos Exp $ */
 
 /*
  * @file

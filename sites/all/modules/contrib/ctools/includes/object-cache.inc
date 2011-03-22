@@ -1,5 +1,4 @@
 <?php
-// $Id: object-cache.inc,v 1.15 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file

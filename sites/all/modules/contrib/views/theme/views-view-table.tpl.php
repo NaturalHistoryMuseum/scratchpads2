@@ -1,5 +1,4 @@
 <?php
-// $Id: views-view-table.tpl.php,v 1.8.6.3 2010/12/10 08:19:15 dereine Exp $
 /**
  * @file views-view-table.tpl.php
  * Template to display a view as a table.

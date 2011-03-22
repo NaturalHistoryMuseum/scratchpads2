@@ -1,5 +1,4 @@
 <?php
-// $Id: field_group.features.inc,v 1.1.2.7 2010/12/22 23:15:00 stalski Exp $
 
 /**
  * @file
@@ -114,14 +113,10 @@ function field_group_features_rebuild($module) {
     foreach ($field_groups as $field_group) {
       $field_group = (object) $field_group;
       // Check to see if the field group already exists.
-      if (isset($existing_field_groups[$field_group->entity_type][$field_group->bundle][$field_group->group_name])) {
-      // Update the existing feature.
-        field_group_update_field_group($field_group);
+      if (isset($existing_field_groups[$field_group->entity_type][$field_group->bundle][$field_group->mode][$field_group->group_name])) {
+        $field_group->id = $existing_field_groups[$field_group->entity_type][$field_group->bundle][$field_group->mode][$field_group->group_name]->id;
       }
-      else {
-        // Create the field group.
-        field_group_create_field_group($field_group);
-      }
+      field_group_save($field_group);
     }
   }
 }

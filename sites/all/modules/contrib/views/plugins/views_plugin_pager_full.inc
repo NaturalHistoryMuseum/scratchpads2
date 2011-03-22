@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_pager_full.inc,v 1.1.4.14 2010/12/16 20:32:17 dereine Exp $
 
 /**
  * The plugin to handle full pager.
@@ -9,9 +8,9 @@
 class views_plugin_pager_full extends views_plugin_pager {
   function summary_title() {
     if (!empty($this->options['offset'])) {
-      return format_plural($this->options['items_per_page'], 'Paged, @count item, skip @skip', 'Paged, @count items, skip @skip', array('@count' => $this->options['items_per_page'], '@skip' => $this->options['offset']));
+      return format_plural($this->options['items_per_page'], '@count item, skip @skip', 'Paged, @count items, skip @skip', array('@count' => $this->options['items_per_page'], '@skip' => $this->options['offset']));
     }
-      return format_plural($this->options['items_per_page'], 'Paged, @count item', 'Paged, @count items', array('@count' => $this->options['items_per_page']));
+      return format_plural($this->options['items_per_page'], '@count item', 'Paged, @count items', array('@count' => $this->options['items_per_page']));
   }
 
   function option_definition() {
@@ -90,7 +89,6 @@ class views_plugin_pager_full extends views_plugin_pager {
       '#required' => TRUE,
       '#description' => t('Label to use in the exposed items per page form element.'),
       '#default_value' => $this->options['expose']['items_per_page_label'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'edit-pager-options-expose-items-per-page' => array(1)
       ),
@@ -102,7 +100,6 @@ class views_plugin_pager_full extends views_plugin_pager {
       '#required' => TRUE,
       '#description' => t('Set between which values the user can choose when determining the items per page. Separated by comma.'),
       '#default_value' => $this->options['expose']['items_per_page_options'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'edit-pager-options-expose-items-per-page' => array(1)
       ),
@@ -121,7 +118,6 @@ class views_plugin_pager_full extends views_plugin_pager {
       '#title' => t('All items label'),
       '#description' => t('Which label will be used to display all items'),
       '#default_value' => $this->options['expose']['items_per_page_options_all_label'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'edit-items-per-page-options-all' => array(1),
       ),
@@ -140,7 +136,6 @@ class views_plugin_pager_full extends views_plugin_pager {
       '#required' => TRUE,
       '#description' => t('Label to use in the exposed offset form element.'),
       '#default_value' => $this->options['expose']['offset_label'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'edit-pager-options-expose-offset' => array(1)
       ),

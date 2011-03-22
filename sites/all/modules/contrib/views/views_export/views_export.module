@@ -1,5 +1,4 @@
 <?php
-// $Id: views_export.module,v 1.9.4.5 2010/12/01 20:29:24 dereine Exp $
 
 /**
  * @file views_export.module
@@ -209,9 +208,7 @@ function views_export_export_form_submit(&$form, &$form_state) {
 
   $types = system_element_info();
 
-  $info  = '; $Id: views_export.module,v 1.9.4.5 2010/12/01 20:29:24 dereine Exp $'."\n";
-  $info .= "\n";
-  $info .= strtr("name = @module Export Module\n", array('@module' => $form_state['values']['name']));
+  $info = strtr("name = @module Export Module\n", array('@module' => $form_state['values']['name']));
   $info .= strtr("description = Exports some views of @module\n", array('@module' => $form_state['values']['name']));
   $info .= "dependencies[] = views\n";
   $info .= "core = 6.x\n";

@@ -1,5 +1,4 @@
 <?php
-// $Id: field_group.field_ui.inc,v 1.1.2.23 2011/01/18 23:07:03 stalski Exp $
 
 /**
  * @file
@@ -49,7 +48,7 @@ function field_group_field_ui_form_params($form, $display_overview) {
 function field_group_field_ui_overview_form_alter(&$form, &$form_state, $display_overview = FALSE) {
 
   // Add extra guidelines for webmaster.
-  $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . t('Fields can be dragged into groups with unlimited nesting. Each fieldgroup format comes with a configuration form, specific for that format type.<br />Note that some formats come in pair. These types have a html wrapper to nest its fieldgroup children. E.g. Place accordion items into the accordion, vertical tabs in vertical tab group and horizontal tabs in the horizontal tab group. There is one exception to this rule, you can use a vertical tab without a wrapper when the additional settings tabs are available. E.g. node forms.');
+  $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . t('<p class="fieldgroup-help">Fields can be dragged into groups with unlimited nesting. Each fieldgroup format comes with a configuration form, specific for that format type.<br />Note that some formats come in pair. These types have a html wrapper to nest its fieldgroup children. E.g. Place accordion items into the accordion, vertical tabs in vertical tab group and horizontal tabs in the horizontal tab group. There is one exception to this rule, you can use a vertical tab without a wrapper when the additional settings tabs are available. E.g. node forms.</p>');
 
   // Only start altering the form if we need to.
   if (empty($form['#fields']) && empty($form['#extra'])) {
@@ -436,7 +435,7 @@ function field_group_formatter_settings_update(& $group, $settings) {
  * @return Array ready to be rendered.
  */
 function field_group_format_settings_summary($group_name, $group) {
-  $summary = implode('', module_invoke_all('field_group_format_summary', $group));
+  $summary = implode('<br />', module_invoke_all('field_group_format_summary', $group));
   return array(
     '#markup' => '<div class="field-formatter-summary">' . $summary . '</div>',
     '#cell_attributes' => array('class' => array('field-formatter-summary-cell')),
@@ -524,8 +523,7 @@ function field_group_field_overview_validate($form, &$form_state) {
       }
 
       // Group name already exists.
-      $groups = field_group_read_groups();
-      if (!empty($groups[$entity_type][$bundle][$mode][$group_name])) {
+      if (field_group_exists($group_name, $entity_type, $bundle, $mode)) {
         form_set_error('fields][_add_new_group][group_name', t('Add new group: the group name %group_name already exists.', array('%group_name' => $group_name)));
       }
     }
@@ -585,7 +583,7 @@ function field_group_field_overview_submit($form, &$form_state) {
 
     // Store new group information for any additional submit handlers.
     $form_state['groups_added']['_add_new_group'] = $new_group->group_name;
-    drupal_set_message(t('New group %label succesfully created.', array('%label' => $new_group->label)));
+    drupal_set_message(t('New group %label successfully created.', array('%label' => $new_group->label)));
 
     // Replace the newly created group in the $children array, in case it was
     // dragged directly in an existing field.

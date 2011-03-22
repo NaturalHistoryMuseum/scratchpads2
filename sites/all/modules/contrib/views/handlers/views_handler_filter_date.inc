@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_date.inc,v 1.3.6.8 2011/01/07 18:10:54 dereine Exp $
 
 /**
  * Filter to handle dates stored as a timestamp.
@@ -35,8 +34,8 @@ class views_handler_filter_date extends views_handler_filter_numeric {
   function options_validate(&$form, &$form_state) {
     parent::options_validate($form, $form_state);
 
-    if (!empty($form_state['values']['options']['expose']['optional'])) {
-      // Who cares what the value is if it's exposed and optional.
+    if (!empty($form_state['values']['options']['expose']['required'])) {
+      // Who cares what the value is if it's exposed and non-required.
       return;
     }
 
@@ -48,14 +47,14 @@ class views_handler_filter_date extends views_handler_filter_numeric {
       return;
     }
 
-    if (!empty($this->options['expose']['optional'])) {
-      // Who cares what the value is if it's exposed and optional.
+    if (empty($this->options['expose']['required'])) {
+      // Who cares what the value is if it's exposed and non-required.
       return;
     }
 
     $value = &$form_state['values'][$this->options['expose']['identifier']];
-    if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator'])) {
-      $operator = $form_state['values'][$this->options['expose']['operator']];
+    if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator_id'])) {
+      $operator = $form_state['values'][$this->options['expose']['operator_id']];
     }
     else {
       $operator = $this->operator;
@@ -100,8 +99,8 @@ class views_handler_filter_date extends views_handler_filter_numeric {
 
     // Don't filter if value(s) are empty.
     $operators = $this->operators();
-    if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator'])) {
-      $operator = $input[$this->options['expose']['operator']];
+    if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator_id'])) {
+      $operator = $input[$this->options['expose']['operator_id']];
     }
     else {
       $operator = $this->operator;
@@ -124,24 +123,17 @@ class views_handler_filter_date extends views_handler_filter_numeric {
   }
 
   function op_between($field) {
-    if ($this->operator == 'between') {
-      $a = intval(strtotime($this->value['min'], 0));
-      $b = intval(strtotime($this->value['max'], 0));
-    }
-    else {
-      $a = intval(strtotime($this->value['max'], 0));
-      $b = intval(strtotime($this->value['min'], 0));
-    }
+    $a = intval(strtotime($this->value['min'], 0));
+    $b = intval(strtotime($this->value['max'], 0));
 
     if ($this->value['type'] == 'offset') {
       $a = '***CURRENT_TIME***' . sprintf('%+d', $a); // keep sign
       $b = '***CURRENT_TIME***' . sprintf('%+d', $b); // keep sign
     }
-    // %s is safe here because strtotime scrubbed the input and we might
-    // have a string if using offset.
-    $placeholder1 = $this->placeholder();
-    $placeholder2 = $this->placeholder();
-    $this->query->add_where_expression($this->options['group'], "$field BETWEEN $placeholder1 AND $placeholder2", array($placeholder1 => $a, $placeholder2 => $b));
+    // This is safe because we are manually scrubbing the values.
+    // It is necessary to do it this way because $a and $b are formulas when using an offset.
+    $operator = strtoupper($this->operator);
+    $this->query->add_where_expression($this->options['group'], "$field $operator $a AND $b");
   }
 
   function op_simple($field) {
@@ -149,7 +141,8 @@ class views_handler_filter_date extends views_handler_filter_numeric {
     if (!empty($this->value['type']) && $this->value['type'] == 'offset') {
       $value = '***CURRENT_TIME***' . sprintf('%+d', $value); // keep sign
     }
-    $placeholder = $this->placeholder();
-    $this->query->add_where($this->options['group'], "$field $this->operator $placeholder", array($placeholder => $value), 'formula');
+    // This is safe because we are manually scrubbing the value.
+    // It is necessary to do it this way because $value is a formula when using an offset.
+    $this->query->add_where_expression($this->options['group'], "$field $this->operator $value");
   }
 }

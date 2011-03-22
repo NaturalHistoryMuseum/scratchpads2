@@ -1,14 +1,9 @@
 <?php
-// $Id: views_plugin_exposed_form_input_required.inc,v 1.2.2.8 2010/11/16 01:09:28 merlinofchaos Exp $
 
 /**
  * Exposed form plugin that provides basic exposed form
  */
 class views_plugin_exposed_form_input_required extends views_plugin_exposed_form {
-
-  function summary_title() {
-    return t('Input required');
-  }
 
   function option_definition() {
     $options = parent::option_definition();

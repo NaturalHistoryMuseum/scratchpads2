@@ -1,5 +1,4 @@
 <?php
-// $Id: views-view--frontpage.tpl.php,v 1.1.4.2 2010/12/17 21:51:42 dereine Exp $
 /**
  * @file views-view.tpl.php
  * Main view template
@@ -23,18 +22,11 @@
  * - $exposed: Exposed widget form/info to display
  * - $feed_icon: Feed icon to display, if any
  * - $more: A link to view more, if any
- * - $admin_links: A rendered list of administrative links
- * - $admin_links_raw: A list of administrative links suitable for theme('links')
  *
  * @ingroup views_templates
  */
 ?>
 <div class="<?php print $classes; ?>">
-  <?php if ($admin_links): ?>
-    <div class="views-admin-links views-hide">
-      <?php print $admin_links; ?>
-    </div>
-  <?php endif; ?>
   <?php if ($header): ?>
     <div class="view-header">
       <?php print $header; ?>

@@ -1,5 +1,4 @@
 <?php
-// $Id: node.inc,v 1.11 2010/12/31 21:09:56 merlinofchaos Exp $
 
 /**
  * @file
@@ -178,9 +177,9 @@ function  ctools_node_content_type_edit_form_validate(&$form, &$form_state) {
 
   $nid = $form_state['values']['nid'];
   $preg_matches = array();
-  $match = preg_match('/\[nid: (\d+)\]/', $nid, $preg_matches);
+  $match = preg_match('/\[id: (\d+)\]/', $nid, $preg_matches);
   if (!$match) {
-    $match = preg_match('/^nid: (\d+)/', $nid, $preg_matches);
+    $match = preg_match('/^id: (\d+)/', $nid, $preg_matches);
   }
 
   if ($match) {

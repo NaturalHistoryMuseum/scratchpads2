@@ -1,5 +1,4 @@
 <?php
-// $Id: user_name.inc,v 1.3 2010/01/29 20:18:01 merlinofchaos Exp $
 
 /**
  * @file
@@ -37,7 +36,7 @@ function ctools_argument_user_name_context($arg = NULL, $conf = NULL, $empty = F
     return ctools_context_create('user', $arg);
   }
 
-  $account = user_load(array('name' => $arg));
+  $account = user_load_by_name(array('name' => $arg));
   if (!$account) {
     return NULL;
   }

@@ -1,5 +1,4 @@
 <?php
-// $Id: base.inc,v 1.3.4.9 2011/02/06 14:29:02 dereine Exp $
 /**
  * @file
  *

@@ -1,5 +1,4 @@
 <?php
-// $Id: convert.inc,v 1.17.4.1 2009/11/02 22:01:26 merlinofchaos Exp $
 /**
  * @file convert.inc
  *
@@ -367,7 +366,7 @@ function views1_import($imported) {
       // Use the count to emulate the old, hardcoded filter naming.
       $item['expose']['identifier'] = 'filter' . $count;
       $item['expose']['label'] = $field['label'];
-      $item['expose']['operator'] = $field['operator'] ? 'op' . $count : '';
+      $item['expose']['operator_id'] = $field['operator'] ? 'op' . $count : '';
       $item['expose']['optional'] = $field['optional'];
       $item['expose']['single'] = $field['single'];
       $view->set_item('default', 'filter', $id, $item);

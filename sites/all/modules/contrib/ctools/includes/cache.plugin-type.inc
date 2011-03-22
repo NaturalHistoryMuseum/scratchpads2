@@ -1,5 +1,4 @@
 <?php
-// $Id: cache.plugin-type.inc,v 1.1 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file

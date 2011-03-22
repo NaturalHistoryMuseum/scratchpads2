@@ -1,0 +1,7 @@
+name = "Twitter Script (twitterscript)"
+description = "Adds scripts to a page that allows a user to easily embed specific twitter feeds."
+package = Scratchpads
+files[] = twitterscript.module
+scripts[] = js/twitterscript.js
+stylesheets[all][] = css/twitterscript.css
+core = 7.x

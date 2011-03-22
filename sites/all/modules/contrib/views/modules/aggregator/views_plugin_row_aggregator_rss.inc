@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row_aggregator_rss.inc,v 1.1.6.2 2010/01/27 23:28:35 dereine Exp $
 /**
  * @file
  * Contains the Aggregator Item RSS row style plugin.

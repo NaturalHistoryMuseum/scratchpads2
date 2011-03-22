@@ -1,4 +1,3 @@
-// $Id: horizontal-tabs.js,v 1.1.2.1 2010/11/06 23:03:37 stalski Exp $
 
 (function ($) {
 

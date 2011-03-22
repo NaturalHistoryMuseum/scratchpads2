@@ -1,0 +1,64 @@
+#remote-issue-tab{
+ font-family:arial,sans-serif;
+ font-size:12px;
+ font-weight:400;
+ font-style:normal;
+ letter-spacing:normal;
+ word-spacing:0;
+ text-align:left;	
+}
+#remote-issue-tab h1,#remote-issue-tab h3{
+ margin:0;
+}
+#remote-issue-tab .new-items{
+ margin-bottom:10px !important;
+}
+#remote-issue-tab .items h1{
+ color:white;
+ background-color:#555555;
+ padding:3px;
+ font-size:15px;
+ font-weight:bold;
+ margin:0;
+ line-height:20px;
+}
+#remote-issue-tab .items ul{
+ margin:0.5em 0 1em;
+ padding:0;
+}
+#remote-issue-tab .items ul li{
+ font-size:11px;
+ background:none !important;
+ padding:0.2em !important;
+ border-top: 1px dotted #CCCCCC;
+ list-style-type:none;
+ padding:0.2em !important;
+ margin: 0.15em 0 0.15em 0.5em !important;
+}
+#remote-issue-tab .items ul li.first{
+ border-top:none;
+}
+#remote-issue-tab .items ul li h3 a{
+  font-size:13px;
+}
+#remote-issue-tab .items ul li p{
+ padding:0;
+ margin:0;
+ display:none;
+}
+#remote-issue-tab .footer{
+ background-color:#FFFFAA;
+ padding:3px 3px 3px 10px;
+}
+#remote-issue-tab .footer h1{
+font-size:15px;
+font-weight:bold;
+}
+#remote-issue-tab .footer h3{
+font-size:13px;
+font-weight:400;
+}
+#remote-issue-tab .footer h3 a{
+font-size:13px;
+font-weight:400;
+}

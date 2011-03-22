@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_argument_default_user.inc,v 1.1.6.3 2011/01/20 20:12:29 merlinofchaos Exp $
 /**
  * @file
  * Contains the user from URL argument default plugin.

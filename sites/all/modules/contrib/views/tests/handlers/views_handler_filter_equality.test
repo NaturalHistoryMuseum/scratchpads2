@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_equality.test,v 1.1.2.1 2010/12/26 22:41:40 dereine Exp $
 
 class viewsHandlerFilterEqualityTest extends ViewsSqlTest {
   public static function getInfo() {
