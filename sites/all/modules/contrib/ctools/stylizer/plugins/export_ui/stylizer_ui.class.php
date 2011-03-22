@@ -1,5 +1,4 @@
 <?php
-// $Id: stylizer_ui.class.php,v 1.3 2011/01/05 22:35:46 merlinofchaos Exp $
 
 /**
  * UI class for Stylizer.

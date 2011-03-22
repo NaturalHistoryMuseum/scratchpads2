@@ -1,5 +1,4 @@
 <?php
-// $Id: user_profile.inc,v 1.11 2011/01/06 00:06:18 merlinofchaos Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used

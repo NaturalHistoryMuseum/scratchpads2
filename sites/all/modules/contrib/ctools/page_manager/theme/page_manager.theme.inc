@@ -1,5 +1,4 @@
 <?php
-// $Id: page_manager.theme.inc,v 1.9 2010/11/03 00:01:14 merlinofchaos Exp $
 
 /**
  * @file

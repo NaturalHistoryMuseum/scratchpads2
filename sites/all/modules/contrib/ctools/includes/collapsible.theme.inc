@@ -1,5 +1,4 @@
 <?php
-// $Id: collapsible.theme.inc,v 1.6 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file

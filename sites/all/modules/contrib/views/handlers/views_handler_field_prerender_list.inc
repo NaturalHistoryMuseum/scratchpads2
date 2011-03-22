@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_prerender_list.inc,v 1.3.4.4 2010/11/05 07:20:54 dereine Exp $
 
 /**
  * Field handler to provide a list of items.
@@ -22,7 +21,6 @@ class views_handler_field_prerender_list extends views_handler_field {
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['type'] = array(
       '#type' => 'radios',
       '#title' => t('Display type'),
@@ -38,9 +36,9 @@ class views_handler_field_prerender_list extends views_handler_field {
       '#type' => 'textfield',
       '#title' => t('Separator'),
       '#default_value' => $this->options['separator'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('radio:options[type]' => array('separator')),
     );
+    parent::options_form($form, $form_state);
   }
 
   /**
@@ -51,10 +49,10 @@ class views_handler_field_prerender_list extends views_handler_field {
    * exists, this will not get used by advanced_render.
    */
   function render($values) {
-    $field = $values->{$this->field_alias};
+    $field = $this->get_value($values);
     if (!empty($this->items[$field])) {
       if ($this->options['type'] == 'separator') {
-        return implode(check_plain($this->options['separator']), $this->items[$field]);
+        return implode($this->sanitize_value($this->options['separator']), $this->items[$field]);
       }
       else {
         return theme('item_list',
@@ -76,7 +74,7 @@ class views_handler_field_prerender_list extends views_handler_field {
   function render_items($items) {
     if (!empty($items)) {
       if ($this->options['type'] == 'separator') {
-        return implode(check_plain($this->options['separator']), $items);
+        return implode($this->sanitize_value($this->options['separator']), $items);
       }
       else {
         return theme('item_list',
@@ -100,7 +98,7 @@ class views_handler_field_prerender_list extends views_handler_field {
    * should also be in this array.
    */
   function get_items($values) {
-    $field = $values->{$this->field_alias};
+    $field = $this->get_value($values);
     if (!empty($this->items[$field])) {
       return $this->items[$field];
     }

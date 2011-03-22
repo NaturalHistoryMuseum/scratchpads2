@@ -79,6 +79,40 @@ Fix fieldsets in field handler.
 #1022052 bojanz, dereine: Don't add the field_info into the views data array
 #970162 by longwave: Add "time hence" options to date field format
 #1069100 by paranojik: remove legacy code from views_plugin_row_comment_view:pre_render().
+#741234 by voxpelli: Arguments should check for NULL along with empty string to find empty values.
+#1046170 by agentrickard, blackice2999, dereine: Execute preExecute before generate the countQuery to fix pagers with node_access.
+#1046170 (follow up) by agentrickard: Provide a better documentation for the problem.
+#1070112 by drunken_monkey: Fix notice in field_views_field_label.
+#978824 by dereine: Don't execute validation on config_item remove button.
+by dereine: Convert op_shorter/longer in filter_string to add_where_expression.
+#1046650 by dereine, damz: Don't delete views in the simpletest.
+#1022052 follow up by bojanz: Fix filter_list handler, by loading the field_info again.
+#1023794 by turek: Fix notice in many_to_one_helper.
+#1057810 by mariusz.slonina: Remove views_handler_field_user_link_delete and the views_data entry.
+#1075598 by paranojik: small fix for the single argument case.
+#1053164 by dereine: Support random sort for sqlite by using dbtng functionality.
+#1073862 by solotandem: Title of columns from field revision tables shouldn't have the name delta.
+#1042072 by das-peter: Fix notice in views_handler_field_field.
+#1078570 by duellj: Search filter doesn't work for attachments.
+#1068108 by boombatower: Allow row_class to contain multiple classes.
+#1078738 by dereine: Add a serialized data field handler and set users.data to it.
+#1051308 by dereine: Backport a test fix for views_handler_filter_date from d7v3ui.
+#1079496 by dereine: Fix renamed field names for list fields. This caused an additional filter, which didn't worked.
+#1080690 by dereine: Store the view object in the query object, so it can be used.
+#1080690 by dereine: Fix target/key for querying against sql databases. Therefore don't use db_select anymore.
+#1029534 by bojanz: Fix like for pgsql by using db_like correct.
+#1051308 by bojanz: Fix date filter handler behaviour with offsets.
+#1062506 by dereine: Misnamed parameter for creation of broken handlers.
+#1049998 by dereine: Fix jump_menu summary and some possible notices.
+#975400 by bojanz, dereine: Refactor field render() functions to accept $value.
+#975400 follow up by bojanz: Give field::sanitize_value more power and fix some issues with get_value.
+#1052896 by dereine: Fix summary css classes output.
+#1046674 by dereine: Rename build_mode to view_mode in row_node_view. This fixes some bugs with code using $node->view_mode.
+#1090682 by febbraro: view:load does not clear the cache correctly when reset.
+#1090682 by dereine: Write a simpletest for the reset parameter of view::load.
+#1054272 by dagmar: String filters are non optional anymore.
+#1086158 by dereine: Fix filter handler of list fields.
+#1079178 by Manuel Garcia: Provide a views revert drush command.
 
 Views 3.x-7.x-alpha1 (05-Jan-2011)
 ==================================

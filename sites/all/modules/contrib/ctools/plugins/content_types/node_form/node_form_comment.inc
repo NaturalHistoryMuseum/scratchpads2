@@ -1,5 +1,4 @@
 <?php
-// $Id: node_form_comment.inc,v 1.4 2010/10/11 22:18:23 sdboyer Exp $
 
 if (module_exists('comment')) {
   /**
@@ -24,10 +23,15 @@ function ctools_node_form_comment_content_type_render($subtype, $conf, $panel_ar
   $block->delta = 'comment-options';
 
   if (isset($context->form)) {
-    if (!empty($context->form['form_id']) && !empty($context->form['comment_settings']['#access'])) {
-      // remove the fieldset
-      unset($context->form['comment_settings']['#type']);
-      $block->content = drupal_render($context->form['comment_settings']);
+    if (isset($context->form['comment_settings'])) {
+      $block->content['comment_settings'] = $context->form['comment_settings'];
+      unset($block->content['comment_settings']['#pre_render']);
+      unset($block->content['comment_settings']['#theme_wrappers']);
+      $block->content['comment_settings']['#type'] = '';
+
+      // Set access to false on the original rather than removing so that
+      // vertical tabs doesn't clone it. I think this is due to references.
+      $context->form['comment_settings']['#access'] = FALSE;
     }
   }
   else {

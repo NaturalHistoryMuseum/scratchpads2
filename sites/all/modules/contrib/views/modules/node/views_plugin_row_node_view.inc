@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row_node_view.inc,v 1.3.6.3 2010/12/03 11:26:09 dereine Exp $
 /**
  * @file
  * Contains the node view row style plugin.
@@ -24,12 +23,16 @@ class views_plugin_row_node_view extends views_plugin_row {
     if (isset($this->options['teaser'])) {
       $this->options['build_mode'] = $this->options['teaser'] ? 'teaser' : 'full';
     }
+    // Handle existing views which has used build_mode instead of view_mode.
+    if (isset($this->options['build_mode'])) {
+      $this->options['view_mode'] = $this->options['build_mode'];
+    }
   }
 
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['build_mode'] = array('default' => 'teaser');
+    $options['view_mode'] = array('default' => 'teaser');
     $options['links'] = array('default' => TRUE);
     $options['comments'] = array('default' => FALSE);
 
@@ -39,6 +42,29 @@ class views_plugin_row_node_view extends views_plugin_row {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
+    $options = $this->options_form_summary_options();
+    $form['view_mode'] = array(
+      '#type' => 'select',
+      '#options' => $options,
+      '#title' => t('View mode'),
+      '#default_value' => $this->options['view_mode'],
+     );
+    $form['links'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display links'),
+      '#default_value' => $this->options['links'],
+    );
+    $form['comments'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display comments'),
+      '#default_value' => $this->options['comments'],
+    );
+  }
+
+  /**
+   * Return the main options, which are shown in the summary title.
+   */
+  function options_form_summary_options() {
     $entity_info = entity_get_info('node');
     $options = array();
     if (!empty($entity_info['view modes'])) {
@@ -49,26 +75,16 @@ class views_plugin_row_node_view extends views_plugin_row {
     if (empty($options)) {
       $options = array(
         'teaser' => t('Teaser'),
-        'full' => t('Full node')
+        'full' => t('Full content')
       );
     }
 
-    $form['build_mode'] = array(
-      '#type' => 'select',
-      '#options' => $options,
-      '#title' => t('Build mode'),
-      '#default_value' => $this->options['build_mode'],
-     );
-    $form['links'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Display links'),
-      '#default_value' => $this->options['links'],
-    );
-    $form['comments'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Display node comments'),
-      '#default_value' => $this->options['comments'],
-    );
+    return $options;
+  }
+
+  function summary_title() {
+    $options = $this->options_form_summary_options();
+    return check_plain($options[$this->options['view_mode']]);
   }
 
   function pre_render($values) {

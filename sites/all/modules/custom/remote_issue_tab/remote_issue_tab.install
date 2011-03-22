@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * hook_requirements
+ */
+function remote_issue_tab_requirements($phase){
+  if($phase == 'runtime'){
+    $all_set = !variable_get('remote_issue_tab_feed', FALSE) || !variable_get('remote_issue_tab_uwho_client_key', FALSE) || !variable_get('remote_issue_tab_uwho_url', FALSE);
+    return array(
+      'remote_issue_tab' => array(
+        'title' => 'Remote Issues Tab Settings',
+        'value' => $all_set ? t('Requires configuration') : t('Correctly configured'),
+        'description' => $all_set ? t('Please ensure the Remote Issue Tab is properly <a href="!settings_page">configured</a>.', array('!settings_page' => url('admin/settings/remote-issue-tab'))) : '',
+        'severity' => $all_set ? REQUIREMENT_WARNING : REQUIREMENT_OK
+      )
+    );
+  }
+  return array();
+}
+
+/**
+ * Possibly add an update to remove old cache entries
+ * 
+ * $cache = cache_get('remote_issue_tab_footer_' . $user->uid);
+ */

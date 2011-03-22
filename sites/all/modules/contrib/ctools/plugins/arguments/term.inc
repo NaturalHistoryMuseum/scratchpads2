@@ -1,5 +1,4 @@
 <?php
-// $Id: term.inc,v 1.12 2010/12/31 21:31:50 merlinofchaos Exp $
 
 /**
  * @file
@@ -21,6 +20,7 @@ $plugin = array(
   'settings form' => 'ctools_term_settings_form',
   'placeholder form' => 'ctools_term_ctools_argument_placeholder',
   'breadcrumb' => 'ctools_term_breadcrumb',
+  'no ui' => TRUE,
 );
 
 /**

@@ -23,6 +23,9 @@ div.vertical-tabs {
 .vertical-tabs legend {
   display: none;
 }
+.vertical-tabs fieldset fieldset legend {
+  display: inline-block;
+}
 
 /* Layout of each tab */
 .vertical-tabs ul.vertical-tabs-list li {

@@ -1,14 +1,17 @@
-; $Id: views.info,v 1.7.6.63 2011/02/05 16:45:32 dereine Exp $
 name = Views
 description = Create customized lists and queries from your database.
 package = Views
 core = 7.x
 php = 5.2
-files[] = views.module
+
+; Always available CSS
+stylesheets[all][] = css/views.css
+
 dependencies[] = ctools
 ; Handlers
 files[] = handlers/views_handler_area.inc
 files[] = handlers/views_handler_area_text.inc
+files[] = handlers/views_handler_area_view.inc
 files[] = handlers/views_handler_argument.inc
 files[] = handlers/views_handler_argument_date.inc
 files[] = handlers/views_handler_argument_formula.inc
@@ -27,6 +30,7 @@ files[] = handlers/views_handler_field_markup.inc
 files[] = handlers/views_handler_field_math.inc
 files[] = handlers/views_handler_field_numeric.inc
 files[] = handlers/views_handler_field_prerender_list.inc
+files[] = handlers/views_handler_field_serialized.inc
 files[] = handlers/views_handler_field_url.inc
 files[] = handlers/views_handler_filter.inc
 files[] = handlers/views_handler_filter_group_by_numeric.inc
@@ -266,10 +270,11 @@ files[] = tests/user/views_user_argument_default.test
 files[] = tests/user/views_user_argument_validate.test
 files[] = tests/views_cache.test
 files[] = tests/views_view.test
+files[] = tests/views_ui.test
 
-; Information added by drupal.org packaging script on 2011-02-23
+; Information added by drupal.org packaging script on 2011-03-18
 version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1298422164"
+datestamp = "1300408032"
 

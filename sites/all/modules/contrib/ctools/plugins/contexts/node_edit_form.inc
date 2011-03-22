@@ -1,5 +1,4 @@
 <?php
-// $Id: node_edit_form.inc,v 1.18 2010/10/11 22:18:23 sdboyer Exp $
 
 /**
  * @file
@@ -81,6 +80,7 @@ function ctools_context_create_node_edit_form($empty, $node = NULL, $conf = FALS
     $context->form_title = $node->title;
     $context->node_type  = $node->type;
     $context->restrictions['type'] = array($node->type);
+    $context->restrictions['form'] = array('form');
     return $context;
   }
 }

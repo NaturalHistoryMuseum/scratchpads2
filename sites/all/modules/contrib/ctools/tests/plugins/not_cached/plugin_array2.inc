@@ -1,5 +1,4 @@
 <?php
-// $Id: plugin_array2.inc,v 1.1 2010/10/11 22:18:23 sdboyer Exp $
 /**
  * @file
  * Chaos Tools plugin include using a plugin array to declare a plugin.

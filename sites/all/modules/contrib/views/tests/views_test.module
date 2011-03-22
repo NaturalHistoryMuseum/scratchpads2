@@ -1,5 +1,4 @@
 <?php
-// $Id: views_test.module,v 1.1.2.9 2011/01/04 21:26:47 dereine Exp $
 
 /**
  * Implements hook_permission().

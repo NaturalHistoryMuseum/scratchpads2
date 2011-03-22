@@ -1,5 +1,4 @@
 <?php
-// $Id: views_row.inc,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -45,10 +44,14 @@ function views_content_views_row_content_type_render($subtype, $conf, $panel_arg
   // This guarantees the view is rendered normally which must happen.
   $view = views_content_context_get_view($context);
   $output = views_content_context_get_output($context);
+  // Rows are keyed by result id value and need to be reset.
+  $output['rows'] = array_values($output['rows']);
   if (empty($conf['use_fields']) || empty($view->style_plugin->row_plugin)) {
     foreach ($conf['rows'] as $row) {
       // We store the row number 1-indexed but they are 0-indexed internally.
-      $block->content .= $output['rows'][$row - 1];
+      if (isset($output['rows'][$row - 1])) {
+        $block->content .= $output['rows'][$row - 1];
+      }
     }
   }
   else {
@@ -71,24 +74,36 @@ function views_content_views_row_content_type_render($subtype, $conf, $panel_arg
 
 function views_content_views_row_content_type_edit_form($form, &$form_state) {
   // This form does nothing; it exists to let the main form select the view context.
+  return $form;
 }
 
-function views_content_views_row_content_type_edit_form_submit(&$form, &$form_state) {
-
+function views_content_views_row_content_type_edit_form_submit($form, &$form_state) {
 }
 
-function views_content_views_row_edit(&$form, &$form_state) {
+function views_content_views_row_edit($form, &$form_state) {
   $conf = $form_state['conf'];
+  $contexts = $form_state['contexts'];
 
-  if (empty($form_state['contexts'][$conf['context']])) {
-    $form['markup'] = array('#value' => '<p>' . t('Invalid context selected.') . '</p>');
-    return;
+  if (empty($contexts[$conf['context']])) {
+    $form['markup'] = array('#markup' => '<p>' . t('Invalid context selected.') . '</p>');
+    return $form;
   }
 
-  $view = views_content_context_get_view($form_state['contexts'][$conf['context']]);
+  if (!isset($contexts[$conf['context']]->argument)) {
+    $name = $contexts[$conf['context']]->placeholder['conf']['name'];
+    list($plugin, $view_data) = explode(':', $name);
+    list($view_name, $display_id) = explode('-', $view_data);
+  }
+  else {
+    $view_data = $contexts[$conf['context']]->argument;
+    list($view_name, $display_id) = explode(':', $view_data);
+  }
+  $contexts[$conf['context']]->data['name'] = $view_name;
+  $contexts[$conf['context']]->data['display'] = $display_id;
+  $view = views_content_context_get_view($contexts[$conf['context']]);
   if (empty($view)) {
-    $form['markup'] = array('#value' => '<p>' . t('Context contains an invalid view.') . '</p>');
-    return;
+    $form['markup'] = array('#markup' => '<p>' . t('Context contains an invalid view.') . '</p>');
+    return $form;
   }
 
   // Support Views 2 and Views 3.
@@ -100,8 +115,8 @@ function views_content_views_row_edit(&$form, &$form_state) {
     $rows = $view->display_handler->get_option('items_per_page');
   }
   if (empty($rows)) {
-    $form['markup'] = array('#value' => '<p>' . t('The view must have a maximum number of items set to use this content type.') . '</p>');
-    return;
+    $form['markup'] = array('#markup' => '<p>' . t('The view must have a maximum number of items set to use this content type.') . '</p>');
+    return $form;
   }
 
   foreach (range(1, $rows) as $row) {
@@ -129,10 +144,11 @@ function views_content_views_row_edit(&$form, &$form_state) {
       '#default_value' => $conf['fields'],
       '#prefix' => '<div id="edit-fields-wrapper"><div id="edit-fields">',
       '#suffix' => '</div></div>',
-      '#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+      '#process' => array('ctools_dependent_process', 'form_process_radios'),
       '#dependency' => array('edit-use-fields' => array(TRUE)),
     );
   }
+  return $form;
 }
 
 function views_content_views_row_edit_validate(&$form, &$form_state) {

@@ -1,5 +1,4 @@
 <?php
-// $Id: form.inc,v 1.3 2010/10/11 22:18:24 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -26,15 +25,12 @@ function ctools_form_content_type_render($subtype, $conf, $panel_args, &$context
 
   if (isset($context->form)) {
     $block->title = $context->form_title;
-    if (!empty($context->form_id)) {
-      // If this is a form, drupal_render it.
-      $block->content = drupal_render($context->form);
+    $block->content = array();
+    foreach (element_children($context->form) as $element) {
+      $block->content[$element] = $context->form[$element];
+      unset($context->form[$element]);
     }
-    else {
-      // Otherwise just spit back what we were given. This is probably an
-      // error message or something.
-      $block->content = $context->form;
-    }
+
     $block->delta = $context->form_id;
   }
   else {

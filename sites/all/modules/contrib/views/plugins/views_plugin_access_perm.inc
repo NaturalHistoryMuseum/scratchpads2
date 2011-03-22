@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_access_perm.inc,v 1.3.6.3 2010/03/10 21:03:19 merlinofchaos Exp $
 
 /**
  * Access plugin that provides permission-based access control.

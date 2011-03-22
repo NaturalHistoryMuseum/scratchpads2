@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_user_current.inc,v 1.2.4.2 2010/09/24 05:34:15 dereine Exp $
 
 /**
  * Filter handler for the current user

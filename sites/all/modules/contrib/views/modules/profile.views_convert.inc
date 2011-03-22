@@ -1,5 +1,4 @@
 <?php
-// $Id: profile.views_convert.inc,v 1.2.4.1 2009/11/02 22:01:26 merlinofchaos Exp $
 
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools_export_ui.class.php,v 1.5 2011/01/05 22:35:46 merlinofchaos Exp $
 
 /**
  * Base class for export UI.
@@ -181,7 +180,14 @@ class ctools_export_ui {
       $form_state['input']['form_id'] = 'ctools_export_ui_list_form';
     }
 
-    $form = drupal_render(drupal_build_form('ctools_export_ui_list_form', $form_state));
+    // If we do any form rendering, it's to completely replace a form on the
+    // page, so don't let it force our ids to change.
+    if ($js && isset($_POST['ajax_html_ids'])) {
+      unset($_POST['ajax_html_ids']);
+    }
+
+    $form = drupal_build_form('ctools_export_ui_list_form', $form_state);
+    $form = drupal_render($form);
 
     $output = $this->list_header($form_state) . $this->list_render($form_state) . $this->list_footer($form_state);
 
@@ -970,10 +976,6 @@ class ctools_export_ui {
     $item = $form_state['item'];
     $schema = ctools_export_get_schema($this->plugin['schema']);
 
-    // TODO: Drupal 7 has a nifty method of auto guessing names from
-    // titles that is standard. We should integrate that here as a
-    // nice standard.
-    // Guess at a couple of our standard fields.
     if (!empty($this->plugin['export']['admin_title'])) {
       $form['info'][$this->plugin['export']['admin_title']] = array(
         '#type' => 'textfield',

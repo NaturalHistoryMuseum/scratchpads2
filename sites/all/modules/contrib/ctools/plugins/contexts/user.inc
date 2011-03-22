@@ -1,5 +1,4 @@
 <?php
-// $Id: user.inc,v 1.12 2011/01/05 19:42:37 merlinofchaos Exp $
 
 /**
  * @file
@@ -23,6 +22,7 @@ $plugin = array(
   'convert' => 'ctools_context_user_convert',
   'convert default' => 'name',
   'js' => array('misc/autocomplete.js'),
+  'no ui' => TRUE,
 );
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id: page_breadcrumb.inc,v 1.4 2010/12/31 21:20:57 merlinofchaos Exp $
 
 /**
  * @file

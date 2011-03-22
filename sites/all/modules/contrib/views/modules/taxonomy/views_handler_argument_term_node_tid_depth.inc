@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_term_node_tid_depth.inc,v 1.3.4.7 2010/11/27 20:53:28 dereine Exp $
 /**
  * Argument handler for taxonomy terms with depth.
  *
@@ -19,7 +18,6 @@ class views_handler_argument_term_node_tid_depth extends views_handler_argument 
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['depth'] = array(
       '#type' => 'weight',
       '#title' => t('Depth'),
@@ -29,8 +27,8 @@ class views_handler_argument_term_node_tid_depth extends views_handler_argument 
 
     $form['break_phrase'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Allow multiple terms per argument'),
-      '#description' => t('If selected, users can enter multiple arguments in the form of 1+2+3. Due to the number of JOINs it would require, AND will be treated as OR with this argument.'),
+      '#title' => t('Allow multiple values'),
+      '#description' => t('If selected, users can enter multiple values in the form of 1+2+3. Due to the number of JOINs it would require, AND will be treated as OR with this filter.'),
       '#default_value' => !empty($this->options['break_phrase']),
     );
 
@@ -49,6 +47,7 @@ class views_handler_argument_term_node_tid_depth extends views_handler_argument 
       '#process' => array('form_process_checkbox', 'ctools_dependent_process'),
       '#dependency' => array('edit-options-set-breadcrumb' => array(TRUE)),
     );
+    parent::options_form($form, $form_state);
   }
 
   function set_breadcrumb(&$breadcrumb) {
@@ -75,7 +74,7 @@ class views_handler_argument_term_node_tid_depth extends views_handler_argument 
     return $actions;
   }
 
-  function query() {
+  function query($group_by = FALSE) {
     $this->ensure_my_table();
 
     if (!empty($this->options['break_phrase'])) {
@@ -97,7 +96,7 @@ class views_handler_argument_term_node_tid_depth extends views_handler_argument 
     }
     else {
       $operator = "=";
-      $tids = array($this->argument);
+      $tids = $this->argument;
     }
     // Now build the subqueries.
     $subquery = db_select('taxonomy_index', 'tn');

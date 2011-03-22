@@ -1,5 +1,12 @@
 Current API VERSION: 2.0. See API.txt for more information.
 
+ctools 7.x-1.x-dev
+==================
+#1008120: "New custom content" shows empty form if custom content panes module is not enabled.
+#999302 by troky: Fix jump menu. Apparently this wasn't actually committed the last time it was committed.
+#1065976 by tekante and David_Rothstein: Reset plugin static cache during module enable to prevent stale data from harming export ui.
+#1016510 by EclipseGC: Make the taxonomy system page functional.
+
 ctools 7.x-1.x-alpha2 (05-Jan-2011)
 ===================================
 

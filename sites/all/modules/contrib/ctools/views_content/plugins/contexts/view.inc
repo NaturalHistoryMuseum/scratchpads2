@@ -1,5 +1,4 @@
 <?php
-// $Id: view.inc,v 1.2 2010/10/11 22:18:24 sdboyer Exp $
 
 /**
  * @file
@@ -17,9 +16,9 @@ $plugin = array(
   'description' => t('Loads a view result into a context that can then be displayed across a panel or turned into other contexts.'),
   'context' => 'views_content_context_view_create',
 
-  'settings form' => 'views_content_context_view_settings_form',
-  'settings form validate' => 'views_content_context_view_settings_form_validate',
-  'settings form submit' => 'views_content_context_view_settings_form_submit',
+  'edit form' => 'views_content_context_view_settings_form',
+  'edit form validate' => 'views_content_context_view_settings_form_validate',
+  'edit form submit' => 'views_content_context_view_settings_form_submit',
 
   'defaults' => array('view' => ''),
 
@@ -63,6 +62,7 @@ function views_content_context_view_create($empty, $data = NULL, $conf = FALSE) 
     $context->data     = array(
       'name' => $data->name,
       'display' => $data->current_display,
+      'args' => $data->args,
     );
 
     // At runtime, this can get populated. Once it is populated this

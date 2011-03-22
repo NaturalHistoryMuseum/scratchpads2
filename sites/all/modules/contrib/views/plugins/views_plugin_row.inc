@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row.inc,v 1.4.4.4 2010/05/12 22:29:46 dereine Exp $
 /**
  * @file
  * Contains the base row style plugin.

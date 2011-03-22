@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_query.inc,v 1.1.4.14 2011/02/05 00:39:32 merlinofchaos Exp $
 /**
  * @file views_plugin_query.inc
  * Defines the base query class, which is the underlying layer in a View.

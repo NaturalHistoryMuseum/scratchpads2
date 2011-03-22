@@ -1,11 +1,11 @@
 <?php
-// $Id: views_handler_filter_node_status.inc,v 1.2.4.7 2011/01/07 18:10:54 dereine Exp $
 /**
  * Filter by published status
  */
 class views_handler_filter_node_status extends views_handler_filter {
   function admin_summary() { }
   function operator_form(&$form, &$form_state) { }
+  function can_expose() { return FALSE; }
 
   function query() {
     $table = $this->ensure_my_table();

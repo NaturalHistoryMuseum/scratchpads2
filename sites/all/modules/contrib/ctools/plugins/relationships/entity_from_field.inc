@@ -1,5 +1,4 @@
 <?php
-// $Id: entity_from_field.inc,v 1.1 2011/01/05 20:34:46 merlinofchaos Exp $
 
 /**
  * @file
@@ -59,9 +58,12 @@ function ctools_entity_from_field_get_children($plugin, $parent) {
   }
   foreach ($context_types as $key => $context) {
     list($parent, $plugin_name) = explode(':', $key);
-    list($field_name, $from_entity) = explode('-', $plugin_name);
+    list($field_name, $from_entity, $to_entity) = explode('-', $plugin_name);
     $plugins[$key]['required context'] = new ctools_context_required(t(ucfirst($from_entity)), $from_entity, array('type' => array_keys($context['types'])));
+    $plugin_entities = array('to' => array($to_entity => $entities[$to_entity]), 'from' => array($from_entity => $entities[$from_entity]));
+    drupal_alter('ctools_entity_context', $plugins[$key], $plugin_entities, $key);
   }
+  drupal_alter('ctools_entity_contexts', $plugins);
   return $plugins;
 }
 

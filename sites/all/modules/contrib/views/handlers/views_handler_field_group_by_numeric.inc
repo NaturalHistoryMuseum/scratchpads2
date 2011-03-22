@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_group_by_numeric.inc,v 1.1.4.6 2010/11/07 11:36:59 dereine Exp $
 
 /**
  * Handler for GROUP BY on simple numeric fields.

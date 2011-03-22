@@ -1,5 +1,4 @@
 <?php
-// $Id: contact.inc,v 1.4 2010/10/11 22:18:24 sdboyer Exp $
 
 if (module_exists('contact')) {
   /**
@@ -29,7 +28,7 @@ function ctools_contact_content_type_render($subtype, $conf, $panel_args, $conte
   $block->title   = t('Contact');
 
   module_load_include('inc', 'contact', 'contact.pages');
-  $block->content = contact_site_page();
+  $block->content = drupal_get_form('contact_site_form');
   return $block;
 }
 

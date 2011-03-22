@@ -1,4 +1,3 @@
-<!-- $Id: wizard.html,v 1.8 2010/10/15 22:13:37 merlinofchaos Exp $ -->
 Form wizards, or multi-step forms, are a process by which the user goes through or can use an arbitrary number of different forms to create a single object or perform a single task. Traditionally the multi-step form is difficult in Drupal because there is no easy place to put data in between forms. No longer! The form wizard tool allows a single entry point to easily set up a wizard of multiple forms, provide callbacks  to handle data storage and updates between forms and when forms are completed. This tool pairs well with the <a href="&topic:ctools/object-cache&">object cache</a> tool for storage.
 
 <h3>The form info array</h3>
@@ -212,13 +211,15 @@ All that's needed to tie this together is to understand how the changes made it 
 /**
  * Store the values from the basic settings form.
  */
-function delegator_page_form_basic_submit(&$form, &$form_state) {
+function delegator_page_form_basic_submit($form, &$form_state) {
   if (!isset($form_state['page']->pid) && empty($form_state['page']->import)) {
     $form_state['page']->name = $form_state['values']['name'];
   }
 
   $form_state['page']->admin_title = $form_state['values']['admin_title'];
   $form_state['page']->path = $form_state['values']['path'];
+
+  return $form;
 }
 </pre>
 
@@ -231,7 +232,7 @@ When using <strong>'show back' => TRUE</strong> the cached data should be assign
 /**
  * Form builder function for wizard.
  */
-function wizardid_step2_form(&$form, &$form_state) {
+function wizardid_step2_form($form, &$form_state) {
   $form_state['my data'] = my_module_get_cache($form_state['cache name']);
   $form['example'] = array(
     '#type' => 'radios',
@@ -242,6 +243,8 @@ function wizardid_step2_form(&$form, &$form_state) {
       'setting1' => t('Setting1'),
     ),
   );
+
+  return $form;
 }
 
 /**

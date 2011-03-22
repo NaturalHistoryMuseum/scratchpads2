@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.inc,v 1.84.4.47 2011/02/18 01:50:22 merlinofchaos Exp $
 
 /**
  * @file theme.inc
@@ -76,6 +75,10 @@ function template_preprocess_views_view(&$vars) {
 
   $vars['pager']      = '';
 
+  // @todo: Figure out whether this belongs into views_ui_preprocess_views_view.
+  // Render title for the admin preview.
+  $vars['title'] = !empty($view->views_ui_context) ? filter_xss_admin($view->get_title()) : '';
+
   if ($view->display_handler->render_pager()) {
     $exposed_input = isset($view->exposed_data_raw) ? $view->exposed_data_raw : NULL;
     $vars['pager']      = $view->query->render_pager($exposed_input);
@@ -84,36 +87,13 @@ function template_preprocess_views_view(&$vars) {
   $vars['attachment_before'] = !empty($view->attachment_before) ? $view->attachment_before : '';
   $vars['attachment_after'] = !empty($view->attachment_after) ? $view->attachment_after : '';
 
-  // if administrator, add some links. These used to be tabs, but this is better.
-  if (user_access('administer views') && module_exists('views_ui') && module_exists('contextual') && empty($view->hide_admin_links) && !variable_get('views_no_hover_links', FALSE)) {
-    $links = array(
-      'views-edit' => array(
-        'title' => t('Edit view'),
-        'attributes' => array('title' => t("Edit this view")),
-        'href' => "admin/structure/views/edit/$view->name",
-        'fragment' => 'views-tab-' . $view->current_display,
-        'query' => drupal_get_destination(),
-      ),
-    );
-    drupal_alter('views_admin_links', $links, $view);
-
-    $build = array(
-      '#prefix' => '<div class="contextual-links-wrapper">',
-      '#suffix' => '</div>',
-      '#theme' => 'links__contextual',
-      '#links' => $links,
-      '#attributes' => array('class' => array('contextual-links')),
-      '#attached' => array(
-        'library' => array(array('contextual', 'contextual-links')),
-      ),
-    );
-    $vars['classes_array'][] = 'contextual-links-region';
-    $vars['admin_links'] = drupal_render($build);
-  }
-  else {
-    $vars['admin_links'] = '';
-    $vars['admin_links_raw'] = array();
-  }
+  // Add contextual links to the view. We need to attach them to the dummy
+  // $view_array variable, since contextual_preprocess() requires that they be
+  // attached to an array (not an object) in order to process them. For our
+  // purposes, it doesn't matter what we attach them to, since once they are
+  // processed by contextual_preprocess() they will appear in the $title_suffix
+  // variable (which we will then render in views-view.tpl.php).
+  views_add_contextual_links($vars['view_array'], 'view', $view, $view->current_display);
 
   // Attachments are always updated with the outer view, never by themselves,
   // so they do not have dom ids.
@@ -319,7 +299,7 @@ function template_preprocess_views_view_summary(&$vars) {
   if (!empty($view->exposed_raw_input)) {
     $url_options['query'] = $view->exposed_raw_input;
   }
-  $vars['classes'] = array();
+  $vars['classes_array'] = array();
   foreach ($vars['rows'] as $id => $row) {
     $vars['rows'][$id]->link = $argument->summary_name($row);
     $args = $view->args;
@@ -332,7 +312,7 @@ function template_preprocess_views_view_summary(&$vars) {
     $vars['rows'][$id]->url = url($view->get_url($args, $base_path), $url_options);
     $vars['rows'][$id]->count = intval($row->{$argument->count_alias});
     if ($vars['rows'][$id]->url == base_path() . $_GET['q'] || $vars['rows'][$id]->url == base_path() . drupal_get_path_alias($_GET['q'])) {
-      $vars['classes'][$id] = 'active';
+      $vars['classes_array'][$id] = 'active';
     }
   }
 }
@@ -344,7 +324,7 @@ function template_preprocess_views_view_summary(&$vars) {
 function template_preprocess_views_view_summary_unformatted(&$vars) {
   $view     = $vars['view'];
   $argument = $view->argument[$view->build_info['summary_level']];
-  $vars['classes'] = array();
+  $vars['row_classes'] = array();
 
   $url_options = array();
 
@@ -369,7 +349,7 @@ function template_preprocess_views_view_summary_unformatted(&$vars) {
     $vars['rows'][$id]->url = url($view->get_url($args, $base_path), $url_options);
     $vars['rows'][$id]->count = intval($row->{$argument->count_alias});
     if ($vars['rows'][$id]->url == base_path() . $_GET['q'] || $vars['rows'][$id]->url == base_path() . drupal_get_path_alias($_GET['q'])) {
-      $vars['classes'][$id] = 'active';
+      $vars['row_classes'][$id] = 'active';
     }
   }
 }
@@ -750,7 +730,11 @@ function template_preprocess_views_view_rss(&$vars) {
   $vars['items'] = $items;
   $vars['channel_elements'] = format_xml_elements($style->channel_elements);
 
-  drupal_add_http_header('Content-Type', 'application/rss+xml; charset=utf-8');
+  // During live preview we don't want to output the header since the contents
+  // of the feed are being displayed inside a normal HTML page.
+  if (empty($vars['view']->live_preview)) {
+    drupal_add_http_header('Content-Type', 'application/rss+xml; charset=utf-8');
+  }
 }
 
 /**
@@ -894,6 +878,14 @@ function theme_views_mini_pager($vars) {
       )
     );
   }
+}
+
+/**
+ * Generic <div> container function.
+ */
+function theme_views_container($variables) {
+  $element = $variables['element'];
+  return '<div' . drupal_attributes($element['#attributes']) . '>' . $element['#children'] . '</div>';
 }
 
 /**

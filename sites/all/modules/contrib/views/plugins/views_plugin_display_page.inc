@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_display_page.inc,v 1.8.4.15 2011/02/04 14:13:16 dereine Exp $
 /**
  * @file
  * Contains the page display plugin.
@@ -230,6 +229,10 @@ class views_plugin_display_page extends views_plugin_display {
 
     $categories['page'] = array(
       'title' => t('Page settings'),
+      'column' => 'second',
+      'build' => array(
+        '#weight' => -10,
+      ),
     );
 
     $path = strip_tags($this->get_option('path'));
@@ -294,7 +297,7 @@ class views_plugin_display_page extends views_plugin_display {
         $form['#help_topic'] = 'path';
         $form['path'] = array(
           '#type' => 'textfield',
-          '#description' => t('This view will be displayed by visiting this path on your site. You may use "%" in your URL to represent values that will be used for arguments: For example, "node/%/feed".'),
+          '#description' => t('This view will be displayed by visiting this path on your site. You may use "%" in your URL to represent values that will be used for contextual filters: For example, "node/%/feed".'),
           '#default_value' => $this->get_option('path'),
 	  '#field_prefix' => '<span dir="ltr">' . url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q='),
 	  '#field_suffix' => '</span>&lrm;',
@@ -332,7 +335,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $menu['title'],
           '#description' => t('If set to normal or tab, enter the text to use for the menu item.'),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
         $form['menu']['description'] = array(
@@ -340,7 +342,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $menu['description'],
           '#description' => t("If set to normal or tab, enter the text to use for the menu item's description."),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
 
@@ -352,7 +353,6 @@ class views_plugin_display_page extends views_plugin_display {
             '#options' => menu_get_menus(),
             '#default_value' => $menu['name'],
             '#description' => t('Insert item into an available menu.'), //
-            '#process' => array('form_process_select', 'ctools_dependent_process'),
             '#dependency' => array('radio:menu[type]' => array('normal')),
           );
         }
@@ -371,7 +371,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => isset($menu['weight']) ? $menu['weight'] : 0,
           '#description' => t('The lower the weight the higher/further left it will appear.'),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
         break;
@@ -405,7 +404,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $tab_options['title'],
           '#description' => t('If creating a parent menu item, enter the title of the item.'),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:tab_options[type]' => array('normal', 'tab')),
         );
         $form['tab_options']['description'] = array(
@@ -413,7 +411,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $tab_options['description'],
           '#description' => t('If creating a parent menu item, enter the description of the item.'),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:tab_options[type]' => array('normal', 'tab')),
         );
         // Only display the menu selector if menu module is enabled.
@@ -424,7 +421,6 @@ class views_plugin_display_page extends views_plugin_display {
             '#options' => menu_get_menus(),
             '#default_value' => $tab_options['name'],
             '#description' => t('Insert item into an available menu.'),
-            '#process' => array('form_process_select', 'ctools_dependent_process'),
             '#dependency' => array('radio:tab_options[type]' => array('normal')),
           );
         }
@@ -444,7 +440,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#default_value' => $tab_options['weight'],
           '#size' => 5,
           '#description' => t('If the parent menu item is a tab, enter the weight of the tab. The lower the number, the more to the left it will be.'),
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('radio:tab_options[type]' => array('tab')),
         );
         break;
@@ -514,13 +509,13 @@ class views_plugin_display_page extends views_plugin_display {
 
     $menu = $this->get_option('menu');
     if (!empty($menu['type']) && $menu['type'] != 'none' && empty($menu['title'])) {
-      $errors[] = t('Display @display is set to use a menu but the menu title is not set.', array('@display' => $this->display->display_title));
+      $errors[] = t('Display @display is set to use a menu but the menu link text is not set.', array('@display' => $this->display->display_title));
     }
 
     if ($menu['type'] == 'default tab') {
       $tab_options = $this->get_option('tab_options');
       if (!empty($tab_options['type']) && $tab_options['type'] != 'none' && empty($tab_options['title'])) {
-        $errors[] = t('Display @display is set to use a parent menu but the parent menu title is not set.', array('@display' => $this->display->display_title));
+        $errors[] = t('Display @display is set to use a parent menu but the parent menu link text is not set.', array('@display' => $this->display->display_title));
       }
     }
 

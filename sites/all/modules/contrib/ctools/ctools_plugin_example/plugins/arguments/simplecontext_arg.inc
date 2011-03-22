@@ -1,5 +1,4 @@
 <?php
-// $Id: simplecontext_arg.inc,v 1.2 2010/01/29 19:53:48 merlinofchaos Exp $
 
 /**
  * @file
