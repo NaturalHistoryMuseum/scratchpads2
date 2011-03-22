@@ -1,11 +1,10 @@
 <?php
-// $Id: views_handler_filter_search.inc,v 1.5.6.5 2011/02/18 01:02:48 dereine Exp $
 
 /**
  * Field handler to provide simple renderer that allows linking to a node.
  */
 class views_handler_filter_search extends views_handler_filter {
-  var $no_single = TRUE;
+  var $always_multiple = TRUE;
 
   /**
    * Stores a viewsSearchQuery object to be able to use the search.module "api".
@@ -13,6 +12,11 @@ class views_handler_filter_search extends views_handler_filter {
    * @var viewsSearchQuery
    */
   var $search_query = NULL;
+
+  /**
+   * Checks if the search query has been parsed.
+   */
+  var $parsed = FALSE;
 
   function option_definition() {
     $options = parent::option_definition();
@@ -77,6 +81,7 @@ class views_handler_filter_search extends views_handler_filter {
    */
   function query_parse_search_expression($input) {
     if (!isset($this->search_query)) {
+      $this->parsed = TRUE;
       $this->search_query = db_select('search_index', 'i', array('target' => 'slave'))->extend('viewsSearchQuery');
       $this->search_query->searchExpression($input, $this->view->base_table);
       $this->search_query->publicParseSearchExpression();
@@ -91,6 +96,11 @@ class views_handler_filter_search extends views_handler_filter {
    * and $this->value respectively.
    */
   function query() {
+    // Since attachment views don't validate the exposed input, parse the search 
+    // expression if required.
+    if (!$this->parsed) {
+      $this->query_parse_search_expression($this->value);
+    }
     $required = FALSE;
     if (!isset($this->search_query)) {
       $required = TRUE;

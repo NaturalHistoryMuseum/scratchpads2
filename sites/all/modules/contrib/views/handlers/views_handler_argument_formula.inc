@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_argument_formula.inc,v 1.1.6.3 2011/01/03 17:46:33 dereine Exp $
 /**
  * Abstract argument handler for simple formulae.
  *
@@ -45,7 +44,7 @@ class views_handler_argument_formula extends views_handler_argument {
   /**
    * Build the query based upon the formula
    */
-  function query() {
+  function query($group_by = FALSE) {
     $this->ensure_my_table();
     // Now that our table is secure, get our formula.
     $placeholder = $this->placeholder();

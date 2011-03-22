@@ -1,5 +1,4 @@
 <?php
-// $Id: content.menu.inc,v 1.9 2011/01/05 20:34:46 merlinofchaos Exp $
 
 /**
  * @file
@@ -52,6 +51,9 @@ function ctools_content_autocomplete_entity($type, $string = '') {
     $matches = array();
     if ($type == 'node') {
       $query->addTag('node_access');
+      $query->join('users', 'u', 'b.uid = u.uid');
+      $query->addField('u', 'name', 'name');
+
       foreach ($query->execute() as $nodeish) {
         $name = empty($nodeish->name) ? variable_get('anonymous', t('Anonymous')) : check_plain($nodeish->name);
         $matches[$nodeish->title . " [id: $nodeish->nid]"] = '<span class="autocomplete_title">' . check_plain($nodeish->title) . '</span> <span class="autocomplete_user">(' . t('by @user', array('@user' => $name)) . ')</span>';

@@ -1,5 +1,4 @@
 <?php
-// $Id: uid.inc,v 1.12 2010/01/29 20:18:01 merlinofchaos Exp $
 
 /**
  * @file
@@ -24,6 +23,7 @@ $plugin = array(
   'default' => array('to_arg' => TRUE),
   'path placeholder' => '%pm_uid_arg', // This is in pagemanager.
   'path placeholder to_arg' => TRUE,
+  'no ui' => TRUE,
 );
 
 /**

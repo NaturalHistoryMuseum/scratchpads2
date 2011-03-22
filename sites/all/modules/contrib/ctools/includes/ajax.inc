@@ -1,5 +1,4 @@
 <?php
-// $Id: ajax.inc,v 1.22 2010/12/31 23:58:52 merlinofchaos Exp $
 
 // Set this so we can tell that the file has been included at some point.
 define('CTOOLS_AJAX_INCLUDED', 1);

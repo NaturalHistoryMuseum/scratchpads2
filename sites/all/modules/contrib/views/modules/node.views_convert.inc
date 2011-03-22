@@ -1,5 +1,4 @@
 <?php
-//$Id: node.views_convert.inc,v 1.7.4.2 2010/02/06 16:29:52 dereine Exp $
 
 /**
  * @file

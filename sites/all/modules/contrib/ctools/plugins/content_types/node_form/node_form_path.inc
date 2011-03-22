@@ -1,5 +1,4 @@
 <?php
-// $Id: node_form_path.inc,v 1.4 2010/10/11 22:18:23 sdboyer Exp $
 
 if (module_exists('path')) {
   /**
@@ -24,11 +23,16 @@ function ctools_node_form_path_content_type_render($subtype, $conf, $panel_args,
   $block->delta = 'url-path-options';
 
   if (isset($context->form)) {
-    if (!empty($context->form['form_id']) && !empty($context->form['path']['#access'])) {
-      // remove the fieldset
-      unset($context->form['path']['#type']);
-      $context->form['path']['path']['#size'] /= 2;
-      $block->content = drupal_render($context->form['path']);
+    if (isset($context->form['path'])) {
+      $block->content['path'] = $context->form['path'];
+      unset($block->content['path']['#pre_render']);
+      unset($block->content['path']['#theme_wrappers']);
+      $block->content['path']['#type'] = '';
+      $block->content['path']['path']['#size'] /= 2;
+
+      // Set access to false on the original rather than removing so that
+      // vertical tabs doesn't clone it. I think this is due to references.
+      $context->form['path']['#access'] = FALSE;
     }
   }
   else {

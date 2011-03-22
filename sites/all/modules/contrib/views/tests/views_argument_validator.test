@@ -1,5 +1,4 @@
 <?php
-// $Id: views_argument_validator.test,v 1.1.4.6 2010/05/24 19:58:36 dereine Exp $
 
 class viewsArgumentValidatorTest extends ViewsSqlTest {
   public static function getInfo() {
@@ -45,8 +44,8 @@ class viewsArgumentValidatorTest extends ViewsSqlTest {
     $view->api_version = 2;
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
-    /* Display: Defaults */
-    $handler = $view->new_display('default', 'Defaults', 'default');
+    /* Display: Master */
+    $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['access']['type'] = 'none';
     $handler->display->display_options['cache']['type'] = 'none';
     $handler->display->display_options['exposed_form']['type'] = 'basic';
@@ -77,8 +76,8 @@ class viewsArgumentValidatorTest extends ViewsSqlTest {
     $view->api_version = 2;
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
-    /* Display: Defaults */
-    $handler = $view->new_display('default', 'Defaults', 'default');
+    /* Display: Master */
+    $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['access']['type'] = 'none';
     $handler->display->display_options['cache']['type'] = 'none';
     $handler->display->display_options['exposed_form']['type'] = 'basic';

@@ -1,5 +1,4 @@
 <?php
-// $Id: export-ui.menu.inc,v 1.4 2011/01/01 01:14:24 merlinofchaos Exp $
 
 /**
  * Delegated implementation of hook_menu().

@@ -1,5 +1,4 @@
 <?php
-// $Id: export-ui.inc,v 1.3 2010/12/31 23:50:25 merlinofchaos Exp $
 
 /**
  * @file

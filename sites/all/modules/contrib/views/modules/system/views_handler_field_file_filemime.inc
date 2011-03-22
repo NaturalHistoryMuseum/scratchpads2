@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_file_filemime.inc,v 1.1.2.1 2010/10/06 17:47:37 dereine Exp $
 
 /**
  * Field handler to add rendering MIME type images as an option on the filemime field.
@@ -12,12 +11,12 @@ class views_handler_field_file_filemime extends views_handler_field_file {
   }
 
   function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
     $form['filemime_image'] = array(
-      '#title' => t('Display an image representing the MIME type instead of the MIME text.'),
+      '#title' => t('Display an icon representing the file type, instead of the MIME text (such as "image/jpeg").'),
       '#type' => 'checkbox',
       '#default_value' => !empty($this->options['filemime_image']),
     );
+    parent::options_form($form, $form_state);
   }
 
   function render($values) {

@@ -1,5 +1,4 @@
 <?php
-// $Id: dependent.inc,v 1.9 2011/01/04 01:21:30 merlinofchaos Exp $
 
 /**
  * @file
@@ -21,8 +20,6 @@
  * When hiding checkboxes and radios you need to add their id in a div
  * manually via #prefix and #suffix since they don't have their own id. You
  * actually need to add TWO divs because it's the parent that gets hidden.
- * Also be sure to retain the 'expand_checkboxes' in the #process array,
- * because the views process will override it.
  *
  * Fieldsets can not be hidden by default. Adding '#input' => TRUE to the
  * fieldset works around that.
@@ -43,7 +40,6 @@
  * @code { ctools_include('dependent'); }
  *
  * On any form item, add
- * - @code '#process' => array('ctools_dependent_process'), @endcode
  * - @code '#dependency' => array('id-of-form-without-the-#' => array(list, of, values, that, make, this, gadget, visible)), @endcode
  *
  * A fuller example, that hides the menu title when no menu is selected:
@@ -72,7 +68,6 @@
  *    '#type' => 'textfield',
  *    '#default_value' => '',
  *    '#description' => t('If set to normal or tab, enter the text to use for the menu item.'),
- *    '#process' => array('ctools_dependent_process'),
  *    '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
  *   );
  *
@@ -106,7 +101,6 @@
  *    '#type' => 'checkboxes',
  *    '#prefix' => '<div id="edit-elements-wrapper"><div id="edit-elements">',
  *    '#suffix' => '</div></div>',
- *    '#process' => array('ctools_dependent_process', 'expand_checkboxes'),
  *    '#dependency' => array('radio:menu[type]' => array('node')),
  *    '#options' => array(
  *      'body' => t('Body'),
@@ -119,37 +113,62 @@
  *  return system_settings_form($form);
  *}
  * @endcode
+ *
+ * Deprecated:
+ *
+ * You no longer use ctools_dependent_process(), and it should be removed
+ * completely.
+ *
+ * If you have a form element which isn't listed in ctools_dependent_element_info_alter
+ * you have to add [#pre_render'][] => 'ctools_dependent_pre_render' to your form.
  */
 
 /**
  * Process callback to add dependency to form items.
+ *
  */
 function ctools_dependent_process($element, &$form_state, &$form) {
+  return $element;
+}
+
+function ctools_dependent_pre_render($element) {
+  // Preprocess only items with #dependency set.
   if (isset($element['#dependency'])) {
-    // Don't actually add any javascript until render time.
-    $element['#pre_render'][] = 'ctools_dependent_pre_render';
+    if (!isset($element['#dependency_count'])) {
+      $element['#dependency_count'] = 1;
+    }
+    if (!isset($element['#dependency_type'])) {
+      $element['#dependency_type'] = 'hide';
+    }
+
+    $js = array(
+      'values' => $element['#dependency'],
+      'num' => $element['#dependency_count'],
+      'type' => $element['#dependency_type'],
+    );
+
+    // Add a additional wrapper id around textareas to support depedency on it.
+    if ($element['#type'] == 'textarea') {
+      $element['#theme_wrappers'][] = 'container';
+      $element['#attributes']['id'] = $element['#id'] . '-wrapper';
+    }
+
+    $element['#attached']['js'][] = ctools_attach_js('dependent');
+    $options['CTools']['dependent'][$element['#id']] = $js;
+    $element['#attached']['js'][] = array('type' => 'setting', 'data' => $options);
   }
 
   return $element;
 }
 
-function ctools_dependent_pre_render($element) {
-  if (!isset($element['#dependency_count'])) {
-    $element['#dependency_count'] = 1;
+/**
+ * CTools alters the element_info to be able to add #process functions to
+ * every major form element to make it much more handy to use #dependency,
+ * because you don't have to add #process.
+ */
+function ctools_dependent_element_info_alter(&$type) {
+  $form_elements = array('checkbox', 'checkboxes', 'fieldset', 'item', 'markup', 'radio', 'radios', 'select', 'textarea', 'textfield');
+  foreach ($form_elements as $element) {
+    $type[$element]['#pre_render'][] = 'ctools_dependent_pre_render';
   }
-  if (!isset($element['#dependency_type'])) {
-    $element['#dependency_type'] = 'hide';
-  }
-
-  $js = array(
-    'values' => $element['#dependency'],
-    'num' => $element['#dependency_count'],
-    'type' => $element['#dependency_type'],
-  );
-
-  ctools_add_js('dependent');
-  $options['CTools']['dependent'][$element['#id']] = $js;
-  drupal_add_js($options, 'setting');
-
-  return $element;
 }

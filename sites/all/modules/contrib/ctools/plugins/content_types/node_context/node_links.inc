@@ -1,5 +1,4 @@
 <?php
-// $Id: node_links.inc,v 1.6 2010/12/31 21:06:18 merlinofchaos Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -87,7 +86,7 @@ function ctools_node_links_content_type_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => $conf['identifier'],
     '#title' => t('Identifier'),
-    '#description' => t('Whatever is placed here will appear in $node->panel_identifier to help theme node links displayed on the panel'),
+    '#description' => t('Whatever is placed here will appear in @identifier, to help theme node links displayed on the panel', array('@identifier' => $node->panel_identifier)),
   );
 
   return $form;

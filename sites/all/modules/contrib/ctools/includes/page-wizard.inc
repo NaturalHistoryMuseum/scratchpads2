@@ -1,5 +1,4 @@
 <?php
-// $Id: page-wizard.inc,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * Fetch metadata on a specific page_wizard plugin.

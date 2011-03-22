@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row_comment_view.inc,v 1.1.6.3 2011/02/22 16:08:39 dereine Exp $
 /**
  * @file
  * Contains the node RSS row style plugin.

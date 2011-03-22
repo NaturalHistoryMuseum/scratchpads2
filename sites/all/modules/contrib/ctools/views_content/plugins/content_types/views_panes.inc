@@ -1,5 +1,4 @@
 <?php
-// $Id: views_panes.inc,v 1.24 2011/01/05 19:53:36 merlinofchaos Exp $
 
 /**
  * @file
@@ -14,7 +13,6 @@ function views_content_views_panes_ctools_content_types() {
   return array(
     'title' => t('View panes'),
     'admin settings' => 'views_content_admin_form',
-    'js' => array(drupal_get_path('module', 'ctools') . '/js/dependent.js'),
   );
 }
 
@@ -108,19 +106,9 @@ function _views_content_panes_content_type($view, $display) {
   $contexts = array();
 
   $arguments = $display->handler->get_argument_input();
+  ctools_include('views');
   foreach ($arguments as $argument) {
-    if ($argument['type'] == 'context') {
-      if (strpos($argument['context'], '.')) {
-        list($context, $converter) = explode('.', $argument['context'], 2);
-      }
-      else {
-        // Backwards-compat for before we had a system for delimiting the data
-        // we retrieve out of context objects.
-        $context = $argument['context'];
-      }
-      $class = 'ctools_context_' . (empty($argument['context_optional']) ? 'required' : 'optional');
-      $contexts[] = new $class($argument['label'], $context);
-    }
+    $contexts[] = ctools_views_get_argument_context($argument);
   }
 
   $allow = $display->handler->get_option('allow');
@@ -151,6 +139,8 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   }
 
   $view->set_display($display);
+  views_content_views_panes_add_defaults($conf, $view);
+
   if (!$view->display_handler->access($GLOBALS['user']) || !$view->display_handler->panel_pane_display) {
     return;
   }
@@ -160,13 +150,12 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   $args = array();
   $arguments = $view->display_handler->get_option('arguments');
 
-
   $context_keys = array_keys($contexts);
   foreach ($view->display_handler->get_argument_input() as $id => $argument) {
     switch ($argument['type']) {
       case 'context':
         $key = array_shift($context_keys);
-        if (isset($contexts [$key])) {
+        if (isset($contexts[$key])) {
           if (strpos($argument['context'], '.')) {
             list($context, $converter) = explode('.', $argument['context'], 2);
             $args[] = ctools_context_convert_context($contexts[$key], $converter);
@@ -207,6 +196,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   while (count($args) && end($args) === NULL) {
     array_pop($args);
   }
+
   $view->set_arguments($args);
 
   $allow = $view->display_handler->get_option('allow');
@@ -326,6 +316,26 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
 }
 
 /**
+ * Add defaults to view pane settings.
+ * This helps cover us if $allow settings changed and there are no actual
+ * settings for a particular item.
+ */
+function views_content_views_panes_add_defaults(&$conf, $view) {
+  $conf += array(
+    'link_to_view' => $view->display_handler->get_option('link_to_view'),
+    'more_link' => $view->display_handler->get_option('more_link'),
+    'feed_icons' => FALSE,
+    'use_pager' => $view->display_handler->get_option('use_pager'),
+    'pager_id' => $view->display_handler->get_option('element_id'),
+    'items_per_page' => $view->display_handler->get_option('items_per_page'),
+    'offset' => $view->display_handler->get_option('offset'),
+    'path_override' => FALSE,
+    'path' => $view->get_path(),
+    'fields_override' => $view->display_handler->get_option('fields_override'),
+  );
+}
+
+/**
  * Returns an edit form for a block.
  */
 function views_content_views_panes_content_type_edit_form($form, &$form_state) {
@@ -346,18 +356,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
   $allow = $view->display_handler->get_option('allow');
 
   // Provide defaults for everything in order to prevent warnings.
-  if (empty($conf)) {
-    $conf['link_to_view'] = $view->display_handler->get_option('link_to_view');
-    $conf['more_link'] = $view->display_handler->get_option('more_link');
-    $conf['feed_icons'] = FALSE;
-    $conf['use_pager'] = $view->display_handler->get_option('use_pager');
-    $conf['pager_id'] = $view->display_handler->get_option('element_id');
-    $conf['items_per_page'] = $view->display_handler->get_option('items_per_page');
-    $conf['offset'] = $view->display_handler->get_option('offset');
-    $conf['path_override'] = FALSE;
-    $conf['path'] = $view->get_path();
-    $conf['fields_override'] = $view->display_handler->get_option('fields_override');
-  }
+  views_content_views_panes_add_defaults($conf, $view);
 
   $form['arguments']['#tree'] = TRUE;
 
@@ -366,7 +365,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       $form['arguments'][$id] = array(
         '#type' => 'textfield',
         '#default_value' => isset($conf['arguments'][$id]) ? $conf['arguments'][$id] : '',
-        '#title' => $argument['label'],
+        '#title' => check_plain($argument['label']),
       );
     }
   }
@@ -405,7 +404,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     foreach ($view->display_handler->get_handlers('field') as $field => $handler) {
       $title = $handler->ui_name();
       if ($handler->options['label']) {
-        $title .= ' ('. $handler->options['label'] .')';
+        $title .= ' (' . check_plain($handler->options['label']) . ')';
       }
 
       $form['fields_override'][$field] = array(
@@ -431,7 +430,6 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       '#title' => t('Pager ID'),
       '#size' => 4,
       '#id' => 'use-pager-textfield',
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('use-pager-checkbox' => array(1)),
       '#suffix' => '</div>',
     );
@@ -465,15 +463,11 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     if (!empty($contexts)) {
       $form['path']['#description'] .= ' ' . t('You may use substitutions in this path.');
 
-      // Add js for collapsible fieldsets manually
-      drupal_add_js('misc/collapse.js');
-
-      // We have to create a manual fieldset because fieldsets do not support IDs.
-      // Use 'hidden' instead of 'markup' so that the process will run.
-      $form['contexts_prefix'] = array(
-        '#type' => 'hidden',
-        '#id' => 'edit-path-substitutions',
-        '#prefix' => '<div><fieldset id="edit-path-substitutions" class="collapsed collapsible"><legend>' . t('Substitutions') . '</legend>',
+      $form['contexts'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Substitutions'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
       );
 
       $rows = array();
@@ -487,10 +481,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       }
 
       $header = array(t('Keyword'), t('Value'));
-      $form['contexts']['context'] = array('#value' => theme('table', $header, $rows));
-      $form['contexts_suffix'] = array(
-        '#value' => '</fieldset></div>',
-      );
+      $form['contexts']['context'] = array('#markup' => theme('table', array('header' => $header, 'rows' => $rows)));
     }
   }
 
@@ -512,7 +503,8 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       $exposed_form_state['exposed_form_plugin'] = $view->display_handler->get_plugin('exposed_form');
     }
     $view->init_handlers();
-    $exposed_form = views_exposed_form($exposed_form_state);
+    $exposed_form = array();
+    $exposed_form = views_exposed_form($exposed_form, $exposed_form_state);
 
     $form['exposed'] = array(
       '#tree' => TRUE,
@@ -569,6 +561,8 @@ function views_content_views_panes_content_type_admin_title($subtype, $conf, $co
   }
 
   $view->set_display($display);
+  views_content_views_panes_add_defaults($conf, $view);
+
   $title = $view->display_handler->get_option('pane_title');
   return check_plain($title ? $title : $view->name);
 }
@@ -587,6 +581,7 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
   }
 
   $view->set_display($display_name);
+  views_content_views_panes_add_defaults($conf, $view);
 
   // Add arguments first
   if (!empty($conf['arguments'])) {
@@ -596,7 +591,7 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
 
     foreach ($conf['arguments'] as $key => $value) {
       $label = $argument_input[$key]['label'];
-      $info[] = $label .': '. $value;
+      $info[] = $label . ': ' . $value;
     }
   }
 

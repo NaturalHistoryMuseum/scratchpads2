@@ -1,5 +1,4 @@
 <?php
-// $Id: node_comments.inc,v 1.9 2010/12/31 21:04:28 merlinofchaos Exp $
 
 if (module_exists('comment')) {
   /**
@@ -119,7 +118,7 @@ function ctools_comment_render($node, $conf) {
   $comments = comment_load_multiple($cids);
 
   if ($comments) {
-    drupal_add_css(drupal_get_path('module', 'comment') .'/comment.css');
+    drupal_add_css(drupal_get_path('module', 'comment') . '/comment.css');
     comment_prepare_thread($comments);
     $build = comment_view_multiple($comments, $node);
     $build['pager']['#theme'] = 'pager';

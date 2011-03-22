@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_user_link_cancel.inc,v 1.1.2.1 2011/01/11 22:27:42 dereine Exp $
 /**
  * Field handler to present a link to user cancel.
  */

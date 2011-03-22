@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_user_roles.inc,v 1.2.4.2 2010/12/03 20:46:32 dereine Exp $
 /**
  * Field handler to provide a list of roles.
  */
@@ -19,7 +18,7 @@ class views_handler_field_user_roles extends views_handler_field_prerender_list 
     $this->items = array();
 
     foreach ($values as $result) {
-      $uids[] = $result->{$this->aliases['uid']};
+      $uids[] = $this->get_value($result);
     }
 
     if ($uids) {

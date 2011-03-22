@@ -1,5 +1,4 @@
 <?php
-// $Id: views-ui-list-views.tpl.php,v 1.6.6.1 2010/01/20 23:24:24 dereine Exp $
 /**
  * @file
  *

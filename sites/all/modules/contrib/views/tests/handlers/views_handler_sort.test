@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_sort.test,v 1.1.2.1 2010/11/07 11:32:25 dereine Exp $
 
 /**
  * Test for core views_handler_sort handler.

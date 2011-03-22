@@ -1,5 +1,4 @@
 <?php
-// $Id: plugins.inc,v 1.33 2011/01/05 19:58:21 merlinofchaos Exp $
 
 /**
  * @file
@@ -59,15 +58,38 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
   $cache = &drupal_static(__FUNCTION__, array());
   if (!isset($cache[$owner][$api])) {
     $cache[$owner][$api] = array();
-    foreach (module_implements('ctools_plugin_api') as $module) {
-      $function = $module . '_ctools_plugin_api';
+
+    // Allow modules to use their own hook for this. The only easy way to do
+    // this right now is with a magically named function.
+    if (function_exists($function = $owner . '_' . $api . '_hook_name')) {
+      $hook = $function();
+    }
+    else if (function_exists($function = $owner . '_ctools_plugin_api_hook_name')) {
+      $hook = $function();
+    }
+
+    if (empty($hook)) {
+      $hook = 'ctools_plugin_api';
+    }
+
+    foreach (module_implements($hook) as $module) {
+      $function = $module . '_' . $hook;
       $info = $function($owner, $api);
-      if (!isset($info['version'])) {
+      // This is added to make hook_views_api() compatible with this, since
+      // views used a different version key.
+      if (isset($info['version'])) {
+        $version = $info['version'];
+      }
+      else if (isset($info['api'])) {
+        $version = $info['api'];
+      }
+
+      if (!isset($version)) {
         continue;
       }
 
       // Only process if version is between minimum and current, inclusive.
-      if ($info['version'] >= $minimum_version && $info['version'] <= $current_version) {
+      if (version_compare($version, $minimum_version, '>=') && version_compare($version, $current_version, '<=')) {
         if (!isset($info['path'])) {
           $info['path'] = drupal_get_path('module', $module);
         }
@@ -85,7 +107,7 @@ function ctools_plugin_api_info($owner, $api, $minimum_version, $current_version
         }
 
         // Only process if version is between minimum and current, inclusive.
-        if ($info['version'] >= $minimum_version && $info['version'] <= $current_version) {
+      if (version_compare($info['version'], $minimum_version, '>=') && version_compare($info['version'], $current_version, '<=')) {
           if (!isset($info['path'])) {
             $info['path'] = '';
           }
@@ -131,9 +153,21 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
   $info = ctools_plugin_api_info($owner, $api, $minimum_version, $current_version);
   foreach ($info as $module => $plugin_info) {
     if (!isset($already_done[$owner][$api][$module])) {
-      $file = isset($plugin_info['file']) ? $plugin_info['file'] : "$module.$api.inc";
-      if (file_exists("./$plugin_info[path]/$file")) {
-        require_once "./$plugin_info[path]/$file";
+      if (isset($plugin_info["$api file"])) {
+        $file = isset($plugin_info["$api file"]);
+      }
+      else if (isset($plugin_info['file'])) {
+        $file = isset($plugin_info['file']);
+      }
+      else {
+        $file = "$module.$api.inc";
+      }
+
+      if (file_exists(DRUPAL_ROOT . "/$plugin_info[path]/$file")) {
+        require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
+      }
+      else if (file_exists(DRUPAL_ROOT . "/$file")) {
+        require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
       }
       $already_done[$owner][$api][$module] = TRUE;
     }
@@ -338,6 +372,7 @@ function ctools_plugin_get_plugin_type_info($flush = FALSE) {
  * Reset all static caches that affect the result of ctools_get_plugins().
  */
 function ctools_get_plugins_reset() {
+  drupal_static_reset('ctools_plugin_setup');
   drupal_static_reset('ctools_plugin_load_includes');
   drupal_static_reset('ctools_plugin_api_info');
 }
@@ -510,7 +545,9 @@ function _ctools_list_themes() {
     }
     // Put the actual theme info objects into the array
     foreach (array_keys($themes) as $name) {
-      $themes[$name] = $all_themes[$name];
+      if (isset($all_themes[$name])) {
+        $themes[$name] = $all_themes[$name];
+      }
     }
 
     // Make sure the current default theme always gets the last word

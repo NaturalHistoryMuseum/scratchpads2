@@ -1,5 +1,4 @@
 <?php
-// $Id: wizard.inc,v 1.20 2010/10/27 20:07:10 merlinofchaos Exp $
 
 /**
  * @file
@@ -49,7 +48,7 @@
 function ctools_wizard_multistep_form($form_info, $step, &$form_state) {
   // allow order array to be optional
   if (empty($form_info['order'])) {
-    foreach($form_info['forms'] as $step_id => $params) {
+    foreach ($form_info['forms'] as $step_id => $params) {
       $form_info['order'][$step_id] = $params['title'];
     }
   }
@@ -488,7 +487,7 @@ function ctools_wizard_defaults(&$form_info) {
 
   $form_info = $form_info + $defaults;
   // set form callbacks if they aren't defined
-  foreach($form_info['forms'] as $step => $params) {
+  foreach ($form_info['forms'] as $step => $params) {
     if (!$params['form id']) {
        $form_callback = $hook . '_' . $step . '_form';
        $form_info['forms'][$step]['form id'] = $form_callback;
@@ -504,7 +503,7 @@ function ctools_wizard_defaults(&$form_info) {
     'finish callback' => '_finish',
   );
 
-  foreach($callbacks as $key => $callback) {
+  foreach ($callbacks as $key => $callback) {
     // never overwrite if explicity defined
     if (empty($form_info[$key])) {
       $wizard_callback = $hook . $callback;

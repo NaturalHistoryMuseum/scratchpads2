@@ -1,5 +1,4 @@
 <?php
-// $Id: views.drush.inc,v 1.1.6.2 2011/01/05 00:09:12 dereine Exp $
 
 /**
  * @file

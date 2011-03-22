@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_filter_vocabulary_machine_name.inc,v 1.1.2.1 2010/10/17 10:48:08 dereine Exp $
 
 /**
  * Filter by vocabulary machine name
