@@ -1,0 +1,15 @@
+name = Slickgrid
+description = A spreadsheet-style views plugin using slickgrid
+dependencies[] = views
+dependencies[] = ctools
+dependencies[] = libraries
+dependencies[] = entity
+package = "Views"
+core = 7.x
+
+files[] = slickgrid.module
+files[] = slickgrid.install
+
+; Views
+files[] = includes/slickgrid.views.inc
+files[] = includes/slickgrid_views_plugin.inc

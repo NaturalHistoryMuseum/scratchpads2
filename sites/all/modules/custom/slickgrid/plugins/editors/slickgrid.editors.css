@@ -1,0 +1,30 @@
+@CHARSET "UTF-8";
+
+/* CSS for slickgrid editors */
+
+/* Node form editor */
+
+/* Toggle button */
+
+.node-form-editor{
+  border: 1px solid #949494;
+	display: inline-block;
+	-moz-box-shadow: 3px 3px 3px #C0C0C0;
+	-webkit-box-shadow: 3px 3px 3px #C0C0C0;
+	z-index: 99999;
+  padding: 10px;
+  background: #F4F4F4;
+  width: 400px;
+}
+
+.node-form-editor input.form-text,
+.node-form-editor select,
+.node-form-editor textarea{
+  width: 95%!important;
+}
+
+.loading-form{
+  background: #F4F4F4 url('../images/loading-indicator.gif') no-repeat 2px;
+  padding-left: 30px;
+  margin: 20px;
+}

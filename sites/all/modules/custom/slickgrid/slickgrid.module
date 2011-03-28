@@ -1,0 +1,423 @@
+<?php
+/*********************************************************************************************
+ * 
+ * CONSTANTS
+ * 
+ ********************************************************************************************/
+define('SLICKGRID_CALLBACK_PATH', 'slickgrid/callback');
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/** 
+ * Implementation of hook_menu(). 
+ */
+function slickgrid_menu(){
+  // Menu callbacks
+  $items[SLICKGRID_CALLBACK_PATH . '/%'] = array(
+    'page callback' => 'slickgrid_callback',
+    'page arguments' => array(
+      2
+    ),
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/slickgrid.callbacks.inc'
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_views_api
+ */
+function slickgrid_views_api(){
+  $path = drupal_get_path('module', 'slickgrid');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes',
+    'template path' => $path . '/theme'
+  );
+}
+
+/** 
+ * Implementation of hook_theme(). 
+ */
+function slickgrid_theme(){
+  $path = drupal_get_path('module', 'slickgrid');
+  return array(
+    // slickgrid theme function
+    'slickgrid' => array(
+      'arguments' => array(
+        'options' => array(),
+        'columns' => array(),
+        'data' => array(),
+        'view' => array()
+      )
+    ),
+    // slickgrid controls theme function
+    'slickgrid_controls' => array(
+      'arguments' => array(
+        'options' => array(),
+        'columns' => array(),
+        'data' => array(),
+        'view' => array()
+      )
+    ),
+    // Theme the views plugin form table
+    'slickgrid_views_plugin_table' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
+/** 
+ * Implementation of hook_library(). 
+ */
+function slickgrid_library(){
+  $path = libraries_get_path('slickgrid');
+  // Slickgrid core library
+  $libraries['slickgrid'] = array(
+    'title' => 'Slickgrid',
+    'website' => 'https://github.com/mleibman/SlickGrid/',
+    'version' => '2.0b',
+    'js' => array(
+      $path . '/lib/firebugx.js' => array(),
+      $path . '/lib/jquery.event.drag-2.0.min.js' => array(),
+      $path . '/slick.core.js' => array(),
+      $path . '/slick.dataview.js' => array(),
+      $path . '/slick.grid.js' => array(),
+      $path . '/plugins/slick.checkboxselectcolumn.js' => array(),
+      $path . '/plugins/slick.rowselectionmodel.js' => array(),
+      $path . '/controls/slick.pager.js' => array(),
+      $path . '/controls/slick.columnpicker.js' => array()
+    ),
+    'css' => array(
+      $path . '/slick.grid.css' => array(),
+      $path . '/controls/slick.pager.css' => array(),
+      $path . '/controls/slick.columnpicker.css' => array()
+    ),
+    'dependencies' => array(
+      // Require jQuery UI sortable by System module.
+      array(
+        'system',
+        'ui.sortable'
+      ),
+      // Require jQuery UI resizable by System module.
+      array(
+        'system',
+        'ui.resizable'
+      )
+    )
+  );
+  return $libraries;
+}
+
+/**
+ * 
+ * Implementation of hook_entity_info_alter
+ * 
+ * Specifies the edit form (and any includes) for an entity type
+ * Modules defining their own entities should also set the edit form id if they need their entity editable in slickgrid 
+ * @param array $entity_info
+ */
+function slickgrid_entity_info_alter(&$entity_info){
+  $node_types = node_type_get_names();
+  foreach($node_types as $node_type => $name){
+    $entity_info['node']['bundles'][$node_type]['edit'] = array(
+      'form_id' => $node_type . '_node_form',
+      'include' => array(
+        'module' => 'node',
+        'file' => 'node.pages'
+      )
+    );
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function slickgrid_form_alter(&$form, &$form_state, $form_id){
+  if((arg(0) . '/' . arg(1)) == SLICKGRID_CALLBACK_PATH){
+    $form['#after_build'][] = 'slickgrid_modal_form_after_build';
+    // Ensure values passed in from the slickgrid are persistent across the form rebuild
+    $form['field_name'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['field_name']
+    );
+    $form['field_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['field_id']
+    );
+    $form['view'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['view']
+    );
+    $form['display_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['display_id']
+    );
+    $form['plugin'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['plugin']
+    );
+    $form['revision'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['revision']
+    );
+    foreach($form_state['entity_ids'] as $entity_id){
+      $form['entity_ids'][] = array(
+        '#type' => 'hidden',
+        '#value' => $entity_id,
+        '#parents' => array(
+          'entity_ids',
+          ''
+        ) // Make these items into an array
+      );
+    }
+    $form['entity_type'] = array(
+      '#type' => 'hidden',
+      '#value' => $form_state['entity_type']
+    );
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * CTOOLS PLUGIN INTEGRATION
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function slickgrid_ctools_plugin_api($owner, $api){
+  if($owner == 'slickgrid'){return array(
+      'version' => 1
+    );}
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory() to let the system know
+ * we implement task and task_handler plugins.
+ */
+function slickgrid_ctools_plugin_directory($module, $plugin){
+  if($module == 'slickgrid'){return 'plugins/' . $plugin . 's';}
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function slickgrid_ctools_plugin_type(){
+  return array(
+    'filter' => array(
+      'cache' => TRUE,
+      'title' => t("Filter")
+    ),
+    'editor' => array(
+      'cache' => TRUE,
+      'title' => t("Editor")
+    ),
+    'formatter' => array(
+      'cache' => TRUE,
+      'title' => t("Formatter")
+    ),
+    'validator' => array(
+      'cache' => TRUE,
+      'title' => t("Validator")
+    )
+  );
+}
+
+function slickgrid_get_plugins($plugin_type){
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('slickgrid', $plugin_type);
+  return $plugins;
+}
+
+function slickgrid_get_plugin_types(){
+  return array_map(create_function('$type', 'return $type["title"];'), slickgrid_ctools_plugin_type());
+}
+
+function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){
+  $options = array();
+  $plugins = slickgrid_get_plugins($plugin_type);
+  foreach($plugins as $type => $plugin){
+    if(!$plugin['field_types']){
+      $options[$type] = $plugin['title'];
+    }elseif(in_array($field_type, $plugin['field_types'])){
+      $options[$type] = $plugin['title'];
+    }
+  }
+  if(count($options)){
+    $options = array_merge(array(
+      '' => '<none>'
+    ), $options);
+  }
+  return $options;
+}
+
+function slickgrid_plugin_load_class($type, $id, $class_name){
+  ctools_include('plugins');
+  $plugin_definition = ctools_get_plugins('slickgrid', $type, $id);
+  require_once DRUPAL_ROOT . '/' . $plugin_definition['path'] . "/$class_name.class.php";
+  $class = ctools_plugin_get_class($plugin_definition, $class_name);
+  return $class;
+}
+
+/*********************************************************************************************
+ * 
+ * DAO GET / SETTERS
+ * 
+ ********************************************************************************************/
+function slickgrid_set_settings($uid, $view_name, $settings){
+  $record = new stdClass();
+  $record->uid = $uid;
+  $record->view_name = $view_name;
+  if($record->settings = slickgrid_get_settings($uid, $view_name)){
+    $update = array(
+      'uid',
+      'view_name'
+    );
+  }else{
+    $update = array();
+  }
+  foreach($settings as $setting => $value){
+    $record->settings[$setting] = $value;
+  }
+  $record->settings = serialize($record->settings);
+  drupal_write_record('slickgrid', $record, $update);
+}
+
+/**
+ * 
+ * Get settings from the DB
+ * Pass in $setting to retrieve a particular setting, NULL to get akll for a UID / View
+ * @param string $uid
+ * @param string $view_name
+ * @param string $setting
+ */
+function slickgrid_get_settings($uid, $view_name, $setting = null){
+  $settings = unserialize(db_select('slickgrid', 'sg')->condition('uid', $uid)->condition('view_name', $view_name)->fields('sg', array(
+    'settings'
+  ))->execute()->fetchField());
+  if($setting){
+    return $settings[$setting];
+  }else{
+    return $settings;
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * ADDITIONAL MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * Add ctools modal plugin
+ */
+function slickgrid_add_modal(){
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+  // Create our own javascript that will be used to theme a modal.
+  $style_settings = array(
+    'ctools-modal-slickgrid' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 500,
+        'height' => 300,
+        'addWidth' => 20,
+        'addHeight' => 15
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000'
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'SlickgridModal',
+      'throbber' => theme('image', array(
+        'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
+        'alt' => t('Loading...'),
+        'title' => t('Loading')
+      ))
+    )
+  );
+  // TODO - drupal_alter style settings
+  drupal_add_js($style_settings, 'setting');
+}
+
+function slickgrid_modal_form_after_build(&$form, &$form_state){
+  // Some modules might need to play around with the form / field name to get the correct part of the form 
+  drupal_alter('slickgrid_field', $form, $form_state['field_name']);
+  if(!slickgrid_callback_get_form_element($form, $form_state['field_name'])){
+    drupal_set_message(t('Field not found'), 'error');
+  }
+  return $form;
+}
+
+function slickgrid_callback_get_form_element(&$form, $field_name){
+  static $element_exists = false;
+  foreach(element_children($form) as $key){
+    if($form[$key]['#type'] == 'hidden' || $form[$key]['#type'] == 'token' || $key === 'submit'){
+      continue;
+       // If this isn't the field we're looking for it needs to be removed from the form   
+    }elseif($key === $field_name || (isset($form[$key]['#name']) && $form[$key]['#name'] == $field_name)){
+      // tidy up the form a bit by removing fieldsets if the field is in one
+      if($form['#type'] == 'fieldset'){
+        unset($form['#type']);
+      }
+      $element_exists = true;
+    }else{
+      if(count(element_children($form[$key]))){
+        // If this item has children, call again
+        slickgrid_callback_get_form_element($form[$key], $field_name);
+      }
+      if(!count(element_children($form[$key]))){
+        unset($form[$key]);
+      }
+    }
+  }
+  return $element_exists;
+}
+
+/**
+ * 
+ * Encode the columns as a json array
+ * We can't simply use drupal_json_encode as the column definitions contain function names
+ * @param array $columns
+ */
+function slickgrid_encode_columns($columns){
+  $encoded_columns = drupal_json_encode($columns);
+  foreach(slickgrid_get_plugin_types() as $type => $plugin){
+    $encoded_columns = preg_replace('/("' . $type . '":)"([a-z]*)"/i', '$1$2', $encoded_columns);
+  }
+  return $encoded_columns;
+}
+
+/**
+ * 
+ * Determing of a field is editable or not 
+ * @param string $field_name
+ * The name of the field
+ */
+function slickgrid_field_is_editable($field_name){
+  // If we can retrieve field info for the field name, it's edtaible
+  if(field_info_field($field_name)){
+    return true;
+  }else{
+    // If there's no field info it might have been added via hook_fields_extra_fields
+    // Try to get a field form item for any node type
+    // We will perform a check when editing that the field being edited is allowed in the node form 
+    foreach(node_type_get_types() as $type){
+      if(array_key_exists($field_name, field_info_extra_fields('node', $type->type, 'form'))){return true;}
+    }
+  }
+  return false;
+}
