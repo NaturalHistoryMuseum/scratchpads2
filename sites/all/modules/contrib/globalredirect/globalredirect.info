@@ -1,0 +1,15 @@
+; $Id: globalredirect.info,v 1.5 2010/07/13 00:46:27 njt1982 Exp $
+name = Global Redirect
+description = "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+core = 7.x
+files[] = globalredirect.module
+files[] = globalredirect.install
+files[] = globalredirect.admin.inc
+files[] = globalredirect.test
+
+; Information added by drupal.org packaging script on 2011-01-05
+version = "7.x-1.3"
+core = "7.x"
+project = "globalredirect"
+datestamp = "1294242955"
+
