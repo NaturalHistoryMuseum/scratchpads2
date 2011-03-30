@@ -1,0 +1,249 @@
+<?php
+/*
+ * @file pubmed.module
+ *
+ */
+
+function biblio_pm_form_biblio_admin_settings_alter(&$form, &$form_state, $form_id) {
+  module_load_include('inc', 'biblio_pm', 'biblio_pm.admin');
+  $form += biblio_pm_settings_form();
+}
+function biblio_pm_form_biblio_node_form_alter(&$form, &$form_state, $form_id) {
+  if (!$form_state['submitted'] && !isset($form_state['values']) && !isset($form['#node']->nid)) {
+    $form['biblio_pubmed_lookup'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('PubMed Lookup'),
+        '#weight' => -20,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+    );
+
+    $form['biblio_pubmed_lookup']['PMID'] = array(
+        '#type' => 'textfield',
+        '#title' => t('PubMed ID'),
+        '#required' => FALSE,
+        '#default_value' => '',
+        '#description' => t('Enter a PubMed ID</b>'),
+        '#size' => 60,
+        '#maxlength' => 255,
+        '#weight' => -4
+    );
+    $form['biblio_pubmed_lookup']['pubmed_submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Populate using PubMed'),
+        '#submit' => array('biblio_pm_form_biblio_node_form_submit')
+    );
+   // $form['#submit'] = array_merge(array('biblio_pm_form_biblio_node_form_submit'), isset($form['#submit'])?$form['#submit']:array()); // put my validator first
+  }
+  if (isset($form_state['values']['biblio_pubmed_id'])) {
+    $form['biblio_pubmed_id'] = array('#type' => 'value', '#value' => $form_state['values']['biblio_pubmed_id']);
+  }
+  if (isset($form_state['values']['biblio_pubmed_md5'])) {
+    $form['biblio_pubmed_md5'] = array('#type' => 'value', '#value' => $form_state['values']['biblio_pubmed_md5']);
+  }
+}
+
+function biblio_pm_form_biblio_node_form_submit($form, &$form_state) {
+  $node_data = array();
+  if (strlen($pmid = $form_state['values']['PMID'])) {
+    if (!($dup = biblio_pm_check_pmid($pmid))) {
+      module_load_include('php', 'biblio_pm', 'EntrezClient');
+      module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
+      $Eclient = new BiblioEntrezClient;
+      try {
+        $result = $Eclient->fetch($pmid);
+      } catch (Exception $e) {
+        form_set_error($e->getMessage());
+      }
+      if (!isset($result->PubmedArticle)) {
+        unset($form_state['values']['biblio_type']);
+        unset($form_state['post']['biblio_type']);
+        form_set_error('PMID', 'No data available for PubMed ID: ' . check_plain($pmid));
+        return;
+      }
+      $data = new BiblioEntrezPubmedArticle($result->PubmedArticle);
+      $node_data = $data->getBiblio();
+    }
+    else {
+      $message = t('The PubMed ID that you are trying to import already exists in the database, see !url', array('!url' => l('node/' . $dup, 'node/' . $dup)));
+      form_set_error('PMID', $message);
+      $form_state['rebuild'] = TRUE;
+      $form_state['submitted'] = FALSE;
+      unset($form_state['values']['biblio_type']);
+    }
+  }
+  if (!empty($node_data)) {
+    $form_state['values'] = array_merge($form_state['values'], $node_data);
+    $form_state['input']['biblio_type'] = $node_data['biblio_type'];
+    $form_state['rebuild'] = TRUE;
+  }
+
+    return;
+}
+
+function biblio_pm_biblio_import_options() {
+  return array('biblio_pm' => t('PubMed ID List'));
+}
+
+function biblio_pm_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
+  $nids = array();
+  $dups = array();
+  list($nids, $dups) = _biblio_pm_import($file, $terms, $batch, $session_id);
+
+  return array($nids, $dups);
+}
+
+function _biblio_pm_import($file, $terms, $batch, $session_id) {
+  module_load_include('php', 'biblio_pm', 'EntrezClient');
+  module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
+  $pmids = file($file->uri, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  if (empty($pmids)) {
+    drupal_set_message(t("Could not open PubMed ID file"), 'error');
+    return;
+  }
+  $retmax = 100;
+  $resmax = count($pmids);
+  $start = 0;
+  $Eclient = new BiblioEntrezClient;
+  $Eclient->post($pmids);
+  $Eclient->setReturnMax($retmax);
+  $nids = array();
+  $dups = array();
+  $node = new stdClass();
+  $data = new BiblioEntrezPubmedArticle();
+  while (($result = $Eclient->fetchRecords($start)) && $start < $resmax ) {
+    foreach ($result->xpath('//PubmedArticle') as $article) {
+      //$data->setArticle($article);
+      $node = $data->setArticle($article)->getBiblioAsObject();
+      if (isset($node)) {
+        if (!empty($terms)) {
+          if (!isset($node->taxonomy)) $node->taxonomy = array();
+          $node->taxonomy = array_merge($terms, $node->taxonomy);
+        }
+        $dup = biblio_pm_check_md5($node->biblio_pubmed_id, $node->biblio_pubmed_md5);
+        $action = variable_get('biblio_pm_dup_action', 'newrev');
+        if ($dup < 0 && $action == 'newrev') { //entry has be imported before, but may have changed
+          $node->nid = -$dup;
+          $node->revision = 1;
+          $curr_date = format_date(time());
+          $node->log = t("Automatically updated on !date due to changes at source", array('!date' => $curr_date));
+          $dup = NULL;
+        }
+        if ($dup < 0 && $action == 'replace') { //entry has be imported before, but may have changed
+          $node->nid = -$dup;
+          $dup = NULL;
+        }
+        if (!$dup) {
+          biblio_save_node($node, $batch, $session_id);
+          if (!empty($node->nid)) $nids[] = $node->nid;
+        }
+        else {
+          $dups[] = $dup;
+        }
+        $node = NULL;
+      }
+      $start++;
+    }
+
+  }
+
+  return array($nids, $dups);
+}
+
+function biblio_pm_check_pmid($pmid) {
+    return db_query("SELECT nid FROM {biblio_pubmed} WHERE biblio_pubmed_id = :pmid", array(':pmid' => $pmid))->fetchField();
+}
+function biblio_pm_biblio_lookup_link_settings() {
+  return array('pubmed'  => t('PubMed'));
+}
+
+function biblio_pm_biblio_lookup_link($node) {
+  $show_link = variable_get('biblio_lookup_links', array('pubmed' => TRUE));
+  if (!$show_link['pubmed'] ||
+      !isset($node) ||
+      $node->type != 'biblio' ||
+      !isset($node->biblio_pubmed_id)) {
+    return array();
+  }
+
+  $link  = 'http://www.ncbi.nlm.nih.gov/pubmed/' . $node->biblio_pubmed_id . '?dopt=Abstract';
+  $attrs = array('title' => t("Click to view the PubMed listing for this node"));
+  if (variable_get('biblio_links_target_new_window', null)){
+    $attrs = array_merge($attrs, array('target'=>'_blank'));
+  }
+  return array('biblio_pubmed' => array(
+        'title'      => t('PubMed'),
+        'href'       => $link,
+        'attributes' => $attrs,
+  ));
+}
+
+function biblio_pm_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'biblio' && isset($node->biblio_pubmed_id)) {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $node->content['links']['biblio_pubmed'] = array(
+          '#links' => biblio_pm_biblio_lookup_link($node),
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+function biblio_pm_node_delete($node) {
+  if ($node->type != 'biblio') {
+    return;
+  }
+  db_delete('biblio_pubmed')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+
+function biblio_pm_node_insert($node) {
+  if (isset($node->biblio_pubmed_id) && !empty($node->biblio_pubmed_id)) {
+    drupal_write_record('biblio_pubmed', $node);
+  }
+}
+
+function biblio_pm_node_update($node) {
+  if (isset($node->biblio_pubmed_id) && !empty($node->biblio_pubmed_id)) {
+    drupal_write_record('biblio_pubmed', $node, 'nid');
+  }
+}
+
+function biblio_pm_node_load($nodes, $types) {
+    $result = db_select('biblio_pubmed', 'bpm')
+          ->fields('bpm', array('nid', 'biblio_pubmed_id'))
+          ->condition('nid', array_keys($nodes))
+          ->execute();
+
+ // $result = db_query('SELECT  biblio_pubmed_id  FROM {biblio_pubmed} WHERE nid IN(:nids)', array(':nids' => array_keys($nodes)));
+  foreach ($result as $record) {
+    $nodes[$record->nid]->biblio_pubmed_id = $record->biblio_pubmed_id;
+  }
+}
+
+function biblio_pm_check_md5($pmid, $md5) {
+  static $pm_md5s = array();
+  static $pm_nids = array();
+  if (empty($pm_md5s)) {
+    $result = db_query("SELECT * FROM {biblio_pubmed} ");
+    foreach ($result as $row ) {
+      $pm_md5s[$row->biblio_pubmed_md5] = $row->nid;
+      $pm_nids[$row->biblio_pubmed_id] = $row->nid;
+    }
+  }
+  if (isset($pm_nids[$pmid]) && isset($pm_md5s[$md5])) { // must be an exact duplicate of an existing node (return the nid)
+      return $pm_md5s[$md5];
+  }
+  elseif (isset($pm_nids[$pmid]) && !isset($pm_md5s[$md5])) { //pmid has been save previously but content must have changed (return negative nid)
+    return -$pm_nids[$pmid];
+  }
+  else {
+    $pm_md5s[$md5]  = TRUE; // gaurd against duplicates in the same import
+    $pm_nids[$pmid] = TRUE;
+    return;
+  }
+}

@@ -1,0 +1,23 @@
+ todo list (no particular order)
+
+* check if upgrade from 5.x is clobbering other biblio related taxonomy http://drupal.org/node/361589
+* add sorting to the argument list you can pass to biblio_db_search() http://drupal.org/node/360624
+* put titles in body text to avoid long title problems http://drupal.org/node/358286
+* check author parsing on names containing UTF-8 chars.
+* look at validating the DOI input http://drupal.org/node/359318
+* add descriptions to publication types (http://drupal.org/node/358158)
+* add the option to change subsorts (i.e. sort by year then within year sort by...)
+* fix display when sorting by author 
+* bibtex handeling of curly braces  http://drupal.org/node/314488
+* add image field http://drupal.org/node/314249
+* check assignment of taxonomy terms  http://drupal.org/node/336344
+* check BOM breaking RIS parsing  http://drupal.org/node/330901
+* create "author editor" UI to find and combine duplcate authors (variations on a name who are actually the same person) 
+* add UNICODE to LATEX conversion to bibtex export http://drupal.org/node/183517
+* fix Biblio user warning: empty (sub)expression' from regexp query http://drupal.org/node/349777
+* ubercart integration...  http://drupal.org/node/354373
+* Footnote repetition handling http://drupal.org/comment/reply/134748
+(DONE) add pathAuto support http://drupal.org/node/89038
+(DONE) fix author handeling (in contributor widget) http://drupal.org/node/313264
+(DONE) make citekey database field longer (varchar 255) http://drupal.org/node/282896
+(DONE) display attachment description rather than file name http://drupal.org/node/314395
