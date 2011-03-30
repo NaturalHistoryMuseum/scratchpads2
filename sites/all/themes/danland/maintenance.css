@@ -1,0 +1,29 @@
+/* $Id: maintenance.css,v 1.1.2.2 2011/01/06 07:45:39 danprobo Exp $ */
+
+#content-maintenance {
+font-size:1.6em;
+color:#002054;
+display:block;
+float:right;
+line-height:1.2em;
+margin:20px;
+}
+
+#preface .title {
+margin: 20px;
+color:#fff;
+display:block;
+float:left;
+}
+
+div.messages {
+width:950px;
+margin:20px auto;
+position:relative;
+padding:0;
+}
+
+div.messages ul {
+padding:10px 10px 10px 50px;
+}
+

@@ -1,0 +1,13 @@
+/* $Id: style.ie6.css,v 1.12.2.2 2010/11/13 13:35:09 danprobo Exp $ */
+
+#content {
+overflow:hidden;
+}
+
+#bottom-wrapper.in2 .column {
+width: 49%;
+}
+
+#bottom-wrapper.in4 .column {
+width: 24%;
+}

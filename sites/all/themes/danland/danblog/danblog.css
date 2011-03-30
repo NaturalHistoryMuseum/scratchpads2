@@ -1,0 +1,115 @@
+/* $Id: danblog.css,v 1.11.2.2 2010/11/19 14:42:44 danprobo Exp $ */
+
+/* Put your custom css and css overrides in this file */ 
+
+body {
+font-size: 84%;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+color: #000;
+margin: 0;
+padding: 0;
+line-height: 1.5em;
+}
+
+h1,h2,h3,h4,h5,h6 {
+font-family: Arial, Helvetica, sans-serif;
+}
+
+#nav li a{
+font-family: Arial, Helvetica, sans-serif;
+}
+
+#superfish .menu a,
+#superfish .menu a:visited  {
+font-family: Arial, Helvetica, sans-serif;
+}
+
+a:link {
+color: #005a8c;/*#e87e17*/
+text-decoration: none;
+font-weight: bold;
+}
+
+a:visited {
+color: #005a8c;/*#e87e17*/
+text-decoration: none;
+font-weight: bold;
+}
+
+a:hover {
+text-decoration: underline;
+}
+
+.site-name a:hover {
+text-decoration: none;
+}
+
+.comment .new {
+text-align: right; /* LTR */
+font-weight: bold;
+float: right; /* LTR */
+color: red;
+margin:.5em;
+}
+
+.comment .title {
+line-height: 1.2em;
+}
+
+.comment .title a:hover {
+text-decoration: none;
+}
+
+#subnav li a {
+font-weight:bold;
+}
+
+#subnav li a:hover {
+text-decoration: underline;
+color: #005a8c;/*#e87e17*/
+}
+
+.title {
+line-height:1.2em;
+}
+
+.node .title a:hover {
+text-decoration: none;
+}
+
+#aggregator h3 a:hover {
+text-decoration: none;
+color: #005a8c;/*#e87e17*/
+}
+
+#mission-wrapper {
+width:950px;
+margin:0 auto;
+} 
+
+#mission {
+font-size:1.4em;
+display:block;
+line-height:1.2em;
+font-family:Georgia, "Bitstream Vera Serif", serif;
+font-size: 20px;
+font-style:italic;
+}
+
+#mission .contextual-links {
+font-size: 13px;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-style:normal;
+}
+
+#mission .block-title {
+margin-top:20px;
+}
+
+#mission .region {
+margin:20px 10px;
+}
+
+.item-list .pager li a:hover {
+text-decoration:none;
+}
