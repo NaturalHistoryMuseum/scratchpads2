@@ -1,0 +1,57 @@
+# $Id: fr.po,v 1.1 2009/05/13 17:37:59 davidlesieur Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  role_delegation.module,v 1.9 2009/03/03 01:42:29 davidlesieur
+#  role_delegation.info,v 1.2 2008/06/12 04:00:35 davidlesieur
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: role_delegation\n"
+"POT-Creation-Date: 2009-05-13 18:35+0200\n"
+"PO-Revision-Date: 2009-05-13 18:50+0100\n"
+"Last-Translator: TheRec <anonymous@anonymous.net>\n"
+"Language-Team: NONE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1) \n"
+"X-Poedit-Language: French\n"
+
+#: role_delegation.module:21
+msgid "This module allows site administrators to grant some roles the authority to assign selected roles to users, without them needing the <em>administer permissions</em> permission."
+msgstr "Ce module permet aux administrateurs du site d'attribuer aux rôles l'autorité d'assigner des rôles définis aux utilisateurs, sans qu'ils ne nécessitent la droit d'accès <em>administrer les droits d'accès</em>."
+
+#: role_delegation.module:21
+msgid "It provides its own tab in the user profile so that roles can be assigned without needing access to the user edit form."
+msgstr "Il met à disposition son propre onglet dans le profil utilisateur afin que ces rôles puissent être assignés sans requérir d'accéder au formulaire d'édition de l'utilisateur."
+
+#: role_delegation.module:45;61
+msgid "Roles"
+msgstr "Rôles"
+
+#: role_delegation.module:62
+msgid "The user receives the combined permissions of the authenticated user role, and all roles selected here."
+msgstr "L'utilisateur reçoit les permissions combinées du rôle d'utilisateur identifié et celles de tous les rôles sélectionnés ici."
+
+#: role_delegation.module:89
+msgid "Submit"
+msgstr "Soumettre"
+
+#: role_delegation.module:112
+msgid "The roles have been updated."
+msgstr "Les rôles ont été mis à jour."
+
+#: role_delegation.module:30
+msgid "assign all roles"
+msgstr "assigner tous les rôles"
+
+#: role_delegation.info:0
+msgid "Role Delegation"
+msgstr "Role Delegation"
+
+#: role_delegation.info:0
+msgid "Allows site administrators to grant some roles the authority to assign selected roles to users."
+msgstr "Permet aux administrateurs du site d'attribuer aux rôles l'autorité d'assigner des rôles définis aux utilisateurs."
+
