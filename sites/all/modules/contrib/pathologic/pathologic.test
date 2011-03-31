@@ -1,0 +1,125 @@
+<?php
+// $Id: pathologic.test,v 1.1.2.12 2011/01/18 07:11:31 garrettalbright Exp $
+
+/**
+ * @file
+ * Pathologic behavior testing.
+ */
+
+/**
+ * Tests that Pathologic ain't broke.
+ *
+ * We extend FilterUnitTestCase because it has some nice methods that we also
+ * want to bea ble to use.
+ */
+class PathologicTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Pathologic path filtering',
+      'description' => 'Test Pathologic&rsquo;s path translation and conversion.',
+      'group' => 'Filter',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('pathologic');
+  }
+
+  function testPathologic () {
+    // Build a phony filter
+    $filter = new stdClass;
+    $filter->callback = '_pathologic';
+    $filter->settings = array(
+      'absolute' => TRUE,
+      'local_paths' => '',
+    );
+    $filter->format = 0;
+
+    // Build some paths to check against
+    $test_paths = array(
+      'foo' => array(
+        'path' => 'foo',
+        'opts' => array()
+      ),
+      'foo/bar' => array(
+        'path' => 'foo/bar',
+        'opts' => array()
+      ),
+      'foo/bar?baz' => array(
+        'path' => 'foo/bar',
+        'opts' => array('query' => array('baz' => NULL))
+      ),
+      'foo/bar?baz=qux' => array(
+        'path' => 'foo/bar',
+        'opts' => array('query' => array('baz' => 'qux'))
+      ),
+      'foo/bar#baz' => array(
+        'path' => 'foo/bar',
+        'opts' => array('fragment' => 'baz'),
+      ),
+      'foo/bar?baz=qux#quux' => array(
+        'path' => 'foo/bar',
+        'opts' => array(
+          'query' => array('baz' => 'qux'),
+          'fragment' => 'quux',
+        ),
+      ),
+    );
+
+    // Run tests with clean URLs both enabled and disabled
+    foreach (array(TRUE, FALSE) as $clean_url) {
+      variable_set('clean_url', $clean_url);
+      // Run tests with absoulte filtering enabled and disabled
+      foreach (array(TRUE, FALSE) as $absolute) {
+        $filter->settings['absolute'] = $absolute;
+        $filter->format++;
+        $paths = array();
+        foreach ($test_paths as $path => $args) {
+          $args['opts']['absolute'] = $absolute;
+          $paths[$path] = url($args['path'], $args['opts']);
+        }
+        $t10ns = array(
+          '!clean' => $clean_url ? t('Yes') : t('No'),
+          '!abs' => $absolute ? t('Yes') : t('No'),
+        );
+
+        $this->assertEqual(
+          _pathologic('<a href="foo"><img src="foo/bar" /></a>', $filter),
+          '<a href="' . $paths['foo'] . '"><img src="' . $paths['foo/bar'] . '" /></a>', 
+          t('Simple paths. Clean URLs: !clean; absolute: !abs.', $t10ns)
+        );
+        $this->assertEqual(
+          _pathologic('<a href="foo/bar?baz"><img src="foo/bar?baz=qux" /></a>', $filter),
+          '<a href="' . $paths['foo/bar?baz'] . '"><img src="' . $paths['foo/bar?baz=qux'] . '" /></a>',
+          t('Paths with query string. Clean URLs: !clean; absolute: !abs.', $t10ns)
+        );
+        $this->assertEqual(
+          _pathologic('<a href="foo/bar#baz">', $filter),
+          '<a href="' . $paths['foo/bar#baz'] . '">',
+          t('Path with fragment. Clean URLs: !clean; absolute: !abs.', $t10ns)
+        );
+        $this->assertEqual(
+          _pathologic('<a href="foo/bar?baz=qux#quux">', $filter),
+          '<a href="' . $paths['foo/bar?baz=qux#quux'] . '">',
+          t('Path with query string and fragment. Clean URLs: !clean; absolute: !abs.', $t10ns)
+        );
+      }
+    }
+    // Test internal: and also considered local
+    $filter->settings = array(
+      'absolute' => TRUE,
+      'local_paths' => "http://example.com/\nhttp://example.org/",
+    );
+    $filter->format++;
+    $this->assertEqual(
+      _pathologic('<a href="internal:foo">', $filter),
+      '<a href="' . url('foo', array('absolute' => TRUE)) . '">',
+      t('Path Filter compatibility (internal:)')
+    );
+    $this->assertEqual(
+      _pathologic('<a href="http://example.com/foo"><img src="http://example.org/bar.jpeg" /></a>', $filter),
+      '<a href="' . url('foo', array('absolute' => TRUE)) . '"><img src="' . url('bar.jpeg', array('absolute' => TRUE)) . '" /></a>',
+      t('"Also considered local" paths')
+    );
+  }
+}
