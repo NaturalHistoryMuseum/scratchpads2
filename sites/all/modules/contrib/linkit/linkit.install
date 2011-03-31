@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Installation file for linkit.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function linkit_uninstall() {
+  variable_del('linkit_node');
+  variable_del('linkit_term');
+}
+
+/**
+ * Update Linkit permission names.
+ */
+function linkit_update_7100() {
+  // See http://drupal.org/node/1050444
+  $plugins = array('file', 'node', 'taxonomy', 'user');
+  
+  foreach($plugins AS $plugin) {
+    db_update('role_permission')
+      ->fields(array('permission' => 'use linkit ' . $plugin . ' plugin'))
+      ->condition('permission', 'create ' . $plugin . ' links')
+      ->condition('module', 'linkit_permissions')
+      ->execute();
+  }
+  
+   db_update('role_permission')
+      ->fields(array('permission' => 'use all linkit plugins'))
+      ->condition('permission', 'create all links')
+      ->condition('module', 'linkit_permissions')
+      ->execute();
+  
+  return t('Linkit permission was successfully updated.');
+
+  // In case of an error, simply throw an exception with an error message.
+  throw new DrupalUpdateException('Something went wrong; Please go to admin/people/permissions and update your Linkit permossions manually.');
+
+}

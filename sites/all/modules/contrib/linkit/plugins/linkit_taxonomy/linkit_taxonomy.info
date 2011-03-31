@@ -1,0 +1,13 @@
+name = Linkit Taxonomy
+description = Extend Linkit with support for taxonomy links.
+core = 7.x
+package = Linkit
+dependencies[] = "linkit"
+dependencies[] = "taxonomy"
+
+; Information added by drupal.org packaging script on 2011-03-24
+version = "7.x-1.2"
+core = "7.x"
+project = "linkit"
+datestamp = "1301010374"
+

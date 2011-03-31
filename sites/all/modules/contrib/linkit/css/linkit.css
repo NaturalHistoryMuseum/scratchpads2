@@ -1,0 +1,26 @@
+
+#linkit { padding:1em; }
+
+#linkit .auto-item-info {
+  float:right;
+  font-size:10px;
+}
+
+#linkit .auto-item-info span { font-weight:bold; }
+
+#linkit .auto-item-title {
+  margin-right:1.5em;
+  float:left;
+}
+
+span.throbber {
+  height: 15px;
+  margin: 1em 2px;
+  padding-left:20px;
+  background: transparent url(../../../../../misc/throbber.gif) no-repeat 0px -18px;
+  display:block;
+}
+
+input#edit-link--2.with_imce {
+  margin-bottom:10px;
+}
