@@ -1,0 +1,158 @@
+# Hungarian translation of globalredirect (6.x-1.2)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  globalredirect.admin.inc,v 1.1.2.5 2008/12/22 10:42:06 njt1982
+#  globalredirect.module,v 1.1.2.4.2.5.2.14 2008/12/22 10:34:32 njt1982
+#  globalredirect/globalredirect.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: globalredirect (6.x-1.2)\n"
+"POT-Creation-Date: 2009-09-12 21:56+0200\n"
+"PO-Revision-Date: 2009-09-12 21:55+0200\n"
+"Language-Team: Hungarian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: globalredirect.admin.inc:43,55,66
+msgid "Disabled"
+msgstr "Tiltott"
+
+#: globalredirect.admin.inc:56,67
+msgid "Enabled"
+msgstr "Engedélyezett"
+
+#: globalredirect.admin.inc:20,32
+msgid "Off"
+msgstr "Ki"
+
+#: globalredirect.admin.inc:21,33
+msgid "On"
+msgstr "Be"
+
+#: globalredirect.admin.inc:17
+msgid "Deslash"
+msgstr "Perjel eltávolítása"
+
+#: globalredirect.admin.inc:18
+msgid ""
+"If enabled, this option will remove the trailing slash from requests. "
+"This stops requests such as <code>example.com/node/1/</code> failing "
+"to match the corresponding alias and can cause duplicate content. On "
+"the other hand, if you require certain requests to have a trailing "
+"slash, this feature can cause problems so may need to be disabled."
+msgstr ""
+"Bekapcsolva a kérés végéről a perjel eltávolításra kerül. "
+"Így elkerülhető, hogy az <code>example.com/node/1/</code> stílusú "
+"kérés ne illeszkedjen a beállított útvonal álnevre, ami tartalom "
+"kettőződést okozhat. Ha szükséges, hogy bizonyos kérések "
+"végén a perjel szerepeljen, akkor a bekapcsolt állapot problémát "
+"okozhat, ezért célszerű kikapcsolni."
+
+#: globalredirect.admin.inc:29
+msgid "Non-clean to Clean"
+msgstr "Hagyományos webcímből rövid webcím"
+
+#: globalredirect.admin.inc:30
+msgid ""
+"If enabled, this option will redirect from non-clean to clean URL (if "
+"Clean URL's are enabled). This will stop, for example, node 1  "
+"existing on both <code>example.com/node/1</code> AND "
+"<code>example.com?q=node/1</code>."
+msgstr ""
+"Ha engedélyezett, akkor a hagyományos webcímek átirányításra "
+"kerülnek a megfelelő rövid webcímekre (bekapcsolt rövid webcímek "
+"használata esetén). Ezátal megszűnik az 1-es azonosítójú "
+"tartalom elérhetősége az <code>example.com/node/1</code> és az "
+"<code>example.com?q=node/1</code> webcímeken is."
+
+#: globalredirect.admin.inc:40
+msgid "Remove Trailing Zero Argument"
+msgstr "A nulla paraméter eltávolítása"
+
+#: globalredirect.admin.inc:41
+msgid ""
+"If enabled, any instance of \"/0\" will be trimmed from the right of "
+"the URL. This stops duplicate pages such as \"taxonomy/term/1\" and "
+"\"taxonomy/term/1/0\" where 0 is the default depth. There is an option "
+"of limiting this feature to taxonomy term pages ONLY or allowing it to "
+"effect any page. <strong>By default this feature is disabled to avoid "
+"any unexpected behaviour</strong>"
+msgstr ""
+"Ha engedélyezett, akkor az összes „0” eltávolításra kerül a "
+"webcím végéről és így megakadályozza a tartalom kettőződést "
+"a „taxonomy/term/1” és a „taxonomy/term/1/0 oldalaknál, ahol a "
+"0 az alapértelmezett mélység. Kiválasztható, hogy ez a funkció "
+"csak a szótár kifejezés oldalakon, vagy az összes oldalon "
+"engedélyezett legyen. <strong>Alapértelmezésben kikapcsolt, "
+"megelőzve a nem várt viselkedést.</strong>"
+
+#: globalredirect.admin.inc:44
+msgid "Enabled for taxonomy term pages only"
+msgstr "Csak a szótár kifejezés oldalakon engedélyezett"
+
+#: globalredirect.admin.inc:45
+msgid "Enabled for all pages"
+msgstr "Minden oldalon engedélyezett"
+
+#: globalredirect.admin.inc:52
+msgid "Menu Access Checking"
+msgstr "Menü hozzáférés ellenőrzés"
+
+#: globalredirect.admin.inc:53
+msgid ""
+"If enabled, the module will check the user has access to the page "
+"before redirecting. This helps to stop redirection on protected pages "
+"and avoids giving away <em>secret</em> URL's. <strong>By default this "
+"feature is disabled to avoid any unexpected behaviour</strong>"
+msgstr ""
+"Ha engedélyezett, akkor a felhasználó hozzáférése az oldalhoz "
+"még az átirányítás előtt ellenőrzésre kerül. Segítségével "
+"nem történik átirányítás védett tartalmakra és megakadályozza "
+"a <em>titkos</em> webcímek felfedését. <strong>Alapértelmezésben "
+"kikapcsolt, megelőzve a nem várt viselkedést.</strong>"
+
+#: globalredirect.admin.inc:63
+msgid "Case Sensitive URL Checking"
+msgstr "Kis és nagybetű érzékeny webcím ellenőrzés"
+
+#: globalredirect.admin.inc:64
+msgid ""
+"If enabled, the module will compae the current URL to the alias stored "
+"in the system. If there are any differences in case then the user will "
+"be redirected to the correct URL."
+msgstr ""
+"Bekapcsolva az aktuális webcím ellenőrzésre kerül a rendszerben "
+"eltárolt útvonal álnévvel. Ha akad kis és nagybetű eltérés, "
+"akkor a kérés átirányításra kerül a megfelelő webcímre."
+
+#: globalredirect.module:29
+msgid ""
+"This module will do a 301 redirect for all nodes which have an alias "
+"but are not using that alias."
+msgstr ""
+"Ez a modul 301-es átirányítást hoz létre minden olyan tartalomra, "
+"melynek van útvonalálneve, de nem használja azt."
+
+#: globalredirect.module:171; globalredirect.info:0
+msgid "Global Redirect"
+msgstr "Globális átirányítás"
+
+#: globalredirect.module:172
+msgid "Chose which features you would like enabled for Global Redirect"
+msgstr ""
+"A <em>Global Redirect</em> modul által támogatott funkciók "
+"kiválasztása"
+
+#: globalredirect.info:0
+msgid ""
+"Searches for an alias of the current URL and 301 redirects if found. "
+"Stops duplicate content arising when path module is enabled."
+msgstr ""
+"Megkeresi az aktuális webcím útvonalálnevét és 301-es "
+"átirányítást hoz létre, ha megtalálta. Megakadályozza a "
+"tartalom kettőződés előfordulását a <em>Path</em> modul "
+"bekapcsolt állapota esetén."
+

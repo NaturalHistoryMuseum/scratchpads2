@@ -1,0 +1,161 @@
+# Dansk translation of globalredirect (6.x-1.2)
+# Copyright (c) 2009 by the Dansk translation team
+# Generated from files:
+# globalredirect.admin.inc,v 1.1.2.5 2008/12/22 10:42:06 njt1982
+# globalredirect.module,v 1.1.2.4.2.5.2.14 2008/12/22 10:34:32 njt1982
+# globalredirect/globalredirect.info: n/a
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: globalredirect (6.x-1.2)\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-12 00:57-0700\n"
+"PO-Revision-Date: 2009-06-12 10:52+0200\n"
+"Last-Translator: Morten Wulff <wulff@ratatosk.net>\n"
+"Language-Team: Dansk <dansk@klid.dk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);"
+
+#: globalredirect.admin.inc:43,55,66
+msgid "Disabled"
+msgstr "Deaktiveret"
+
+#: globalredirect.admin.inc:56,67
+msgid "Enabled"
+msgstr "Aktiveret"
+
+#: globalredirect.admin.inc:20,32
+msgid "Off"
+msgstr "Afbrudt"
+
+#: globalredirect.admin.inc:21,33
+msgid "On"
+msgstr "Tilsluttet"
+
+#: globalredirect.module:29
+msgid ""
+"This module will do a 301 redirect for all nodes which have an alias "
+"but are not using that alias."
+msgstr ""
+"Modulet foretager en 301-omdirigering for alle indholdselementer som "
+"har et alias, men som ikke bruger aliaset."
+
+#: globalredirect.module:0
+msgid "globalredirect"
+msgstr "globalredirect"
+
+#: globalredirect.module:171; globalredirect.info:0
+msgid "Global Redirect"
+msgstr "Global Omdirigering"
+
+#: globalredirect.info:0
+msgid ""
+"Searches for an alias of the current URL and 301 redirects if found. "
+"Stops duplicate content arising when path module is enabled."
+msgstr ""
+"Søger efter et alias for den aktuelle URL og laver en "
+"301-omdirigering hvis det findes. Stopper dubleret indhold når "
+"path-modulet er aktiveret."
+
+#: globalredirect.module:172
+msgid "Chose which features you would like enabled for Global Redirect"
+msgstr "Vælg hvilke af Global Redirect's funktioner du ønsker at aktivere"
+
+#: globalredirect.admin.inc:17
+msgid "Deslash"
+msgstr "Fjern skråstreger"
+
+#: globalredirect.admin.inc:18
+msgid ""
+"If enabled, this option will remove the trailing slash from requests. "
+"This stops requests such as <code>example.com/node/1/</code> failing "
+"to match the corresponding alias and can cause duplicate content. On "
+"the other hand, if you require certain requests to have a trailing "
+"slash, this feature can cause problems so may need to be disabled."
+msgstr ""
+"Hvis denne indstilling aktiveres fjernes alle afsluttende skråstreger "
+"fra forespørgsler. Det sikrer at forespørgsler som f.eks. "
+"<code>example.com/node/1/</code> matcher det korrekte alias og ikke "
+"skaber dubleret indhold. Hvis du kræver at visse forespørgsler har "
+"afsluttende skråstreger kan denne indstilling give problemer, og skal "
+"muligvis slås fra."
+
+#: globalredirect.admin.inc:29
+msgid "Non-clean to Clean"
+msgstr "Ikke-ren til ren"
+
+#: globalredirect.admin.inc:30
+msgid ""
+"If enabled, this option will redirect from non-clean to clean URL (if "
+"Clean URL's are enabled). This will stop, for example, node 1  "
+"existing on both <code>example.com/node/1</code> AND "
+"<code>example.com?q=node/1</code>."
+msgstr ""
+"Hvis denne indstilling aktiveres viderestilles der fra en ikke-ren til "
+"en ren URL (hvis rene URLer er aktiveret). Det hindrer f.eks. at node "
+"1 eksisterer på både <code>example.com/node/1</code> OG "
+"<code>example.com?q=node/1</code>."
+
+#: globalredirect.admin.inc:40
+msgid "Remove Trailing Zero Argument"
+msgstr "Fjern afsluttende nul-argument"
+
+#: globalredirect.admin.inc:41
+msgid ""
+"If enabled, any instance of \"/0\" will be trimmed from the right of "
+"the URL. This stops duplicate pages such as \"taxonomy/term/1\" and "
+"\"taxonomy/term/1/0\" where 0 is the default depth. There is an option "
+"of limiting this feature to taxonomy term pages ONLY or allowing it to "
+"effect any page. <strong>By default this feature is disabled to avoid "
+"any unexpected behaviour</strong>"
+msgstr ""
+"Hvis denne indstilling aktiveres vil enhver forekomst af \"/0\" blive "
+"fjernet fra enden af URLen. Det fjerne dublerede sider som "
+"\"taxonomy/term/1\" og \"taxonomy/term/1/0\" hvor 0 er standarddybden. "
+"Det er valgfrit om denne indstilling skal begrænses til "
+"taksonomiterm-sider eller om den skal påvirke alle sider. "
+"<strong>Indstillingen er slået fra som standard for at undgå uventet "
+"opførsel.</strong>"
+
+#: globalredirect.admin.inc:44
+msgid "Enabled for taxonomy term pages only"
+msgstr "Kun aktiveret på taksonomiterm-sider"
+
+#: globalredirect.admin.inc:45
+msgid "Enabled for all pages"
+msgstr "Aktiveret på alle sider"
+
+#: globalredirect.admin.inc:52
+msgid "Menu Access Checking"
+msgstr "Tjek menuadgang"
+
+#: globalredirect.admin.inc:53
+msgid ""
+"If enabled, the module will check the user has access to the page "
+"before redirecting. This helps to stop redirection on protected pages "
+"and avoids giving away <em>secret</em> URL's. <strong>By default this "
+"feature is disabled to avoid any unexpected behaviour</strong>"
+msgstr ""
+"Hvis denne indstilling aktiveres tjekker modulet om brugeren har "
+"adgang til siden før der viderestilles. Det sikrer mod viderestilling "
+"på beskyttede sider og sikrer at <em>hemmelige</em> URLer ikke "
+"afsløres. <strong>Indstillingen er slået fra som standard for at "
+"undgå uventet opførsel.</strong>"
+
+#: globalredirect.admin.inc:63
+msgid "Case Sensitive URL Checking"
+msgstr "Versalfølsomme URL-tjek"
+
+#: globalredirect.admin.inc:64
+msgid ""
+"If enabled, the module will compae the current URL to the alias stored "
+"in the system. If there are any differences in case then the user will "
+"be redirected to the correct URL."
+msgstr ""
+"Hvis denne indstilling aktiveres, vil modulet sammenligne den aktuelle "
+"URL med det alias, som er gemt i systemet. Hvis der er forskel på "
+"store/små bogstaver viderestilles brugeren til den korrekte URL."
+

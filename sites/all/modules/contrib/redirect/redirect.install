@@ -1,0 +1,182 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the redirect module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redirect_schema() {
+  $schema['redirect'] = array(
+    'description' => 'Stores information on redirects.',
+    'fields' => array(
+      'rid'  => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique redirect ID.',
+      ),
+      'hash' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'description' => 'A unique hash based on source, source_options, and language.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The redirect type; if blank it is a normal redirect handled by the module.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {users}.uid of the user who created the redirect.',
+      ),
+      'source' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The source path to redirect from.',
+      ),
+      'source_options' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of source options.',
+      ),
+      'redirect' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The destination path to redirect to.',
+      ),
+      'redirect_options' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of redirect options.',
+      ),
+      'language' => array(
+        'description' => 'The language this redirect is for; if blank, the alias will be used for unknown languages.',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => 'und',
+      ),
+      'status_code' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'description' => 'The HTTP status code to use for the redirect.',
+      ),
+      'count' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The number of times the redirect has been used.',
+      ),
+      'access' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The timestamp of when the redirect was last accessed.'
+      ),
+    ),
+    'primary key' => array('rid'),
+    'unique keys' => array(
+      'hash' => array('hash'),
+    ),
+    'indexes' => array(
+      'expires' => array('type', 'access'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redirect_uninstall() {
+  drupal_load('module', 'redirect');
+  $variables = array_keys(redirect_variables());
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}
+
+/**
+ * Add the {redirect}.count field.
+ */
+function redirect_update_1() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The number of times the redirect has been used.',
+  );
+  db_add_field('redirect', 'count', $field);
+}
+
+/**
+ * Add the {redirect}.uid field.
+ */
+function redirect_update_2() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The {users}.uid of the user who created the redirect.',
+  );
+  db_add_field('redirect', 'uid', $field);
+  db_update('redirect')
+    ->fields(array('uid' => 1))
+    ->execute();
+}
+
+/**
+ * Enable bootstrap status for the module.
+ */
+function redirect_update_3() {
+  db_update('system')
+    ->fields(array('bootstrap' => 1))
+    ->condition('type', 'module')
+    ->condition('name', 'redirect')
+    ->execute();
+}
+
+/**
+ * Change empty redirect types to 'redirect'.
+ */
+function redirect_update_4() {
+  db_update('redirect')
+    ->fields(array('type' => 'redirect'))
+    ->condition('type', '')
+    ->execute();
+}
+
+/**
+ * Rename {redirect}.last_used to {redirect}.access.
+ */
+function redirect_update_5() {
+  if (db_field_exists('redirect', 'last_used')) {
+    db_drop_index('redirect', 'expires');
+    db_change_field('redirect', 'last_used', 'access', array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'The timestamp of when the redirect was last accessed.',
+    ));
+    db_add_index('redirect', 'expires', array('type', 'access'));
+  }
+}
