@@ -1,0 +1,112 @@
+# $Id: es.po,v 1.1.2.1 2010/04/12 13:49:46 karst Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  terms_of_use.pages.inc,v 1.1.2.3 2008/06/06 21:19:28 chill35
+#  terms_of_use.module,v 1.1.2.8 2009/03/23 21:20:27 chill35
+#  terms_of_use.info,v 1.1.2.3 2008/06/03 17:31:15 chill35
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.1.2.8\n"
+"POT-Creation-Date: 2009-03-26 08:34+0100\n"
+"PO-Revision-Date: 2009-03-26 09:45+0100\n"
+"Last-Translator: afernandez <afernandez@ingenia.es>\n"
+"Language-Team: IngeniaTeam <david.moreno@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: terms_of_use.pages.inc:41
+msgid "Node id where your Terms of Use are published"
+msgstr "Identificador de nodo cuando sus terminos de uso son publicados"
+
+#: terms_of_use.pages.inc:43
+msgid "Node <em>id</em> of the page or story (or blog entry or book page) where your Terms of Use are published."
+msgstr "Nodo <em>id</em> de la pagina o historia (o blog or pagina de libro) cuando sus terminos de uso son publicados."
+
+#: terms_of_use.pages.inc:46
+msgid "I prefer to provide the title of the post"
+msgstr "Prefiero proporcionar el título del articulo"
+
+#: terms_of_use.pages.inc:52
+#: terms_of_use.module:59
+msgid "Title of the post where your Terms of Use are published"
+msgstr "El título del articulo donde sus Términos de uso son publicados"
+
+#: terms_of_use.pages.inc:54
+#: terms_of_use.module:61
+msgid "Node <em>title</em> of the page or story (or blog entry or book page) where your Terms of Use are published."
+msgstr "Nodo <em>título</em> de la pagina o historia (o blog o pagina de libro) cuando sus terminos de uso son publicados."
+
+#: terms_of_use.pages.inc:58
+#: terms_of_use.module:66
+msgid "I prefer to specify the node id"
+msgstr "Prefiero especificar el id del nodo"
+
+#: terms_of_use.module:79
+msgid "Label for the fieldset"
+msgstr "Etiqueta para el conjunto de campos"
+
+#: terms_of_use.module:80;135;184;19
+#: terms_of_use.info:0
+msgid "Terms of Use"
+msgstr "Términos de uso"
+
+#: terms_of_use.module:81
+msgid "The text for the Terms of Use and the [x] checkbox are contained in a fieldset. Type here the title for that fieldset."
+msgstr "El texto para los terminos de uso y la caja de chequeo [x] estan contenidos en un conjunto de campos. Introduzca aquí el título para este conjunto de campos."
+
+#: terms_of_use.module:85
+msgid "Label for the ckeckbox"
+msgstr "Etiqueta para la caja de chequeo"
+
+#: terms_of_use.module:86;153
+msgid "I agree with these terms."
+msgstr "Estoy de acuerdo con estas condiciones."
+
+#: terms_of_use.module:87
+msgid "Type here something like \"I agree with these terms.\" or \"I CERTIFY THAT I AM OVER THE AGE OF 18 YEARS OLD.\", without quotes. You can use the token @link to insert a link to the Terms in this label. For example, the label can be: \"I agree with the @link.\", without quotes. You may want to link to the Terms if you prefer not to show the full text of the Terms in the registration form. If you use the token, the Terms will not be shown."
+msgstr "Introduzca aqui algo como \" Acepto estas condiciones de uso.\" o \"CERTIFICO QUE SOY MAYOR DE 18 AÑOS.\", sin comillas. Puede usar la señal @link para insertar un enlace a los términos de uso en esta etiqueta. Por ejemplo, la etiqueta puede ser: \" Estoy de acuerdo con @link.\", sin comillas. Puede querer enlazar a los términos si prefiere no mostrar el texto completo de los las términos de uso  en el formulario de registro. Si usa la señal los términos no serán mostrados."
+
+#: terms_of_use.module:102
+msgid "You must specify a node <em>nid</em>."
+msgstr "Usted debe especificar un nodo <em>nid</em>."
+
+#: terms_of_use.module:107
+msgid "No post was published with <em>nid</em> !nid."
+msgstr "Ningún articulo fue publicado con <em>nid</em> !nid."
+
+#: terms_of_use.module:117
+msgid "No post was published with this title."
+msgstr "Ningún articulo fue publicado con este título."
+
+#: terms_of_use.module:124
+msgid "You must specify a node title."
+msgstr "Debe especificar un título al nodo."
+
+#: terms_of_use.module:170
+msgid "This field is required"
+msgstr "Este campo es obligatorio"
+
+#: terms_of_use.module:184
+msgid "You must agree with the !terms to get an account."
+msgstr "Usted debe estar de acuerdo con los !terms para obtener una cuenta."
+
+#: terms_of_use.module:18
+msgid "Add Terms of Use to the registration page."
+msgstr "Añadir terminos de uso a la pagina de registro."
+
+#: terms_of_use.module:26
+msgid "Autocomplete node title"
+msgstr "Autocompletar titulo del nodo"
+
+#: terms_of_use.module:0
+msgid "terms_of_use"
+msgstr "terms_of_use"
+
+#: terms_of_use.info:0
+msgid "Adds terms of Use to the registration page."
+msgstr "Añadir terminos de uso a la pagina de registro."

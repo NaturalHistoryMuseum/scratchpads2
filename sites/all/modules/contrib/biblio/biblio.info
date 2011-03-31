@@ -1,0 +1,34 @@
+name = Biblio
+description = Maintains bibliographic lists.
+core = 7.x
+dependencies[] = taxonomy
+package = Biblio
+
+configure = admin/config/biblio
+files[] = tests/biblio.test
+files[] = tests/keyword.test
+files[] = tests/contributor.test
+files[] = tests/import.export.test
+
+files[] = includes/biblio.contributor.class.inc
+
+files[] = views/biblio_handler_citation.inc
+files[] = views/biblio_handler_field_biblio_keyword_data_word.inc
+files[] = views/biblio_handler_field_biblio_keyword_kid.inc
+files[] = views/biblio_handler_field_biblio_type.inc
+files[] = views/biblio_handler_field_contributor.inc
+files[] = views/biblio_handler_field.inc
+files[] = views/biblio_handler_filter_biblio_contributor_auth_type.inc
+files[] = views/biblio_handler_filter_biblio_keyword_kid.inc
+files[] = views/biblio_handler_filter_biblio_type.inc
+files[] = views/biblio_handler_filter_contributor_lastname.inc
+files[] = views/biblio_handler_filter_contributor_uid.inc
+files[] = views/biblio_handler_filter_contributor.inc
+files[] = views/biblio_handler_sort_contributor_lastname.inc
+files[] = views/biblio_handler_argument_many_to_one.inc
+; Information added by drupal.org packaging script on 2011-03-28
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "biblio"
+datestamp = "1301313737"
+

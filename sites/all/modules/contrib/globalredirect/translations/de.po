@@ -1,0 +1,37 @@
+# $Id: de.po,v 1.2 2009/12/02 11:32:55 njt1982 Exp $
+#
+# LANGUAGE translation of Drupal (globalredirect.module)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from file:
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Geman translation for Global Recirect module\n"
+"POT-Creation-Date: 2007-04-25 12:31+0200\n"
+"PO-Revision-Date: 2007-12-30 01:35+0100\n"
+"Last-Translator: Alexander Hass\n"
+"Language-Team: Alexander Hass\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: globalredirect.module:10
+msgid "This module will do a 301 redirect for all nodes which have an alias but are not using that alias."
+msgstr "Dieses Modul führt eine 301 Weiterleitung für alle Beiträge aus, welche einen Alias haben aber diesen Alias nicht verwenden."
+
+#: globalredirect.module:0
+msgid "globalredirect"
+msgstr "globalredirect"
+
+#: globalredirect.info:0
+msgid "Global Redirect"
+msgstr "Globale Weiterleitung"
+
+#: globalredirect.info:0
+msgid "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+msgstr "Sucht nach einem Alias für die aktuelle URL und führt eine 301 Weiterleitung aus, wenn einer gefunden wurde. Damit wird doppelter Inhalt verhindert, welcher durch das Aktivieren des Pfad Moduls entsteht."
+

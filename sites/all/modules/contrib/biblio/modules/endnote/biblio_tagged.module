@@ -1,0 +1,385 @@
+<?php
+/*
+ * @file biblio_tagged.module
+ *
+ */
+/*function biblio_tagged_menu() {
+  global $user;
+  $items = array();
+  $base = variable_get('biblio_base', 'biblio');
+
+  $items["$base/export/tagged"] = array(
+    'title'             => '',
+    'page callback'     => 'biblio_tagged_biblio_export',
+    'access callback'   => 'user_access',
+    'access arguments'  => array('show export links'),
+    'type'              => MENU_CALLBACK
+  );
+
+  return $items;
+}
+*//*
+ *   add the tagged option to the option list of the biblio_import_form
+ *   the key is the module name use by module_invoke to call hook_biblio_import
+ *   module_invoke('biblio_tagged', 'biblio_import',...)
+ */
+function biblio_tagged_biblio_import_options() {
+  return array('biblio_tagged' => t('EndNote Tagged'));
+}
+
+
+function biblio_tagged_biblio_export_options() {
+  return array('tagged' => t('EndNote Tagged'));
+}
+
+function biblio_tagged_node_view($node, $view_mode) {
+  if ($node->type == 'biblio') {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $links = biblio_tagged_biblio_export_link($node->nid);
+        $node->content['links']['biblio_tagged'] = array(
+          '#links' => $links,
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+/**
+ * Creates a link to export a node (or view) in tagged format
+ *
+ * @param $base this is the base url (defaults to /biblio)
+ * @param $nid  the node id, if NULL then the current view is exported
+ * @return  a link (<a href=...>tagged</a>)
+ */
+function biblio_tagged_biblio_export_link($nid = NULL) {
+  $show_link = variable_get('biblio_export_links', array('tagged' => TRUE));
+  if (!isset($show_link['tagged']) || empty($show_link['tagged']) || !biblio_access('export')) {
+    return array();
+  }
+  $base = variable_get('biblio_base', 'biblio');
+
+  if (module_exists('popups') && !empty($nid)) {
+    $link = array(
+        'attributes' => array(
+          'class' => 'popups',
+          'title' => t("Click to get the EndNote Tagged output")));
+  }
+  else {
+    $link = array(
+        'attributes' => array(
+          'title' => t("Click to download the EndNote Tagged formatted file")));
+  }
+  $link['href']  = "$base/export/tagged/$nid";
+  $link['title'] = t('Tagged');
+
+  if (empty($nid)) { // add any filters which may be on the current page
+    $link += drupal_parse_url(request_uri());
+  }
+
+  return array('biblio_tagged' => $link);
+}
+
+
+function biblio_tagged_node_delete($node) {
+  if ($node->type != 'biblio') {
+    return;
+  }
+  db_delete('biblio_tagged')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+function biblio_tagged_node_insert($node) {
+  if ($node->type != 'biblio' || !isset($node->biblio_tagged_md5)) {
+    return;
+  }
+  drupal_write_record('biblio_tagged', $node);
+}
+
+function biblio_tagged_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
+  $nids = array();
+  $dups = array();
+  list($nids, $dups) = _biblio_tagged_import($file, $terms, $batch, $session_id);
+
+  return array($nids, $dups);
+}
+
+function biblio_tagged_biblio_export($nids) {
+  if (module_exists('popups') && count($nids)) {
+    $popup = TRUE;
+  }
+  else {
+    $popup = FALSE;
+    drupal_add_http_header('Content-type', 'application/x-endnote-refer');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="Drupal-Biblio.enw"');
+  }
+
+  foreach ($nids as $nid) {
+
+    $node = node_load($nid, FALSE, TRUE);
+    if (variable_get('biblio_hide_bibtex_braces', 0) ) {
+      $node->title = biblio_remove_brace($node->title);
+    }
+
+    if (!$popup) {
+      print _biblio_tagged_export($node);
+    }
+    else{
+      $popup_data .=  _biblio_tagged_export($node);
+    }
+  }
+  if ($popup && !empty($popup_data)) return '<pre>' . $popup_data . '</pre>';
+
+}
+
+/**
+ * Export data in tagged format.
+ *
+ * @param $result
+ *   a database result set pointer
+ * @return
+ *   none
+ */
+
+function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
+  if (!($fp = fopen($file->uri, "r"))) {
+    drupal_set_message(t("Could not open EndNote Tagged input"), 'error');
+    return;
+  }
+  $nids = array();
+  $dups = array();
+  $node = new stdClass();
+  $incite = FALSE;
+  $node_id = NULL;
+  $contributors = NULL;
+  while (!feof($fp)) {
+    $line = trim(fgets($fp));
+    $line_len = strlen($line);
+    if ($line_len) {
+      $start = strpos($line, "%"); // There could be some unprintables at the beginning of the line so fine the location of the %
+      if ($start !== FALSE) {
+        $tag = drupal_substr($line, $start, 2);
+        $value = trim(drupal_substr($line, $start +3));
+      }
+      else {
+        $value = $line;
+      }
+    }
+    if ($line_len) { // if this is not a blank line
+      if (!$incite) {
+        $incite = TRUE;
+        $node = new stdClass();
+        //$node->biblio_contributors = array();
+
+      }
+      switch ($tag) {
+        case '%0' :
+          $node->biblio_type = _biblio_tagged_type_map($value);
+          break;
+        case '%A' :
+          $node->biblio_contributors[] = array(
+            'name' => $value,
+            'auth_category' => 1,
+            'auth_type' => _biblio_get_auth_type(1, $node->biblio_type));
+          break;
+        case '%E' :
+          $node->biblio_contributors[] = array(
+            'name' => $value,
+            'auth_category' => 2,
+            'auth_type' => _biblio_get_auth_type(2, $node->biblio_type));
+          break;
+        case '%T' :
+          $node->title = $value;
+          break;
+        case '%Y' :
+          $node->biblio_contributors[] = array(
+            'name' => $value,
+            'auth_category' => 3,
+            'auth_type' => _biblio_get_auth_type(3, $node->biblio_type));
+          break;
+        case '%?' :
+          $node->biblio_contributors[] = array(
+            'name' => $value,
+            'auth_category' => 4,
+            'auth_type' => _biblio_get_auth_type(4, $node->biblio_type));
+          break;
+        case '%X' :
+          $node->biblio_abst_e .= $value;
+          break;
+        case '%Z' :
+          $node->biblio_notes .= $value;
+          break;
+
+        default :
+          $field = _biblio_tagged_field_map($tag);
+          $node->$field = $value;
+          break;
+      } //end switch
+    }
+    else {
+      $incite = FALSE;
+      if (isset($node)) {
+        $node->biblio_tagged_md5 = md5(serialize($node));
+        if (!empty($terms)) {
+          if (!isset($node->taxonomy)) $node->taxonomy = array();
+          $node->taxonomy = array_merge($terms, $node->taxonomy);
+        }
+        if (! ($dup = biblio_tagged_check_md5($node->biblio_tagged_md5))) {
+          biblio_save_node($node, $batch, $session_id);
+          if (!empty($node->nid)) $nids[] = $node->nid;
+        }
+        else {
+          $dups[] = $dup;
+        }
+        $node = NULL;
+      }
+
+    } // end if ($start !== FALSE)
+  } // end while
+  fclose($fp);
+  return array($nids, $dups);
+}
+
+function _biblio_tagged_export($node) {
+  $export = TRUE;
+  $tagged = "";
+  $tagged .= "%0 " . _biblio_tagged_type_map($node->biblio_type, $export) . "\r\n";
+  switch ($node->biblio_type) {
+    case 100 :
+    case 101 :
+    case 103 :
+    case 104 :
+    case 105 :
+    case 108 :
+    case 119 :
+      if (!empty($node->biblio_secondary_title))
+      $tagged .= "%B " . trim($node->biblio_secondary_title) . "\r\n";
+      break;
+    case 102 :
+      if (!empty($node->biblio_secondary_title))
+      $tagged .= "%J " . trim($node->biblio_secondary_title) . "\r\n";
+      break; // journal
+  }
+  if (isset($node->biblio_year) && $node->biblio_year < 9998)  $tagged .= "%D " . trim($node->biblio_year) . "\r\n";
+  if (!empty($node->title))  $tagged .= "%T " . trim($node->title) . "\r\n";
+
+  foreach ($node->biblio_contributors->get_category(1) as $auth) {
+    $tagged .= "%A " . trim($auth['name']) . "\r\n";
+  }
+  if ($node->biblio_contributors->has_category(2) ) {
+    foreach ($node->biblio_contributors->get_category(2) as $auth) {
+      $tagged .= "%E " . trim($auth['name']) . "\r\n";
+    }
+  }
+  if ($node->biblio_contributors->has_category(3) ) {
+    foreach ($node->biblio_contributors->get_category(3) as $auth) {
+      $tagged .= "%Y " . trim($auth['name']) . "\r\n";
+    }
+  }
+  if ($node->biblio_contributors->has_category(4) ) {
+    foreach ($node->biblio_contributors->get_category(4) as $auth) {
+      $tagged .= "%? " . trim($auth['name']) . "\r\n";
+    }
+  }
+
+  $kw_array = array();
+  if (!empty($node->terms)) {
+    foreach ($node->terms as $term) {
+      $kw_array[] = $term->name;
+    }
+  }
+  if (!empty($node->biblio_keywords)) {
+    foreach ($node->biblio_keywords as $term) {
+      $kw_array[] = $term;
+    }
+  }
+  if (!empty($kw_array)) {
+    $kw_array = array_unique($kw_array);
+    foreach ($kw_array as $term) {
+      $tagged .= "%K " . trim($term) . "\r\n";
+    }
+  }
+  $abst = "";
+  if (!empty($node->biblio_abst_e))  $abst .= trim($node->biblio_abst_e);
+  if ($abst) {
+    $search = array("/\r/", "/\n/");
+    $replace = " ";
+    $abst = preg_replace($search, $replace, $abst);
+    $tagged .= "%X " . $abst . "\r\n";
+  }
+  $skip_fields = array('biblio_year',  'biblio_abst_e', 'biblio_abst_f', 'biblio_type' );
+  $fields = drupal_schema_fields_sql('biblio');
+  $fields = array_diff($fields, $skip_fields);
+  foreach ($fields as $field) {
+    if (!empty($node->$field)) {
+      $tagged .= _biblio_tagged_format_entry($field, $node->$field);
+    }
+  }
+  if (!empty ($node->files) && count($node->files)  && user_access('view uploaded files')) {
+    foreach ($node->files as $file) {
+      $tagged .= "%> " . file_create_url($file->uri) . "\r\n"; // insert file here.
+    }
+  }
+  $tagged .= "\r\n";
+  return $tagged;
+}
+
+function _biblio_tagged_format_entry($key, $value) {
+  $reverse = TRUE;
+  $tag = _biblio_tagged_field_map($key, $reverse);
+  if (!empty($tag)) {
+    return "$tag " . trim($value) . "\r\n";
+  }
+
+}
+
+function _biblio_tagged_type_map($type, $reverse = FALSE) {
+  static $map = array();
+
+  if (empty($map)) {
+    $map = biblio_get_map('type_map', 'tagged');
+  }
+
+  if ($reverse) {
+    return ($tag = array_search($type, $map)) ? $tag : 'Generic'; //return the biblio type or 129 (Misc) if type not found
+  }
+  return (isset($map[$type]))?$map[$type]:129; //return the biblio type or 129 (Misc) if type not found
+}
+
+function _biblio_tagged_field_map($field, $reverse = FALSE) {
+  static $fmap = array();
+
+  if (empty($fmap)) {
+    $fmap =  biblio_get_map('field_map', 'tagged' );
+  }
+
+  if ($reverse) {
+    return ($tag = array_search($field, $fmap)) ? $tag : '';
+  }
+  return (!empty($fmap[$field])) ? $fmap[$field] : '';
+
+}
+
+function biblio_tagged_tagged_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_tagged', 'biblio_tagged');
+ _reset_tagged_map($type);
+}
+
+function biblio_tagged_check_md5($md5) {
+  static $tagged_md5s = array();
+  if (empty($tagged_md5s)) {
+    $result = db_query("SELECT * FROM {biblio_tagged} ");
+    foreach ($result as $row ) {
+      $tagged_md5s[$row->biblio_tagged_md5] = $row->nid;
+    }
+  }
+  if (isset($tagged_md5s[$md5])) {
+    return $tagged_md5s[$md5];
+  }
+  else {
+    $tagged_md5s[$md5] = TRUE; // gaurd against duplicates in the same import
+    return;
+  }
+}

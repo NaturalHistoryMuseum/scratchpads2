@@ -1,0 +1,45 @@
+<?php
+// $Id: mollom_test.install,v 1.3 2010/10/09 23:13:01 dries Exp $
+
+/**
+ * @file
+ * Installation functionality for Mollom testing module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function mollom_test_schema() {
+  $schema['mollom_test'] = array(
+    'description' => 'Stores testing data for Mollom test form.',
+    'fields' => array(
+      'mid' => array(
+        'description' => 'Primary key: Unique mollom_test entity ID.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Title of the post.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'body' => array(
+        'description' => 'Body of the post.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'Publishing status.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('mid'),
+  );
+  return $schema;
+}
+
