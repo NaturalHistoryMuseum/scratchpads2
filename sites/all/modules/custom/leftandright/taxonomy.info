@@ -1,0 +1,9 @@
+name = Taxonomy (Left and Right replacement)
+description = Enables the categorization of content.
+package = Core
+version = VERSION
+core = 7.x
+dependencies[] = options
+dependencies[] = leftandright
+files[] = taxonomy.module
+configure = admin/structure/taxonomy
