@@ -1,0 +1,359 @@
+<?php
+
+// $Id: menu_node.module,v 1.15 2011/01/13 22:36:05 agentken Exp $
+
+/**
+ * @file
+ * Menu Node API
+ * Manages relationships between the {node} and {menu_links} table.
+ */
+
+/**
+ * Implements hook_menu_link_insert().
+ */
+function menu_node_menu_link_insert($link) {
+  if ($link['router_path'] != 'node/%' || !isset($link['mlid'])) {
+    return;
+  }
+  $nid = str_replace('node/', '', $link['link_path']);
+  if ($node = node_load($nid)) {
+    menu_node_record_save($node, $link);
+  }
+}
+
+/**
+ * Implements hook_menu_link_update().
+ */
+function menu_node_menu_link_update($link) {
+  if ($node = menu_node_get_node($link['mlid'])) {
+    menu_node_record_save($node, $link);
+  }
+}
+
+/**
+ * Implements hook_menu_link_delete().
+ */
+function menu_node_menu_link_delete($link) {
+  if ($node = menu_node_get_node($link['mlid'])) {
+    // TODO: If http://drupal.org/node/1012768 doesn't get in,
+    // then we must attach the $link to the node and format as an
+    // object, which is what our API expects.
+    if (empty($node->menu_node_links)) {
+      $node->menu_node_links[$link['mlid']] = (object) $link;
+    }
+    menu_node_record_delete($node);
+  }
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function menu_node_node_load($nodes, $types) {
+  if (!is_array($nodes)) {
+    return;
+  }
+  // TODO: Optimize for multiple nodes.
+  foreach($nodes as $node) {
+    // Ensure the menu object is loaded.
+    $node->menu_node_links = menu_node_get_links($node->nid);
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ *
+ * It is possible that a node save does not trigger a menu change,
+ * and other module may wish to be informed that the node data
+ * has been updated. So do so here.
+ */
+function menu_node_node_update($node) {
+  if (!empty($node->menu_node_links)) {
+    foreach ($node->menu_node_links as $link) {
+      _menu_node_invoke($node, $link, 'update');
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function menu_node_node_delete($node) {
+  menu_node_record_delete($node);
+}
+
+/**
+ * Get the relevant node object for a menu link.
+ *
+ * This lookup function should be run for update and delete operations.
+ *
+ * @param $mlid
+ *   The menu link id.
+ * @param $load
+ *   Boolean value that indicates whether to return the node id or a full $node.
+ * @param $reset
+ *   Boolean value that indicates whether to reset the static node_load() cache.
+ * @return
+ *   A node id, a complete node object or FALSE on failure.
+ */
+function menu_node_get_node($mlid, $load = TRUE, $reset = FALSE) {
+  $nid = db_query("SELECT n.nid FROM {node} n INNER JOIN {menu_node} mn ON n.nid = mn.nid WHERE mn.mlid = :mlid", array(':mlid' => $mlid))->fetchField();
+  if (empty($nid)) {
+    return FALSE;
+  }
+  if ($load) {
+    // We must be sure to refresh the static cache in node_load().
+    return node_load($nid, NULL, $reset);
+  }
+  return $nid;
+}
+
+/**
+ * Get the relevant menu links for a node.
+ *
+ * @param $nid
+ *   The node id.
+ * @param $router
+ *   Boolean flag indicating whether to attach the menu router link to the $item object.
+ *   If set to TRUE, the router will be set as $item->menu_router.
+ * @return
+ *   An array of complete menu_link objects or an empy array on failure.
+ */
+function menu_node_get_links($nid, $router = FALSE) {
+  $result = db_query("SELECT * FROM {menu_links} WHERE link_path = :link_path", array(':link_path' => 'node/' . $nid));
+  $items = array();
+  foreach ($result as $data) {
+    if ($router) {
+      $data->menu_router = menu_get_item('node/' . $nid);
+    }
+    $items[$data->mlid] = $data;
+  }
+  return $items;
+}
+
+/**
+ * Get all menu links assigned to a specific menu.
+ *
+ * @param $menu_name
+ *   The machine name of the menu, e.g. 'navigation'.
+ * @return
+ *   A simple array of menu link ids.
+ */
+function menu_node_get_links_by_menu($menu_name) {
+  $links = array();
+  $result = db_query("SELECT mlid FROM {menu_links} WHERE menu_name = :menu_name", array(':menu_name' => $menu_name));
+  foreach ($result as $data) {
+    $links[] = $data->mlid;
+  }
+  return $links;
+}
+
+/**
+ * Get all nodes assigned to a specific menu.
+ *
+ * @param $menu_name
+ *   The machine name of the menu, e.g. 'navigation'.
+ * @param $load
+ *   Boolean flag that indicates whether to load the node object or not.
+ *   NOTE: This can be resource intensive!
+ * @return
+ *   A simple array of node ids.
+ */
+function menu_node_get_nodes_by_menu($menu_name, $load = FALSE) {
+  $links = array();
+  $result = db_query("SELECT mn.nid FROM {menu_node} mn INNER JOIN {menu_links} ml ON mn.mlid = ml.mlid WHERE ml.menu_name = :menu_name", array(':menu_name' => $menu_name));
+  foreach ($result as $data) {
+    if ($load) {
+      $nodes[$data->nid] = node_load($data->nid);
+    }
+    else {
+      $nodes[] = $data->nid;
+    }
+  }
+  return $nodes;
+}
+
+/**
+ * Public function for generating a tree representation of nodes in a menu.
+ *
+ * This function is useful for showing the relationship between nodes within
+ * a given menu tree. It can be used to build options lists for forms and other
+ * user interface elements.
+ *
+ * @param $tree
+ *   The parent menu tree, generated by menu_tree_all_data().
+ * @param $menu
+ *   The name of the menu for which to return data.
+ * @param $filter
+ *   An array of menu links ids that indicate the only children to return.
+ *   That is, if this array is populated, only its members and their children will
+ *   be returned by this function.
+ * @param $options
+ *   An array of processing options. The valid options are 'marker' and 'spacer'.
+ *   -- 'marker' indicates a text mark to indicate menu depth for a menu link.
+ *   -- 'spacer' indicates the text string to insert betwen a marker and its link title.
+ * @return
+ *   A nested array of menu data.
+ */
+function menu_node_tree($tree, $menu = NULL, $filter = array(), $options = array()) {
+  $options += array(
+    'marker' => '-',
+    'spacer' => ' ',
+  );
+  $data = array();
+  if (!empty($menu)) {
+    _menu_node_tree($data, $menu, $value, $filter, $options['marker'], $options['spacer']);
+    return $data[$menu];
+  }
+  else {
+    foreach ($tree as $key => $value) {
+      _menu_node_tree($data, $key, $value, $filter, $options['marker'], $options['spacer']);
+    }
+  }
+  return $data;
+}
+
+/**
+ * A private recursive sort function.
+ *
+ * Given a menu tree, return its child node links.
+ *
+ * @param $tree
+ *   The recursive tree data.
+ * @param $menu
+ *   The menu that this data belongs to.
+ * @param $data
+ *   The tree data for this menu element.
+ * @param $parents
+ *   An array of menu link ids indicating the tree elements to return.
+ * @param $marker
+ *   A string (or NULL) to prepend to the menu link title, indicating relative depth.
+ * @param $spacer
+ *   A string (or NULL) to place between the marker and the title.
+ * @return
+ *   No return. Modify $tree by reference.
+ */
+function _menu_node_tree(&$tree, $menu, $data, $parents, $marker = NULL, $spacer = NULL) {
+  if (empty($tree)) {
+    $tree = array();
+  }
+  if (empty($parents)) {
+    $parents = array();
+  }
+  if (in_array($data['link']['mlid'], $parents)) {
+    $parent = menu_node_get_parent($data['link']);
+    $tree[$parent][$data['link']['mlid']] = str_repeat($marker, $data['link']['depth']) . $spacer . $data['link']['title'] . ' ';
+  }
+  if (!empty($data['below'])) {
+    // Recursive processing joy!
+    foreach ($data['below'] as $value) {
+      _menu_node_tree($tree, $menu, $value, $parents, $marker, $spacer);
+    }
+  }
+}
+
+/**
+ * Return the parent link of a menu element.
+ *
+ * @param $item
+ *   The menu item.
+ * @param $return
+ *   Indicates the value to return, options are:
+ *   -- 'title' returns the name of the parent menu item.
+ *   -- 'item' returns the entire parent, as loaded by menu_get_item().
+ * @return
+ *   A string, representing the parent name or a menu object.
+ */
+function menu_node_get_parent($item, $return = 'title') {
+  if ($return == 'title') {
+    return db_query("SELECT link_title FROM {menu_links} WHERE mlid = :mlid", array(':mlid' => $item['p1']))->fetchField();
+  }
+  $path = db_query("SELECT link_path FROM {menu_links} WHERE mlid = :mlid", array(':mlid' => $item['p1']))->fetchField();
+  return menu_get_item($path);
+}
+
+/**
+ * Save records to the {menu_node} table.
+ *
+ * After saving, we fire the appropriate menu_node hook,
+ * either 'insert' or 'update'.
+ *
+ * @param $node
+ *   The node being saved.
+ * @param $link
+ *   The menu link being saved.
+ */
+function menu_node_record_save($node, $link, $hook = 'update') {
+  // Our internal API uses $link as an object, not an array.
+  $link = (object) $link;
+  $new = menu_node_exists($link->mlid);
+  $record = array(
+    'nid' => $node->nid,
+    'mlid' => $link->mlid,
+  );
+  // Save if the record does not exist, otherwise update the existing link
+  if (empty($new)) {
+    drupal_write_record('menu_node', $record);
+    $hook = 'insert';
+  }
+  else {
+    drupal_write_record('menu_node', $record, 'mlid');
+  }
+  _menu_node_invoke($node, $link, $hook);
+}
+
+/**
+ * Wrapper function for module hooks.
+ *
+ * @param $node
+ *   The node being saved.
+ * @param $link
+ *   The menu link being saved.
+ * @param $hook
+ *   The hook to invoke ('insert', 'update', or 'delete').
+ */
+function _menu_node_invoke($node, $link, $hook) {
+  // It is possible that this function will try to fire for both the node and menu
+  // hooks. So we static cache the nid and only fire once per link per node
+  // operation. Note that mlid is the primary key of our table.
+  static $ids;
+  if (isset($ids[$hook][$node->nid][$link->mlid])) {
+    return;
+  }
+  $ids[$hook][$node->nid][$link->mlid] = TRUE;
+  module_invoke_all('menu_node_' . $hook, $link, $node);
+}
+
+/**
+ * Check to see if a specific mlid exists.
+ *
+ * @param $mlid
+ *   The menu link id.
+ * @return
+ *   The count of matches (which should be 1 or 0).
+ */
+function menu_node_exists($mlid) {
+  return (bool) db_query("SELECT COUNT(mlid) FROM {menu_node} WHERE mlid = :mlid", array(':mlid' => $mlid))->fetchField();
+}
+
+/**
+ * Delete a record from {menu_node} and run hook_menu_node_record_delete().
+ *
+ * We deliberately run the hook before the delete, in case any module
+ * wishes to run a JOIN on the {menu_node} table.
+ *
+ * @param $node
+ *   The node being deleted.
+ * @return
+ *   No return. hook_menu_node_record_delete() is invoked.
+ */
+function menu_node_record_delete($node) {
+  if (!empty($node->menu_node_links)) {
+    foreach ($node->menu_node_links as $link) {
+      _menu_node_invoke($node, $link, 'delete');
+    }
+  }
+  // Now delete the record.
+  db_delete('menu_node')
+    ->condition('nid', $node->nid)
+    ->execute();
+}

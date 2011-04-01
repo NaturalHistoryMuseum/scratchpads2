@@ -1,0 +1,12 @@
+
+table.admin-apachesolr td.icon {
+  background: no-repeat center;
+  width: 16px;
+}
+table.admin-apachesolr td.operation {
+  width: 16px;
+}
+tr.apachesolr-selected td.icon {
+  background-image: url(task-check.png);
+}
+

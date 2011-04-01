@@ -1,0 +1,58 @@
+<?php
+// $id$
+
+/**
+ * @file
+ *   Test module for Menu Node API hooks.
+ */
+
+/**
+ * Store static variables to indicate that hooks fired.
+ */
+function menu_node_test_set($value = NULL) {
+  static $storage;
+  if (is_null($value) && isset($storage)) {
+    return $storage;
+  }
+  $storage = $value;
+}
+
+/**
+ * Get the static value.
+ */
+function menu_node_test_get() {
+  return menu_node_test_set();
+}
+
+/**
+ * Implements hook_menu_node_insert().
+ */
+function menu_node_test_menu_node_insert($link, $node) {
+  // On insert, increment the count and set a static indicator, so we
+  // can count how many times this operation has run.
+  $i = &drupal_static(__FUNCTION__);
+  if (!empty($link->mlid) && !empty($node->nid)) {
+    menu_node_test_set('insert' . $i++);
+  }
+}
+
+/**
+ * Implements hook_menu_node_update().
+ */
+function menu_node_test_menu_node_update($link, $node) {
+  $i = &drupal_static(__FUNCTION__);
+  if (!empty($link->mlid) && !empty($node->nid)) {
+    menu_node_test_set('update' . $i++);
+  }
+}
+
+/**
+ * Implements hook_menu_node_delete().
+ */
+function menu_node_test_menu_node_delete($link, $node) {
+  $i = &drupal_static(__FUNCTION__);
+  if (!empty($link->mlid) && !empty($node->nid)) {
+    menu_node_test_set('delete' . $i++);
+  }
+}
+

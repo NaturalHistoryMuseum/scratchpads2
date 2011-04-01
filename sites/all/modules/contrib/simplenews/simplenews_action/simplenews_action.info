@@ -1,0 +1,15 @@
+name = Simplenews action
+description = Provide actions for Simplenews.
+dependencies[] = simplenews
+dependencies[] = trigger
+package = Mail
+core = 7.x
+
+files[] = simplenews_action.module
+
+; Information added by drupal.org packaging script on 2011-03-28
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "simplenews"
+datestamp = "1301314404"
+
