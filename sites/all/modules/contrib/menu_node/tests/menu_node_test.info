@@ -1,0 +1,13 @@
+; $Id: menu_node_test.info,v 1.1 2011/01/01 22:15:17 agentken Exp $
+name = Menu Node API Test 
+description = Support module for Menu Node API testing.
+package = Testing
+core = 7.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2011-01-16
+version = "7.x-1.1"
+core = "7.x"
+project = "menu_node"
+datestamp = "1295191965"
+
