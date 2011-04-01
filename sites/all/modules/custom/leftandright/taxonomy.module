@@ -115,13 +115,13 @@ if($last_modified > variable_get('leftandright_taxonomy_last_modified', 0)){
     }
     if($within_get_tree_function){
       unset($lines[$key]);
-      if(substr($line, 0, 1)=='}'){
+      if(substr($line, 0, 1) == '}'){
         $within_get_tree_function = FALSE;
       }
     }
   }
   // Save the content of taxonomy.module with our own taxonomy_get_tree (above)
-  variable_set('leftandright_taxonomy_replacement', implode("\n", $lines).$replacement_get_tree_function);
+  variable_set('leftandright_taxonomy_replacement', implode("\n", $lines) . $replacement_get_tree_function);
 }
 // If the following fails, we're fucked.  Not sure what would cause it to fail,
 // but everything is possible.
