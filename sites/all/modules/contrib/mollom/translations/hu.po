@@ -1,0 +1,550 @@
+# Hungarian translation of mollom (6.x-1.10)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  mollom.admin.inc,v 1.1.2.5 2009/07/31 00:25:34 davereid
+#  mollom.pages.inc,v 1.1.2.1 2009/07/30 20:28:49 davereid
+#  mollom.module,v 1.2.2.89 2009/08/13 16:21:08 dries
+#  mollom.inc,v 1.1.2.1 2009/07/30 20:28:49 davereid
+#  mollom.info,v 1.2.2.1 2008/04/01 14:16:13 dries
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mollom (6.x-1.10)\n"
+"POT-Creation-Date: 2009-09-12 11:56+0200\n"
+"PO-Revision-Date: 2009-06-26 08:53+0200\n"
+"Language-Team: Hungarian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: mollom.admin.inc:62
+msgid "Server settings"
+msgstr "A kiszolgáló beállításai"
+
+#: mollom.pages.inc:67,109
+msgid "Delete"
+msgstr "Törlés"
+
+#: mollom.pages.inc:67,109
+msgid "Cancel"
+msgstr "Mégsem"
+
+#: mollom.pages.inc:66,108
+msgid "This action cannot be undone."
+msgstr "A művelet nem visszavonható."
+
+#: mollom.module:34
+msgid ""
+"Allowing users to react, participate and contribute while still "
+"keeping your site's content under control can be a huge challenge. "
+"Mollom is a web service that helps you identify content quality and, "
+"more importantly, helps you stop spam. When content moderation becomes "
+"easier, you have more time and energy to interact with your web "
+"community. More information about Mollom is available on the <a "
+"href=\"@mollom-website\">Mollom website</a> or in the <a "
+"href=\"@mollom-faq\">Mollom FAQ</a>."
+msgstr ""
+"A webhelyen megjelenő tartalmak ellenőrzése komoly kihívás akkor, "
+"ha szeretnénk engedélyezni, hogy a látogatók tartalmakat "
+"küldhessenek be, hozzászólhassanak és részt vehessenek a webhely "
+"alakításában. A Mollom egy webszolgáltatás, amely segít a "
+"beküldött adatok között megtalálni a minőségi tartalmakat, és "
+"ami még ennél is fontosabb, megakadályozni a reklámszemét "
+"beküldését a webhelyre. Amikor a moderálás könnyebbé válik, a "
+"webhely üzemeltetőjének több ideje és energiája marad arra, hogy "
+"a közösséggel foglalkozzon. További információk a <a "
+"href=\"@mollom-website\">Mollom webhelyén</a> vagy a <a "
+"href=\"@mollom-faq\">Mollom FAQ</a>-ban. Tanácsadás a <a "
+"href=\"@mollom-support\">Mollom support</a> oldalon érhető el."
+
+#: mollom.pages.inc:21
+msgid "use image CAPTCHA"
+msgstr "kép CAPTCHA használata"
+
+#: mollom.pages.inc:28; mollom.module:776
+msgid "play audio CAPTCHA"
+msgstr "hang CAPTCHA lejátszása"
+
+#: mollom.pages.inc:42
+msgid "Optionally report this to Mollom"
+msgstr "Jelentés a Mollomnak"
+
+#: mollom.pages.inc:44
+msgid "Don't send feedback to Mollom"
+msgstr "Ne küldjön visszajelzést a Mollomnak"
+
+#: mollom.pages.inc:45
+msgid "Report as spam or unsolicited advertising"
+msgstr "Jelentés spamként vagy oda nem illő tartalomként"
+
+#: mollom.pages.inc:46
+msgid "Report as obscene, violent or profane content"
+msgstr "Jelentés sértő, uszító vagy erőszakos tartalomként"
+
+#: mollom.pages.inc:47
+msgid "Report as low-quality content or writing"
+msgstr "Jelentés igénytelen tartalomként"
+
+#: mollom.pages.inc:48
+msgid "Report as unwanted, taunting or off-topic content"
+msgstr ""
+"Jelentés kéretlen, zavaró vagy témához nem kapcsolódó "
+"tartalomként"
+
+#: mollom.pages.inc:64
+msgid "Are you sure you want to delete the comment and report it?"
+msgstr "A hozzászólás biztosan törölhető és jelenthető?"
+
+#: mollom.pages.inc:91
+msgid "The comment has been deleted."
+msgstr "A hozzászólás törölve lett."
+
+#: mollom.pages.inc:106
+msgid "Are you sure you want to delete %title and report it?"
+msgstr "„%title” biztosan törölhető és jelenthető?"
+
+#: mollom.module:197
+msgid "Report as inappropriate: @link"
+msgstr "Jelentés nem odaillőként: @link"
+
+#: mollom.module:296,311
+msgid "Report to Mollom as spam and unpublish"
+msgstr "Jelentés a Mollomnak, mint spam, majd a tartalom tiltása"
+
+#: mollom.module:297,312
+msgid "Report to Mollom as spam and delete"
+msgstr "Jelentés a Mollomnak mint spam, majd a tartalom törlés"
+
+#: mollom.admin.inc:154
+msgid ""
+"The selected comments have been reported as inappropriate and are "
+"deleted."
+msgstr ""
+"A megjelölt hozzászólások törlése és a bejelentés "
+"megtörtént."
+
+#: mollom.admin.inc:157
+msgid ""
+"The selected comments have been reported as inappropriate and are "
+"unpublished."
+msgstr ""
+"A megjelölt hozzászólások elrejtése és bejelentése "
+"megtörtént."
+
+#: mollom.admin.inc:192
+msgid ""
+"The selected posts have been reported as inappropriate and are "
+"deleted."
+msgstr "A megjelölt tartalmak törlése és a bejelentés megtörtént."
+
+#: mollom.admin.inc:195
+msgid ""
+"The selected posts have been reported as inappropriate and are "
+"unpublished."
+msgstr "A megjelölt tartalmak elrejtése és bejelentése megtörtént."
+
+#: mollom.admin.inc:31
+msgid "Spam protection settings"
+msgstr "Spam védelem beállításai"
+
+#: mollom.admin.inc:54
+msgid "Protect @name"
+msgstr "@name figyelése"
+
+#: mollom.admin.inc:68
+msgid "Fallback strategy"
+msgstr "Vészforgatókönyv"
+
+#: mollom.admin.inc:72
+msgid "Leave all forms unprotected and accept all submissions"
+msgstr ""
+"Minden űrlap védelmének megszűntetése és az összes beküldés "
+"elfogadása"
+
+#: mollom.admin.inc:80
+msgid "Mollom access keys"
+msgstr "Mollom hozzáférési kulcsok"
+
+#: mollom.admin.inc:87
+msgid "Public key"
+msgstr "Nyilvános kulcs"
+
+#: mollom.admin.inc:89
+msgid "The public key is used to uniquely identify you."
+msgstr "Az egyedi azonosításhoz szükséges nyilvános kulcs."
+
+#: mollom.admin.inc:94
+msgid "Private key"
+msgstr "Titkos kulcs"
+
+#: mollom.module:741
+msgid "The CAPTCHA field is required."
+msgstr "A CAPTCHA mező kitöltése szükséges."
+
+#: mollom.inc:69; mollom.module:490,539,543,546,550,553,685,689,695,732,736,844,855,858,882
+msgid "mollom"
+msgstr "mollom"
+
+#: mollom.module:685
+msgid "Ham: %message"
+msgstr "Ham: %message"
+
+#: mollom.module:689
+msgid "Spam: %message"
+msgstr "Spam: %message"
+
+#: mollom.module:695
+msgid "Unsure: %message"
+msgstr "Bizonytalan: %message"
+
+#: mollom.inc:69
+msgid "Error @errno: %server - %message - mollom.getServerList"
+msgstr "Hibakód #@errno: %server - %message - mollom.getServerList"
+
+#: mollom.module:882
+msgid ""
+"No Mollom servers could be reached or all servers returned an error -- "
+"the server list was emptied."
+msgstr ""
+"Nem elérhetőek a Mollom kiszolgálói vagy mindegyik hibával tért "
+"vissza -- a kiszolgálók listája törölve lett."
+
+#: mollom.module:148
+msgid "post with no checking"
+msgstr "beküldés ellenőrzés nélkül"
+
+#: mollom.module:72,81
+msgid "Report and delete"
+msgstr "Jelentés és törlés"
+
+#: mollom.module:98,106; mollom.info:0
+msgid "Mollom"
+msgstr "Mollom"
+
+#: mollom.info:0
+msgid "Protects against comment and contact form spam."
+msgstr "Véd a reklámszemét tartalmak beküldése ellen."
+
+#: mollom.pages.inc:51
+msgid ""
+"Mollom is a web service that helps you moderate your site's content: "
+"see <a href=\"http://mollom.com\">http://mollom.com</a> for more "
+"information. By sending feedback to Mollom, you teach Mollom about the "
+"content you like and dislike, allowing Mollom to do a better job "
+"helping you moderate your site's content. If you want to report "
+"multiple posts at once, you can use Mollom's bulk operations on the "
+"content and comment administration pages."
+msgstr ""
+"A Mollom egy webes szolgáltatás, amely segít a webhelyre érkező "
+"kéretlen vagy nem megfelelő tartalmak csökkentésében. Bizonyos "
+"beállítások mellett a Mollomnak „megtanítható” melyek a "
+"kívánatos és nemkívánatos tartalmak, így az idő "
+"előrehaladtával a Mollom egyre jobb szolgáltatást tud nyújtani. A "
+"több beküldés egyszerre történő jelentését a tartalom és a "
+"hozzászólások adminisztrációs oldalán lehet megtenni. Bővebb "
+"információ angol nyelven a <a "
+"href=\"http://mollom.com\">http://mollom.com</a>-on található."
+
+#: mollom.admin.inc:33
+msgid ""
+"Mollom can be used to block all types of spam received on your "
+"website's protected forms. Each form can be set to one of the "
+"following options:"
+msgstr ""
+"A Mollom a webhely védett űrlapjaira érkező összes kéretlen "
+"tartalmat (spam) képes megfékezni. Minden űrlapra beállítható a "
+"következő lehetőségek valamelyike:"
+
+#: mollom.admin.inc:34
+msgid ""
+"<strong>Text analysis and CAPTCHA backup</strong>: Mollom analyzes the "
+"data submitted on the form and presents a CAPTCHA challenge if "
+"necessary. This option is strongly recommended, as it takes full "
+"advantage of the Mollom anti-spam service to categorize your posts "
+"into ham (not spam) and spam."
+msgstr ""
+"<strong>Szövegvizsgálat és CAPTCHA</strong>: a Mollom megvizsgálja "
+"a beküldött adatokat és ha gyanúsnak találja, egy CAPTCHA "
+"kérdést fog feltenni. Mivel ezzel a beállítással mutatkozik meg a "
+"Mollom igazi előnye valamint ezáltal a Mollom maga is „tanul”, "
+"ezért a többi beállítással szemben ez a leginkább javasolt."
+
+#: mollom.admin.inc:35
+msgid ""
+"<strong>CAPTCHA only</strong>: the form's data is not sent to Mollom "
+"for analysis, and a remotely-hosted CAPTCHA challenge is always "
+"presented. This option is useful when you wish to always display a "
+"CAPTCHA or want to send less data to the Mollom network. Note, "
+"however, that forms displayed with a CAPTCHA are never cached, so "
+"always displaying a CAPTCHA challenge may reduce performance."
+msgstr ""
+"<strong>Csak CAPTCHA</strong>: a kitöltött űrlap nem lesz elküldve "
+"a Mollomnak vizsgálatra, hanem minden esetben egy CAPTCHA kérdésre "
+"is válaszolni kell. Megjegyzés: mivel a CAPTCHA feladat egy másik "
+"szerverről érkezik, ezért elképzelhető a teljesítmény "
+"csökkenése."
+
+#: mollom.admin.inc:36
+msgid "<strong>No protection</strong>: Mollom is not used with this form."
+msgstr ""
+"<strong>Nincs védelem</strong: a Mollom nincs használatban ezen az "
+"űrlapon."
+
+#: mollom.admin.inc:47
+msgid "No protection"
+msgstr "Nincs védelem"
+
+#: mollom.admin.inc:48
+msgid "CAPTCHA only"
+msgstr "csak CAPTCHA"
+
+#: mollom.admin.inc:49
+msgid "Text analysis and CAPTCHA backup"
+msgstr "Szövegelemzés és CAPTCHA támogatás"
+
+#: mollom.admin.inc:71
+msgid ""
+"Block all submissions of protected forms until the server problems are "
+"resolved"
+msgstr ""
+"Blokkoljon minden beküldést a védett űrlapokon, amíg a "
+"kiszolgálóproblémák megoldódnak"
+
+#: mollom.admin.inc:74
+msgid ""
+"When the Mollom servers are down or otherwise unreachable, no text "
+"analysis is performed and no CAPTCHAs are generated. If this occurs, "
+"your Drupal site will use the configured fallback strategy, and will "
+"either accept all submissions without spam checking, or block all "
+"submissions until the server or connection problems are resolved. "
+"Subscribers to <a href=\"@pricing\">Mollom Plus</a> receive access to "
+"<a href=\"@sla\">Mollom's high-availability backend "
+"infrastructure</a>, not available to free users, reducing potential "
+"downtime."
+msgstr ""
+"Amikor a Mollom kiszolgálói elérhetetlenek, akkor sem szöveg "
+"vizsgálata, sem a CAPTCHA-k létrehozása nem fog működni. Ilyen "
+"esetekre a Drupal webhely egy vészforgatókönyvvel rendelkezhet, "
+"hogy minden beküldést ellenőrzés nélkül elfogadjon vagy "
+"visszautasítson amíg a Mollom elől elhárulnak a problémák. A "
+"fizetős <a href=\"@pricing\">Mollom Plus</a> szolgáltatás ügyfelei "
+"a <a href=\"@sla\">Mollom's nagy rendelkezésreállású "
+"hálózatára</a> kapcsolódnak, melyen a lehetséges "
+"szolgáltatáskiesések időtartama minimális."
+
+#: mollom.admin.inc:96
+msgid ""
+"The private key is used to prevent someone from hijacking your "
+"requests. Similar to a password, it should never be shared with "
+"anyone."
+msgstr ""
+"A titkos kulcs arra szolgál, hogy más ne tudjon belenyúlni a Mollom "
+"és a hozzá kapcsolódó kiszolgáló közötti kapcsolatba. Mint a "
+"jelszavakat, ezt sem szabad megosztani másokkal."
+
+#: mollom.module:487
+msgid ""
+"The spam filter installed on this site is currently unavailable. Per "
+"site policy, we are unable to accept new submissions until that "
+"problem is resolved. Please try resubmitting the form in a couple of "
+"minutes."
+msgstr ""
+"A webhelyen telepített spamszűrő nem elérhető. A megadott "
+"működési szabályoknak megfelelően a probléma elhárításáig "
+"nem lehetséges új tartalmat beküldeni. Érdemes a beküldést "
+"újrapróbálni pár perc múlva."
+
+#: mollom.module:688
+msgid ""
+"Your submission has triggered the spam filter and will not be "
+"accepted."
+msgstr "A beküldött tartalmat a spamszűrő elutasította."
+
+#: mollom.module:694
+msgid ""
+"We're sorry, but the spam filter thinks your submission could be spam. "
+"Please complete the CAPTCHA."
+msgstr ""
+"Sajnos a kéretlen tartalom szűrő a beküldött űrlapot spam-nek "
+"érzékelte, ezért egy CAPTCHA helyes megadásával lehet csak "
+"beküldeni."
+
+#: mollom.module:737
+msgid ""
+"The CAPTCHA was not completed correctly. Please complete this new "
+"CAPTCHA and try again."
+msgstr ""
+"A CAPTCHA nem lett helyesen kitöltve. Ezzel az új CAPTCHA-val lehet "
+"újra megpróbálni."
+
+#: mollom.module:775
+msgid "Word verification"
+msgstr "Szóellenőrzés"
+
+#: mollom.module:781
+msgid ""
+"Type the characters you see in the picture above; if you can't read "
+"them, submit the form and a new image will be generated."
+msgstr ""
+"A képen látható karaktereket kell megadni. Ha olvashatatlan, akkor "
+"egy üres beküldéssel lehet új képet kérni."
+
+#: mollom.module:490
+msgid ""
+"All Mollom servers were unavailable: %servers, last error: @errno - "
+"%error_msg"
+msgstr ""
+"Nincs elérhető Mollom kiszolgáló: %servers, utolsó hiba: @errno - "
+"%error_msg"
+
+#: mollom.module:844
+msgid "The list of available Mollom servers was refreshed: @servers."
+msgstr "Az elérhető Mollom-kiszolgálók listája frissült: @servers."
+
+#: mollom.module:855
+msgid ""
+"The Mollom server %server asked to use the next Mollom server in the "
+"list: %next."
+msgstr ""
+"%server Mollom-kiszolgáló kérte, hogy a jövőben a következő "
+"váltsa fel: %next."
+
+#: mollom.module:858
+msgid "Error @errno from %server: %message - %method - <pre>@data</pre>"
+msgstr "Error @errno from %server: %message - %method - <pre>@data</pre>"
+
+#: mollom.module:99
+msgid "Mollom is a web service that helps you manage your community."
+msgstr ""
+"A Mollom egy webes szolgáltatás, amellyel automatikusan szűrhető a "
+"kéretlen közösségi aktivitás."
+
+#: mollom.admin.inc:110
+msgid ""
+"We tried to contact the Mollom servers but we encountered a network "
+"error. Please make sure that your web server can make outgoing HTTP "
+"requests."
+msgstr ""
+"Hálózati hiba miatt nem sikerült csatlakozni a Mollom "
+"kiszolgálóihoz. Érdemes ellenőrizni, hogy a webkiszolgáló "
+"képes-e kimenő HTTP-kérések kezdeményezésére."
+
+#: mollom.admin.inc:113
+msgid ""
+"We contacted the Mollom servers to verify your keys: your keys do not "
+"exist or are no longer valid. Please visit the <em>Manage sites</em> "
+"page on the Mollom website again: <a "
+"href=\"@mollom-user\">@mollom-user</a>."
+msgstr ""
+"A kapcsolatfelvétel a Mollom kiszolgálóval és a külcsök "
+"ellenőrzése megtörtént. A megadott kulcsok nem léteznek vagy már "
+"érvénytelenek. Érdemes az adategyeztetés miatt meglátogatni a "
+"<em>Manage sites</em> oldalt a Mollom honlapján: <a "
+"href=\"@mollom-user\">@mollom-user</a>."
+
+#: mollom.admin.inc:116
+msgid ""
+"We contacted the Mollom servers to verify your keys: the Mollom "
+"services are operating correctly. We are now blocking spam."
+msgstr ""
+"A kapcsolatfelvétel a Mollom kiszolgálóival, majd a kulcsok "
+"ellenőrzése megtörtént. A Mollom szolgáltatásai működnek, a "
+"spamszűrő folyamatosan üzemel."
+
+#: mollom.module:147
+msgid "administer mollom"
+msgstr "mollom adminisztrációja"
+
+#: mollom.admin.inc:37
+msgid ""
+"Data is processsed and stored as explained in our <a "
+"href=\"@mollom-privacy\">Web Service Privacy Policy</a>. It is your "
+"responsibility to provide any necessary notices and obtain the "
+"appropriate consent regarding Mollom's use of your data. For more "
+"information, see <a href=\"@mollom-works\">How Mollom Works</a> and "
+"the <a href=\"@mollom-faq\">Mollom FAQ</a>."
+msgstr ""
+"Az adat feldolgozva és tárolva lett a <a "
+"href=\"@mollom-privacy\">Webszolgáltatások Adatvédelmi "
+"Szabályzata</a> szerint. A Mollomhoz csatlakozó ügyfelek "
+"felelőssége, hogy beküldött adatokról megjegyzést tegyen illetve "
+"a saját szabályzata ezeknek megfeleljen. További információkat "
+"(angolul) a <a href=\"@mollom-works\">Hogyan működik a Mollom</a> "
+"és a <a href=\"@mollom-faq\">Mollom GYIK</a> oldalakon lehet olvasni."
+
+#: mollom.admin.inc:81
+msgid ""
+"In order to use Mollom, you need both a public and private key. To "
+"obtain your keys, simply <a href=\"@mollom-register\">create a user "
+"account on mollom.com</a>, <a href=\"@mollom-login\">login to "
+"mollom.com</a>, and <a href=\"@mollom-manager-add\">create a "
+"subscription</a> for your site.  Once you created a subscription, your "
+"private and public access keys will be available from the <a "
+"href=\"@mollom-manager\">site manager on mollom.com</a>. Copy-paste "
+"them in the form below, and you are ready to go."
+msgstr ""
+"A Mollom használatához szükség van egy nyilvános egy titkos "
+"kulcsra. A kulcsok létrehozásához <a "
+"href=\"@mollom-register\">felhasználót kell létrehozni a "
+"mollom.com-on</a>, <a href=\"@mollom-login\">be kell vele jelentkezni "
+"a mollom.com-ra</a>, majd <a href=\"@mollom-manager-add\">létre kell "
+"hozni egy új igénylést</a>, amely kifejezetten ehhez a webhelyhez "
+"jön létre. Miután az igénylés le lett adva, a titkos és "
+"nyílvános kulcsok <a href=\"@mollom-manager\">a webhelyek "
+"karbantartása menüpont</a> alatt lesz elérhető. A lent található "
+"űrlapba bemásolva, majd beküldve a két kulcsot a védelem azonnal "
+"élni fog."
+
+#: mollom.module:52,58
+msgid "report to Mollom"
+msgstr "jelentés a Mollomnak"
+
+#: mollom.module:539
+msgid "Mollom ID '%session' is badly formatted."
+msgstr "A Mollom ID '%session' hibás formátumú."
+
+#: mollom.module:543
+msgid "Mollom ID '%session' is invalid, probably expired."
+msgstr "A Mollom ID '%session' érvénytelen, lehetséges, hogy lejárt."
+
+#: mollom.module:546
+msgid "Mollom ID '%session' is invalid, probably reused."
+msgstr ""
+"A Mollom ID „%session” érvénytelen, lehet, hogy újra használva "
+"lett."
+
+#: mollom.module:550
+msgid ""
+"Mollom ID '%session' has been tampered with: it was generated for form "
+"%form1, but is used on form %form2."
+msgstr ""
+"A Mollom ID „%session” meg lett bütykölve: %form1 űrlap "
+"részére lett kiállítva, de %form2 űrlap is megpróbálta "
+"felhasználni."
+
+#: mollom.module:553
+msgid ""
+"Mollom ID '%session' has been tampered with: it was generated for a "
+"user with sid %sid1, but is used by a user with sid %sid2."
+msgstr ""
+"A Mollom ID „%session” meg lett bütykölve: a %sid1 viszony "
+"ID-jú felhasználóhoz lett hozzárendelve, de %sid2 ID-vel "
+"próbálták meg felhasználni."
+
+#: mollom.module:732
+msgid "The CAPTCHA resonse was correct. Form data: %data"
+msgstr "A CAPTCHA válasz helyes volt. Űrlap adat: %data"
+
+#: mollom.module:736
+msgid "The CAPTCHA response was incorrect. Form data: %data"
+msgstr "A CAPTCHA válasz érvénytelen volt. Az űrlap adat: %data"
+
+#: mollom.module:90
+msgid "Report"
+msgstr "Jelentés"
+
+#: mollom.module:107
+msgid "Reports and usage statistics for the Mollom module."
+msgstr "A Mollom modul jelentései és statisztikája."
+

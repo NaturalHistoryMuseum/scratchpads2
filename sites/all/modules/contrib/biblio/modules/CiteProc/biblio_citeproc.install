@@ -1,0 +1,91 @@
+<?php
+function biblio_citeproc_install() {
+  biblio_citeproc_install_default_styles();
+
+}
+
+function biblio_citeproc_uninstall() {
+
+}
+
+function biblio_citeproc_schema() {
+  $schema['biblio_citeproc_styles'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+       ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+       ),
+      'filename' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+       ),
+      'parent' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => ''
+       ),
+       'summary' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        ),
+       'csl' => array(
+        'type' => 'blob',
+        'not null' => TRUE
+       ),
+       'sha1' => array(
+        'type' => 'varchar',
+        'length' => 40,
+        'not null' => TRUE,
+        'default' => ''
+       )
+       ),
+    'primary key' => array('id')
+  );
+
+  return $schema;
+}
+
+function biblio_citeproc_install_default_styles() {
+  $record = array();
+  $dir = drupal_get_path('module', 'biblio_citeproc') . '/style';
+  $files = file_scan_directory($dir, '/..*.csl$/');
+
+  $query = db_insert('biblio_citeproc_styles')->fields(array('id', 'title', 'filename','summary', 'csl', 'sha1'));
+
+  foreach ($files as $file) {
+    $csl = file_get_contents($file->uri);
+    $xml = simplexml_load_string($csl);
+
+    $parent = '';
+    foreach($xml->info->link as $link) {
+      $attrs = $link->attributes();
+      if (isset($attrs['rel']) && $attrs['rel'] == 'independent-parent') {
+        $parent = (string)$attrs['href'];
+      }
+    }
+
+    $record  = array (
+      'filename' => basename($file->filename),
+      'parent'	 => $parent,
+      'title'    => (string)$xml->info->title,
+      'summary'  => (string)$xml->info->summary,
+      'csl'      => $csl,
+      'sha1'     => sha1($csl),
+      'id'       => (string)$xml->info->id,
+    );
+    $query->values($record);
+  }
+
+  $query->execute();
+}

@@ -1,0 +1,13 @@
+<?php
+
+
+/**
+ * @file Enables Views to leverage menu hierarchies when displaying nodes.
+ */
+
+/**
+ * Implement hook_views_api().
+ */
+function menu_node_views_views_api() {
+  return array('api' => 2.0);
+}

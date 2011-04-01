@@ -1,0 +1,14 @@
+; $Id: mollom_test.info,v 1.5 2010/08/04 03:58:46 dries Exp $
+name = Mollom Test
+description = Testing module for Mollom functionality. Do not enable.
+core = 7.x
+package = Testing
+hidden = TRUE
+files[] = mollom_test.module
+
+; Information added by drupal.org packaging script on 2011-01-11
+version = "7.x-1.0"
+core = "7.x"
+project = "mollom"
+datestamp = "1294772829"
+

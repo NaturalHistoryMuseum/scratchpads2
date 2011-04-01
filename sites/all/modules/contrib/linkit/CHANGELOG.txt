@@ -1,0 +1,73 @@
+Linkit x.x-x.x, xxxx-xx-xx
+
+Linkit 7.x-1.3, xxxx-xx-xx
+------------------------------
+
+Linkit 7.x-1.2, 2011-03-25
+------------------------------
+[bug] [#1044566] by betamos, anon: Don't use internal: prefix by default.
+[bug] [#1044632] by anon: Fixed Drupal.settings is overwritten when IMCE is 
+  enabled
+[bug] [#1053400] by anon: Fixed issue when links wasnt edited accurate in 
+  CKeditor
+[bug] [#1050980] by vikfroberg, anon: Fixed Linkit geteditresult conflict with
+  devel page execution.
+[#1055592] by anon: Removed hook_requirements from install file.
+[documentation] README.txt by betamos: Markdown formatting, spelling, wording, added betamos as maintainer
+Bug #1040714 by anon, betamos: Checks if #pre_render is set before checking if it's an array
+Documentation by betamos: README Markdown cvs comment
+[bug] [#1044632] by anon: Fixed Drupal.settings is overwritten when IMCE is
+  enabled
+#1050440 by anon: Changed linkit module description.
+#1050438 by anon: Changed linkit plugins module description.
+[bug] [#1053400] by anon: Fixed issue when links wasnt edited accurate in
+  CKeditor
+[bug] [#1050980] by vikfroberg, anon: Fixed Linkit geteditresult conflict with
+  devel page execution.
+[bug] [#1044566] by betamos, anon: Don't use internal: prefix by default
+by anon: Changed linkit_user_linkit_get_search_styled_link SQL, removed
+  field 'uid'.
+by anon: Changed SQL querys - removed 'nid' and 'tid' as this wasnt used
+  anymore.
+by anon: Fixed support for "forum" taxonomy in linkit style callback
+by anon: Changed array key, filemine => mimetype
+[#1055592] by anon: Removed hook_requirements from install file.
+bug #1055638 by betamos, anon: Linkit inserts absolute URI to files
+[Task] #1061124 by anon: Change clear-block to clearfix in dashboard tpl
+#1050444 by anon: Change permission names.
+#1044606 by anon: Links anchor appended multiple times
+
+
+Linkit 7.x-1.1, 2011-01-13
+------------------------------
+#955356 by Magnus: Imported translations to localization server and removed 
+  CVS files.
+#1019048 by anon, binford2k: Fixed array structure for plugins in 
+  linkit_wysiwyg_plugin.
+#1024244 by anon: Theme key "closure" not found.
+#1022940 by anon, fietserwin: Undefined index: show_books in 
+  linkit_node_linkit_load_plugins().
+by anon: Fixed styles when IMCE is enabled.
+#1026834 by anon: Fixed broken CKeditor integration.
+#1030936 by johannesdr, anon: Fixed/Added more reliable path strings for 
+  FCKeditor and CKeditor.
+by anon: Removed README.txt for FCKeditor (use for stand alone FCKeditor), as 
+  this it is no longer supported.
+#1027500 by anon : Fixed IMCE integration assumes clean URLs to be enabled.
+#908466 by anon: Fixed so links to terms is created properly.
+
+Linkit 7.x-1.0, 2011-01-06
+------------------------------
+This is a fork from Linkit 6.x-1.x-dev.
+#1008434 by binford2k: Fixed undefined variable if wysiwyg editor not supported.
+by anon: Ported linkit_files so it works with D7.
+by anon: Fixed the popup dashboard and changed some menu callback urls so they 
+  dont piont to admin/linkit.
+by anon: Removed everything with path filter as it its not compatible with 
+  Drupal 7.
+by anon: Removed the limit (SQL range) in all plugins so sites with large 
+  amout of content, terms and so on does now suffer from the old 10 limit.
+by anon: Fixed integration width IMCE 7.X.
+by anon: Removed dependency check in linkit_init, there is only one 
+  "internal:" parse module for Drupal7. 
+by anon: Added dependency in linkit.info.

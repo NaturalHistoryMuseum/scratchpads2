@@ -1,0 +1,143 @@
+<?php
+
+// $Id: menu_node.install,v 1.8 2011/01/16 15:27:20 agentken Exp $
+
+/**
+ * @file
+ *   Install file for Menu Node API.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function menu_node_schema() {
+  $schema['menu_node'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'mlid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('mlid'),
+    'indexes' => array(
+      'nid' => array('nid'),
+    ),
+    'foreign_keys' => array(
+      'nid' => array('node' => 'nid'),
+      'mlid' => array('menu_links' => 'mlid'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * On module enable, populate the {menu_node} table
+ * based on existing menu items.
+ */
+function menu_node_enable() {
+  $result = db_query("SELECT ml.mlid, ml.link_path FROM {menu_links} ml INNER JOIN {menu_custom} mc ON ml.menu_name = mc.menu_name WHERE ml.link_path <> 'node/%' AND ml.router_path = 'node/%'");
+  foreach ($result as $data) {
+    $nid = str_replace('node/', '', $data->link_path);
+    // Ensure that we did not grab any bad links accidentally.
+    $check = (bool) db_query("SELECT COUNT(*) FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
+    if ($check) {
+      db_insert('menu_node')
+        ->fields(array(
+          'nid' => $nid,
+          'mlid' => $data->mlid,
+        ))
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Implements hook_disable().
+ *
+ * On module disable, erase the {menu_node} table.
+ */
+function menu_node_disable() {
+  db_delete('menu_node')
+    ->execute();
+}
+
+/**
+ * Update function to remove book module entries.
+ */
+function menu_node_update_6000() {
+  if (module_exists('book')) {
+    $result = db_query("SELECT mlid, nid FROM {book}");
+    foreach ($result as $data) {
+      menu_node_delete($data->nid, $data->mlid);
+    }
+  }
+  return t('Removed book data from the {menu_node} table.');
+}
+
+/**
+ * Erase bad records from the {menu_node} table.
+ */
+function menu_node_update_6001() {
+  $result = db_query("SELECT mn.mlid, mn.nid FROM {menu_node} mn LEFT JOIN {node} n ON mn.nid = n.nid LEFT JOIN {menu_links} ml ON ml.mlid = mn.mlid WHERE n.nid IS NULL OR ml.mlid IS NULL");
+  foreach ($result as $data) {
+    db_delete('menu_node')
+      ->condition('mlid', $data->mild)
+      ->condition('nid', $data->nid)
+      ->execute();
+  }
+  return t('Erased bad records from the {menu_node} table.');
+}
+
+/**
+ * Update to the new schema with only mlid as primary key.
+ */
+function menu_node_update_6002() {
+  db_drop_primary_key('menu_node');
+  db_drop_index('menu_node', 'nid');
+  db_add_primary_key('menu_node', array('mlid'));
+  db_add_index('menu_node', 'nid', array('nid'));
+  return t('Updated primary key and indeces for {menu_node}');
+}
+
+/**
+ * Correct for duplicate mlids with unique nids.
+ */
+function menu_node_update_6003() {
+  $return = array();
+  // Find any instances where more than one nid is mapped to an mlid.
+  $result = db_query(
+    "SELECT mn.mlid, mn.nid, ml.link_path FROM {menu_node} mn
+    LEFT JOIN (SELECT mlid, count(mlid) AS count FROM {menu_node} GROUP BY mlid) mcount ON mn.mlid = mcount.mlid
+    LEFT JOIN {menu_links} ml ON mn.mlid = ml.mlid WHERE mcount.count > 1 AND ml.router_path LIKE 'node/%%'");
+  // Walk through every row and test them based on nid.
+  foreach ($result as $data) {
+    $nid = str_replace('node/', '', $data->link_path);
+    // Does the stored nid match the menu_link path nid?
+    $check = (bool) $nid == $data->nid;
+    // If check failed we delete the row with this combination.
+    if (!$check) {
+      db_delete('menu_node')
+        ->condition('mlid', $data->mlid)
+        ->condition('nid', $data->nid)
+        ->execute();
+    }
+  }
+  return t('Erased bad records from the {menu_node} table.');
+}
+
+/**
+ * Repeat update_6002, which failed on some systems.
+ */
+function menu_node_update_6004() {
+  return menu_node_update_6002();
+}
