@@ -1,0 +1,391 @@
+<?php 
+
+/**
+ * @file
+ * Main file for linkit module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function linkit_menu() {
+  $items = array();
+
+  $items['linkit/dashboard/%'] = array(
+    'title' => 'Linkit',
+    'description' => 'Dashboard',
+    'page callback' => 'linkit_dashboard_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'page arguments' => array(2),
+    'theme callback' => '_linkit_dashboard_theme',
+  );
+
+  $items['linkit/autocomplete'] = array(
+    'title' => 'Link to node',
+    'page callback' => 'linkit_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'page arguments' => array(2),
+  );
+
+  $items['linkit/geteditresult'] = array(
+    'title' => 'Get search result styled link',
+    'page callback' => 'linkit_search_styled_link',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/content/linkit'] = array(
+    'title' => 'Linkit settings',
+    'description' => 'Configure Linkit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('linkit_admin_settings'),
+    'access arguments' => array('administer linkit'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'linkit.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Return the theme name to be used when showing linkit dashboard
+ */
+function _linkit_dashboard_theme() {
+  return variable_get('admin_theme', 'seven');
+}
+
+/**
+ * Implements hook_permission().
+ */
+function linkit_permission() {
+  return array(
+    'administer linkit' => array(
+      'title' => t('Administer linkit settings'), 
+    ),
+  );
+  return array('administer linkit');
+}
+
+/**
+ * Implements hook_theme().
+ */
+function linkit_theme($existing, $type, $theme, $path) {
+  return array(
+    'linkit_dashboard' => array(
+      'variables' => array('form' => NULL),
+      'template' => 'linkit-dashboard',
+    ),
+  );
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function linkit_element_info_alter(&$types) {
+  if (isset($types['text_format']['#pre_render']) && is_array($types['text_format']['#pre_render'])) {
+    if (in_array('ckeditor_pre_render_text_format', $types['text_format']['#pre_render'])) {
+      _linkit_add_settings('ckeditor');  
+    }
+  }
+}
+
+/**
+ * Template preprocess function for theme_linkit_dashboard().
+ */
+function template_preprocess_linkit_dashboard(&$variables) {
+  // Construct page title
+  $variables['head_title']        = t('Linkit dashboard');
+  $variables['head']              = drupal_get_html_head();
+  $variables['help']              = theme('help');
+  $variables['language']          = $GLOBALS['language'];
+  $variables['language']->dir     = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
+  $variables['messages']          = isset($variables['show_messages']) ? theme('status_messages') : '';
+  $variables['css']               = drupal_add_css();
+  $variables['styles']            = drupal_get_css();
+  $variables['scripts']           = drupal_get_js();
+}
+
+/**
+ * Creates the dashboard.
+ */
+function linkit_dashboard_page($editor) {
+  module_invoke('admin_menu', 'suppress');
+  // Add CSS.
+  drupal_add_css(drupal_get_path('module', 'linkit') . '/css/linkit.css');
+  
+  // Add JS
+  static $defualt_settings_added = FALSE;
+  
+  // Add default settings
+  if (!$defualt_settings_added) {
+    $defualt_settings_added = TRUE;
+
+    $settings = array(
+      'linkit' => array('ajaxcall' => url('linkit/geteditresult')),
+    );
+
+    // Check if we have IMCE and access to it.
+    $imce = module_invoke('imce', 'access');
+    if($imce) {
+      $settings['linkit']['IMCEurl'] = url('imce', array('query' => array('app' => 'Linkit|url@edit-link--2')));
+    }
+
+    drupal_add_js($settings, 'setting');
+  }
+  drupal_add_js(drupal_get_path('module', 'linkit') . '/linkit.js');
+
+  switch ($editor) {
+    case 'wysiwyg_tinymce':
+      // Add JavaScript.
+      drupal_add_js(wysiwyg_get_path('tinymce') . '/jscripts/tiny_mce/tiny_mce_popup.js');
+      drupal_add_js(drupal_get_path('module', 'linkit') . '/editors/tinymce/linkit.js');
+      break;
+
+    case 'ckeditor':
+    case 'wysiwyg_ckeditor':
+      // Add JavaScript.
+      drupal_add_js(drupal_get_path('module', 'linkit') . '/editors/ckeditor/linkitDialog.js');
+      break;
+
+    case 'fckeditor':
+    case 'wysiwyg_fckeditor':
+      // Add JavaScript.
+      drupal_add_js(drupal_get_path('module', 'linkit') . '/editors/fckeditor/linkit/linkitDialog.js');
+      break;
+  }
+  
+  print theme('linkit_dashboard', array('form' => render(drupal_get_form('_linkit_form'))));
+}
+
+/**
+ * Autocomplete callback function.
+ */
+function linkit_autocomplete($string = NULL) {
+  $matches = array();
+  $hook_matches = array();
+  if ($string) {
+    $hook_matches = module_invoke_all('linkit_load_plugins', $string);
+    foreach ($hook_matches AS $module => $values) {
+      if (module_exists('linkit_permissions')) {
+        if (user_access('use linkit ' . $module . ' plugin') || user_access('use all linkit plugins')) {
+          $matches = array_merge($matches, $hook_matches[$module]);
+        }
+      } 
+      else {
+        $matches = array_merge($matches, $hook_matches[$module]);
+      }
+    }
+  }
+
+  // hook_linkit_load_plugins_alter() , let other modules change the matches array
+  drupal_alter('linkit_load_plugins', $matches);
+  
+  $results = array();
+  foreach ($matches AS $match) {
+    
+    // Build the val
+    $val = check_plain($match['title'] . ' [path:' . $match['path'] . ']');
+    
+    // Get the extra information text
+    $information = array();
+    foreach ($match['information'] AS $extra_info_key => $extra_info_val) {
+      // Coder is telling us that "The first parameter to t() should be a literal string. There should be no variables, concatenation, constants or other non-literal strings there"
+      // But the "$extra_info_key" is hard coded and cant be change by users or administratios so its ok to use t() this way.
+      $information[] = t(drupal_ucfirst($extra_info_key)) . ':<span>' . $extra_info_val . '</span>';
+    }
+    
+    // Build the text
+    $text = '<div class="clearfix">';
+    $text .= '<div class="auto-item-title">' . check_plain($match['title']) . '</div>';
+    if (count($information)) {
+      $text .= '<div class="auto-item-info">[' . implode(", ", $information) . ']</div>';
+    }
+    $text .= '</div>';
+    $results[$val] = $text;
+  }
+
+  drupal_json_output($results);
+}
+
+function linkit_search_styled_link() {
+  drupal_add_http_header('Content-Type', 'text/plain; charset=utf-8');
+  if (isset($_GET['string'])) {
+    $string = check_plain($_GET['string']);
+    $matches = module_invoke_all('linkit_get_search_styled_link', $string);
+    
+    echo (isset($matches[0]) ? $matches[0] : '');
+  }
+}
+
+function _linkit_form() {
+  // Check if we have IMCE and access to it.
+  $imce = module_invoke('imce', 'access');
+
+  $form['link'] = array(
+    '#type' => 'fieldset',
+    '#title' => '',
+    '#weight' => 0,
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => array('clearfix')),
+  );
+  $form['link']['link'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Link to'),
+    '#description' => t('Search for your internal content <b>OR</b> type the URL (http://www.example.com)'),
+    '#maxlength' => 255,
+    '#size' => 80,
+    '#autocomplete_path' => 'linkit/autocomplete',
+    '#default_value' => '',
+    '#weight' => 1,
+  );
+
+  if ($imce) {
+    $imcebutton = array(
+      '#type' => 'button',
+      '#value' => t('Browse server'),
+      '#name' => 'linkit-imce',
+      '#id' => 'linkit-imce',
+    );
+    // Add extra class to edit-link field when we can use IMCE
+    $form['link']['link']['#attributes'] = array('class' => array('with_imce'));
+    // Add the imce buttom
+    $form['link']['link']['#field_suffix'] = drupal_render($imcebutton);
+  }
+
+  $form['link']['attributes'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Attributes'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => array('clearfix')),
+    '#weight' => 2,
+  );
+  $form['link']['attributes']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 0,
+  );
+  $form['link']['attributes']['id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('ID'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 1,
+  );
+  $form['link']['attributes']['class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Class'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 2,
+  );
+  $form['link']['attributes']['rel'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Rel'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 3,
+  );
+  $form['link']['attributes']['accesskey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Accesskey'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 4,
+  );
+  $form['link']['attributes']['anchor'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Anchor'),
+    '#maxlength' => 255,  
+    '#size' => 40,
+    '#default_value' => '',
+    '#weight' => 5,
+    '#description' => t('Without the hash (#)'),
+  );
+
+  $form['link']['cancel'] = array(
+    '#type' => 'button',
+    '#value' => t('Cancel'),
+    '#weight' => 10,
+  );
+  $form['link']['insert'] = array(
+    '#type' => 'button',
+    '#value' => t('Insert'),
+    '#weight' => 11,
+  );
+
+  return $form;
+}
+
+function linkit_wysiwyg_plugin($editor, $version) {
+  $plugins = array();
+  _linkit_add_settings('wysiwyg_' . $editor);
+
+  switch ($editor) {
+    case 'tinymce':      
+      $plugins['linkit'] = array(
+        'path' => drupal_get_path('module', 'linkit') . '/editors/tinymce',
+        'filename' => 'editor_plugin.js',
+        'buttons' => array('linkit' => t('Linkit')),
+        'url' => 'http://drupal.org/project/linkit',
+        'load' => TRUE,
+      );
+      break;
+    case 'ckeditor':      
+      // notice: Big "L" in the name here! important
+      $plugins['Linkit'] = array(
+        'path' => drupal_get_path('module', 'linkit') . '/editors/ckeditor',
+        'buttons' => array('Linkit' => t('Linkit')),
+        'url' => 'http://drupal.org/project/linkit',
+        'load' => TRUE,
+      );
+      break;
+    case 'fckeditor':      
+      $plugins['linkit'] = array(
+        'path' => drupal_get_path('module', 'linkit') . '/editors/fckeditor',
+        'buttons' => array('linkit' => t('Linkit')),
+        'url' => 'http://drupal.org/project/linkit',
+        'load' => TRUE,
+      );
+    break;
+  }
+
+  return $plugins;
+}
+
+function _linkit_add_settings($editor) {
+  static $editor_settings_added = array();
+  static $global_settings_added = FALSE;
+
+  if (!isset($editor_settings_added[$editor])) {
+    $editor_settings_added[$editor] = TRUE;
+    
+    // Add popup url
+    $settings = array(
+      'linkit' => array('url' => array($editor => url('linkit/dashboard/' . $editor))),
+    );
+    drupal_add_js($settings, 'setting');
+  }
+
+  if (!$global_settings_added) {
+    $global_settings_added = TRUE;
+
+    // Add global settings for Linkit
+    $settings = array(
+      'linkit' => array(
+        'modulepath' => drupal_get_path('module', 'linkit'),
+      ),
+    );
+    drupal_add_js($settings, 'setting');
+  }
+}

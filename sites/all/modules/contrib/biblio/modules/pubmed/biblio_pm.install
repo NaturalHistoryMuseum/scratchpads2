@@ -1,0 +1,44 @@
+<?php
+/**
+ * @file
+ * Database table creation for biblio_pm module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function biblio_pm_install() {
+}
+
+function biblio_pm_uninstall() {
+}
+
+function biblio_pm_enable() {
+  biblio_pm_set_system_weight();
+}
+
+function biblio_pm_set_system_weight() {
+  db_update('system')
+    ->fields(array('weight' => 19))
+    ->condition('name', 'biblio_pm')
+    ->execute();
+}
+
+/**
+ * Implementation of hook_schema().
+ *
+ * Note:  Pro Drupal Development models use of t() to translate 'description'
+ * for field definitions, but Drupal core does not use them.  We follow core.
+ */
+function biblio_pm_schema() {
+  $schema = array();
+  $schema['biblio_pubmed'] = array(
+    'fields' => array(
+      'biblio_pubmed_id' => array('type' => 'int', 'not null' => TRUE),
+      'nid' => array('type' => 'int', 'not null' => TRUE),
+      'biblio_pubmed_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
+      ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}

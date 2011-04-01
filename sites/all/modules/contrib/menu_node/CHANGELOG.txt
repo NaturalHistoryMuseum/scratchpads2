@@ -1,0 +1,53 @@
+// $Id: CHANGELOG.txt,v 1.19 2011/01/16 15:27:20 agentken Exp $
+
+CHANGELOG for Menu Node
+
+16-JAN-2010
+-- #1018692 by bstoppel and matglas86. Catch update condition missed in last update.
+-- Creates the 7.x.1.1 release.
+
+13-JAN-2011
+-- Fixes tests and works around #1012768.
+-- Creates the 7.x.1.0 release.
+
+03-JAN-2011
+-- Stricter testing for proper API objects.
+
+02-JAN-2011
+-- Better testing. Finds http://drupal.org/node/1012768 bug.
+-- Changes $items to $links in most cases.
+-- Fixes all tests, pending #1012768.
+-- Adds API documentation file.
+-- Corrects static key handling and adds tests for multuple menu items for a single node.
+
+01-JAN-2011
+-- #1011782. Major D7 upgrade, thanks to Coder module.
+-- Needs tests, and then we can release.
+-- Most tests working. Needs help on delete.
+
+31-DEC-2010
+-- #783442 by mgriego, derjochenmeyer. Make mlid the primary key.
+-- #882326. Fixes problem with delete hook passing partial node object.
+-- Creates the 6.x.1.4 release.
+-- Creates the bugfix-only 6--1 branch.
+-- Adds tests folder.
+-- Begins D7 port.
+
+14-SEP-2009
+  -- #568246 by roboneale. Accoutns for revisions to nodes.
+  -- Creates the 6.x.1.3 release.
+
+21-AUG-2009
+  -- #526756 by nonsie and keinstein. Fixes duplicate entry error and book module handling.
+  -- Fixes reversed documentation of the API hook arguments.
+  -- Creates the 6.x.1.2 release.
+  -- Requires running update.php.
+
+27-MAY-2009
+  -- Creates the 6.x.1.1 release.
+
+26-MAY-2009
+  -- #473284 by bae22. We cannot delete before updates, as that breaks the API.
+
+08-MAY-2009
+  -- Initial commit. 6.x.1.0 release.

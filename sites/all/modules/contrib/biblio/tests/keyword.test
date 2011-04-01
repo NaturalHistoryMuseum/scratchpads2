@@ -1,0 +1,149 @@
+<?php
+
+/**
+ * @file
+ * Tests for keyword functions.
+ */
+
+/**
+* Class with common helper methods.
+*/
+class BiblioKeywordWebTestCase extends BiblioWebTestCase {
+
+  function setUp() {
+    parent::setUp('biblio');
+    require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+  }
+
+  /**
+   * Returns a new keyword with random properties.
+   */
+  function createKeyword() {
+    $keyword = array();
+    $keyword['word'] = $this->randomName();
+    biblio_save_keyword($keyword);
+    $this->kids[] = $keyword['kid'];
+    return $keyword;
+  }
+
+}
+
+/**
+ * Unit tests for keyword functions.
+ */
+class BiblioKeywordUnitTest extends BiblioKeywordWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Biblio keyword unit tests',
+      'description' => 'Unit tests for keyword functions.',
+      'group' => 'Biblio',
+    );
+  }
+  function testBiblioSaveKeyword() {
+    $keyword = $this->createKeyword();
+    $this->assertTrue($keyword['kid'], t('Created and saved a single keyword'));
+  }
+  function testBiblioDeleteKeyword() {
+    $keyword = $this->createKeyword();
+    $num_deleted = biblio_delete_keyword($keyword['kid']);
+    $this->assertEqual($num_deleted, 1, t('Deleted a single keyword'));
+  }
+  function testBiblioGetKeywordById() {
+    $keyword = $this->createKeyword();
+    $word = (array) biblio_get_keyword_by_id($keyword['kid']);
+    $this->assertEqual($keyword, $word, 'Get keyword by ID');
+  }
+  function testBiblioGetKeywordByName() {
+    $keyword = $this->createKeyword();
+
+    // Load the term with the exact name.
+    $word = biblio_get_keyword_by_name($keyword['word']);
+    $this->assertEqual($word->word, $keyword['word'], t('Keyword loaded using exact name.'));
+
+    // Load the term with space concatenated.
+    $word  = biblio_get_keyword_by_name('  ' . $keyword['word'] . '   ');
+    $this->assertEqual($word->word, trim('  ' . $keyword['word'] . '   '), t('Keyword loaded with extra whitespace.'));
+
+    // Load the term with name uppercased.
+    $word = biblio_get_keyword_by_name(strtoupper($keyword['word']));
+    $this->assertEqual($word->word, $keyword['word'], t('Keyword loaded with uppercased name.'));
+
+    // Load the term with name lowercased.
+    $word = biblio_get_keyword_by_name(strtolower($keyword['word']));
+    $this->assertEqual($word->word, $keyword['word'], t('Keyword loaded with lowercased name.'));
+
+    // Try to load an invalid term name.
+    $word = biblio_get_keyword_by_name('Banana');
+    $this->assertFalse($word, t('Tried to load an invalid keyword'));
+
+    // Try to load the term using a substring of the name.
+    $word = biblio_get_keyword_by_name(drupal_substr($keyword['word'], 2));
+    $this->assertFalse($word, t('Tried to load a keyword using a substring of the word'));
+  }
+
+
+  function testBiblioUpdateKeywords() {
+    $term1 = $this->createKeyword();
+    $node = $this->createNode();
+
+    $node->biblio_keywords = array($term1['word']);
+    $old_vid = $node->vid;
+
+    $node->biblio_keywords[0] .= 'xxx';
+    $node->revision = TRUE;
+    node_save($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+
+    foreach ($node->biblio_keywords as $kid => $value) {
+      $this->assertEqual($value, $term1['word'] . 'xxx', 'Loaded updated keyword');
+      $this->kids[] = $kid; // add the new kids to the global array so we can delete them on tear down.
+    }
+    $node = node_load($node->nid, $old_vid, TRUE);
+    foreach ($node->biblio_keywords as $kid => $value) {
+      $this->assertEqual($value, 'biblio_keywords', 'Loaded previous revision prior to update');
+      $this->kids[] = $kid; // add the new kids to the global array so we can delete them on tear down.
+    }
+    biblio_delete_keywords($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertFalse(count($node->biblio_keywords), "Loaded node which no longer has any keywords");
+  }
+
+  function testBiblioDeleteOrphanKeywords() {
+    $this->createKeyword();
+    $this->createKeyword();
+ //   $count = count($this->kids);
+    $num_records_before = db_query('SELECT COUNT(*) FROM {biblio_keyword_data} WHERE kid NOT IN (SELECT DISTINCT(kid) FROM {biblio_keyword})')->fetchField();
+    biblio_delete_orphan_keywords(TRUE);
+    $num_records_after = db_query('SELECT COUNT(*) FROM {biblio_keyword_data} WHERE kid NOT IN (SELECT DISTINCT(kid) FROM {biblio_keyword})')->fetchField();
+    $this->assertEqual($num_records_before, $num_records_after+$num_records_before, "Deleted $num_records_before orphan keywords");
+  }
+
+  function testBiblioExplodeKeywords() {
+    $keywords = array();
+    $exploded = array();
+    $words = array();
+    $sep = variable_get('biblio_keyword_sep', ',');
+    $wrong_sep = ($sep == ',') ? ';' : ',';
+    for ($i=0; $i < 4; $i++) {
+      $words[] = $this->randomName();
+    }
+    $string = implode($sep, $words);
+    $exploded = biblio_explode_keywords($string);
+    $this->assertIdentical($words, $exploded, 'Exploded keyword string with correct separator');
+    $string = implode($wrong_sep, $words);
+    $exploded = biblio_explode_keywords($string);
+    $this->assertNotIdentical($words, $exploded, 'Tried to explode keyword string with incorrect separator');
+    $words[] = '"' . 'word1' . $sep . ' word2' . '"';
+    $string = implode($sep, $words);
+    $exploded = biblio_explode_keywords($string);
+    $words[4] =   trim(str_replace('""', '"', preg_replace('/^"(.*)"$/', '\1', $words[4]))); // strip the quotes becuase that's the way it comes back
+
+    $this->assertEqual($words, $exploded, "Exploded a keyword string which contains and escaped separator");
+  }
+
+}
+
+

@@ -1,0 +1,167 @@
+<?php
+// $Id: pathologic.module,v 1.7.2.19 2011/01/09 07:52:11 garrettalbright Exp $
+
+/**
+ * @file
+ * Pathologic text filter for Drupal.
+ *
+ * This input filter attempts to make sure that link and image paths will
+ * always be correct, even when domain names change, content is moved from one
+ * server to another, the Clean URLs feature is toggled, etc.
+ */
+
+/**
+ * Implements hook_filter_info().
+ */
+function pathologic_filter_info() {
+  return array(
+    'pathologic' => array(
+      'title' => t('Correct URLs with Pathologic'),
+      'process callback' => '_pathologic',
+      'settings callback' => '_pathologic_settings',
+      'default settings' => array(
+        'local_paths' => '',
+        'absolute' => TRUE,
+      ),
+/*       'tips callback' => '_pathologic_tips', */
+      'weight' => 65535,
+    )
+  );
+}
+
+/**
+ * Settings callback for Pathologic.
+ */
+function _pathologic_settings($form, &$form_state, $filter, $format, $defaults) {
+  return array(
+    'reminder' => array(
+      '#type' => 'item',
+      '#title' => t('In most cases, Pathologic should be the <em>last</em> filter in the &ldquo;Filter processing order&rdquo; list.'),
+      '#weight' => -10,
+    ),
+    'local_paths' => array(
+      '#type' => 'textarea',
+      '#title' =>  t('Also considered local'),
+      '#default_value' => isset($filter->settings['local_paths']) ? $filter->settings['local_paths'] : $defaults['local_paths'],
+        '#description' => t('Enter the beginning of paths which should also be considered local for this server. Please read <a href="!docs">Pathologic&rsquo;s documentation</a> for more information about this feature. If the site is using a WYSIWYG content editor such as CKEditor or TinyMCE, you will probably need to enter a single slash (<code>/</code>) in this field.', array('!docs' => 'http://drupal.org/node/257026')),
+      '#weight' => 10,
+    ),
+    'absolute' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Output full absolute URLs'),
+      '#default_value' => isset($filter->settings['absolute']) ? $filter->settings['absolute'] : $defaults['absolute'],
+      '#description' => t('If checked, Pathologic will output full absolute URLs, with a protocol and server fragment (such as <code>http://example.com/foo/bar</code>); this is useful if you want images and links to not break for those reading the content in a feed reader or through some other form of aggregation. However, in cases where the site is being served via both HTTP and HTTPS, it may be necessary to uncheck this box so that protocol and server fragments are omitted in the paths Pathologic creates (such as <code>/foo/bar</code>) to avoid issues where the browser complains about pages containing both secure and insecure content.'),
+      '#weight' => 20,
+    ),
+  );
+}
+
+/**
+ * Pathologic filter callback.
+ */
+function _pathologic($text, $filter) {
+  $statics = &drupal_static(__FUNCTION__);
+  if (!isset($statics)) {
+    $statics = array();
+  }
+  if (!isset($statics[$filter->format])) {
+    // Parse the list of the paths also considered local.
+    $paths_text = trim($filter->settings['local_paths']);
+    if ($paths_text === '') {
+      $paths = array();
+    }
+    else {
+      $paths = array_map('trim', explode("\n", $paths_text));
+    }
+    // Add "this" path
+    $paths[] = url('<front>', array('absolute' => TRUE));
+    // Remove duplicates, since it's possible "this" path was already in the list;
+    // also do escaping
+    $paths = array_map('_pathologic_escape', array_unique($paths));
+  
+    // We need to account for the fact that
+    // http://example.com/foo
+    // http://example.com/?q=foo
+    // http://example.com/index.php?q=foo
+    // …are all valid.
+  
+    $statics[$filter->format] = array(
+      // The pattern is gonna look like:
+      // ~(href|src|HREF|SRC)="
+      // (internal:|https?://example\.com|https?://example\.org)?
+      // (
+      //   /(#.*)?|
+      //   (?!(#|/|mailto:|[a-z]+:/))
+      //   ((index\.php)?(\?q=)?)
+      //   ([^"]*)
+      // )"~
+      'pattern' => '~(href|src|HREF|SRC)="(internal:|' . implode('|', $paths) . ')?(/(#.*)?|(?!(#|/|mailto:|[a-z]+:/))((index\.php)?(\?q=)?)([^"]*))"~',
+      // create_funtion() lets us do lambdas in a really crappy but pre-PHP 5.3-
+      // compatible way. We're using it here so we can pass the value of
+      // $filter->settings['absolute'] to the replacement function. We could
+      // just put the whole replacement function here, but that would just be
+      // silly.
+      'callback' => create_function('$matches', 'return _pathologic_replace($matches, ' . ($filter->settings['absolute'] ? 'TRUE' : 'FALSE') . ');'),
+    );
+  }
+  return preg_replace_callback($statics[$filter->format]['pattern'], $statics[$filter->format]['callback'], $text);
+}
+
+/**
+ * Replace the attributes. preg_replace_callback() callback.
+ */
+function _pathologic_replace($matches, $absolute) {
+  // Build the full URL, then take it apart
+  $parts = parse_url('http://example.com/' . urldecode($matches[3]));
+  if ($parts['path'] === '/' || $parts['path'] === '//') {
+    // '//' will be the case if the original path was just a slash
+    $parts['path'] = '<front>';
+  }
+  else {
+    // Trim initial slash off path.
+    $parts['path'] = drupal_substr($parts['path'], 1);
+  }
+
+  // Need to parse the query parts
+  if (isset($parts['query'])) {
+    parse_str($parts['query'], $qparts);
+    if (isset($qparts['q'])) {
+      $parts['path'] = $qparts['q'];
+      unset($qparts['q']);
+    }
+    foreach ($qparts as $key => $qpart) {
+      if ($qpart === '') {
+        // In a query string, this is a key for which there isn't a value; for
+        // example, the "baz" in "foo=bar&baz&qux=quux". In order for url() (or,
+        // more specifically, drupal_http_build_query()) to handle this
+        // correctly, it should have a value of NULL.
+        $qparts[$key] = NULL;
+      }
+    }
+  }
+  else {
+    $qparts = NULL;
+  }
+  
+  $url = url(
+    $parts['path'],
+    array(
+      'query' => $qparts,
+      'fragment' => isset($parts['fragment']) ? $parts['fragment'] : NULL,
+      'absolute' => $absolute,
+    )
+  );
+
+  // $matches[1] will be "src" or "href"
+  return "{$matches[1]}=\"{$url}\"";
+}
+
+/**
+ * Escape paths to convert. preg_replace_callback() callback.
+ */
+function _pathologic_escape($path) {
+  // Quote special characters, but "convert" asterisks.
+  // Apparently the special characters in the preg_replace below need to be
+  // double-escaped…?
+  return preg_replace(array('/(?<!\\\)\\\\\*/', '/^https?/'), array('[^/]*', 'https?'), preg_quote($path, '~'));
+}

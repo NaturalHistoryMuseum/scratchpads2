@@ -1,0 +1,26 @@
+To install and configure the Drupal Mollom module:
+
+ 1. Download the Mollom module from http://drupal.org/project/mollom or http://mollom.com/download.
+    Be sure to pick a version of the Mollom client that matches your version of Drupal. The module
+    package should be placed with the rest of your contributed Drupal modules (generally,
+    in "sites/all/modules" or "sites/default/modules").
+
+ 2. Go to http://mollom.com.
+
+ 3. Login with your Mollom.com account, or create an account if you don't have one.
+
+ 4. Select "Manage sites" from the upper right menu at Mollom.com.
+
+ 5. Select "Add subscription" to create a new key pair for your website (or "edit subscription" to
+    access a subscription for an existing site tied to your account).
+
+ 6. Visit your site's module list (Administer >> Site building >> Modules) and enable the Mollom module.
+
+ 7. Visit your site's Mollom settings page (Administer >> Site configuration >> Mollom) and enter the key
+    pair associated with your site (from step 5).
+
+ 8. Review the other Mollom settings and adjust as necessary.
+
+For support go to http://mollom.com/support. A tutorial for the Drupal module is also available at
+http://mollom.com/tutorials/drupal.
+

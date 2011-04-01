@@ -1,0 +1,255 @@
+<?php
+
+/**
+ * A test class that prvides the setUp and tearDown of a solr core on the
+ * default localhost server. This server must be configured for multiple cores
+ * with a solr.xml file.
+ */
+class DrupalSolrWebTestCase extends DrupalWebTestCase {
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    parent::setUp('apachesolr', 'apachesolr_search', 'search');
+    // Load the default server.
+    $server_id = variable_get('apachesolr_default_server', 'solr');
+    $server = apachesolr_server_id_load($server_id);
+    // We will use a core named after the simpltest prefix.
+    $server['path'] = '/solr/' . $this->databasePrefix;
+    apachesolr_server_save($server);
+    $solr_url = "{$server['scheme']}://{$server['host']}:{$server['port']}{$server['path']}";
+    $core_admin_url = "{$server['scheme']}://{$server['host']}:{$server['port']}/solr/admin/cores";
+    $filesdir = variable_get('file_public_path');
+    mkdir("$filesdir/solr/conf", 0777, TRUE);
+    mkdir("$filesdir/solr/data");
+    $instancedir = realpath("$filesdir/solr");
+    $pattern = dirname(__FILE__) . '/conf/*';
+    foreach (glob($pattern) as $conf_file) {
+      copy($conf_file, "$instancedir/conf/" . basename($conf_file));
+    }
+    copy(dirname(__FILE__) . '/../schema.xml', "$instancedir/conf/schema.xml");
+    $contents = file_get_contents(dirname(__FILE__) . '/../solrconfig.xml');
+    // Change the autoCommit time down to 1 second.
+    file_put_contents("$instancedir/conf/solrconfig.xml", preg_replace('@<maxTime>[0-9]+</maxTime>@', '<maxTime>1000</maxTime>', $contents));
+    $query['action'] = 'CREATE';
+    $query['name'] = $this->databasePrefix;
+    $query['instanceDir'] = $instancedir;
+    $this->drupalGet($core_admin_url, array('query' => $query));
+    $this->assertResponse(200);
+    $this->instancedir = $instancedir;
+    $this->solr_url = $solr_url;
+    $this->core_admin_url = $core_admin_url;
+    $this->checkCoreStatus();
+  }
+
+  /**
+   * Helper function to invoke core admin actions.
+   */
+  protected function coreAdmin($action, $return_response = FALSE) {
+    $query = array();
+    $query['action'] = $action;
+    $query['wt'] = 'json';
+    $query['indent'] = '1';
+    $query['core'] = $this->databasePrefix;
+    $this->drupalGet($this->core_admin_url, array('query' => $query));
+    $this->assertResponse(200);
+    if ($return_response) {
+      return json_decode($this->drupalGetContent(), TRUE);
+    }
+  }
+
+  /**
+   * Helper function to verify that the expected core exists.
+   */
+  protected function checkCoreStatus() {
+    $response = $this->coreAdmin('STATUS', TRUE);
+    $this->assertTrue(isset($response['status'][$this->databasePrefix]['index']), 'Found Solr test core index status');
+  }
+
+  function tearDown() {
+    // Unload the Solr core.
+    $this->coreAdmin('UNLOAD');
+    parent::tearDown();
+  }
+}
+
+class DrupalSolrMatchTestCase extends DrupalSolrWebTestCase {
+  /**
+   * Implements getInfo().
+   */
+  function getInfo() {
+    return array(
+      'name' => t('Solr Index Queries'),
+      'description' => t('Indexes content and queries it.'),
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  /**
+   * Test search indexing.
+   */
+  function testMatching() {
+    $solr = apachesolr_get_solr();
+    $this->assertTrue($solr->ping(), "The Server could be Pinged");
+    $response = $solr->search("*:*", 0, 0, array('qt' => 'standard'));
+    $response = $response->response;
+    $this->assertEqual($response->numFound, 0, "There should not be any documents in the index");
+    //$this->_setup();
+    //$this->_testQueries();
+  }
+
+  /**
+   * Set up a small index of items to test against.
+   */
+  function _setup() {
+
+    variable_set('minimum_word_size', 3);
+    for ($i = 1; $i <= 7; ++$i) {
+      $documents[] = $this->_solr_build_document($i, array('entity_id' => $i, 'content' => $this->getText($i)));
+    }
+
+    $this->_solr_index($documents);
+  }
+
+  function _solr_index($documents) {
+    $batch = 0;
+    $batches = (count($documents) / 20);
+    while ($batch < $batches) {
+        $batch++;
+        $docs = array_splice($documents, 0, 20);
+        try {
+          $this->solr->addDocuments($docs);
+          $this->solr->commit();
+        }
+        catch (Exception $e) {
+          drupal_set_message($e->getMessage());
+        }
+    }
+  }
+
+  function _solr_build_document($nid, $values = array()) {
+    $document = new Apache_Solr_Document();
+    $document->id = apachesolr_document_id($nid);
+    foreach ($values as $key => $value) {
+      $document->$key = $value;
+    }
+    return $document;
+  }
+
+  /**
+   * Helper method for generating snippets of content.
+   *
+   * Generated items to test against:
+   *   1  ipsum
+   *   2  dolore sit
+   *   3  sit am ut
+   *   4  am ut enim am
+   *   5  ut enim am minim veniam
+   *   6  enim am minim veniam es cillum
+   *   7  am minim veniam es cillum dolore eu
+   */
+  function getText($n) {
+    $words = explode(' ', "Ipsum dolore sit am. Ut enim am minim veniam. Es cillum dolore eu.");
+    return implode(' ', array_slice($words, $n - 1, $n));
+  }
+
+  /**
+   * Run predefine queries looking for indexed terms.
+   */
+  function _testQueries() {
+    /*
+      Note: OR queries that include short words in OR groups are only accepted
+      if the ORed terms are ANDed with at least one long word in the rest of the query.
+
+      e.g. enim dolore OR ut = enim (dolore OR ut) = (enim dolor) OR (enim ut) -> good
+      e.g. dolore OR ut = (dolore) OR (ut) -> bad
+
+      This is a design limitation to avoid full table scans.
+
+      APACHESOLR NOTE: These are not all in lucene syntax... @TODO.  Still works for text searching
+    */
+    $queries = array(
+      // Simple AND queries.
+      'ipsum' => array(1),
+      'enim' => array(4, 5, 6),
+      'xxxxx' => array(),
+      'enim minim' => array(5, 6),
+      'enim xxxxx' => array(),
+      'dolore eu' => array(7),
+      'dolore xx' => array(),
+      'ut minim' => array(5),
+      'xx minim' => array(),
+      'enim veniam am minim ut' => array(5),
+      // Simple OR queries.
+      'dolore OR ipsum' => array(1, 2, 7),
+      'dolore OR xxxxx' => array(2, 7),
+      'dolore OR ipsum OR enim' => array(1, 2, 4, 5, 6, 7),
+      'minim dolore OR ipsum OR enim' => array(5, 6, 7),
+      'xxxxx dolore OR ipsum' => array(),
+      // Negative queries.
+      'dolore -sit' => array(7),
+      'dolore -eu' => array(2),
+      'dolore -xxxxx' => array(2, 7),
+      'dolore -xx' => array(2, 7),
+      // Phrase queries.
+      '"dolore sit"' => array(2),
+      '"sit dolore"' => array(),
+      '"am minim veniam es"' => array(6, 7),
+      '"minim am veniam es"' => array(),
+      // Mixed queries.
+      '"am minim veniam es" OR dolore' => array(2, 6, 7),
+      '"minim am veniam es" OR "dolore sit"' => array(2),
+      '"minim am veniam es" OR "sit dolore"' => array(),
+      '"am minim veniam es" -eu' => array(6),
+      '"am minim veniam" -"cillum dolore"' => array(5, 6),
+      '"am minim veniam" -"dolore cillum"' => array(5, 6, 7),
+      'xxxxx "minim am veniam es" OR dolore' => array(),
+      'xx "minim am veniam es" OR dolore' => array()
+    );
+    foreach ($queries as $query => $results) {
+      $response = $this->solr->search($query);
+      $this->_testQueryMatching($query, $response->response->docs, $results);
+      //@TODO: We might get to this later
+      #$this->_testQueryScores($query, $response->responses->docs, $results);
+    }
+  }
+
+  /**
+   * Test the matching abilities of the engine.
+   *
+   * Verify if a query produces the correct results.
+   */
+  function _testQueryMatching($query, $set, $results) {
+    // Get result IDs.
+    $found = array();
+    foreach ($set as $item) {
+      $found[] = $item->entity_id;
+    }
+    // Compare $results and $found.
+    sort($found);
+    sort($results);
+    $this->assertEqual($found, $results, "Query matching '$query'");
+  }
+
+  /**
+   * Test the scoring abilities of the engine.
+   *
+   * Verify if a query produces normalized, monotonous scores.
+   */
+  function _testQueryScores($query, $set, $results) {
+    // Get result scores.
+    $scores = array();
+    foreach ($set as $item) {
+      $scores[] = $item->score;
+    }
+
+    // Check order.
+    $sorted = $scores;
+    sort($sorted);
+    $this->assertEqual($scores, array_reverse($sorted), "Query order '$query'");
+
+    // Check range.
+    $this->assertEqual(!count($scores) || (min($scores) > 0.0 && max($scores) <= 1.0001), TRUE, "Query scoring '$query'");
+  }
+
+}

@@ -1,0 +1,50 @@
+<?php
+// $Id: pathologic.install,v 1.2.4.3 2011/02/01 16:41:34 garrettalbright Exp $
+
+/**
+ * @file
+ * .install file for Pathologic.
+ */
+
+/**
+ * Re-enable Pathologic under Drupal 7, preserving settings from Drupal 6.
+ */
+function pathologic_update_7000() {
+  // Make sure {d6_upgrade_filter} exists. It won't exist for people upgrading
+  // from beta versions of the D7 version of Pathologic on native D7 sites (not
+  // upgraded from D6).
+  if (db_table_exists('d6_upgrade_filter')) {
+    // Get all Pathologic data from {d6_upgrade_filter}.
+    $rez = db_select('d6_upgrade_filter', 'dup')
+      ->fields('dup')
+      ->condition('module', 'pathologic')
+      ->execute();
+    while ($instance = $rez->fetchObject()) {
+      // Load the format
+      if ($format = filter_format_load($instance->format)) {
+        // Load filters.
+        $format->filters = array();
+        // Add the filters
+        foreach (filter_list_format($instance->format) as $filter_name => $filter) {
+          $format->filters[$filter_name] = (array)$filter;
+        }
+        // Add Pathologic
+        $format->filters['pathologic'] = array(
+          'weight' => $instance->weight,
+          'status' => 1,
+          'settings' => array(
+            'absolute' => variable_get('filter_pathologic_absolute_' . $instance->format, TRUE),
+            'local_paths' => variable_get('filter_pathologic_local_paths_' . $instance->format, ''),
+          ),
+        );
+        // Save the format
+        filter_format_save($format);
+        // Unset old variables
+        variable_del('filter_pathologic_absolute_' . $instance->format);
+        variable_del('filter_pathologic_local_paths_' . $instance->format);
+      }
+    }
+    // Delete Pathologic data from {d6_upgrade_filter}…?
+    // No, maybe we don't want to actually do that…?
+  }
+}
