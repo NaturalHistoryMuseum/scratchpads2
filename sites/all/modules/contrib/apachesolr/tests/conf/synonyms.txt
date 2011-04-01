@@ -1,0 +1,3 @@
+# Example synonmym mappings for testing
+druplicon => drupal icon
+love,hate,spam
