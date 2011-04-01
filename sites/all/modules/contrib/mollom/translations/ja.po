@@ -1,0 +1,441 @@
+# Japanese translation of mollom (6.x-1.9)
+# Copyright (c) 2009 by the Japanese translation team
+# Generated from files:
+#  mollom.module,v 1.2.2.64 2009/06/18 10:04:46 dries
+#  mollom.info,v 1.2.2.1 2008/04/01 14:16:13 dries
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mollom (6.x-1.9)\n"
+"POT-Creation-Date: 2009-07-30 13:02-0700\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Language-Team: Japanese\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: mollom.module:203,245,302
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: mollom.module:203,245
+msgid "Delete"
+msgstr "削除"
+
+#: mollom.module:202,244,301
+msgid "This action cannot be undone."
+msgstr "この操作は元に戻すことができませんので、十分に注意して実行してください。"
+
+#: mollom.module:34
+msgid ""
+"Allowing users to react, participate and contribute while still "
+"keeping your site's content under control can be a huge challenge. "
+"Mollom is a web service that helps you identify content quality and, "
+"more importantly, helps you stop spam. When content moderation becomes "
+"easier, you have more time and energy to interact with your web "
+"community. More information about Mollom is available on the <a "
+"href=\"@mollom-website\">Mollom website</a> or in the <a "
+"href=\"@mollom-faq\">Mollom FAQ</a>."
+msgstr ""
+"サイトのコンテンツを順調に保ったまま、ユーザが反応し、参加し、貢献できるようにすることは、とても大きな挑戦です。Mollomは、あなたがコンテンツの質を確認したり、そしてより重要なことにはスパムを防いだりするのを支援するウェブサービスです。コンテンツの承認がより簡単になれば、あなたはウェブコミュニティに対してより多くの時間と労力を注げるようになります。Mollomについてのより詳しい情報は、<a "
+"href=\"@mollom-website\">Mollom ウェブサイト</a>または<a "
+"href=\"@mollom-faq\">Mollom FAQ</a>をご覧ください。"
+
+#: mollom.module:49
+msgid "mark as abuse"
+msgstr "不正にマーク"
+
+#: mollom.module:59
+msgid "Delete post"
+msgstr "記事を削除"
+
+#: mollom.module:136
+msgid "use image CAPTCHA"
+msgstr "画像CAPTCHAを使用"
+
+#: mollom.module:145,1040
+msgid "play audio CAPTCHA"
+msgstr "オーディオCAPTCHAを再生"
+
+#: mollom.module:178
+msgid "Optionally report this to Mollom"
+msgstr "任意でMollomに報告"
+
+#: mollom.module:180
+msgid "Don't send feedback to Mollom"
+msgstr "Mollomへフィードバックを送信しない"
+
+#: mollom.module:181
+msgid "Report as spam or unsolicited advertising"
+msgstr "スパムまたは未承諾広告として報告"
+
+#: mollom.module:182
+msgid "Report as obscene, violent or profane content"
+msgstr "卑猥/暴力的/冒涜的なコンテンツとして報告"
+
+#: mollom.module:183
+msgid "Report as low-quality content or writing"
+msgstr "程度の低いコンテンツや文章として報告"
+
+#: mollom.module:184
+msgid "Report as unwanted, taunting or off-topic content"
+msgstr "余計な/馬鹿にした/関係ないコンテンツとして報告"
+
+#: mollom.module:187
+msgid ""
+"Mollom is a web service that helps you moderate your site's content: "
+"see <a href=\"http://mollom.com\">http://mollom.com</a> for more "
+"information. By sending feedback to Mollom, you teach Mollom about the "
+"content you like and dislike, allowing Mollom to do a better job "
+"helping you moderate your site's content. If you want to report "
+"multiple posts at once, you can use Mollom's bulk operations on the "
+"content and comment administration pages."
+msgstr ""
+
+#: mollom.module:200
+msgid "Are you sure you want to delete the comment and report it?"
+msgstr "本当にコメントを削除して報告しますか？"
+
+#: mollom.module:227
+msgid "The comment has been deleted."
+msgstr "コメントを削除しました。"
+
+#: mollom.module:242
+msgid "Are you sure you want to delete %title and report it?"
+msgstr "本当に%titleを削除して報告しますか？"
+
+#: mollom.module:278
+msgid "Report as inappropriate: @link"
+msgstr "不適切として報告: @link"
+
+#: mollom.module:299
+msgid "Are you sure you want to report the e-mail message as inappropriate?"
+msgstr "メールメッセージを不適切として本当に報告しますか？"
+
+#: mollom.module:302
+msgid "Report as inappropriate"
+msgstr "不適切として報告"
+
+#: mollom.module:311
+msgid "The e-mail has been reported as inappropriate."
+msgstr "メールを不適切として報告しました。"
+
+#: mollom.module:400,409
+msgid "Report to Mollom as spam and unpublish"
+msgstr "スパムとしてMollomに報告し、非掲載にする"
+
+#: mollom.module:401,410
+msgid "Report to Mollom as spam and delete"
+msgstr "スパムとしてMollomに報告し、削除する"
+
+#: mollom.module:446
+msgid ""
+"The selected comments have been reported as inappropriate and are "
+"deleted."
+msgstr "選択したコメントを不適切として報告し、削除しました。"
+
+#: mollom.module:449
+msgid ""
+"The selected comments have been reported as inappropriate and are "
+"unpublished."
+msgstr "選択したコメントを不適切として報告し、非掲載にしました。"
+
+#: mollom.module:481
+msgid ""
+"The selected posts have been reported as inappropriate and are "
+"deleted."
+msgstr "選択した記事を不適切として報告し、削除しました。"
+
+#: mollom.module:484
+msgid ""
+"The selected posts have been reported as inappropriate and are "
+"unpublished."
+msgstr "選択した記事を不適切として報告し、非掲載にしました。"
+
+#: mollom.module:678
+msgid "Site usage statistics"
+msgstr "サイト利用統計"
+
+#: mollom.module:687
+msgid "Spam protection settings"
+msgstr "スパム防御設定"
+
+#: mollom.module:689
+msgid ""
+"Mollom can be used to block all types of spam received on your "
+"website's protected forms. Each form can be set to one of the "
+"following options:"
+msgstr ""
+
+#: mollom.module:690
+msgid ""
+"<strong>Text analysis and CAPTCHA backup</strong>: Mollom analyzes the "
+"data submitted on the form and presents a CAPTCHA challenge if "
+"necessary. This option is strongly recommended, as it takes full "
+"advantage of the Mollom anti-spam service to categorize your posts "
+"into ham (not spam) and spam."
+msgstr ""
+
+#: mollom.module:691
+msgid ""
+"<strong>CAPTCHA only</strong>: the form's data is not sent to Mollom "
+"for analysis, and a remotely-hosted CAPTCHA challenge is always "
+"presented. This option is useful when you wish to always display a "
+"CAPTCHA or want to send less data to the Mollom network. Note, "
+"however, that forms displayed with a CAPTCHA are never cached, so "
+"always displaying a CAPTCHA challenge may reduce performance."
+msgstr ""
+
+#: mollom.module:692
+msgid "<strong>No protection</strong>: Mollom is not used with this form."
+msgstr ""
+
+#: mollom.module:693
+msgid ""
+"Data is processsed and stored as explained in our <a "
+"href=\"http://mollom.com/service-agreement-free-subscriptions\">Web "
+"Service Privacy Policy</a>. It is your responsibility to provide any "
+"necessary notices and obtain the appropriate consent regarding "
+"Mollom's use of your data. For more information, see <a "
+"href=\"http://mollom.com/how-mollom-works\">How Mollom Works</a> and "
+"the <a href=\"http://mollom.com/faq\">Mollom FAQ</a>."
+msgstr ""
+
+#: mollom.module:703
+msgid "No protection"
+msgstr ""
+
+#: mollom.module:704
+msgid "CAPTCHA only"
+msgstr ""
+
+#: mollom.module:705
+msgid "Text analysis and CAPTCHA backup"
+msgstr ""
+
+#: mollom.module:710
+msgid "Protect @name"
+msgstr "@nameを保護"
+
+#: mollom.module:718
+msgid "Server settings"
+msgstr "サーバの設定"
+
+#: mollom.module:724
+msgid "Fallback strategy"
+msgstr "代替戦略"
+
+#: mollom.module:727
+msgid ""
+"Block all submissions of protected forms until the server problems are "
+"resolved"
+msgstr ""
+
+#: mollom.module:728
+msgid "Leave all forms unprotected and accept all submissions"
+msgstr "すべてのフォームから保護を外し、すべての送信を受け入れる"
+
+#: mollom.module:730
+msgid ""
+"When the Mollom servers are down or otherwise unreachable, no text "
+"analysis is performed and no CAPTCHAs are generated. If this occurs, "
+"your Drupal site will use the configured fallback strategy, and will "
+"either accept all submissions without spam checking, or block all "
+"submissions until the server or connection problems are resolved. "
+"Subscribers to <a href=\"@pricing\">Mollom Plus</a> receive access to "
+"<a href=\"@sla\">Mollom's high-availability backend "
+"infrastructure</a>, not available to free users, reducing potential "
+"downtime."
+msgstr ""
+
+#: mollom.module:736
+msgid "Mollom access keys"
+msgstr "Mollom アクセスキー"
+
+#: mollom.module:737
+msgid ""
+"In order to use Mollom, you need both a public and private key. To "
+"obtain your keys, simply <a "
+"href=\"http://mollom.com/user/register\">create a user account on "
+"mollom.com</a>, <a href=\"http://mollom.com/user\">login to "
+"mollom.com</a>, and <a "
+"href=\"http://mollom.com/site-manager/add\">create a subscription</a> "
+"for your site.  Once you created a subscription, your private and "
+"public access keys will be available from the <a "
+"href=\"http://mollom.com/site-manager\">site manager on "
+"mollom.com</a>. Copy-paste them in the form below, and you are ready "
+"to go."
+msgstr ""
+
+#: mollom.module:743
+msgid "Public key"
+msgstr "公開鍵"
+
+#: mollom.module:745
+msgid "The public key is used to uniquely identify you."
+msgstr "公開鍵であなたを特定します。"
+
+#: mollom.module:750
+msgid "Private key"
+msgstr "秘密鍵"
+
+#: mollom.module:752
+msgid ""
+"The private key is used to prevent someone from hijacking your "
+"requests. Similar to a password, it should never be shared with "
+"anyone."
+msgstr ""
+
+#: mollom.module:780
+msgid ""
+"The spam filter installed on this site is currently unavailable. Per "
+"site policy, we are unable to accept new submissions until that "
+"problem is resolved. Please try resubmitting the form in a couple of "
+"minutes."
+msgstr ""
+
+#: mollom.module:961
+msgid ""
+"Your submission has triggered the spam filter and will not be "
+"accepted."
+msgstr ""
+
+#: mollom.module:967
+msgid ""
+"We're sorry, but the spam filter thinks your submission could be spam. "
+"Please complete the CAPTCHA."
+msgstr ""
+
+#: mollom.module:997
+msgid ""
+"The CAPTCHA was not completed correctly. Please complete this new "
+"CAPTCHA and try again."
+msgstr ""
+
+#: mollom.module:1005
+msgid "The CAPTCHA field is required."
+msgstr "CAPTCHA欄は入力必須です。"
+
+#: mollom.module:1039
+msgid "Word verification"
+msgstr "文字列による認証"
+
+#: mollom.module:1045
+msgid ""
+"Type the characters you see in the picture above; if you can't read "
+"them, submit the form and a new image will be generated."
+msgstr "上記の画像の中にある文字を入力してください。もしも判別できなければ、フォームを送信して画像を新しく生成しなおしてください。"
+
+#: mollom.module:1060
+msgid ""
+"We tried to contact the Mollom servers but we encountered a network "
+"error. Please make sure that your web server can make outgoing HTTP "
+"requests."
+msgstr ""
+
+#: mollom.module:1063
+msgid ""
+"We contacted the Mollom servers to verify your keys: your keys do not "
+"exist or are no longer valid. Please visit the <em>Manage sites</em> "
+"page on the Mollom website again: <a "
+"href=\"@mollom-user\">@mollom-user</a>."
+msgstr ""
+
+#: mollom.module:1066
+msgid ""
+"We contacted the Mollom servers to verify your keys: the Mollom "
+"services are operating correctly. We are now blocking spam."
+msgstr ""
+
+#: mollom.module:783,958,962,968,996,1000,1084,1145,1156,1159,1183,0
+msgid "mollom"
+msgstr "mollom"
+
+#: mollom.module:783
+msgid ""
+"All Mollom servers were unavailable: %servers, last error: @errno - "
+"%error_msg"
+msgstr ""
+"全てのMollomサーバが利用不能です: %servers "
+"最近のエラー: @errno - %error_msg"
+
+#: mollom.module:958
+msgid "Ham: %message"
+msgstr "ハム: %message"
+
+#: mollom.module:962
+msgid "Spam: %message"
+msgstr "スパム: %message"
+
+#: mollom.module:968
+msgid "Unsure: %message"
+msgstr "不明: %message"
+
+#: mollom.module:996
+msgid "Incorrect CAPTCHA"
+msgstr "不正なCAPTCHA"
+
+#: mollom.module:1000
+msgid "Correct CAPTCHA"
+msgstr "正しいCAPTCHA"
+
+#: mollom.module:1084
+msgid "Error @errno: %server - %message - mollom.getServerList"
+msgstr "エラー @errno: %server - %message - mollom.getServerList"
+
+#: mollom.module:1145
+msgid "The list of available Mollom servers was refreshed: @servers."
+msgstr ""
+"利用可能なMollomサーバのリストが更新されました: "
+"@servers"
+
+#: mollom.module:1156
+msgid ""
+"The Mollom server %server asked to use the next Mollom server in the "
+"list: %next."
+msgstr ""
+"Mollomサーバ %server "
+"は、リストで次に挙げられているMollomサーバの使用を要求しました: "
+"%next"
+
+#: mollom.module:1159
+msgid "Error @errno from %server: %message - %method - <pre>@data</pre>"
+msgstr "%server のエラー @errno : %message - %method - <pre>@data</pre>"
+
+#: mollom.module:1183
+msgid ""
+"No Mollom servers could be reached or all servers returned an error -- "
+"the server list was emptied."
+msgstr ""
+"Mollomサーバに到達できなかったか、あるいはすべてのサーバがエラーを返しました "
+"-- サーバリストは空です。"
+
+#: mollom.module:118
+msgid "administer mollom"
+msgstr ""
+
+#: mollom.module:119
+msgid "post with no checking"
+msgstr "チェック無しでの投稿"
+
+#: mollom.module:73,80,87
+msgid "Report and delete"
+msgstr "報告と削除"
+
+#: mollom.module:94
+msgid "Mollom is a web service that helps you manage your community."
+msgstr "Mollomは、あなたのコミュニティ管理に役立つウェブサービスです。"
+
+#: mollom.module:95; mollom.info:0
+msgid "Mollom"
+msgstr "Mollom"
+
+#: mollom.module:103
+msgid "Request CAPTCHA"
+msgstr "CAPTCHAを要求"
+
+#: mollom.info:0
+msgid "Protects against comment and contact form spam."
+msgstr "コメントやコンタクトフォームに対するスパムを防ぎます。"
+

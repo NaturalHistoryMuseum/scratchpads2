@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Database table creation for biblio_rtf module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function biblio_rtf_install() {
+}
+
+function biblio_rtf_uninstall() {
+}
+
+function biblio_rtf_enable() {
+  biblio_rtf_set_system_weight();
+}
+
+function biblio_rtf_set_system_weight() {
+  db_update('system')
+    ->fields(array('weight' => 22))
+    ->condition('name', 'biblio_rtf')
+    ->execute();
+}
+

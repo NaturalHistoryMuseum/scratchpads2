@@ -1,0 +1,712 @@
+# $Id: mollom.pot,v 1.4 2010/08/21 21:50:59 razorraser Exp $
+# LANGUAGE translation of mollom (7.x-1.x-dev)
+# Copyright (c) 2010
+# Generated from files:
+#  mollom.admin.inc,v 1.32 2010/08/10 19:33:51 dries
+#  mollom.module,v 1.67 2010/08/16 02:26:08 dries
+#  mollom.pages.inc,v 1.14 2010/08/04 03:58:46 dries
+#  mollom.inc,v 1.5 2010/08/16 02:26:08 dries
+#  mollom.info,v 1.5 2009/12/22 08:10:34 dries
+#  mollom.install,v 1.24 2010/08/10 19:33:51 dries
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mollom (7.x-1.x-dev)\n"
+"POT-Creation-Date: 2010-08-21 23:40+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Language-Team: LANGUAGE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: mollom.admin.inc:14
+msgid "None"
+msgstr ""
+
+#: mollom.admin.inc:144,15
+msgid "CAPTCHA"
+msgstr ""
+
+#: mollom.admin.inc:141,16
+msgid "Text analysis"
+msgstr ""
+
+#: mollom.admin.inc:291,118,20
+msgid "Form"
+msgstr ""
+
+#: mollom.admin.inc:148,21
+msgid "Protection mode"
+msgstr ""
+
+#: mollom.admin.inc:22
+msgid "Operations"
+msgstr ""
+
+#: mollom.module:212; mollom.admin.inc:31
+msgid "Configure"
+msgstr ""
+
+#: mollom.admin.inc:32
+msgid "Unprotect"
+msgstr ""
+
+#: mollom.module:204; mollom.admin.inc:40
+msgid "Add form"
+msgstr ""
+
+#: mollom.admin.inc:61
+msgid "All available forms are protected already."
+msgstr ""
+
+#: mollom.admin.inc:124
+msgid "Next"
+msgstr ""
+
+#: mollom.admin.inc:130
+msgid "Configure %form-title protection"
+msgstr ""
+
+#: mollom.admin.inc:162
+msgid "Analyze text for"
+msgstr ""
+
+#: mollom.admin.inc:336,164
+msgid "Spam"
+msgstr ""
+
+#: mollom.admin.inc:337,165
+msgid "Profanity"
+msgstr ""
+
+#: mollom.admin.inc:196
+msgid "Text fields to analyze"
+msgstr ""
+
+#: mollom.admin.inc:209
+msgid "Save"
+msgstr ""
+
+#: mollom.pages.inc:102; mollom.admin.inc:455,216
+msgid "Cancel"
+msgstr ""
+
+#: mollom.admin.inc:246
+msgid "At least one text analysis check is required."
+msgstr ""
+
+#: mollom.admin.inc:249
+msgid "At least one field is required for text analysis."
+msgstr ""
+
+#: mollom.admin.inc:275
+msgid "The form protection has been added."
+msgstr ""
+
+#: mollom.admin.inc:278
+msgid "The form protection has been updated."
+msgstr ""
+
+#: mollom.admin.inc:300
+msgid "Are you sure you want to unprotect this form?"
+msgstr ""
+
+#: mollom.admin.inc:302
+msgid "Mollom will no longer protect this form from spam."
+msgstr ""
+
+#: mollom.module:135; mollom.admin.inc:319
+msgid "Mollom blacklist"
+msgstr ""
+
+#: mollom.admin.inc:331
+msgid "All fields"
+msgstr ""
+
+#: mollom.admin.inc:332
+msgid "Links"
+msgstr ""
+
+#: mollom.admin.inc:333
+msgid "Author name"
+msgstr ""
+
+#: mollom.admin.inc:338
+msgid "Unwanted"
+msgstr ""
+
+#: mollom.admin.inc:354
+msgid "delete"
+msgstr ""
+
+#: mollom.admin.inc:385
+msgid "Add"
+msgstr ""
+
+#: mollom.admin.inc:398
+msgid "The entry was added to the blacklist."
+msgstr ""
+
+#: mollom.admin.inc:401
+msgid "An error occurred upon trying to add the text to the blacklist."
+msgstr ""
+
+#: mollom.admin.inc:411
+msgid "Context"
+msgstr ""
+
+#: mollom.admin.inc:412
+msgid "Text"
+msgstr ""
+
+#: mollom.admin.inc:413
+msgid "Reason"
+msgstr ""
+
+#: mollom.admin.inc:452
+msgid "Are you sure you want to delete %text from the blacklist?"
+msgstr ""
+
+#: mollom.pages.inc:101; mollom.admin.inc:454
+msgid "This action cannot be undone."
+msgstr ""
+
+#: mollom.module:235; mollom.pages.inc:102; mollom.admin.inc:455
+msgid "Delete"
+msgstr ""
+
+#: mollom.admin.inc:466
+msgid "The entry was removed from the blacklist."
+msgstr ""
+
+#: mollom.admin.inc:469
+msgid "An error occurred upon trying to remove the item from the blacklist."
+msgstr ""
+
+#: mollom.admin.inc:493
+msgid ""
+"We contacted the Mollom servers to verify your keys: the Mollom "
+"services are operating correctly. We are now blocking spam."
+msgstr ""
+
+#: mollom.admin.inc:499
+msgid "Access keys"
+msgstr ""
+
+#: mollom.admin.inc:500
+msgid ""
+"To use Mollom, you need a public and private key. To obtain your keys, "
+"<a href=\"@mollom-login-url\">register and login on mollom.com</a>, "
+"and <a href=\"@mollom-manager-add-url\">create a subscription</a> for "
+"your site. Once you created a subscription, copy your private and "
+"public access keys from the <a href=\"@mollom-manager-url\">site "
+"manager</a> into the form fields below, and you are ready to go."
+msgstr ""
+
+#: mollom.admin.inc:513
+msgid "Public key"
+msgstr ""
+
+#: mollom.admin.inc:515
+msgid "Used to uniquely identify you."
+msgstr ""
+
+#: mollom.admin.inc:519
+msgid "Private key"
+msgstr ""
+
+#: mollom.admin.inc:521
+msgid ""
+"Used to prevent someone else from hijacking your requests. Similar to "
+"a password, it should never be shared with anyone."
+msgstr ""
+
+#: mollom.admin.inc:526
+msgid "Fallback strategy for protected forms"
+msgstr ""
+
+#: mollom.admin.inc:530
+msgid "Block all form submissions"
+msgstr ""
+
+#: mollom.admin.inc:531
+msgid "Accept all form submissions"
+msgstr ""
+
+#: mollom.admin.inc:533
+msgid ""
+"In case the Mollom services are unreachable, no text analysis is "
+"performed and no CAPTCHAs are generated. If this occurs, your site "
+"will use the configured fallback strategy until the server problems "
+"are resolved. Subscribers to <a href=\"@pricing-url\">Mollom Plus</a> "
+"receive access to <a href=\"@sla-url\">Mollom's high-availability "
+"backend infrastructure</a>, not available to free users, reducing "
+"potential downtime."
+msgstr ""
+
+#: mollom.admin.inc:541
+msgid "Link to Mollom's privacy policy on forms protected by textual analysis"
+msgstr ""
+
+#: mollom.admin.inc:544
+msgid ""
+"Displays a link to the recommended <a "
+"href=\"@privacy-policy-url\">privacy policy on mollom.com</a> on all "
+"forms that are protected via <a href=\"@help-url\">textual "
+"analysis</a>. When disabling this option, you are required to inform "
+"visitors about data privacy through other means, as stated in the <a "
+"href=\"@terms-of-service-url\">terms of service</a> applying to your "
+"subscription."
+msgstr ""
+
+#: mollom.admin.inc:553
+msgid "Enable testing mode"
+msgstr ""
+
+#: mollom.admin.inc:555
+msgid ""
+"Submitting \"ham\", \"unsure\", or \"spam\" on a protected form will "
+"trigger the corresponding behavior, and similarly, word verifications "
+"will only respond to \"correct\" and \"incorrect\", instead of the "
+"actual characters asked for. This option should be disabled in "
+"production environments."
+msgstr ""
+
+#: mollom.admin.inc:580
+msgid "Statistics"
+msgstr ""
+
+#: mollom.module:1574,1374,1367,1286,1280,1275,1269,1094; mollom.inc:79
+msgid "mollom"
+msgstr ""
+
+#: mollom.inc:79
+msgid "Error @errno: %server - %message - mollom.getServerList"
+msgstr ""
+
+#: mollom.pages.inc:81
+msgid "Optionally report this to Mollom"
+msgstr ""
+
+#: mollom.pages.inc:83
+msgid "Don't send feedback to Mollom"
+msgstr ""
+
+#: mollom.pages.inc:84
+msgid "Report as spam or unsolicited advertising"
+msgstr ""
+
+#: mollom.pages.inc:85
+msgid "Report as obscene, violent or profane content"
+msgstr ""
+
+#: mollom.pages.inc:86
+msgid "Report as low-quality content or writing"
+msgstr ""
+
+#: mollom.pages.inc:87
+msgid "Report as unwanted, taunting or off-topic content"
+msgstr ""
+
+#: mollom.pages.inc:90
+msgid ""
+"Mollom is a web service that helps you moderate your site's content: "
+"see <a href=\"http://mollom.com\">http://mollom.com</a> for more "
+"information. By sending feedback to Mollom, you teach Mollom about the "
+"content you like and dislike, allowing Mollom to do a better job "
+"helping you moderate your site's content. If you want to report "
+"multiple posts at once, you can use Mollom's bulk operations on the "
+"content and comment administration pages."
+msgstr ""
+
+#: mollom.pages.inc:99
+msgid ""
+"Are you sure you want to delete and report the content as "
+"inappropriate?"
+msgstr ""
+
+#: mollom.module:506; mollom.pages.inc:127
+msgid "The content was successfully reported as inappropriate."
+msgstr ""
+
+#: mollom.module:95
+msgid ""
+"All listed forms below are protected by Mollom, unless users are able "
+"to <a href=\"@permissions-url\">bypass Mollom's protection</a>."
+msgstr ""
+
+#: mollom.module:100
+msgid ""
+"You can <a href=\"@add-form-url\">add a form</a> to protect, configure "
+"already protected forms, or remove the protection."
+msgstr ""
+
+#: mollom.module:108
+msgid ""
+"Mollom automatically blocks unwanted content and learns from all "
+"participating sites to improve its filters. On top of automatic "
+"filtering, you can define a custom blacklist."
+msgstr ""
+
+#: mollom.module:113
+msgid ""
+"Allowing users to react, participate and contribute while still "
+"keeping your site's content under control can be a huge challenge. "
+"Mollom is a web service that helps you identify content quality and, "
+"more importantly, helps you stop spam. When content moderation becomes "
+"easier, you have more time and energy to interact with your web "
+"community. More information about Mollom is available on the <a "
+"href=\"@mollom-website\">Mollom website</a> or in the <a "
+"href=\"@mollom-faq\">Mollom FAQ</a>."
+msgstr ""
+
+#: mollom.module:120
+msgid ""
+"Mollom can be used to block all types of spam received on your "
+"website's protected forms. Each form can be set to one of the "
+"following options:"
+msgstr ""
+
+#: mollom.module:122
+msgid ""
+"<strong>Text analysis and CAPTCHA backup</strong>: Mollom analyzes the "
+"data submitted on the form and presents a CAPTCHA challenge if "
+"necessary. This option is strongly recommended, as it takes full "
+"advantage of the Mollom anti-spam service to categorize your posts "
+"into ham (not spam) and spam."
+msgstr ""
+
+#: mollom.module:124
+msgid ""
+"<strong>CAPTCHA only</strong>: the form's data is not sent to Mollom "
+"for analysis, and a remotely-hosted CAPTCHA challenge is always "
+"presented. This option is useful when you wish to always display a "
+"CAPTCHA or want to send less data to the Mollom network. Note, "
+"however, that forms displayed with a CAPTCHA are never cached, so "
+"always displaying a CAPTCHA challenge may reduce performance."
+msgstr ""
+
+#: mollom.module:126
+msgid ""
+"Data is processed and stored as explained in our <a "
+"href=\"@mollom-privacy\">Web Service Privacy Policy</a>. It is your "
+"responsibility to provide any necessary notices and obtain the "
+"appropriate consent regarding Mollom's use of your data. For more "
+"information, see <a href=\"@mollom-works\">How Mollom Works</a> and "
+"the <a href=\"@mollom-faq\">Mollom FAQ</a>."
+msgstr ""
+
+#: mollom.module:133
+msgid ""
+"If Mollom may not block a spam post for any reason, you can help to "
+"train and improve its filters. To do so, choose the appropriate "
+"feedback option to report to Mollom when deleting the post on your "
+"site."
+msgstr ""
+
+#: mollom.module:137
+msgid ""
+"Mollom's filters are shared and trained globally over all "
+"participating sites. Due to this, unwanted content might still be "
+"accepted on your site, even after sending feedback to Mollom. By using "
+"the site-specific blacklist, the filters can be customized to your "
+"specific needs. Each entry specifies a reason for why it has been "
+"blacklisted, which further helps in improving Mollom's automated "
+"filtering."
+msgstr ""
+
+#: mollom.module:140
+msgid ""
+"All blacklist entries are applied to a context: the entire submitted "
+"post, or only links in the post. When limiting the context to links, "
+"both the link URL and the link text is taken into account."
+msgstr ""
+
+#: mollom.module:143
+msgid ""
+"If a blacklist entry contains multiple words, various combinations "
+"will be matched. For example, when adding "
+"\"<code>replica&nbsp;watches</code>\" limited to links, the following "
+"links will be blocked:"
+msgstr ""
+
+#: mollom.module:153
+msgid ""
+"The blacklist is optional. There is no whitelist, i.e., if a blacklist "
+"entry is matched in a post, it overrides any other filter result and "
+"the post will not be accepted. Blacklisting potentially ambiguous "
+"words should be avoided."
+msgstr ""
+
+#: mollom.module:343
+msgid "Administer Mollom-protected forms and Mollom settings"
+msgstr ""
+
+#: mollom.module:346
+msgid "Bypass Mollom protection on forms"
+msgstr ""
+
+#: mollom.module:478
+msgid "Report as inappropriate"
+msgstr ""
+
+#: mollom.module:480
+msgid "Do no report"
+msgstr ""
+
+#: mollom.module:481
+msgid "Spam, unsolicited advertising"
+msgstr ""
+
+#: mollom.module:482
+msgid "Obscene, violent, profane"
+msgstr ""
+
+#: mollom.module:483
+msgid "Low-quality"
+msgstr ""
+
+#: mollom.module:484
+msgid "Unwanted, taunting, off-topic"
+msgstr ""
+
+#: mollom.module:487
+msgid ""
+"Sending feedback to <a href=\"@mollom-url\">Mollom</a> improves the "
+"automated moderation of new submissions."
+msgstr ""
+
+#: mollom.module:571
+msgid ""
+"Visit the <a href=\"@settings-url\">Mollom settings page</a> to "
+"disable it."
+msgstr ""
+
+#: mollom.module:575
+msgid "Mollom testing mode is still enabled. !admin-message"
+msgstr ""
+
+#: mollom.module:620
+msgid ""
+"By submitting this form, you accept the <a "
+"href=\"@privacy-policy-url\">Mollom privacy policy</a>."
+msgstr ""
+
+#: mollom.module:1085
+msgid ""
+"The spam filter installed on this site is currently unavailable. Per "
+"site policy, we are unable to accept new submissions until that "
+"problem is resolved. Please try resubmitting the form in a couple of "
+"minutes."
+msgstr ""
+
+#: mollom.module:1184
+msgid "Word verification"
+msgstr ""
+
+#: mollom.module:1187
+msgid ""
+"Type the characters you see in the picture above; if you can't read "
+"them, submit the form and a new image will be generated. Not case "
+"sensitive."
+msgstr ""
+
+#: mollom.module:1268
+msgid ""
+"Your submission has triggered the profanity filter and will not be "
+"accepted until the inappropriate language is removed."
+msgstr ""
+
+#: mollom.module:1279
+msgid ""
+"Your submission has triggered the spam filter and will not be "
+"accepted."
+msgstr ""
+
+#: mollom.module:1285
+msgid "To complete this form, please complete the word verification below."
+msgstr ""
+
+#: mollom.module:1373
+msgid ""
+"The word verification was not completed correctly. Please complete "
+"this new word verification and try again."
+msgstr ""
+
+#: mollom.info:0; mollom.module:192,1655
+msgid "Mollom"
+msgstr ""
+
+#: mollom.module:1656
+msgid "Mollom CAPTCHA or privacy policy link"
+msgstr ""
+
+#: mollom.module:1708
+msgid "verify using image"
+msgstr ""
+
+#: mollom.module:1715
+msgid "Type the characters you see in this picture."
+msgstr ""
+
+#: mollom.module:1717
+msgid "verify using audio"
+msgstr ""
+
+#: mollom.module:1751
+msgid "Report as inappropriate: @link"
+msgstr ""
+
+#: mollom.module:1789,1771
+msgid "@name form"
+msgstr ""
+
+#: mollom.module:1902,1833
+msgid "The posts were successfully reported as inappropriate."
+msgstr ""
+
+#: mollom.module:1865,1853
+msgid "Comment form"
+msgstr ""
+
+#: mollom.module:2044,2026,1870
+msgid "Subject"
+msgstr ""
+
+#: mollom.module:1872
+msgid "Comment"
+msgstr ""
+
+#: mollom.module:1941,1922
+msgid "User registration form"
+msgstr ""
+
+#: mollom.module:1955,1927
+msgid "User password request form"
+msgstr ""
+
+#: mollom.module:1986
+msgid "The users were successfully reported."
+msgstr ""
+
+#: mollom.module:2021,2006
+msgid "Site-wide contact form"
+msgstr ""
+
+#: mollom.module:2039,2009
+msgid "User contact form"
+msgstr ""
+
+#: mollom.module:2045,2027
+msgid "Message"
+msgstr ""
+
+#: mollom.module:1094
+msgid "All servers unavailable: %servers, last error: @errno - %error_msg"
+msgstr ""
+
+#: mollom.module:1269
+msgid "Profanity: <pre>@message</pre>Result: <pre>@result</pre>"
+msgstr ""
+
+#: mollom.module:1275
+msgid "Ham: <pre>@message</pre>Result: <pre>@result</pre>"
+msgstr ""
+
+#: mollom.module:1280
+msgid "Spam: <pre>@message</pre>Result: <pre>@result</pre>"
+msgstr ""
+
+#: mollom.module:1286
+msgid "Unsure: <pre>@message</pre>Result: <pre>@result</pre>"
+msgstr ""
+
+#: mollom.module:1367
+msgid "Correct CAPTCHA: <pre>@data<pre>"
+msgstr ""
+
+#: mollom.module:1374
+msgid "Incorrect CAPTCHA: <pre>@data<pre>"
+msgstr ""
+
+#: mollom.module:1574
+msgid "Reported session id %session as %feedback."
+msgstr ""
+
+#: mollom.module:182
+msgid "Report to Mollom"
+msgstr ""
+
+#: mollom.module:193
+msgid "Mollom is a web service that helps you manage your community."
+msgstr ""
+
+#: mollom.module:199
+msgid "Forms"
+msgstr ""
+
+#: mollom.module:219
+msgid "Unprotect form"
+msgstr ""
+
+#: mollom.module:227
+msgid "Blacklist"
+msgstr ""
+
+#: mollom.module:228
+msgid "Configure blacklist."
+msgstr ""
+
+#: mollom.module:243
+msgid "Settings"
+msgstr ""
+
+#: mollom.module:244
+msgid "Configure Mollom keys and global settings."
+msgstr ""
+
+#: mollom.module:253
+msgid "Mollom statistics"
+msgstr ""
+
+#: mollom.module:254
+msgid "Reports and usage statistics for the Mollom module."
+msgstr ""
+
+#: mollom.install:43
+msgid ""
+"Visit the <a href=\"@settings-url\">Mollom settings page</a> to "
+"configure your keys."
+msgstr ""
+
+#: mollom.install:50
+msgid "Not configured"
+msgstr ""
+
+#: mollom.install:51
+msgid "The Mollom API keys are not configured yet. !admin-message"
+msgstr ""
+
+#: mollom.install:57
+msgid "Invalid"
+msgstr ""
+
+#: mollom.install:58
+msgid "The configured Mollom API keys are invalid. !admin-message"
+msgstr ""
+
+#: mollom.install:64
+msgid "Network error"
+msgstr ""
+
+#: mollom.install:65
+msgid ""
+"The Mollom servers could not be contacted. Please make sure that your "
+"web server can make outgoing HTTP requests."
+msgstr ""
+
+#: mollom.info:0
+msgid "Protects forms against spam."
+msgstr ""
+

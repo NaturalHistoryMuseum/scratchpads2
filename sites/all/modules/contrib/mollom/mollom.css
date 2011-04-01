@@ -1,0 +1,11 @@
+/* $Id: mollom.css,v 1.5 2010/09/14 18:43:50 dries Exp $ */
+
+#edit-mollom-captcha {
+  display: block;
+}
+
+/* Help themes to properly display Mollom's log messages. */
+.dblog-event pre,
+#simpletest-result-form table td {
+  white-space: pre-wrap;
+}

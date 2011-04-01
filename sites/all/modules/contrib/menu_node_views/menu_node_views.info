@@ -1,0 +1,6 @@
+name = Menu Node Views
+description = Enables Views to leverage menu hierarchies when displaying nodes.
+dependencies[] = menu_node
+dependencies[] = views
+core = 7.x
+files[] = menu_node_views.views.inc

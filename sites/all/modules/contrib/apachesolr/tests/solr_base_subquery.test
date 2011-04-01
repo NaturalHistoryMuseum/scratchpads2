@@ -1,0 +1,58 @@
+<?php
+
+class DrupalSolrSubQueryTests extends DrupalWebTestCase {
+  function getInfo() {
+    return array('name' => 'Subquery handling',
+      'description' => 'Tests for subqueries.',
+      'group' => 'ApacheSolr');
+  }
+
+  function setUp() {
+    parent::setUp('search', 'apachesolr');
+  }
+
+  function testSubQueriesQuery() {
+    $query1 = apachesolr_drupal_query('foo');
+    $query2 = apachesolr_drupal_query('bar');
+    $query3 = apachesolr_drupal_query('baz');
+
+    $query1->add_subquery($query2);
+    $this->assertEqual($query1->get_query_basic(), 'foo AND (bar)', 'foo AND (bar)');
+
+    $query1->remove_subquery($query2);
+    $this->assertEqual($query1->get_query_basic(), 'foo', t('Remove bar query'));
+
+    $query1->add_subquery($query2);
+    $query1->add_subquery($query2);
+    $query1->add_subquery($query2);
+    $this->assertEqual($query1->get_query_basic(), 'foo AND (bar)', t('Add bar several times; should only appear once.'));
+
+    $query1->remove_subquery($query2);
+    $query1->add_subquery($query2, '', 'OR');
+    $this->assertEqual($query1->get_query_basic(), 'foo OR (bar)', 'foo OR (bar)');
+
+    $query1->add_subquery($query3);
+    $query1->remove_subquery($query2);
+    $this->assertEqual($query1->get_query_basic(), 'foo AND (baz)', 'foo AND (baz)');
+  }
+
+  function testSubQueriesFilter() {
+    $query1 = apachesolr_drupal_query('', 'is_uid:1 tid:5');
+    $query2 = apachesolr_drupal_query('', 'is_uid:10');
+    $query3 = apachesolr_drupal_query('', 'is_uid:2');
+    $query4 = apachesolr_drupal_query('', 'label:baz');
+
+    $query2->add_subquery($query1, 'OR');
+    $queryvalues = $query2->get_url_queryvalues();
+    $this->assertEqual($queryvalues, array('filters' => 'is_uid:10 (is_uid:1 OR tid:5)'));
+
+    $query3->add_subquery($query1, 'AND');
+    $query3->add_subquery($query4);
+    $queryvalues = $query3->get_url_queryvalues();
+    $this->assertEqual($queryvalues, array('filters' => 'is_uid:2 (is_uid:1 AND tid:5)'));
+
+    $query3->remove_subquery($query1);
+    $queryvalues = $query3->get_url_queryvalues();
+    $this->assertEqual($queryvalues, array('filters' => 'is_uid:2 (label:baz)'));
+  }
+}

@@ -1,0 +1,1560 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:sch="http://www.ascc.net/xml/schematron" xmlns:cs="http://purl.org/net/xbiblio/csl" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <!-- CSL schema metadata -->
+  <dc:title>Citation Style Language</dc:title>
+  <dc:creator>Bruce D'Arcus</dc:creator>
+  <dc:creator>Simon Kornblith</dc:creator>
+  <dc:contributor>Frank Bennett</dc:contributor>
+  <dc:contributor>Rintze Zelle</dc:contributor>
+  <dc:copyright>Bruce D'Arcus and Simon Kornblith, 2007-2010</dc:copyright>
+  <dc:rights>Permission to freely use, copy and distribute.</dc:rights>
+  <dc:description>Citation Style Language (CSL) schema for describing bibliographic and citation formatting.</dc:description>
+  <start>
+    <a:documentation>Root element. cs:style for CSL styles, cs:locale for locales-xx-XX.xml files</a:documentation>
+    <choice>
+      <ref name="style"/>
+      <ref name="locale"/>
+    </choice>
+  </start>
+  <include href="csl-terms.rng">
+    <a:documentation>Subparts of the CSL schema</a:documentation>
+  </include>
+  <include href="csl-types.rng"/>
+  <include href="csl-variables.rng"/>
+  <include href="csl-categories.rng"/>
+  <!-- Embedded Schematron rules to detect undefined macro-calls in cs:text, cs:key -->
+  <sch:ns uri="http://purl.org/net/xbiblio/csl" prefix="cs"/>
+  <sch:pattern name="Non-existing macros">
+    <sch:rule context="//cs:text[@macro]">
+      <sch:assert test="@macro = /cs:style/cs:macro/@name">This macro call has no corresponding macro.</sch:assert>
+    </sch:rule>
+    <sch:rule context="//cs:key[@macro]">
+      <sch:assert test="@macro = /cs:style/cs:macro/@name">This macro call has no corresponding macro.</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+  <div>
+    <a:documentation>The CSL data model consists of resources and variables. Primary resources are the 
+citation object itself, as well as related agents and events. Variables are 
+attributes of the resource: titles, dates, volume numbers, and so forth. From the 
+perspective of CSL, resources templates involve a list of variables. By contrast, 
+a variable can be accessed directly.
+In addition, CSL also contains structures for macros and parameter options.</a:documentation>
+    <define name="style">
+      <element name="cs:style">
+        <attribute name="version">
+          <a:documentation>Indicates with which version of the CSL schema the style is compatible</a:documentation>
+          <value>1.0</value>
+        </attribute>
+        <optional>
+          <attribute name="default-locale">
+            <a:documentation>Default style locale (optional)</a:documentation>
+            <data type="language"/>
+          </attribute>
+        </optional>
+        <attribute name="class">
+          <a:documentation>Style type (in-text citations or note-based)</a:documentation>
+          <choice>
+            <value>in-text</value>
+            <value>note</value>
+          </choice>
+        </attribute>
+        <ref name="style-options"/>
+        <ref name="info"/>
+        <optional>
+          <interleave>
+            <zeroOrMore>
+              <ref name="style-locale"/>
+            </zeroOrMore>
+            <zeroOrMore>
+              <ref name="macro"/>
+            </zeroOrMore>
+            <ref name="citation"/>
+            <optional>
+              <ref name="bibliography"/>
+            </optional>
+          </interleave>
+        </optional>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Style Metadata</xhtml:h2>
+    </a:documentation>
+    <define name="info">
+      <a:documentation>The Content model for CSL metadata is borrowed from Atom.</a:documentation>
+      <element name="cs:info">
+        <interleave>
+          <zeroOrMore>
+            <ref name="info-author"/>
+          </zeroOrMore>
+          <zeroOrMore>
+            <ref name="info-category"/>
+          </zeroOrMore>
+          <zeroOrMore>
+            <ref name="info-contributor"/>
+          </zeroOrMore>
+          <ref name="info-id"/>
+          <zeroOrMore>
+            <ref name="info-issn"/>
+          </zeroOrMore>
+          <optional>
+            <ref name="info-issnl"/>
+          </optional>
+          <zeroOrMore>
+            <ref name="info-link"/>
+          </zeroOrMore>
+          <optional>
+            <ref name="info-published"/>
+          </optional>
+          <optional>
+            <ref name="info-rights"/>
+          </optional>
+          <optional>
+            <ref name="info-summary"/>
+          </optional>
+          <ref name="info-title"/>
+          <ref name="info-updated"/>
+        </interleave>
+      </element>
+    </define>
+    <define name="info-author">
+      <element name="cs:author">
+        <ref name="info-contributor-pattern"/>
+      </element>
+    </define>
+    <define name="info-contributor">
+      <element name="cs:contributor">
+        <ref name="info-contributor-pattern"/>
+      </element>
+    </define>
+    <define name="info-contributor-pattern">
+      <interleave>
+        <element name="cs:name">
+          <text/>
+        </element>
+        <optional>
+          <element name="cs:email">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="cs:uri">
+            <data type="anyURI"/>
+          </element>
+        </optional>
+      </interleave>
+    </define>
+    <define name="info-category">
+      <a:documentation>The category element may be used to specify the citation format of the
+style (using the citation-format attribute) and the fields or disciplines
+for which the style is relevant (using the field attribute).</a:documentation>
+      <element name="cs:category">
+        <choice>
+          <attribute name="citation-format">
+            <ref name="info-format-categories"/>
+          </attribute>
+          <attribute name="field">
+            <ref name="info-field-categories"/>
+          </attribute>
+        </choice>
+      </element>
+    </define>
+    <define name="info-id">
+      <a:documentation>As in Atom, the cs:id element is a required URI that is globally-unique
+and persistant. To allow styles to be automatically updated, the URI of a
+style should not change once assigned. Ideally, the URI resolves to the
+correct CSL file: it should preferably point to the CSL style itself in
+case of independent styles, and to the independent-parent style in case
+of dependent styles.</a:documentation>
+      <element name="cs:id">
+        <data type="anyURI"/>
+      </element>
+    </define>
+    <define name="info-link">
+      <element name="cs:link">
+        <attribute name="href">
+          <data type="anyURI"/>
+        </attribute>
+        <attribute name="rel">
+          <a:documentation>For transformation to Atom, the rel values should be expanded to
+include the base URI &lt;http://purl.org/net/xbiblio/csl/relations#&gt;.</a:documentation>
+          <choice>
+            <value>self</value>
+            <a:documentation>The URI of the CSL style itself. Used for automatic style
+updating.</a:documentation>
+            <value>independent-parent</value>
+            <a:documentation>The CSL style URI whose configuration content should be
+used for processing. Required for dependent styles.</a:documentation>
+            <value>template</value>
+            <a:documentation>The CSL style URI from which the current style is derived.</a:documentation>
+            <value>documentation</value>
+            <a:documentation>A documentation URI for the style.</a:documentation>
+          </choice>
+        </attribute>
+        <ref name="info-text"/>
+      </element>
+    </define>
+    <define name="info-published">
+      <element name="cs:published">
+        <data type="dateTime"/>
+      </element>
+    </define>
+    <define name="info-rights">
+      <element name="cs:rights">
+        <ref name="info-text"/>
+      </element>
+    </define>
+    <define name="info-summary">
+      <element name="cs:summary">
+        <ref name="info-text"/>
+      </element>
+    </define>
+    <define name="info-title">
+      <element name="cs:title">
+        <ref name="info-text"/>
+      </element>
+    </define>
+    <define name="info-text">
+      <optional>
+        <attribute name="xml:lang">
+          <data type="language"/>
+        </attribute>
+      </optional>
+      <text/>
+    </define>
+    <define name="info-issn">
+      <a:documentation>For journal-dedicated styles the journal's ISSNs or ISSN-L may be included.
+A valid ISSN(-L) consists of: four digits, a hyphen, three digits, and a 
+check digit, which can be a numeral digit or a roman X, e.g. "1234-1231".</a:documentation>
+      <element name="cs:issn">
+        <data type="string">
+          <param name="pattern">\d{4}\-\d{3}(\d|x|X)</param>
+        </data>
+      </element>
+    </define>
+    <define name="info-issnl">
+      <element name="cs:issnl">
+        <data type="string">
+          <param name="pattern">\d{4}\-\d{3}(\d|x|X)</param>
+        </data>
+      </element>
+    </define>
+    <define name="info-updated">
+      <a:documentation>a required update date-time stamp; for example, 2007-10-26T21:32:52+02:00</a:documentation>
+      <element name="cs:updated">
+        <data type="dateTime"/>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Localization</xhtml:h2>
+    </a:documentation>
+    <define name="locale">
+      <a:documentation>Describes the structure of standalone locale files</a:documentation>
+      <element name="cs:locale">
+        <attribute name="xml:lang">
+          <a:documentation>Specifies the locale of the locale file.</a:documentation>
+          <data type="language"/>
+        </attribute>
+        <attribute name="version">
+          <a:documentation>Indicates with which version of the CSL schema the locale file is compatible</a:documentation>
+          <value>1.0</value>
+        </attribute>
+        <interleave>
+          <ref name="localized-terms"/>
+          <oneOrMore>
+            <ref name="localized-dates"/>
+          </oneOrMore>
+          <ref name="localized-options"/>
+        </interleave>
+      </element>
+    </define>
+    <define name="style-locale">
+      <a:documentation>In styles, cs:locale can be used to override localized terms, dates and options.</a:documentation>
+      <element name="cs:locale">
+        <optional>
+          <attribute name="xml:lang">
+            <a:documentation>Specifies the locale to override. A cs:locale element without the
+xml:lang attribute can also be used: it overrides the content of
+all locales, but is in turn overridden by cs:locale elements with
+the xml:lang attribute.</a:documentation>
+            <data type="language"/>
+          </attribute>
+        </optional>
+        <interleave>
+          <optional>
+            <ref name="localized-terms"/>
+          </optional>
+          <zeroOrMore>
+            <ref name="localized-dates"/>
+          </zeroOrMore>
+          <optional>
+            <ref name="localized-options"/>
+          </optional>
+        </interleave>
+      </element>
+    </define>
+    <define name="localized-terms">
+      <element name="cs:terms">
+        <oneOrMore>
+          <choice>
+            <ref name="simple-term"/>
+            <ref name="compound-term"/>
+          </choice>
+        </oneOrMore>
+      </element>
+    </define>
+    <define name="term-attributes">
+      <optional>
+        <attribute name="form">
+          <ref name="cs-term-forms"/>
+        </attribute>
+      </optional>
+      <attribute name="name">
+        <ref name="cs-terms"/>
+      </attribute>
+    </define>
+    <define name="cs-term-forms">
+      <a:documentation>"verb-short" reverts to "verb" if the "verb-short" form is not available
+"symbol" reverts to "short" if the "symbol" form is not available
+"verb" and "short" revert to "long" if the specified form is not available</a:documentation>
+      <choice>
+        <value>long</value>
+        <value>verb</value>
+        <value>short</value>
+        <value>verb-short</value>
+        <value>symbol</value>
+        <ref name="cs-term-forms.extension"/>
+      </choice>
+    </define>
+    <div>
+      <a:documentation>Extension structures. You may override these in a customization 
+schema. If you do, please contact the xbiblio project to add 
+the term or form to the formal controlled list in the schema.</a:documentation>
+      <define name="cs-terms.extension">
+        <notAllowed/>
+      </define>
+      <define name="cs-term-forms.extension">
+        <notAllowed/>
+      </define>
+    </div>
+    <define name="simple-term">
+      <a:documentation>Simple terms are basic strings, used to represent genres, media, etc.</a:documentation>
+      <element name="cs:term">
+        <ref name="term-attributes"/>
+        <text/>
+      </element>
+    </define>
+    <define name="compound-term">
+      <a:documentation>Compound terms are those whose output can be either singular or plural. 
+Typically used for things like page number or editor labels.</a:documentation>
+      <element name="cs:term">
+        <ref name="term-attributes"/>
+        <ref name="single-term"/>
+        <ref name="multiple-term"/>
+      </element>
+    </define>
+    <define name="multiple-term">
+      <element name="cs:multiple">
+        <text/>
+      </element>
+    </define>
+    <define name="single-term">
+      <element name="cs:single">
+        <text/>
+      </element>
+    </define>
+    <define name="localized-dates">
+      <a:documentation>Instances of cs:date for which the form attribute is set are localized
+by default. Localized date formats can be overridden.</a:documentation>
+      <element name="cs:date">
+        <attribute name="form">
+          <a:documentation>Declares the type of date being defined.</a:documentation>
+          <choice>
+            <value>text</value>
+            <a:documentation>Text form of the date (e.g. "December 15, 2005" for en-US).</a:documentation>
+            <value>numeric</value>
+            <a:documentation>Numeric form of the date (e.g. "12-15-2005" for en-US)</a:documentation>
+          </choice>
+        </attribute>
+        <ref name="font-formatting">
+          <a:documentation>No affixes may be applied to cs:date in cs:locale</a:documentation>
+        </ref>
+        <ref name="delimiter"/>
+        <oneOrMore>
+          <element name="cs:date-part">
+            <ref name="affixes"/>
+            <ref name="text-case"/>
+            <ref name="font-formatting"/>
+            <choice>
+              <ref name="month"/>
+              <ref name="day"/>
+              <ref name="year"/>
+            </choice>
+          </element>
+        </oneOrMore>
+      </element>
+    </define>
+    <define name="localized-options">
+      <a:documentation>Locale specific options.</a:documentation>
+      <element name="cs:style-options">
+        <a:documentation>Localized global options are specified as attributes in the
+cs:style-options element. If future versions of CSL include localized
+options that are citation or bibliography specific, the elements
+cs:citation-options and cs:bibliography-options can be added.</a:documentation>
+        <optional>
+          <attribute name="punctuation-in-quote">
+            <a:documentation>Determines whether punctuation (commas and periods) goes within 
+the quotation marks, or outside (default).</a:documentation>
+            <data type="boolean"/>
+          </attribute>
+        </optional>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Macros</xhtml:h2>
+    </a:documentation>
+    <define name="macro">
+      <a:documentation>The macro element works something like in BibTeX, and provides a ready-made 
+bundle of formatting templates that can be easily reused elsewhere.</a:documentation>
+      <element name="cs:macro">
+        <attribute name="name">
+          <data type="NMTOKEN"/>
+        </attribute>
+        <oneOrMore>
+          <ref name="cs-element"/>
+        </oneOrMore>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Citation and Bibliography</xhtml:h2>
+    </a:documentation>
+    <define name="citation">
+      <a:documentation>The cs:citation handles printing of citations. A citation may consist of
+one or more references to bibliographic sources. These references can either
+be simple in-text keys [doe99] or numeric markers [1], or more complex short
+descriptors common in author-date (Doe, 1999a) or note styles.</a:documentation>
+      <element name="cs:citation">
+        <interleave>
+          <ref name="citation-options"/>
+          <optional>
+            <ref name="sort"/>
+          </optional>
+        </interleave>
+        <ref name="citation-layout"/>
+      </element>
+    </define>
+    <define name="bibliography">
+      <element name="cs:bibliography">
+        <interleave>
+          <ref name="bibliography-options"/>
+          <optional>
+            <ref name="sort"/>
+          </optional>
+        </interleave>
+        <ref name="bibliography-layout"/>
+      </element>
+    </define>
+    <define name="citation-layout">
+      <element name="cs:layout">
+        <ref name="affixes"/>
+        <ref name="font-formatting"/>
+        <ref name="delimiter"/>
+        <ref name="cs-element"/>
+      </element>
+    </define>
+    <define name="bibliography-layout">
+      <element name="cs:layout">
+        <ref name="affixes"/>
+        <ref name="font-formatting"/>
+        <ref name="cs-element"/>
+      </element>
+    </define>
+    <define name="cs-element">
+      <oneOrMore>
+        <choice>
+          <ref name="names"/>
+          <ref name="date"/>
+          <ref name="label"/>
+          <ref name="cs-text"/>
+          <ref name="cs-number"/>
+          <ref name="choose"/>
+          <ref name="group"/>
+        </choice>
+      </oneOrMore>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Contributor Names</xhtml:h2>
+    </a:documentation>
+    <define name="names-opt">
+      <a:documentation>Options for cs:names, available for cs:style, cs:citation and cs:bibliography.</a:documentation>
+      <optional>
+        <attribute name="names-delimiter">
+          <a:documentation>Delimiter between names (delimiter between variables is on &lt;names&gt;
+tag, where it should be). This is ", " in "J. Doe, S. Smith."</a:documentation>
+        </attribute>
+      </optional>
+    </define>
+    <define name="names-attributes">
+      <ref name="affixes"/>
+      <ref name="display"/>
+      <ref name="font-formatting"/>
+      <ref name="delimiter">
+        <a:documentation>the delimiter between name groups</a:documentation>
+      </ref>
+      <attribute name="variable">
+        <list>
+          <oneOrMore>
+            <ref name="cs-names"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </define>
+    <define name="name-opt">
+      <a:documentation>Options for cs:name, available for cs:style, cs:citation and cs:bibliography.</a:documentation>
+      <ref name="name-attributes"/>
+      <optional>
+        <attribute name="name-form">
+          <a:documentation>Indicates long (first name + last name, for Western names) or short
+(last name only, for Western names) form of name. Default is long
+form. The "count" form is used to return the count of the contributor
+list, and may be used in special sorting routines.</a:documentation>
+          <choice>
+            <value>long</value>
+            <value>short</value>
+            <value>count</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="name-delimiter">
+          <a:documentation>Delimiter between names (delimiter between variables is on &lt;names&gt;
+tag, where it should be). This is ", " in "J. Doe, S. Smith."</a:documentation>
+        </attribute>
+      </optional>
+    </define>
+    <define name="name-attributes">
+      <optional>
+        <attribute name="and">
+          <a:documentation>Controls appearance of "and"/"&amp;". To disable, do not specify.</a:documentation>
+          <choice>
+            <value>text</value>
+            <value>symbol</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="delimiter-precedes-last">
+          <a:documentation>Delimiter preceding the last name in a name list</a:documentation>
+          <choice>
+            <value>contextual</value>
+            <a:documentation>Default behavior; delimiter is included for name lists of length
+three or more:
+2 authors: "J. Doe and T. Timmons,"
+3 authors: "J. Doe, S. Smith, and T. Timmons" (note comma preceding 'and').</a:documentation>
+            <value>always</value>
+            <a:documentation>Delimiter is always included
+2 author result: "J. Doe, and T. Timmons"
+3 authors: "J. Doe, S. Smith, and T. Timmons" (note comma preceding 'and').</a:documentation>
+            <value>never</value>
+            <a:documentation>Delimiter is never included
+2 authors: "J. Doe and T. Timmons,"
+3 authors: "J. Doe, S. Smith and T. Timmons"</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="et-al-min">
+          <a:documentation>Specifies when "et al." name list abbreviation is used
+  et-al-min: the minimum number of contributors to use "et al."
+  et-al-use-first: the number of contributors to print before "et al."
+  et-al-subsequent-*: as above, but for subsequent citations</a:documentation>
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="et-al-use-first">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="et-al-subsequent-min">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="et-al-subsequent-use-first">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="initialize-with">
+          <a:documentation>Indicates whether given name parts ought to be given as initials
+(e.g., J. K. Rowling) and the text to follow each initial.</a:documentation>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="name-as-sort-order">
+          <a:documentation>Sets the author name order to correspond to the sort order of
+the bibliography; e.g. Doe, John (name-as-sort-order) vs. John Doe (w/o
+attribute).</a:documentation>
+          <choice>
+            <value>first</value>
+            <a:documentation>Applies name-as-sort-order to first author only.</a:documentation>
+            <value>all</value>
+            <a:documentation>Applies name-as-sort-order to all authors.</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="sort-separator">
+          <a:documentation>The delimiter for personal name parts where sort order differs from 
+display order (for example, in standard Western names). This is the
+", " in "Doe, John."</a:documentation>
+        </attribute>
+      </optional>
+    </define>
+    <define name="names">
+      <element name="cs:names">
+        <ref name="names-attributes"/>
+        <interleave>
+          <group>
+            <ref name="name"/>
+            <optional>
+              <ref name="et-al"/>
+            </optional>
+          </group>
+          <zeroOrMore>
+            <ref name="name-label"/>
+          </zeroOrMore>
+        </interleave>
+        <optional>
+          <ref name="substitute"/>
+        </optional>
+      </element>
+    </define>
+    <define name="names-short">
+      <a:documentation>Short version of "names" element, without children, allowed in &lt;substitute&gt;</a:documentation>
+      <element name="cs:names">
+        <ref name="names-attributes"/>
+      </element>
+    </define>
+    <define name="name">
+      <element name="cs:name">
+        <ref name="name-attributes"/>
+        <ref name="affixes"/>
+        <ref name="font-formatting"/>
+        <optional>
+          <attribute name="form">
+            <a:documentation>Indicates long (first name + last name, for Western names) or short
+(last name only, for Western names) form of name. Default is long
+form. The "count" form is used to return the count of the contributor
+list, and may be used in special sorting routines.</a:documentation>
+            <choice>
+              <value>long</value>
+              <value>short</value>
+              <value>count</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="delimiter">
+          <a:documentation>Delimiter between names (delimiter between variables is on &lt;names&gt;
+tag, where it should be). This is ", " in "J. Doe, S. Smith."</a:documentation>
+        </ref>
+        <zeroOrMore>
+          <element name="cs:name-part">
+            <a:documentation>Allows for separate configuration of name part formatting. For example, 
+Jane DOE. Order of these elements is not significant.</a:documentation>
+            <attribute name="name">
+              <choice>
+                <value>family</value>
+                <value>given</value>
+              </choice>
+            </attribute>
+            <ref name="text-case"/>
+            <ref name="font-formatting"/>
+          </element>
+        </zeroOrMore>
+      </element>
+    </define>
+    <define name="name-label">
+      <a:documentation>Similar to label as below, but inherits variable from &lt;names&gt; tag</a:documentation>
+      <element name="cs:label">
+        <ref name="label-primitives"/>
+      </element>
+    </define>
+    <define name="et-al">
+      <a:documentation>Configures formatting of the et al substitution. Only necessary to deviate from 
+default rendering (for example, to italicize the string).</a:documentation>
+      <element name="cs:et-al">
+        <optional>
+          <attribute name="term">
+            <a:documentation>term to use for et al substitution; "et-al" is default</a:documentation>
+            <choice>
+              <value>et-al</value>
+              <value>and others</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="affixes"/>
+        <ref name="font-formatting"/>
+      </element>
+    </define>
+    <define name="substitute">
+      <a:documentation>Substitutions, if the name does not exist</a:documentation>
+      <element name="cs:substitute">
+        <oneOrMore>
+          <choice>
+            <ref name="names-short"/>
+            <ref name="cs-element"/>
+          </choice>
+        </oneOrMore>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Dates</xhtml:h2>
+    </a:documentation>
+    <define name="date">
+      <element name="cs:date">
+        <attribute name="variable">
+          <ref name="cs-dates"/>
+        </attribute>
+        <choice>
+          <group>
+            <optional>
+              <attribute name="form">
+                <a:documentation>Localized date formats are specified by setting `form`. The
+default date format can be changed for all locales by configuring
+the date-parts attribute and date-part elements.</a:documentation>
+                <choice>
+                  <value>text</value>
+                  <a:documentation>Use the localized text form of the date (e.g. "December 15, 2005" for en-US).</a:documentation>
+                  <value>numeric</value>
+                  <a:documentation>Use the localized numeric form of the date (e.g. "12-15-2005" for en-US)</a:documentation>
+                </choice>
+              </attribute>
+            </optional>
+            <optional>
+              <attribute name="date-parts">
+                <a:documentation>The date-parts attribute may be set to show fewer date elements.</a:documentation>
+                <choice>
+                  <value>year-month-day</value>
+                  <a:documentation>Year, month and day (default)</a:documentation>
+                  <value>year-month</value>
+                  <a:documentation>Year and month</a:documentation>
+                  <value>year</value>
+                  <a:documentation>Year only</a:documentation>
+                </choice>
+              </attribute>
+            </optional>
+            <zeroOrMore>
+              <element name="cs:date-part">
+                <a:documentation>For localized dates, date-part can be used to override layout
+options as defined in the locales (except for affixes, which
+are locale-specific), e.g. to force the use of leading-zeros,
+or the short month form. The inclusion of date-parts does not 
+affect which, and in what order, the date-parts are rendered.</a:documentation>
+                <ref name="text-case"/>
+                <ref name="font-formatting"/>
+                <choice>
+                  <ref name="month"/>
+                  <ref name="day"/>
+                  <ref name="year"/>
+                </choice>
+              </element>
+            </zeroOrMore>
+          </group>
+          <group>
+            <oneOrMore>
+              <element name="cs:date-part">
+                <a:documentation>Non-localized dates are formatted by including, in the desired
+order, the relevant `date-part`-elements, and by applying formatting,
+affixes on cs:date and cs:date-part.</a:documentation>
+                <ref name="affixes"/>
+                <ref name="text-case"/>
+                <ref name="font-formatting"/>
+                <choice>
+                  <ref name="month"/>
+                  <ref name="day"/>
+                  <ref name="year"/>
+                </choice>
+              </element>
+            </oneOrMore>
+            <ref name="delimiter"/>
+          </group>
+        </choice>
+        <ref name="affixes"/>
+        <ref name="display"/>
+        <ref name="font-formatting"/>
+      </element>
+    </define>
+    <define name="range-delimiter">
+      <a:documentation>The default delimiter for date ranges is the en-dash.
+If the range-delimiter attribute is set for the largest date-part ("day",
+"month" or "year") that differs between the two dates of the date range,
+its value is used instead.</a:documentation>
+      <optional>
+        <attribute name="range-delimiter"/>
+      </optional>
+    </define>
+    <define name="month">
+      <a:documentation>Month formats:
+    long (default): January
+    short: Jan
+    numeric: 1
+    numeric-leading-zeros: 01</a:documentation>
+      <attribute name="name">
+        <value>month</value>
+      </attribute>
+      <optional>
+        <attribute name="form">
+          <choice>
+            <value>long</value>
+            <value>short</value>
+            <value>numeric</value>
+            <value>numeric-leading-zeros</value>
+          </choice>
+        </attribute>
+      </optional>
+      <ref name="range-delimiter"/>
+      <ref name="strip-periods"/>
+    </define>
+    <define name="day">
+      <a:documentation>Day formats:
+    numeric (default): 5
+    numeric-leading-zeros: 05
+    ordinal: 5th</a:documentation>
+      <attribute name="name">
+        <value>day</value>
+      </attribute>
+      <optional>
+        <attribute name="form">
+          <choice>
+            <value>numeric</value>
+            <value>numeric-leading-zeros</value>
+            <value>ordinal</value>
+          </choice>
+        </attribute>
+      </optional>
+      <ref name="range-delimiter"/>
+    </define>
+    <define name="year">
+      <a:documentation>Year formats:
+    long (default): 2005
+    short: 05</a:documentation>
+      <attribute name="name">
+        <value>year</value>
+      </attribute>
+      <optional>
+        <attribute name="form">
+          <choice>
+            <value>short</value>
+            <value>long</value>
+          </choice>
+        </attribute>
+      </optional>
+      <ref name="range-delimiter"/>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Formatting Text</xhtml:h2>
+    </a:documentation>
+    <define name="cs-text">
+      <a:documentation>The cs:text element is the main formatting element used to layout down content.</a:documentation>
+      <element name="cs:text">
+        <ref name="affixes"/>
+        <ref name="display"/>
+        <ref name="font-formatting"/>
+        <ref name="quotes"/>
+        <ref name="strip-periods"/>
+        <ref name="text-case"/>
+        <choice>
+          <attribute name="macro">
+            <a:documentation>render macro output</a:documentation>
+            <data type="NMTOKEN"/>
+          </attribute>
+          <group>
+            <attribute name="term">
+              <a:documentation>render localized term</a:documentation>
+              <ref name="cs-terms"/>
+            </attribute>
+            <optional>
+              <attribute name="form">
+                <ref name="cs-term-forms"/>
+              </attribute>
+            </optional>
+            <optional>
+              <attribute name="plural">
+                <a:documentation>term plurality: single ("false", default) or multiple ("true")</a:documentation>
+                <data type="boolean"/>
+              </attribute>
+            </optional>
+          </group>
+          <attribute name="value">
+            <a:documentation>render verbatim text.</a:documentation>
+          </attribute>
+          <group>
+            <attribute name="variable">
+              <a:documentation>render variable</a:documentation>
+              <ref name="cs-variables"/>
+            </attribute>
+            <optional>
+              <attribute name="form">
+                <choice>
+                  <value>short</value>
+                  <value>long</value>
+                </choice>
+              </attribute>
+            </optional>
+          </group>
+        </choice>
+      </element>
+    </define>
+    <define name="cs-number">
+      <a:documentation>The number markup directive matches the first number found in a field, 
+and returns only that component. If no number is detected, the result 
+is empty. A non-empty number may be subject to further formatting consisting 
+of a form attribute whose value may be numeric, ordinal or roman to format 
+it as a simple number (the default), an ordinal number (1st, 2nd, 3rd etc), 
+a long-ordinal (first, second, third, etc), or roman (i, ii, iii, iv etc). 
+The text-case can also apply to capitalize the roman numbers for instance. 
+The other normal formatting rules apply too (font-style, ...). When used 
+in a conditional, number tests if there is a number present, allowing conditional 
+formatting.</a:documentation>
+      <element name="cs:number">
+        <ref name="affixes"/>
+        <ref name="display"/>
+        <ref name="font-formatting"/>
+        <ref name="text-case"/>
+        <attribute name="variable">
+          <ref name="cs-numbers"/>
+        </attribute>
+        <optional>
+          <attribute name="form">
+            <choice>
+              <value>numeric</value>
+              <value>ordinal</value>
+              <value>roman</value>
+              <value>long-ordinal</value>
+            </choice>
+          </attribute>
+        </optional>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Label Text</xhtml:h2>
+    </a:documentation>
+    <define name="label">
+      <a:documentation>The label element is used to print text terms that depend on document content
+for pluralization. For labeling pages, this is preferable, as pages may be
+either singular or plural (p. or pp.)</a:documentation>
+      <element name="cs:label">
+        <ref name="label-primitives"/>
+        <attribute name="variable">
+          <choice>
+            <value>page</value>
+            <value>locator</value>
+          </choice>
+        </attribute>
+      </element>
+    </define>
+    <define name="label-primitives">
+      <ref name="affixes"/>
+      <ref name="font-formatting"/>
+      <ref name="text-case"/>
+      <ref name="strip-periods"/>
+      <optional>
+        <attribute name="form">
+          <ref name="cs-term-forms"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="plural">
+          <a:documentation>modifies pluralization behavior (defaults to "contextual")</a:documentation>
+          <choice>
+            <value>always</value>
+            <value>never</value>
+            <value>contextual</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Groups</xhtml:h2>
+    </a:documentation>
+    <define name="group">
+      <a:documentation>cs:group and its child elements are suppressed if a) at least one
+rendering element in cs:group calls a variable (either directly or via a
+macro), and b) all variables that are called are empty.</a:documentation>
+      <element name="cs:group">
+        <ref name="affixes"/>
+        <ref name="display"/>
+        <ref name="font-formatting"/>
+        <ref name="delimiter"/>
+        <oneOrMore>
+          <ref name="cs-element"/>
+        </oneOrMore>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Options</xhtml:h2>
+    </a:documentation>
+    <define name="style-options">
+      <ref name="demote-non-dropping-particle-opt"/>
+      <ref name="initialize-with-hyphen-opt"/>
+      <ref name="page-range-format-opt"/>
+      <ref name="name-opt"/>
+      <ref name="names-opt"/>
+    </define>
+    <define name="citation-options">
+      <ref name="collapse-opt"/>
+      <ref name="disambiguate-opt"/>
+      <ref name="note-distance-opt"/>
+      <ref name="name-opt"/>
+      <ref name="names-opt"/>
+    </define>
+    <define name="bibliography-options">
+      <ref name="hanging-indent-opt"/>
+      <ref name="line-formatting-opt"/>
+      <ref name="second-field-align-opt"/>
+      <ref name="subsequent-author-substitute-opt"/>
+      <ref name="name-opt"/>
+      <ref name="names-opt"/>
+    </define>
+    <define name="demote-non-dropping-particle-opt">
+      <a:documentation>Determines whether the non-dropping particle is demoted in inverted
+names (e.g. "Koning, W. de"). Defaults to "display-and-sort".</a:documentation>
+      <optional>
+        <attribute name="demote-non-dropping-particle">
+          <choice>
+            <value>never</value>
+            <value>sort-only</value>
+            <value>display-and-sort</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="initialize-with-hyphen-opt">
+      <a:documentation>Determines whether compound given names (e.g. "Jean-Luc") are
+initialized with (J-L) or without a hyphen (JL). Defaults to true.</a:documentation>
+      <optional>
+        <attribute name="initialize-with-hyphen">
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="page-range-format-opt">
+      <a:documentation>Abbreviation setting of ranges in the page variable
+(by default no reformatting is applied to the input data).</a:documentation>
+      <optional>
+        <attribute name="page-range-format">
+          <choice>
+            <value>expanded</value>
+            <value>minimal</value>
+            <value>chicago</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="collapse-opt">
+      <a:documentation>The collapse options control citation collapsing.</a:documentation>
+      <optional>
+        <attribute name="collapse">
+          <choice>
+            <value>citation-number</value>
+            <a:documentation>collapses numeric citations from [1, 2, 3] to [1-3]</a:documentation>
+            <value>year</value>
+            <a:documentation>collapses cites from (Doe 2000, Doe 2001) to (Doe 2000, 2001)</a:documentation>
+            <value>year-suffix</value>
+            <a:documentation>collapses as "year", but also collapses (Doe 2000a, Doe 2000b)
+to (Doe 2000a, b). Collapses as "year" when
+disambiguate-add-year-suffix is not set to "true".</a:documentation>
+            <value>year-suffix-ranged</value>
+            <a:documentation>collapses as "year-suffix", but also collapses ranges of
+year-suffix markers, so (Doe 2000a, Doe 2000b, Doe 2000c)
+becomes (Doe 2000a-c). Collapses as "year" when
+disambiguate-add-year-suffix is not set to "true".</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="year-suffix-delimiter">
+          <a:documentation>Specifies the delimiter between year-suffix elements, when
+year-suffix collapsing takes place. If not set the delimiter defaults
+to that specified for the citation layout.</a:documentation>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="after-collapse-delimiter">
+          <a:documentation>Specifies the delimiter following a group of collapsed cites.</a:documentation>
+        </attribute>
+      </optional>
+    </define>
+    <define name="disambiguate-opt">
+      <optional>
+        <attribute name="disambiguate-add-names">
+          <a:documentation>When set true, add further names to uniquely identify the target
+source, overriding the constraint imposed by
+et-al-subsequent-use-first. The exact rendering of any names added is
+determined by applying, in order: the form ("long" or "short"); the
+initialize-with attribute, if present; and a given name
+disambiguation rule, if disambiguate-add-givenname is set true.</a:documentation>
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="disambiguate-add-givenname">
+          <a:documentation>When set true, transform names as required by by the rule specified
+by givenname-disambiguation-rule, or use the "all-names" rule by
+default. Note that, all of the given name disambiguation rules except
+for the "by-cite" rule, a name transformation will affect the way the
+name is rendered in multiple references.</a:documentation>
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="disambiguate-add-year-suffix">
+          <a:documentation>Adds a year-suffix (e.g., 2007a) when there are two works by the same
+author published in the same year included in one bibliography.</a:documentation>
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="givenname-disambiguation-rule">
+          <choice>
+            <value>all-names</value>
+            <a:documentation>The default given name disambiguation rule.  A given
+name is first formatted as specified by the attributes
+to name (form, initialize-with).  If the resulting name
+does not uniquely identify the full name of the
+individual, it is progressively transformed in the following
+progression, until disambiguation succeeds:
+
+1. "short" becomes "long" + "initialize-with" if the latter is defined
+2. "long" + "initialize-with" becomes "long" if the former is defined
+3. "short" becomes "long"
+
+Note that if the name begins in long form with the
+given name as initials, step 1 in this list will be
+skipped.  Likewise, if the name begins in short form
+and the initialize-with attribute is not set, steps
+1 and 2 will be skipped.  If the name begins
+in long form, this option will have no effect.</a:documentation>
+            <value>all-names-with-initials</value>
+            <a:documentation>Same as the "all-names" rule above, but omitting
+steps 2 and 3 of that rule.</a:documentation>
+            <value>primary-name</value>
+            <a:documentation>Same as the "all-names" rule above, but ambiguity
+is only checked for the first-listed name
+source, and only first-listed names are affected
+by the transformation.</a:documentation>
+            <value>primary-name-with-initials</value>
+            <a:documentation>Same as the "primary-name" rule above, but omitting
+steps 2 and 3 of that rule.</a:documentation>
+            <value>by-cite</value>
+            <a:documentation>Apply the transformation described under the "all-names"
+rule above, but limit the transformation to the current
+source.  The appearance of the name in other references
+will not be affected.</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="note-distance-opt">
+      <a:documentation>The number of notes (footnotes or endnotes) within which a
+preceding reference to the same source must occur in order for
+position="near-note" to be true.  Defaults to 5.</a:documentation>
+      <optional>
+        <attribute name="near-note-distance">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="hanging-indent-opt">
+      <a:documentation>If "true", bibliographic entries are rendered with hanging-indents.</a:documentation>
+      <optional>
+        <attribute name="hanging-indent">
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="line-formatting-opt">
+      <a:documentation>Defines spacing between entries and between lines (measured in number
+of lines). Both attributes default to 1.</a:documentation>
+      <optional>
+        <attribute name="entry-spacing">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="line-spacing">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="second-field-align-opt">
+      <a:documentation>Aligns any subsequent lines of a bibliography entry with the beginning
+of the second field. If set to "margin", the first field is put in the
+margin and all subsequent lines of text are aligned with the margin.</a:documentation>
+      <optional>
+        <attribute name="second-field-align">
+          <choice>
+            <value>flush</value>
+            <value>margin</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="subsequent-author-substitute-opt">
+      <a:documentation>Substitutes subsequent recurrences of an author for a given string.</a:documentation>
+      <optional>
+        <attribute name="subsequent-author-substitute"/>
+      </optional>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Sorting</xhtml:h2>
+    </a:documentation>
+    <define name="all-variables">
+      <choice>
+        <ref name="cs-variables"/>
+        <ref name="cs-dates"/>
+        <ref name="cs-names"/>
+      </choice>
+    </define>
+    <define name="sort">
+      <a:documentation>Specifies the sort order within citations or the bibliography. By
+default, items are sorted in the order cited.</a:documentation>
+      <element name="cs:sort">
+        <oneOrMore>
+          <ref name="key"/>
+        </oneOrMore>
+      </element>
+    </define>
+    <define name="key">
+      <element name="cs:key">
+        <choice>
+          <attribute name="variable">
+            <ref name="all-variables"/>
+          </attribute>
+          <attribute name="macro">
+            <data type="NMTOKEN"/>
+          </attribute>
+        </choice>
+        <optional>
+          <attribute name="sort">
+            <a:documentation>Default sort order is ascending</a:documentation>
+            <choice>
+              <value>ascending</value>
+              <value>descending</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <group>
+            <a:documentation>names-min and names-use-first can be used to (further) constrain
+the number of names used in a name sort, overriding the values
+set on the et-al abbreviation attributes.</a:documentation>
+            <attribute name="names-min">
+              <data type="integer"/>
+            </attribute>
+            <attribute name="names-use-first">
+              <data type="integer"/>
+            </attribute>
+          </group>
+        </optional>
+      </element>
+    </define>
+  </div>
+  <div>
+    <a:documentation>
+      <xhtml:h2>Conditional Statements</xhtml:h2>
+    </a:documentation>
+    <define name="choose">
+      <a:documentation>The choose elements provides a simple conditional structure.</a:documentation>
+      <element name="cs:choose">
+        <ref name="if"/>
+        <zeroOrMore>
+          <ref name="else-if"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="else"/>
+        </optional>
+      </element>
+    </define>
+    <define name="if">
+      <element name="cs:if">
+        <ref name="condition"/>
+        <zeroOrMore>
+          <ref name="cs-element"/>
+        </zeroOrMore>
+      </element>
+    </define>
+    <define name="else-if">
+      <element name="cs:else-if">
+        <ref name="condition"/>
+        <zeroOrMore>
+          <ref name="cs-element"/>
+        </zeroOrMore>
+      </element>
+    </define>
+    <define name="else">
+      <element name="cs:else">
+        <oneOrMore>
+          <ref name="cs-element"/>
+        </oneOrMore>
+      </element>
+    </define>
+    <define name="condition">
+      <optional>
+        <attribute name="disambiguate">
+          <a:documentation>The contents of an &lt;if disambiguate="true"&gt; block is only rendered if
+it disambiguates two otherwise identical citations. This attempt at
+disambiguation will only be made when all other disambiguation
+methods have failed to uniquely identify the target source.</a:documentation>
+          <value>true</value>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="is-numeric">
+          <a:documentation>Tests whether the given variables contain numeric data</a:documentation>
+          <list>
+            <oneOrMore>
+              <ref name="all-variables"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="is-uncertain-date">
+          <a:documentation>Tests whether the given date variables contain uncertain dates</a:documentation>
+          <list>
+            <oneOrMore>
+              <ref name="cs-dates"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="locator">
+          <a:documentation>Tests whether the locator matches the given locator variables</a:documentation>
+          <list>
+            <oneOrMore>
+              <ref name="cs-terms.locator"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="position">
+          <a:documentation>The boolean operators below indicate the relative position of a 
+reference within the document.  These should be checked in 
+the order shown below: "first" is true only once, on the first
+use of the reference; when "ibid-with-locator" is true, "ibid"
+and "subsequent are also true; and when "ibid" is true, "subsequent"
+is also true.  The "near-note" operator is true if and only if the
+reference has been used within five footnotes (or endnotes, as the 
+case may be), counting backward from the current note.  This threshold
+may be adjusted using the "near-note-distance" option.  The value of 
+"near-note" is *always* false for references that are not in a 
+footnote/endnote.</a:documentation>
+          <list>
+            <oneOrMore>
+              <choice>
+                <value>first</value>
+                <value>subsequent</value>
+                <value>ibid</value>
+                <value>ibid-with-locator</value>
+                <value>near-note</value>
+              </choice>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="type">
+          <a:documentation>Tests whether the item matches the given types</a:documentation>
+          <list>
+            <oneOrMore>
+              <ref name="cs-types"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="variable">
+          <a:documentation>Tests whether the given variables contain non-empty values</a:documentation>
+          <list>
+            <oneOrMore>
+              <ref name="all-variables"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="match">
+          <a:documentation>Specifies the test criterion (default is all)
+    all: a condition tests "true" when it tests "true" for all of the
+         given condition values
+    any: a condition tests "true" when it tests "true" for any of the
+         given condition values
+   none: a condition tests "true" when it tests "true" for none of the
+         given condition values</a:documentation>
+          <choice>
+            <value>all</value>
+            <value>any</value>
+            <value>none</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+  </div>
+  <div>
+    <a:documentation>Formatting attributes.</a:documentation>
+    <define name="affixes">
+      <optional>
+        <attribute name="prefix"/>
+      </optional>
+      <optional>
+        <attribute name="suffix"/>
+      </optional>
+    </define>
+    <define name="delimiter">
+      <optional>
+        <attribute name="delimiter"/>
+      </optional>
+    </define>
+    <define name="display">
+      <a:documentation>The text of each individual cite is normally formatted as a
+single continuous run of text.  Portions of the cite text can be
+specially positioned using the display attribute.</a:documentation>
+      <optional>
+        <attribute name="display">
+          <choice>
+            <value>block</value>
+            <a:documentation>Set the display value set to "block" to place the content
+in a block stretching from margin to margin.</a:documentation>
+            <value>left-margin</value>
+            <a:documentation>Set the display value set to "left-margin" to place the
+content in a block of fixed width starting at the left 
+margin.  All "left-margin" blocks in a bibliography share
+the same width, set according to the maximum number of
+characters appearing in any one such block.</a:documentation>
+            <value>right-inline</value>
+            <a:documentation>Set the display value to "right-inline" to place the
+content in a block directly to the right of any immediately
+preceding "left-margin" block, and extending to the
+right margin.</a:documentation>
+            <value>indent</value>
+            <a:documentation>Set the display value to "indent" to block-indent the
+text to the right by a standard amount.</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="font-formatting">
+      <a:documentation>attributes are drawn directly from CSS and FO where possible</a:documentation>
+      <optional>
+        <attribute name="font-style">
+          <choice>
+            <value>italic</value>
+            <value>normal</value>
+            <value>oblique</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="font-variant">
+          <choice>
+            <value>normal</value>
+            <value>small-caps</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="font-weight">
+          <choice>
+            <value>normal</value>
+            <value>bold</value>
+            <value>light</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="text-decoration">
+          <choice>
+            <value>none</value>
+            <value>underline</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="vertical-align">
+          <choice>
+            <value>baseline</value>
+            <value>sup</value>
+            <value>sub</value>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+    <define name="quotes">
+      <a:documentation>When set to true (false is the default), quotes (defined as terms) are
+placed around the rendered text. Nested quotes flipflop.</a:documentation>
+      <optional>
+        <attribute name="quotes">
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="strip-periods">
+      <a:documentation>Removes any periods from the rendered text (defaults to false)</a:documentation>
+      <optional>
+        <attribute name="strip-periods">
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+    </define>
+    <define name="text-case">
+      <optional>
+        <attribute name="text-case">
+          <choice>
+            <value>lowercase</value>
+            <a:documentation>display all text as lowercase</a:documentation>
+            <value>uppercase</value>
+            <a:documentation>display all text as uppercase</a:documentation>
+            <value>capitalize-first</value>
+            <a:documentation>capitalize first character; other characters
+displayed as is</a:documentation>
+            <value>capitalize-all</value>
+            <a:documentation>capitalize first character of every word;
+other characters displayed lowercase</a:documentation>
+            <value>title</value>
+            <a:documentation>display as title case (the Chicago Manual
+of Style calls this "headline style")</a:documentation>
+            <value>sentence</value>
+            <a:documentation>display as sentence case/sentence style</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+    </define>
+  </div>
+</grammar>

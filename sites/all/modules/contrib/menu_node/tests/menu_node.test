@@ -1,0 +1,343 @@
+<?php
+
+// $Id: menu_node.test,v 1.7 2011/01/03 15:04:34 agentken Exp $
+
+/**
+ * @file
+ * Simpletest for Menu Node API.
+ */
+
+/**
+ * Utility test class that provides methods for other tests.
+ */
+class MenuNodeAPITestCase extends DrupalWebTestCase {
+
+  public function setUp($modules = array()) {
+    $modules = array_merge(array('menu_node'), $modules);
+    parent::setUp($modules);
+  }
+
+  /**
+   * Helper function to create menu items from nodes.
+   *
+   * @param $count
+   *   The number of nodes to create.
+   * @param $items
+   *   The number of menu items to create from those nodes.
+   */
+  public function menuNodeAPICreateNodes($count = 10, $items = 3) {
+    // Create some nodes.
+    for ($i = 0; $i < $count; $i++) {
+      $settings = array(
+        'type' => 'page',
+        'title' => $this->randomName(32),
+        'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),
+      );
+      $this->drupalCreateNode($settings);
+    }
+    // Assign some of the nodes to the menu.
+    $result = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->range(0, $items)
+      ->execute();
+    foreach ($result as $data) {
+      $node = node_load($data->nid);
+      $item = array(
+        'menu_name' => 'navigation',
+        'link_path' => "node/$node->nid",
+        'link_title' => $node->title,
+        'description' => '',
+        'enabled' => 1,
+        'expanded' => 0,
+        'parent' =>  'navigation' . ':' . 0,
+        'weight' => '0',
+      );
+      menu_link_save($item);
+    }
+  }
+
+  /**
+   * Helper function to create menu items which are not nodes.
+   *
+   * @param $count
+   *   The number of items to create.
+   */
+  public function menuNodeAPICreateItems($count = 3) {
+    for ($i = 0; $i < $count; $i++) {
+      $item = array(
+        'menu_name' => 'navigation',
+        'link_path' => "<front>",
+        'link_title' => $this->randomName(12),
+        'description' => '',
+        'enabled' => 1,
+        'expanded' => 0,
+        'parent' =>  'navigation' . ':' . 0,
+        'weight' => '0',
+      );
+      menu_link_save($item);
+    }
+  }
+
+  /**
+   * Helper function to delete a random node.
+   *
+   * @param $in_menu
+   *   Selects a node in the menu (or not).
+   */
+  public function menuNodeAPIDeleteNode($in_menu = TRUE) {
+    $query = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->range(0, 1);
+    if ($in_menu) {
+      $query->join('menu_node', 'mn', 'n.nid = mn.nid');
+    }
+    else {
+      $query->join('menu_node', 'mn', 'n.nid = mn.nid AND mn.nid IS NULL');
+    }
+    $result = $query->execute();
+    foreach ($result as $data) {
+      // Ensure we have a fresh copy of the node.
+      // In normal, form-based Drupal, the cache clear handles this, but SimpleTest
+      // runs our functions on a single callback.
+      $node = node_load($data->nid, NULL, TRUE);
+      node_delete($node->nid);
+    }
+  }
+
+  /**
+   * Helper function to delete a menu link.
+   *
+   * @param $is_node
+   *   Selects link that is a node (or is not).
+   */
+  public function menuNodeAPIDeleteLink($is_node = TRUE) {
+    $query = db_select('menu_links', 'ml')
+      ->fields('ml', array('mlid'))
+      ->range(0, 1);
+    if ($is_node) {
+      $query->join('menu_node', 'mn', 'ml.mlid = mn.mlid');
+    }
+    else {
+      $query->join('menu_node', 'mn', 'ml.mlid = mn.mlid AND mn.mlid IS NULL');
+      $query->condition('ml.link_path', '<front>');
+    }
+    $result = $query->execute();
+    foreach ($result as $data) {
+      menu_link_delete($data->mlid);
+    }
+  }
+
+}
+
+/**
+ * Inherit methods from the parent class and test core module.
+ */
+class MenuNodeAPIBasicTestCase extends MenuNodeAPITestCase {
+
+  public function setUp() {
+    parent::setUp();
+  }
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Menu Node API basic testing',
+      'description' => 'Test mapping of nodes to menu items.',
+      'group' => 'Menu Node',
+    );
+  }
+
+  /**
+   * Tests for basic internal module functions.
+   *
+   * Here we check that the install/uninstall routine works, and
+   * then we test various node and menu link saves.
+   */
+  function testMenuNodeAPI() {
+
+    // Create some nodes.
+    $this->menuNodeAPICreateNodes(10, 3);
+    // Create some non-node menu items.
+    $this->menuNodeAPICreateItems(3);
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 3, t('Found the correct row count in {menu_node}.'));
+
+    // Truncate the table by running menu_node_disable().
+    module_load_install('menu_node');
+    menu_node_disable();
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 0, t('Module successfully disabled. No records in {menu_node}.'));
+
+    // Rebuild the table by running menu_node_enable().
+    menu_node_enable();
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 3, t('Module successfully enabled. Found the correct row count in {menu_node}.'));
+
+    // Delete a node that is in the menu.
+    $this->menuNodeAPIDeleteNode(TRUE);
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 2, t('Deleted node from the menu. Found the correct row count in {menu_node}.'));
+
+    // Delete a node that is not in the menu.
+    $this->menuNodeAPIDeleteNode(FALSE);
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 2, t('Deleted node not in the menu. Found the correct row count in {menu_node}.'));
+
+    // Delete a link that is a node.
+    $this->menuNodeAPIDeleteLink(TRUE);
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 1, t('Deleted node link from the menu. Found the correct row count in {menu_node}.'));
+
+    // Delete a link that is not a node.
+    $this->menuNodeAPIDeleteLink(FALSE);
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 1, t('Deleted non-node link from the menu. Found the correct row count in {menu_node}.'));
+
+  }
+
+}
+
+/**
+ * Inherit methods from the parent class and test API module.
+ */
+class MenuNodeAPIHookTestCase extends MenuNodeAPITestCase {
+
+  public function setUp() {
+    parent::setUp(array('menu_node_test'));
+  }
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Menu Node API module hooks',
+      'description' => 'Test Menu Node API hooks.',
+      'group' => 'Menu Node',
+    );
+  }
+
+  /**
+   * Run tests against the menu_node_test.module.
+   *
+   * That module fires hook which increment a simple counter for
+   * each hook, providing that the data passed to the hook is well-formed.
+   * We simply check that the count is what we expect.
+   */
+  function testMenuNodeAPIHooks() {
+
+    // Create some nodes.
+    $this->menuNodeAPICreateNodes(3, 3);
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 3, t('Found the correct row count in {menu_node}.'));
+
+    // Check that our data is loaded onto the node.
+    $query = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->range(0, 1);
+    $query->join('menu_node', 'mn', 'n.nid = mn.nid');
+    $result = $query->execute();
+    foreach ($result as $data) {
+      $node = node_load($data->nid);
+    }
+    $this->assertTrue(isset($node->menu_node_links), t('menu_node_node_load() fired correctly'));
+
+    // Check that hook_menu_node_insert() ran three times.
+    $this->assertTrue(menu_node_test_get() == 'insert2', t('hook_menu_node_insert() fired properly.'));
+
+    // Check that the insert hook does not run on non-node menu items.
+    menu_node_test_set('no-insert');
+    $this->menuNodeAPICreateNodes(1, 0);
+    $this->assertTrue(menu_node_test_get() == 'no-insert', t('hook_menu_node_insert() did not fire for a non-node link.'));
+
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 3, t('Found the correct row count in {menu_node}.'));
+
+    // Check that the delete hook runs once on node delete.
+    $this->menuNodeAPIDeleteNode(TRUE);
+    $this->assertTrue(menu_node_test_get() == 'delete', t('hook_menu_node_delete() fired properly on node deletion.'));
+
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 2, t('Found the correct row count in {menu_node}.'));
+
+    // Check that the delete hook runs once on node link delete.
+    menu_node_test_set('no-insert');
+    $this->menuNodeAPIDeleteLink(TRUE);
+    $this->assertTrue(menu_node_test_get() == 'delete1', t('hook_menu_node_delete() fired properly on node link deletion.'));
+
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 1, t('Found the correct row count in {menu_node}.'));
+
+    menu_node_test_set('no-delete');
+    // Check that the delete hook does not run on non-node menu items.
+    $this->menuNodeAPIDeleteLink(FALSE);
+    $this->assertTrue(menu_node_test_get() == 'no-delete', t('hook_menu_node_delete() did not fire for a non-node link.'));
+
+    // Check that we have the expected record count.
+    $count = db_query("SELECT COUNT(*) FROM {menu_node}")->fetchField();
+    $this->assertTrue($count == 1, t('Found the correct row count in {menu_node}.'));
+
+    // Update an existing node and check that the hooks fire.
+    $query = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->range(0, 1);
+    $query->join('menu_node', 'mn', 'n.nid = mn.nid');
+    $result = $query->execute();
+    foreach ($result as $data) {
+      $node = node_load($data->nid, NULL, TRUE);
+    }
+    // Check that our data is loaded onto the node.
+    $this->assertTrue(isset($node->menu_node_links), t('menu_node_node_load() fired correctly'));
+    // Update the title.
+    $node->title = $this->randomName(12);
+    $menu = current(menu_node_get_links($node->nid));
+    // Similate a node save, with menu item.
+    $node->menu['enabled'] = TRUE;
+    $node->menu['mlid'] = $menu->mlid;
+    $node->menu['link_path'] = $menu->link_path;
+    $node->menu['description'] = '';
+    $node->menu['link_title'] = $node->title;
+    node_save($node);
+    // Check that the update ran once.
+    $this->assertTrue(menu_node_test_get() == 'update', t('hook_menu_node_update() fired properly on node save with menu link.'));
+
+    // Simulate a node save, removing the menu item.
+    $node->menu['enabled'] = FALSE;
+    node_save($node);
+    // Check that the delete hook ran once.
+    $this->assertTrue(menu_node_test_get() == 'delete2', t('hook_menu_node_delete() fired properly on node save with menu link removed.'));
+
+    // Add two menu items to the same node.
+    $node->menu['enabled'] = TRUE;
+    $node->menu['mlid'] = $menu->mlid;
+    $node->menu['link_path'] = $menu->link_path;
+    $node->menu['description'] = '';
+    $node->menu['link_title'] = $node->title;
+    node_save($node);
+    $item = array(
+      'menu_name' => 'management',
+      'link_path' => "node/$node->nid",
+      'link_title' => $node->title,
+      'description' => '',
+      'enabled' => 1,
+      'expanded' => 0,
+      'parent' =>  'management' . ':' . 0,
+      'weight' => '0',
+    );
+    menu_link_save($item);
+
+    // Verify that we have two items.
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertTrue(count($node->menu_node_links) == 2, t('Saved a node with two separate menu links.'));
+
+    // Update the node and check that the hook runs twice.
+    node_save($node);
+    $this->assertTrue(menu_node_test_get() == 'update2', t('hook_menu_node_update() fired properly on node save with multiple menu links.'));
+
+    // Delete the node and check that the hook runs twice.
+    node_delete($node->nid);
+    $this->assertTrue(menu_node_test_get() == 'delete4', t('hook_menu_node_delete() fired properly on node delete with multiple menu links.'));
+
+  }
+}

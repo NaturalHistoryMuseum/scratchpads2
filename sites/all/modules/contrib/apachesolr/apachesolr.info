@@ -1,0 +1,21 @@
+name = Apache Solr framework
+description = Framework for searching with Solr
+package = Apache Solr
+core = 7.x
+
+files[] = apachesolr.install
+files[] = apachesolr.module
+files[] = apachesolr.admin.inc
+files[] = apachesolr.index.inc
+files[] = Drupal_Apache_Solr_Service.php
+files[] = Apache_Solr_Document.php
+files[] = Solr_Base_Query.php
+files[] = tests/solr_index_and_search.test
+files[] = tests/solr_base_query.test
+
+; Information added by drupal.org packaging script on 2011-04-01
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "apachesolr"
+datestamp = "1301616124"
+
