@@ -1,4 +1,3 @@
-// $Id: auto_nodetitle.js,v 1.1.2.1 2010/04/14 09:47:13 fago Exp $
 (function ($) {
 
 Drupal.behaviors.auto_nodetitleFieldsetSummaries = {

@@ -1,0 +1,36 @@
+%0 Book
+%B biblio_secondary_title
+%D 2009
+%T Biblio Title
+%A Ron J. Jeromezzzzzz
+%A John Smithzzzzzz
+%A George W. Bushzzzzzz
+%K biblio_keywords
+%X biblio_abst_e
+%B biblio_secondary_title
+%S biblio_tertiary_title
+%7 biblio_edition
+%I biblio_publisher
+%C biblio_place_published
+%V biblio_volume
+%P biblio_pages
+%8 biblio_date
+%@ biblio_isbn
+%G biblio_lang
+%U biblio_url
+%N biblio_issue
+%9 biblio_type_of_work
+%M biblio_accession_number
+%L biblio_call_number
+%1 biblio_custom1
+%2 biblio_custom2
+%3 biblio_custom3
+%4 biblio_custom4
+%# biblio_custom5
+%$ biblio_custom6
+%] biblio_custom7
+%< biblio_research_notes
+%6 biblio_number_of_volumes
+%R biblio_doi
+%F biblio_label
+

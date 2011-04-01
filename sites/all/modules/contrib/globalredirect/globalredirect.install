@@ -1,0 +1,68 @@
+<?php
+// $Id: globalredirect.install,v 1.4 2010/07/13 00:46:27 njt1982 Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the globalredirect module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function globalredirect_uninstall() {
+  variable_del('globalredirect_settings');
+}
+
+/**
+ * Fixed misspelled variable name.
+ */
+function globalredirect_update_6100() {
+  $deslash = variable_get('globalredirect_deslah', variable_get('globalredirect_deslash',  1));
+  variable_set('globalredirect_deslash', $deslash);
+  variable_del('globalredirect_deslah');
+  return array();
+}
+
+
+function globalredirect_update_6101() {
+  $ret = array();
+
+  // Get the default settings
+  $defaults = _globalredirect_get_settings(TRUE);
+
+  // Define a settings array based on the variables already set (or their defaults)
+  $settings = array(
+    'deslash' => (int)variable_get('globalredirect_deslash', 1),
+    'nonclean_to_clean' => (int)variable_get('globalredirect_nonclean2clean', 1),
+    'trailing_zero' => variable_get('globalredirect_trailingzero', 0),
+    'menu_check' => (int)variable_get('globalredirect_menu_check', 0),
+    'case_sensitive_urls' => (int)variable_get('globalredirect_case_sensitive_urls', 1),
+  );
+
+  // If a setting matches the default value, unset it (we wont need to store it)
+  foreach ($settings as $key => $value) {
+    // We used to use -1 for disabled, convert this to 0 for the new diabled
+    if ($value == -1) {
+      $settings[$key] = 0;
+    }
+    // Now compare the value to the defaults. Only store if an "override".
+    if ($value == $defaults[$key]) {
+      unset($settings[$key]);
+    }
+  }
+
+  // Save the settings in a single array rather than individual keys
+  if (!empty($settings)) {
+    variable_set('globalredirect_settings', $settings);
+  }
+
+  // Remove all the old settings
+  variable_del('globalredirect_deslash');
+  variable_del('globalredirect_nonclean2clean');
+  variable_del('globalredirect_trailingzero');
+  variable_del('globalredirect_trailingzero');
+  variable_del('globalredirect_menu_check');
+  variable_del('globalredirect_case_sensitive_urls');
+
+  return array();
+}

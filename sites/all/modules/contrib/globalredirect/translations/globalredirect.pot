@@ -1,0 +1,35 @@
+# $Id: globalredirect.pot,v 1.2 2009/12/02 11:32:55 njt1982 Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from file: globalredirect.module,v 1.1.2.4.2.5.2.2 2007/12/29 16:33:42 njt1982
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2007-12-30 01:34+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: globalredirect.module:10
+msgid "This module will do a 301 redirect for all nodes which have an alias but are not using that alias."
+msgstr ""
+
+#: globalredirect.module:0
+msgid "globalredirect"
+msgstr ""
+
+#: globalredirect.info:0
+msgid "Global Redirect"
+msgstr ""
+
+#: globalredirect.info:0
+msgid "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+msgstr ""
+

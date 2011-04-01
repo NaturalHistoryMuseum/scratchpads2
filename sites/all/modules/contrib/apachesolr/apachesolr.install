@@ -1,0 +1,400 @@
+<?php
+
+/**
+ * @file
+ *   Install and related hooks for apachesolr_search.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function apachesolr_requirements($phase) {
+  $requirements = array();
+  if ($phase != 'runtime') {
+    return $requirements;
+  }
+  // Ensure translations don't break at install time
+  $t = get_t();
+  $has_server_settings = FALSE;
+  $server_id = variable_get('apachesolr_default_server', 'solr');
+  $server = apachesolr_server_load($server_id);
+  if (!$server || empty($server['url'])) {
+    $requirements['apachesolr'] = array(
+      'title' => $t('Apache Solr'),
+      'value' => $t('Missing server configuration'),
+      'description' => $t('Missing or invalid Solr server record for the default server ID %id.', array('%id' => $server_id)),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  else {
+    $has_server_settings = TRUE;
+  }
+
+  if ($has_server_settings) {
+    $ping = FALSE;
+    try {
+      $solr = apachesolr_get_solr($server_id);
+      $ping = @$solr->ping(variable_get('apachesolr_ping_timeout', 4));
+      // If there is no $solr object, there is no server available, so don't continue.
+      if (!$ping) {
+        throw new Exception(t('No Solr instance available when checking requirements.'));
+      }
+    }
+    catch (Exception $e) {
+      watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+    }
+    $value = $ping ? $t('Your site has contacted the Apache Solr server.') : $t('Your site was unable to contact the Apache Solr server.');
+    $severity = $ping ? REQUIREMENT_OK : REQUIREMENT_ERROR;
+    $requirements['apachesolr'] = array(
+      'title' => $t('Apache Solr'),
+      'value' => $value,
+      'description' => $t('Default server url: <br/> %url',  array('%url' => $server['url'])),
+      'severity' => $severity,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_install().
+ */
+function apachesolr_install() {
+  // Create one MLT block.
+  require_once(drupal_get_path('module', 'apachesolr') . '/apachesolr.admin.inc');
+  apachesolr_mlt_save_block(array('name' => st('More like this')));
+  db_insert('apachesolr_server')->fields(array('server_id' => 'solr', 'name' => 'Apache Solr server', 'host' => 'localhost', 'port' => '8983', 'path' => '/solr'))->execute();
+  variable_set('apachesolr_default_server', 'solr');
+  drupal_set_message(st('Apache Solr is enabled. Visit the <a href="!settings_link">settings page</a>.', array('!settings_link' => url('admin/config/search/apachesolr'))));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function apachesolr_enable() {
+  // Completely build the index table.
+  apachesolr_rebuild_index_table();
+}
+
+/**
+ * Implements hook_schema().
+ *
+ * TODO: move all node indexing/seach code to apachesolr_search
+ */
+function apachesolr_schema() {
+  $schema['apachesolr_search_node'] = array(
+    'description' => t('Stores a record of when a node property changed to determine if it needs indexing by Solr.'),
+    'fields' => array(
+      'nid' => array(
+        'description' => t('The primary identifier for a node.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'status' => array(
+        'description' => t('Boolean indicating whether the node is published (visible to non-administrators).'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
+      'changed' => array(
+        'description' => t('The Unix timestamp when a node property was changed.'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      ),
+    'indexes' => array(
+      'changed' => array('changed', 'status'),
+      ),
+    'primary key' => array('nid'),
+  );
+  $table = drupal_get_schema_unprocessed('system', 'cache');
+  $table['description'] = 'Cache table for apachesolr to store Luke data and indexing information.';
+  $schema['cache_apachesolr'] = $table;
+
+  $schema['apachesolr_server'] = array(
+    'description' => 'The Solr server table.',
+    'fields' => array(
+     'server_id' => array(
+        'description' => 'Unique identifier for the server',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Human-readable name for the server',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'url' => array(
+        'description' => 'Full url for the server',
+        'type' => 'varchar',
+        'length' => 1000,
+        'not null' => TRUE,
+      ),
+      'service_class' => array(
+        'description' => 'Optional class name to use for connection',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+    ),
+    'primary key' => array('server_id'),
+  );
+  $schema['apachesolr_server_variable'] = array(
+    'description' => 'Variable values for each Solr server.',
+    'fields' => array(
+     'server_id' => array(
+        'description' => 'Unique identifier for the server',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the variable.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'value' => array(
+        'description' => 'The value of the variable.',
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('server_id', 'name'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function apachesolr_uninstall() {
+  variable_del('apachesolr_default_server');
+  variable_del('apachesolr_rows');
+  variable_del('apachesolr_facet_show_children');
+  variable_del('apachesolr_facet_query_limits');
+  variable_del('apachesolr_facet_query_limit_default');
+  variable_del('apachesolr_site_hash');
+  variable_del('apachesolr_index_last');
+  variable_del('apachesolr_mlt_blocks');
+  variable_del('apachesolr_cron_limit');
+  variable_del('apachesolr_exclude_nodeapi_types');
+  // Remove blocks.
+  db_delete('block')->condition('module', 'apachesolr')->execute();
+}
+
+/**
+ * Add a table to track Solr servers.
+ */
+function apachesolr_update_7000() {
+
+  $schema['apachesolr_server'] = array(
+    'description' => 'The Solr server table.',
+    'fields' => array(
+     'server_id' => array(
+        'description' => 'Unique identifier for the server',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Human-readable name for the server',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'scheme' => array(
+        'description' => 'Preferred scheme for the registered server',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'default' => 'http'
+      ),
+      'host' => array(
+        'description' => 'Host name for the registered server',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'port' => array(
+        'description' => 'Port number for the registered server',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'path' => array(
+        'description' => 'Path to the registered server',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'service_class' => array(
+        'description' => 'Optional class name to use for connection',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+    ),
+    'primary key' => array('server_id'),
+  );
+  db_create_table('apachesolr_server', $schema['apachesolr_server']);
+  // Insert into the table the current single server record.
+  $host = variable_get('apachesolr_host', 'localhost');
+  $port = variable_get('apachesolr_port', '8983');
+  $path = variable_get('apachesolr_path', '/solr');
+  db_insert('apachesolr_server')->fields(array('server_id' => 'solr', 'name' => 'Apache Solr server', 'host' => $host, 'port' => $port, 'path' => $path))->execute();
+  variable_set('apachesolr_default_server', 'solr');
+  variable_del('apachesolr_host');
+  variable_del('apachesolr_port');
+  variable_del('apachesolr_path');
+  $value = variable_get('apachesolr_service_class', NULL);
+  if (is_array($value)) {
+    list($module, $filepath, $class) = $value;
+    variable_set('apachesolr_service_class', $class);
+  }
+  variable_del('apachesolr_logging');
+}
+
+
+/**
+ * Re-jigger the schema to use fewer, shorter keys.
+ */
+function apachesolr_update_7001() {
+  if (db_field_exists('apachesolr_server', 'asid')) {
+    // You installed the beta1 and need to be fixed up.
+    db_drop_field('apachesolr_server', 'asid');
+    db_drop_unique_key('apachesolr_server', 'server_id');
+    db_add_primary_key('apachesolr_server', array('server_id'));
+    db_drop_unique_key('apachesolr_server', 'host_post_path');
+    db_change_field('apachesolr_server', 'port', 'port',
+      array(
+        'description' => 'Port number for the registered server',
+        'type' => 'int',
+        'not null' => TRUE,
+      )
+    );
+  }
+}
+
+/**
+ * Create the per-server variable table.
+ */
+function apachesolr_update_7002() {
+  $schema['apachesolr_server_variable'] = array(
+    'description' => 'Variable values for each Solr server.',
+    'fields' => array(
+     'server_id' => array(
+        'description' => 'Unique identifier for the server',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the variable.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'value' => array(
+        'description' => 'The value of the variable.',
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('server_id', 'name'),
+  );
+  db_create_table('apachesolr_server_variable', $schema['apachesolr_server_variable']);
+  $server_id = variable_get('apachesolr_default_server', 'solr');
+  // Variables to be migrated:
+  $conf['apachesolr_enabled_facets'] = variable_get('apachesolr_enabled_facets', NULL);
+  $conf['apachesolr_search_query_fields'] = variable_get('apachesolr_search_query_fields', NULL);
+  $conf['apachesolr_search_type_boosts'] = variable_get('apachesolr_search_type_boosts', NULL);
+  $conf['apachesolr_search_comment_boost'] = variable_get('apachesolr_search_comment_boost', NULL);
+  $conf['apachesolr_search_changed_boost'] = variable_get('apachesolr_search_changed_boost', NULL);
+  $conf['apachesolr_search_sticky_boost'] = variable_get('apachesolr_search_sticky_boost', NULL);
+  $conf['apachesolr_search_promote_boost'] = variable_get('apachesolr_search_promote_boost', NULL);
+  $conf['apachesolr_search_excluded_types'] = variable_get('apachesolr_search_excluded_types', NULL);
+  foreach ($conf as $name => $value) {
+    if ($value !== NULL) {
+      db_merge('apachesolr_server_variable')
+        ->key(array('server_id' => $server_id, 'name' => $name))
+        ->fields(array('value' => serialize($value)))
+        ->execute();
+    }
+    variable_del($name);
+  }
+}
+
+/**
+ * Move excluded comment types into a new variable.
+ */
+function apachesolr_update_7003() {
+  // Same as apachesolr_update_6006()
+  $exclude_comment_types = variable_get('apachesolr_exclude_comments_types', NULL);
+  if (is_array($exclude_comment_types)) {
+    $exclude = array();
+    foreach ($exclude_comment_types as $type) {
+      $exclude[$type]['comment'] = TRUE;
+    }
+    variable_set('apachesolr_exclude_nodeapi_types', $exclude);
+  }
+  variable_del('apachesolr_exclude_comments_types');
+}
+
+/**
+ * Update apachesolr_failure variable.
+ */
+function apachesolr_update_7004() {
+  $failure = variable_get('apachesolr_failure', NULL);
+  switch ($failure) {
+    case 'show_error':
+      variable_set('apachesolr_failure', 'apachesolr:show_error');
+      break;
+    case 'show_drupal_results':
+      variable_set('apachesolr_failure', 'node');
+      break;
+    case 'show_no_results':
+      variable_set('apachesolr_failure', 'apachesolr:show_no_results');
+      break;
+  }
+}
+
+/**
+ * Re-jigger the schema to use just a url column.
+ */
+function apachesolr_update_7005() {
+  if (db_field_exists('apachesolr_server', 'port')) {
+    // You installed the beta3 and need to be fixed up.
+    $servers = db_query('SELECT * FROM {apachesolr_server}')->fetchAllAssoc('server_id', PDO::FETCH_ASSOC);
+    db_drop_field('apachesolr_server', 'scheme');
+    db_drop_field('apachesolr_server', 'port');
+    db_drop_field('apachesolr_server', 'path');
+    db_change_field('apachesolr_server', 'host', 'url',
+      array(
+        'description' => 'Full url for the server',
+        'type' => 'varchar',
+        'length' => 1000,
+        'not null' => TRUE,
+      )
+    );
+    foreach ($servers as $id => $server) {
+      $port = $server['port'] ? ':' . $server['port'] : '';
+      $url = $server['scheme'] . '://' . $server['host'] . $port . $server['path'];
+    db_update('apachesolr_server')
+      ->fields(array('url' => $url))
+      ->condition('server_id', $id)
+      ->execute();
+    }
+  }
+}

@@ -1,0 +1,106 @@
+# $Id: nl.po,v 1.2 2009/12/02 11:32:55 njt1982 Exp $
+#
+# Dutch translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  globalredirect.admin.inc,v 1.1.2.5 2008/12/22 10:42:06 njt1982
+#  globalredirect.module,v 1.1.2.4.2.5.2.14 2008/12/22 10:34:32 njt1982
+#  globalredirect.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-06-04 16:45+0200\n"
+"PO-Revision-Date: 2009-06-04 17:07+0100\n"
+"Last-Translator: L.B. Cohn <lichai@999games.nl>\n"
+"Language-Team: Dutch <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: globalredirect.admin.inc:17
+msgid "Deslash"
+msgstr "Deslash"
+
+#: globalredirect.admin.inc:18
+msgid "If enabled, this option will remove the trailing slash from requests. This stops requests such as <code>example.com/node/1/</code> failing to match the corresponding alias and can cause duplicate content. On the other hand, if you require certain requests to have a trailing slash, this feature can cause problems so may need to be disabled."
+msgstr "Als aangezet zal deze opties de laatste slash aan het einde van een URL verwijderen. Dit weerhoud URL's zoals <code>example.com/node/1/</code> ervan om de juiste alias te vinden en kan duplicaten veroorzaken. Aan de andere kant kan dit conflicteren met URL's waar een laatste slash wel noodzakelijk is."
+
+#: globalredirect.admin.inc:20;32
+msgid "Off"
+msgstr "Uit"
+
+#: globalredirect.admin.inc:21;33
+msgid "On"
+msgstr "Aan"
+
+#: globalredirect.admin.inc:29
+msgid "Non-clean to Clean"
+msgstr "Geen schoonmaak naar schoonmaak"
+
+#: globalredirect.admin.inc:30
+msgid "If enabled, this option will redirect from non-clean to clean URL (if Clean URL's are enabled). This will stop, for example, node 1  existing on both <code>example.com/node/1</code> AND <code>example.com?q=node/1</code>."
+msgstr "Als aangezet zal deze optie niet-schone URL's naar schone herleiden (als schone URL's aanstaan). Dit zal bijvoorbeeld node 1 weerhouden van het bestaan onder <code>example.com/node/1</code> EN <code>example.com?q=node/1</code>."
+
+#: globalredirect.admin.inc:40
+msgid "Remove Trailing Zero Argument"
+msgstr "Verwijder het laatste 0-argument"
+
+#: globalredirect.admin.inc:41
+msgid "If enabled, any instance of \"/0\" will be trimmed from the right of the URL. This stops duplicate pages such as \"taxonomy/term/1\" and \"taxonomy/term/1/0\" where 0 is the default depth. There is an option of limiting this feature to taxonomy term pages ONLY or allowing it to effect any page. <strong>By default this feature is disabled to avoid any unexpected behaviour</strong>"
+msgstr "Als aangezet zal elke \"/0\" verwijderd worden van het einde van een URL. Dit zal duplicaten zoals \"taxonomy/term/1\" en \"taxonomy/term/1/0\" tegengaan. Er is een optie om dit ALLEEN voor taxonomiepagina's te doen of om dit op iedere pagina toe te passen. <strong>Standaard staat dir uit om onverwacht gedrag tegen te gaan.</strong>"
+
+#: globalredirect.admin.inc:43;55;66
+msgid "Disabled"
+msgstr "Uitgeschakeld"
+
+#: globalredirect.admin.inc:44
+msgid "Enabled for taxonomy term pages only"
+msgstr "Alleen aangezet voor taxonomietermpagina's"
+
+#: globalredirect.admin.inc:45
+msgid "Enabled for all pages"
+msgstr "Aangezet voor alle pagina's"
+
+#: globalredirect.admin.inc:52
+msgid "Menu Access Checking"
+msgstr "Menu Toegangscontrole"
+
+#: globalredirect.admin.inc:53
+msgid "If enabled, the module will check the user has access to the page before redirecting. This helps to stop redirection on protected pages and avoids giving away <em>secret</em> URL's. <strong>By default this feature is disabled to avoid any unexpected behaviour</strong>"
+msgstr "Als aangezet zal deze module controleren of de gebruiker toegang heeft tot de pagina voor het herleiden. Dit helpt om herleiding naar beveiligde pagina's tegen te gaan en gaat <em>geheime</em> URL's tegen. <strong>Standaard staat dit uit om onverwacht gedrag tegen te gaan.</strong>"
+
+#: globalredirect.admin.inc:56;67
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+#: globalredirect.admin.inc:63
+msgid "Case Sensitive URL Checking"
+msgstr "Lettergrootte-afhankelijke URL Controle"
+
+#: globalredirect.admin.inc:64
+msgid "If enabled, the module will compae the current URL to the alias stored in the system. If there are any differences in case then the user will be redirected to the correct URL."
+msgstr "Als aangezet zal deze module de huidige URL vergelijken met de alias in het systeem. Als er een verschil in lettergrootte is dan zal de gebruiker worden herleid naar de correcte URL."
+
+#: globalredirect.module:29
+msgid "This module will do a 301 redirect for all nodes which have an alias but are not using that alias."
+msgstr "Deze module zal een 301 herleiding doen voor alle nodes die een alias hebben, maar deze niet gebruiken."
+
+#: globalredirect.module:171
+#: globalredirect.info:0
+msgid "Global Redirect"
+msgstr "Globale Herleiding"
+
+#: globalredirect.module:172
+msgid "Chose which features you would like enabled for Global Redirect"
+msgstr "Kies welke functies moeten worden aangezet voor Globale Herleiding"
+
+#: globalredirect.module:0
+msgid "globalredirect"
+msgstr "globaleherleiding"
+
+#: globalredirect.info:0
+msgid "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+msgstr "Zoekt naar een alias van de huidige URL en 301 herleid als gevonden. Stopt duplicaten als path-module aanstaat."
+

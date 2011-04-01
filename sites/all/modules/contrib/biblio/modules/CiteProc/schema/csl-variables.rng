@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <div>
+    <a:documentation>Contributor Roles</a:documentation>
+    <define name="cs-names">
+      <choice>
+        <value>author</value>
+        <value>collection-editor</value>
+        <a:documentation>use for series editor</a:documentation>
+        <value>composer</value>
+        <value>container-author</value>
+        <a:documentation>use for book author when citing a book chapter</a:documentation>
+        <value>editor</value>
+        <value>editorial-director</value>
+        <value>interviewer</value>
+        <value>original-author</value>
+        <value>recipient</value>
+        <value>translator</value>
+      </choice>
+    </define>
+  </div>
+  <div>
+    <a:documentation>Dates</a:documentation>
+    <define name="cs-dates">
+      <choice>
+        <value>accessed</value>
+        <value>container</value>
+        <value>event-date</value>
+        <value>issued</value>
+        <value>original-date</value>
+        <value>submitted</value>
+      </choice>
+    </define>
+  </div>
+  <div>
+    <a:documentation>Numbers</a:documentation>
+    <define name="cs-numbers">
+      <choice>
+        <value>edition</value>
+        <value>issue</value>
+        <value>number</value>
+        <value>number-of-volumes</value>
+        <value>volume</value>
+      </choice>
+    </define>
+  </div>
+  <div>
+    <a:documentation>Simple Variables</a:documentation>
+    <define name="cs-variables">
+      <choice>
+        <value>abstract</value>
+        <a:documentation/>
+        <value>annote</value>
+        <a:documentation>notes made by a reader about the content of the resource</a:documentation>
+        <value>archive</value>
+        <a:documentation>the name of the archive</a:documentation>
+        <value>archive_location</value>
+        <a:documentation>the location within an archival collection (for example, box and folder)</a:documentation>
+        <value>archive-place</value>
+        <a:documentation>the place of the archive</a:documentation>
+        <value>authority</value>
+        <a:documentation>issuing authority (for patents) or judicial authority (such as court
+for legal cases)</a:documentation>
+        <value>call-number</value>
+        <a:documentation/>
+        <value>chapter-number</value>
+        <a:documentation/>
+        <value>citation-number</value>
+        <a:documentation>the number used for the in-text citation mark in numeric styles</a:documentation>
+        <value>citation-label</value>
+        <a:documentation>the label used for the in-text citation mark in label styles</a:documentation>
+        <value>collection-number</value>
+        <a:documentation>collection number; for example, series number</a:documentation>
+        <value>collection-title</value>
+        <a:documentation>the tertiary title for the cited item; for example, a series title</a:documentation>
+        <value>container-title</value>
+        <a:documentation>the secondary title for the cited item (book title for book chapters,
+journal title for articles, etc.).</a:documentation>
+        <value>DOI</value>
+        <a:documentation/>
+        <value>edition</value>
+        <a:documentation>an edition description</a:documentation>
+        <value>event</value>
+        <a:documentation>the name or title of a related event such as a conference or hearing</a:documentation>
+        <value>event-place</value>
+        <a:documentation>the location or place for the related event</a:documentation>
+        <value>first-reference-note-number</value>
+        <a:documentation>The number of a preceding note containing the first reference to this
+item. Relevant only for note-based styles, and null for first references.</a:documentation>
+        <value>genre</value>
+        <a:documentation/>
+        <value>ISBN</value>
+        <a:documentation/>
+        <value>issue</value>
+        <a:documentation>the issue number for the container publication</a:documentation>
+        <value>jurisdiction</value>
+        <a:documentation>For legislation and patents; scope of geographic relevance for a document.</a:documentation>
+        <value>keyword</value>
+        <a:documentation/>
+        <value>locator</value>
+        <a:documentation>a description to locate an item within some larger container or 
+collection; a volume or issue number is a kind of locator, for example.</a:documentation>
+        <value>medium</value>
+        <a:documentation>medium description (DVD, CD, etc.)</a:documentation>
+        <value>note</value>
+        <a:documentation>a short inline note, often used to refer to additional details of the resource</a:documentation>
+        <value>number</value>
+        <a:documentation>a document number; useful for reports and such</a:documentation>
+        <value>number-of-pages</value>
+        <a:documentation>refers to the number of pages in a book or other document</a:documentation>
+        <value>number-of-volumes</value>
+        <a:documentation>refers to the number of items in multi-volume books and such</a:documentation>
+        <value>original-publisher</value>
+        <a:documentation>the name of the original publisher</a:documentation>
+        <value>original-publisher-place</value>
+        <a:documentation>the place of the original publisher</a:documentation>
+        <value>original-title</value>
+        <a:documentation>title of a related original version; often useful in cases of translation</a:documentation>
+        <value>page</value>
+        <a:documentation>the range of pages an item covers in a containing item</a:documentation>
+        <value>page-first</value>
+        <a:documentation>the first page of an item within a containing item</a:documentation>
+        <value>publisher</value>
+        <a:documentation>the name of the publisher</a:documentation>
+        <value>publisher-place</value>
+        <a:documentation>the place of the publisher</a:documentation>
+        <value>references</value>
+        <a:documentation>for related referenced resources; used for legal case histories, but
+may be relevant for other contexts.</a:documentation>
+        <value>section</value>
+        <a:documentation>a section description (for newspapers, etc.)</a:documentation>
+        <value>status</value>
+        <a:documentation>the (typically publication) status of an item; for example "forthcoming"</a:documentation>
+        <value>title</value>
+        <a:documentation>the primary title for the cited item</a:documentation>
+        <value>URL</value>
+        <a:documentation/>
+        <value>version</value>
+        <a:documentation/>
+        <value>volume</value>
+        <a:documentation>volume number for the container periodical</a:documentation>
+        <value>year-suffix</value>
+        <a:documentation>The year suffix for author-date styles; e.g. the 'a' in '1999a'.</a:documentation>
+      </choice>
+    </define>
+  </div>
+</grammar>

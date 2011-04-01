@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * @file
+ *   Override handling of taxonomy/term/X links.
+ *   Deprecated in favor of Views integration.
+ */
+
+ /**
+ * Implements hook_menu_alter().
+ */
+function apachesolr_taxonomy_menu_alter(&$menu) {
+  if (isset($menu['taxonomy/term/%taxonomy_term'])) {
+    $menu['taxonomy/term/%taxonomy_term']['page callback'] = 'apachesolr_taxonomy_term_page';
+    $menu['taxonomy/term/%taxonomy_term']['file path'] = NULL;
+    $menu['taxonomy/term/%taxonomy_term']['file'] = NULL;
+  }
+}
+
+/**
+ * Overrides taxonomy/term/X links
+ */
+//function apachesolr_search_taxonomy_term_page($str_tids = '', $depth = 0, $op = 'page') {
+function apachesolr_taxonomy_term_page($term) {
+  // Build breadcrumb based on the hierarchy of the term.
+  $current->tid = $term->tid;
+  $breadcrumb = array();
+  while ($parents = taxonomy_get_parents($current->tid)) {
+    $current = array_shift($parents);
+    $breadcrumb[] = l($current->name, 'taxonomy/term/' . $current->tid);
+  }
+  $breadcrumb[] = l(t('Home'), NULL);
+  $breadcrumb = array_reverse($breadcrumb);
+  drupal_set_breadcrumb($breadcrumb);
+  drupal_add_feed(url('taxonomy/term/' . $term->tid . '/feed'), 'RSS - ' . $term->name);
+
+  $build['term_heading'] = array(
+    '#prefix' => '<div class="term-listing-heading">',
+    '#suffix' => '</div>',
+    'term' => taxonomy_term_view($term, 'full'),
+  );
+
+  $filters = 'tid:' . $term->tid;
+  $solrsort = variable_get('apachesolr_search_taxonomy_sort', 'ds_created desc');
+  $page = isset($_GET['page']) ? $_GET['page'] : 0;
+  $type = 'apachesolr_search';
+  $_GET['retain-filters'] = 1; //?? 
+
+  $search_results = apachesolr_search_run('', $filters, $solrsort, 'search/apachesolr_search', $page);
+
+  if ($search_results) {
+    foreach ($search_results as $entry) {
+      $output[] = $entry;
+    }
+
+    $variables['results'] = $output;
+    $variables['module'] = $type;
+    $build['content'] = array(
+      '#markup' => theme('search_results', $variables),
+    );
+  }
+  else{
+    $build['no_content'] = array(
+      '#prefix' => '<p>',
+      '#markup' => t('There is currently no content classified with this term.'),
+      '#suffix' => '</p>',
+    );
+  }
+  return $build;
+}
+

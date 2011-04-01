@@ -1,0 +1,29 @@
+# $Id: fr.po,v 1.1 2010/03/03 17:03:56 davereid Exp $
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: globalredirect (6.x-1.2)\n"
+"POT-Creation-Date: 2007-12-30 01:34+0100\n"
+"PO-Revision-Date: 2009-10-15 17:56+0100\n"
+"Last-Translator: Florent VRECORD-MITEL <florent.vrecord-mitel@capgemini.com>\n"
+"Language-Team: Capgemini Drupal Factory <drupal-factory@capgemini.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: globalredirect.module:10
+msgid "This module will do a 301 redirect for all nodes which have an alias but are not using that alias."
+msgstr "Ce module effectuera une redirection de type 301 pour tous  les noeuds qui possédent un alias mais qu'ils n'utilisent pas."
+
+#: globalredirect.module:0
+msgid "globalredirect"
+msgstr "globalredirect"
+
+#: globalredirect.info:0
+msgid "Global Redirect"
+msgstr "Global Redirect"
+
+#: globalredirect.info:0
+msgid "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+msgstr "Recherche pour un alias pour l'URL courante et réalise une redirection 301 si ce dernier est trouvé. Arrête les contenus doublonnés quand le module path est activé."
+
