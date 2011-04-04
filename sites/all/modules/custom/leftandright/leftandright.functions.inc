@@ -21,6 +21,40 @@ function leftandright_previous_term($term){
 /**
  * Save the term
  */
-  function leftandright_save_term($term){
-    
+function leftandright_save_term($term){
+  // Get the current left and right for this term - if they're not set, then
+  // saving is simply punching a hole.  If they are set, then we need to close
+  // a hole, and open one!
+  $current_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
+    'lft',
+    'rgt'
+  ))->condition('tid', $term->tid)->execute()->fetch();
+  // If we don't already have a left and right, then saving is easy.
+  if(!$current_landr){
+    // Punch the hole!
+    db_query('UPDATE {taxonomy_leftandright} SET lft = lft+1 WHERE lft >= :lft', array(
+      ':lft' => $term->lft
+    ));
+    db_query('UPDATE {taxonomy_leftandright} SET lft = lft+1 WHERE lft >= :rgt', array(
+      ':rgt' => $term->rgt
+    ));
+    db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt+1 WHERE rgt >= :lft', array(
+      ':lft' => $term->lft
+    ));
+    db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt+1 WHERE rgt >= :rgt', array(
+      ':rgt' => $term->rgt
+    ));
+    // Do the insert
+    //drupal_set_message(kprint_r($term, 1));
+    db_insert('taxonomy_leftandright')->fields(array(
+      'lft' => $term->lft,
+      'rgt' => $term->rgt,
+      'vid' => $term->vid,
+      'tid' => $term->tid,
+      'depth' => $term->depth
+    ))->execute();
+  }else{
+    // Do nothing if the lft and rgt match
+    if($term->lft == $current_landr->lft && $term->rgt == $current_landr->rgt){return;}
   }
+}

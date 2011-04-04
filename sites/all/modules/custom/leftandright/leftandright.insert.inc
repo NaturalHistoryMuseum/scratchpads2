@@ -18,7 +18,8 @@ function leftandright_insert($term){
       // Previous is the parent, left is parent left + 1.
       $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
         'lft',
-        'rgt'
+        'rgt',
+        'depth'
       ))->condition('tid', $previous_term->tid)->execute()->fetch();
       if($previous_term_landr){
         $term->lft = $previous_term_landr->lft + 1;
@@ -29,18 +30,25 @@ function leftandright_insert($term){
       // Previous is a sibling, left is sibling right +1.
       $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
         'lft',
-        'rgt'
+        'rgt',
+        'depth'
       ))->condition('tid', $previous_term->tid)->execute()->fetch();
       if($previous_term_landr){
         $term->lft = $previous_term_landr->rgt + 1;
       }else{
         return leftandright_insert_error($previous_term);
       }
+      // Depth is same as sibling
+      $depth = $previous_term_landr->depth;
     }
     $term->rgt = $term->lft + 1;
-    // We should now save the term in to the table.
-    leftandright_save_term($term);
+  } else {
+    // No previous term, we're the first one!
+    $term->lft = 1;
+    $term->rgt = 2;
   }
+  // We should now save the term in to the table.
+  leftandright_save_term($term);
 }
 
 /**
@@ -49,7 +57,10 @@ function leftandright_insert($term){
 function leftandright_insert_error($previous_term){
   // PANIC!
   $vocabulary = taxonomy_vocabulary_load($previous_term->vid);
-  drupal_set_message(t('The vocabulary @vocabulary_name needs to be <a href="!rebuild_url">rebuilt</a> immediately', array('@vocabulary_name' => $vocabulary->name)));
+  drupal_set_message(t('The vocabulary @vocabulary_name needs to be <a href="!rebuild_url">rebuilt</a> immediately', array(
+    '@vocabulary_name' => $vocabulary->name,
+    '!rebuild_url' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/rebuild'
+  )));
   return watchdog('Left and right error', 'Missing left and right values for <a href="!term_link">@term_name</a>.', array(
     '!term_link' => url('taxonomy/term/' . $previous_term->tid),
     '@term_name' => $previous_term->name
