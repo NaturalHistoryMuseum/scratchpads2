@@ -30,38 +30,39 @@ function leftandright_theme(){
 }
 
 /**
- * Implementations of hook_taxonomy_X
+ * Implementations of hook_taxonomy_insert
  */
 function leftandright_taxonomy_term_insert($term){
-  // Include the functions file, and do the magic!
   module_load_include('insert.inc', 'leftandright');
   leftandright_insert($term);
 }
 
 /**
- * Implementations of hook_taxonomy_X
+ * Implementations of hook_taxonomy_update
  */
 function leftandright_taxonomy_term_update($term){
   // Simply do a delete, then an insert.
   // Nice if we could start a transaction here, then commit it at the end.
+  module_load_include('delete.inc', 'leftandright');
+  module_load_include('insert.inc', 'leftandright');
   leftandright_taxonomy_term_delete($term);
   leftandright_taxonomy_term_insert($term);
 }
 
 /**
- * Implementations of hook_taxonomy_X
+ * Implementations of hook_taxonomy_delete
  */
 function leftandright_taxonomy_term_delete($term){
-  // Get the left and right values first so that we can close up the table.
-  $leftandright = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-    'lft',
-    'rgt'
-  ))->condition('tid', $term->tid)->execute()->fetch();
-  db_delete('taxonomy_leftandright')->condition('tid', $term->tid)->execute();
-  db_query('UPDATE {taxonomy_leftandright} SET lft = lft-2 WHERE lft > :lft', array(
-    ':lft' => $leftandright->lft
-  ));
-  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt-2 WHERE rgt > :lft', array(
-    ':lft' => $leftandright->lft
-  ));
+  module_load_include('delete.inc', 'leftandright');
+  leftandright_delete($term);
+}
+
+/**
+ * Implementation of hook_viewsapi
+ */
+function leftandright_views_api(){
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module','leftandright') . "/views"
+  );
 }
