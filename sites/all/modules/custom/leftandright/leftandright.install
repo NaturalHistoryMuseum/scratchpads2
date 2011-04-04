@@ -1,0 +1,49 @@
+<?php
+/**
+ * Implementation of hook_install
+function leftandright_install(){
+  // Add an index on vid to the term_data table
+  db_add_index($ret = array(), 'term_data', 'vid', array('vid'));
+  // Rebuild trees
+  
+}
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function leftandright_schema(){  
+  return array(
+    'taxonomy_leftandright' => array(
+      'fields' => array(
+        'lft' => array('type' => 'int', 'not null' => TRUE),
+        'rgt' => array('type' => 'int', 'not null' => TRUE),
+        'tid' => array('type' => 'int', 'not null' => TRUE),
+        'vid' => array('type' => 'int', 'not null' => TRUE),
+        'depth' => array('type' => 'int', 'size' => 'small')),
+      'primary key' => array('tid'),
+      'indexes' => array(
+        'vocab_index' => array('vid'))),
+    'leftandright_rebuild_left' => array(
+      'fields' => array(
+        'tid' => array('type' => 'int', 'not null' => TRUE),
+        'vid' => array('type' => 'int', 'not null' => TRUE),
+        'lft' => array('type' => 'int', 'not null' => TRUE),
+        'depth' => array('type' => 'int', 'size' => 'small')),
+      'primary key' => array('tid')),
+    'leftandright_rebuild_right' => array(
+      'fields' => array(
+        'tid' => array('type' => 'int', 'not null' => TRUE),
+        'vid' => array('type' => 'int', 'not null' => TRUE),
+        'rgt' => array('type' => 'int', 'not null' => TRUE)),
+      'primary key' => array('tid'))
+  );
+}
+
+/**
+ * Implementation of hook_uninstall
+ */
+function leftandright_uninstall(){
+  // Remove all variables.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'leftandright_%'");
+}

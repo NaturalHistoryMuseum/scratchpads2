@@ -1,8 +1,52 @@
 <?php
 
 /**
- * Implementation of hook_form_alter().
+ * Implementation of hook_form_FORM_ID_alter().
  */
-function leftandright_form_alter(&$form, &$form_state, $form_id){
-  //drupal_set_message($form_id);
+function leftandright_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $form[$vocabulary->vid]['rebuildlandr'] = array(
+      '#type' => 'link',
+      '#title' => t('rebuild tree'),
+      '#href' => "admin/structure/taxonomy/$vocabulary->machine_name/rebuild"
+    );
+  }
+  $form['#theme'] = array(
+    'leftandright_taxonomy_overview_vocabularies'
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function leftandright_theme(){
+  return array(
+    'leftandright_taxonomy_overview_vocabularies' => array(
+      'render element' => 'form',
+      'file' => 'leftandright.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementations of hook_taxonomy_X
+ */
+function leftandright_taxonomy_term_insert($term){
+  // Include the functions file, and do the magic!
+  drupal_set_message(kprint_r($term, 1));
+  module_load_include('insert.inc', 'leftandright');
+  leftandright_insert($term);
+}
+/**
+ * Implementations of hook_taxonomy_X
+ */
+function leftandright_taxonomy_term_update($term){
+  // Include the functions file, and do the magic!
+}
+/**
+ * Implementations of hook_taxonomy_X
+ */
+function leftandright_taxonomy_term_delete($term){
+  db_delete('taxonomy_leftandright')->condition('tid', $term->tid);
 }

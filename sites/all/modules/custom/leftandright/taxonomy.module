@@ -1,128 +1,35 @@
 <?php
-$replacement_get_tree_function = <<<'ENDOFTGT'
-function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE) {
-  $children = &drupal_static(__FUNCTION__, array());
-  $parents = &drupal_static(__FUNCTION__ . ':parents', array());
-  $terms = &drupal_static(__FUNCTION__ . ':terms', array());
-
-  // We cache trees, so it's not CPU-intensive to call get_tree() on a term
-  // and its children, too.
-  if (!isset($children[$vid])) {
-    $children[$vid] = array();
-    $parents[$vid] = array();
-    $terms[$vid] = array();
-
-    $query = db_select('taxonomy_term_data', 't');
-    $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
-    $result = $query
-      ->addTag('translatable')
-      ->addTag('term_access')
-      ->fields('t')
-      ->fields('h', array('parent'))
-      ->condition('t.vid', $vid)
-      ->orderBy('t.weight')
-      ->orderBy('t.name')
-      ->execute();
-
-    foreach ($result as $term) {
-      $children[$vid][$term->parent][] = $term->tid;
-      $parents[$vid][$term->tid][] = $term->parent;
-      $terms[$vid][$term->tid] = $term;
-    }
-  }
-
-  // Load full entities, if necessary. The entity controller statically
-  // caches the results.
-  if ($load_entities) {
-    $term_entities = taxonomy_term_load_multiple(array_keys($terms[$vid]));
-  }
-
-  $max_depth = (!isset($max_depth)) ? count($children[$vid]) : $max_depth;
-  $tree = array();
-
-  // Keeps track of the parents we have to process, the last entry is used
-  // for the next processing step.
-  $process_parents = array();
-  $process_parents[] = $parent;
-
-  // Loops over the parent terms and adds its children to the tree array.
-  // Uses a loop instead of a recursion, because it's more efficient.
-  while (count($process_parents)) {
-    $parent = array_pop($process_parents);
-    // The number of parents determines the current depth.
-    $depth = count($process_parents);
-    if ($max_depth > $depth && !empty($children[$vid][$parent])) {
-      $has_children = FALSE;
-      $child = current($children[$vid][$parent]);
-      do {
-        if (empty($child)) {
-          break;
-        }
-        $term = $load_entities ? $term_entities[$child] : $terms[$vid][$child];
-        if (count($parents[$vid][$term->tid]) > 1) {
-          // We have a term with multi parents here. Clone the term,
-          // so that the depth attribute remains correct.
-          $term = clone $term;
-        }
-        $term->depth = $depth;
-        unset($term->parent);
-        $term->parents = $parents[$vid][$term->tid];
-        $tree[] = $term;
-        if (!empty($children[$vid][$term->tid])) {
-          $has_children = TRUE;
-
-          // We have to continue with this parent later.
-          $process_parents[] = $parent;
-          // Use the current term as parent for the next iteration.
-          $process_parents[] = $term->tid;
-
-          // Reset pointers for child lists because we step in there more often
-          // with multi parents.
-          reset($children[$vid][$term->tid]);
-          // Move pointer so that we get the correct term the next time.
-          next($children[$vid][$parent]);
-          break;
-        }
-      } while ($child = next($children[$vid][$parent]));
-
-      if (!$has_children) {
-        // We processed all terms in this hierarchy-level, reset pointer
-        // so that this function works the next time it gets called.
-        reset($children[$vid][$parent]);
-      }
-    }
-  }
-
-  return $tree;
-}
-ENDOFTGT;
 // Get the last edit time of the original file
-$last_modified = filemtime(DRUPAL_ROOT . '/modules/taxonomy/' . basename(__FILE__));
-if($last_modified > variable_get('leftandright_taxonomy_last_modified', 0)){
+$filename = basename(__FILE__);
+$last_modified = filemtime(DRUPAL_ROOT . '/modules/taxonomy/' . $filename);
+if($last_modified > variable_get('leftandright_'.$filename.'_last_modified', 0)){
   // Set the last modified time
-  variable_set('leftandright_taxonomy_last_modified', $last_modified);
+  variable_set('leftandright_'.$filename.'_last_modified', $last_modified);
   // The file has been changed, or we have just installed this module.  Lets
   // get the content of taxonomy.module, tweak it, and save it to a variable
   drupal_set_message(t('Reloading original Drupal core taxonomy'));
-  $lines = preg_split("/[\n\r]+/", file_get_contents(DRUPAL_ROOT . '/modules/taxonomy/' . basename(__FILE__)));
+  $lines = preg_split("/[\n\r]+/", file_get_contents(DRUPAL_ROOT . '/modules/taxonomy/' . $filename));
   // Pop the first line which only contains the start php tag "< ? p h p"
   array_shift($lines);
-  $within_get_tree_function = FALSE;
-  // Look for taxonomy_get_tree, so that we can remove it.
+  $within_function = FALSE;
+  // Look for taxonomy_get_tree and taxonomy_overview_terms, so that we can
+  // remove them.
   foreach($lines as $key => $line){
     if(substr($line, 0, 27) == 'function taxonomy_get_tree('){
-      $within_get_tree_function = TRUE;
-    }
-    if($within_get_tree_function){
+      $within_function = TRUE;
+    }    
+    if($within_function){
       unset($lines[$key]);
       if(substr($line, 0, 1) == '}'){
-        $within_get_tree_function = FALSE;
+        $within_function = FALSE;
       }
     }
   }
   // Save the content of taxonomy.module with our own taxonomy_get_tree (above)
-  variable_set('leftandright_taxonomy_replacement', implode("\n", $lines) . $replacement_get_tree_function);
+  variable_set('leftandright_'.$filename.'_replacement', implode("\n", $lines));
 }
 // If the following fails, we're fucked.  Not sure what would cause it to fail,
 // but everything is possible.
-eval(variable_get('leftandright_taxonomy_replacement', ''));
+eval(variable_get('leftandright_'.$filename.'_replacement', ''));
+// Load include file with the replacement functions in
+module_load_include('module.replace.inc', 'taxonomy');
