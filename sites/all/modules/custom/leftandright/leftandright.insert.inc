@@ -14,38 +14,28 @@ function leftandright_insert($term){
   if($previous_term){
     // We have a previous term, we need to check if this is the parent, else
     // it's a sibling
+    $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
+      'lft',
+      'rgt',
+      'depth'
+    ))->condition('tid', $previous_term->tid)->execute()->fetch();
+    if(!$previous_term_landr){return leftandright_insert_error($previous_term);}
     if($previous_term->tid == current($term->parent)){
       // Previous is the parent, left is parent left + 1.
-      $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-        'lft',
-        'rgt',
-        'depth'
-      ))->condition('tid', $previous_term->tid)->execute()->fetch();
-      if($previous_term_landr){
-        $term->lft = $previous_term_landr->lft + 1;
-      }else{
-        return leftandright_insert_error($previous_term);
-      }
+      $term->lft = $previous_term_landr->lft + 1;
+      $term->depth = $previous_term_landr->depth + 1;
     }else{
       // Previous is a sibling, left is sibling right +1.
-      $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-        'lft',
-        'rgt',
-        'depth'
-      ))->condition('tid', $previous_term->tid)->execute()->fetch();
-      if($previous_term_landr){
-        $term->lft = $previous_term_landr->rgt + 1;
-      }else{
-        return leftandright_insert_error($previous_term);
-      }
+      $term->lft = $previous_term_landr->rgt + 1;
       // Depth is same as sibling
-      $depth = $previous_term_landr->depth;
+      $term->depth = $previous_term_landr->depth;
     }
     $term->rgt = $term->lft + 1;
-  } else {
+  }else{
     // No previous term, we're the first one!
     $term->lft = 1;
     $term->rgt = 2;
+    $term->depth = 0;
   }
   // We should now save the term in to the table.
   leftandright_save_term($term);
