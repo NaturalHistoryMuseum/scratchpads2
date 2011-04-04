@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Get the previous term to one being inserted or updated.  This is a simple
+ * helper function that makes calculating left and right values a little easier.
+ */
 function leftandright_previous_term($term){
   // Here we need to get the siblings of a term.  We'll get all the children
   // of the parent of this term, ordered correctly, and parse through.  If the
