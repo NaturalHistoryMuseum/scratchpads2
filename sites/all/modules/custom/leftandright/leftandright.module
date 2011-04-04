@@ -18,6 +18,28 @@ function leftandright_form_taxonomy_overview_vocabularies_alter(&$form, &$form_s
 }
 
 /**
+ * Implementation of hook_menu
+ */
+function leftandright_menu(){
+  return array(
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/rebuild' => array(
+      'title' => 'Rebuild',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'leftandright_rebuild_tree_form',
+        3
+      ),
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => -10,
+      'file' => 'leftandright.admin.inc'
+    )
+  );
+}
+
+/**
  * Implementation of hook_theme().
  */
 function leftandright_theme(){
@@ -62,6 +84,6 @@ function leftandright_taxonomy_term_delete($term){
 function leftandright_views_api(){
   return array(
     'api' => 2,
-    'path' => drupal_get_path('module','leftandright') . "/views"
+    'path' => drupal_get_path('module', 'leftandright') . "/views"
   );
 }
