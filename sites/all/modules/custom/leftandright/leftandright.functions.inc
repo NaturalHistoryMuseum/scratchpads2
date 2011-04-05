@@ -26,26 +26,14 @@ function leftandright_previous_term($term){
  * Get next sibling
  */
 function leftandright_get_next_sibling($term){
-  $parent = isset($term->parents) ? current($term->parents) : 0;
-  $query = db_select('taxonomy_term_data', 't');
-  $query->fields('t')->fields('h', array(
-    'parent'
-  ));
-  $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
-  $query->addTag('translatable')->addTag('term_access');
-  $query->condition('t.vid', $term->vid)->condition('h.parent', $parent);
-  $query->orderBy('t.weight');
-  $result = $query->execute();
-  foreach($result as $siblibng){
-    $parents[$siblibng->tid][] = $siblibng->parent;
-    $siblings[$siblibng->tid] = $siblibng;
-    unset($siblings[$siblibng->tid]->parent);
-    $siblings[$siblibng->tid]->parents = $parents[$siblibng->tid];
-  }
-  watchdog('leftandright', print_r($siblings, 1));
+  // Get the parent from the taxonomy_term_hierarchy table first.
+  $parent = db_select('taxonomy_term_hierarchy', 't')->fields('t', array('parent'))->condition('tid', $term->tid)->execute()->fetchField();
+  $siblings = taxonomy_get_tree_original($term->vid, $parent, 1);
   $found_me = FALSE;
   foreach($siblings as $sibling){
-    if($found_me){return $sibling;}
+    if($found_me){
+      return $sibling;
+    }
     if($sibling->tid == $term->tid){
       $found_me = TRUE;
     }
