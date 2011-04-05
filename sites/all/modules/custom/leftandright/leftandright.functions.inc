@@ -23,6 +23,23 @@ function leftandright_previous_term($term){
 }
 
 /**
+ * Get next sibling
+ */
+function leftandright_get_next_sibling($term){
+  $siblings = taxonomy_get_tree_original($term->vid, isset($term->parents) ? current($term->parents):0, 1);
+  $found_me = FALSE;
+  foreach($siblings as $sibling){
+    if($found_me){
+      return $sibling;
+    }
+    if($sibling->tid == $term->tid){
+      $found_me = TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
  * Save the term
  */
 function leftandright_save_term($term){
