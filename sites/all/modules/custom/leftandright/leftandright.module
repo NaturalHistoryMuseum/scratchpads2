@@ -18,6 +18,30 @@ function leftandright_form_taxonomy_overview_vocabularies_alter(&$form, &$form_s
 }
 
 /**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function leftandright_form_taxonomy_overview_terms_alter(&$form, &$form_state, $form_id){
+  // We'll get a count of the number of terms in this taxonomy - if there is
+  // more than 1000, we'll give the users a warning that not all terms are
+  // being displayed and that they should use an alternative editor.
+  if(current(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+    ':vid' => $form['#vocabulary']->vid
+  ))->fetchCol()) > 1000){
+    $form['warning'] = array(
+      '#markup' => '<p class="error">' . t('There is more than 1000 terms in this vocabulary.  We can only display the first 1000 for you.') . '</p>'
+    );
+  }
+  // Add the vid so that the batch knows what to do!
+  $form['vid'] = array(
+    '#type' => 'hidden',
+    '#value' => $form['#vocabulary']->vid
+  );
+  // Add an additional submit function to rebuild the tree.
+  module_load_include('admin.inc', 'leftandright');
+  $form['#submit'][] = 'leftandright_rebuild_tree_form_submit';
+}
+
+/**
  * Implementation of hook_menu
  */
 function leftandright_menu(){

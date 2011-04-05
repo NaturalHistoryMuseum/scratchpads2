@@ -56,7 +56,6 @@ function leftandright_rebuild_tree_form_submit($form, &$form_state){
         )
       )
     ),
-    'finished' => 'leftandright_rebuild_tree_finished',
     'file' => drupal_get_path('module', 'leftandright') . '/leftandright.admin.inc'
   );
   batch_set($batch);
@@ -89,7 +88,7 @@ function leftandright_rebuild_tree($vid, &$context){
   // We will do 100 terms at a time, trying to reduce the number of requests
   // the batch requires.
   $number_of_terms_processed = 0;
-  while($number_of_terms_processed < 1 && $context['sandbox']['progress'] < $context['sandbox']['max']){
+  while($number_of_terms_processed < 100 && $context['sandbox']['progress'] < $context['sandbox']['max']){
     // Set the left for this term if it needs setting
     $context['sandbox']['leftorright']++;
     if(empty($context['sandbox']['current_term']->lft)){
@@ -154,12 +153,4 @@ function leftandright_rebuild_tree_merge($vid, &$context){
   db_delete('leftandright_rebuild_right')->condition('vid', $vid)->execute();
   db_delete('leftandright_rebuild_left')->condition('vid', $vid)->execute();
   $context['finished'] = 1;
-}
-
-/**
- * Finished rebuild function called by batch!
- */
-function leftandright_rebuild_tree_finished($success, $results, $operations){
-  // Here we need to merge the data from the two processing tables into the 
-// main table.
 }
