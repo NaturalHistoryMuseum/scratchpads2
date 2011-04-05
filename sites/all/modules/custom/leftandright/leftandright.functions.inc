@@ -27,13 +27,15 @@ function leftandright_previous_term($term){
  */
 function leftandright_get_next_sibling($term){
   // Get the parent from the taxonomy_term_hierarchy table first.
-  $parent = db_select('taxonomy_term_hierarchy', 't')->fields('t', array('parent'))->condition('tid', $term->tid)->execute()->fetchField();
-  $siblings = taxonomy_get_tree_original($term->vid, $parent, 1);
+  $parent = db_select('taxonomy_term_hierarchy', 't')->fields('t', array(
+    'parent'
+  ))->condition('tid', $term->tid)->execute()->fetchField();
+  $query = db_select('taxonomy_term_data', 't')->fields('t');
+  $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
+  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->fields('t')->execute();
   $found_me = FALSE;
-  foreach($siblings as $sibling){
-    if($found_me){
-      return $sibling;
-    }
+  foreach($results as $sibling){
+    if($found_me){return $sibling;}
     if($sibling->tid == $term->tid){
       $found_me = TRUE;
     }
