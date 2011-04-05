@@ -76,19 +76,21 @@ function leftandright_rebuild_tree($vid, &$context){
       ':vid' => $vid
     ))->fetchCol()));
     $context['sandbox']['progress'] = 0;
-    // Get the base of the tree using the original function
-    $base_of_tree = taxonomy_get_tree_original($vid, 0, 1);
-    $context['sandbox']['current_term'] = current($base_of_tree);
+    // Get the first term
+    $query = db_select('taxonomy_term_data', 't')->fields('t');
+    $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
+    $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->fields('t')->execute()->fetch();
+    $context['sandbox']['current_term'] = $term;
     // Set the depth to allow us to calculate later on
     $context['sandbox']['current_term']->depth = 0;
     $context['sandbox']['leftorright'] = 0;
     $context['sandbox']['parents'] = array();
     $context['finished'] = 0;
   }
-  // We will do 100 terms at a time, trying to reduce the number of requests
+  // We will do 1000 terms at a time, trying to reduce the number of requests
   // the batch requires.
   $number_of_terms_processed = 0;
-  while($number_of_terms_processed < 100 && $context['sandbox']['progress'] < $context['sandbox']['max']){
+  while($number_of_terms_processed < 1000 && $context['sandbox']['progress'] < $context['sandbox']['max']){
     // Set the left for this term if it needs setting
     $context['sandbox']['leftorright']++;
     if(empty($context['sandbox']['current_term']->lft)){
@@ -134,6 +136,10 @@ function leftandright_rebuild_tree($vid, &$context){
         }
       }
     }
+    $context['message'] = t('Assigned !progress left and right values of !total', array(
+      '!progress' => $context['sandbox']['progress'] + 1,
+      '!total' => $context['sandbox']['max']
+    ));
     $number_of_terms_processed++;
     $context['sandbox']['progress']++;
   }
