@@ -81,14 +81,17 @@ function leftandright_rebuild_tree($vid, &$context){
     $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
     $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->orderBy('t.name')->fields('t')->execute()->fetch();
     $context['sandbox']['current_term'] = $term;
+    // Set the start time to allow us to calculate a rough time remaining
+    $context['sandbox']['starttime'] = time();
     // Set the depth to allow us to calculate later on
     $context['sandbox']['current_term']->depth = 0;
     $context['sandbox']['leftorright'] = 0;
     $context['sandbox']['parents'] = array();
     $context['finished'] = 0;
   }
-  // We will do 1000 terms at a time, trying to reduce the number of requests
-  // the batch requires.
+  // We will do 1000 terms at a time, trying to reduce the number of breaks from
+  // this code.  1000 terms also takes approximately 1 second to save, so gives
+  // plenty of feedback to the user.
   $number_of_terms_processed = 0;
   while($number_of_terms_processed < 1000 && $context['sandbox']['progress'] < $context['sandbox']['max']){
     // Set the left for this term if it needs setting
@@ -136,10 +139,15 @@ function leftandright_rebuild_tree($vid, &$context){
         }
       }
     }
-    $context['message'] = t('Assigned !progress left and right values of !total', array(
+    $interval_guess = ($context['sandbox']['max'] / $context['sandbox']['progress']) * (time() - $context['sandbox']['starttime']);
+    $context['message'] = '<p>' . t('Assigned !progress of !total left and right values', array(
       '!progress' => $context['sandbox']['progress'] + 1,
       '!total' => $context['sandbox']['max']
-    ));
+    )) . '</p><p>' . t('Approximate time remaining: !time', array(
+      '!time' => format_interval($interval_guess, 2)
+    )) . '</p><p>' . t('Time taken: !timetaken', array(
+      '!timetaken' => format_interval(time() - $context['sandbox']['starttime'])
+    )) . '</p>';
     $number_of_terms_processed++;
     $context['sandbox']['progress']++;
   }
