@@ -32,7 +32,7 @@ function leftandright_get_next_sibling($term){
   ))->condition('tid', $term->tid)->execute()->fetchField();
   $query = db_select('taxonomy_term_data', 't')->fields('t');
   $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
-  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->fields('t')->execute();
+  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->orderBy('t.name')->fields('t')->execute();
   $found_me = FALSE;
   foreach($results as $sibling){
     if($found_me){return $sibling;}
@@ -64,7 +64,6 @@ function leftandright_save_term($term){
       ':lft' => $term->lft
     ));
     // Do the insert
-    //drupal_set_message(kprint_r($term, 1));
     db_insert('taxonomy_leftandright')->fields(array(
       'lft' => $term->lft,
       'rgt' => $term->rgt,
