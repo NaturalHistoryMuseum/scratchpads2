@@ -87,11 +87,10 @@ function leftandright_taxonomy_term_insert($term){
  * Implementations of hook_taxonomy_update
  */
 function leftandright_taxonomy_term_update($term){
-  // Simply do a delete, then an insert.
-  // Nice if we could start a transaction here, then commit it at the end.
+  // Note, we can't just call delete then update, as that doesn't work with
+  // branches.
   module_load_include('functions.inc', 'leftandright');
-  leftandright_taxonomy_term_delete($term);
-  leftandright_taxonomy_term_insert($term);
+  leftandright_update($term);
 }
 
 /**

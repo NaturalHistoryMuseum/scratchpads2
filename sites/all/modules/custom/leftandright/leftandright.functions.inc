@@ -86,6 +86,18 @@ function leftandright_insert($term){
   // there is no parent, then this is the first term at the root, and receives
   // the left value of 1.
   module_load_include('functions.inc', 'leftandright');
+  // Set the left, right and depth.
+  leftandright_set_left_and_depth($term);
+  // Set the right
+  $term->rgt = $term->lft + 1;
+  // We should now save the term in to the table.
+  leftandright_save_term($term);
+}
+
+/**
+ * Set the leftandright for a term
+ */
+function leftandright_set_left_and_depth(&$term){
   // Get the previous term
   $previous_term = leftandright_previous_term($term);
   if($previous_term){
@@ -107,15 +119,11 @@ function leftandright_insert($term){
       // Depth is same as sibling
       $term->depth = $previous_term_landr->depth;
     }
-    $term->rgt = $term->lft + 1;
   }else{
     // No previous term, we're the first one!
     $term->lft = 1;
-    $term->rgt = 2;
     $term->depth = 0;
   }
-  // We should now save the term in to the table.
-  leftandright_save_term($term);
 }
 
 /**
@@ -134,6 +142,72 @@ function leftandright_insert_error($previous_term){
   ));
 }
 
+/**
+ * Do an update.  Note, this is a little more complicated due to the fact that
+ * branch terms can be updated.
+ */
+function leftandright_update($term){
+  // We only need to do this if we have actually moved the term.  We test for
+  // that first.
+  // Get what we would like the left to be  
+  leftandright_set_left_and_depth($term);
+  // We start by getting the left and right values of the term that we're moving
+  // We then move that term (and its children) to a temporary table.  The gap
+  // is then closed, and then we punch a hole, and move the terms back to where
+  // they should be.
+  $leftandright = db_select('taxonomy_leftandright', 'l')->fields('l', array(
+    'lft',
+    'rgt',
+    'depth'
+  ))->condition('tid', $term->tid)->execute()->fetch();
+  // Now we can check to see if the already set lft value is the same as what
+  // we want it to be.  If it is, we can simply return
+  if($term->lft == $leftandright->lft){return;}
+  $temporary_table = db_query_temporary('SELECT * FROM {taxonomy_leftandright} WHERE lft >= :lft AND rgt <= :rgt AND vid = :vid', array(
+    ':vid' => $term->vid,
+    ':lft' => $leftandright->lft,
+    ':rgt' => $leftandright->rgt
+  ));
+  // Delete the entries from the leftandright table
+  db_delete('taxonomy_leftandright')->condition('lft', $leftandright->lft, '>=')->condition('vid', $term->vid)->condition('rgt', $leftandright->rgt, '<=')->execute();
+  // Close up the hole
+  $reduce_by = ($leftandright->rgt - $leftandright->lft) + 1;
+  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt - :reduce_by WHERE vid = :vid AND rgt > :rgt', array(
+    ':reduce_by' => $reduce_by,
+    ':vid' => $term->vid,
+    ':rgt' => $leftandright->rgt
+  ));
+  db_query('UPDATE {taxonomy_leftandright} SET lft = lft - :reduce_by WHERE vid = :vid AND lft > :rgt', array(
+    ':reduce_by' => $reduce_by,
+    ':vid' => $term->vid,
+    ':rgt' => $leftandright->rgt
+  ));
+  // Open a hole for where the term is going
+  // Unfortunately, we need to get the previous term's left again as they may 
+  // have changed (depending on the direction of the move). 
+  leftandright_set_left_and_depth($term);
+  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt + :increase_by WHERE vid = :vid AND rgt >= :lft', array(
+    ':increase_by' => $reduce_by,
+    ':vid' => $term->vid,
+    ':lft' => $term->lft
+  ));
+  db_query('UPDATE {taxonomy_leftandright} SET lft = lft + :increase_by WHERE vid = :vid AND lft >= :lft', array(
+    ':increase_by' => $reduce_by,
+    ':vid' => $term->vid,
+    ':lft' => $term->lft
+  ));
+  // Move the terms in the table back, updating the depth, lft and rgt values
+  // as we do.
+  db_query('INSERT INTO {taxonomy_leftandright} (lft, rgt, tid, vid, depth) SELECT lft - :alter_by, rgt - :alter_by, tid, vid, depth - :alter_depth_by FROM ' . $temporary_table, array(
+    ':alter_by' => $leftandright->lft - $term->lft,
+    ':alter_depth_by' => $leftandright->depth - $term->depth
+  ));
+}
+
+/**
+ * Delete the term.  Note, this works if deleting branches as this is called
+ * multiple times.
+ */
 function leftandright_delete($term){
   // Get the left and right values first so that we can close up the table.
   $leftandright = db_select('taxonomy_leftandright', 'l')->fields('l', array(
