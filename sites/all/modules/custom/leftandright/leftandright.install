@@ -1,13 +1,11 @@
 <?php
 /**
  * Implementation of hook_install
-function leftandright_install(){
-  // Add an index on vid to the term_data table
-  db_add_index($ret = array(), 'term_data', 'vid', array('vid'));
-  // Rebuild trees
-  
-}
  */
+function leftandright_install(){
+  // Simply add a message telling users to go and rebuild their trees.
+  drupal_set_message(t('Please go and <a href="!rebuild_url">rebuild</a> all of your taxonomies', array('!rebuild_url' => url('admin/structure/taxonomy'))));
+}
 
 /**
  * Implementation of hook_schema().

@@ -103,10 +103,10 @@ function leftandright_taxonomy_term_delete($term){
 
 /**
  * Implementation of hook_viewsapi
- */
 function leftandright_views_api(){
   return array(
     'api' => 2,
     'path' => drupal_get_path('module', 'leftandright') . "/views"
   );
 }
+ */
