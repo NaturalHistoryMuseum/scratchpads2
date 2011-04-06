@@ -79,7 +79,7 @@ function leftandright_rebuild_tree($vid, &$context){
     // Get the first term
     $query = db_select('taxonomy_term_data', 't')->fields('t');
     $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
-    $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->orderBy('t.name')->fields('t')->execute()->fetch();
+    $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid')->fields('t')->execute()->fetch();
     $context['sandbox']['current_term'] = $term;
     // Set the start time to allow us to calculate a rough time remaining
     $context['sandbox']['starttime'] = time();
@@ -139,14 +139,16 @@ function leftandright_rebuild_tree($vid, &$context){
         }
       }
     }
+    $time_taken = time() - $context['sandbox']['starttime'];
     $interval_guess = ($context['sandbox']['max'] / $context['sandbox']['progress']) * (time() - $context['sandbox']['starttime']);
-    $context['message'] = '<p>' . t('Assigned !progress of !total left and right values', array(
+    //$interval_guess = ($context['sandbox']['max'] - $context['sandbox']['progress']) * ((time() - $context['sandbox']['starttime']/$context['sandbox']['progress']));
+    $context['message'] = '<p>' . t('Assigned !progress of !total left and right values (Number of terms &times; 2)', array(
       '!progress' => $context['sandbox']['progress'] + 1,
       '!total' => $context['sandbox']['max']
     )) . '</p><p>' . t('Approximate time remaining: !time', array(
-      '!time' => format_interval($interval_guess, 2)
+      '!time' => format_interval($interval_guess - $time_taken, 2)
     )) . '</p><p>' . t('Time taken: !timetaken', array(
-      '!timetaken' => format_interval(time() - $context['sandbox']['starttime'])
+      '!timetaken' => format_interval($time_taken)
     )) . '</p>';
     $number_of_terms_processed++;
     $context['sandbox']['progress']++;
