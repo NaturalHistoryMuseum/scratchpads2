@@ -33,10 +33,10 @@ function htdigest_user_update(&$edit, $account, $category){
 /**
  * Implementation of hook_user_login
  */
-function htdigest_user_login(&$edit, $account, $category){
+function htdigest_user_login(&$edit, $account){
   // Here we will ensure that htdigest_user entries are upto date.
-  if($edit['pass']){
-    htdigest_update_user($account, $edit['pass']);
+  if($edit['input']['pass']){
+    htdigest_update_user($account, $edit['input']['pass']);
   }
 }
 
@@ -87,7 +87,7 @@ function htdigest_update_user($account, $password){
           //db_query("UPDATE {htdigest_user} SET pass = '%s' WHERE rid = %d AND aid = %d", md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password), $row_realm->rid, $row_aliases->aid);
           db_update('htdigest_user')->fields(array(
             'pass' => md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password)
-          ))->condition('rid', $row_realm->fid)->condition('aid', $row_aliases->aid)->execute();
+          ))->condition('rid', $row_realm->rid)->condition('aid', $row_aliases->aid)->execute();
         }else{
           // Insert
           db_insert('htdigest_user')->fields(array(
@@ -307,9 +307,7 @@ function htdigest_user_settings_submit($form, &$form_state){
     ))->execute();
     //db_query("INSERT INTO {htdigest_alias} (uid, alias) VALUES (%d, '%s')", $form_state['values']['account'], $form_state['values']['new_alias']);
     // Update the passwords
-    $account = user_load(array(
-      'uid' => $form_state['values']['account']
-    ));
+    $account = user_load($form_state['values']['account']);
     htdigest_update_user($account, $form_state['values']['password']);
   }else if($form_state['values']['op'] == $form_state['values']['delete_selected_aliases']){
     $aliases_to_delete = array();
@@ -323,17 +321,22 @@ function htdigest_user_settings_submit($form, &$form_state){
 }
 
 /**
- * Implementation of hook_perm
+ * Implementation of hook_permission
  */
-function htdigest_perm(){
+function htdigest_permission(){
   // Add a permission for each realm
   $perms = array();
   $result = db_select('htdigest_realm', 'h')->fields('h')->orderBy('h.realm')->execute();
   foreach($result as $row){
-    $perms[] = 'access htdigest realm ' . $row->realm;
+    $perms['access htdigest realm ' . $row->realm] = array(
+      'title' => t('Allow login to the realm !realm', array('!realm' => $row->realm))
+    );
   }
   if(variable_get('htdigest_allow_basic', 0)){
-    $perms[] = 'access with basic authentication'; // FIXME - This isn't used yet
+    // FIXME - This isn't actually used!
+    $perms['access with basic authentication'] = array(
+      'title' => t('Allow login to another service using basic authentication')
+    );
   }
   return $perms;
 }
