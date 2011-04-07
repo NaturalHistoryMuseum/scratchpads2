@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implementation of hook_install
+ */
+function htdigest_install(){
+  // Insert all the blank aliases for all of the users
+  db_query('INSERT INTO {htdigest_alias} (uid) SELECT uid FROM {users} WHERE uid > 0');
+}
+
+/**
+ * Implementation of hook_schema
+ */
+function htdigest_schema(){
+  return array(
+    'htdigest_user' => array(
+      'fields' => array(
+        'aid' => array(
+          'type' => 'int',
+          'not null' => TRUE
+        ),
+        'rid' => array(
+          'type' => 'int',
+          'not null' => TRUE
+        ),
+        'pass' => array(
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 36
+        )
+      ),
+      'primary key' => array(
+        'aid',
+        'rid'
+      )
+    ),
+    'htdigest_basic' => array(
+      'fields' => array(
+        'uid' => array(
+          'type' => 'int',
+          'not null' => TRUE
+        ),
+        'pass' => array(
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'uid'
+      )
+    ),
+    'htdigest_realm' => array(
+      'fields' => array(
+        'rid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'realm' => array(
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 255
+        ),
+        'allow_alias' => array(
+          'type' => 'int',
+          'size' => 'tiny',
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'rid'
+      ),
+      'unique keys' => array(
+        'htdigest_realm_unique_realm' => array(
+          'realm'
+        )
+      )
+    ),
+    'htdigest_alias' => array(
+      'fields' => array(
+        'aid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'uid' => array(
+          'type' => 'int',
+          'not null' => TRUE
+        ),
+        'alias' => array(
+          'type' => 'varchar',
+          'not null' => FALSE,
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'aid'
+      ),
+      'unique keys' => array(
+        'htdigest_alias_unique_alias' => array(
+          'alias'
+        )
+      )
+    )
+  );
+}
