@@ -32,7 +32,7 @@ function leftandright_get_next_sibling($term){
   ))->condition('tid', $term->tid)->execute()->fetchField();
   $query = db_select('taxonomy_term_data', 't')->fields('t');
   $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
-  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid')->fields('t')->execute();
+  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid', 'DESC')->fields('t')->execute();
   $found_me = FALSE;
   foreach($results as $sibling){
     if($found_me){return $sibling;}

@@ -79,7 +79,7 @@ function leftandright_rebuild_tree($vid, &$context){
     // Get the first term
     $query = db_select('taxonomy_term_data', 't')->fields('t');
     $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
-    $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid')->fields('t')->execute()->fetch();
+    $term = $query->condition('vid', $vid)->condition('parent', 0)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid', 'DESC')->fields('t')->execute()->fetch();
     $context['sandbox']['current_term'] = $term;
     // Set the start time to allow us to calculate a rough time remaining
     $context['sandbox']['starttime'] = time();
