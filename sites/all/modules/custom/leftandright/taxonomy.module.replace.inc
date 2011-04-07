@@ -58,3 +58,30 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   }
   return $tree;
 }
+
+/**
+ * Ensure that we always have consistent ordering of terms with the same name
+ * and weight
+ */
+function taxonomy_get_children($tid, $vid = 0) {
+  $children = &drupal_static(__FUNCTION__, array());
+
+  if ($tid && !isset($children[$tid])) {
+    $query = db_select('taxonomy_term_data', 't');
+    $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
+    $query->addField('t', 'tid');
+    $query->condition('h.parent', $tid);
+    if ($vid) {
+      $query->condition('t.vid', $vid);
+    }
+    $query->addTag('term_access');
+    $query->orderBy('t.weight');
+    $query->orderBy('t.name');
+    // Following added line is the only change to this function
+    $query->orderBy('t.tid', 'DESC');
+    $tids = $query->execute()->fetchCol();
+    $children[$tid] = taxonomy_term_load_multiple($tids);
+  }
+
+  return isset($children[$tid]) ? $children[$tid] : array();
+}
