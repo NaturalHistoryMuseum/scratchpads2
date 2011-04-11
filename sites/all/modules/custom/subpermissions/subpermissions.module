@@ -11,7 +11,9 @@ function subpermissions_permission(){
     ),
     'administer subpermission' => array(
       'title' => t('Administer subpermissions'),
-      'description' => t('Select which permissions should be displayed on the subpermission form page')
+      'description' => t('Select which permissions should be displayed on the subpermission form page'),
+      'restrict access' => TRUE,
+      'warning' => t('Users with this permission effectively have access to ALL unrestricted permissions')
     )
   );
 }
