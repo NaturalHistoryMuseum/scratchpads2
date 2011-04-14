@@ -1,5 +1,5 @@
 <?php
-define('SEARCH_AUTOCOMPLETE_SEPARATOR', ' -:- ');
+define('SEARCH_AUTOCOMPLETE_SEPARATOR', '&nbsp;&raquo;&nbsp;');
 
 /**
  * Implementation of hook_menu
@@ -49,12 +49,8 @@ function search_autocomplete_search_submit(&$form, &$form_state){
   }else if(isset($form_state['values']['search_block_form']) && is_string($form_state['values']['search_block_form'])){
     $search_string = $form_state['values']['search_block_form'];
   }
-  $string_parts = explode(SEARCH_AUTOCOMPLETE_SEPARATOR, $search_string);
-  if(count($string_parts) > 1){
-    $url = array_pop($string_parts);
-    if(substr($url, 0, 4) == 'http'){
-      drupal_goto($url);
-    }
+  if(substr($search_string, 0, 4) == 'http' && parse_url($search_string)){
+    drupal_goto($search_string);
   }
 }
 
@@ -67,7 +63,7 @@ function search_autocomplete_autocomplete($search = ''){
   $term_matches = module_invoke_all('search_autocomplete_search', $search);
   $matches = array();
   foreach($term_matches as $match){
-    $matches[$match['text'] . SEARCH_AUTOCOMPLETE_SEPARATOR . $match['url']] = check_plain($match['text']) . SEARCH_AUTOCOMPLETE_SEPARATOR . $match['url'];
+    $matches[$match['url']] = check_plain($match['text']) . SEARCH_AUTOCOMPLETE_SEPARATOR . $match['url'];
   }
   drupal_json_output($matches);
 }
