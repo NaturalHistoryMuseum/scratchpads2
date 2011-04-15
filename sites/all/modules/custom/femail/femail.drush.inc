@@ -172,12 +172,6 @@ function _femail_post_comment($msg, $user, $status){
   if($row){
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
-      // FFS, the comment_upload module doesn't accept files as objects. Ah well
-      // we'll convert them here.
-      $ffs_fussy_cu = array();
-      foreach($msg['files'] as $fid => $file_tmp){
-        $ffs_fussy_cu[$fid] = (array)$file_tmp;
-      }
       $edit = array(
         'author' => $user->name,
         'subject' => $msg['title'],
@@ -190,7 +184,7 @@ function _femail_post_comment($msg, $user, $status){
         'name' => $user->name,
         'status' => $status,
         'format' => variable_get('femail_input_format', NULL),
-        'files' => $ffs_fussy_cu
+        'femail_files' => $msg['femail_files']
       );
       $cid = comment_save($edit);
       watchdog('femail', 'Posted forum comment: ' . l($msg['title'], 'node/' . $row['nid'], array(
@@ -238,8 +232,8 @@ function _femail_post_forum_topic($msg, $user, $status){
   );
   $node->status = $status;
   $node->format = variable_get('femail_input_format', NULL);
-  if(isset($msg['files'])){
-    $node->files = $msg['files'];
+  if(isset($msg['femail_files'])){
+    $node->femail_files = $msg['femail_files'];
   }
   node_save($node);
   watchdog('femail', 'Posted forum topic: ' . l($node->title, 'node/' . $node->nid), array(), WATCHDOG_INFO);
@@ -275,8 +269,12 @@ function femail_drush_callback(){
     unset($msg['files']);
     if(user_access('upload files') && user_access('upload files to comments')){
       foreach($temp_files as $tmpfile){
-        $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . ':/' . $tmpfile['original_name']);
-        $msg['femail_files'][$file->fid] = $file;
+        $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
+        $msg['femail_files']['und'][] = array(
+          'fid' => $file->fid,
+          'display' => 1,
+          'description' => ''
+        );
       }
     }
   }
