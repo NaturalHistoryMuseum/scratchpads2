@@ -276,7 +276,7 @@ function femail_drush_callback(){
     if(user_access('upload files') && user_access('upload files to comments')){
       foreach($temp_files as $tmpfile){
         $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . ':/' . $tmpfile['original_name']);
-        $msg['files'][$file->fid] = $file;
+        $msg['femail_files'][$file->fid] = $file;
       }
     }
   }
