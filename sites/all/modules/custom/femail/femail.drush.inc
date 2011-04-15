@@ -275,10 +275,10 @@ function femail_drush_callback(){
     unset($msg['files']);
     if(user_access('upload files') && user_access('upload files to comments')){
       foreach($temp_files as $tmpfile){
-        $filename = $tmpfile['temp_name'];
-        if(file_move($filename, drush_get_context('DRUSH_DRUPAL_ROOT') . '/' . file_directory_path() . '/' . $tmpfile['original_name'])){
+        $temp_file = new File($tmpfile['temp_name']);
+        if(file_move($temp_file, file_default_scheme() . ':/' . $tmpfile['original_name'])){
           // The file is now saved, we should now add an entry to the files table.
-          $pathinfo = pathinfo($filename);
+          /*$pathinfo = pathinfo($filename);
           $file = new stdClass();
           $file->filename = $pathinfo['basename'];
           $file->filepath = file_directory_path() . '/' . $pathinfo['basename'];
@@ -293,7 +293,7 @@ function femail_drush_callback(){
           $file->weight = 0;
           $file->timestamp = time();
           drupal_write_record('files', $file);
-          $msg['files'][$file->fid] = $file;
+          $msg['files'][$file->fid] = $file;*/
         }
       }
     }
