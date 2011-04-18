@@ -9,7 +9,7 @@
  color:blue;
  cursor:pointer;
 }
-.blockquote{
+blockquote{
  border-left:solid 3px #ccc;
  padding-left:5px;
 }
