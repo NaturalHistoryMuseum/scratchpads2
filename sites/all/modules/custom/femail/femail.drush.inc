@@ -154,6 +154,7 @@ function _femail_get_msg(){
 function _femail_post_comment($msg, $user, $status){
   // First we'll make sure the in-reply-to is in the msgid table, if not, we
   // will have to add this as a new thread.
+  $row = FALSE;
   if(isset($msg['in-reply-to'])){
     //$result = db_query("SELECT cid, nid FROM {femail_msgs} WHERE msgid = '%s'", $msg['in-reply-to']);
     $row = db_select('femail_msgs', 'f')->fields('f', array(
@@ -172,24 +173,33 @@ function _femail_post_comment($msg, $user, $status){
   if($row){
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
-      $edit = array(
+      $edit = (object)array(
+        'cid' => NULL,
+        'language' => language_default()->language,
         'author' => $user->name,
         'subject' => $msg['title'],
-        'comment' => $msg['body'],
-        'pid' => $row['cid'],
-        'nid' => $row['nid'],
+        'comment_body' => array(
+          'und' => array(
+            array(
+              'value' => $msg['body'],
+              'format' => 'plain_text'
+            )
+          )
+        ),
+        'pid' => $row->cid,
+        'nid' => $row->nid,
         'uid' => $user->uid,
         'op' => 'Save',
         'date' => 'now',
         'name' => $user->name,
         'status' => $status,
         'format' => variable_get('femail_input_format', NULL),
-        'femail_files' => $msg['femail_files']
+        'femail_files' => isset($msg['femail_files']) ? $msg['femail_files'] : array()
       );
-      $cid = comment_save($edit);
-      watchdog('femail', 'Posted forum comment: ' . l($msg['title'], 'node/' . $row['nid'], array(
+      comment_save($edit);
+      watchdog('femail', 'Posted forum comment: ' . l($msg['title'], 'node/' . $row->nid, array(
         'fragment',
-        'comment-' . $cid
+        'comment-' . $edit->cid
       )));
     }else{
       watchdog('femail', 'Failed to post forum comment: ' . $msg['title']);
@@ -235,6 +245,8 @@ function _femail_post_forum_topic($msg, $user, $status){
   if(isset($msg['femail_files'])){
     $node->femail_files = $msg['femail_files'];
   }
+  $node->is_new = TRUE;
+  $node->nid = NULL;
   node_save($node);
   watchdog('femail', 'Posted forum topic: ' . l($node->title, 'node/' . $node->nid), array(), WATCHDOG_INFO);
 }
@@ -245,23 +257,22 @@ function femail_drush_callback(){
   $msg = _femail_get_msg();
   // Check to see this isn't a message that we've just sent out
   if(isset($msg['reply-to']) && $msg['reply-to'] == $msg['to']){return;}
-  watchdog('femail', "Following message was received:\n\n" . print_r($msg, TRUE), array(), WATCHDOG_INFO);
   // User needed for both comments, and nodes, so load first.
   global $user;
   $account = user_load_by_mail($msg['from']);
   if($account){
     $user = $account;
   }else{
+    $user = drupal_anonymous_user();
     $row = db_select('femail_user_emails', 'f')->fields('f', array(
       'uid'
     ))->condition('email', $msg['from'])->condition('status', '0', '!=')->execute()->fetch();
     //$row = db_fetch_array(db_query("SELECT uid FROM {femail_user_emails} WHERE email = '%s' AND status !=0", $msg['from']));
-    if(is_array($row)){
-      $user = user_load($row);
-    }else{
-      $user = drupal_anonymous_user();
+    if($row){
+      $user = user_load($row->uid);
     }
   }
+  watchdog('femail', "Following message was received:\n\n" . print_r($msg, TRUE), array(), WATCHDOG_INFO);
   // Now that we have a UID, we can upload the files.  We'll check for the 
   // upload permissions too (we need both)
   if(isset($msg['files']) && count($msg['files'])){
@@ -285,11 +296,11 @@ function femail_drush_callback(){
       '@subject' => $msg['title'],
       '@email' => $msg['from']
     ), WATCHDOG_INFO);
-    $comment_status = 1;
-    $node_status = 0;
+    $comment_status = COMMENT_NOT_PUBLISHED;
+    $node_status = NODE_NOT_PUBLISHED;
   }else{
-    $comment_status = 0;
-    $node_status = 1;
+    $comment_status = COMMENT_PUBLISHED;
+    $node_status = NODE_PUBLISHED;
   }
   // If the in-reply-to is set, then we need to create a comment else we need to
   // create a node, or creating a comment has failed as the msgid could not be
