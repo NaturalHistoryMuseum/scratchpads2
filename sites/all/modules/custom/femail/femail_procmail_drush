@@ -13,3 +13,7 @@ cat <&0 > $TMPFILE
 DOMAIN=`cat $TMPFILE | grep ^Envelope-to | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
 # Execute Drush
 echo -n $TMPFILE | drush -l http://$DOMAIN femail
+# If you would like to use Femail with two versions of Drupal, comment out the above
+# line, and uncomment the lines below.
+#echo -n $TMPFILE | drush -r /path/to/drupal6 -l http://$DOMAIN femail
+#echo -n $TMPFILE | drush -r /path/to/drupal7 -l http://$DOMAIN femail
