@@ -1,0 +1,7 @@
+Note: This file is out of date.
+
+jQuery Update 7.x-1.0, 2010-02-11
+---------------------------------
+#1046720 by Rob Loach: Updated to jQuery 1.5 and jQuery UI 1.8.9
+#701496 by Rob Loach: Moved to hook_library_alter()
+#771062 by quiptime: Fixed module administration path
