@@ -372,19 +372,19 @@ function _biblio_bibtex_export($node) {
   $bibtex .= _biblio_bibtex_format_entry('issn', $node->biblio_issn);
   $bibtex .= _biblio_bibtex_format_entry('doi', $node->biblio_doi);
   $bibtex .= _biblio_bibtex_format_entry('url', $node->biblio_url);
-  if (!empty ($node->files) && count($node->files) && user_access('view uploaded files')) {
-    foreach ($node->files as $file) {
-      $attachments[] = file_create_url($file->uri);
+  if (!empty ($node->upload) && count($node->upload['und']) && user_access('view uploaded files')) {
+      foreach ($node->upload['und'] as $file) {
+      $attachments[] = file_create_url($file['uri']);
     }
     $bibtex .= _biblio_bibtex_format_entry('attachments', implode(' , ', $attachments));
   }
 
-  $a = $e = array();
-  if ($node->biblio_contributors->has_category(1)) {
-    foreach ($node->biblio_contributors->get_category(1) as $auth) $a[] = trim($auth['name']);
+  $a = $e = $authors = array();
+  if ($authors = biblio_get_contributor_category($node->biblio_contributors, 1)) {
+    foreach ($authors as $auth) $a[] = trim($auth['name']);
   }
-  if ($node->biblio_contributors->has_category(2)) {
-    foreach ($node->biblio_contributors->get_category(2) as $auth) $e[] = trim($auth['name']);
+  if ($authors = biblio_get_contributor_category($node->biblio_contributors, 2)) {
+    foreach ($authors as $auth) $e[] = trim($auth['name']);
   }
   $a = implode(' and ', $a);
   $e = implode(' and ', $e);

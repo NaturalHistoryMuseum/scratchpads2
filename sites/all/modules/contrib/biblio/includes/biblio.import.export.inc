@@ -7,7 +7,7 @@
  */
 /*   biblio.import.export.inc
  *
- *   Copyright (C) 2006-2008  Ron Jerome
+ *   Copyright (C) 2006-2011  Ron Jerome
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
  *   An array which will be used by the form builder to add a select box to a form
  */
 function _biblio_admin_build_user_select($my_uid) {
-  $sql = 'SELECT DISTINCT u.uid, u.name, u.status, u.mail FROM {users} u  WHERE u.uid != 0 ';
+  $sql = 'SELECT DISTINCT u.uid, u.name, u.status, u.mail FROM {users} u  WHERE u.uid <> 0 ';
   $result = db_query($sql);
   foreach ($result as $user) {
     $users[$user->uid] = $user->name . " ($user->mail)";
@@ -312,7 +312,6 @@ function biblio_import_batch_finished($success, $results, $operations) {
 
   biblio_import_finalize($success, $results);
   //clean up import cache...
-//  db_query("DELETE FROM {biblio_import_cache} WHERE session_id = :sessid", array(':sessid' => $results['session_id']));
   db_delete('biblio_import_cache')
     ->condition('session_id', $results['session_id'])
     ->execute();
@@ -338,6 +337,14 @@ function biblio_import_finalize($success, $results) {
       $message = format_plural($count, 'One duplicate node skipped.', '@count duplicate nodes skipped.');
       drupal_set_message($message, 'status');
       watchdog($format, $message, array('@count' => $count), WATCHDOG_INFO);
+      foreach ($dups as $nid) {
+        $message = '';
+        $message = t('The item you are trying to import already exists in the database, see ');
+        $message .= l('node/'. $nid, 'node/'. $nid);
+
+        drupal_set_message($message, 'status');
+        watchdog($format, $message, array(), WATCHDOG_ERROR);
+      }
     }
   }
   else {
@@ -351,12 +358,10 @@ function biblio_import_finalize($success, $results) {
   $userid = $results['userid'];
 
   if (user_access('administer biblio') && count($nids) && $user->uid != $userid) {
-//    db_query('UPDATE {node} SET uid = :uid WHERE nid IN(:nid)', array(':uid' => $results['userid'], ':nid' => implode(',', $nids)));
     db_update('node')
       ->fields(array('uid' => $results['userid']))
       ->condition('nid', $nids, 'IN')
       ->execute();
-  //  db_query('UPDATE {node_revision} SET uid = :uid WHERE nid IN(:nid)', array(':uid' => $results['userid'], ':nid' => implode(',', $nids)));
     db_update('node_revision')
       ->fields(array('uid' => $results['userid']))
       ->condition('nid', $nids, 'IN')
