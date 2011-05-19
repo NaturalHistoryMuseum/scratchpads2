@@ -19,6 +19,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+define('BIBLIO_VERSION', '7.x-1.x-dev');
 
 function _biblio_get_auth_types($auth_category, $biblio_type) {
   static $auth_types = array();
@@ -36,24 +37,6 @@ function _biblio_get_auth_type($auth_category, $biblio_type) {
   $result = (array)_biblio_get_auth_types($auth_category, $biblio_type);
   // return first element of the array
   return empty($result) ? NULL : current($result);
-}
-function _biblio_get_field_information($biblio_type, $only_visible = FALSE) {
-  $fields = array();
-  $visible = $only_visible ? ' AND (bt.common = 1 OR bt.visible=1) ' : '';
-
-  $result = db_query("SELECT b.*, btd.*, btt.name AS type_name
-                      FROM {biblio_fields} AS b
-                      INNER JOIN {biblio_field_type} AS bt ON bt.fid = b.fid
-                      INNER JOIN {biblio_field_type_data} AS btd ON btd.ftdid = bt.ftdid
-                      INNER JOIN {biblio_types} as btt ON btt.tid = bt.tid
-                      WHERE bt.tid = :tid $visible
-                      ORDER BY bt.weight ASC", array(':tid' => $biblio_type), array('fetch' => PDO::FETCH_ASSOC));
-
-  foreach ($result as $row) {
-    $fields[$row['fid']] = $row;
-  }
-
-  return $fields;
 }
 
 /**
@@ -166,10 +149,6 @@ function biblio_init() {
 function biblio_theme($existing, $type, $theme, $path) {
   $path = drupal_get_path('module', 'biblio');
   return array(
-//   'views_view_unformatted__biblio_year' => array(
-//      'template' => 'views-view-unformatted--biblio-year',
-//      'path'  => $path,
-//    ),
     'biblio_alpha_line' => array(
         'file' => '/includes/biblio_theme.inc',
         'variables' => array(
@@ -213,10 +192,6 @@ function biblio_theme($existing, $type, $theme, $path) {
         'file' => '/includes/biblio_theme.inc',
         'render element' => 'form',
     ),
-    'biblio_coin_button' => array(
-        'file' => '/includes/biblio_theme.inc',
-        'variables' => array('element'),
-    ),
     'biblio_openurl' => array(
         'file' => '/includes/biblio_theme.inc',
         'variables' => array('openURL'),
@@ -225,9 +200,8 @@ function biblio_theme($existing, $type, $theme, $path) {
         'file' => '/includes/biblio_theme.inc',
         'variables' => array(
           'node' => NULL,
-          'base' => 'biblio',
           'style_name' => 'classic',
-          'inline' => FALSE),
+         ),
     ),
     'biblio_long' => array(
         'file' => '/includes/biblio_theme.inc',
@@ -247,24 +221,15 @@ function biblio_theme($existing, $type, $theme, $path) {
         'file' => '/includes/biblio_theme.inc',
         'variables' => array(
           'node',
-          'base' => 'biblio',
           'style_name' => 'classic',
-          'inline' => FALSE),
-    ),
-    'biblio_authors' => array(
-      'file' => '/includes/biblio_theme.inc',
-      'variables' => array(
-        'contributors',
-        'style' => 'classic',
-        'inline' => FALSE,
-        'glue' => ', '),
+         ),
     ),
     'biblio_format_authors' => array(
       'file' => '/includes/biblio_theme.inc',
       'variables' => array(
         'contributors' => NULL,
         'options' => array(),
-        'inline' => FALSE),
+        ),
     ),
     'biblio_page_number' => array(
       'file' => '/includes/biblio_theme.inc',
@@ -310,6 +275,7 @@ function biblio_theme($existing, $type, $theme, $path) {
     ),
     );
 }
+
 function biblio_autocomplete($field, $string = '') {
   $matches = array();
   switch ($field) {
@@ -344,6 +310,7 @@ function biblio_autocomplete($field, $string = '') {
   print drupal_json_encode($matches);
   exit();
 }
+
 function biblio_help_page() {
   $base = variable_get('biblio_base', 'biblio');
   $text = "<h3>" . t('General:') . "</h3>";
@@ -375,6 +342,7 @@ function biblio_help_page() {
  * as well. We use it here to provide a description of the module on the
  * module administration page.
  */
+
 function biblio_help($path, $arg) {
   switch ($path) {
     case 'admin/help#biblio' :
@@ -387,16 +355,16 @@ function biblio_help($path, $arg) {
       return t('This allows you to add a bibliographic entry to the database');
   }
 }
+
 function biblio_node_info() {
   return array(
     'biblio' => array(
       'name' => t('Biblio'),
       'base' => 'biblio',
-      'description' => t('Manages bibliographies')
-  )
+      'description' => t('Use Biblio for scholarly content, such as journal papers and books.'),
+    )
   );
 }
-
 
 function biblio_node_access($node, $op, $account) {
   $type = is_string($node) ? $node : $node->type;
@@ -411,7 +379,7 @@ function biblio_node_access($node, $op, $account) {
       break;
     case 'update':
     case 'delete':
-      if(user_access('edit by all biblio authors') && isset($node->biblio_contributors) && is_array($node->biblio_contributors)) {
+      if (user_access('edit by all biblio authors') && isset($node->biblio_contributors) && is_array($node->biblio_contributors)) {
         foreach ($node->biblio_contributors as $cat => $authors) {
           foreach ($authors as $key => $author) {
             if ((isset($author['drupal_uid']) && $author['drupal_uid'] == $account->uid) ||
@@ -510,47 +478,7 @@ function biblio_permission() {
       ),
     );
 }
-/**
- * Implementation of hook_link().
- *
- * This is implemented so that an edit link is displayed for users who have
- * the rights to edit a node.
- */
-function biblio_link($type, $node = NULL, $teaser = FALSE) {
-  $links = array();
-  $base = variable_get('biblio_base', 'biblio');
 
-  if ($type == 'node' && $node->type == 'biblio') {
-    // Don't display a redundant edit link if they are node administrators.
-    if (biblio_access('update', $node) && !user_access('administer nodes')) {
-      $links['biblio_edit'] = array(
-        'title' => t('edit this entry'),
-        'href' => "node/$node->nid/edit"
-      );
-
-    }
-    if (biblio_access('export', $node)) {
-      $show_link = variable_get('biblio_lookup_links', array('google' => TRUE));
-      if (!empty($show_link['google'])) $links['biblio_google_scholar'] = theme_google_scholar_link($node);
-    }
-  }
-  return $links;
-}
-/**
- * Implementation of hook_link_alter to modifiy taxonomy links
- *
- * @param $links
- * @param $node
- * @return none
- */
-//function biblio_link_alter(&$links, $node) {
-//  foreach ($links AS $module => $link) {
-//    if (strstr($module, 'taxonomy_term')) {
-//      // Link back to the forum and not the taxonomy term page
-//      $links[$module]['href'] = str_replace('taxonomy/term', 'biblio/term_id', $link['href']);
-//    }
-//  }
-//}
 /**
  * Implementation of hook_user().
  */
@@ -591,23 +519,6 @@ function biblio_forms() {
   );
   return $forms;
 
-}
-/**
- * Return actual argument for %biblio_user placeholders in menu paths
- */
-function biblio_user_to_arg($arg) {
-  // Give back the current user uid when called from eg. tracker, aka.
-  // with an empty arg. Also use the current user uid when called from
-  // the menu with a % for the current account link.
-  return (empty($arg) || $arg == '%') ? $GLOBALS['user']->uid : $arg;
-}
-/**
- * load user object from arg, used for %biblio_user placeholders in menu paths
- * @param $uid
- * @return $user
- */
-function biblio_user_load($uid) {
-  //return user_load($uid);
 }
 /**
  * Implementation of hook_menu().
@@ -1049,15 +960,6 @@ function biblio_menu() {
     'file'              => '/includes/biblio.pages.inc',
     'type'              => MENU_CALLBACK
   );
-  $items["$base/viewinline/%node"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_view_inline',
-    'page arguments'    => array(2),
-    'access callback'   => 'user_access',
-    'access arguments'  => array('access biblio content'),
-    'file'              => '/includes/biblio.pages.inc',
-    'type'              => MENU_CALLBACK
-  );
   $items["$base/recent/rss.xml"] = array(
     'title'             => 'RSS feed',
     'page callback'     => 'biblio_recent_feed',
@@ -1067,6 +969,7 @@ function biblio_menu() {
   );
   return $items;
 }
+
 function biblio_filter_clear() {
   $options = array();
   $_SESSION['biblio_filter'] = array();
@@ -1079,6 +982,7 @@ function biblio_filter_clear() {
   }
   drupal_goto($base, $options);
 }
+
 function biblio_remove_brace($title_string) {
     //$title_string = utf8_encode($title_string);
     $matchpattern = '/\{\$(?:(?!\$\}).)*\$\}|(\{[^}]*\})/';
@@ -1093,34 +997,6 @@ function biblio_remove_brace_callback($match) {
                 return $braceless;
         }
         return $match[0];
-}
-
-function biblio_nodeapi(& $node, $op, $a3, $a4) {
-  if ($node->type == 'biblio') {
-    switch ($op) {
-      case 'delete revision' ://TODO:  move to hook_node_delete
-//FIXME DB
-        break;
-        /*   case 'presave':
-         if ($node->type == 'biblio')
-         {
-         //  $node->body = '';
-         //  $node_clone = clone($node); // we need a clone since objects get passed by reference regardless and we don't want to change the whole node object
-         //  $node->body = theme('biblio_tabular', $node_clone, $base, $teaser);
-         $style = biblio_get_style();
-         $node->teaser = theme('biblio_style', $node_clone, $base, $style);
-         }
-         break;
-         */
-      case 'insert': //TODO:  move to hook_node_insert
-        break;
-      case 'update': //TODO:  move to hook_node_update
-        break;
-      case 'view': //TODO:  move to hook_node_view
-        break;
-    }
-
-  }
 }
 
 function biblio_node_revision_delete($node) {
@@ -1162,59 +1038,25 @@ function biblio_node_update($node) {
 }
 
 function biblio_node_view($node, $view_mode) {
-  if (variable_get('biblio_hide_bibtex_braces', 0) && !empty($a4)) {
-    drupal_set_title(filter_xss($node->title, biblio_get_allowed_tags()));
-  }
-}
-
-function biblio_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == "biblio_node_form") { // this next bit is to remove all the form elements execpt the pub type select box the first time through
-    if (!isset($form_state['input']['biblio_type']) &&
-        empty($form_state['post']['biblio_type']) &&
-        empty($form_state['submitted']) &&
-        empty($form['vid']['#value'])) {
-
-      foreach (element_children($form) as $form_element) {
-        if (strstr($form_element, 'biblio_')) continue;
-        if (strstr($form_element, 'form_')) continue;
-        if ((isset($form[$form_element]['#type']))
-           // || $form[$form_element]['#type'] == 'container'
-            || $form_element == 'buttons') {
-          unset($form[$form_element]);
+  if ($node->type == 'biblio') {
+    switch ($view_mode) {
+      case 'full':
+        if (variable_get('biblio_hide_bibtex_braces', 0) && !empty($a4)) {
+          drupal_set_title(filter_xss($node->title, biblio_get_allowed_tags()));
         }
-      }
-    }
-    else {
-      if (isset($form['menu']['#weight']) && $form['menu']['#weight'] < 20) $form['menu']['#weight'] = 20;
-      if (isset($form['book']['#weight']) && $form['book']['#weight'] < 20) $form['book']['#weight'] = 20;
-      if (isset($form['taxonomy'])) {
-        if (!isset($form['taxonomy']['#title'])) {
-          $form['taxonomy'] += array(
-            '#type' => 'fieldset',
-            '#title' => t('Vocabularies'),
-            '#collapsible' => TRUE,
-            '#collapsed' => FALSE,
+        //fall through
+      case 'teaser':
+        $show_link = variable_get('biblio_lookup_links', array('google' => TRUE));
+        if (!empty($show_link['google'])) {
+          $node->content['links']['biblio_google_scholar'] = array(
+            '#links' => array(theme('google_scholar_link', array('node' => $node))),
+            '#attributes' => array('class' => array('links', 'inline')),
           );
         }
-        $form['taxonomy']['#description'] = t('Select taxonomy terms which will be related to this %biblio_base_title entry.', array('%biblio_base_title' => variable_get('biblio_base_title', 'Biblio')));
-        $form['taxonomy']['copy_to_biblio'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Copy these terms to the biblio keyword database'),
-          '#return_value' => 1,
-          '#default_value' =>  variable_get('biblio_copy_taxo_terms_to_keywords', 0),
-          '#description' => t('If this option is selected, the selected taxonomy terms will be copied to the %biblio_base_title keyword database and be displayed as keywords (as well as taxonomy terms) for this entry.', array('%biblio_base_title' => variable_get('biblio_base_title', 'Biblio')))
-        );
-      }
-      $kw_vocab = variable_get('biblio_keyword_vocabulary', 0);
-      $freetagging = variable_get('biblio_keyword_freetagging', 0);
-      if ($freetagging && $kw_vocab && isset($form['taxonomy']['tags'][$kw_vocab])) {
-        unset($form['taxonomy']['tags'][$kw_vocab]);
-
-      }
-    }
+     }
   }
-  return $form;
 }
+
 function biblio_user_presave(&$edit, $account, $catagory) {
   $keys = array_keys($edit);
   foreach ($keys as $key) {
@@ -1233,7 +1075,6 @@ function biblio_user_presave(&$edit, $account, $catagory) {
       }
     }
   }
-
 }
 
 /**
@@ -1247,17 +1088,15 @@ function biblio_form($node, &$form_state) {
   global $user;
   $fields = array();
   $tid = isset($form_state['values']['biblio_type']) ?
-               $form_state['values']['biblio_type']  :
-               ( isset($node->biblio_type) ? $node->biblio_type : '');
+          $form_state['values']['biblio_type']  :
+          ( isset($node->biblio_type) ? $node->biblio_type : '');
   $show_fields = !empty($tid);
 
   $form['#validate']= array('biblio_node_form_validate');
   $form['#cache'] = TRUE;
 
   /* publication type */
-  $param['options'] = array(
-    "enctype" => "multipart/form-data"
-    );
+  $param['options'] = array("enctype" => "multipart/form-data");
   $result = db_query('SELECT t.* FROM {biblio_types} as t WHERE tid > -2 AND visible = 1');
   foreach ($result as $option) {
     $results[$option->tid] = $option->name;
@@ -1268,7 +1107,7 @@ function biblio_form($node, &$form_state) {
   $form['biblio_type'] = array(
     '#type' => 'select',
     '#title' => t('Publication Type'),
-    '#default_value' =>(!empty($tid)) ? $tid : -1,
+    '#default_value' => (!empty($tid)) ? $tid : -1,
     '#options' => $options,
     '#description' => NULL,
     '#weight' => -15,
@@ -1276,12 +1115,12 @@ function biblio_form($node, &$form_state) {
     '#multiple' => FALSE,
     '#required' => TRUE
   );
-    $form['biblio_next'] = array(
+
+  $form['biblio_next'] = array(
       '#type'   => 'submit',
       '#value'  => $show_fields ? t('Change Publication Type') : t('Next'),
       '#weight' => -10,
   );
-
 
   if ($show_fields) {
     $form += biblio_node_form_vtabs();
@@ -1291,17 +1130,16 @@ function biblio_form($node, &$form_state) {
       '#weight' => 0,
     );
 
-     $form['title'] = array(
+    $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
       '#required' => TRUE,
       '#default_value' => trim((isset($form_state['values']['title'])?$form_state['values']['title']: $node->title)),
- //     '#size' => 60,
       '#maxlength' => 255,
       '#weight' => -4
-        );
+    );
     // Build the field array used to make the form
-        $result = db_query("SELECT * FROM {biblio_fields} b
+    $result = db_query("SELECT * FROM {biblio_fields} b
               INNER JOIN {biblio_field_type} bt ON b.fid = bt.fid
               INNER JOIN {biblio_field_type_data} btd ON btd.ftdid=bt.ftdid
               WHERE bt.tid=:tid ORDER BY bt.weight ASC", array(':tid' => $tid), array('fetch' => PDO::FETCH_ASSOC));
@@ -1310,133 +1148,65 @@ function biblio_form($node, &$form_state) {
       $fields[$row['name']] = $row;
     }
     _biblio_localize_fields($fields);
-//    if (!variable_get('biblio_hide_other_fields', 0)) {
-//      $form['other_fields'] = array(
-//        '#type' => 'fieldset',
-//        '#group' => 'biblio_settings',
-//        '#collapsible' => TRUE,
-//        '#collapsed' => TRUE,
-//        '#title' => t('Other Biblio Fields'),
-//        '#description' => '',
-//        '#weight' => 0
-//      );
-//    }
-  $form['biblio_contributors'] = array(
- //   '#tree' => TRUE,
-    '#type' => 'fieldset',
-    '#group' => 'biblio_settings',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => 'Authors',
-  //  '#weight' => $fld['weight'] / 10,
-    '#description' => t('Enter a single name per line using a format such as "Smith, John K" or "John K Smith" or "J.K. Smith"'),
-  );
 
-    $max_visible_weight = -5;
-    $form['biblio_contributors'] += biblio_contributor_widget($node, $form_state);
+    $form['biblio_authors'] = array(
+      '#type' => 'fieldset',
+      '#group' => 'biblio_settings',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => 'Authors',
+      '#description' => t('Enter a single name per line using a format such as "Smith, John K" or "John K Smith" or "J.K. Smith"'),
+    );
+
+    $form['biblio_authors'] += biblio_contributor_widget($node, $form_state);
+
     foreach ($fields as $key => $fld) {
       $options = '';
-      $main_area = $fld['common'] || $fld['visible'];
-      if ($fld['type'] == 'contrib_widget') {
-        $auth_category = $fld['fid'];
-        $values = isset($form_state['values']) ? $form_state : $node;
-       // $form += _biblio_contributor_widget($values, $fld, $auth_category, $tid);
-  //      $form += biblio_contributor_widget($node, $form_state);
-      }
-      else {
-        if ($key == 'biblio_keywords' ) {
-          $sep = check_plain(variable_get('biblio_keyword_sep', ','));
-          // is the kewords are in array form, then implode them into a string.
-          if (isset($form_state['values']['biblio_keywords']) &&
-             is_array($form_state['values']['biblio_keywords'])) {
-             require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
-             $form_state['values']['biblio_keywords'] = biblio_implode_keywords($form_state['values']['biblio_keywords']);
-          }
-          if (!empty($node->$key) && is_array($node->$key)) {
-            require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
-            $node->$key = biblio_implode_keywords($node->$key);
-          }
-          if (empty($fld['hint'])) {
-            $fld['hint'] = t('Separate keywords using the " @sep " character', array('@sep' => $sep));
-          }
+      if ($key == 'biblio_keywords' ) {
+        $sep = check_plain(variable_get('biblio_keyword_sep', ','));
+        // is the kewords are in array form, then implode them into a string.
+        if (isset($form_state['values']['biblio_keywords']) &&
+        is_array($form_state['values']['biblio_keywords'])) {
+          require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+          $form_state['values']['biblio_keywords'] = biblio_implode_keywords($form_state['values']['biblio_keywords']);
         }
+        if (!empty($node->$key) && is_array($node->$key)) {
+          require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+          $node->$key = biblio_implode_keywords($node->$key);
+        }
+        if (empty($fld['hint'])) {
+          $fld['hint'] = t('Separate keywords using the " @sep " character', array('@sep' => $sep));
+        }
+      }
 
-        $field_widget = array(
+      $field_widget = array(
             '#default_value' => (isset($form_state['values'][$key]) ? $form_state['values'][$key] : (isset($node->$key)?$node->$key:'')),
             '#type' => $fld['type'],
             '#title' => check_plain($fld['title']),
             '#size' => $fld['size'],
+            '#rows' => 10,
             '#required' => $fld['required'],
             '#maxlength' => $fld['maxsize'],
             '#weight' => $fld['weight'] / 10,
             '#autocomplete_path' => ($fld['autocomplete']) ? 'biblio/autocomplete/' . $fld['name'] : '',
             '#description' => check_plain($fld['hint']),
-          );
-         if ($key == 'biblio_refereed' ) {
-           $field_widget['#options'] = array(
+      );
+
+      if ($key == 'biblio_refereed' ) {
+        $field_widget['#options'] = array(
               '' => t('None'),
               'Refereed' => t('Refereed'),
               'Non-Refereed' => t('Non-Refereed'),
               'Does Not Apply' => t('Does Not Apply'),
               'Unknown' => t('Unknown'),
-            );
-           $field_widget['#description'] = t('If you are not sure, set this to Unknown or Does Not Apply');
-         }
-          //        '#options' => $options,
-
-//        if ($main_area && $fld['type'] == 'textarea') {
-//          /* wrap all textarea fields in collapsed field sets to save space on the page */
-//          $field_widget = array(
-//            '#type' => 'fieldset',
-//            '#group' => 'biblio_settings',
-//            '#collapsible' => TRUE,
-//            '#collapsed' => TRUE,
-//            '#title' => check_plain($fld['title']),
-//            '#description' => '',
-//            '#weight' => $fld['weight'] / 10,
-//            $key => $field_widget
-//              );
-//          $key = $fld['name'] . '_field';
-//        }
-        // embed field directly or in "Other Fields" fieldset
-        if ($main_area) {
-//          if (strstr($fld['name'], 'title')) {
-//            $form[$fld['vtab']][] =  $field_widget;
-//          }
-//          else {
-            $form[$fld['vtab']][$key] = $field_widget;
- //         }
-          $max_visible_weight = max($max_visible_weight, $field_widget['#weight']);
-        }
-        else {
-          $form[$fld['vtab']][$key] = $field_widget;
-        }
+        );
+        $field_widget['#description'] = t('If you are not sure, set this to Unknown or Does Not Apply');
       }
-    }
 
-    // place 'Other biblio fields' directly below visible fields
-//    $form['other_fields']['#weight'] = $max_visible_weight + 0.1;
-//    $form['body_field'] = array(
-//      '#type' => 'fieldset',
-//      '#collapsible' => TRUE,
-//      '#collapsed' => TRUE,
-//      '#title' => t('Full Text'),
-//      '#description' => '',
-//      '#weight' => $max_visible_weight + 0.2
-//    );
-//    $form['body_field']['body'] = array(
-//      '#type' => 'textarea',
-//      '#title' => t('Full Text'),
-//      '#default_value' => $node->body,
-//      '#rows' => 10,
-//      '#required' => FALSE,
-//      '#description' => t('You may enter a full text or HTML version of the publication here.'),
-//      '#weight' => 19
-//    );
-    // embed filter form in "Full Text" fieldset, because it applies to the full text only
-//    $form['body_field']['format'] = filter_form($node->format, 20);
+      $form[$fld['vtab']][$key] = $field_widget;
+    }
   }
- // $form['format'] = filter_form($node->format, 20);
+  // $form['format'] = filter_form($node->format, 20);
 
   return $form;
 }
@@ -1444,6 +1214,7 @@ function biblio_form($node, &$form_state) {
 function biblio_node_form_vtabs() {
   $vtabs = array(
     array('tab_id' => 1, 'weight' => 10, 'title' => 'Abstract', 'description' => ''),
+    array('tab_id' => 'biblio_full_text', 'weight' => 11, 'title' => 'Full text', 'description' => ''),
     array('tab_id' => 2, 'weight' => 12, 'title' => 'Publication', 'description' => ''),
     array('tab_id' => 3, 'weight' => 13, 'title' => 'Publisher', 'description' => ''),
     array('tab_id' => 4, 'weight' => 14, 'title' => 'Identifiers', 'description' => ''),
@@ -1453,7 +1224,7 @@ function biblio_node_form_vtabs() {
     array('tab_id' => 8, 'weight' => 18, 'title' => 'Alternate Titles', 'description' => ''),
     array('tab_id' => 9, 'weight' => 19, 'title' => 'Other', 'description' => ''),
     );
-  foreach($vtabs as $tab) {
+  foreach ($vtabs as $tab) {
     $form[$tab['tab_id']] = array(
         '#type' => 'fieldset',
         '#group' => 'biblio_settings',
@@ -1473,14 +1244,11 @@ function biblio_contributor_widget($node, &$form_state) {
     $contributors = $form_state['values']['biblio_contributors'];
   }
   elseif (isset($node->biblio_contributors)) {
-    $contributors = $node->biblio_contributors->get_all();
+    $contributors = $node->biblio_contributors;
   }
   else {
     $contributors = array();
   }
-
-  //$ctypes = _biblio_get_auth_types($auth_category, $biblio_type);
-  // if no author types are available skip this widget
 
   $ctypes = db_query('SELECT * FROM {biblio_contributor_type_data}');
 
@@ -1488,16 +1256,17 @@ function biblio_contributor_widget($node, &$form_state) {
     $options['roles'][$ctype->auth_type] = $ctype->title;
   }
   $options['categories'] = array(
-    1 => 'Primary',
-    2 => 'Secondary',
-    3 => 'Tirtiary',
-    4 => 'Subsidiary',
-    5 => 'Corporate/Institutional');
+    1 => t('Primary'),
+    2 => t('Secondary'),
+    3 => t('Tirtiary'),
+    4 => t('Subsidiary'),
+    5 => t('Corporate/Institutional')
+  );
 
   // Container for just the contributors.
   $wrapper = array();
   $wrapper['biblio_contributors'] = array(
-    '#tree'	  => TRUE,
+    '#tree'   => TRUE,
     '#theme'  => 'biblio_contributors',
     '#prefix' => '<div id="biblio-contributors-wrapper">',
     '#suffix' => '</div>',
@@ -1506,7 +1275,7 @@ function biblio_contributor_widget($node, &$form_state) {
     $wrapper['biblio_contributors'][] = biblio_contributor_form($author, $options);
     $contributor_count++;
   }
-  //$contributor_count = max($init_count, count($contributors));
+
   if (isset($form_state['biblio_contrib_count'])) {
     $form_count = max(max($init_count, $contributor_count), $form_state['biblio_contrib_count']);
   }
@@ -1514,9 +1283,9 @@ function biblio_contributor_widget($node, &$form_state) {
      $form_count = max($init_count, $contributor_count);
     $form_state['biblio_contrib_count'] = $form_count;
   }
-  if($form_count > $contributor_count) {
+  if ($form_count > $contributor_count) {
     $author = array();
-    for($i = 0; $i < ($form_count - $contributor_count); $i++) {
+    for ($i = 0; $i < ($form_count - $contributor_count); $i++) {
        $wrapper['biblio_contributors'][] = biblio_contributor_form($author, $options);
     }
   }
@@ -1568,7 +1337,7 @@ function biblio_contributor_form($contributor, $options) {
 }
 
 function biblio_contributors_add_more_callback($form, &$form_state) {
-  return $form['contributors']['biblio_contributors'];
+  return $form['biblio_authors']['biblio_contributors'];
 }
 
 function biblio_contributors_add_more($form, &$form_state) {
@@ -1576,6 +1345,21 @@ function biblio_contributors_add_more($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
+function biblio_form_node_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'biblio_node_form') {
+    $form['#pre_render'][] = 'biblio_node_form_pre_render';
+    if (!isset($form['biblio_full_text']) && isset($form['body'])) {
+     unset($form['body']);
+    }
+  }
+}
+function biblio_node_form_pre_render($form) {
+    if (isset($form['biblio_full_text']) && isset($form['body'])) {
+      $form['biblio_full_text']['body'] = $form['body'];
+      unset($form['body']);
+    }
+  return $form;
+}
 /**
  * Implementation of hook_validate().
  *
@@ -1625,12 +1409,9 @@ function _biblio_text_year($year) {
  * @return none
  */
 function _biblio_prepare_submit(&$node) {
-  // this is now done within the _save_contributors() function
-  //$node->biblio_contributors = biblio_parse_contributors($node->biblio_contributors);
-
+  $node->biblio_sort_title = biblio_normalize_title($node->title);
   $node->biblio_year = _biblio_numeric_year($node->biblio_year);
 
-  $node->biblio_coins = biblio_coins($node);
   if (variable_get('biblio_auto_citekey', 1) && empty($node->biblio_citekey)) {
     $node->biblio_citekey = biblio_citekey_generate($node);
   }
@@ -1642,12 +1423,14 @@ function _biblio_prepare_submit(&$node) {
  * database inserts.
  */
 function biblio_insert($node) {
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc');
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+  module_load_include('inc', 'biblio', 'includes/biblio.util');
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_load_include('inc', 'biblio', 'includes/biblio.keywords');
   _biblio_prepare_submit($node);
-  drupal_write_record('biblio', $node);
   biblio_insert_contributors($node);
   biblio_insert_keywords($node);
+  $node->biblio_coins = biblio_coins($node);
+  drupal_write_record('biblio', $node);
   $duplicate = biblio_hash($node);
   if (isset($duplicate) && $duplicate != $node->nid) { // if this is a potential duplcate, write the nids of the pre-existing and new nodes
     $dup_map = array('vid' => $duplicate, 'did' => $node->nid);
@@ -1662,8 +1445,14 @@ function biblio_insert($node) {
  * database updates.
  */
 function biblio_update($node) {
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+  module_load_include('inc', 'biblio', 'includes/biblio.util');
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_load_include('inc', 'biblio', 'includes/biblio.keywords');
   _biblio_prepare_submit($node);
+  biblio_update_contributors($node);
+  biblio_update_keywords($node);
+  $node->biblio_coins = biblio_coins($node);
+
   // Update the node in the database:
   if (!empty($node->revision)) {
     drupal_write_record('biblio', $node);
@@ -1672,8 +1461,6 @@ function biblio_update($node) {
     drupal_write_record('biblio', $node, 'vid');
   }
 
-  biblio_update_contributors($node);
-  biblio_update_keywords($node);
 
 }
 /**
@@ -1682,11 +1469,10 @@ function biblio_update($node) {
  * When a node is deleted, we need to clean up related tables.
  */
 function biblio_delete($node) {
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc');
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
-  //first remove data from the biblio table
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_load_include('inc', 'biblio', 'includes/biblio.keywords');
+    //first remove data from the biblio table
 
-//  db_query('DELETE FROM {biblio} WHERE nid = :nid', array(':nid' => $node->nid));
   db_delete('biblio')
     ->condition('nid', $node->nid)
     ->execute();
@@ -1702,26 +1488,28 @@ function biblio_delete($node) {
  *
  */
 function biblio_load($nodes) {
-
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc');
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.keywords.inc');
+  module_load_include('inc', 'biblio', 'includes/biblio.util');
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_load_include('inc', 'biblio', 'includes/biblio.keywords');
   $vids = array();
   foreach ($nodes as $nid => $node) $vids[] = $node->vid;
 
   $result = db_query('SELECT b.*, bt.name as biblio_type_name
-                                         FROM {biblio} b
-                                         LEFT JOIN {biblio_types} bt on b.biblio_type = bt.tid
-                                         WHERE b.vid IN (:vids)', array(':vids' => $vids), array('fetch' => PDO::FETCH_ASSOC));
+                      FROM {biblio} b
+                      LEFT JOIN {biblio_types} bt on b.biblio_type = bt.tid
+                      WHERE b.vid IN (:vids)', array(':vids' => $vids), array('fetch' => PDO::FETCH_ASSOC));
+
   foreach ($result as $record) {
-//    $nodes[$record['nid']]->biblio = $record;
     foreach ($record as $key => $value) {
       $nodes[$record['nid']]->$key = $value;
     }
-    $nodes[$record['nid']]->biblio_year         = _biblio_text_year($nodes[$record['nid']]->biblio_year);
-    $nodes[$record['nid']]->biblio_contributors = new biblio_contributors($nodes[$record['nid']]->vid);
-    $nodes[$record['nid']]->biblio_keywords     = biblio_load_keywords($nodes[$record['nid']]->vid);
+    $nodes[$record['nid']]->biblio_year         = _biblio_text_year($record['biblio_year']);
+    $nodes[$record['nid']]->biblio_contributors = biblio_load_contributors($record['vid']);
+    $nodes[$record['nid']]->biblio_keywords     = biblio_load_keywords($record['vid']);
+    if (empty($record['biblio_coins'])) {
+      $nodes[$record['nid']]->biblio_coins = biblio_coins($nodes[$record['nid']]);
+    }
   }
-  //return $nodes;
 }
 function biblio_citekey_generate($node) {
   $php = check_plain(variable_get('biblio_citekey_phpcode', ''));
@@ -1745,7 +1533,6 @@ function biblio_citekey_generate($node) {
  *
  */
 function biblio_view($node, $buildmode = 'full') {
-  //if (strlen(trim($node->body))) $node = node_prepare($node, $teaser);
   $links = array();
   $style = biblio_get_style();
   $base  = variable_get('biblio_base', 'biblio');
@@ -1828,7 +1615,7 @@ function biblio_block_save($delta = '', $edit = array()) {
 }
 
 function biblio_block_view($delta = '') {
-  switch($delta) {
+  switch ($delta) {
     case 'recent':
       $num_in_block = variable_get('biblio_rowsperblock', 4);
       $block_order = variable_get('biblio_block_order', 'n.created');
@@ -1836,21 +1623,20 @@ function biblio_block_view($delta = '') {
       $query = db_select('node', 'n')
         ->fields('n', array('nid', 'title'))
         ->condition(db_and()
-          ->condition('n.type', 'biblio')
-          ->condition('n.status', 1))
+        ->condition('n.type', 'biblio')
+        ->condition('n.status', 1))
         ->orderBy($block_order, 'DESC')
         ->range(0, $num_in_block);
-       if ($block_order == 'b.biblio_year') {
-         $query->leftJoin('biblio', 'b', 'n.vid=b.vid');
-       }
-       $result = $query->execute();
-      //FIXME DB
-      // $result = db_query_range(db_rewrite_sql($query), 0, $num_in_block);
+      if ($block_order == 'b.biblio_year') {
+        $query->leftJoin('biblio', 'b', 'n.vid=b.vid');
+      }
+      $result = $query->execute();
+
       $base = variable_get('biblio_base', 'biblio');
       $block['subject'] = t('Recent Publications');
       $block['content'] = '<div class="item-list"><ul>';
       $options['html'] = TRUE;
-      //FIXME DB
+
       foreach ($result as $pub) {
         $block['content'] .= '<li >' . l(filter_xss($pub->title, biblio_get_allowed_tags()), "node/$pub->nid", $options) . '</li>';
       }
@@ -1903,16 +1689,14 @@ function biblio_recent_feed() {
  * @param $rss_info
  *    an array which contains the title,link and description info for the rss feed
  */
-function biblio_filter_feed($query, $terms = NULL, $rss_info = NULL) {
+function biblio_filter_feed($variables) {
   $base = variable_get('biblio_base', 'biblio');
-  $channel['title'] = $rss_info['title'];
-  $channel['link'] = url($base . $rss_info['link'], array('absolute' => TRUE));
-  $channel['description'] = $rss_info['description'];
+  $channel['title'] = $variables['rss']['title'];
+  $channel['link'] = url($base . $variables['rss']['link'], array('absolute' => TRUE));
+  $channel['description'] = $variables['rss']['description'];
   $nids = array();
-//FIXME DB
-  $result = db_query($query, $terms);
-  while ($row = db_fetch_object($result)) {
-    $nids[] = $row->nid;
+  foreach ($variables['query'] as $node) {
+    $nids[] = $node->nid;
   }
   node_feed($nids, $channel);
 }
@@ -1935,7 +1719,7 @@ function biblio_get_db_fields() {
  *******************************************/
 function _biblio_citekey_print($citekey) {
 
-  $nid = db_query("SELECT nid FROM {biblio} WHERE biblio_citekey = :key ORDER BY vid DESC", array(':key' => $citekey))->fetchCol();
+  $nid = db_query("SELECT nid FROM {biblio} WHERE biblio_citekey = :key", array(':key' => $citekey))->fetchObject();
   if ($nid->nid > 0) {
     $style = biblio_get_style();
     $base = variable_get('biblio_base', 'biblio');
@@ -1946,107 +1730,73 @@ function _biblio_citekey_print($citekey) {
     return t("Citekey @cite not found", array('@cite' => $citekey));
   }
 }
-/**
- * Implementation of hook_filter_tips().
- *
- * This hook allows filters to provide help text to users during the content
- * editing process. Short tips are provided on the content editing screen, while
- * long tips are provided on a separate linked page. Short tips are optional,
- * but long tips are highly recommended.
- */
-function biblio_filter_tips($delta, $format, $long = FALSE) {
-  switch ($delta) {
-    case 0 :
-      if ($long) {
-        return t('You can cite references directly into texts with <code>&lt;bib&gt;<i>citekey</i>&lt;/bib&gt; <b><i>or</i></b> [bib]<i>citekey</i>[/bib]</code>. This will be replaced with a running number (the publication reference) and the publication referenced by the citekey within the &lt;bib&gt; tags will be printed at the bottom of the page (the reference).');
-      }
-      else {
-        return t('Use &lt;bib&gt;<i>citekey</i>&lt;/bib&gt; <b><i>or</i></b> [bib]<i>citekey</i>[/bib] to insert automatically numbered references.');
-      }
-      break;
+function biblio_filter_info() {
+  $filters['biblio_filter_reference'] = array(
+    'title' => t('Biblio module references &lt;bib&gt; <i>or</i> [bib]'),
+    'description' => t('Use &lt;bib&gt;citekey&lt;/bib&gt; or [bib]citebkey[/bib]to insert automatically numbered references.'),
+    'prepare callback' => '_biblio_filter_reference_prepare',
+    'process callback' => '_biblio_filter_reference_process',
+    'tips callback'    => '_biblio_filter_reference_tips',
+  );
+  $filters['biblio_filter_inline_reference'] = array(
+    'title' => t('Biblio module inline references &lt;ibib&gt; <i>or</i> [ibib]'),
+    'description' => t('Use &lt;bib&gt;citekey&lt;/bib&gt; or [bib]citebkey[/bib]to insert automatically numbered references.'),
+    'prepare callback' => '_biblio_filter_inline_reference_prepare',
+    'process callback' => '_biblio_filter_inline_reference_process',
+    'tips callback'    => '_biblio_filter_inline_reference_tips',
+  );
+  return $filters;
+}
+
+function _biblio_filter_reference_tips($filter, $format, $long = FALSE) {
+  if (!$long) {
+    // This string will be shown in the content add/edit form
+    return t('Use &lt;bib&gt;<i>citekey</i>&lt;/bib&gt; <b><i>or</i></b> [bib]<i>citekey</i>[/bib] to insert automatically numbered references.');
+  }
+  else {
+    return t('You can cite references directly into texts with <code>&lt;bib&gt;<i>citekey</i>&lt;/bib&gt; <b><i>or</i></b> [bib]<i>citekey</i>[/bib]</code>. This will be replaced with a running number (the publication reference) and the publication referenced by the citekey within the &lt;bib&gt; tags will be printed at the bottom of the page (the reference).');
   }
 }
-/**
- * Implementation of hook_filter().
- *
- * The bulk of filtering work is done here. This hook is quite complicated, so
- * we'll discuss each operation it defines.
- */
-function biblio_filter($op, $delta = 0, $format = -1, $text = '') {
-  // The "list" operation provides the module an opportunity to declare both how
-  // many filters it defines and a human-readable name for each filter. Note that
-  // the returned name should be passed through t() for translation.
-  if ($op == 'list') {
-    return array(
-    0 => t('Biblio module references &lt;bib&gt; <i>or</i> [bib]'),
-    1 => t('Biblio module inline references &lt;ibib&gt; <i>or</i> [ibib]'),
-    );
-  }
-  if ($op == 'no cache') {
-    return TRUE;
-  }
-  // All operations besides "list" provide a $delta argument so we know which
-  // filter they refer to. We'll switch on that argument now so that we can
-  // discuss each filter in turn.
-  switch ($delta) {
-    // First is the html footnotes filter
-    case 0 :
-      switch ($op) {
-        // This description is shown in the administrative interface, unlike the
-        // filter tips which are shown in the content editing interface.
-        case 'description' :
-          return t('Use &lt;bib&gt;citekey&lt;/bib&gt; or [bib]citebkey[/bib]to insert automatically numbered references.');
-          // We don't need the "prepare" operation for this filter, but it's required
-          // to at least return the input text as-is.
-          //TODO: May need to escape <fn> if we use HTML filter too, but Footnotes could be first
-        case 'prepare' :
-          return $text;
-          // The actual filtering is performed here. The supplied text should be
-          // returned, once any necessary substitutions have taken place.
-        case 'process' :
-          $pattern = array('|\[bib](.*?)\[/bib]|s', '|<bib>(.*?)</bib>|s');
-          if (variable_get('biblio_footnotes_integration', 0) && module_exists('footnotes')) { // this is used with footnote module integration to replace the <bib> tags with <fn> tags
-            $text = preg_replace_callback($pattern, '_biblio_filter_footnote_callback', $text);
-            return $text;
-          }
-          else {
-            $text = preg_replace_callback($pattern, '_biblio_filter_replace_callback', $text);
-            //Replace tag <footnotes> with the list of footnotes.
-            //If tag is not present, by default add the footnotes at the end.
-            //Thanks to acp on drupal.org for this idea. see http://drupal.org/node/87226
-            $footer = '';
-            $footer = _biblio_filter_replace_callback(NULL, 'output footer');
-            if (preg_match('/<bibliography(\/( )?)?>/', $text) > 0) {
-              $text = preg_replace('/<bibliography(\/( )?)?>/', $footer, $text, 1);
-              return $text;
-            }
-            else {
-              return $text . "\n\n" . $footer;
-            }
-          }
-      }
-      break;
-   case 1 :
-      switch ($op) {
-        // This description is shown in the administrative interface, unlike the
-        // filter tips which are shown in the content editing interface.
-        case 'description' :
-          return t('Use &lt;ibib&gt;citekey&lt;/ibib&gt; or [ibib]citebkey[/ibib]to insert inline references.');
-          // We don't need the "prepare" operation for this filter, but it's required
-          // to at least return the input text as-is.
-          //TODO: May need to escape <fn> if we use HTML filter too, but Footnotes could be first
-        case 'prepare' :
-          return $text;
-          // The actual filtering is performed here. The supplied text should be
-          // returned, once any necessary substitutions have taken place.
-        case 'process' :
-          $pattern = array('|\[ibib](.*?)\[/ibib]|s', '|<ibib>(.*?)</ibib>|s');
-          $text = preg_replace_callback($pattern, '_biblio_inline_filter_replace_callback', $text);
-          return $text;
-      }
-      break;
 
+function _biblio_filter_inline_reference_tips($filter, $format, $long = FALSE) {
+  return t('This creates an in line reference to another publication.');
+}
+
+function _biblio_filter_reference_prepare($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return $text;
+}
+
+function _biblio_filter_inline_reference_prepare($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return $text;
+}
+
+function _biblio_filter_reference_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  $pattern = array('|\[bib](.*?)\[/bib]|s', '|<bib>(.*?)</bib>|s');
+  if (variable_get('biblio_footnotes_integration', 0) && module_exists('footnotes')) { // this is used with footnote module integration to replace the <bib> tags with <fn> tags
+    $text = preg_replace_callback($pattern, '_biblio_filter_footnote_callback', $text);
+    return $text;
   }
+  else {
+    $text = preg_replace_callback($pattern, '_biblio_filter_replace_callback', $text);
+    //Replace tag <footnotes> with the list of footnotes.
+    //If tag is not present, by default add the footnotes at the end.
+    //Thanks to acp on drupal.org for this idea. see http://drupal.org/node/87226
+    $footer = '';
+    $footer = _biblio_filter_replace_callback(NULL, 'output footer');
+    if (preg_match('/<bibliography(\/( )?)?>/', $text) > 0) {
+      $text = preg_replace('/<bibliography(\/( )?)?>/', $footer, $text, 1);
+      return $text;
+    }
+    else {
+      return $text . "\n\n" . $footer;
+    }
+  }
+}
+
+function _biblio_filter_inline_reference_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  $pattern = array('|\[ibib](.*?)\[/ibib]|s', '|<ibib>(.*?)</ibib>|s');
+  $text = preg_replace_callback($pattern, '_biblio_inline_filter_replace_callback', $text);
+  return $text;
 }
 
 function _biblio_inline_filter_replace_callback($matches) {
@@ -2118,16 +1868,11 @@ function _biblio_filter_replace_callback($matches, $op = '') {
   }
   return $text;
 }
-function biblio_taxonomy($op, $type, $array = NULL) {
-  if ($op == 'delete' && $term['vid'] == variable_get('biblio_keyword_vocabulary', 0)) {
-    switch ($type) {
-      case 'term' :
-        break;
-      case 'vocabulary' :
-        variable_del('biblio_keyword_freetagging');
-        variable_del('biblio_keyword_vocabulary');
-        break;
-    }
+
+function hook_taxonomy_vocabulary_delete($vocabulary) {
+  if ($vocabulary->vid == variable_get('biblio_keyword_vocabulary', FALSE)) {
+    variable_del('biblio_keyword_freetagging');
+    variable_del('biblio_keyword_vocabulary');
   }
 }
 
@@ -2140,178 +1885,8 @@ function biblio_term_path($term) {
     return ("$base/term_id/$term->tid");
   }
   else return;
-
 }
 
-function biblio_coins_generate(& $node) {
-  if ($node) {
-    $node->biblio_coins = biblio_coins($node);
-//    db_query("UPDATE {biblio}
-//              SET biblio_coins = :coins
-//              WHERE vid = :vid", array(':coins' => $node->biblio_coins, ':vid' => $node->vid));
-    db_update('biblio')
-      ->fields(array('biblio_coins' => biblio_coins))
-      ->condition('vid', $node->vid)
-      ->execute();
-  }
-  else {
-    $result = db_query("SELECT nr.*, b.*
-                        FROM {node} AS n
-                        LEFT JOIN {node_revision}  AS nr ON n.vid = nr.vid LEFT JOIN {biblio} AS b ON n.vid = b.vid
-                        WHERE n.type = 'biblio'  ");
-
-    foreach ($result as $node) {
-      $node->biblio_coins = biblio_coins($node);
-
-//      db_query("UPDATE {biblio}
-//                SET biblio_coins = :coins
-//                WHERE vid = :vid",  array(':coins' => $node->biblio_coins, ':vid' => $node->vid));
-      db_update('biblio')
-        ->fields(array('biblio_coins' => biblio_coins))
-        ->condition('vid', $node->vid)
-        ->execute();
-    }
-    drupal_goto('');
-  }
-}
-function biblio_coins($node) {
-  // Copyright:          Matthias Steffens <mailto:refbase@extracts.de> and the file's
-  //                     original author.
-  // Original Author:    Richard Karnesky <mailto:karnesky@gmail.com>  //
-  // Adapted for biblio: Ron Jerome
-  // fmt_info (type)
-  $fmt = "info:ofi/fmt:kev:mtx:";
-  // 'dissertation' is compatible with the 1.0 spec, but not the 0.1 spec
-  if ($node->biblio_type == 108)
-  $fmt .= "dissertation";
-  elseif ($node->biblio_type == 102) $fmt .= "journal";
-  elseif ($node->biblio_type == 100 || $node->biblio_type == 101) $fmt .= "book";
-  // 'dc' (dublin core) is compatible with the 1.0 spec, but not the 0.1 spec.
-  // We default to this, as it is the most generic type.
-  else
-  $fmt .= "dc";
-  $co = biblio_contextObject($node);
-  $coins = "ctx_ver=Z39.88-2004&amp;rft_val_fmt=" . urlencode($fmt);
-  foreach ($co as $coKey => $coValue) {
-    // 'urlencode()' differs from 'rawurlencode() (i.e., RFC1738 encoding)
-    // in that spaces are encoded as plus (+) signs
-    $coKey = preg_replace("/au[0-9]*/", "au", $coKey);
-    $coins .= "&amp;" . $coKey . "=" . urlencode($coValue);
-  }
-  $coinsSpan = "<span class=\"Z3988\" title=\"" . $coins . "\"></span>";
-  return $coinsSpan;
-}
-function biblio_contextObject($node) {
-  // Copyright:          Matthias Steffens <mailto:refbase@extracts.de> and the file's
-  //                     original author.
-  // Original Author:    Richard Karnesky <mailto:karnesky@gmail.com>  //
-  // Adapted for biblio: Ron Jerome
-  global $base_url;
-  $i = 0;
-    // $openurl_base = variable_get('biblio_baseopenurl', '');
-  $co = array();
-  // rfr_id
-//  $co["rfr_id"] = "info:sid/". ereg_replace("http://", "", $base_url);
-//  // genre (type)
-//  if (isset($node->biblio_type)) {
-//    if ($node->biblio_type == 102)
-//    $co["rft.genre"] = "article";
-//    elseif ($node->biblio_type == 101) $co["rft.genre"] = "bookitem";
-//    elseif ($node->biblio_type == 100) $co["rft.genre"] = "book";
-//    elseif ($node->biblio_type == "Journal") $co["rft.genre"] = "journal";
-//  }
-  // atitle, btitle, title (title, publication)
-  if (($node->biblio_type == 102) || ($node->biblio_type == 101)) {
-    if (!empty($node->title)) $co["rft.atitle"] = check_plain($node->title);
-    if (!empty($node->biblio_secondary_title)) {
-      $co["rft.title"] = check_plain($node->biblio_secondary_title);
-      if ($node->biblio_type == 101)
-      $co["rft.btitle"] = check_plain($node->biblio_secondary_title);
-    }
-  }
-  elseif (!empty($node->title)) {
-   $co["rft.title"] = check_plain($node->title);
-  }
-  if (($node->biblio_type == 100) && (!empty($node->biblio_secondary_title))) $co["rft.btitle"] = check_plain($node->biblio_secondary_title);
-  // stitle (abbrev_journal)
-  if (!empty($node->biblio_short_title)) $co["rft.stitle"] = check_plain($node->biblio_short_title);
-  // series (series_title)
-  if (!empty($node->biblio_tertiary_title)) $co["rft.series"] = check_plain($node->biblio_tertiary_title);
-  // issn
-  if (!empty($node->biblio_issn)) $co["rft.issn"] = check_plain($node->biblio_issn);
-  // isbn
-  if (!empty($node->biblio_isbn)) $co["rft.isbn"] = check_plain($node->biblio_isbn);
-  // date (year)
-  if (!empty($node->biblio_year)) $co["rft.date"] = check_plain($node->biblio_year);
-  // volume
-  if (!empty($node->biblio_volume)) $co["rft.volume"] = check_plain($node->biblio_volume);
-  // issue
-  if (!empty($node->biblio_issue)) $co["rft.issue"] = check_plain($node->biblio_issue);
-  // spage, epage, tpages (pages)
-  // NOTE: lifted from modsxml.inc.php--should throw some into a new include file
-  if (!empty($node->biblio_pages)) {
-    if (preg_match("/[0-9] *- *[0-9]/", $node->biblio_pages)) {
-      list ($pagestart, $pageend) = preg_split('/\s*[-]\s*/', $node->biblio_pages);
-      if ($pagestart < $pageend) {
-        $co["rft.spage"] = check_plain($pagestart);
-        $co["rft.epage"] = check_plain($pageend);
-      }
-    }
-    elseif ($node->biblio_type == 100) { //"Book Whole") {
-      $pagetotal = preg_replace('/^(\d+)\s*pp?\.?$/', "\\1", $node->biblio_pages);
-      $co["rft.tpages"] = check_plain($pagetotal);
-    }
-    else {
-      $co["rft.spage"] = check_plain($node->biblio_pages);
-    }
-  }
-  // aulast, aufirst, author (author)
-  if (!empty($node->biblio_contributors) && is_a($node->biblio_contributors, 'biblio_contributors')) {
-    $biblio_contributors = $node->biblio_contributors->get_all();
-  }
-  elseif (is_array($node->biblio_contributors)) {
-    $biblio_contributors = $node->biblio_contributors;
-  }
-  if (!empty($biblio_contributors)) {
-    if (!empty($biblio_contributors[0]['lastname'])) {
-      $co["rft.aulast"] = check_plain($biblio_contributors[0]['lastname']);
-    }
-    if (!empty($biblio_contributors[0]['firstname'])) {
-      $co["rft.aufirst"] = check_plain($biblio_contributors[0]['firstname']);
-    }
-    elseif (!empty($biblio_contributors[0]['initials'])) {
-      $co["rft.auinit"] = check_plain($biblio_contributors[0]['initials']);
-    }
-    foreach ($biblio_contributors as $author) {
-      if ($author['auth_category'] == 1) {
-        if (!empty($author['lastname'])) {
-          $au = $author['lastname'];
-          if (!empty($author['firstname']) || !empty($author['initials'])) $au .= ", ";
-        }
-        if (!empty($author['firstname'])) {
-          $au .= $author['firstname'];
-        }
-        elseif (!empty($author['initials'])) {
-          $au .= $author['initials'];
-        }
-        if (!empty($au)) $co["rft.au" . $i++] = $au;
-      }
-    }
-  }
-  // pub (publisher)
-  if (!empty($node->biblio_publisher)) $co["rft.pub"] = check_plain($node->biblio_publisher);
-  // place
-  if (!empty($node->biblio_place_published)) $co["rft.place"] = check_plain($node->biblio_place_published);
-  // id (doi, url)
-  if (!empty($node->biblio_doi)) {
-    $co["rft_id"] = "info:doi/" . check_plain($node->biblio_doi);
-  }
-//  elseif (!empty($node->biblio_url)) {
-//    $co["rft_id"] = $node->biblio_url;
-//  }
-
-  return $co;
-}
 function biblio_hash($node) {
   static $sums = array();
   $duplicate = NULL;
@@ -2321,9 +1896,9 @@ function biblio_hash($node) {
       $sums[$md5->biblio_md5] = $md5->nid;
     }
   }
-//TODO title value??
+
   $hash_string = str_replace(' ', '', drupal_strtolower($node->title));
-  if (isset($node->biblio_contributors->data[0])) {
+  if (isset($node->biblio_contributors[0])) {
     $hash_string .= str_replace(' ', '', drupal_strtolower($node->biblio_contributors[0]['lastname']));
   }
   $hash_string .= $node->biblio_year;
@@ -2340,99 +1915,62 @@ function biblio_hash($node) {
   return $duplicate; //return the nid of the potential duplicate
 }
 
-/**
- * An implementation of hook_diff (from the diff module)
- * @param $old_node
- * @param $new_node
- * @return unknown_type
- */
-function biblio_diff(&$old_node, &$new_node) {
-  require_once(drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc');
+function biblio_token_info() {
 
-  $result = array();
-
-  $old_type = db_query('SELECT name FROM {biblio_types} where tid = :tid', array(':tid' => $old_node->biblio_type));
-  $new_type = db_query('SELECT name FROM {biblio_types} where tid = %d', array(':tid' => $new_node->biblio_type));
-
-  $result['biblio_type'] = array(
-    '#name' => 'Publication Type',
-    '#old' => array($old_type->name),
-    '#new' => array($new_type->name),
-    '#format' => array(
-      'show_header' => FALSE,
-  )
+  $node['biblio_year'] = array(
+    'name' => t("Biblio: Publication year"),
+    'description' => '',
+  );
+  $node['biblio_authors'] = array(
+    'name' => t("Biblio: Authors"),
+    'description' => '',
+  );
+  $node['biblio_type_id'] = array(
+    'name' => t("Biblio: Type ID (e.g.: 100)"),
+    'description' => '',
+  );
+  $node['biblio_type'] = array(
+    'name' => t("Biblio: Type Name (e.g.: book)"),
+    'description' => '',
+  );
+  $node['biblio_citekey'] = array(
+    'name' => t("Biblio: Cite Key often used in BibTex files"),
+    'description' => '',
   );
 
-  $old_node->biblio_contributors = biblio_load_contributors($old_node->vid);
-  $new_node->biblio_contributors = biblio_load_contributors($new_node->vid);
-
-  $db_result = db_query('SELECT b.name, btd.title, bt.weight
-                      FROM {biblio_fields} b
-                      INNER JOIN {biblio_field_type} bt ON bt.fid=b.fid
-                      INNER JOIN {biblio_field_type_data} btd ON btd.ftdid=bt.ftdid
-                      WHERE bt.tid=:tid ORDER BY weight', array(':tid' => $old_node->biblio_type));
-
-  foreach ($db_result as $field) {
-    $name = $field->name;
-    $old = $new = '';
-    if ($field->type == 'contrib_widget') {
-      foreach ((array)$old_node->biblio_contributors[$field->fid] as $auth) {
-        $old .= $auth['name'] . ' ';
-      }
-      foreach ((array)$old_node->biblio_contributors[$field->fid] as $auth) {
-        $new .= $auth['name'] . ' ';
-      }
-    }
-    else {
-      $old = $old_node->$name;
-      $new = $new_node->$name;
-    }
-    $result[$name] = array(
-      '#name' => $field->title,
-      '#old' => explode("\n", $old),
-      '#new' => explode("\n", $new),
-    );
-
-  }
-  return $result;
-}
-function biblio_token_list($type = 'all') {
-  if ($type == 'node') {
-    $tokens['node']['biblio_year']      = t("Biblio: Publication year");
-    $tokens['node']['biblio_authors']   = t("Biblio: Authors");
-    $tokens['node']['biblio_type_id']   = t("Biblio: Type ID (e.g.: 100)");
-    $tokens['node']['biblio_type']      = t("Biblio: Type Name (e.g.: book)");
-    $tokens['node']['biblio_citekey']   = t("Biblio: Cite Key often used in BibTex files");
-    return $tokens;
-  }
+  return array('tokens' => array('node' => $node),
+  );
 }
 
-/**
- * Implementation of hook_token_values() for og specific tokens
- */
-function biblio_token_values($type, $object = NULL) {
-  switch ($type) {
-    case 'node':
-      if ($object->type == "biblio") {
-        $type = db_query('SELECT name FROM {biblio_types} as t WHERE t.tid = :tid', array(':tid' => $object -> biblio_type))->fetchField();
-        #$title = db_result(db_query("SELECT title FROM {node} WHERE nid = %d", $gid));
-        $values['biblio_year'] = check_plain($object->biblio_year);
-        $values['biblio_authors'] = check_plain($object->biblio_contributors->data[0]['lastname']);
-        $values['biblio_type_id'] = check_plain($object->biblio_type);
-        $values['biblio_type'] = check_plain($type);
-        $values['biblio_citekey'] = check_plain($object->biblio_citekey);
-        return $values;
+function biblio_tokens($type, $tokens, $data = array(), $options = array()) {
+  $replacements = array();
+  if ($type == 'node' && !empty($data['node']) && $data['node']->type == 'biblio') {
+    $node = $data['node'];
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        // Simple key values on the node.
+        case 'biblio_year':
+          $replacements[$original] = check_plain($node->biblio_year);
+          break;
+        case 'biblio_authors':
+          $replacements[$original] = check_plain($node->biblio_contributors[0]['lastname']);;
+          break;
+        case 'biblio_type_id':
+          $replacements[$original] = check_plain($node->biblio_type);
+          break;
+        case 'biblio_citekey':
+          $replacements[$original] = check_plain($node->biblio_citekey);
+          break;
+        case 'biblio_type':
+          $type = db_query('SELECT name FROM {biblio_types} as t WHERE t.tid = :tid', array(':tid' => $node -> biblio_type))->fetchField();
+          $replacements[$original] = check_plain($type);
+          break;
+
       }
-      break;
+    }
   }
 
-  // No group info found. Return defaults.
-  $values['biblio_year'] = '';
-  $values['biblio_authors'] = '';
-  $values['biblio_type_id'] = '';
-  $values['biblio_type'] = '';
-  $values['biblio_citekey'] = '';
-  return $values;
+  return $replacements;
 }
 
 function _biblio_profile_access($user, $type = 'profile') {
@@ -2463,6 +2001,7 @@ function biblio_get_style() {
   }
   return  module_exists('biblio_citeproc') ? variable_get('biblio_citeproc_style', 'cse.csl') : variable_get('biblio_style', 'cse');
 }
+
 function biblio_get_styles() {
   $styles = array();
   if (module_exists('biblio_citeproc')) {
@@ -2513,8 +2052,8 @@ function biblio_get_allowed_tags() {
   return array('a', 'b', 'i', 'u', 'sub', 'sup', 'span');
 }
 
-function biblio_get_title_url_info($node, $inline = FALSE) {
-  return array('link' =>  ((variable_get('biblio_link_title_url', 0) && !empty($node->biblio_url)) ? $node->biblio_url : ($inline ? "$base/viewinline/$node->nid":"node/$node->nid" ) ),
+function biblio_get_title_url_info($node) {
+  return array('link' =>  ((variable_get('biblio_link_title_url', 0) && !empty($node->biblio_url)) ? $node->biblio_url : "node/$node->nid"  ),
                'options' =>
                   array('attributes' => (variable_get('biblio_links_target_new_window', FALSE)) ? array('target' => '_blank') : array(),
                         'html' => TRUE),

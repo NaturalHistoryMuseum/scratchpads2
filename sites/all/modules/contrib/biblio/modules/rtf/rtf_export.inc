@@ -309,7 +309,7 @@ class rtf {
   // Parse the text input to RTF
   function parseDocument() {
     //$doc_buffer = $this->specialCharacters(html_entity_decode($this->document));
-    $doc_buffer = html_entity_decode($this->document, ENT_QUOTES);
+    $doc_buffer = html_entity_decode($this->document, ENT_QUOTES, "utf-8");
     $doc_buffer = utf8_decode($doc_buffer);
     $doc_buffer = $this->specialCharacters($doc_buffer);
     if (preg_match("/<ul>(.*?)<\/ul>/mi", $doc_buffer)) {

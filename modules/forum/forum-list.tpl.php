@@ -49,6 +49,7 @@
                * left-margin for indenting.
                */ ?>
         <?php print str_repeat('<div class="indent">', $forum->depth); ?>
+          <div class="icon"></div>
           <div class="name"><a href="<?php print $forum->link; ?>"><?php print $forum->name; ?></a></div>
           <?php if ($forum->description): ?>
             <div class="description"><?php print $forum->description; ?></div>

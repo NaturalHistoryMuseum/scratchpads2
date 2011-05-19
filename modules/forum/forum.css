@@ -12,11 +12,14 @@
 #forum td.pager {
   white-space: nowrap;
 }
-#forum tr td.forum {
-  padding-left: 25px; /* LTR */
-  background-position: 2px 2px; /* LTR */
-  background-image: url(../../misc/forum-default.png);
+#forum td.forum .icon {
+  float: left; /* LTR */
+  background-position: 0 0;
+  background-image: url(../../misc/forum-icons.png);
   background-repeat: no-repeat;
+  height: 24px;
+  width: 24px;
+  margin: 0 9px 0 0; /* LTR */
 }
 #forum tr.new-topics td.forum {
   background-image: url(../../misc/forum-new.png);

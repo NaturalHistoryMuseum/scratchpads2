@@ -2,34 +2,38 @@
 class biblio_handler_field_contributor extends biblio_handler_field {
   function construct() {
     module_load_include('inc', 'biblio', 'includes/biblio_theme');
-    
+
     parent::construct();
     $this->additional_fields['vid'] = array('table' => 'biblio', 'field' => 'vid');
-    $this->auth_category = isset($this->definition['auth_category']) ? $this->definition['auth_category'] : 1;
   }
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['style_name'] = array('default' => biblio_get_style());
+    $options['auth_category'] = array('default' => 1);
     return $options;
   }
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    module_load_include('inc', 'biblio', 'includes/biblio.admin');
-    $form['style_name'] = array(
-      '#type' => 'radios',
-      '#title' => t('Style'),
-      '#default_value' => $this->options['style_name'],
-      '#options' => biblio_get_styles(),
+    $form['auth_category'] = array(
+      '#type' => 'select',
+      '#title' => t('Category of Author'),
+      '#default_value' => $this->options['auth_category'],
+      '#options' => array(
+        0 => t('All categories'),
+        1 => t('Primary'),
+        2 => t('Secondary'),
+        3 => t('Tirtiary'),
+        4 => t('Subsidiary'),
+        5 => t('Corporate/Institutional')
+      ),
       '#description' => t('Define the layout of author lists.')
     );
+
   }
 
   function query() {
     $this->add_additional_fields();
     $this->field_alias = $this->aliases['vid'];
-    // add the biblio_type field as tid
-    $this->query->add_field($this->table_alias, 'biblio_type', 'biblio_tid');
   }
 
   function pre_render($values) {
@@ -44,23 +48,22 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     }
 
     if (count($vids)) {
+      $place_holders = array();
+      $place_holders[':vids'] =  $vids;
+      if ($this->options['auth_category'] > 0) {
+        $filter = 'AND auth_category = :cat';
+        $place_holders[':cat'] = $this->options['auth_category'];
+      }
       // Optimize query if $vids has only 1 item in the array, to use '=' instead of 'IN'.
-      if (count($vids) > 1) {
-        $vidstr = 'vid IN (' . implode(',', $vids) . ')';
-      }
-      else {
-        $vidstr = 'vid = ' . $vids[0];
-      }
       $result = db_query('SELECT * FROM {biblio_contributor} bc
                           INNER JOIN {biblio_contributor_data} bcd ON bc.cid = bcd.cid
-                          WHERE vid IN (:vids}
-                          AND auth_category = :cat
-                          ORDER BY bc.rank ',
-                          array(':vids' => implode(',', $vids), ':cat' => $this->auth_category));
+                          WHERE vid IN (:vids) '.
+                          $filter
+                          . ' ORDER BY vid ASC, bc.rank ASC',
+                          $place_holders,
+                          array('fetch' => PDO::FETCH_ASSOC));
       foreach ($result as $item) {
-        // Clean up the $item from vid.
-        $vid = $item['vid']; unset($item['vid']);
-        $this->items[$vid][] = $item;
+        $this->items[$item['vid']][] = $item;
       }
     }
   }

@@ -76,20 +76,20 @@ function en8_add_urls(&$node) {
   // TODO: fix URLS
   if (!empty($node->biblio_url)) {
     $xml .= "<web-urls>";
-    $xml .= '<url><style face="normal" font="default" size="100%">' . $node->biblio_url . "</style></url>";
+    $xml .= '<url><style face="normal" font="default" size="100%">' . htmlspecialchars($node->biblio_url) . "</style></url>";
     $xml .= "</web-urls>";
   }
   unset($node->biblio_url);
-  if (!empty ($node->files) && count($node->files) && user_access('view uploaded files')) {
-    $xml .= "<related-urls>";
-    foreach ($node->files as $file) {
+  if (!empty ($node->upload) && count($node->upload['und'])  && user_access('view uploaded files')) {
+      $xml .= "<related-urls>";
+    foreach ($node->upload['und'] as $file) {
       $xml .= '<url><style face="normal" font="default" size="100%">';
-      $xml .= file_create_url($file->uri);
+      $xml .= htmlspecialchars(file_create_url($file['uri']));
       $xml .= "</style></url>";
     }
     $xml .= "</related-urls>";
   }
-  unset($node->files);
+  unset($node->upload['und']);
   if (!empty($xml)) return "<urls>$xml</urls>";
   return ;
 }
@@ -129,45 +129,50 @@ function en8_add_keywords(&$node) {
 
 function en8_add_contributors(&$node) {
   $xml = '<contributors>';
-  if ($node->biblio_contributors->has_category(1)) {
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 1);
+  if (!empty($authors)) {
     $xml .= "<authors>";
-    foreach ($node->biblio_contributors->get_category(1) as $auth) {
+    foreach ($authors as $auth) {
       $xml .= '<author><style face="normal" font="default" size="100%">';
       $xml .= htmlspecialchars(trim($auth['name'])); // insert author here.
       $xml .= "</style></author>";
     }
     $xml .= "</authors>";
   }
-  if ($node->biblio_contributors->has_category(2)) {
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 2);
+  if (!empty($authors)) {
     $xml .= "<secondary-authors>";
-    foreach ($node->biblio_contributors->get_category(2) as $auth) {
+    foreach ($authors as $auth) {
       $xml .= '<author><style face="normal" font="default" size="100%">';
       $xml .= htmlspecialchars(trim($auth['name'])); // insert author here.
       $xml .= "</style></author>";
     }
     $xml .= "</secondary-authors>";
   }
-  if ($node->biblio_contributors->has_category(3)) {
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 3);
+  if (!empty($authors)) {
     $xml .= "<tertiary-authors>";
-    foreach ($node->biblio_contributors->get_category(3) as $auth) {
+    foreach ($authors as $auth) {
       $xml .= '<author><style face="normal" font="default" size="100%">';
       $xml .= htmlspecialchars(trim($auth['name'])); // insert author here.
       $xml .= "</style></author>";
     }
     $xml .= "</tertiary-authors>";
   }
-  if ($node->biblio_contributors->has_category(4)) {
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 4);
+  if (!empty($authors)) {
     $xml .= "<subsidiary-authors>";
-    foreach ($node->biblio_contributors->get_category(4) as $auth) {
+    foreach ($authors as $auth) {
       $xml .= '<author><style face="normal" font="default" size="100%">';
       $xml .= htmlspecialchars(trim($auth['name'])); // insert author here.
       $xml .= "</style></author>";
     }
     $xml .= "</subsidiary-authors>";
   }
-  if ($node->biblio_contributors->has_category(5)) {
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 5);
+  if (!empty($authors)) {
     $xml .= "<translated-authors>";
-    foreach ($node->biblio_contributors->get_category(5) as $auth) {
+    foreach ($authors as $auth) {
       $xml .= '<author><style face="normal" font="default" size="100%">';
       $xml .= htmlspecialchars(trim($auth['name'])); // insert author here.
       $xml .= "</style></author>";

@@ -45,14 +45,18 @@ function biblio_style_ama_author_options() {
   return $author_options;
 }
 
-function biblio_style_ama($node, $base = 'biblio', $inline = FALSE) {
+function biblio_style_ama($node) {
+  module_load_include('inc', 'biblio', '/includes/biblio.contributors');
   $output = '';
   $markupPatternsArray = array("italic-prefix" => "<i>",
                                "italic-suffix" => "<\/i>",
                                "endash" => '-');
   $author_options = biblio_style_ama_author_options();
-  if ($node->biblio_contributors->has_category(1)) {
-    $authors = theme('biblio_format_authors', array('contributors' => $node->biblio_contributors->get_category(1), 'options' => $author_options, 'inline' => $inline));
+  $authors = biblio_get_contributor_category($node->biblio_contributors, 1);
+  $editors = biblio_get_contributor_category($node->biblio_contributors, 2);
+
+  if (!empty($authors)) {
+    $authors = theme('biblio_format_authors', array('contributors' => $authors, 'options' => $author_options));
   }
   //$editors = theme('biblio_format_authors', array('contributors' => $node->biblio_contributors[2], 'options' => $author_options, 'inline' => $inline));
   //if (empty($authors)) $authors = theme('biblio_authors', $node->biblio_contributors[5], 'mla', 5, $inline);  // if no authors substitute corp author if available
@@ -197,8 +201,7 @@ function biblio_style_ama($node, $base = 'biblio', $inline = FALSE) {
       }
 
 
-      if ($node->biblio_contributors->has_category(2))      // editor
-      {
+      if (!empty($editors)) {
         $editor_options = array(
           'BetweenAuthorsDelimStandard'       => ', ',
           'BetweenAuthorsDelimLastAuthor'     => ', ',
@@ -214,10 +217,10 @@ function biblio_style_ama($node, $base = 'biblio', $inline = FALSE) {
           'encodeHTML'                        => TRUE
         );
 
-        $editor = theme('biblio_format_authors', array('contributors' => $node->biblio_contributors->get_category(2), 'options' => $editor_options, 'inline' => $inline));
+        $editor = theme('biblio_format_authors', array('contributors' => $editors, 'options' => $editor_options));
 
         $output .= " In: " . $editor . ", ";
-        if ($node->biblio_contributors->has_category(2) > 1) // there are at least two editors (separated by ';')
+        if (count($editors) > 1) // there are at least two editors (separated by ';')
         $output .= "eds";
         else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
         $output .= "ed";
@@ -381,7 +384,7 @@ function biblio_style_ama($node, $base = 'biblio', $inline = FALSE) {
         }
       }
 
-      if ($node->biblio_contributors->has_category(2))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
+      if (!empty($editors))      // editor (if different from author, see note above regarding the check for ' (ed)' or ' (eds)')
       {
 
         $editor_options = array(
@@ -399,11 +402,11 @@ function biblio_style_ama($node, $base = 'biblio', $inline = FALSE) {
           'encodeHTML'                      => TRUE
         );
 
-        $editor = theme('biblio_format_authors', array('contributors' => $node->biblio_contributors->get_category(2), 'options' => $editor_options, 'inline' => $inline));
+        $editor = theme('biblio_format_authors', array('contributors' => $editors, 'options' => $editor_options));
         if (!preg_match("/[?!.][ \"" . $markupPatternsArray["italic-suffix"] . "]*$/", $output))  $output .= ".";
 
         $output .= " " . $editor;
-        if ($node->biblio_contributors->has_category(2) > 1) // there are at least two editors (separated by ';')
+        if (count($editors) > 1) // there are at least two editors (separated by ';')
         $output .= ", eds";
         else // there's only one editor (or the editor field is malformed with multiple editors but missing ';' separator[s])
         $output .= ", ed";

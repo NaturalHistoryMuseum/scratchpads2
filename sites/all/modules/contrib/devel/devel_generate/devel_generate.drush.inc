@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_generate.drush.inc,v 1.11 2010/10/26 03:51:53 weitzman Exp $
 
 /**
  * @file

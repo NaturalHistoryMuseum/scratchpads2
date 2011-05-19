@@ -72,9 +72,7 @@ function biblio_rtf_biblio_export_link($nid = NULL) {
 function biblio_rtf_biblio_export($nids) {
   $count = 0;
   $variables = array(
-    'base'       => 'biblio',
     'style_name' => biblio_get_style(),
-    'inline'     => FALSE
   );
 
   foreach ($nids as $nid) {
