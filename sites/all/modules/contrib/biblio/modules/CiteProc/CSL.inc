@@ -2,7 +2,7 @@
 /**
  *   CiteProc-PHP
  *
- *   Copyright (C) 2010  Ron Jerome, all rights reserved
+ *   Copyright (C) 2010 - 2011  Ron Jerome, all rights reserved
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ class citeproc {
   }
   function render($data, $mode = NULL) {
     $text = '';
-    switch($mode) {
+    switch ($mode) {
       case 'citation':
         $text .=  (isset($this->citation))? $this->citation->render($data) : '';
         break;
@@ -551,6 +551,10 @@ class csl_name extends csl_format {
     if (!$this->attr_init || $this->attr_init != $mode) $this->init_attrs($mode);
 
     foreach ($names as $rank => $name) {
+      if (!isset($name['lastname'])) {
+        module_load_include('inc', 'biblio', '/includes/biblio.contributors');
+        $name = biblio_parse_author($name); // this is needed for form preview to fill in all fields
+      }
       $count++;
       //$given = (!empty($name['firstname'])) ? $name['firstname'] : '';
       if (!empty($name['firstname']) && isset($initialize_with)) {
@@ -795,7 +799,7 @@ class csl_names extends csl_format {
     $variables  = explode(' ', $this->variable);
     foreach ($variables as $var) {
       list($contributor, $category) = explode(':', $var);
-      if ($data->{$contributor}->has_category($category) ) {
+      if ($this->_get_category($data->{$contributor}, $category) ) {
         $matches++;
         break;
       }
@@ -808,7 +812,7 @@ class csl_names extends csl_format {
             $variables  = explode(' ', $element->variable);
             foreach ($variables as $var) {
               list($contributor, $category) = explode(':', $var);
-              if ($data->{$contributor}->has_category($category)) {
+              if ($this->_get_category($data->{$contributor}, $category)) {
                 $matches++;
                 break;
               }
@@ -824,12 +828,12 @@ class csl_names extends csl_format {
     foreach ($variables as $var) {
       $text = '';
       list($contributor, $category) = explode(':', $var);
-      if ($data->{$contributor}->has_category($category)) {
+      if ($authors = $this->_get_category($data->{$contributor}, $category)) {
         foreach ($this->elements as $element) {
-          if(is_a($element, 'csl_label')) {
+          if (is_a($element, 'csl_label')) {
             $data->{$var}['variable'] = $var;
           }
-          $text .= $element->render($data->{$contributor}->get_category($category), $mode);
+          $text .= $element->render($authors, $mode);
         }
       }
       if (!empty($text)) $variable_parts[] = $text;
@@ -842,6 +846,17 @@ class csl_names extends csl_format {
 
     return ;
   }
+
+  private function _get_category($contributors, $category) {
+    $authors = array();
+    foreach ($contributors as $author) {
+      if ($author['auth_category'] == $category) {
+        $authors[] = $author;
+      }
+    }
+    return count($authors) ? $authors : FALSE;
+  }
+
 }
 
 class csl_date extends csl_format {

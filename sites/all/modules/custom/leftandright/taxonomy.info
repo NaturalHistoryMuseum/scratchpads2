@@ -4,6 +4,6 @@ package = Core
 version = VERSION
 core = 7.x
 dependencies[] = options
-dependencies[] = leftandright
 files[] = taxonomy.module
+files[] = taxonomy.test
 configure = admin/structure/taxonomy

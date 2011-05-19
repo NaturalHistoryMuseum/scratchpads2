@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_node_access.api.php,v 1.2 2011/01/16 01:00:58 salvis Exp $
 
 /**
  * @file

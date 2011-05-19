@@ -28,39 +28,41 @@ function femail_menu_local_tasks_alter(&$data, $router_item, $root_path){
   // Are we viewing a forum?
   if($root_path == 'forum' || $root_path == 'forum/%'){
     $tid = (isset($router_item['page_arguments'][0]) ? $router_item['page_arguments'][0]->tid : 0);
-    $forum_term = forum_forum_load($tid);
-    // We're viewing a Forum, or a Container, lets check this isn't a container
-    if(!in_array($tid, variable_get('forum_containers', array())) && $forum_term){
-      $vid = variable_get('forum_nav_vocabulary', 0);
-      $vocabulary = taxonomy_vocabulary_load($vid);
-      $links = array();
-      // Loop through all bundles for forum taxonomy vocabulary field.
-      $field = field_info_field('taxonomy_' . $vocabulary->machine_name);
-      $emails = variable_get('femail_emails', array());
-      if(isset($emails[$tid])){
-        if(user_access('post by femail')){
-          $field = field_info_field('taxonomy_' . $vocabulary->machine_name);
-          foreach($field['bundles']['node'] as $type){
-            $links[$type . '_femail'] = array(
-              '#theme' => 'menu_local_action',
-              '#link' => array(
-                'title' => t('Add new @node_type by email', array(
-                  '@node_type' => node_type_get_name($type)
-                )),
-                'href' => 'mailto:' . $emails[$tid]
-              ),
-              '#weight' => 100
-            );
+    if($tid){
+      $forum_term = forum_forum_load($tid);
+      // We're viewing a Forum, or a Container, lets check this isn't a container
+      if(!in_array($tid, variable_get('forum_containers', array())) && $forum_term){
+        $vid = variable_get('forum_nav_vocabulary', 0);
+        $vocabulary = taxonomy_vocabulary_load($vid);
+        $links = array();
+        // Loop through all bundles for forum taxonomy vocabulary field.
+        $field = field_info_field('taxonomy_' . $vocabulary->machine_name);
+        $emails = variable_get('femail_emails', array());
+        if(isset($emails[$tid])){
+          if(user_access('post by femail')){
+            $field = field_info_field('taxonomy_' . $vocabulary->machine_name);
+            foreach($field['bundles']['node'] as $type){
+              $links[$type . '_femail'] = array(
+                '#theme' => 'menu_local_action',
+                '#link' => array(
+                  'title' => t('Add new @node_type by email', array(
+                    '@node_type' => node_type_get_name($type)
+                  )),
+                  'href' => 'mailto:' . $emails[$tid]
+                ),
+                '#weight' => 100
+              );
+            }
           }
+        }else{
+          // This should be set, we need to warn the admin
+          watchdog('femail', 'Femail address not set %term_id', array(
+            '%term_id',
+            $tid
+          ));
         }
-      }else{
-        // This should be set, we need to warn the admin
-        watchdog('femail', 'Femail address not set %term_id', array(
-          '%term_id',
-          $tid
-        ));
+        $data['actions']['output'] = array_merge($data['actions']['output'], $links);
       }
-      $data['actions']['output'] = array_merge($data['actions']['output'], $links);
     }
   }
 }
@@ -248,6 +250,10 @@ function femail_taxonomy_term_update($term){
 function femail_taxonomy_term_insert($term){
   // Check that we're handling a term from the forum vocabulary.
   if($term->vid == variable_get('forum_nav_vocabulary', 0)){
+    // Note, emails are set for forum containers, as the forum_container 
+    // variable has not been updated at this point.  This may be confusing if
+    // a user creates a forum with the same name as a container, as the emails
+    // will clash
     $emails = variable_get('femail_emails', array());
     unset($emails[$term->tid]);
     global $base_url;

@@ -64,7 +64,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
         'Message-id' => $msgid,
         'Reply-to' => $from_emails[$tid],
         'List-id' => check_plain($forum_term->name) . ' <' . str_replace("@", ".", $from_emails[$tid]) . '>',
-        'List-post' => '<' . $from_emails[$tid] . '>',
+        'List-post' => '<mailto:' . $from_emails[$tid] . '>',
         'List-archive' => '<' . url('forum/' . $tid, array(
           'absolute' => TRUE
         )) . '>',

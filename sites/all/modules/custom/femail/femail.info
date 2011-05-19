@@ -10,4 +10,5 @@ files[] = femail.pages.inc
 scripts[] = js/femail.js
 stylesheets[all][] = css/femail.css
 dependencies[] = forum
+dependencies[] = file
 package = Scratchpads
