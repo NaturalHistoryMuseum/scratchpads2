@@ -10,7 +10,16 @@ chmod 700 $TMPFILE
 # Populate the temp file
 cat <&0 > $TMPFILE
 # Find the domain name
-DOMAIN=`cat $TMPFILE | grep ^Envelope-to | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+DOMAIN=`cat $TMPFILE | grep ^envelope-to -i | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+if [ -z $DOMAIN ]
+then
+  DOMAIN=`cat $TMPFILE | grep ^x-original-to -i  | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+  if [ -z $DOMAIN ]
+  then
+    DOMAIN=`cat $TMPFILE | grep ^to -i  | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+  fi
+fi
+
 # Execute Drush
 echo -n $TMPFILE | drush -l http://$DOMAIN femail
 # If you would like to use Femail with two versions of Drupal, comment out the above

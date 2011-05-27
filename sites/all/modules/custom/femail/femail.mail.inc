@@ -54,7 +54,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
         $file = (array)$file;
         $additional_text .= url('', array(
           'absolute' => TRUE
-        )) . drupal_urlencode($file['filepath']) . "\n";
+        )) . file_create_url($file['filepath']) . "\n";
       }
       $body = $additional_text . "\n" . $body;
     }
