@@ -6,9 +6,6 @@
  * Contains the two functions used for sending out mail messages.
  */
 function _femail_get_emails($tid, $account, $nid){
-  // We'll let our SQL do the magic
-  // Note, we're not using db_select here -> no idea how you would do the concat
-  // below using it (any suggestions anyone?).
   $node = node_load($nid);
   $query = db_select('users', 'u');
   $query->join('femail_user_subscriptions', 'f', 'u.uid = f.uid');
@@ -16,10 +13,10 @@ function _femail_get_emails($tid, $account, $nid){
   $query->condition('u.uid', $account->uid, '!=');
   $query->fields('u', array('uid'));
   $query->distinct(TRUE);
-  $query->execute();
+  $results = $query->execute();
   $uids = array();
-  foreach($query as $result){
-    $uids = $result->uid;
+  foreach($results as $result){
+    $uids[] = $result->uid;
   }
   $users = user_load_multiple($uids);
   $emails = array();
