@@ -179,7 +179,6 @@ function _femail_post_comment($msg, $user, $status){
     ))->condition('title', trim(substr($msg['title'], 3)))->condition('type', 'forum')->execute()->fetch();
   }
   if($row){
-    watchdog('femail', 'Femail msg is: !msg', array('!msg' => print_r($msg, 1)));
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
       $edit = (object)array(
@@ -314,6 +313,8 @@ function femail_drush_callback(){
   // If the in-reply-to is set, then we need to create a comment else we need to
   // create a node, or creating a comment has failed as the msgid could not be
   // found.
+  // TODO - Debugging
+  watchdog('femail', 'Msg is: !msg' , array('!msg' => print_r($msg, 1)));
   if(isset($msg['in-reply-to']) || strtolower(substr($msg['title'], 0, 3)) == 're:'){
     if(_femail_post_comment($msg, $user, $comment_status)){return;}
   }

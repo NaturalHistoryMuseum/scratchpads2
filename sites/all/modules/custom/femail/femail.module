@@ -329,8 +329,10 @@ function femail_comment_publish($comment){
     // Include file
     module_load_include('mail.inc', 'femail');
     $files = array();
-    foreach($comment->femail_files['und'] as $file){
-      $files[] = file_load($file['fid']);
+    if(isset($comment->femail_files['und'])){
+      foreach($comment->femail_files['und'] as $file){
+        $files[] = file_load($file['fid']);
+      }
     }
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
