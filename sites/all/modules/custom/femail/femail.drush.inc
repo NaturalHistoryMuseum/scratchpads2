@@ -286,16 +286,14 @@ function femail_drush_callback(){
   if(isset($msg['files']) && count($msg['files'])){
     $temp_files = $msg['files'];
     unset($msg['files']);
-    //if(user_access('upload files') && user_access('upload files to comments')){
-      foreach($temp_files as $tmpfile){
-        $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
-        $msg['femail_files']['und'][] = array(
-          'fid' => $file->fid,
-          'display' => 1,
-          'description' => ''
-        );
-      }
-    //}
+    foreach($temp_files as $tmpfile){
+      $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
+      $msg['femail_files']['und'][] = array(
+        'fid' => $file->fid,
+        'display' => 1,
+        'description' => ''
+      );
+    }
   }
   if(!user_access('post by femail')){
     // Add a message to the logs so that we know we received a message and that
@@ -313,8 +311,6 @@ function femail_drush_callback(){
   // If the in-reply-to is set, then we need to create a comment else we need to
   // create a node, or creating a comment has failed as the msgid could not be
   // found.
-  // TODO - Debugging
-  watchdog('femail', 'Msg is: !msg' , array('!msg' => print_r($msg, 1)));
   if(isset($msg['in-reply-to']) || strtolower(substr($msg['title'], 0, 3)) == 're:'){
     if(_femail_post_comment($msg, $user, $comment_status)){return;}
   }
