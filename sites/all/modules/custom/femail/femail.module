@@ -291,8 +291,10 @@ function femail_node_insert($node){
     $forum_tid = $node->taxonomy_forums['und'][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
-      // FIXME - Needs the files stuff fixing (as with comments below).
       $files = array();
+      foreach($node->femail_files['und'] as $file){
+        $files[] = file_load($file['fid']);
+      }
       watchdog('femail', 'Node is: !node_values', array('!node_values' => print_r($node, 1)));
       _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
     }
