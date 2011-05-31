@@ -286,7 +286,7 @@ function femail_drush_callback(){
   if(isset($msg['files']) && count($msg['files'])){
     $temp_files = $msg['files'];
     unset($msg['files']);
-    if(user_access('upload files') && user_access('upload files to comments')){
+    //if(user_access('upload files') && user_access('upload files to comments')){
       foreach($temp_files as $tmpfile){
         $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
         $msg['femail_files']['und'][] = array(
@@ -295,7 +295,7 @@ function femail_drush_callback(){
           'description' => ''
         );
       }
-    }
+    //}
   }
   if(!user_access('post by femail')){
     // Add a message to the logs so that we know we received a message and that
