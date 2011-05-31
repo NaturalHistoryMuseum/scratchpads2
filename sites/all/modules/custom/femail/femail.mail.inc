@@ -52,8 +52,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
       $additional_text = "Files:\n";
       foreach($files as $file){
         $file = (array)$file;
-        watchdog('femail', 'File is: !file', array('!file' => print_r($file, 1)));
-        $additional_text .= file_create_url(file_build_uri($file['filepath'])) . "\n";
+        $additional_text .= file_create_url($file['uri']) . "\n";
       }
       $body = $additional_text . "\n" . $body;
     }
