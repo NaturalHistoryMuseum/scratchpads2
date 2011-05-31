@@ -179,6 +179,7 @@ function _femail_post_comment($msg, $user, $status){
     ))->condition('title', trim(substr($msg['title'], 3)))->condition('type', 'forum')->execute()->fetch();
   }
   if($row){
+    watchdog('femail', 'Femail msg is: !msg', array('!msg' => $msg));
     // Check we have permission to post a forum post.
     if(user_access('post comments')){
       $edit = (object)array(
