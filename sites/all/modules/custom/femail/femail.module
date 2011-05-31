@@ -331,7 +331,7 @@ function femail_comment_publish($comment){
     module_load_include('mail.inc', 'femail');
     // FIXME - Needs the "files" stuff changing.
     $files = array();
-    //drupal_set_message(print_r($comment, 1));
+    watchdog('femail', 'Comment is: !comment', array('!comment' => print_r($comment, 1)));
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
