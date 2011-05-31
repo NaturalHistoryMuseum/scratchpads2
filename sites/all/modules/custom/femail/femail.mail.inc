@@ -52,9 +52,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
       $additional_text = "Files:\n";
       foreach($files as $file){
         $file = (array)$file;
-        $additional_text .= url('', array(
-          'absolute' => TRUE
-        )) . file_create_url($file['filepath']) . "\n";
+        $additional_text .= file_create_url(file_build_uri($file['filepath'])) . "\n";
       }
       $body = $additional_text . "\n" . $body;
     }
