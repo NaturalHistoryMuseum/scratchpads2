@@ -293,6 +293,7 @@ function femail_node_insert($node){
       module_load_include('mail.inc', 'femail');
       // FIXME - Needs the files stuff fixing (as with comments below).
       $files = array();
+      watchdog('femail', 'Node is: !node_values', array('!node_values' => print_r($node, 1)));
       _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
     }
   }
