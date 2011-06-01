@@ -1,4 +1,3 @@
-// $Id: toolbar.js,v 1.20 2010/12/01 07:05:26 webchick Exp $
 (function ($) {
 
 Drupal.toolbar = Drupal.toolbar || {};

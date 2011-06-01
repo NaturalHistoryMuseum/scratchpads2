@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.3 2009/10/08 01:44:22 dries Exp $
 
 This directory is reserved for core module files. Custom or contributed modules
 should be placed in their own subdirectory of the sites/all/modules directory.

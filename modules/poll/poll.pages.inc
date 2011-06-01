@@ -1,5 +1,4 @@
 <?php
-// $Id: poll.pages.inc,v 1.28 2010/10/06 13:38:40 dries Exp $
 
 /**
  * @file

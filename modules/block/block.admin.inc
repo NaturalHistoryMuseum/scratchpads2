@@ -1,5 +1,4 @@
 <?php
-// $Id: block.admin.inc,v 1.91 2010/11/06 23:24:33 webchick Exp $
 
 /**
  * @file
@@ -17,7 +16,7 @@ function block_admin_demo($theme = NULL) {
 /**
  * Menu callback for admin/structure/block.
  *
- * @param $theme
+ * @param $theme
  *   The theme to display the administration page for. If not provided, defaults
  *   to the currently used theme.
  */

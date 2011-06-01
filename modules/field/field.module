@@ -1,5 +1,4 @@
 <?php
-// $Id: field.module,v 1.94 2011/01/02 17:26:39 webchick Exp $
 /**
  * @file
  * Attach custom data fields to Drupal entities.
@@ -559,7 +558,7 @@ function _field_sort_items_value_helper($a, $b) {
  *         // the 'default' mode:
  *         'default' => array(
  *           'weight' => The weight of the pseudo-field,
- *           'visibility' => Whether the pseudo-field is visible or hidden,
+ *           'visible' => TRUE if the pseudo-field is visible, FALSE if hidden,
  *         ),
  *         'full' => ...
  *       ),

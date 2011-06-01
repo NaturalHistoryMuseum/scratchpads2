@@ -1,5 +1,9 @@
 <?php
-// $Id: options.test,v 1.23 2010/12/18 00:50:03 dries Exp $
+
+/**
+ * @file 
+ * Tests for options.module.
+ */
 
 class OptionsWidgetsTestCase extends FieldTestCase {
   public static function getInfo() {

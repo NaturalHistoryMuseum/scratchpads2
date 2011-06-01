@@ -1,5 +1,4 @@
 <?php
-// $Id: cache.test,v 1.12 2010/08/05 23:53:38 webchick Exp $
 
 class CacheTestCase extends DrupalWebTestCase {
   protected $default_bin = 'cache';

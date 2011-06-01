@@ -1,4 +1,3 @@
-// $Id: authorize.js,v 1.3 2010/01/04 16:08:52 webchick Exp $
 
 /**
  * @file

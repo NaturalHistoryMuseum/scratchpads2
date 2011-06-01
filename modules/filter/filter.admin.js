@@ -1,4 +1,3 @@
-// $Id: filter.admin.js,v 1.4 2010/04/16 13:55:06 dries Exp $
 (function ($) {
 
 Drupal.behaviors.filterStatus = {

@@ -1,5 +1,4 @@
 <?php
-// $Id: ftp.inc,v 1.16 2011/01/03 02:20:45 webchick Exp $
 
 /**
  * Base class for FTP implementations.

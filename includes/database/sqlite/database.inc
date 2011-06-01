@@ -1,5 +1,4 @@
 <?php
-// $Id: database.inc,v 1.41 2010/12/23 05:29:27 webchick Exp $
 
 /**
  * @file

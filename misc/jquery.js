@@ -1,4 +1,3 @@
-// $Id: jquery.js,v 1.20 2010/11/12 01:36:08 webchick Exp $
 
 /*!
  * jQuery JavaScript Library v1.4.4

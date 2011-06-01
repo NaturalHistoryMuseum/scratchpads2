@@ -1,5 +1,4 @@
 <?php
-// $Id: actions_loop_test.module,v 1.3 2009/12/04 16:49:47 dries Exp $
 
 /**
  * Implements hook_trigger_info().
