@@ -1,5 +1,4 @@
 <?php
-// $Id: color.inc,v 1.5 2010/04/03 08:05:08 webchick Exp $
 
 $info = array(
 

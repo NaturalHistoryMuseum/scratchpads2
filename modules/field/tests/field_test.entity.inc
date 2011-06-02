@@ -1,5 +1,4 @@
 <?php
-// $Id: field_test.entity.inc,v 1.17 2010/11/20 19:57:01 webchick Exp $
 
 /**
  * @file

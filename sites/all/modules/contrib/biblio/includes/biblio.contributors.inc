@@ -12,6 +12,16 @@ function biblio_get_contributor($aid) {
   return $contributor[$aid];
 }
 
+function biblio_get_contributor_category($contributors, $category) {
+  $authors = array();
+  foreach ($contributors as $author) {
+    if ($author['auth_category'] == $category) {
+      $authors[] = $author;
+    }
+  }
+  return $authors;
+}
+
 function biblio_get_contributor_by_name($name) {
   $query = db_select('biblio_contributor_data', 'bcd');
   $query->condition('bcd.name', $name);
@@ -268,7 +278,7 @@ function _save_contributors(&$contributors, $nid, $vid, $update = FALSE) {
  */
 function biblio_parse_author($author_array, $cat = 0) {
 
-  if ($cat == 5) {
+  if ($author_array['auth_category'] == 5) {
     $author_array['firstname'] = '';
     $author_array['initials'] = '';
     $author_array['lastname'] = trim($author_array['name']);

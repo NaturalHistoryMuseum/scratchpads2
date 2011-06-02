@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Implementation of hook_block_info().
+ */
+function term_reference_tree_block_block_info(){
+  // Get all the vocabularies
+  $vocabularies = taxonomy_get_vocabularies();
+  $blocks = array();
+  foreach($vocabularies as $vid => $vocabulary){
+    $blocks[$vid] = array(
+      'info' => t('Taxonomy tree block for "@vocabulary_name"', array(
+        '@vocabulary_name' => $vocabulary->name
+      )),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function term_reference_tree_block_block_view($delta = FALSE){
+  if($delta){
+    $vocabulary = taxonomy_vocabulary_load($delta);
+    if($vocabulary){
+      dpm($vocabulary);
+      return array(
+        'subject' => $vocabulary->name,
+        'content' => theme('options_tree', array(
+          'element' => array(
+            '#vocabulary' => $vocabulary->machine_name,
+            '#default_value' => array(1,2,3,4,5,6,7,8),
+            '#id' => 'some-id',
+            '#name' => 'some-name',
+            '#leaves_only' => 0,
+            '#multiple' => 1
+          )
+        ))
+      );
+    }
+  }
+}

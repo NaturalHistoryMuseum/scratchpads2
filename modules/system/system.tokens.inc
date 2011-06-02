@@ -1,5 +1,4 @@
 <?php
-// $Id: system.tokens.inc,v 1.13 2010/10/28 01:33:41 dries Exp $
 
 /**
  * @file

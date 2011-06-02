@@ -1,5 +1,4 @@
 <?php
-// $Id: xmlrpc_test.module,v 1.7 2010/10/02 01:22:41 dries Exp $
 
 function xmlrpc_test_arrayOfStructsTest($array) {
   $sum = 0;

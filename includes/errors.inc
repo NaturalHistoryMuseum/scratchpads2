@@ -1,5 +1,4 @@
 <?php
-// $Id: errors.inc,v 1.9 2010/10/16 00:00:16 webchick Exp $
 
 /**
  * @file

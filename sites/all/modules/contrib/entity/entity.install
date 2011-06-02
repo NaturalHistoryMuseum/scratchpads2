@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * @file
+ * Install file for the entity API.
+ */
+
+/**
+ * The entity API modules have been merged into a single module.
+ */
+function entity_update_7000() {
+  // This empty update is required such that all caches are cleared as
+  // necessary.
+}

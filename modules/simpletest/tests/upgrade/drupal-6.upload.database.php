@@ -1,5 +1,4 @@
 <?php
-// $Id: drupal-6.upload.database.php,v 1.2 2010/11/13 01:48:14 dries Exp $
 
 db_insert('files')->fields(array(
   'fid',

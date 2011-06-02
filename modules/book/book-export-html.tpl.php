@@ -1,5 +1,4 @@
 <?php
-// $Id: book-export-html.tpl.php,v 1.3 2010/10/23 15:35:35 webchick Exp $
 
 /**
  * @file

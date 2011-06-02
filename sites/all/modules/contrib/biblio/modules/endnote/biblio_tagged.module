@@ -265,23 +265,17 @@ function _biblio_tagged_export($node) {
   if (isset($node->biblio_year) && $node->biblio_year < 9998)  $tagged .= "%D " . trim($node->biblio_year) . "\r\n";
   if (!empty($node->title))  $tagged .= "%T " . trim($node->title) . "\r\n";
 
-  foreach ($node->biblio_contributors->get_category(1) as $auth) {
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 1) as $auth) {
     $tagged .= "%A " . trim($auth['name']) . "\r\n";
   }
-  if ($node->biblio_contributors->has_category(2) ) {
-    foreach ($node->biblio_contributors->get_category(2) as $auth) {
-      $tagged .= "%E " . trim($auth['name']) . "\r\n";
-    }
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 2) as $auth) {
+    $tagged .= "%E " . trim($auth['name']) . "\r\n";
   }
-  if ($node->biblio_contributors->has_category(3) ) {
-    foreach ($node->biblio_contributors->get_category(3) as $auth) {
-      $tagged .= "%Y " . trim($auth['name']) . "\r\n";
-    }
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 3) as $auth) {
+    $tagged .= "%Y " . trim($auth['name']) . "\r\n";
   }
-  if ($node->biblio_contributors->has_category(4) ) {
-    foreach ($node->biblio_contributors->get_category(4) as $auth) {
-      $tagged .= "%? " . trim($auth['name']) . "\r\n";
-    }
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 4) as $auth) {
+    $tagged .= "%? " . trim($auth['name']) . "\r\n";
   }
 
   $kw_array = array();
@@ -317,9 +311,9 @@ function _biblio_tagged_export($node) {
       $tagged .= _biblio_tagged_format_entry($field, $node->$field);
     }
   }
-  if (!empty ($node->files) && count($node->files)  && user_access('view uploaded files')) {
-    foreach ($node->files as $file) {
-      $tagged .= "%> " . file_create_url($file->uri) . "\r\n"; // insert file here.
+  if (!empty ($node->upload) && count($node->upload['und']) && user_access('view uploaded files')) {
+      foreach ($node->upload['und'] as $file) {
+      $tagged .= "%> " . file_create_url($file['uri']) . "\r\n"; // insert file here.
     }
   }
   $tagged .= "\r\n";

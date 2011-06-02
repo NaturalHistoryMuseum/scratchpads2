@@ -1,5 +1,4 @@
 <?php
-// $Id: log.inc,v 1.8 2010/03/31 15:09:21 dries Exp $
 
 /**
  * @file

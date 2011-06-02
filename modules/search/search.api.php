@@ -1,5 +1,4 @@
 <?php
-// $Id: search.api.php,v 1.33 2010/11/21 20:36:36 dries Exp $
 
 /**
  * @file

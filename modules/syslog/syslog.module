@@ -1,5 +1,4 @@
 <?php
-// $Id: syslog.module,v 1.38 2010/09/26 23:31:36 dries Exp $
 
 /**
  * @file

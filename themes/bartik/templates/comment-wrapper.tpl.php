@@ -1,5 +1,4 @@
 <?php
-// $Id: comment-wrapper.tpl.php,v 1.2 2010/09/25 02:05:51 dries Exp $
 
 /**
  * @file

@@ -1,4 +1,3 @@
-// $Id: user.permissions.js,v 1.2 2010/04/19 21:17:16 webchick Exp $
 (function ($) {
 
 /**

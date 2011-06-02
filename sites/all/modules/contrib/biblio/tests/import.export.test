@@ -16,7 +16,7 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
     );
   }
   function getTaggedString() {
-    return  "%0 Book\r\n%B biblio_secondary_title\r\n%D 2009\r\n%T Biblio Title\r\n%A Ron J. Jeromezzzzzz\r\n%A John Smithzzzzzz\r\n%A George W. Bushzzzzzz\r\n%K biblio_keywords\r\n%X biblio_abst_e\r\n%B biblio_secondary_title\r\n%S biblio_tertiary_title\r\n%7 biblio_edition\r\n%I biblio_publisher\r\n%C biblio_place_published\r\n%V biblio_volume\r\n%P biblio_pages\r\n%8 biblio_date\r\n%@ biblio_isbn\r\n%G biblio_lang\r\n%U biblio_url\r\n%N biblio_issue\r\n%9 biblio_type_of_work\r\n%M biblio_accession_number\r\n%L biblio_call_number\r\n%1 biblio_custom1\r\n%2 biblio_custom2\r\n%3 biblio_custom3\r\n%4 biblio_custom4\r\n%# biblio_custom5\r\n%$ biblio_custom6\r\n%] biblio_custom7\r\n%< biblio_research_notes\r\n%6 biblio_number_of_volumes\r\n%R biblio_doi\r\n%F biblio_label\r\n\r\n";
+    return  "%0 Book\r\n%B biblio_secondary_title\r\n%D 2009\r\n%T Biblio Title\r\n%A Ron J. Jeromezzzzzz\r\n%A John Smithzzzzzz\r\n%A George W. Bushzzzzzz\r\n%K biblio_keywords\r\n%X biblio_abst_e\r\n%B biblio_secondary_title\r\n%S biblio_tertiary_title\r\n%7 biblio_edition\r\n%I biblio_publisher\r\n%C biblio_place_published\r\n%V biblio_volume\r\n%P biblio_pages\r\n%8 biblio_date\r\n%@ biblio_isbn\r\n%G biblio_lang\r\n%U biblio_url\r\n%N biblio_issue\r\n%9 biblio_type_of_work\r\n%M biblio_accession_number\r\n%L biblio_call_number\r\n%1 biblio_custom1\r\n%2 biblio_custom2\r\n%3 biblio_custom3\r\n%4 biblio_custom4\r\n%# biblio_custom5\r\n%$ biblio_custom6\r\n%] biblio_custom7\r\n%< biblio_research_notes\r\n%6 biblio_number_of_volumes\r\n%! biblio_short_title\r\n%( biblio_original_publication\r\n%) biblio_reprint_edition\r\n%& biblio_section\r\n%R biblio_doi\r\n%F biblio_label\r\n\r\n";
   }
 
   function getBibTexString() {
@@ -39,13 +39,33 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
     $xml = _endnote8_XML_export('', 'begin');
     $xml .= _endnote8_XML_export($node);
     $xml .= _endnote8_XML_export('', 'end');
-    $this->assertEqual($xml, $this->getXMLString(), 'Export a node in EndNote XML format');
+    $this->assertEqual($xml, $this->getXMLString());//, 'Export a node in EndNote XML format');
 
+  }
+
+  function testBiblioRISFileImport() {
+    $file = file_save_data($this->getRISString());
+    $context = array();
+    biblio_import($file, 'biblio_ris', 1, NULL, FALSE, NULL, $context);
+    $nids = $context['results']['nids'];
+    array_merge($this->nids, $nids);
+    $this->assertEqual(count($nids), 1, 'Imported 1 RIS entry');
+    file_delete($file);
+    $node = $this->createNode();
+    $fields = array_unique(array_filter(biblio_get_map('field_map', 'ris')));
+    $fields += array('title', 'biblio_contributors');
+    foreach ($nids as $nid) {
+      $this->nids[] = $nid;
+      $imported_node = node_load($nid);
+      $this->assertBiblioFields($node, $imported_node, $fields);
+    }
   }
 
   function testBiblioXMLFileImport() {
     $file = file_save_data($this->getXMLString());
-    $nids = biblio_import($file, 'xml8', 1, NULL, FALSE, NULL, $context);
+    $context = array();
+    biblio_import($file, 'biblio_xml', 1, NULL, FALSE, NULL, $context);
+    $nids = $context['results']['nids'];
     array_merge($this->nids, $nids);
     $this->assertEqual(count($nids), 1, 'Imported 1 EndNote XML entry');
     file_delete($file);
@@ -61,7 +81,9 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
 
   function testBiblioTaggedFileImport() {
     $file = file_save_data($this->getTaggedString());
-    $nids = biblio_import($file, 'tagged', 1, NULL, FALSE, NULL, $context);
+    $context = array();
+    biblio_import($file, 'biblio_tagged', 1, NULL, FALSE, NULL, $context);
+    $nids = $context['results']['nids'];
     array_merge($this->nids, $nids);
     $this->assertEqual(count($nids), 1, 'Imported 1 Tagged entry');
     file_delete($file);
@@ -77,7 +99,9 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
 
   function testBiblioBibtexFileImport() {
     $file = file_save_data($this->getBibTexString());
-    $nids = biblio_import($file, 'bib', 1, NULL, FALSE, NULL, $context);
+    $context = array();
+    biblio_import($file, 'biblio_bibtex', 1, NULL, FALSE, NULL, $context);
+    $nids = $context['results']['nids'];
     array_merge($this->nids, $nids);
     $this->assertEqual(count($nids), 1, 'Imported 1 Bibtex entry');
     file_delete($file);
@@ -91,20 +115,5 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
     }
   }
 
-  function testBiblioRISFileImport() {
-    $file = file_save_data($this->getRISString());
-    $nids = biblio_import($file, 'ris', 1, NULL, FALSE, NULL, $context);
-    array_merge($this->nids, $nids);
-    $this->assertEqual(count($nids), 1, 'Imported 1 RIS entry');
-    file_delete($file);
-    $node = $this->createNode();
-    $fields = array_unique(array_filter(biblio_get_map('field_map', 'ris')));
-    $fields += array('title', 'biblio_contributors');
-    foreach ($nids as $nid) {
-      $this->nids[] = $nid;
-      $imported_node = node_load($nid);
-      $this->assertBiblioFields($node, $imported_node, $fields);
-    }
-  }
 
 }
