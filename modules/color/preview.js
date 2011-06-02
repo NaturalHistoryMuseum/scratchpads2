@@ -1,4 +1,3 @@
-// $Id: preview.js,v 1.2 2010/04/28 20:25:21 dries Exp $
 
 (function ($) {
   Drupal.color = {

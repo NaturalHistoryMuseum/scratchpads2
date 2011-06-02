@@ -1,6 +1,5 @@
 #!/usr/bin/php
 <?php
-// $Id: password-hash.sh,v 1.7 2010/05/01 08:12:23 dries Exp $
 
 /**
  * Drupal hash script - to generate a hash from a plaintext password

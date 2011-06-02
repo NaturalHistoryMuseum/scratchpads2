@@ -1,5 +1,4 @@
 <?php
-// $Id: lock.test,v 1.3 2010/08/05 23:53:38 webchick Exp $
 
 /**
  * Tests for the lock system.

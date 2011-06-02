@@ -1,4 +1,3 @@
-/* $Id: vertical-tabs.css,v 1.8 2010/10/07 15:54:13 webchick Exp $ */
 
 div.vertical-tabs {
   margin: 1em 0 1em 15em; /* LTR */
@@ -22,9 +21,6 @@ div.vertical-tabs {
 }
 .vertical-tabs legend {
   display: none;
-}
-.vertical-tabs fieldset fieldset legend {
-  display: inline-block;
 }
 
 /* Layout of each tab */

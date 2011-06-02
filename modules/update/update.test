@@ -1,8 +1,9 @@
 <?php
-// $Id: update.test,v 1.22 2011/01/03 02:41:33 webchick Exp $
 
 /**
  * @file
+ * Tests for update.module.
+ *
  * This file contains tests for the update module. The overarching methodology
  * of these tests is we need to compare a given state of installed modules and
  * themes (e.g. version, project grouping, timestamps, etc) vs. a current

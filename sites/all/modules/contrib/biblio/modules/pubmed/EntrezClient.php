@@ -399,7 +399,13 @@ class BiblioEntrezClient
     $params['id'] = $id;
 
     $this->query = self::BASE_URL . 'efetch.fcgi?' . http_build_query($params);
-    $result = @simplexml_load_file($this->query);
+    $request_options = array(
+      'method' => 'POST');
+    $result = drupal_http_request($this->query, $request_options);
+    if ($result->code != 200) {
+      throw new Exception('Query ' . $this->query . ' failed.');
+    }
+    $result = @simplexml_load_string($result->data);
 
     if (!$result) {
       throw new Exception('Query ' . $this->query . ' failed.');
@@ -467,9 +473,9 @@ class BiblioEntrezClient
     $params['db'] = $this->getDatabase();
     $params['id'] = implode(',', $uids);
     $this->query = self::BASE_URL . 'epost.fcgi?' . http_build_query($params);
-    $headers = array();
-    $method = 'POST';
-    $result = drupal_http_request($this->query, $headers, $method);
+    $request_options = array(
+      'method' => 'POST');
+    $result = drupal_http_request($this->query, $request_options);
 
     if ($result->code != 200) {
       throw new Exception('Query ' . $this->query . ' failed.');

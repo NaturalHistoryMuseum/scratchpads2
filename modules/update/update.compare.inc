@@ -1,5 +1,4 @@
 <?php
-// $Id: update.compare.inc,v 1.41 2010/10/04 07:26:25 webchick Exp $
 
 /**
  * @file

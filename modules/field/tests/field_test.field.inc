@@ -1,5 +1,4 @@
 <?php
-// $Id: field_test.field.inc,v 1.14 2010/10/20 00:13:33 dries Exp $
 
 /**
  * @file

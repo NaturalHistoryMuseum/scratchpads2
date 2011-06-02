@@ -1,5 +1,4 @@
 <?php
-// $Id: install.php,v 1.238 2010/10/22 02:53:19 webchick Exp $
 
 /**
  * @file

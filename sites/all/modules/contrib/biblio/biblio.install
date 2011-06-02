@@ -1,6 +1,26 @@
 <?php
 function biblio_install() {
-  $result = array();
+
+  $t = get_t();
+
+  // Define the node type.
+  $biblio = array(
+    'type' => 'biblio',
+    'name' => $t('Biblio'),
+    'base' => 'biblio',
+    'description' => $t('Use Biblio for scholarly content, such as journal papers and books.'),
+    'body_label' => $t('Full text')
+  );
+
+  // Complete the node type definition by setting any defaults not explicitly
+  // declared above.
+  // http://api.drupal.org/api/function/node_type_set_defaults/7
+  $content_type = node_type_set_defaults($biblio);
+  node_add_body_field($content_type);
+
+  // Save the content type
+  node_type_save($content_type);
+
   set_time_limit(300);
 
   $result[] = _add_db_field_data();
@@ -12,6 +32,8 @@ function biblio_install() {
   //_enable_biblio_keyword_vocabulary();
 
   $result[] = _set_system_weight();
+
+
 
 //  if (count($result) == count(array_filter($result))) {
 //    drupal_set_message(t('The biblio module has successfully added its tables to the database.'));
@@ -81,6 +103,35 @@ function biblio_uninstall() {
 
 }
 
+function biblio_requirements($phase) {
+  $requirements = array();
+  $message = '';
+ // Ensure translations don't break at install time
+  $t = get_t();
+
+  // Report Drupal version
+  if ($phase == 'runtime') {
+    $dir = drupal_get_path('module', 'biblio');
+    $files = file_scan_directory($dir, '/..*.inc$/',  array('recurse' => FALSE));
+    if (count($files)) {
+      $message = $t('There is a problem with your Biblio installation! There should not be any ".inc" files in the %biblio directory.  You probably forgot to delete the old biblio files when you upgraded the module.  You should remove the following files from that directory...', array('%biblio' => $dir));
+      $message .= "<ul>";
+      foreach ($files as $file) {
+        $message .= "<li>" . $file->filename;
+      }
+      $message .= "</ul>";
+      $requirements['biblio'] = array(
+        'title' => $t('Biblio'),
+        'value' => BIBLIO_VERSION,
+        'severity' => empty($message) ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+        'description' => $message,
+      );
+    }
+
+  }
+  return $requirements;
+}
+
 function _biblio_helper_modules($mode) {
 
   $modules = _biblio_get_helper_modules();
@@ -105,7 +156,7 @@ function _biblio_get_helper_modules() {
     'biblio_ris',
     'biblio_tagged',
     'biblio_xml',
-//    'biblio_citeproc',
+    'biblio_citeproc',
     'biblio_rtf',
   );
 
@@ -278,6 +329,12 @@ function biblio_schema() {
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
+  ),
+      'biblio_sort_title' => array(
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => '64',
+        'description' => 'A normalized version of the title, used for sorting on titles. (only first 64 characters saved)',
   ),
       'biblio_secondary_title' => array(
         'type' => 'varchar',
@@ -816,10 +873,10 @@ function biblio_schema() {
         ),
       'name' => array(
         'type' => 'varchar',
-        'length' => '128',
+        'length' => '255',
         'not null' => TRUE,
         'default' => '',
-        'description' => 'Author last name',
+        'description' => 'Full name',
         ),
       'lastname' => array(
         'type' => 'varchar',
@@ -1220,10 +1277,6 @@ function _biblio_add_vtabs() {
    db_insert('biblio_vtabs')->fields($record)->execute();
   }
 
-//    array() 'NAME INFORMATION', 'PUBLICATION OR ORIGIN', 'RESOURCE DATE INFORMATION',
-//  'EDITION INFORMATION', 'LANGUAGE INFORMATION', 'TYPE OF RESOURCE', 'GEOGRAPHIC INFORMATION', 'SUBJECT INFORMATION',
-//  'GENRE', 'NOTE INFORMATION', 'PHYSICAL DESCRIPTION', ' FREQUENCY INFORMATION', 'RELATED ITEMS', 'AUDIENCE INFORMATION',
-//  'LOCATION INFORMATION', 'RIGHTS INFORMATION', 'IDENTIFIERS', 'RECORD INFORMATION');
 
 }
 
@@ -1370,10 +1423,6 @@ function _add_db_field_data_XML() {
 
 function _add_db_field_data() {
   global $db_type;
-  $schema = biblio_schema();
-  $fieldnames = array_keys($schema['biblio_fields']['fields']);
-  $field_type_fieldnames = array_keys($schema['biblio_field_type']['fields']);
-  $field_type_data_fieldnames = array_keys($schema['biblio_field_type_data']['fields']);
   if ($db_type == 'mysql' or $db_type == 'mysqli') {
     db_query("/*!40000 ALTER TABLE {biblio_field_type_data} DISABLE KEYS */;");
     db_query("/*!40000 ALTER TABLE {biblio_fields} DISABLE KEYS */;");
@@ -1385,7 +1434,7 @@ function _add_db_field_data() {
     while (($row = fgetcsv($handle, 10000, ",")) !== FALSE) {
       $column = 0;
       // add link data for default biblio type (0) and all other defined types (100-130)
-      foreach (array_merge(array(0), range(100, 130)) as $t) {
+      foreach (array_merge(array(0), range(100, 136)) as $t) {
         db_insert('biblio_field_type')->fields(array(
           'tid'          => $t,
           'fid'          => $row[0],
@@ -1439,13 +1488,10 @@ function _add_db_field_data() {
     $result = array('success' => FALSE, 'query' => 'Could not open ' . $csv_file);
   }
 
-
   if ($db_type == 'mysql' or $db_type == 'mysqli') {
     db_query("/*!40000 ALTER TABLE {biblio_field_type_data} ENABLE KEYS */;");
     db_query("/*!40000 ALTER TABLE {biblio_fields} ENABLE KEYS */;");
-
   }
-
   return $result;
 }
 
@@ -1673,16 +1719,16 @@ function biblio_update_6029() {
 }
 
 function biblio_update_6030() {
-  $result = array();
+
   $spec = array(
         'type' => 'int',
         'not null' => TRUE,
         'default'  => 0,
         'unsigned' => TRUE,
-        'description' =>'Determines if the author name is allowed to be reformated by the variaous styles or should be used literally.',
+        'description' => 'Determines if the author name is allowed to be reformated by the variaous styles or should be used literally.',
         );
-  db_add_field($result, 'biblio_contributor_data', 'literal', $spec);
-  return $result;
+  db_add_field('biblio_contributor_data', 'literal', $spec);
+
 }
 
 function biblio_update_6031() {
@@ -1702,14 +1748,30 @@ function biblio_update_6031() {
 
  return $result;
 }
+function biblio_update_6032() {
+  $spec = array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Full name',
+        );
+  db_change_field('biblio_contributor_data', 'name', 'name', $spec);
+}
+function biblio_update_6033() {
+  $spec = array(
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => '64',
+        'description' => 'A normalized version of the title, used for sorting on titles. (only first 64 characters saved)',
+  );
+  db_add_field('biblio', 'biblio_sort_title', $spec);
+}
+
 function biblio_update_7000() {
-  $result = array();
+
   _biblio_helper_modules('install');
 
-  db_drop_primary_key($result, 'biblio_contributor_data');
-  db_add_primary_key($result, 'biblio_contributor_data', array('cid', 'aka'));
-
-  return $result;
 }
 /**
  * Add new column to biblio_contributor_data table
@@ -1726,19 +1788,63 @@ function biblio_update_7001() {
     db_add_field('biblio_contributor_data', 'literal', $spec);
   }
 }
-
+/**
+ *
+ * Adds export_map column to biblio_type_maps table
+ */
 function biblio_update_7002() {
   if (!db_field_exists('biblio_type_maps', 'export_map')) {
     biblio_update_6029();
   }
 }
-
+/**
+ *
+ * Adds some new publication types
+ */
 function biblio_update_7003() {
   $result = db_query('SELECT tid FROM {biblio_types} WHERE tid = :tid', array(':tid' => 136))->fetchField();
   if (!$result) {
     biblio_update_6031();
   }
 }
+function _biblio_update_field_link_data($range, $vtabs = FALSE){
+  $csv_file = drupal_get_path('module', 'biblio') . '/misc/biblio.field.link.data.csv';
+
+  if ($handle = fopen($csv_file, "r")) {
+    $header = fgetcsv($handle, 10000, ","); // the first line has the field names
+    while (($row = fgetcsv($handle, 10000, ",")) !== FALSE) {
+      if ($vtabs) {
+        // add link data for default biblio type (0) and all other defined types (100-130)
+        foreach (array_merge(array(0), range($range[0], $range[1])) as $t) {
+          db_update('biblio_field_type')
+          ->fields(array(
+                'vtab' => $row[12]
+          ))
+          ->condition(db_and()->condition('tid', $t)->condition('fid', $row[0]))
+          ->execute();
+        }
+      }
+      else {
+        foreach (range($range[0], $range[1]) as $t) {
+          db_insert('biblio_field_type')->fields(array(
+          'tid'          => $t,
+          'fid'          => $row[0],
+          'ftdid'        => $row[0],
+          'cust_tdid'    => $row[0],
+          'common'       => $row[3],
+          'autocomplete' => $row[4],
+          'required'     => $row[5],
+          'weight'       => $row[6],
+          'visible'      => $row[7],
+          'vtab'         => $row[12]
+          ))->execute();
+        }
+      }
+    }
+  }
+
+}
+
 /**
  * Add information to manage vtabs on input form.
 */
@@ -1750,23 +1856,90 @@ function biblio_update_7005() {
         'default' => 0,
   );
   db_add_field('biblio_field_type', 'vtab', $spec);
-  $csv_file = drupal_get_path('module', 'biblio') . '/misc/biblio.field.link.data.csv';
-
-  if ($handle = fopen($csv_file, "r")) {
-    $header = fgetcsv($handle, 10000, ","); // the first line has the field names
-    while (($row = fgetcsv($handle, 10000, ",")) !== FALSE) {
-      $column = 0;
-      // add link data for default biblio type (0) and all other defined types (100-130)
-      foreach (array_merge(array(0), range(100, 130)) as $t) {
-        db_update('biblio_field_type')
-        ->fields(array(
-                'vtab' => $row[12]
-        ))
-        ->condition(db_and()->condition('tid', $t)->condition('fid', $row[0]))
-        ->execute();
-      }
-    }
-  }
+  _biblio_update_field_link_data(array(100, 130), TRUE);
   cache_clear_all();
 }
 
+function biblio_update_7006() {
+  $result = db_query('SELECT fid FROM {biblio_field_type} WHERE tid = :tid', array(':tid' => 136))->fetchField();
+  if (!$result) {
+    _biblio_update_field_link_data(array(131, 136));
+    cache_clear_all();
+  }
+}
+/**
+ * Increases the size of the {biblio_contributor_data}.name column to 255 characters
+*/
+function biblio_update_7007() {
+  $spec = array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Full name',
+        );
+  db_change_field('biblio_contributor_data', 'name', 'name', $spec);
+}
+/**
+ * Adds new "biblio_sort_title" column to the biblio table, which is used for title sorting.
+*/
+function biblio_update_7008() {
+  if (!db_field_exists('biblio', 'biblio_sort_title')) {
+    biblio_update_6033();
+  }
+}
+
+/**
+ * Populates the  new "biblio_sort_title" column, which is used for title sorting.
+*/
+function biblio_update_7009(&$sandbox) {
+  $sandbox['#finished'] = 0;
+  module_load_include('inc', 'biblio', '/includes/biblio.util');
+
+  if (!isset($sandbox['max'])) {
+    $sandbox['max'] = db_query('SELECT COUNT(DISTINCT vid) FROM {node} n WHERE n.type = :type', array(':type' => 'biblio'))->fetchField();
+    $sandbox['current_vid'] = 0;
+  }
+
+  $nodes = db_select('node', 'n')
+    ->fields('n', array('vid', 'title'))
+    ->condition('vid', $sandbox['current_vid'], '>')
+    ->condition('type', 'biblio')
+    ->range(0, 20)
+    ->orderBy('vid', 'ASC')
+    ->execute();
+
+  foreach ($nodes as $node) {
+    $node->biblio_sort_title = biblio_normalize_title($node->title);
+    db_update('biblio')
+      ->fields(array('biblio_sort_title' => $node->biblio_sort_title))
+      ->condition('vid', $node->vid)
+      ->execute();
+
+    $sandbox['progress']++;
+    $sandbox['current_vid'] = $node->vid;
+  }
+
+  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+}
+/**
+ * Removes "biblio_inlinemode_in_links" variable
+ */
+function biblio_update_7010() {
+  variable_del('biblio_inlinemode_in_links');
+}
+/**
+ * Add a body field instance
+ */
+function biblio_update_7011() {
+  $content_type = node_type_load('biblio');
+  node_add_body_field($content_type, 'Full text');
+}
+/**
+ * Update biblio_field_type table
+ */
+function biblio_update_7012() {
+
+  // there was a problem with update 7006 and it might no have done anything so lets try again.
+  biblio_update_7006();
+}

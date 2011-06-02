@@ -81,22 +81,22 @@ class BiblioContributorUnitTest extends BiblioContributorWebTestCase {
     $node = $this->createNode();
     $nid = $node->nid;
     $vid1 = $node->vid;
-    $this->assertIdentical($node->biblio_contributors[1][2]['firstname'], 'George', 'Test biblio_insert_contributors($node), firstname');
-    $this->assertIdentical($node->biblio_contributors[1][2]['lastname'], 'Bushzzzzzz', 'Test biblio_insert_contributors($node), lastname' );
-    unset($node->biblio_contributors[1][2]);
+    $this->assertIdentical($node->biblio_contributors[2]['firstname'], 'George', 'Test biblio_insert_contributors($node), firstname');
+    $this->assertIdentical($node->biblio_contributors[2]['lastname'], 'Bushzzzzzz', 'Test biblio_insert_contributors($node), lastname' );
+    unset($node->biblio_contributors[2]);
     $node->revision = TRUE;
     node_save($node);
 
     $node = node_load($nid, NULL, TRUE);
-    $this->assertFalse(isset($node->biblio_contributors[1][2]), 'Test removing an author and updating the node');
+    $this->assertFalse(isset($node->biblio_contributors[2]), 'Test removing an author and updating the node');
 
-    biblio_delete_contributor_revision($node->biblio_contributors[1][1]['cid'], $node->vid);
+    biblio_delete_contributor_revision($node->biblio_contributors[1]['cid'], $node->vid);
     $node = node_load($nid, NULL, TRUE);
-    $this->assertEqual(count($node->biblio_contributors[1]), 1, 'Test biblio_delete_contributor_revision($cid, $vid)');
+    $this->assertEqual(count($node->biblio_contributors), 1, 'Test biblio_delete_contributor_revision($cid, $vid)');
 
     $node = node_load($nid, $vid1, TRUE);
 
-    $this->assertEqual(count($node->biblio_contributors[1]), 3, 'Test load original vid, still three authors');
+    $this->assertEqual(count($node->biblio_contributors), 3, 'Test load original vid, still three authors');
 
     biblio_delete_contributors($node);
     $node = node_load($nid, NULL, TRUE);

@@ -1,5 +1,4 @@
 <?php
-// $Id: drupal-6.filled.database.php,v 1.6 2010/12/30 03:44:39 webchick Exp $
 
 /**
  * @file

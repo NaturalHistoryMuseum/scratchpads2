@@ -36,24 +36,26 @@ function biblio_style_apa_author_options() {
  *
  * @param $node
  *   An object containing the node data to render
- * @param $base
  *   The base URL of the biblio module (defaults to /biblio)
- * @param $inline
- *   A logical value indicating if this is being rendered within the
- *   Drupal framwork (FALSE) or we are just passing back the html (TRUE)
  * @return
  *   The styled biblio entry
  */
-function biblio_style_apa($node, $base = 'biblio', $inline = FALSE) {
+function biblio_style_apa($node) {
+  module_load_include('inc', 'biblio', '/includes/biblio.contributors');
   $output = '';
+  $authors = '';
   $author_options = biblio_style_apa_author_options();
-  if ($node->biblio_contributors->has_category(1)) {
-    $authors = theme('biblio_format_authors', array('contributors' => $node->biblio_contributors->get_category(1), 'options' => $author_options, 'inline' => $inline));
+  $primary_authors = biblio_get_contributor_category($node->biblio_contributors, 1);
+  $editors = biblio_get_contributor_category($node->biblio_contributors, 2);
+  $corp_authors = biblio_get_contributor_category($node->biblio_contributors, 5);
+
+  if (!empty($primary_authors)) {
+    $authors = theme('biblio_format_authors', array('contributors' => $primary_authors, 'options' => $author_options));
   }
-  if (empty($authors) && $node->biblio_contributors->has_category(5)) {// if no authors substitute corp author if available
-    foreach ($node->biblio_contributors->get_category(5) as $rank => $author) {
+  if (empty($authors) && !empty($corp_authors)) {// if no authors substitute corp author if available
+    foreach ($corp_authors as $rank => $author) {
       $authors .= (empty($authors)) ? '' : ', ';
-      $authors .= (variable_get('biblio_author_links', 1)) ?  theme('biblio_author_link',$author['name'], $author['cid'], variable_get('biblio_base', 'biblio'), $inline) : $author['name'];
+      $authors .= (variable_get('biblio_author_links', 1)) ?  theme('biblio_author_link', array('author' => $author)) : $author['name'];
     }
   }
   if (empty($authors)) $authors = '[' . t('Anonymous') . ']';  // use anonymous if we still have nothing.
@@ -80,7 +82,7 @@ function biblio_style_apa($node, $base = 'biblio', $inline = FALSE) {
       $url = biblio_get_title_url_info($node);
       $output .= l($node->title, $url['link'], $url['options']);
       $output .= ". </span> \n";
-      $output .= $node->biblio_contributors->has_category(2) ? '(' . theme('biblio_format_authors', array('contributors' => $node->biblio_contributors->get_category(2), 'options' => $author_options, 'inline' => $inline)) . ', Ed.).' : "";
+      $output .= !empty($editors) ? '(' . theme('biblio_format_authors', array('contributors' => $editors, 'options' => $author_options)) . ', Ed.).' : "";
       $output .= ($node->biblio_secondary_title) ? '<u>' . check_plain($node->biblio_secondary_title) . '. ' : '<u>';
       $output .= ($node->biblio_volume) ? check_plain($node->biblio_volume) . ($node->biblio_issue ? '</u>(' . check_plain($node->biblio_issue) . '),&nbsp;' : ',</u> ') : '</u> ';
       //  $output .= ($node->biblio_issue) ? '('. check_plain($node->biblio_issue).')' :'';

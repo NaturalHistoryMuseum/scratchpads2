@@ -1,5 +1,9 @@
 <?php
-// $Id: php.test,v 1.27 2010/11/29 06:38:51 webchick Exp $
+
+/**
+ * @file
+ * Tests for php.module.
+ */
 
 /**
  * Base PHP test case class.

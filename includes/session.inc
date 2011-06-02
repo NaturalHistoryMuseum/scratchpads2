@@ -1,5 +1,4 @@
 <?php
-// $Id: session.inc,v 1.92 2010/11/13 17:40:09 webchick Exp $
 
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id: prefetch.inc,v 1.10 2010/04/30 13:47:46 dries Exp $
 
 /**
  * @file

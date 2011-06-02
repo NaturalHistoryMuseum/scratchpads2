@@ -1,5 +1,4 @@
 <?php
-// $Id: maintenance-page.tpl.php,v 1.4 2010/11/30 17:55:13 dries Exp $
 
 /**
  * @file

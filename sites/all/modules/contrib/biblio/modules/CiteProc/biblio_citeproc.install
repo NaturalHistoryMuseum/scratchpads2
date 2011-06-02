@@ -61,23 +61,23 @@ function biblio_citeproc_install_default_styles() {
   $dir = drupal_get_path('module', 'biblio_citeproc') . '/style';
   $files = file_scan_directory($dir, '/..*.csl$/');
 
-  $query = db_insert('biblio_citeproc_styles')->fields(array('id', 'title', 'filename','summary', 'csl', 'sha1'));
+  $query = db_insert('biblio_citeproc_styles')->fields(array('id', 'title', 'filename', 'summary', 'csl', 'sha1'));
 
   foreach ($files as $file) {
     $csl = file_get_contents($file->uri);
     $xml = simplexml_load_string($csl);
 
     $parent = '';
-    foreach($xml->info->link as $link) {
+    foreach ($xml->info->link as $link) {
       $attrs = $link->attributes();
       if (isset($attrs['rel']) && $attrs['rel'] == 'independent-parent') {
         $parent = (string)$attrs['href'];
       }
     }
 
-    $record  = array (
+    $record  = array(
       'filename' => basename($file->filename),
-      'parent'	 => $parent,
+      'parent'   => $parent,
       'title'    => (string)$xml->info->title,
       'summary'  => (string)$xml->info->summary,
       'csl'      => $csl,

@@ -1,4 +1,3 @@
-// $Id: simpletest.js,v 1.11 2009/04/27 20:19:37 webchick Exp $
 (function ($) {
 
 /**

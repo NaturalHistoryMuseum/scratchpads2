@@ -1,4 +1,3 @@
-// $Id: node.js,v 1.8 2010/12/15 03:42:25 webchick Exp $
 
 (function ($) {
 

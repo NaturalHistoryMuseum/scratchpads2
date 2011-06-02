@@ -1,4 +1,3 @@
-// $Id: devel.js,v 1.7 2010/03/29 18:00:10 weitzman Exp $
 (function ($) {
 
 // Explain link in query log

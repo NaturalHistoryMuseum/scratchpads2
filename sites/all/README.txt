@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.4 2009/03/18 09:53:04 dries Exp $
 
 This directory should be used to place downloaded and custom modules
 and themes which are common to all sites. Keeping contributed and
