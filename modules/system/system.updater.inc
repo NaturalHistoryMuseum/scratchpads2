@@ -1,5 +1,4 @@
 <?php
-// $Id: system.updater.inc,v 1.12 2011/01/04 03:06:24 webchick Exp $
 
 /**
  * @file

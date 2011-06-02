@@ -1,5 +1,4 @@
 <?php
-// $Id: filter.admin.inc,v 1.71 2010/12/14 02:40:15 dries Exp $
 
 /**
  * @file

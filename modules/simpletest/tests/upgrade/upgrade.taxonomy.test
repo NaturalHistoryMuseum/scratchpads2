@@ -1,5 +1,4 @@
 <?php
-// $Id: upgrade.taxonomy.test,v 1.6 2010/10/06 21:53:41 webchick Exp $
 
 /**
  * Test taxonomy upgrades.

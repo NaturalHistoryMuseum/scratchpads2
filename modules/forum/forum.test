@@ -1,5 +1,9 @@
 <?php
-// $Id: forum.test,v 1.65 2010/09/28 02:30:31 dries Exp $
+
+/**
+ * @file
+ * Tests for forum.module.
+ */
 
 class ForumTestCase extends DrupalWebTestCase {
   protected $admin_user;

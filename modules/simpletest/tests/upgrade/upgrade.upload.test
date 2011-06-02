@@ -1,5 +1,4 @@
 <?php
-// $Id: upgrade.upload.test,v 1.3 2010/11/21 20:35:10 webchick Exp $
 
 /**
  * Upgrade test for comment.module.

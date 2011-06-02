@@ -1,11 +1,10 @@
-; $Id: update_test_basetheme.info,v 1.2 2010/11/07 00:27:20 dries Exp $
 name = Update test base theme
 description = Test theme which acts as a base theme for other test subthemes.
 core = 7.x
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-01-05
-version = "7.0"
+; Information added by drupal.org packaging script on 2011-05-25
+version = "7.2"
 project = "drupal"
-datestamp = "1294208756"
+datestamp = "1306357016"
 

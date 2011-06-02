@@ -1,5 +1,4 @@
 <?php
-// $Id: options.api.php,v 1.1 2009/12/14 20:18:55 dries Exp $
 
 /**
  * @file

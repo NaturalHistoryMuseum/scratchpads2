@@ -1,4 +1,3 @@
-// $Id: jquery.ba-bbq.js,v 1.3 2010/05/26 11:55:15 dries Exp $
 
 /*
  * jQuery BBQ: Back Button & Query Library - v1.2.1 - 2/17/2010

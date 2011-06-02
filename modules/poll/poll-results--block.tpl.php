@@ -1,5 +1,4 @@
 <?php
-// $Id: poll-results--block.tpl.php,v 1.1 2010/01/13 06:07:27 webchick Exp $
 /**
  * @file
  * Default theme implementation to display the poll results in a block.

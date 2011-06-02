@@ -1,5 +1,9 @@
 <?php
-// $Id: profile.test,v 1.30 2010/08/30 00:22:03 webchick Exp $
+
+/**
+ * @file
+ * Tests for profile.module.
+ */
 
 /**
  * A class for common methods for testing profile fields.

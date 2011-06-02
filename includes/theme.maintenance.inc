@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.maintenance.inc,v 1.71 2010/11/29 04:45:10 webchick Exp $
 
 /**
  * @file

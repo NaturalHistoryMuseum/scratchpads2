@@ -1,5 +1,4 @@
 <?php
-// $Id: block-admin-display-form.tpl.php,v 1.7 2009/10/05 02:43:01 webchick Exp $
 
 /**
  * @file
