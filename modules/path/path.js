@@ -1,4 +1,3 @@
-// $Id: path.js,v 1.5 2010/11/05 19:47:20 dries Exp $
 
 (function ($) {
 

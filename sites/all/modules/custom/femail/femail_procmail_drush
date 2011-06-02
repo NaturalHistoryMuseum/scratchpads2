@@ -4,16 +4,29 @@
 # path, and drushrc.php MUST be set up with the root directory of the Drupal
 # install.
 
-TMPFILE=`mktemp`
-# Why is the following step required?  Silly
+SCRIPTNAME=`basename $0`
+TMPFILE=`mktemp -t ${SCRIPTNAME}.XXXXXXXX` || exit 1
+# Is the following step required?
 chmod 700 $TMPFILE
 # Populate the temp file
 cat <&0 > $TMPFILE
 # Find the domain name
-DOMAIN=`cat $TMPFILE | grep ^Envelope-to | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+DOMAIN=`cat $TMPFILE | grep ^envelope-to -i | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+if [ -z $DOMAIN ]
+then
+  DOMAIN=`cat $TMPFILE | grep ^x-original-to -i  | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+  if [ -z $DOMAIN ]
+  then
+    DOMAIN=`cat $TMPFILE | grep ^to -i  | head -n1 | sed -r "s/.*@//;s/([a-zA-Z0-9\-\.\-]*).*/\1/"`
+  fi
+fi
+
 # Execute Drush
 echo -n $TMPFILE | drush -l http://$DOMAIN femail
 # If you would like to use Femail with two versions of Drupal, comment out the above
 # line, and uncomment the lines below.
 #echo -n $TMPFILE | drush -r /path/to/drupal6 -l http://$DOMAIN femail
 #echo -n $TMPFILE | drush -r /path/to/drupal7 -l http://$DOMAIN femail
+
+# Finally, delete the temporary file
+rm $TMPFILE

@@ -57,6 +57,14 @@ function _femail_get_msg(){
     }
     // Get the To: header, which will be used to work out which forum this 
     // message wants to go into
+    if(isset($part_data['headers']['to'])){
+      $to = mailparse_rfc822_parse_addresses($part_data['headers']['to']);
+      $msg['to'] = $to[0]['address'];
+    }
+    if(isset($part_data['headers']['x-original-to'])){
+      $to = mailparse_rfc822_parse_addresses($part_data['headers']['x-original-to']);
+      $msg['to'] = $to[0]['address'];
+    }
     if(isset($part_data['headers']['envelope-to'])){
       $to = mailparse_rfc822_parse_addresses($part_data['headers']['envelope-to']);
       $msg['to'] = $to[0]['address'];
@@ -278,15 +286,13 @@ function femail_drush_callback(){
   if(isset($msg['files']) && count($msg['files'])){
     $temp_files = $msg['files'];
     unset($msg['files']);
-    if(user_access('upload files') && user_access('upload files to comments')){
-      foreach($temp_files as $tmpfile){
-        $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
-        $msg['femail_files']['und'][] = array(
-          'fid' => $file->fid,
-          'display' => 1,
-          'description' => ''
-        );
-      }
+    foreach($temp_files as $tmpfile){
+      $file = file_save_data(file_get_contents($tmpfile['temp_name']), file_default_scheme() . '://' . $tmpfile['original_name']);
+      $msg['femail_files']['und'][] = array(
+        'fid' => $file->fid,
+        'display' => 1,
+        'description' => ''
+      );
     }
   }
   if(!user_access('post by femail')){

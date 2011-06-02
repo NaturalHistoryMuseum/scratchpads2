@@ -1,5 +1,4 @@
 <?php
-// $Id: overlay.api.php,v 1.2 2010/07/17 02:12:36 dries Exp $
 
 /**
  * @file

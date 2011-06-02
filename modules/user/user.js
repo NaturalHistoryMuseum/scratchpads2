@@ -1,4 +1,3 @@
-// $Id: user.js,v 1.25 2010/11/30 23:55:11 webchick Exp $
 (function ($) {
 
 /**
@@ -17,7 +16,7 @@ Drupal.behaviors.password = {
       innerWrapper.addClass('password-parent');
 
       // Add the password confirmation layer.
-      $('input.password-confirm', outerWrapper).after('<div class="password-confirm">' + translate['confirmTitle'] + ' <span></span></div>').parent().addClass('confirm-parent');
+      $('input.password-confirm', outerWrapper).parent().prepend('<div class="password-confirm">' + translate['confirmTitle'] + ' <span></span></div>').addClass('confirm-parent');
       var confirmInput = $('input.password-confirm', outerWrapper);
       var confirmResult = $('div.password-confirm', outerWrapper);
       var confirmChild = $('span', confirmResult);

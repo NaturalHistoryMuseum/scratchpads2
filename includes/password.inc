@@ -1,5 +1,4 @@
 <?php
-// $Id: password.inc,v 1.9 2010/12/18 00:56:18 dries Exp $
 
 /**
  * @file

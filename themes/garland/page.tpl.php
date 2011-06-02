@@ -1,5 +1,4 @@
 <?php
-// $Id: page.tpl.php,v 1.48 2010/11/20 04:03:51 webchick Exp $
 ?>
   <?php print render($page['header']); ?>
 

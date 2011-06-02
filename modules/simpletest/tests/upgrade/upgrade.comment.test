@@ -1,5 +1,4 @@
 <?php
-// $Id: upgrade.comment.test,v 1.1 2010/09/11 21:52:59 webchick Exp $
 
 /**
  * Upgrade test for comment.module.

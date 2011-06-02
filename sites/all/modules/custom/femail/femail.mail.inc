@@ -5,24 +5,32 @@
  * 
  * Contains the two functions used for sending out mail messages.
  */
-function _femail_get_emails($tid, $account){
-  // We'll let our SQL do the magic
-  // Note, we're not using db_select here -> no idea how you would do the concat
-  // below using it (any suggestions anyone?).
-  $results = db_query("SELECT DISTINCT CONCAT('<', LOWER(mail), '>') as mail FROM {users} u, {femail_user_subscriptions} f WHERE u.uid = f.uid AND (tid = :tid OR tid = 0) AND u.uid != :uid", array(
-    ':tid' => $tid,
-    ':uid' => $account->uid
-  ));
+function _femail_get_emails($tid, $account, $nid){
+  $node = node_load($nid);
+  $query = db_select('users', 'u');
+  $query->join('femail_user_subscriptions', 'f', 'u.uid = f.uid');
+  $query->where('(tid = :tid OR tid = 0)', array(':tid' => $tid));
+  $query->condition('u.uid', $account->uid, '!=');
+  $query->fields('u', array('uid'));
+  $query->distinct(TRUE);
+  $results = $query->execute();
+  $uids = array();
+  foreach($results as $result){
+    $uids[] = $result->uid;
+  }
+  $users = user_load_multiple($uids);
   $emails = array();
-  foreach($results as $row){
-    $emails[] = $row->mail;
+  foreach($users as $account){
+    if(node_access('view', $node, $account)){
+      $emails[] = "<{$account->mail}>";
+    }
   }
   return $emails;
 }
 
 function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $cid = 0, $inreplyto = FALSE){
   global $user;
-  $emails = _femail_get_emails($tid, $user);
+  $emails = _femail_get_emails($tid, $user, $nid);
   $forum_term = taxonomy_term_load($tid);
   if(count($emails)){
     $from_emails = variable_get('femail_emails', array());
@@ -44,9 +52,7 @@ function _femail_send_message($tid, $subject, $body, $nid, $files = array(), $ci
       $additional_text = "Files:\n";
       foreach($files as $file){
         $file = (array)$file;
-        $additional_text .= url('', array(
-          'absolute' => TRUE
-        )) . drupal_urlencode($file['filepath']) . "\n";
+        $additional_text .= file_create_url($file['uri']) . "\n";
       }
       $body = $additional_text . "\n" . $body;
     }

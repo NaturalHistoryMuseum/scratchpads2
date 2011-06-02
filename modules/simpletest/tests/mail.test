@@ -1,5 +1,4 @@
 <?php
-// $Id: mail.test,v 1.5 2010/08/05 23:53:38 webchick Exp $
 
 /**
  * Test the Drupal mailing system.

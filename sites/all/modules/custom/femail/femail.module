@@ -291,8 +291,10 @@ function femail_node_insert($node){
     $forum_tid = $node->taxonomy_forums['und'][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
-      // FIXME - Needs the files stuff fixing (as with comments below).
       $files = array();
+      foreach($node->femail_files['und'] as $file){
+        $files[] = file_load($file['fid']);
+      }
       _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
     }
   }
@@ -326,9 +328,12 @@ function femail_comment_publish($comment){
     ))->condition('nid', $node->nid)->condition('cid', $comment->pid ? $comment->pid : 0)->execute()->fetchField();
     // Include file
     module_load_include('mail.inc', 'femail');
-    // FIXME - Needs the "files" stuff changing.
     $files = array();
-    //drupal_set_message(print_r($comment, 1));
+    if(isset($comment->femail_files['und'])){
+      foreach($comment->femail_files['und'] as $file){
+        $files[] = file_load($file['fid']);
+      }
+    }
     _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
