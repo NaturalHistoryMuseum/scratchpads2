@@ -1,0 +1,122 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the entity_test module.
+ */
+
+/**
+ * Implement hook_install().
+ */
+function entity_test_install() {
+  // Auto-create a field for the full name.
+  $field = array(
+    'field_name' => 'entity_test_fullname',
+    'type' => 'text',
+    'cardinality' => 1,
+    'translatable' => FALSE,
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'entity_type' => 'entity_test',
+    'field_name' => 'entity_test_fullname',
+    'bundle' => 'main',
+    'label' => 'Full name',
+    'description' => 'Specify your first and last name.',
+    'widget' => array(
+      'type' => 'text_textfield',
+      'weight' => 0,
+    ),
+  );
+  field_create_instance($instance);
+}
+
+/**
+ * Implement hook_schema().
+ */
+function entity_test_schema() {
+  $schema['entity_test'] = array(
+    'description' => 'Stores entity_test items.',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique entity_test item ID.',
+      ),
+      'name' => array(
+        'description' => 'The name of the entity_test.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The {users}.uid of the associated user.",
+      ),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'uid' => array('users' => 'uid'),
+      'name' => array('entity_test_types' => 'name'),
+    ),
+    'primary key' => array('pid'),
+  );
+
+  $schema['entity_test_type'] = array(
+    'description' => 'Stores information about all defined entity_test types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique entity_test type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this entity_test type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this entity_test type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this entity_test type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this entity_test type.',
+        'merge' => TRUE,
+      ),
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+  return $schema;
+}
