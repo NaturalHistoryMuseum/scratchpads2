@@ -1,5 +1,4 @@
 <?php
-// $Id: system_test.module,v 1.33 2010/12/01 00:23:36 webchick Exp $
 
 /**
  * Implements hook_menu().

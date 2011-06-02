@@ -199,12 +199,9 @@ class PARSEENTRIES
   // Get a non-empty line from the bib file or from the bibtexString
   function getLine()
   {
-    if ($this->parseFile)
-    {
-      if (!feof($this->fid))
-      {
-        do
-        {
+    if ($this->parseFile) {
+      if (!feof($this->fid)) {
+        do  {
           $line = trim(fgets($this->fid));
         }
         while(!feof($this->fid) && !$line);
@@ -212,18 +209,16 @@ class PARSEENTRIES
       }
       return FALSE;
     }
-    else
-    {
-      do
-      {
-        $line = trim($this->bibtexString[$this->currentLine]);
+    else {
+      do {
+        $line = array_shift($this->bibtexString);
+        $line = trim($line);
         $this->currentLine++;
       }
-      while($this->currentLine < count($this->bibtexString) && !$line);
+      while($this->bibtexString && !$line);
       return $line;
     }
-  }
-  // Extract value part of @string field enclosed by double-quotes or braces.
+  }  // Extract value part of @string field enclosed by double-quotes or braces.
   // The string may be expanded with previously-defined strings
   function extractStringValue($string)
   {

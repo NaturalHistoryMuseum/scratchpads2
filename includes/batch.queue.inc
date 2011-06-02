@@ -1,5 +1,4 @@
 <?php
-// $Id: batch.queue.inc,v 1.2 2010/12/01 00:21:02 webchick Exp $
 
 
 /**

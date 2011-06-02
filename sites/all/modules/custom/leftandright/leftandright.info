@@ -1,0 +1,5 @@
+name = Left and right
+description = Contains the backend functions that "Taxonomy (Left and right replacement)" uses.
+core = 7.x
+dependencies[] = taxonomy
+files[] = leftandright.module

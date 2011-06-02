@@ -1,5 +1,4 @@
 <?php
-// $Id: entity_crud_hook_test.module,v 1.2 2010/12/15 03:39:42 webchick Exp $
 
 //
 // Presave hooks

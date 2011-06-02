@@ -1,5 +1,4 @@
 <?php
-// $Id: file.devel_generate.inc,v 1.3 2010/02/08 15:48:15 weitzman Exp $
 
 function file_devel_generate($object, $field, $instance, $bundle) {
   if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {

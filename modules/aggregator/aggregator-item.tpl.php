@@ -1,5 +1,4 @@
 <?php
-// $Id: aggregator-item.tpl.php,v 1.2 2008/05/15 21:27:32 dries Exp $
 
 /**
  * @file

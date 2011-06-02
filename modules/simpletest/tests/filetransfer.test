@@ -1,5 +1,4 @@
 <?php
-// $Id: filetransfer.test,v 1.9 2010/09/01 20:08:17 dries Exp $
 
 
 class FileTranferTest extends DrupalWebTestCase {

@@ -1,5 +1,4 @@
 <?php
-// $Id: actions.test,v 1.18 2010/08/05 23:53:38 webchick Exp $
 
 class ActionsConfigurationTestCase extends DrupalWebTestCase {
   public static function getInfo() {

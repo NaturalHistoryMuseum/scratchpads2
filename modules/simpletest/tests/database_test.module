@@ -1,5 +1,4 @@
 <?php
-// $Id: database_test.module,v 1.15 2010/10/15 04:34:15 webchick Exp $
 
 /**
  * Implements hook_query_alter().

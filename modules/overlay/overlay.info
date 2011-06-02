@@ -1,12 +1,11 @@
-; $Id: overlay.info,v 1.3 2010/12/20 19:59:42 webchick Exp $
 name = Overlay
 description = Displays the Drupal administration interface in an overlay.
 package = Core
 version = VERSION
 core = 7.x
 
-; Information added by drupal.org packaging script on 2011-01-05
-version = "7.0"
+; Information added by drupal.org packaging script on 2011-05-25
+version = "7.2"
 project = "drupal"
-datestamp = "1294208756"
+datestamp = "1306357016"
 

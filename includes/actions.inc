@@ -1,5 +1,4 @@
 <?php
-// $Id: actions.inc,v 1.41 2010/12/11 02:09:00 dries Exp $
 
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id: image.devel_generate.inc,v 1.7 2010/11/29 03:59:09 weitzman Exp $
 
 define('DEVEL_GENERATE_IMAGE_MAX', 5);
 

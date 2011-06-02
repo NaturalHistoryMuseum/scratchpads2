@@ -20,9 +20,8 @@ function biblio_citeproc_theme() {
         'file' => 'biblio_citeproc.module',
         'arguments' => array(
           'node',
-          'base' => 'biblio',
-          'style_name' => 'classic',
-          'inline' => FALSE),
+          'style_name',
+          ),
     ),
     'biblio_citeproc_style_manager_form' => array(
         'render element' => 'form',
@@ -39,8 +38,6 @@ function theme_biblio_citeproc_style($variables) {
   global $language;
   $cached = NULL;
   $node = $variables['node'];
-  $base = $variables['base'];
-  $style_name = $variables['style_name'];
 
   module_load_include('inc', 'biblio_citeproc', 'CSL');
 
@@ -66,9 +63,6 @@ function theme_biblio_citeproc_style($variables) {
   }
   $styled_node = $citeproc->render($node);
 
-  if (empty ($node->biblio_coins)) {
-    biblio_coins_generate($node);
-  }
   return ($styled_node . filter_xss($node->biblio_coins, array('span')));
 }
 

@@ -215,9 +215,7 @@ function femail_user_add($form, $form_state){
  * the email to the user so that they can validate their email.
  */
 function femail_user_add_submit($form, $form_state){
-  $account = user_load(array(
-    'uid' => $form_state['values']['femail_uid']
-  ));
+  $account = user_load($form_state['values']['femail_uid']);
   drupal_mail('femail', 'verify', $form_state['values']['femail_email'], user_preferred_language($account));
   db_insert('femail_user_emails')->fields(array(
     'uid' => $form_state['values']['femail_uid'],

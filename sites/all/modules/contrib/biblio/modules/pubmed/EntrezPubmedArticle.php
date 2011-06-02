@@ -100,6 +100,9 @@ class BiblioEntrezPubmedArticle
       );
 
       $doi = $this->article->xpath('//ELocationID[@EIdType="doi"]/text()');
+      if (empty($doi)) {
+        $doi = $this->article->xpath('//ArticleId[@IdType="doi"]/text()');
+      }
       if (!empty($doi)) {
         $this->biblio['biblio_doi'] = (string)$doi[0];
       }

@@ -1,5 +1,4 @@
 <?php
-// $Id: comment.pages.inc,v 1.41 2011/01/02 23:54:05 webchick Exp $
 
 /**
  * @file
