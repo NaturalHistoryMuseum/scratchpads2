@@ -727,9 +727,12 @@ function entity_metadata_view_single($entities, $view_mode = 'full', $langcode =
  * entities main db table.
  */
 function entity_metadata_table_query($entity_type, $property, $value, $limit) {
+  $properties = entity_get_all_property_info($entity_type);
+  $info = $properties[$property] + array('schema field' => $property);
+
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', $entity_type, '=')
-        ->propertyCondition($property, $value, '=')
+        ->propertyCondition($info['schema field'], $value, '=')
         ->range(0, $limit);
 
   $result = $query->execute();

@@ -93,8 +93,14 @@ function entity_get_all_property_info($entity_type = NULL) {
  */
 function entity_property_query($entity_type, $property, $value, $limit = 30) {
   $properties = entity_get_all_property_info($entity_type);
-  if (isset($properties[$property]['query callback'])) {
-    return $properties[$property]['query callback']($entity_type, $property, $value, $limit);
+  $info = $properties[$property] + array('type' => 'text', 'query callback' => isset($properties[$property]['schema field']) ? 'entity_metadata_table_query' : FALSE);
+
+  // Make sure an entity or a list of entities are passed on as identifiers.
+  $wrapper = entity_metadata_wrapper($info['type'], $value);
+  $value = $wrapper->value(array('identifier' => TRUE));
+
+  if (!empty($info['query callback'])) {
+    return $info['query callback']($entity_type, $property, $value, $limit);
   }
 }
 

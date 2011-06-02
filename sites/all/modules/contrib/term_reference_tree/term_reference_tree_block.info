@@ -1,0 +1,5 @@
+name = Taxonomy Block
+description = An expanding/collapsing tree block
+core = 7.x
+package = Other
+dependencies[] = term_reference_tree

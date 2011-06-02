@@ -1,5 +1,9 @@
 <?php
-// $Id: dblog.test,v 1.40 2010/12/04 01:52:15 webchick Exp $
+
+/**
+ * @file
+ * Tests for dblog.module.
+ */
 
 class DBLogTestCase extends DrupalWebTestCase {
   protected $big_user;

@@ -142,7 +142,7 @@ function entity_delete($entity_type, $id) {
  *   FALSE if the given entity type isn't compatible to the CRUD API.
  */
 function entity_delete_multiple($entity_type, $ids) {
-  $info = entity_get_info($entity_type);
+  $info = entity_get_info($entity_type);  
   if (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
     entity_get_controller($entity_type)->delete($ids);
   }

@@ -1,32 +1,12 @@
 <?php
 /**
  *
- *   Copyright (C) 2006-2008  Ron Jerome
+ *   Copyright (C) 2006-2011  Ron Jerome
  *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License along
- *   with this program; if not, write to the Free Software Foundation, Inc.,
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- ****************************************************************************/
+ */
 module_load_include('inc', 'biblio', 'biblio.pages');
 
-/**
- * @param $element
- * @return unknown_type
- */
-function theme_biblio_coin_button($element) {
-  return '<a href="/biblio/regen_coins"><input type="button"  name="' . $element['#name'] . '" value="' . $element['#value'] . '"  /></a>';
-}
 
 /**
  * @param $openURL
@@ -48,7 +28,7 @@ function theme_biblio_openurl($variables) {
  * @param $node
  * @return unknown_type
  */
-function biblio_openURL($node) {
+function biblio_openurl($node) {
   global $user;
   $open_url = '';
   // Copyright:          Matthias Steffens <mailto:refbase@extracts.de> and the file's
@@ -92,16 +72,17 @@ function biblio_openURL($node) {
  * @param $style
  * @return unknown_type
  */
-function theme_biblio_long($node, $base = 'biblio', $style = 'classic') {
+function theme_biblio_long($variables) {
+  $output = '';
+  $node = $variables['node'];
   if (module_exists('popups')) {
      popups_add_popups();
   }
-  if (empty ($node->biblio_coins))
-    biblio_coins_generate($node);
+
   $output .= filter_xss($node->biblio_coins, array('span'));
   $layout = variable_get('biblio_node_layout', 'orig');
   if (variable_get('biblio_node_layout', 'orig') == 'ft' && strlen(trim($node->body)) && user_access('view full text')) {
-    $output .= '<div class="biblio-head">' . theme('biblio_style', $node, $base, $style) . '</div>';
+    $output .= '<div class="biblio-head">' . theme('biblio_style', $variables) . '</div>';
     $annotation_field = variable_get('biblio_annotations', 'none');
     if ($annotation_field != 'none' && $node-> $annotation_field) {
       $output .= '<div class="biblio-annotation">';
@@ -122,7 +103,7 @@ function theme_biblio_long($node, $base = 'biblio', $style = 'classic') {
   $authors = implode('; ', (array)$authors);
   $openurl_base = variable_get('biblio_baseopenurl', '');
   if ($openurl_base)
-    $output .= theme('biblio_openurl', array('openURL' => biblio_openurl($node, $openurl_base)));
+    $output .= theme('biblio_openurl', array('openURL' => biblio_openurl($node)));
   $output .= '<div class="biblio_type"><h3>' . t("Publication Type") . ":</h3> $node->biblio_type_name</div>\n";
   $output .= '<div class="biblio_authors"><h3>' . t("Authors") . ':</h3> ' . $authors . "</div>\n";
   $output .= '<div class="biblio_source"><h3>' . t("Source") . ': </h3> ';
@@ -171,7 +152,7 @@ function theme_biblio_long($node, $base = 'biblio', $style = 'classic') {
     $output .= '<h3>' . t("URL") . ':</h3>' . l($node->biblio_url, $node->biblio_url, $attrib) . "\n";
   }
   if (!empty($node->biblio_keywords)) {
-    $output .= '<h3>' . t("Keywords") . ':</h3> ' . _biblio_keyword_links( $node->biblio_keywords, $base) . "\n";
+    $output .= '<h3>' . t("Keywords") . ':</h3> ' . _biblio_keyword_links( $node->biblio_keywords) . "\n";
   }
   if ($node->biblio_abst_e)
     $output .= '<h3>' . t("Abstract") . ':</h3> ' . check_markup($node->biblio_abst_e) . "\n";
@@ -179,12 +160,32 @@ function theme_biblio_long($node, $base = 'biblio', $style = 'classic') {
     $output .= '<p>' . check_markup($node->biblio_abst_f) . "\n";
   if ($node->biblio_notes)
     $output .= '<h3>' . t("Notes") . ': </h3>' . check_markup($node->biblio_notes) . "\n";
-  if ( strlen(trim($node->body)) && user_access('view full text') ) {
-       $output .= '<h3>' . t('Full Text') . ':</h3>' . check_markup($node->body);
+  if (!empty($node->body) && user_access('view full text') ) {
+       $output .= drupal_render(field_view_field('node', $node, 'body'));
   }
 
   return $output;
 }
+
+function _biblio_get_field_information($biblio_type, $only_visible = FALSE) {
+  $fields = array();
+  $visible = $only_visible ? ' AND (bt.common = 1 OR bt.visible=1) ' : '';
+
+  $result = db_query("SELECT b.*, btd.*, btt.name AS type_name
+                      FROM {biblio_fields} AS b
+                      INNER JOIN {biblio_field_type} AS bt ON bt.fid = b.fid
+                      INNER JOIN {biblio_field_type_data} AS btd ON btd.ftdid = bt.ftdid
+                      INNER JOIN {biblio_types} as btt ON btt.tid = bt.tid
+                      WHERE bt.tid = :tid $visible
+                      ORDER BY bt.weight ASC", array(':tid' => $biblio_type), array('fetch' => PDO::FETCH_ASSOC));
+
+  foreach ($result as $row) {
+    $fields[$row['fid']] = $row;
+  }
+
+  return $fields;
+}
+
 /**
  * @param $node
  * @param $base
@@ -192,6 +193,7 @@ function theme_biblio_long($node, $base = 'biblio', $style = 'classic') {
  * @return unknown_type
  */
 function theme_biblio_tabular($variables) {
+  module_load_include('inc', 'biblio', '/includes/biblio.contributors');
   $node = $variables['node'];
   $base = $variables['base'];
   static $citeproc;
@@ -205,6 +207,13 @@ function theme_biblio_tabular($variables) {
     array('data' => t('Title'), 'class' => array('biblio-row-title')),
     array('data' => filter_xss($node->title, biblio_get_allowed_tags()))
   );
+
+  if (!isset($node->biblio_type_name) && isset($node->biblio_type)) { // needed for preview
+    if (($pub_type = db_query('SELECT t.tid, t.name FROM {biblio_types} as t WHERE t.tid=:tid', array(':tid' => $node->biblio_type))->fetchObject())) {
+      $node->biblio_type_name = drupal_ucfirst(_biblio_localize_type($pub_type->tid, $pub_type->name));
+    }
+  }
+
   $rows[] = array(
     array('data' => t('Publication Type'), 'class' => array('biblio-row-title')),
     array('data' => $node->biblio_type_name)
@@ -226,8 +235,8 @@ function theme_biblio_tabular($variables) {
 
   foreach ($fields as $key => $row) {
     // handling the contributor categories like any other field orders them correctly by weight
-    if ($row['type'] == 'contrib_widget' && $node->biblio_contributors->has_category($row['fid']) ) {
-      $data = biblio_format_authors($node->biblio_contributors->get_category($row['fid']));
+    if ($row['type'] == 'contrib_widget' && ($authors = biblio_get_contributor_category($node->biblio_contributors, $row['fid']))) {
+      $data = biblio_format_authors($authors);
     }
     elseif (empty ($node->$row['name']) || $row['name'] == 'biblio_coins') {
       continue;
@@ -263,14 +272,13 @@ function theme_biblio_tabular($variables) {
       )
     );
   }
-//FIXME figure out where the node body stuff is now...
-//  if (strlen(trim($node->body)) && user_access('view full text')) {
-//    $rows[] = array(
-//        array('data' => t('Full Text'),  'valign' => 'top'),
-//        array('data' =>  check_markup($node->body, $node->format, FALSE))
-//    );
-//
-//  }
+  if (isset($node->body) && !empty($node->body) && user_access('view full text')) {
+    $rows[] = array(
+        array('data' => t('Full Text'),  'valign' => 'top'),
+        array('data' =>  drupal_render(field_view_field('node', $node, 'body', array('label' => 'hidden')))),
+    );
+
+  }
   $output = '<div id="biblio-node">';
   $output .= filter_xss($node->biblio_coins, array('span'));
   $header = array();
@@ -280,29 +288,6 @@ function theme_biblio_tabular($variables) {
   return $output;
 }
 
-function theme_biblio_authors($contributors, $style = 'classic', $cat = 1, $inline = FALSE, $glue = ', ') {
-  if (empty($contributors)) return; // t('No author information available');
-  $author_style_function = '_' . $style . '_format_author';
-  $author_links = variable_get('biblio_author_links', 1);
-  $base  = variable_get('biblio_base', 'biblio');
-  foreach ($contributors as $key => $author) {
-    if (!empty($author['name']) && !isset($author['lastname'])) {
-      $author = biblio_parse_author($author, $cat); // this is needed for form preview to fill in all fields
-    }
-    if (strlen($author['name'])) {
-      $format = $author_style_function($author);
-      if ($author_links) $format = theme('biblio_author_link', array('author' => $format, 'authorID' => $author['cid'], 'base' => $base, 'inline' => $inline));
-      // add the auth_type as css id to allow later formatting
-      $author_array[] = '<span id="' . $author['auth_type'] . '">' . $format . '</span>';
-    }
-  }
-  if (empty($author_array)) return '';
-
-  $output  = '<span class="biblio_authors">';
-  $output .= implode($glue, $author_array);
-  $output .= '</span>';
-  return $output;
-}
 function _biblio_get_latin1_regex() {
   $alnum = "[:alnum:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆäåáàâãçéèêëñöøóòôõüúùûíìîïæÿß";
 
@@ -436,7 +421,6 @@ function biblio_format_authors($authors) {
 function theme_biblio_format_authors($variables) {
   $contributors = $variables['contributors'];
   $options      = $variables['options'];
-  $inline       = $variables['inline'];
 
   if (empty($contributors)) return;
   list($alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower,
@@ -455,7 +439,7 @@ function theme_biblio_format_authors($variables) {
   foreach ($contributors as $rank => $author) {
     if (empty($author['name'])) continue;
     if (!isset($author['lastname'])) {
-      module_load_include('inc', 'biblio', 'biblio.contributors');
+      module_load_include('inc', 'biblio', '/includes/biblio.contributors');
       $author = biblio_parse_author($author, $author['auth_type']); // this is needed for form preview to fill in all fields
     }
 
@@ -571,16 +555,12 @@ function theme_biblio_author_link($variables) {
   $author = $variables['author'];
 //  $aid    = $variables['authorID'];
 //  $base   = $variables['base'];
-//  $inline = $variables['inline'];
 
   $uri = drupal_parse_url(request_uri());
   $uri['path'] = variable_get('biblio_base', 'biblio');
 
   $uri['query']['f']['author'] = $author['cid'];
 
-//  if ($inline) {
-//    $options['query']['inline'] = 'TRUE';
-//  }
 
   return l(trim($author['name']), $uri['path'], $uri );
 
@@ -675,25 +655,21 @@ function theme_biblio_page_number($variables) {
  * Applies a "style" function to a single node.
  *
  * @param $node A node
- * @param $base The base url for biblio (defaults to /biblio)
  * @param $style_name The name of the style to apply
- * @param $inline "inline" mode returns the raw HTML rather than letting drupal render the whole page.
  * @return A string containing the styled (HTML) node
  */
 function theme_biblio_style($variables ) {
   $node       = $variables['node'];
-  $base       = $variables['base'];
   $style_name = $variables['style_name'];
-  $inline     = $variables['inline'];
-
+  $styled_node = '';
   module_load_include('inc', 'biblio', "/styles/biblio_style_$style_name");
 
   $style_function = "biblio_style_$style_name";
-
-  $styled_node = $style_function ($node, $base, $inline);
-
-  if (empty ($node->biblio_coins)) {
-    biblio_coins_generate($node);
+  if (function_exists($style_function)) {
+    $styled_node = $style_function ($node);
+  }
+  else {
+    drupal_set_message(t('The style function: @funct does not exist', array('@funct' => $style_function)), 'error');
   }
   return ($styled_node . filter_xss($node->biblio_coins, array('span')));
 }
@@ -702,14 +678,11 @@ function theme_biblio_style($variables ) {
  * @param $node
  * @param $base
  * @param $style
- * @param $inline
  * @return unknown_type
  */
 function theme_biblio_entry($variables) {
   $node       = $variables['node'];
-  $base       = $variables['base'];
   $style_name = $variables['style_name'];
-  $inline     = $variables['inline'];
 
   $output  = "\n" . '<div class="biblio-entry">' . "\n" ;
   $output  .= '<div class="biblio-style-' . $style_name . '">' . "\n" ;
@@ -718,7 +691,7 @@ function theme_biblio_entry($variables) {
   }
 
   // first add the styled entry...
-  $output .= theme('biblio_style', array('node' => $node, 'base' => $base, 'style_name' => $style_name, 'inline' => $inline));
+  $output .= theme('biblio_style', array('node' => $node, 'style_name' => $style_name));
 
   // now add the various links
 //  if ($node->biblio_abst_e) {
@@ -738,7 +711,7 @@ function theme_biblio_entry($variables) {
     $output .= theme('biblio_openurl', array('openURL' => biblio_openurl($node)));
   }
 
-  if (biblio_access('export', $node)) {
+  if (biblio_access('export')) {
     $base = variable_get('biblio_base', 'biblio');
     $output .= theme('biblio_export_links', array('node' => $node));
   }
@@ -859,34 +832,24 @@ function theme_biblio_admin_types_edit_form($variables) {
 function theme_biblio_download_links($variables) {
   $node = $variables['node'];
   $files = '';
-  if (!empty ($node->files) && count($node->files) > 0 && user_access('view uploaded files')) {
+  if (!empty ($node->upload) && count($node->upload['und']) > 0 && user_access('view uploaded files')) {
     $files .= '<span class="biblio_file_links">';
     $files .= '&nbsp;' . t('Download') . ':&nbsp;';
     $file_count = 0;
-    foreach ($node->files as $file) {
-      if ($file->list) {
+    foreach ($node->upload['und'] as $file) {
+      $file = (object) $file;
+      if ($file->display) {
         $file_count++;
-        $href = file_create_url($file->uri);
+        $alias = FALSE;
+        if (module_exists('filefield_paths')) {
+          $alias =  drupal_get_path_alias('filefield_paths/alias/' . $file->fid);
+        }
+        $href = ($alias) ?  $alias : file_create_url($file->uri);
         $text = $file->description ? $file->description : $file->filename;
         $files .= l($text, $href) . '&nbsp;(' . format_size($file->filesize) . ')';
       }
     }
     $files .= '</span>';
-  }
-  if (module_exists('filefield')) { // now lets get any CCK FileField files...
-    $fields = filefield_get_field_list('biblio');
-    foreach ($fields as $field_name => $field) {
-      if (filefield_view_access($field_name)) {
-        $field_files = filefield_get_node_files($node, $field_name);
-        if ($field_files) {
-          foreach ($field_files as $file) {
-            if ($file['fid']) {
-              $files .= theme('filefield_file', $file);
-            }
-          }
-        }
-      }
-    }
   }
 
   return $files;
@@ -903,11 +866,11 @@ function theme_biblio_export_links($variables) {
   $links = array();
   $output = '';
 
-  if (biblio_access('export', $node)) {
+  if (biblio_access('export')) {
     $show_link = variable_get('biblio_lookup_links', array('google' => TRUE));
     $lookup_links = module_invoke_all('biblio_lookup_link', $node);
     if ($show_link['google'] && !empty($node)) {
-      $lookup_links['biblio_google_scholar'] = theme_google_scholar_link($node);
+      $lookup_links['biblio_google_scholar'] = theme('google_scholar_link', array('node' => $node));
     }
     $nid = (isset($node->nid)) ? $node->nid : NULL;
     $export_links = module_invoke_all('biblio_export_link', $nid);
@@ -921,13 +884,14 @@ function theme_biblio_export_links($variables) {
 }
 
 
-function theme_google_scholar_link($node) {
+function theme_google_scholar_link($variables) {
+  $node = $variables['node'];
   $query = array();
 
   $query['btnG'] = 'Search+Scholar';
   $query['as_q'] = '"' . str_replace(array(' ', '(', ')'), array('+'), $node->title) . '"'; // as_q = all the words
-  if (isset($node->biblio_contributors->data[0]['lastname'])) {
-    $query['as_sauthors'] = $node->biblio_contributors->data[0]['lastname'];
+  if (isset($node->biblio_contributors[0]['lastname'])) {
+    $query['as_sauthors'] = $node->biblio_contributors[0]['lastname'];
   }
   $query['as_occt'] = 'any';
   $query['as_epq'] = ''; // exact phrase
@@ -940,8 +904,8 @@ function theme_google_scholar_link($node) {
   $query['as_sdtp'] = 1; //include patents
 
   $attrs = array('title' => t("Click to search Google Scholar for this entry"));
-  if (variable_get('biblio_links_target_new_window', null)){
-    $attrs = array_merge($attrs, array('target'=>'_blank'));
+  if (variable_get('biblio_links_target_new_window', NULL)){
+    $attrs = array_merge($attrs, array('target '=> '_blank'));
   }
 
   return array(
@@ -1002,8 +966,12 @@ function theme_biblio_alpha_line($variables) {
   $base = variable_get('biblio_base', 'biblio');
   $all = '';
   $uri = drupal_parse_url(request_uri());
-  if (substr($uri['path'], 0, 1) == '/') $uri['path'] = substr($uri['path'], 1);
+  if (substr($uri['path'], 0, 1) == '/') {
+    $uri['path'] = substr($uri['path'], 1);
+  }
   $all_uri = $uri;
+  $current = '';
+
   switch ($type) {
     case 'authors':
       $filter = 'author';

@@ -1,5 +1,4 @@
 <?php
-// $Id: update.fetch.inc,v 1.28 2010/05/06 05:59:31 webchick Exp $
 
 /**
  * @file

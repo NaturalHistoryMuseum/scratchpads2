@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-// $Id: dump-database-d6.sh,v 1.3 2010/07/30 01:28:00 dries Exp $
 
 /**
  * Dump a Drupal 6 database into a Drupal 7 PHP script to test the upgrade
@@ -34,7 +33,6 @@ include_once dirname(__FILE__) . '/../includes/utility.inc';
 // Output the PHP header.
 $output = <<<ENDOFHEADER
 <?php
-// \$Id\$
 
 /**
  * @file

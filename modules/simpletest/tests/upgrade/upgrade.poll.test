@@ -1,5 +1,4 @@
 <?php
-// $Id: upgrade.poll.test,v 1.4 2010/09/13 05:50:09 webchick Exp $
 
 /**
  * Upgrade test for poll.module.

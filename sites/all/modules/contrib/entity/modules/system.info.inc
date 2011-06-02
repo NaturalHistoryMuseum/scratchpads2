@@ -88,23 +88,27 @@ function entity_metadata_system_entity_property_info() {
     'description' => t("The unique ID of the uploaded file."),
     'type' => 'integer',
     'validation callback' => 'entity_metadata_validate_integer_positive',
+    'schema field' => 'fid',
   );
   $properties['name'] = array(
     'label' => t("File name"),
     'description' => t("The name of the file on disk."),
     'getter callback' => 'entity_metadata_system_get_file_properties',
+    'schema field' => 'filename',
   );
   $properties['mime'] = array(
     'label' => t("MIME type"),
     'description' => t("The MIME type of the file."),
     'getter callback' => 'entity_metadata_system_get_file_properties',
     'sanitize' => 'filter_xss',
+    'schema field' => 'filemime',
   );
   $properties['size'] = array(
     'label' => t("File size"),
     'description' => t("The size of the file, in kilobytes."),
     'getter callback' => 'entity_metadata_system_get_file_properties',
     'type' => 'integer',
+    'schema field' => 'filesize',
   );
   $properties['url'] = array(
     'label' => t("URL"),
@@ -115,12 +119,14 @@ function entity_metadata_system_entity_property_info() {
     'label' => t("Timestamp"),
     'description' => t("The date the file was most recently changed."),
     'type' => 'date',
+    'schema field' => 'timestamp',
   );
   $properties['owner'] = array(
     'label' => t("Owner"),
     'description' => t("The user who originally uploaded the file."),
     'type' => 'user',
     'getter callback' => 'entity_metadata_system_get_file_properties',
+    'schema field' => 'uid',
   );
   return $info;
 }

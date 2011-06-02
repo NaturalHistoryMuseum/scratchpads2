@@ -261,8 +261,12 @@ function entity_metadata_hook_entity_info() {
  *     - 'setter permission': Optionally a permission, that describes whether
  *       a user has permission to set ('edit') this property. This permission
  *       should only be taken into account, if no 'access callback' is given.
+ *     - 'schema field': (optional) In case the property is directly based upon
+ *       a field specified in the entity's hook_schema(), the name of the field.
  *     - 'query callback: Optionally a callback for querying for entities
- *       having the given property value. See entity_metadata_entity_query().
+ *       having the given property value. See entity_property_query().
+ *       In case a 'schema field' has been specified, it is not necessary to
+ *       specify a callback as it will default to 'entity_metadata_table_query'.
  *     - required: Optionally, this may be set to TRUE, if this property is
  *       required for the creation of a new instance of its entity. See
  *       entity_property_values_create_entity().

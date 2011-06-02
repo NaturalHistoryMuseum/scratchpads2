@@ -37,8 +37,8 @@ function entity_views_data() {
  * based upon the schema information of its base table and the provided entity
  * property information.
  * For that it is possible to map a property name to its schema/views field
- * name by adding a 'views field' key with the name of the field as value to the
- * property info.
+ * name by adding a 'schema field' key with the name of the field as value to
+ * the property info.
  */
 class EntityDefaultViewsController {
 
@@ -86,9 +86,11 @@ class EntityDefaultViewsController {
     $data = array();
 
     foreach ($properties['properties'] as $name => $property_info) {
-      $views_field_name = isset($property_info['views field']) ? $property_info['views field'] : $name;
+      // For backward compatibility, also read from 'views field'.
+      $views_field_name = isset($property_info['schema field']) ? $property_info['schema field'] : (isset($property_info['views field']) ? $property_info['views field'] : $name);
+
       if (isset($schema['fields'][$views_field_name])) {
-        if ($views_info = $this->map_from_schema_info($name, $schema['fields'][$views_field_name], $property_info)) {
+        if ($views_info = $this->map_from_schema_info($views_field_name, $schema['fields'][$views_field_name], $property_info)) {
           $data[$name] = $views_info + array(
             'title' => $property_info['label'],
             'help' => $property_info['description'],
@@ -103,9 +105,8 @@ class EntityDefaultViewsController {
    * Comes up with views information based on the given schema and property
    * info.
    */
-  protected function map_from_schema_info($name, $schema_field_info, $property_info) {
+  protected function map_from_schema_info($views_field_name, $schema_field_info, $property_info) {
     $type = isset($property_info['type']) ? $property_info['type'] : 'text';
-    $views_field_name = isset($property_info['views field']) ? $property_info['views field'] : $name;
 
     // Add in relationships to related entities.
     if (($info = entity_get_info($type)) && !empty($info['base table'])) {

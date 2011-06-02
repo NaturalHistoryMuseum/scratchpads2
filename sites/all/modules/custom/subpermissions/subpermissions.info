@@ -1,0 +1,5 @@
+name = Permissions subset
+description = Allows an administrator to specify which permissions a user with less privileged status is allowed to change.
+core = 7.x
+files[] = subpermissions.module
+configure = admin/config/people/subpermissions

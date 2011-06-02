@@ -18,12 +18,14 @@ function entity_metadata_taxonomy_entity_property_info() {
     'label' => t("Term ID"),
     'description' => t("The unique ID of the taxonomy term."),
     'type' => 'integer',
+    'schema field' => 'tid',
   );
   $properties['name'] = array(
     'label' => t("Name"),
     'description' => t("The name of the taxonomy term."),
     'setter callback' => 'entity_property_verbatim_set',
     'required' => TRUE,
+    'schema field' => 'name',
   );
   $properties['description'] = array(
     'label' => t("Description"),
@@ -32,12 +34,14 @@ function entity_metadata_taxonomy_entity_property_info() {
     'raw getter callback' => 'entity_property_verbatim_get',
     'getter callback' => 'entity_metadata_taxonomy_term_get_properties',
     'setter callback' => 'entity_property_verbatim_set',
+    'schema field' => 'description',
   );
   $properties['weight'] = array(
     'label' => t("Weight"),
     'type' => 'integer',
     'description' => t('The weight of the term, which is used for ordering terms during display.'),
     'setter callback' => 'entity_property_verbatim_set',
+    'schema field' => 'weight',
   );
   $properties['node_count'] = array(
     'label' => t("Node count"),
@@ -58,6 +62,7 @@ function entity_metadata_taxonomy_entity_property_info() {
     'setter callback' => 'entity_metadata_taxonomy_term_setter',
     'type' => 'taxonomy_vocabulary',
     'required' => TRUE,
+    'schema field' => 'vid',
   );
   $properties['parent'] = array(
     'label' => t("Parent terms"),
@@ -75,12 +80,14 @@ function entity_metadata_taxonomy_entity_property_info() {
     'label' => t("Vocabulary ID"),
     'description' => t("The unique ID of the taxonomy vocabulary."),
     'type' => 'integer',
+    'schema field' => 'vid',
   );
   $properties['name'] = array(
     'label' => t("Name"),
     'description' => t("The name of the taxonomy vocabulary."),
     'setter callback' => 'entity_property_verbatim_set',
     'required' => TRUE,
+    'schema field' => 'name',
   );
   $properties['machine_name'] = array(
     'label' => t("Machine name"),
@@ -88,12 +95,14 @@ function entity_metadata_taxonomy_entity_property_info() {
     'description' => t("The machine name of the taxonomy vocabulary."),
     'setter callback' => 'entity_property_verbatim_set',
     'required' => TRUE,
+    'schema field' => 'machine_name',
   );
   $properties['description'] = array(
     'label' => t("Description"),
     'description' => t("The optional description of the taxonomy vocabulary."),
     'setter callback' => 'entity_property_verbatim_set',
     'sanitize' => 'filter_xss',
+    'schema field' => 'description',
   );
   $properties['term_count'] = array(
     'label' => t("Term count"),

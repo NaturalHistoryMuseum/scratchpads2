@@ -79,10 +79,24 @@ class Github_HttpClient_Curl extends Github_HttpClient
         return $response['response'];
     }
 
-    protected function doCurlCall(array $curlOptions)
-    {
+    protected function doCurlCall(array $curlOptions){
+      //follow on location problems
+      $safe_mode = ini_get('safe_mode');
+      $open_basedir = ini_get('open_basedir');
         $curl = curl_init();
-
+      if (empty($open_basedir) && empty($safe_mode)) {
+        return $this->doNormalCurlCall($curl, $curlOptions);
+      }
+      else{
+        unset($curlOptions[CURLOPT_FOLLOWLOCATION]);
+        $curlOptions[CURLOPT_HEADER] = TRUE;
+        return $this->doSafeModeCurlCall($curl, $curlOptions);
+      }
+      curl_close($go);
+      return $syn;
+    }
+    protected function doNormalCurlCall($curl, array $curlOptions)
+    {
         curl_setopt_array($curl, $curlOptions);
 
         $response = curl_exec($curl);
@@ -93,5 +107,57 @@ class Github_HttpClient_Curl extends Github_HttpClient
         curl_close($curl);
 
         return compact('response', 'headers', 'errorNumber', 'errorMessage');
+    }
+    //follow on location problems workaround
+    protected function doSafeModeCurlCall($curl, array $curlOptions)
+    {
+      static $curl_loops = 0;
+
+      if ($curl_loops++ > 20)
+      {
+        $curl_loops = 0;
+        return FALSE;
+      }
+      curl_setopt_array($curl, $curlOptions);
+      $response = curl_exec($curl);
+      list($header, $response) = explode("\n\r\n", $response, 2);
+      $response = trim($response);
+      $headers = curl_getinfo($curl);
+      $errorNumber = curl_errno($curl);
+      $errorMessage = curl_error($curl);
+
+
+      $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+      if ($http_code == 301 || $http_code == 302)
+      {
+        $matches = array();
+        preg_match('/Location:(.*?)\n/', $header, $matches);
+        $url = @parse_url(trim(array_pop($matches)));
+        if (!$url)
+        {
+          //couldn't process the url to redirect to
+          $curl_loops = 0;
+          curl_close($curl);
+          return compact('response', 'headers', 'errorNumber', 'errorMessage');
+        }
+        $last_url = parse_url(curl_getinfo($curl, CURLINFO_EFFECTIVE_URL));
+        if (!$url['scheme']) {
+          $url['scheme'] = $last_url['scheme'];
+        }
+        if (!$url['host']) {
+          $url['host'] = $last_url['host'];
+        }
+        if (!$url['path']) {
+          $url['path'] = $last_url['path'];
+        }
+        $new_url = $url['scheme'] . '://' . $url['host'] . $url['path'] . ($url['query']?'?'.$url['query']:'');
+        $curlOptions['CURLOPT_URL'] = $new_url;
+        return $this->doSafeModeCurlCall($curl, $curlOptions);
+      }
+      else {
+        $curl_loops=0;
+        curl_close($curl);
+        return compact('response', 'headers', 'errorNumber', 'errorMessage');
+      }
     }
 }

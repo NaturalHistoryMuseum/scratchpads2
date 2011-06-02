@@ -1,5 +1,4 @@
 <?php
-// $Id: rdf.api.php,v 1.6 2010/10/01 01:44:39 webchick Exp $
 
 /**
  * @file

@@ -649,7 +649,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
    * @see entity_id()
    */
   public function getIdentifier() {
-    return $this->dataAvailable() && $this->value() ? $this->id : NULL;
+    return $this->dataAvailable() ? $this->value(array('identifier' => TRUE)) : NULL;
   }
 
   /**
@@ -664,10 +664,17 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
 
   /**
    * Overridden.
+   *
+   * @param $options
+   *   An array of options. Known keys:
+   *   - identifier: If set to TRUE, the entity identifier is returned.
    */
   public function value(array $options = array()) {
     $this->setEntity(parent::value());
-    if (!$this->data && !empty($this->id)) {
+    if (!empty($options['identifier'])) {
+      return $this->id;
+    }
+    elseif (!$this->data && !empty($this->id)) {
       // Lazy load the entity if necessary.
       $return = entity_load($this->type, array($this->id));
       $this->data = reset($return);
@@ -878,8 +885,8 @@ class EntityListWrapper extends EntityMetadataWrapper implements IteratorAggrega
   /**
    * @param $options
    *   An array of options. Known keys:
-   *   identifier: If set to TRUE for a list of entities, it won't be returned
-   *   as list of fully loaded entity objects, but as a list of entity ids.
+   *   - identifier: If set to TRUE for a list of entities, it won't be returned
+   *     as list of fully loaded entity objects, but as a list of entity ids.
    */
   public function value(array $options = array()) {
     // For lists of entities fetch full entity objects before returning.

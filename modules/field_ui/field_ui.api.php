@@ -1,5 +1,4 @@
 <?php
-// $Id: field_ui.api.php,v 1.10 2010/11/12 03:10:38 dries Exp $
 
 /**
  * @file

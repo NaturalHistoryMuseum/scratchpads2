@@ -1,5 +1,4 @@
 <?php
-// $Id: search-block-form.tpl.php,v 1.6 2011/01/03 00:17:55 webchick Exp $
 
 /**
  * @file
