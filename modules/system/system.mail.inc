@@ -1,5 +1,4 @@
 <?php
-// $Id: system.mail.inc,v 1.2 2010/03/06 12:36:40 dries Exp $
 
 /**
  * @file

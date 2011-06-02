@@ -1,5 +1,4 @@
 <?php
-// $Id: http.php,v 1.1 2010/11/05 19:05:02 dries Exp $
 
 /**
  * @file

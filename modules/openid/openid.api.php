@@ -1,5 +1,4 @@
 <?php
-// $Id: openid.api.php,v 1.5 2010/05/13 17:37:24 dries Exp $
 
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id: archiver.inc,v 1.5 2010/02/01 07:17:59 webchick Exp $
 
 /**
  * @file

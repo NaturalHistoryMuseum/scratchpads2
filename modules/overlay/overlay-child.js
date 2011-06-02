@@ -1,4 +1,3 @@
-// $Id: overlay-child.js,v 1.11 2010/11/06 00:18:24 dries Exp $
 
 (function ($) {
 

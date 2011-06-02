@@ -2,7 +2,7 @@
 /**
  *   biblio.admin.inc
  *
- *   Copyright (C) 2006-2008  Ron Jerome
+ *   Copyright (C) 2006-2011  Ron Jerome
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -385,13 +385,6 @@ function biblio_admin_settings() {
     '#default_value' => variable_get('biblio_links_target_new_window', 0),
     '#description' => t('This causes related URLs to open in a new browser window')
   );
-  $form['links']['biblio_inlinemode_in_links'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Carry "inline" mode through to all links'),
-      '#return_value' => 1,
-      '#default_value' => variable_get('biblio_inlinemode_in_links', 0),
-      '#description' => t('This causes the "inline" mode to be applied to all links such as titles, authors and keywords')
-  );
 
   $form['links']['biblio_link_title_url'] = array(
     '#type' => 'checkbox',
@@ -512,7 +505,7 @@ function biblio_admin_settings() {
     '#group' => 'biblio_settings',
   );
   $form['sort']['biblio_sort'] = array(
-    '#type' => 'radios',
+    '#type' => 'select',
     '#title' => t('Sort by'),
     '#default_value' => variable_get('biblio_sort', 'year'),
     '#options' => array(
@@ -521,8 +514,18 @@ function biblio_admin_settings() {
       'title'   => t('Title'),
       'type'    => t('Type'),
       'year'    => t('Year')
-    )
+    ),
+   '#description' => t('This is the initial default sort.'),
   );
+  $stop_words = 'a,an,is,on,the';
+  $form['sort']['biblio_stop_words'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Words to remove from the beginning of titles prior to sorting'),
+    '#size' => 60,
+    '#default_value' => variable_get('biblio_stop_words', $stop_words),
+    '#description' => t('A comma separated list of (case insensitive) words to strip from the title for sorting purposes.  NOTE: quotation and punctuation are stripped automatically.')
+  );
+
   $form['sort']['biblio_sort_tabs'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Show sort links'),
@@ -1798,7 +1801,7 @@ function biblio_admin_author_edit_form($form, &$form_state, $author_id) {
     '#maxlength' => 256,
     '#description' => t('University, Company or Organization that the author is affiliated with.')
   );
-  $authors = db_query("SELECT * FROM {biblio_contributor_data} cd WHERE cid != :aid ORDER BY lastname", array(':aid' => $author_id), array('fetch' => PDO::FETCH_ASSOC));
+  $authors = db_query("SELECT * FROM {biblio_contributor_data} cd WHERE cid <> :aid ORDER BY lastname", array(':aid' => $author_id), array('fetch' => PDO::FETCH_ASSOC));
   $base = variable_get('biblio_base', 'biblio');
   foreach ($authors as $other_author) {
     if ((stripos($other_author['name'], $author->lastname) !== FALSE) && $author->aka != $other_author['cid']) {
@@ -2095,7 +2098,7 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
     '#maxlength' => 255
   );
 
-  $keywords = db_query("SELECT * FROM {biblio_keyword_data} kd WHERE word LIKE :word AND kid!=:kid", array(':word' => '%%' . drupal_substr($keyword->word, 0, 5) . '%%', ':kid' => $keyword_id));
+  $keywords = db_query("SELECT * FROM {biblio_keyword_data} kd WHERE word LIKE :word AND kid <> :kid", array(':word' => '%%' . drupal_substr($keyword->word, 0, 5) . '%%', ':kid' => $keyword_id));
 
   unset($options);
   $base = variable_get('biblio_base', 'biblio');

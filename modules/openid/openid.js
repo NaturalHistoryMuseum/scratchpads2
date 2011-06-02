@@ -1,4 +1,3 @@
-// $Id: openid.js,v 1.13 2010/03/22 18:55:45 dries Exp $
 (function ($) {
 
 Drupal.behaviors.openid = {

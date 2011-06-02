@@ -58,16 +58,16 @@ class BiblioWebTestCase extends DrupalWebTestCase {
       'type' => 'biblio', // This replaces the default type
       'biblio_type' => $type, // This appends a new field.
       'biblio_year' => 2009,
-      'biblio_contributors' => array(1 => array(0 => array('name' => 'Ron J. Jeromezzzzzz',  'auth_type' => 1),
-                                                1 => array('name' => 'John Smithzzzzzz',  'auth_type' => 1),
-                                                2 => array('name' => 'George W. Bushzzzzzz',  'auth_type' => 1))),
+      'biblio_contributors' => array(0 => array('name' => 'Ron J. Jeromezzzzzz',  'auth_type' => 1, 'auth_category' => 1),
+                                     1 => array('name' => 'John Smithzzzzzz',  'auth_type' => 1, 'auth_category' => 1),
+                                     2 => array('name' => 'George W. Bushzzzzzz',  'auth_type' => 1, 'auth_category' => 1)),
       'biblio_keywords' => array('biblio_keywords')
     );
     $settings = array_merge($biblio_fields, $settings);
 
     $node = $this->drupalCreateNode($settings);
     $node = node_load($node->nid, NULL, TRUE);
-    foreach ($node->biblio_contributors[1] as $author) {
+    foreach ($node->biblio_contributors as $author) {
       $this->cids[] = $author['cid'];
     }
 
@@ -120,9 +120,9 @@ class BiblioNodeCreationTestCase extends DrupalWebTestCase {
     $edit = array(
       'title' => $this->randomString(32),
       'biblio_year' => '2009',
-      'biblio_contributors[1][0][name]' => 'Kevin Brown',
-      'biblio_contributors[1][1][name]' => 'Martin Clark',
-      'biblio_contributors[1][2][name]' => 'George Wei',
+      'biblio_contributors[0][name]' => 'Kevin Brown',
+      'biblio_contributors[1][name]' => 'Martin Clark',
+      'biblio_contributors[2][name]' => 'George Wei',
       'biblio_keywords' => 'architecture, building, wood',
     );
     $this->drupalPost(NULL, $edit, t('Save'));

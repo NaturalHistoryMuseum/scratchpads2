@@ -1,5 +1,4 @@
 <?php
-// $Id: maintenance-page.tpl.php,v 1.10 2010/11/24 03:30:59 webchick Exp $
 
 /**
  * @file

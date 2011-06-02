@@ -1,4 +1,3 @@
-// $Id: color.js,v 1.18 2010/04/22 05:18:21 webchick Exp $
 (function ($) {
 
 Drupal.behaviors.color = {

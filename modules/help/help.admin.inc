@@ -1,5 +1,4 @@
 <?php
-// $Id: help.admin.inc,v 1.13 2010/10/01 15:24:18 webchick Exp $
 
 /**
  * @file

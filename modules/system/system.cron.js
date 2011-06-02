@@ -1,4 +1,3 @@
-// $Id: system.cron.js,v 1.1 2009/12/15 08:45:32 dries Exp $
 (function ($) {
 
 /**

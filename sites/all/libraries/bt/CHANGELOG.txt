@@ -1,0 +1,47 @@
+== 0.9.5 ==
+
+* Removed old janky/broken animation stuff
+* Created new showTip and hideTip override-able functions to handle custom show and hide animations and alterations
+* Added animation example to the demo page
+* Changed overrides from jQuery.bt.defaults to jQuery.bt.options. Use jQuery.bt.options to override defaults for all tips on the current page.
+* Added offsetParent option to offset tips relative to body (or another element) -- allows tips to be "popped out" of clipping divs
+* shrinkToFit option allows tip to shrink for narrower content
+* Wrapped user agent test in try{} to ensure compatibility
+* preShow now fires after build, but before display
+* new preBuild function fires where preShow used to be
+* fixed issue #8029 where additional ajax options weren't working
+* #7310 a function may now be passed as contentSelector 
+* Hulu example!
+
+== 0.9.3 ==
+
+* Fixed bug in 0.9.2 where drop shadows didn't appear in Safari and FF 3.1+
+
+
+== 0.9.2 ==
+
+* Wrapped code in "(function($) {" for noConflict mode compatibility
+* Created jQuery.fn.btPosition() function for compatibility with (deprecated) Dimensions plugin
+* Implemented offsets for drop shadows (still only work in Safari and FF 3.1+)
+* Added noShadowOpts as a fallback for canvas-capable browsers which don't do drop shadows
+
+== 0.9.1 ==
+
+* Added dynamic Ajax paths (and demo)
+
+== 0.9 ==
+* AJAX!!!
+* changed jQuery.fn.bt.defaults to jQuery.bt.defaults
+* Changed "titleSelector" option to "contentSelector" for clarity
+* bgiframe plugin support (to fix z-index problems in IE6)
+* hoverIntent plugin support!
+* Added activeClass (default: "bt-active") on target elements
+* Added DEMO documentation
+* Added click-anywhere-to-close functionality
+* Added close-when-others-open functionality
+* created a changelog file :-)
+* lots of various bugs fixed
+
+
+== 0.7  (10/20/2008) ==
+* initial release

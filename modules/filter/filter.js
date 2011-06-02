@@ -1,4 +1,3 @@
-// $Id: filter.js,v 1.3 2010/09/13 00:59:47 dries Exp $
 (function ($) {
 
 /**

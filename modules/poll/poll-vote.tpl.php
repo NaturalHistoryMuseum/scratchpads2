@@ -1,5 +1,4 @@
 <?php
-// $Id: poll-vote.tpl.php,v 1.4 2009/06/13 19:38:42 dries Exp $
 
 /**
  * @file

@@ -1,4 +1,3 @@
-// $Id: text.js,v 1.5 2010/10/24 04:18:10 webchick Exp $
 
 (function ($) {
 

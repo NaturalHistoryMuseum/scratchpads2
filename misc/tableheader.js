@@ -1,4 +1,3 @@
-// $Id: tableheader.js,v 1.32 2010/07/28 01:38:28 dries Exp $
 (function ($) {
 
 /**

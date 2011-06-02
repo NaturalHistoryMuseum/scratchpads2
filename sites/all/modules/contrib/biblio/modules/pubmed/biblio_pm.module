@@ -82,25 +82,35 @@ function biblio_pm_form_biblio_node_form_submit($form, &$form_state) {
 }
 
 function biblio_pm_biblio_import_options() {
-  return array('biblio_pm' => t('PubMed ID List'));
+  return array(
+  	'biblio_pm'  => t('PubMed ID List'),
+    'biblio_pm_xml' => t('PubMed XML')
+  );
 }
 
 function biblio_pm_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
   $nids = array();
   $dups = array();
-  list($nids, $dups) = _biblio_pm_import($file, $terms, $batch, $session_id);
-
-  return array($nids, $dups);
-}
-
-function _biblio_pm_import($file, $terms, $batch, $session_id) {
-  module_load_include('php', 'biblio_pm', 'EntrezClient');
-  module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
   $pmids = file($file->uri, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
   if (empty($pmids)) {
     drupal_set_message(t("Could not open PubMed ID file"), 'error');
     return;
   }
+  return biblio_pm_import_ids($pmids, $terms, $batch, $session_id);
+}
+
+function biblio_pm_xml_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
+  libxml_use_internal_errors(true);
+  $xml = @simplexml_load_file($file->uri);
+  if(empty($xml) || isset($xml->body->pre->ERROR)) {
+    drupal_set_message("Could not parse file as PubMed XML", 'error');
+    return;
+  }
+  return _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id);
+}
+
+function biblio_pm_import_ids($pmids, $terms, $batch, $session_id) {
+  module_load_include('php', 'biblio_pm', 'EntrezClient');
   $retmax = 100;
   $resmax = count($pmids);
   $start = 0;
@@ -109,44 +119,53 @@ function _biblio_pm_import($file, $terms, $batch, $session_id) {
   $Eclient->setReturnMax($retmax);
   $nids = array();
   $dups = array();
-  $node = new stdClass();
-  $data = new BiblioEntrezPubmedArticle();
   while (($result = $Eclient->fetchRecords($start)) && $start < $resmax ) {
-    foreach ($result->xpath('//PubmedArticle') as $article) {
-      //$data->setArticle($article);
-      $node = $data->setArticle($article)->getBiblioAsObject();
-      if (isset($node)) {
-        if (!empty($terms)) {
-          if (!isset($node->taxonomy)) $node->taxonomy = array();
-          $node->taxonomy = array_merge($terms, $node->taxonomy);
-        }
-        $dup = biblio_pm_check_md5($node->biblio_pubmed_id, $node->biblio_pubmed_md5);
-        $action = variable_get('biblio_pm_dup_action', 'newrev');
-        if ($dup < 0 && $action == 'newrev') { //entry has be imported before, but may have changed
-          $node->nid = -$dup;
-          $node->revision = 1;
-          $curr_date = format_date(time());
-          $node->log = t("Automatically updated on !date due to changes at source", array('!date' => $curr_date));
-          $dup = NULL;
-        }
-        if ($dup < 0 && $action == 'replace') { //entry has be imported before, but may have changed
-          $node->nid = -$dup;
-          $dup = NULL;
-        }
-        if (!$dup) {
-          biblio_save_node($node, $batch, $session_id);
-          if (!empty($node->nid)) $nids[] = $node->nid;
-        }
-        else {
-          $dups[] = $dup;
-        }
-        $node = NULL;
-      }
-      $start++;
-    }
-
+    $start += count($result->xpath('//PubmedArticle'));
+    list($nid, $dup) =  _biblio_pm_create_node_from_xml($result, $terms, $batch, $session_id);
+    $nids = array_merge($nids, $nid);
+    $dups = array_merge($dups, $dup);
   }
 
+  return array($nids, $dups);
+}
+
+function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
+  module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
+  $nids = array();
+  $dups = array();
+  $node = new stdClass();
+  $data = new BiblioEntrezPubmedArticle();
+
+  foreach ($xml->xpath('//PubmedArticle') as $article) {
+    $node = $data->setArticle($article)->getBiblioAsObject();
+    if (isset($node)) {
+      if (!empty($terms)) {
+        if (!isset($node->taxonomy)) $node->taxonomy = array();
+        $node->taxonomy = array_merge($terms, $node->taxonomy);
+      }
+      $dup = biblio_pm_check_md5($node->biblio_pubmed_id, $node->biblio_pubmed_md5);
+      $action = variable_get('biblio_pm_dup_action', 'newrev');
+      if ($dup < 0 && $action == 'newrev') { //entry has be imported before, but may have changed
+        $node->nid = -$dup;
+        $node->revision = 1;
+        $curr_date = format_date(time());
+        $node->log = t("Automatically updated on !date due to changes at source", array('!date' => $curr_date));
+        $dup = NULL;
+      }
+      if ($dup < 0 && $action == 'replace') { //entry has be imported before, but may have changed
+        $node->nid = -$dup;
+        $dup = NULL;
+      }
+      if (!$dup) {
+        biblio_save_node($node, $batch, $session_id);
+        if (!empty($node->nid)) $nids[] = $node->nid;
+      }
+      else {
+        $dups[] = $dup;
+      }
+      $node = NULL;
+    }
+  }
   return array($nids, $dups);
 }
 

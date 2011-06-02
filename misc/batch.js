@@ -1,4 +1,3 @@
-// $Id: batch.js,v 1.10 2009/08/31 05:51:07 dries Exp $
 (function ($) {
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id: aggregator.api.php,v 1.7 2010/01/08 11:03:54 dries Exp $
 
 /**
  * @file

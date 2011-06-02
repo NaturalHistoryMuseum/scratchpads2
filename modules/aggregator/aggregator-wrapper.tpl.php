@@ -1,5 +1,4 @@
 <?php
-// $Id: aggregator-wrapper.tpl.php,v 1.3 2009/07/23 22:14:26 webchick Exp $
 
 /**
  * @file

@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-// $Id: generate-d6-content.sh,v 1.3 2010/09/11 00:39:49 webchick Exp $
 
 /**
  * Generate content for a Drupal 6 database to test the upgrade process.

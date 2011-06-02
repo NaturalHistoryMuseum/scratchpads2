@@ -46,56 +46,66 @@ function femail_install(){
   // Set the install time for use in hashes
   variable_set('femail_install_time', time());
   // Set a message to tell users to go and set the permission.
-  // FIXME - The url fragment doesn't work as expected - this needs to be
-  // altered.
   drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
-    '!url' => url(current_path(), array(
-      'fragment' => 'overlay=admin/people/permissions'
-    ))
+    '!url' => url('admin/people/permissions')
   )));
-  // Create a file field that will can be used by both the comment and forum
-  // entities.
+  // Create a file field that can be used by both the comment and forum entities
   $new_field = field_create_field(array(
     'field_name' => 'femail_files',
     'type' => 'file',
     'cardinality' => FIELD_CARDINALITY_UNLIMITED,
     'locked' => TRUE
   ));
-  // Check to see if the Forum/Comments have files.
-  // Check comments first
-  module_load_include('info.inc', 'field');
-  $field_instance = field_info_instances('comment', 'comment_node_forum');
-  $file_field_found = FALSE;
-  foreach($field_instance as $field){
-    if($field['widget']['module'] == 'file'){
-      $file_field_found = TRUE;
-    }
-  }
-  if(!$file_field_found){
-    // We didn't find a file field, so lets add the $new_field
-    field_create_instance(array(
-      'field_name' => 'femail_files',
-      'entity_type' => 'comment',
-      'bundle' => 'comment_node_forum',
-      'label' => 'Files'
+  // Add the field to the forum entity and forum/comments entity.
+  module_load_include('crud.inc', 'field');
+  field_create_instance(array(
+    'field_name' => 'femail_files',
+    'entity_type' => 'comment',
+    'bundle' => 'comment_node_forum',
+    'label' => 'Files'
+  ));
+  field_create_instance(array(
+    'field_name' => 'femail_files',
+    'entity_type' => 'node',
+    'bundle' => 'forum',
+    'label' => 'Files'
+  ));
+  // Add the filters to the plain text content type.
+  // First check that we still have the "plain_text" input format.  If so, we
+  // add out filters at the of the list.
+  if(db_query("SELECT COUNT(*) FROM {filter_format} WHERE format = 'plain_text'")->fetchCol()){
+    // Get the minimum, and reduce by one and two for our values
+    $max_weight = array_pop(db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol());
+    $query = db_insert('filter')->fields(array(
+      'format',
+      'module',
+      'name',
+      'weight',
+      'status',
+      'settings'
     ));
-  }
-  // Next check the forum content type.
-  $field_instance = field_info_instances('node', 'forum');
-  $file_field_found = FALSE;
-  foreach($field_instance as $field){
-    if($field['widget']['module'] == 'file'){
-      $file_field_found = TRUE;
+    $values = array(
+      array(
+        'format' => 'plain_text',
+        'module' => 'femail',
+        'name' => 'femail_blockquote_reply',
+        'weight' => $max_weight + 1,
+        'status' => 1,
+        'settings' => ''
+      ),
+      array(
+        'format' => 'plain_text',
+        'module' => 'femail',
+        'name' => 'femail_remove_sig',
+        'weight' => $max_weight + 2,
+        'status' => 1,
+        'settings' => ''
+      )
+    );
+    foreach($values as $record){
+      $query->values($record);
     }
-  }
-  if(!$file_field_found){
-    // We didn't find a file field, so lets add the $new_field
-    field_create_instance(array(
-      'field_name' => 'femail_files',
-      'entity_type' => 'node',
-      'bundle' => 'forum',
-      'label' => 'Files'
-    ));
+    $query->execute();
   }
 }
 
@@ -218,11 +228,11 @@ function femail_requirements($phase){
     if(!$return_status){
       // Drush looks to be installed OK.
       $requirements['femail_drush']['severity'] = REQUIREMENT_OK;
-      $requirements['femail_drush']['value'] = $t('Drush looks to be installed correctly.  Output of "drush" is:<br/><span style="font-size:80%">').implode("<br/>", $three_lines).'<br/>...</span>';
-    } else {
+      $requirements['femail_drush']['value'] = $t('Drush looks to be installed correctly.  Output of "drush" is:<br/><span style="font-size:80%">') . implode("<br/>", $three_lines) . '<br/>...</span>';
+    }else{
       // Drush NOT ok.
       $requirements['femail_drush']['severity'] = REQUIREMENT_WARNING;
-      $requirements['femail_drush']['value'] = $t('Drush does not look to be installed correctly, please ensure it is in the path for all users (/usr/local/bin/drush is a good start).');      
+      $requirements['femail_drush']['value'] = $t('Drush does not look to be installed correctly, please ensure it is in the path for all users (/usr/local/bin/drush is a good start).');
     }
   }
   // Check comments first
@@ -336,4 +346,5 @@ function femail_schema(){
 function femail_uninstall(){
   // Delete variables
   variable_del('femail_emails');
+  variable_del('femail_install_time');
 }

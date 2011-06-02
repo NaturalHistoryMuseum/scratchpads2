@@ -1,4 +1,3 @@
-// $Id: autocomplete.js,v 1.39 2010/11/20 07:49:56 webchick Exp $
 (function ($) {
 
 /**
