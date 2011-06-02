@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-// $Id: drupal.sh,v 1.9 2009/09/19 10:38:47 dries Exp $
 
 /**
  * Drupal shell execution script

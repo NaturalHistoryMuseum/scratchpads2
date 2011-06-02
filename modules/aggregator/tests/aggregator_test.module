@@ -1,5 +1,4 @@
 <?php
-// $Id: aggregator_test.module,v 1.8 2010/05/01 08:12:22 dries Exp $
 
 /**
  * Implements hook_menu().

@@ -1,5 +1,4 @@
 <?php
-// $Id: trigger.admin.inc,v 1.30 2010/10/20 16:19:24 webchick Exp $
 
 /**
  * @file

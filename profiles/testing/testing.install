@@ -1,5 +1,4 @@
 <?php
-// $Id: testing.install,v 1.2 2010/08/27 12:36:53 webchick Exp $
 
 /**
  * Implements hook_install().

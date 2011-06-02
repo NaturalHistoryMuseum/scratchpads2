@@ -1,0 +1,29 @@
+<?php
+// Get the last edit time of the original file
+$filename = basename(__FILE__);
+$last_modified = filemtime(DRUPAL_ROOT . '/modules/taxonomy/' . $filename);
+if($last_modified > variable_get('leftandright_' . $filename . '_last_modified', 0)){
+  // Set the last modified time
+  variable_set('leftandright_' . $filename . '_last_modified', $last_modified);
+  // The file has been changed, or we have just installed this module.  Lets
+  // get the content of taxonomy.module, tweak it, and save it to a variable
+  drupal_set_message(t('Reloading original Drupal core taxonomy'));
+  // Contents of the file.
+  $taxonomy_module_string = substr(file_get_contents(DRUPAL_ROOT . '/modules/taxonomy/' . $filename), 5);
+  // Replace the name of the offending functions, appending "_original" onto
+  // them (this allows them to be used if still required).
+  $functions_to_replace = array(
+    'taxonomy_get_tree',
+    'taxonomy_get_children'
+  );
+  foreach($functions_to_replace as $function){
+    $taxonomy_module_string = str_replace('function ' . $function . '(', 'function ' . $function . '_original(', $taxonomy_module_string);
+  }
+  // Save the content of taxonomy.module for easy loading
+  variable_set('leftandright_' . $filename . '_replacement', $taxonomy_module_string);
+}
+// If the following fails, we're fucked.  Not sure what would cause it to fail,
+// but everything is possible.
+eval(variable_get('leftandright_' . $filename . '_replacement', ''));
+// Load include file with the replacement functions in
+module_load_include('module.replace.inc', 'taxonomy');

@@ -1,5 +1,4 @@
 <?php
-// $Id: path.api.php,v 1.2 2010/12/02 00:22:20 webchick Exp $
 
 /**
  * @file

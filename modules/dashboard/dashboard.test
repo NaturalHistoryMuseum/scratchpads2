@@ -1,9 +1,8 @@
 <?php
-// $Id: dashboard.test,v 1.8 2010/11/06 23:24:33 webchick Exp $
 
 /**
  * @file
- * Tests for the dashboard module.
+ * Tests for dashboard.module.
  */
 
 class DashboardBlocksTestCase extends DrupalWebTestCase {

@@ -1,12 +1,11 @@
-; $Id: testing.info,v 1.2 2010/08/27 12:36:53 webchick Exp $
 name = Testing
 description = Minimal profile for running tests. Includes absolutely required modules only.
 version = VERSION
 core = 7.x
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-01-05
-version = "7.0"
+; Information added by drupal.org packaging script on 2011-05-25
+version = "7.2"
 project = "drupal"
-datestamp = "1294208756"
+datestamp = "1306357016"
 

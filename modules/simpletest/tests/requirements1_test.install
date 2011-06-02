@@ -1,5 +1,4 @@
 <?php
-// $Id: requirements1_test.install,v 1.1 2010/05/26 07:31:46 dries Exp $
 
 /**
  * Implements hook_requirements().

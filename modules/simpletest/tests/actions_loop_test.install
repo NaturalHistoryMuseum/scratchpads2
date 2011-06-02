@@ -1,5 +1,4 @@
 <?php
-// $Id: actions_loop_test.install,v 1.2 2009/12/04 16:49:47 dries Exp $
 
 /**
  * Implements hook_install().

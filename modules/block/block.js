@@ -1,4 +1,3 @@
-// $Id: block.js,v 1.16 2010/05/09 13:57:59 dries Exp $
 (function ($) {
 
 /**

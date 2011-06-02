@@ -1,5 +1,4 @@
 <?php
-// $Id: error_test.module,v 1.5 2009/12/04 16:49:47 dries Exp $
 
 /**
  * Implements hook_menu().

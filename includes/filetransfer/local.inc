@@ -1,5 +1,4 @@
 <?php
-// $Id: local.inc,v 1.7 2010/12/01 00:13:47 webchick Exp $
 
 /**
  * The local connection class for copying files as the httpd user.

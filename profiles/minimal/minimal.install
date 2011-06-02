@@ -1,5 +1,4 @@
 <?php
-// $Id: minimal.install,v 1.6 2010/07/08 03:41:27 webchick Exp $
 
 /**
  * Implements hook_install().

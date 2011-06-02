@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_generate.module,v 1.13 2010/12/06 15:28:53 weitzman Exp $
 
 /**
  * Implementation of hook_menu().
@@ -198,7 +197,7 @@ function devel_generate_content_form() {
     '#disabled' => !module_exists('locale'),
     '#description' => t('Requires locale.module'),
     '#options' => $options,
-    '#default_value' => LANGUAGE_NONE,
+    '#default_value' => array(LANGUAGE_NONE => LANGUAGE_NONE),
   );
 
   $form['submit'] = array(

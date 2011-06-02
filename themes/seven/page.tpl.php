@@ -1,5 +1,4 @@
 <?php
-// $Id: page.tpl.php,v 1.15 2010/11/20 04:03:51 webchick Exp $
 ?>
   <div id="branding" class="clearfix">
     <?php print $breadcrumb; ?>

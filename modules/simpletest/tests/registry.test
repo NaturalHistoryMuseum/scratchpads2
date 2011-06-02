@@ -1,5 +1,4 @@
 <?php
-// $Id: registry.test,v 1.21 2010/09/01 20:08:17 dries Exp $
 
 class RegistryParseFileTestCase extends DrupalWebTestCase {
   public static function getInfo() {
