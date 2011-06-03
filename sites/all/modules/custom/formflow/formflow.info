@@ -1,0 +1,3 @@
+name = Form flow
+description = Chain forms together into multisteps forms
+core = 7.x
