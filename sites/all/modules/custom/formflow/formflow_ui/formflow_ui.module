@@ -107,17 +107,21 @@ function formflow_ui_menu(){
  * @param array $flow
  */
 function formflow_ui_title($op, $flow){
-  switch($op){
-    case 'delete':
-      $title = t('Delete @title', array(
-        '@title' => $flow['title']
-      ));
-      break;
-    default:
-      return t('Edit @title', array(
-        '@title' => $flow['title']
-      ));
-      break;
+  if(isset($flow['title'])){
+    switch($op){
+      case 'delete':
+        $title = t('Delete @title', array(
+          '@title' => $flow['title']
+        ));
+        break;
+      default:
+        $title = t('Edit @title', array(
+          '@title' => $flow['title']
+        ));
+        break;
+    }
+  }else{
+    $title = ucfirst($op);
   }
   return $title;
 }
@@ -128,7 +132,7 @@ function formflow_ui_title($op, $flow){
  * @param integer $fid
  */
 function formflow_ui_load($fid){
-	$flows = formflow_load_flows($fid);
+  $flows = formflow_load_flows($fid);
   return array_shift($flows);
 }
 
@@ -137,7 +141,7 @@ function formflow_ui_load($fid){
  * Page displaying all form flows & edit links
  */
 function formflow_ui_overview_page(){
-	drupal_add_css(drupal_get_path('module', 'formflow') . '/css/formflow_ui.css');
+  drupal_add_css(drupal_get_path('module', 'formflow') . '/css/formflow_ui.css');
   $flows = formflow_get_flows();
   $rows = array();
   $header = array(
@@ -176,9 +180,9 @@ function formflow_ui_overview_page(){
   return theme('table', array(
     'header' => $header,
     'rows' => $rows,
-  	'attributes' => array(
-  		'id' => 'formflow-overview'
-  	)
+    'attributes' => array(
+      'id' => 'formflow-overview'
+    )
   ));
 }
 
@@ -390,11 +394,11 @@ function formflow_ui_steps_form($form, &$form_state, $flow = array()){
     }
   }
   if(isset($form_state['add'])){
-    $flow['steps'] = array_merge($flow['steps'], (array) $form_state['add']);
+    $flow['steps'] = array_merge($flow['steps'], (array)$form_state['add']);
   }
   foreach($flow['steps'] as $delta => $step){
     // Don't add removed items
-    if(isset($form_state['remove']) && in_array($step['form_id'], (array) $form_state['remove'])){
+    if(isset($form_state['remove']) && in_array($step['form_id'], (array)$form_state['remove'])){
       continue;
     }
     $form['enabled_forms'][$step['form_id']] = array(
@@ -522,6 +526,7 @@ function formflow_ui_delete_form($form, &$form_state, $flow){
  * @param array $form_state
  */
 function formflow_ui_delete_form_submit($form, &$form_state){
+  formflow_delete($form_state['values']['fid']);
   drupal_set_message(t('%title has been deleted.', array(
     '%title' => $form['#flow']['title']
   )));
