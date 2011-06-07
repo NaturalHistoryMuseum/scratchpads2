@@ -71,7 +71,9 @@ function formflow_form_alter(&$form, &$form_state, $form_id){
       unset($form['actions']);
     }
     if(isset($form['submit'])){
-      $form_state['finish'] = array_merge($form_state['finish'], (array)$form['submit']['#submit']);
+      if(isset($form['submit']['#submit'])){
+        $form_state['finish'] = array_merge($form_state['finish'], (array)$form['submit']['#submit']);
+      }
       unset($form['submit']);
     }
     $form['#submit'][] = 'formflow_submit';
@@ -199,12 +201,12 @@ function formflow_save($flow){
     $flow = (object)$flow;
   }
   $update = array();
-  if($flow->fid){
+  if(isset($flow->fid)){
     $update[] = 'fid';
   }
   drupal_write_record('formflow', $flow, $update);
   // If steps are defined, save them to the database
-  if(isset($flow->steps)){
+  if(isset($flow->steps) && isset($flow->fid)){
     formflow_save_steps($flow->fid, $flow->steps);
   }
 }
@@ -269,6 +271,10 @@ function formflow_page($flow, $current_step = null){
     if(!count($_POST)){
       formflow_cache_clear($cache_id);
     }
+  }
+  if(!count($flow['steps'])){
+    drupal_set_message(t('There are no forms in this flow.'), 'error');
+    return '';
   }
   // check access for this url  
   if(isset($flow['steps'][$current_step]['path'])){

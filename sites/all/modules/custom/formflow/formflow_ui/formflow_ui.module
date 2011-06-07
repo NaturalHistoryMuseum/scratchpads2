@@ -100,7 +100,6 @@ function formflow_ui_menu(){
  * MENU CALLBACKS
  * 
  ********************************************************************************************/
-
 /**
  * Menu title callback - define a title for the page
  * 
@@ -114,8 +113,8 @@ function formflow_ui_title($op, $flow){
         '@title' => $flow['title']
       ));
       break;
-    case 'default':
-      $title = t('Edit @title', array(
+    default:
+      return t('Edit @title', array(
         '@title' => $flow['title']
       ));
       break;
@@ -129,7 +128,8 @@ function formflow_ui_title($op, $flow){
  * @param integer $fid
  */
 function formflow_ui_load($fid){
-  return array_shift(formflow_load_flows($fid));
+	$flows = formflow_load_flows($fid);
+  return array_shift($flows);
 }
 
 /**
@@ -137,6 +137,7 @@ function formflow_ui_load($fid){
  * Page displaying all form flows & edit links
  */
 function formflow_ui_overview_page(){
+	drupal_add_css(drupal_get_path('module', 'formflow') . '/css/formflow_ui.css');
   $flows = formflow_get_flows();
   $rows = array();
   $header = array(
@@ -166,15 +167,18 @@ function formflow_ui_overview_page(){
       $row[] = l('Forms', 'admin/structure/formflow/' . $flow['fid'] . '/steps');
       $row[] = l('Delete', 'admin/structure/formflow/' . $flow['fid'] . '/delete');
     }else{ // Defined via a plugin so cannot be edited
-      $row[] = '';
       $row[] = '<span class="locked">In code<span>';
+      $row[] = '';
       $row[] = '';
     }
     $rows[] = $row;
   }
   return theme('table', array(
     'header' => $header,
-    'rows' => $rows
+    'rows' => $rows,
+  	'attributes' => array(
+  		'id' => 'formflow-overview'
+  	)
   ));
 }
 
@@ -183,7 +187,6 @@ function formflow_ui_overview_page(){
  * FORMS
  * 
  ********************************************************************************************/
-
 /**
  * Formflow add/edit form
  * @param array $form
@@ -195,7 +198,7 @@ function formflow_ui_form($form, &$form_state, $flow = array()){
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#default_value' => $flow['title'],
+    '#default_value' => (isset($flow['title']) ? $flow['title'] : ''),
     '#size' => 60,
     '#maxlength' => 128,
     '#required' => TRUE
@@ -203,7 +206,7 @@ function formflow_ui_form($form, &$form_state, $flow = array()){
   $form['name'] = array(
     '#type' => 'machine_name',
     '#title' => t('Name'),
-    '#default_value' => $flow['name'],
+    '#default_value' => (isset($flow['name']) ? $flow['name'] : ''),
     '#maxlength' => 32,
     '#description' => t('A unique name for the form flow. It must only contain lowercase letters, numbers and hyphens.'),
     '#machine_name' => array(
@@ -386,12 +389,12 @@ function formflow_ui_steps_form($form, &$form_state, $flow = array()){
       );
     }
   }
-  if(is_array($form_state['add'])){
-    $flow['steps'] = array_merge($flow['steps'], $form_state['add']);
+  if(isset($form_state['add'])){
+    $flow['steps'] = array_merge($flow['steps'], (array) $form_state['add']);
   }
   foreach($flow['steps'] as $delta => $step){
     // Don't add removed items
-    if(is_array($form_state['remove']) && in_array($step['form_id'], $form_state['remove'])){
+    if(isset($form_state['remove']) && in_array($step['form_id'], (array) $form_state['remove'])){
       continue;
     }
     $form['enabled_forms'][$step['form_id']] = array(

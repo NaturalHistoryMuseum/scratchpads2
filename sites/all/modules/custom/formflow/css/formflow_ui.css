@@ -13,3 +13,9 @@
 #enabled-flows table input.form-text{
   width: 85%;
 }
+
+#formflow-overview span.locked{
+  background: url('../images/lock.png') no-repeat;
+  display: block;
+  padding-left: 25px;
+}
