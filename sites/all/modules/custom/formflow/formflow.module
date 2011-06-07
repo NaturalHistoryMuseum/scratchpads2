@@ -302,9 +302,8 @@ function formflow_page($flow, $current_step = null){
   }else if(isset($flow['steps'][$current_step]['path']) && !drupal_valid_path($flow['steps'][$current_step]['path'])){
     drupal_access_denied();
   }
-  
+  // Allow other modules to make changes & additions before loading the form 
   drupal_alter('formflow', $flow, $form_state);
-
   // Build the form      
   $form = ctools_wizard_multistep_form($flow, $current_step, $form_state);
   if(!$form){
@@ -349,7 +348,7 @@ function formflow_finish(&$form_state){
   if(isset($form_state['form_info']['finish_path'])){
     $form_state['redirect'] = url($form_state['form_info']['finish_path']);
   }else{
-  	$form_state['redirect'] = url(str_replace('/%step', '', $form_state['form_info']['path']));
+    $form_state['redirect'] = url(str_replace('/%step', '', $form_state['form_info']['path']));
   }
   // Call all submit funtions for all forms in the step
   foreach($form_state['formflow']['cache'] as $cache){
