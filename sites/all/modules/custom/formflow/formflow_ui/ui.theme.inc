@@ -6,7 +6,7 @@ function theme_formflow_ui_steps_form($variables){
   $output .= drupal_render($form['available_forms']);
   $output .= '</div>';
   $output .= '<div class="column" id="enabled-flows">';
-  if(is_array($form['enabled_forms']) && count(element_children($form['enabled_forms']))){
+  if(isset($form['enabled_forms']) && count(element_children($form['enabled_forms']))){
     $header = array(
       t('Forms'),
       t('Weight'),

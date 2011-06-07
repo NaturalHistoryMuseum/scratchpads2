@@ -67,7 +67,9 @@ function formflow_form_alter(&$form, &$form_state, $form_id){
     }
     // Node form uses actions for it's submit functions
     if(isset($form['actions'])){
-      $form_state['finish'] = array_merge($form_state['finish'], (array)$form['actions']['submit']['#submit']);
+      if(isset($form['actions']['submit']['#submit'])){
+        $form_state['finish'] = array_merge($form_state['finish'], (array)$form['actions']['submit']['#submit']);
+      }
       unset($form['actions']);
     }
     if(isset($form['submit'])){
