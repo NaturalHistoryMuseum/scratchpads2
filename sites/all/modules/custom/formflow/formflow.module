@@ -280,6 +280,7 @@ function formflow_page($flow, $current_step = null){
   if(isset($flow['steps'][$current_step]['path'])){
     $item = menu_get_item($flow['steps'][$current_step]['path']);
     if($item['include_file']){
+      $flow['steps'][$current_step]['include_file'] = $item['include_file'];
       require_once DRUPAL_ROOT . '/' . $item['include_file'];
     }
   }
@@ -357,13 +358,13 @@ function formflow_finish(&$form_state){
     $form_state['redirect'] = url(str_replace('/%step', '', $form_state['form_info']['path']));
   }
   // Call all submit funtions for all forms in the step
-  foreach($form_state['formflow']['cache'] as $cache){
+  foreach($form_state['formflow']['cache'] as $delta => $cache){
     if(count($cache['form_state']['finish'])){
       foreach($cache['form_state']['finish'] as $func){
+        if(isset($cache['form_state']['form_info']['steps'][$delta]['include_file'])){
+          require_once DRUPAL_ROOT . '/' . $cache['form_state']['form_info']['steps'][$delta]['include_file'];
+        }
         if(function_exists($func)){
-          if($func == 'node_form_submit'){
-            module_load_include('inc', 'node', 'node.pages');
-          }
           $func($cache['form'], $cache['form_state']);
         }
       }
