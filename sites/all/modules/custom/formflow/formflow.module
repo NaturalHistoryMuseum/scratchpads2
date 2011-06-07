@@ -250,9 +250,11 @@ function formflow_page($flow, $current_step = null){
     'show_return',
     'cancel_path'
   ) as $old_key){
-    $new_key = str_replace('_', ' ', $old_key);
-    $flow[$new_key] = $flow[$old_key];
-    unset($flow[$old_key]);
+    if(isset($flow[$old_key])){
+      $new_key = str_replace('_', ' ', $old_key);
+      $flow[$new_key] = $flow[$old_key];
+      unset($flow[$old_key]);
+    }
   }
   foreach($flow['steps'] as $delta => $step){
     $flow['forms'][$delta] = array(
@@ -268,8 +270,8 @@ function formflow_page($flow, $current_step = null){
       formflow_cache_clear($cache_id);
     }
   }
-  // check access for this url
-  if($flow['steps'][$current_step]['path']){
+  // check access for this url  
+  if(isset($flow['steps'][$current_step]['path'])){
     $item = menu_get_item($flow['steps'][$current_step]['path']);
     if($item['include_file']){
       require_once DRUPAL_ROOT . '/' . $item['include_file'];
@@ -297,11 +299,14 @@ function formflow_page($flow, $current_step = null){
     $form_state['build_info']['args'] = array(
       $node
     );
-  }else if($flow['steps'][$current_step]['path'] & !drupal_valid_path($flow['steps'][$current_step]['path'])){
+  }else if(isset($flow['steps'][$current_step]['path']) && !drupal_valid_path($flow['steps'][$current_step]['path'])){
     drupal_access_denied();
   }
+  
+  drupal_alter('formflow', $flow, $form_state);
+
   // Build the form      
-  $form = @ctools_wizard_multistep_form($flow, $current_step, $form_state);
+  $form = ctools_wizard_multistep_form($flow, $current_step, $form_state);
   if(!$form){
     if(!count($flow['forms'])){
       drupal_set_message(t('There are no forms in this flow.'), 'error');
@@ -343,6 +348,8 @@ function formflow_finish(&$form_state){
   // If a finish path has been set, redirect to it
   if(isset($form_state['form_info']['finish_path'])){
     $form_state['redirect'] = url($form_state['form_info']['finish_path']);
+  }else{
+  	$form_state['redirect'] = url(str_replace('/%step', '', $form_state['form_info']['path']));
   }
   // Call all submit funtions for all forms in the step
   foreach($form_state['formflow']['cache'] as $cache){
@@ -358,7 +365,7 @@ function formflow_finish(&$form_state){
     }
   }
   // Clear the caches
-  formflow_cache_clear($form_state['form_info']['fid']);
+  formflow_cache_clear($form_state['formflow']['cache_id']);
 }
 
 /**
