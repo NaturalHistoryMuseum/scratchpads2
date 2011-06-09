@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/8/trunk/%20phpwebsocket
+END
+websocket.demo.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/5/trunk/%20phpwebsocket/websocket.demo.php
+END
+websocket.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/8/trunk/%20phpwebsocket/websocket.class.php
+END
+client.html
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/5/trunk/%20phpwebsocket/client.html
+END
+server.php
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/7/trunk/%20phpwebsocket/server.php
+END
+chatbot.demo.php
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/5/trunk/%20phpwebsocket/chatbot.demo.php
+END
