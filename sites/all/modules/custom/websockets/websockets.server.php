@@ -27,7 +27,8 @@ class DrupalServer extends WebSocketServer{
   protected $configClass = 'DrupalConfig';
 
   function process($user, $msg){
-    $this->sentToAllBut($user, $msg);
+    $msg = 'Yeah, whatever';
+    $this->sendToAll($msg);
   }
 }
 $server = new DrupalServer();

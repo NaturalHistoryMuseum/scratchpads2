@@ -75,28 +75,51 @@ function websockets_menu(){
  * Callback for the test page
  */
 function websockets_test_callback(){
-  $script = <<<ENDOFSCRIPT
-(function($){
+  global $base_url;
+  $host = parse_url($base_url, PHP_URL_HOST);
+  $script = '
+  (function($){
+		$(document).ready(function(){
+    	// Let the library know where WebSocketMain.swf is:
+      WEB_SOCKET_SWF_LOCATION = "'.url('/', array('absolute' => TRUE)).drupal_get_path('module', 'websockets').'/web-socket-js/WebSocketMain.swf"
+      
+      // Write your code in the same way as for native WebSocket:
+      var ws = new WebSocket("ws://'.$host.':8080/");
+      ws.onopen = function() {
+        ws.send("Hello");  // Sends a message.
+      };
+      ws.onmessage = function(e) {
+        // Receives a message.
+        alert(e.data);
+      };
+      ws.onclose = function() {
+        alert("closed");
+      };
+        
+      $(".form-submit").click(function(){
+        try{
+        	socket.send($(\'#websockets-test\').val());
+    		} catch(ex){ console.log("Second error");console.log(ex); }
+      });
+    });
+  })(jQuery);';
+  
+  /*
 	$(document).ready(function(){
     try{
   		socket = $.gracefulWebSocket("ws://monkey.nhm.ac.uk:8080/");
-      console.log('WebSocket - status '+socket.readyState);
+      console.log(\'WebSocket - status \'+socket.readyState);
       socket.onopen    = function(msg){ console.log("Welcome - status "+this.readyState); };
       socket.onmessage = function(msg){ alert(msg.data); console.log("Received: "+msg.data); };
       socket.onclose   = function(msg){ console.log("Disconnected - status "+this.readyState); };      
     }
     catch(ex){ console.log("First error");console.log(ex); }
     $("msg").focus();
-    
-    $(".form-submit").click(function(){
-      try{
-      	socket.send($('#websockets-test').val());
-			} catch(ex){ console.log("Second error");console.log(ex); }
-    });
   });
-})(jQuery);
-ENDOFSCRIPT;
+  */
+  
   drupal_add_js($script, 'inline');
+
   return array(
     'field' => array(
       '#type' => 'textfield',
