@@ -120,19 +120,16 @@
 				/**
 				 * @param {Object} data
 				 */
-				function pollSuccess(data) {
-					
+				function pollSuccess(data) {					
 					// trigger onmessage
-					var messageEvent = {"data" : data};
-					fws.onmessage(messageEvent);	
+					fws.onmessage(data);	
 				}
 				
 				function poll() {
-					
 					$.ajax({
 						type: opts.fallbackPollMethod,
 						url: opts.fallbackPollURL,
-						dataType: 'text',
+						dataType: 'jsonp',
 						data: getFallbackParams(),
 						success: pollSuccess,
 						error: function (xhr) {			

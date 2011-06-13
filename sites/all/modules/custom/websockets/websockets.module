@@ -1,10 +1,5 @@
 <?php
 
-// We define a variable for the websockets port, as it needs to be the same on
-// all sites in a multisite setup, but can be changed if required (You may
-// already have services listening on the default port 8080).
-DEFINE('WEBSOCKETS_PORT', 8080);
-
 /**
  * @file
  * 
@@ -18,10 +13,14 @@ function websockets_init(){
   // As multisite installs can have different "tmp" folders, and will almost
   // certainly have different files folders, the best place to keep the PID
   // file is in the same folder as the module.  We will fall back to using the
-  // "/tmp" folder if we're unable to write to this location
-  $pid = file_get_contents(dirname(__FILE__) . '/websockets.pid');
+  // DRUPAL_ROOT or "/tmp" folders if we're unable to write to this location
+  $path = drupal_get_path('module', 'websockets');
+  @$pid = file_get_contents("$path/websockets.pid");
   if(!$pid){
-    $pid = file_get_contents('/tmp/websockets.pid');
+    @$pid = file_get_contents(DRUPAL_ROOT . '/websockets.pid');
+  }
+  if(!$pid){
+    @$pid = file_get_contents('/tmp/websockets.pid');
   }
   if($pid){
     if(check_process($pid)){
@@ -31,12 +30,27 @@ function websockets_init(){
       // Process is no longer running.  Lets add a warning that we probably
       // crashed.
       watchdog('websockets', 'WebSockets server (%pid) has crashed. Restarting.', array(
-        '%pid' => $pid
-      ));
+        '%pid' => trim($pid)
+      ), WATCHDOG_ERROR);
     }
   }
   // Process isn't running, lets create the process, and make a note of its PID
-  $pid = shell_exec("nohup $command > /dev/null & echo $!");
+  $pid = trim(shell_exec("nohup php -q $path/websockets.server.php > /dev/null & echo $!"));
+  if($pid){
+    // Write the PID to the file
+    if(!@file_put_contents("$path/websockets.pid", $pid)){
+      if(!@file_put_contents(DRUPAL_ROOT . "/websockets.pid", $pid)){
+        if(!@file_put_contents("/tmp/websockets.pid", $pid)){
+          // Failed to write the PID.  This will result in us attempting to create
+          // a new server on every page request - NOT GOOD.
+          watchdog('websockets', 'Unable to record the PID of the WebSockets server', array(), WATCHDOG_ERROR);
+        }
+      }
+    }
+  }else{
+    // Failed to start the server.
+    watchdog('websockets', 'Default WebSockets server failed to start', array(), WATCHDOG_ERROR);
+  }
 }
 
 /**
@@ -45,8 +59,56 @@ function websockets_init(){
 function websockets_menu(){
   return array(
     'websockets-test' => array(
-      '#title' => 'WebSockets test',
-      '#'
+      'title' => 'WebSockets test',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'websockets_test_callback'
+      ),
+      'access arguments' => array(
+        'access content'
+      )
+    )
+  );
+}
+
+/**
+ * Callback for the test page
+ */
+function websockets_test_callback(){
+  $script = <<<ENDOFSCRIPT
+(function($){
+	$(document).ready(function(){
+    try{
+  		socket = $.gracefulWebSocket("ws://monkey.nhm.ac.uk:8080/");
+      console.log('WebSocket - status '+socket.readyState);
+      socket.onopen    = function(msg){ console.log("Welcome - status "+this.readyState); };
+      socket.onmessage = function(msg){ alert(msg.data); console.log("Received: "+msg.data); };
+      socket.onclose   = function(msg){ console.log("Disconnected - status "+this.readyState); };
+      socket.ready = function(){ socket.send("Testing");};
+      
+    }
+    catch(ex){ console.log("First error");console.log(ex); }
+    $("msg").focus();
+    
+    $(".form-submit").click(function(){
+      try{
+      	socket.send($('#websockets-test').val());
+			} catch(ex){ console.log("Second error");console.log(ex); }
+    });
+  });
+})(jQuery);
+ENDOFSCRIPT;
+  drupal_add_js($script, 'inline');
+  return array(
+    'field' => array(
+      '#type' => 'textfield',
+      '#title' => 'Send a message to anyone else viewing this page',
+      '#id' => 'websockets-test'
+    ),
+    'button' => array(
+      '#type' => 'button',
+      '#title' => 'Button',
+      '#value' => 'Send!'
     )
   );
 }
