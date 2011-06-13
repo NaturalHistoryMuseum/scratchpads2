@@ -83,9 +83,7 @@ function websockets_test_callback(){
       console.log('WebSocket - status '+socket.readyState);
       socket.onopen    = function(msg){ console.log("Welcome - status "+this.readyState); };
       socket.onmessage = function(msg){ alert(msg.data); console.log("Received: "+msg.data); };
-      socket.onclose   = function(msg){ console.log("Disconnected - status "+this.readyState); };
-      socket.ready = function(){ socket.send("Testing");};
-      
+      socket.onclose   = function(msg){ console.log("Disconnected - status "+this.readyState); };      
     }
     catch(ex){ console.log("First error");console.log(ex); }
     $("msg").focus();

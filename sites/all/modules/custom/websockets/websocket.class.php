@@ -19,6 +19,10 @@ class WebSocket{
 
   var $messages = array();
 
+  var $lineend = "\r\n";
+
+  var $server = "PHPWebSockets";
+
   function __construct($address, $port){
     // Set the time limit to 0 to ensure the process/server persists for as
     // long as required.
@@ -30,6 +34,7 @@ class WebSocket{
     socket_bind($this->master, $address, $port) or die("socket_bind() failed");
     socket_listen($this->master, 20) or die("socket_listen() failed");
     $this->sockets[] = $this->master;
+    echo "Number of sockets: ".count($this->sockets)."\n";
     while(true){
       // Receive
       $changed = $this->sockets;
@@ -47,14 +52,17 @@ class WebSocket{
           if($bytes == 0){
             $this->disconnect($socket);
           }else{
-            $user = $this->getuserbysocket($socket);
+            $user = $this->getuserbysocketandrequest($socket, $buffer);
             if(!$user->handshake){
               $this->dohandshake($user, $buffer);
-            }
-            if($user->handshake){
-              $this->process($user, $this->unwrap($buffer));
-            }elseif($user->legacy){
-              $this->process_legacy($user, $buffer);
+              // Send a blank process, as otherwise the first one gets ignored.
+              $this->process($user, "");
+            }else{
+              if($user->handshake){
+                $this->process($user, $this->unwrap($buffer));
+              }elseif($user->legacy){
+                $this->process_legacy($user, $buffer);
+              }
             }
           }
         }
@@ -80,10 +88,10 @@ class WebSocket{
         $callback = $callback_parts[0];
       }
       $this->send_legacy($user, $callback);
-    }else{
+    }else if(substr($msg, 0, 4) == 'POST'){
       // We need to process, and call the standard WebSockets process method.
-      // First we get split the string on the first empty line.  Everything 
-      // after that line is what has been sent.
+      // First we split the string on the first empty line.  Everything after
+      // that line is what has been sent.
       $lines = preg_split('/[\n\r]+/', $msg);
       $empty_reached = FALSE;
       $msg = array();
@@ -101,24 +109,31 @@ class WebSocket{
   }
 
   function send_legacy($user, $callback){
+    $headers = 'HTTP/1.1 200 OK' . $this->lineend;
+    $headers .= 'Date: ' . date('r') . $this->lineend;
+    $headers .= 'Server: ' . $this->server . $this->lineend;
+    $headers .= 'Set-Cookie: PHPWebSocketsID=' . $user->id . '; path=/' . $this->lineend;
+    $headers .= 'Expires: Sun, 19 Nov 1978 05:00:00 GMT' . $this->lineend;
+    $headers .= 'Cache-Control: no-cache, must-revalidate, post-check=0, pre-check=0' . $this->lineend;
+    $headers .= 'Vary: Accept-Encoding' . $this->lineend;
+    $headers .= 'Connection: close' . $this->lineend;
+    $headers .= 'Content-Type: application/json; charset=utf-8' . $this->lineend . $this->lineend;
+    $messages = array();
     foreach($this->messages as $message){
-      // Check that the time is valid on the message
-      $msg = json_encode(array(
-        'data' => 'Stuff'
-      ));
-      $line_end = "\r\n";
-      $headers = 'HTTP/1.1 200 OK' . $line_end;
-      $headers .= 'Date: ' . date('r') . $line_end;
-      $headers .= 'Server: PHPWebSockets' . $line_end;
-      $headers .= 'Set-Cookie: PHPWebSocketsSESSID=123; path=/' . $line_end;
-      $headers .= 'Expires: Sun, 19 Nov 1978 05:00:00 GMT' . $line_end;
-      $headers .= 'Cache-Control: no-cache, must-revalidate, post-check=0, pre-check=0' . $line_end;
-      $headers .= 'Vary: Accept-Encoding' . $line_end;
-      $headers .= 'Connection: close' . $line_end;
-      $headers .= 'Content-Type: application/json; charset=utf-8' . $line_end . $line_end;
-      socket_write($user->socket, "$headers$callback($msg)");
+      if(!in_array($message, $user->messages_received)){
+        $user->messages_received[] = $message;
+        $messages = mb_convert_encoding($message->msg, 'UTF8');
+        // If the message is old, we move it off the start of the array.
+        if($message->timestamp < time() - 10){
+          array_shift($this->messages);
+        }
+      }
     }
-    socket_close($user->socket);
+    $msg = json_encode(array(
+      'data' => $messages
+    ));
+    socket_write($user->socket, "$headers$callback($msg)");
+    $this->disconnect($user->socket);
   }
 
   function process($user, $msg){
@@ -165,8 +180,6 @@ class WebSocket{
   }
 
   function dohandshake($user, $buffer){
-    echo "BUFFER is:\n$buffer\nEND OF BUFFER\n";
-    echo "USERS:\n" . print_r($this->users, 1) . "\nEND OF USERS\n";
     list($resource, $host, $origin, $key1, $key2, $l8b) = $this->getheaders($buffer);
     if(is_null($key1) || is_null($key2)){
       // We're likely dealing with a legacy client here.  We don't need to
@@ -174,13 +187,14 @@ class WebSocket{
       $user->legacy = TRUE;
       return true;
     }else{
-      $upgrade = "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" . "Upgrade: WebSocket\r\n" . "Connection: Upgrade\r\n" . //"WebSocket-Origin: " . $origin . "\r\n" .
-//"WebSocket-Location: ws://" . $host . $resource . "\r\n" .
-      "Sec-WebSocket-Origin: " . $origin . "\r\n" . "Sec-WebSocket-Location: ws://" . $host . $resource . "\r\n" . //"Sec-WebSocket-Protocol: icbmgame\r\n" . //Client doesn't send this
-"\r\n" . $this->calcKey($key1, $key2, $l8b) . "\r\n"; // .
-      //"\r\n";
+      $upgrade = "HTTP/1.1 101 WebSocket Protocol Handshake" . $this->lineend;
+      $upgrade .= "Upgrade: WebSocket" . $this->lineend;
+      $upgrade .= "Connection: Upgrade" . $this->lineend;
+      $upgrade .= "Sec-WebSocket-Origin: " . $origin . $this->lineend;
+      $upgrade .= "Sec-WebSocket-Location: ws://" . $host . $resource . $this->lineend . $this->lineend;
+      $upgrade .= $this->calcKey($key1, $key2, $l8b) . $this->lineend;
       socket_write($user->socket, $upgrade . chr(0), strlen($upgrade . chr(0)));
-      $user->handshake = true;
+      $user->handshake = TRUE;
       return true;
     }
   }
@@ -207,15 +221,15 @@ class WebSocket{
   }
 
   function getheaders($req){
-    $sk1 = $sk2 = $r = $h = $o = null;
+    $cookie = $sk1 = $sk2 = $resource = $host = $origin = null;
     if(preg_match("/GET (.*) HTTP/", $req, $match)){
-      $r = $match[1];
+      $resource = $match[1];
     }
     if(preg_match("/Host: (.*)\r\n/", $req, $match)){
-      $h = $match[1];
+      $host = $match[1];
     }
     if(preg_match("/Origin: (.*)\r\n/", $req, $match)){
-      $o = $match[1];
+      $origin = $match[1];
     }
     if(preg_match("/Sec-WebSocket-Key1: (.*)\r\n/", $req, $match)){
       $sk1 = $match[1];
@@ -223,26 +237,35 @@ class WebSocket{
     if(preg_match("/Sec-WebSocket-Key2: (.*)\r\n/", $req, $match)){
       $sk2 = $match[1];
     }
+    if(preg_match("/Cookie: (.*)\r\n/", $req, $match)){
+      $cookie = $match[1];
+    }
     if($match = substr($req, -8)){
       $l8b = $match;
     }
     return array(
-      $r,
-      $h,
-      $o,
+      $resource,
+      $host,
+      $origin,
       $sk1,
       $sk2,
-      $l8b
+      $l8b,
+      $cookie
     );
   }
 
-  function getuserbysocket($socket){
+  function getuserbysocketandrequest($socket, $request){
     $found = null;
     foreach($this->users as $user){
       if($user->socket == $socket){
         $found = $user;
         break;
       }
+    }
+    // Default to using a cookie.
+    if(!$found){
+      list($resource, $host, $origin, $key1, $key2, $l8b, $cookie) = $this->getheaders($request);
+      echo $cookie;
     }
     return $found;
   }
@@ -258,15 +281,32 @@ class WebSocket{
 
 class User{
 
+  // int/string
+  // A unique ID for this user.  This will be used by the legacy clients in a 
+  // cookie.
   var $id;
 
+  // Socket resource
+  // The socket.  This is only relevant for clients that support WebSockets - 
+  // legacy clients will have a new socket for each connection.
   var $socket;
 
+  // boolean
+  // Whether or not this user has successfully "handshaken".
   var $handshake;
 
-  var $phpsession;
+  // boolean
+  // Whether this is a legacy client or not
+  var $legacy;
 
+  // array()
+  // The database details for connecting to Drupal.  These should be sent on the
+  // first request (handshake).
   var $database;
+
+  // array(Message)
+  // The ten most recent messages that have been sent to this user.
+  var $messages_received;
 }
 
 class Message{

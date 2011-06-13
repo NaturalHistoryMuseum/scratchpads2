@@ -15,7 +15,7 @@ class DrupalSocket extends WebSocket{
   function process($user, $msg){
     foreach($this->users as $user){
       $this->send($user->socket, "Received: $msg");
-      echo "Received: $msg";
+      # echo "Received: $msg";
     }
   }
 }
