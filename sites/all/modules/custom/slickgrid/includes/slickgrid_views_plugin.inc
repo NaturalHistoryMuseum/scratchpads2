@@ -130,19 +130,10 @@ class slickgrid_views_plugin extends views_plugin_style{
     }
     if(is_array($columns)){
       foreach($columns as $field => $column){
-        // first, make sure the field still exists.
-        if(!isset($sanitized[$field])){
-          continue;
-        }
-        $column_name = key($column);
-        // If the field is the column, mark it so, or the column
-        // it's set to is a column, that's ok
-        if($field == $column_name || $columns[$column_name] == $column && !empty($sanitized[$column_name])){
+        // Make sure the field still exists.
+        if(isset($sanitized[$field])){
           $sanitized[$field] = $column;
         }
-         // Since we set the field to itself initially, ignoring
-      // the condition is ok; the field will get its column
-      // status back.
       }
     }
     return $sanitized;
@@ -154,6 +145,9 @@ class slickgrid_views_plugin extends views_plugin_style{
   function options_form(&$form, &$form_state){
     parent::options_form($form, $form_state);
     $handlers = $this->display->handler->get_handlers('field');
+    if(!isset($this->options['columns'])){
+      $this->options['columns'] = array();
+    }
     $columns = $this->sanitize_columns($this->options['columns']);
     $field_labels = $this->display->handler->get_field_labels();
     if(empty($columns)){
@@ -164,13 +158,14 @@ class slickgrid_views_plugin extends views_plugin_style{
       );
       return;
     }
-
     $tabs = array(
       '' => '<none>'
     );
-    foreach(explode(PHP_EOL, $this->options['tabs']) as $tab){
-      $tab = trim($tab);
-      $tabs[$tab] = $tab;
+    if(isset($this->options['tabs'])){
+      foreach(explode(PHP_EOL, $this->options['tabs']) as $tab){
+        $tab = trim($tab);
+        $tabs[$tab] = $tab;
+      }
     }
     // Create an array of fields and form items for setting width, sortable & available plugins    
     foreach($columns as $field_id => $column){
@@ -184,13 +179,13 @@ class slickgrid_views_plugin extends views_plugin_style{
       // Tabs
       $form['columns'][$field_id]['tab'] = array(
         '#type' => 'select',
-        '#default_value' => ($this->options['columns'][$field_id]['tab'] ? $this->options['columns'][$field_id]['tab'] : ''),
+        '#default_value' => (isset($this->options['columns'][$field_id]['tab']) ? $this->options['columns'][$field_id]['tab'] : ''),
         '#options' => $tabs
       );
       // Field for setting a column's width
       $form['columns'][$field_id]['width'] = array(
         '#type' => 'textfield',
-        '#default_value' => ($this->options['columns'][$field_id]['width'] ? $this->options['columns'][$field_id]['width'] : 100),
+        '#default_value' => (isset($this->options['columns'][$field_id]['width']) ? $this->options['columns'][$field_id]['width'] : 100),
         '#size' => 10,
         '#maxlength' => 10
       );
@@ -199,7 +194,7 @@ class slickgrid_views_plugin extends views_plugin_style{
         // Field for setting if a column is sortable
         $form['columns'][$field_id]['sortable'] = array(
           '#type' => 'checkbox',
-          '#default_value' => ($this->options['columns'][$field_id]['sortable'] ? $this->options['columns'][$field_id]['sortable'] : false),
+          '#default_value' => (isset($this->options['columns'][$field_id]['sortable']) ? $this->options['columns'][$field_id]['sortable'] : false),
           '#size' => 10
         );
       }
@@ -212,11 +207,11 @@ class slickgrid_views_plugin extends views_plugin_style{
             '#markup' => t('This field cannot be edited.')
           );
           continue;
-        }
-        if(count($plugin_options = slickgrid_get_plugin_options_for_field($plugin_type, $handlers[$field_id]->options['type']))){
+        }        
+        if(count($plugin_options = slickgrid_get_plugin_options_for_field($plugin_type, (isset($handlers[$field_id]->options['type']) ? $handlers[$field_id]->options['type'] : null)))){
           $form['columns'][$field_id][$plugin_type] = array(
             '#type' => 'select',
-            '#default_value' => ($this->options['columns'][$field_id][$plugin_type] ? $this->options['columns'][$field_id][$plugin_type] : ''),
+            '#default_value' => (isset($this->options['columns'][$field_id][$plugin_type]) ? $this->options['columns'][$field_id][$plugin_type] : ''),
             '#options' => $plugin_options
           );
         }else{
@@ -278,7 +273,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     $form['tab_settings']['tabs'] = array(
       '#type' => 'textarea',
       '#title' => t('Tab names'),
-      '#default_value' => $this->options['tabs'],
+      '#default_value' => (isset($this->options['tabs']) ? $this->options['tabs'] : ''),
       '#parents' => array(
         'style_options',
         'tabs'

@@ -33,9 +33,9 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       continue;
     }
     // Get the column width
-    if($view->style_plugin->options['column_width'][$field_id]){
+    if(isset($view->style_plugin->options['column_width'][$field_id])){
       $column_width = $view->style_plugin->options['column_width'][$field_id];
-    }elseif($view->style_plugin->options['columns'][$field_id]['width']){
+    }elseif(isset($view->style_plugin->options['columns'][$field_id]['width'])){
       $column_width = $view->style_plugin->options['columns'][$field_id]['width'];
     }else{
       $column_width = 100;
@@ -62,7 +62,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       if(isset($view->style_plugin->options['columns'][$field_id][$plugin_type]) & !empty($view->style_plugin->options['columns'][$field_id][$plugin_type])){
         // Set the plugin type for the column definition
         $plugin = ctools_get_plugins('slickgrid', $plugin_type, $view->style_plugin->options['columns'][$field_id][$plugin_type]);
-        if($plugin['js']['class']){
+        if(isset($plugin['js']['class'])){
           $column[$plugin_type] = $plugin['js']['class'];
         }else{
           $column[$plugin_type] = $view->style_plugin->options['columns'][$field_id][$plugin_type];
@@ -73,7 +73,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             'js',
             'css'
           ) as $file_type){
-            if($plugin[$file_type]['file']){
+            if(isset($plugin[$file_type]) && $plugin[$file_type]['file']){
               $func = 'drupal_add_' . $file_type;
               $func($plugin['path'] . '/' . $plugin[$file_type]['file']);
             }
@@ -185,7 +185,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
         $ids[] = $row->{$view->base_field};
         // If this has collapsible_taxonomy_field set, we will have added slickgrid_parent_tid & slickgrid_tid in hook_views_pre_view
         // These are aliased in $row so get the field aliases
-        if(property_exists($row, $view->field['slickgrid_tid']->field_alias) && $slickgrid_tid = $row->{$view->field['slickgrid_tid']->field_alias}){
+        if(isset($view->field['slickgrid_tid']) && property_exists($row, $view->field['slickgrid_tid']->field_alias) && $slickgrid_tid = $row->{$view->field['slickgrid_tid']->field_alias}){
           if($parent = & $parents[$row->{$view->field['slickgrid_parent_tid']->field_alias}]){
             // If we can find a parent, set the parent nid & indentation++
             $item['indent'] = $parent['indent'] + 1;
@@ -270,7 +270,7 @@ function theme_slickgrid($variables){
   drupal_add_js(implode("\n", $js), array(
     'type' => 'inline'
   ));
-  $output = '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . ($view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
+  $output = '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
   return $output;
 }
 

@@ -112,7 +112,7 @@ function slickgrid_library(){
         'system',
         'ui.resizable'
       ),
-            // Require jQuery UI effects by System module.
+      // Require jQuery UI effects by System module.
       array(
         'system',
         'effects.highlight'
@@ -161,51 +161,45 @@ function slickgrid_form_alter(&$form, &$form_state, $form_id){
     }
     $form = array_diff_key($form, $taxonomy_fields);
     // Ensure values passed in from the slickgrid are persistent across the form rebuild
-    $form['field_name'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['field_name']
-    );
-    $form['field_id'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['field_id']
-    );
-    $form['view'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['view']
-    );
-    $form['display_id'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['display_id']
-    );
-    $form['plugin'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['plugin']
-    );
-    $form['revision'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['revision']
-    );
-    foreach($form_state['entity_ids'] as $entity_id){
-      $form['entity_ids'][] = array(
-        '#type' => 'hidden',
-        '#value' => $entity_id,
-        '#parents' => array(
-          'entity_ids',
-          ''
-        ) // Make these items into an array
-      );
-    }
-    $form['entity_type'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['entity_type']
-    );
-    if($form_state['field_name'] !== 'status'){
-      $form['status'] = array(
-        '#type' => 'hidden',
-        '#value' => $form_state['status']
-      );
+    foreach(slickgrid_get_persistent_fields() as $persistent_field){
+      if(is_array($form_state[$persistent_field])){ // entity ids will be passed as an array
+        foreach($form_state[$persistent_field] as $persistent_field_value){
+          $form[$persistent_field][] = array(
+            '#type' => 'hidden',
+            '#value' => $persistent_field_value,
+            '#parents' => array(
+              $persistent_field,
+              ''
+            ) // Make these items into an array
+          );
+        }
+      }else{
+        $form[$persistent_field] = array(
+          '#type' => 'hidden',
+          '#value' => $form_state[$persistent_field]
+        );
+      }
     }
   }
+}
+
+/**
+ * 
+ * Array of fields which need to be persistent across the form
+ */
+function slickgrid_get_persistent_fields(){
+  return array(
+    'field_name',
+    'field_id',
+    'view',
+    'display_id',
+    'plugin',
+    'revision',
+    'entity_type',
+  	'entity_ids',
+    'field_name',
+    'status'
+  );
 }
 
 /**
@@ -251,21 +245,23 @@ function slickgrid_views_pre_view(&$view, $display_id){
   // Is this a slickgrid?
   if($view->display_handler->get_option('style_plugin') == 'slickgrid'){
     $style_options = $view->display_handler->get_option('style_options');
-    foreach($style_options['columns'] as $field_id => $column){
-      // Get all plugin types
-      foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
-        // Has the plugin been set for this column?
-        if(!empty($column[$plugin_type])){
-          if(!isset($plugins[$plugin_type])){
-            $plugins[$plugin_type] = slickgrid_get_plugins($plugin_type);
-          }
-          // Plugins can define callbacks for views+pre_view
-          if(isset($plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'])){
-            //Load the plugin file if there's a callback function
-            require_once DRUPAL_ROOT . '/' . $plugins[$plugin_type][$column[$plugin_type]]['path'] . '/' . $plugins[$plugin_type][$column[$plugin_type]]['file'];
-            // Get & call the function
-            $func = $plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'];
-            $func($view, $field_id, $display_id);
+    if(isset($style_options['columns'])){
+      foreach($style_options['columns'] as $field_id => $column){
+        // Get all plugin types
+        foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
+          // Has the plugin been set for this column?
+          if(!empty($column[$plugin_type])){
+            if(!isset($plugins[$plugin_type])){
+              $plugins[$plugin_type] = slickgrid_get_plugins($plugin_type);
+            }
+            // Plugins can define callbacks for views+pre_view
+            if(isset($plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'])){
+              //Load the plugin file if there's a callback function
+              require_once DRUPAL_ROOT . '/' . $plugins[$plugin_type][$column[$plugin_type]]['path'] . '/' . $plugins[$plugin_type][$column[$plugin_type]]['file'];
+              // Get & call the function
+              $func = $plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'];
+              $func($view, $field_id, $display_id);
+            }
           }
         }
       }
@@ -339,7 +335,7 @@ function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){
   $options = array();
   $plugins = slickgrid_get_plugins($plugin_type);
   foreach($plugins as $type => $plugin){
-    if(!$plugin['field_types']){
+    if(!isset($plugin['field_types'])){
       $options[$type] = $plugin['title'];
     }elseif(in_array($field_type, $plugin['field_types'])){
       $options[$type] = $plugin['title'];
@@ -488,16 +484,26 @@ function slickgrid_modal_form_after_build(&$form, &$form_state){
   if(!slickgrid_callback_get_form_element($form, $form_state['field_name'])){
     drupal_set_message(t('Field not found'), 'error');
   }
+  //  dd($form);
   return $form;
 }
 
 function slickgrid_callback_get_form_element(&$form, $field_name){
   static $element_exists = false;
+  static $persistent_fields = array();
+  if(!count($persistent_fields)){
+    $persistent_fields = array_merge(array(
+      'form_build_id',
+      'form_token',
+      'form_id',
+      'submit'
+    ), slickgrid_get_persistent_fields());
+  }
   foreach(element_children($form) as $key){
-    if($form[$key]['#type'] == 'hidden' || $key === 'submit' || $form[$key]['#type'] == 'token'){
+  	if(in_array($key, $persistent_fields, true) || (isset($form[$key]['#type']) && $form[$key]['#type'] == 'token')){
       continue;
     }elseif($key === $field_name || (isset($form[$key]['#name']) && $form[$key]['#name'] == $field_name)){
-      $element_exists = true;
+    	$element_exists = true;
       if($form['#type'] == 'fieldset'){
         unset($form['#attributes']);
         // Groups will already have been removed so unset the attribute
@@ -579,7 +585,7 @@ function slickgrid_get_entity_keys($entity_type = null, $keys_to_ignore = array(
   foreach($entities_info as $entity_info){
     foreach($keys_to_ignore as $key_to_ignore){
       unset($entity_info['entity keys'][$key_to_ignore]);
-    }    
+    }
     $entity_keys += array_values($entity_info['entity keys']);
   }
   return $entity_keys;
