@@ -52,16 +52,29 @@ class DrupalServer extends WebSocketServer{
       if(file_exists($filepath)){
         $user->database_connection = unserialize(file_get_contents($filepath));
       }
-    } else {
-      $this->sendToAllUsersSameSite($user, $msg);
+    }elseif(substr($msg, 0, 12) == 'DRUPAL_USER:'){
+      $user->drupal_user = unserialize(trim(array_pop(explode(":", $msg))));
+    }else{
+      $this->sendToAllUsersButSameSite($user, $msg);
     }
   }
-  
+
   // Send to only users on the same site
-  function sendToAllUsersSameSite($user, $msg){  
+  function sendToAllUsersSameSite($user, $msg){
     foreach($this->users as $other_user){
       if($user->database_connection == $other_user->database_connection){
         $this->sendToUser($other_user, $msg);
+      }
+    }
+  }
+
+  // Send to only users on the same site
+  function sendToAllUsersButSameSite($user, $msg){
+    foreach($this->users as $other_user){
+      if($user != $other_user){
+        if($user->database_connection == $other_user->database_connection){
+          $this->sendToUser($other_user, $msg);
+        }
       }
     }
   }
