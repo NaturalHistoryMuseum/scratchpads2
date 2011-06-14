@@ -16,7 +16,8 @@ $plugin = array(
   'handler' => array(
     'class' => 'slickgrid_editors'
   ),
-  'process' => 'slickgrid_plugin_modal_form_process'
+  'process' => 'slickgrid_plugin_modal_form_process',
+  'error' => 'slickgrid_plugin_modal_form_error'
 ); // No specified field_types, so this plugin can be used for all fields
 
 /**
@@ -29,63 +30,38 @@ function slickgrid_plugin_modal_form_process($editor){
   // Include the ctools stuff
   ctools_include('modal');
   ctools_include('ajax');
-  $entity_info = entity_get_info($editor->entity_type);
-  if(isset($entity_info['edit callback']) && function_exists($entity_info['edit callback'])){
-    foreach($editor->entities as $entity){
-      // Use a new copy of $_POST as $form_state for each loop as it gets altered by submission process
-      $form_state = $_POST;
-      // Additional form_state settings required for ctools modal forms
-      $form_state['title'] = t('Update @label', array(
-        '@label' => $entity->{$entity_info['entity keys']['label']}
-      ));
-      $form_state['ajax'] = true;
-      $form_state['status'] = 1;
-      list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
-      if(!$bundle_name){
-        slickgrid_plugin_modal_form_error(t('No bundle name for this entity type'));
-      }
-      $form_id = call_user_func($entity_info['edit callback'], $bundle_name);
-      // Pass the entity to the submission process as an argument (eg, for nodes)
-      $form_state['build_info']['args'] = array(
-        $entity
-      );
-      $output = ctools_modal_form_wrapper($form_id, $form_state);
-      // If not submitted, we are just getting the form so exit the loop
-      if(!$form_state['submitted'] || form_get_errors()){
-        // We don't care about reporting form errors as it's ajax & the form will just fail validation
-        break;
-      }else{
-        $editor->set_updated($id, $vid);
-      }
-    } // End of foreach 
-    if(!empty($form_state['executed'])){ // Form has succesfully completed
-      // We're going to exit the process, so get editor result manually
-      $result = $editor->get_result();
-      slickgrid_callback_get_messages($result);
-      $output = array(
-        array(
-          'command' => 'slickgrid',
-          'response' => array(
-            'result' => $result
-          )
+  $form_state['values'] = $_POST;
+  // Additional form_state settings required for ctools modal forms
+  $editor->entity_info = entity_get_info($editor->entity_type);
+  $form_state['title'] = format_plural(count($editor->entities), 'Update 1 %type', 'Update @count %types', array(
+    '%type' => strtolower($editor->entity_info['label'])
+  ));
+  $form_state['ajax'] = true;
+  // Pass the editor object into the form_state
+  $form_state['editor'] = $editor;
+  $output = ctools_modal_form_wrapper('slickgrid_editor_form', $form_state);
+  if(!empty($form_state['executed'])){ // Form has succesfully completed  	
+    // We're going to exit the process, so get editor result manually
+    $result = $form_state['editor']->get_result();
+    slickgrid_callback_get_messages($result);
+    // Build a ctools ajax output array
+    $output = array(
+      array(
+        'command' => 'slickgrid',
+        'response' => array(
+          'result' => $result
         )
-      );
-      // Issue command to close the dialog
-      $output[] = ctools_modal_command_dismiss();
-    }
-    print ajax_render($output);
-    exit();
-  }else{
-    slickgrid_plugin_modal_form_error(t('Edit form not found'));
+      )
+    );
   }
+  print ajax_render($output);
+  exit();
 }
 
-/**
- * 
- * Error handler - render an error in the modal form & exit
- * @param string $err
- */
-function slickgrid_plugin_modal_form_error($err){
+function slickgrid_plugin_modal_form_error($error){
   print ctools_modal_render(t('Error'), $err);
   exit();
 }
+
+
+

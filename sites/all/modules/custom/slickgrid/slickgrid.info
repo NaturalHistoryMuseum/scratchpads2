@@ -14,3 +14,8 @@ files[] = slickgrid.install
 ; Views
 files[] = includes/slickgrid.views.inc
 files[] = includes/slickgrid_views_plugin.inc
+
+; Plugins
+files[] = plugins/editors/handler.class.php
+files[] = plugins/editors/ModalForm.inc
+files[] = plugins/editors/InlineCell.inc

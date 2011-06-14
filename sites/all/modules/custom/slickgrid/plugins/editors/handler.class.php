@@ -49,6 +49,12 @@ class slickgrid_editors{
     return $this->get_result();
   }
 
+  function handle_error($e){
+    if(function_exists($this->plugin['error'])){
+      $this->plugin['error']($e);
+    }
+  }
+
   // Set an error item
   function set_error($id, $err){
     $this->errors[$id] = $err;
