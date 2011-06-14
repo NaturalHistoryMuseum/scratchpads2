@@ -1,5 +1,3 @@
 name = "WebSockets"
 description = "Provides a basic WebSockets server that integrates with Drupal.  This allows other modules to use two-way messaging with client browsers."
 core = 7.x
-scripts[] = web-socket-js/swfobject.js
-scripts[] = web-socket-js/web_socket.js

@@ -15,7 +15,7 @@ class DrupalUser extends WSBaseUser{
   protected $maxIdle = 10;
 
   // The database details for connecting to Drupal
-  protected $database_connection;
+  public $database_connection;
 }
 
 /**
@@ -45,7 +45,25 @@ class DrupalServer extends WebSocketServer{
   // Here is where the hard work is done.  We need to connect to Drupal, 
   // process the message, and then check if there are any messages to return.
   function process($user, $msg){
-    $this->sendToAll($msg);
+    // If the message starts with "DATABASE_PATH", then we should try to set
+    // the database path for this user
+    if(substr($msg, 0, 14) == 'DATABASE_PATH:'){
+      $filepath = trim(array_pop(explode(":", $msg)));
+      if(file_exists($filepath)){
+        $user->database_connection = unserialize(file_get_contents($filepath));
+      }
+    } else {
+      $this->sendToAllUsersSameSite($user, $msg);
+    }
+  }
+  
+  // Send to only users on the same site
+  function sendToAllUsersSameSite($user, $msg){  
+    foreach($this->users as $other_user){
+      if($user->database_connection == $other_user->database_connection){
+        $this->sendToUser($other_user, $msg);
+      }
+    }
   }
 }
 $server = new DrupalServer();
