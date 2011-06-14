@@ -97,9 +97,8 @@ function websockets_test_callback(){
       };
         
       $(".form-submit").click(function(){
-        try{
-        	socket.send($(\'#websockets-test\').val());
-    		} catch(ex){ console.log("Second error");console.log(ex); }
+        ws.send($(\'#websockets-test\').val());
+        return false;
       });
     });
   })(jQuery);';
