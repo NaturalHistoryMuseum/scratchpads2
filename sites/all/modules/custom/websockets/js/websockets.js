@@ -1,20 +1,15 @@
 (function($){
   $(document).ready(function (){
     WEB_SOCKET_SWF_LOCATION = Drupal.settings.websockets.swfurl;
-    var ws = new WebSocket("ws://"+Drupal.settings.websockets.host+":"+Drupal.settings.websockets.port);
-    ws.onopen = function() {
-      ws.send("DATABASE_PATH:"+Drupal.settings.websockets.filepath);  // Sends a message.
+    Drupal.websockets = new Object;
+    Drupal.websockets.ws = new WebSocket("ws://"+Drupal.settings.websockets.host+":"+Drupal.settings.websockets.port);
+    Drupal.websockets.ws.onopen = function() {
+      Drupal.websockets.ws.send("DATABASE_PATH:"+Drupal.settings.websockets.filepath);
+      Drupal.websockets.ws.send("DRUPAL_USER:"+Drupal.settings.websockets.user);
     };
-    ws.onmessage = function(e) {
-      // Receives a message.
-      alert(e.data);
-    };
-    ws.onclose = function() {
-      alert("closed");
-    };
-      
+    Drupal.websockets.ws.onmessage = function(e) {};      
     $(".form-submit").click(function(){
-      ws.send($('#websockets-test').val());
+      Drupal.websockets.ws.send($('#websockets-test').val());
       return false;
     });
   });
