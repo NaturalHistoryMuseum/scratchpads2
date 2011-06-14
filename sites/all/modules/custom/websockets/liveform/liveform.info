@@ -1,0 +1,4 @@
+name = LiveForm
+description = Turns any form into a "Live form", enabling realtime collaboration accross the net.
+core = 7.x
+package = WebSockets
