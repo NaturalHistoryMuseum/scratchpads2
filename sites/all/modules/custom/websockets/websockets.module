@@ -62,13 +62,23 @@ function websockets_init(){
  * 
  */
 function websockets_add(){
+  // Only add websockets once per page.
+  static $added = 0;
+  if($added){
+    if($added == 1){
+      return FALSE;
+    } else {
+      return TRUE;
+    }
+  }
   // We also need to tell the WebSockets server how to connect to the database.
   // We do this by writing the database details to a random file in the files
   // folder of the site.  The path to this file is then handed to the socket
   // server.  
   global $databases;
-  $file_path = variable_get('websockets_database_settings_file_path', FALSE);
   global $base_url;
+  global $user;
+  $file_path = variable_get('websockets_database_settings_file_path', FALSE);
   $host = parse_url($base_url, PHP_URL_HOST);
   if(!$file_path || file_get_contents($file_path) != serialize($databases)){
     if(!$file_path){
@@ -78,6 +88,7 @@ function websockets_add(){
         watchdog('websockets', 'Unable to create database settings file in "%tempfolder"', array(
           '%tempfolder' => file_directory_temp()
         ));
+        $added = 1;
         return FALSE;
       }
       variable_set('websockets_database_settings_file_path', $file_path);
@@ -95,9 +106,11 @@ function websockets_add(){
         'absolute' => TRUE
       )) . drupal_get_path('module', 'websockets') . '/web-socket-js/WebSocketMain.swf',
       'host' => $host,
-      'port' => variable_get('websockets_port', 8080)
+      'port' => variable_get('websockets_port', 8080),
+      'user' => serialize($user)
     )
   ), 'setting');
+  $added = 2;
   return TRUE;
 }
 
