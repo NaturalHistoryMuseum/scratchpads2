@@ -63,9 +63,14 @@
                 var otheruser = nextlines.split(':');
                 delete Drupal.liveform.otherusers[otheruser[0]];
                 Drupal.liveform.setusermessage();
-              } else if($('#' + firstline)) {
-                if($('#liveform-checkbox:checked').length) {
-                  $('#' + firstline).val(nextlines);
+              } else if(firstline == 'LIVEFORM:Ping') {
+                var lines = nextlines.split('\n');
+                var firstline = lines.splice(0, 1);
+                var nextlines = lines.join('\n');
+                if($('#' + firstline)) {
+                  if($('#liveform-checkbox:checked').length) {
+                    $('#' + firstline).val(nextlines);
+                  }
                 }
               }
             } catch(e) {
@@ -75,8 +80,8 @@
               function(){
                 if($('#liveform-checkbox:checked').length) {
                   if($(this).attr('id')) {
-                    Drupal.liveform.ws.send($(this).attr('id') + '\n'
-                        + $(this).val());
+                    Drupal.liveform.ws.send('LIVEFORM:Ping\n'
+                        + $(this).attr('id') + '\n' + $(this).val());
                   }
                 }
               });
