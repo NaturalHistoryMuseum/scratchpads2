@@ -12,7 +12,7 @@ require_once dirname(__FILE__) . '/websocketserver/drupal.server.php';
 class DrupalUser extends WSBaseUser{
 
   // Allow only 10 seconds of idle time.
-  protected $maxIdle = 10;
+  protected $maxIdle = 300;
 
   // The database details for connecting to Drupal
   public $database_connection;

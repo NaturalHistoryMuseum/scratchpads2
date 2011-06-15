@@ -123,7 +123,6 @@ abstract class WebSocketServer{
             // have we shaken hands?
             // Special case for a policy file request from Flash
             if(trim(mb_convert_encoding($buffer, 'UTF-8')) == "<policy-file-request/>"){
-              echo "Sending policy\n";
               $msg = '<cross-domain-policy><allow-access-from domain="*" to-ports="*"/></cross-domain-policy>';
               socket_write($user->socket, $msg, strlen($msg));
               $this->disconnect($user->socket);
