@@ -5,7 +5,7 @@
  */
 // Plugin definition
 $plugin = array(
-  'title' => t('Collapsible formatter'),
+  'title' => t('Collapsible taxonomy formatter'),
   'description' => t('Tree formatter.'),
   'js' => array(
     'file' => 'slickgrid.formatters.js'
@@ -14,7 +14,8 @@ $plugin = array(
     'views_pre_view' => 'slickgrid_plugin_collapsible_formatter_views_pre_view'
   ),
   'field_types' => array(
-    'taxonomy_term_reference_link'
+    'taxonomy_term_reference_link',
+  	'taxonomy_term_reference_plain'
   )
 );
 

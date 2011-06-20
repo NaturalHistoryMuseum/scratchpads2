@@ -112,7 +112,7 @@ function slickgrid_library(){
         'system',
         'ui.resizable'
       ),
-            // Require jQuery UI effects by System module.
+      // Require jQuery UI effects by System module.
       array(
         'system',
         'effects.highlight'
@@ -120,92 +120,6 @@ function slickgrid_library(){
     )
   );
   return $libraries;
-}
-
-/**
- * 
- * Implementation of hook_entity_info_alter
- * 
- * Specifies the edit form (and any includes) for an entity type
- * Modules defining their own entities should also set the edit form id if they need their entity editable in slickgrid 
- * @param array $entity_info
- */
-function slickgrid_entity_info_alter(&$entity_info){
-  $entity_info['node']['edit callback'] = 'slickgrid_node_edit_callback';
-}
-
-/**
- * 
- * Get the node form id & include any files
- * @param object $node
- */
-function slickgrid_node_edit_callback($bundle){
-  module_load_include('inc', 'node', 'node.pages');
-  return $bundle . '_node_form';
-}
-
-/**
- * Implementation of hook_form_alter().
- */
-function slickgrid_form_alter(&$form, &$form_state, $form_id){
-  global $user;
-  if((arg(0) . '/' . arg(1)) == SLICKGRID_CALLBACK_PATH && arg(2) == 'update'){
-    $form['#after_build'][] = 'slickgrid_modal_form_after_build';
-    // Bug fix - all taxonomy fields need to be removed in hook_form_alter not _after_build()
-    // Get all taxonomy fields & remove them from the form
-    // TODO: Is there a better way of doing this?
-    $taxonomy_fields = slickgrid_get_fields_of_type('taxonomy_term_reference', $form['entity_type']);
-    // Ensure we don't remove the field being edited
-    if(array_key_exists($form_state['field_name'], $taxonomy_fields)){
-      unset($taxonomy_fields[$form_state['field_name']]);
-    }
-    $form = array_diff_key($form, $taxonomy_fields);
-    // Ensure values passed in from the slickgrid are persistent across the form rebuild
-    $form['field_name'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['field_name']
-    );
-    $form['field_id'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['field_id']
-    );
-    $form['view'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['view']
-    );
-    $form['display_id'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['display_id']
-    );
-    $form['plugin'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['plugin']
-    );
-    $form['revision'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['revision']
-    );
-    foreach($form_state['entity_ids'] as $entity_id){
-      $form['entity_ids'][] = array(
-        '#type' => 'hidden',
-        '#value' => $entity_id,
-        '#parents' => array(
-          'entity_ids',
-          ''
-        ) // Make these items into an array
-      );
-    }
-    $form['entity_type'] = array(
-      '#type' => 'hidden',
-      '#value' => $form_state['entity_type']
-    );
-    if($form_state['field_name'] !== 'status'){
-      $form['status'] = array(
-        '#type' => 'hidden',
-        '#value' => $form_state['status']
-      );
-    }
-  }
 }
 
 /**
@@ -251,21 +165,23 @@ function slickgrid_views_pre_view(&$view, $display_id){
   // Is this a slickgrid?
   if($view->display_handler->get_option('style_plugin') == 'slickgrid'){
     $style_options = $view->display_handler->get_option('style_options');
-    foreach($style_options['columns'] as $field_id => $column){
-      // Get all plugin types
-      foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
-        // Has the plugin been set for this column?
-        if(!empty($column[$plugin_type])){
-          if(!isset($plugins[$plugin_type])){
-            $plugins[$plugin_type] = slickgrid_get_plugins($plugin_type);
-          }
-          // Plugins can define callbacks for views+pre_view
-          if(isset($plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'])){
-            //Load the plugin file if there's a callback function
-            require_once DRUPAL_ROOT . '/' . $plugins[$plugin_type][$column[$plugin_type]]['path'] . '/' . $plugins[$plugin_type][$column[$plugin_type]]['file'];
-            // Get & call the function
-            $func = $plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'];
-            $func($view, $field_id, $display_id);
+    if(isset($style_options['columns'])){
+      foreach($style_options['columns'] as $field_id => $column){
+        // Get all plugin types
+        foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
+          // Has the plugin been set for this column?
+          if(!empty($column[$plugin_type])){
+            if(!isset($plugins[$plugin_type])){
+              $plugins[$plugin_type] = slickgrid_get_plugins($plugin_type);
+            }
+            // Plugins can define callbacks for views+pre_view
+            if(isset($plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'])){
+              //Load the plugin file if there's a callback function
+              require_once DRUPAL_ROOT . '/' . $plugins[$plugin_type][$column[$plugin_type]]['path'] . '/' . $plugins[$plugin_type][$column[$plugin_type]]['file'];
+              // Get & call the function
+              $func = $plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'];
+              $func($view, $field_id, $display_id);
+            }
           }
         }
       }
@@ -273,10 +189,30 @@ function slickgrid_views_pre_view(&$view, $display_id){
   }
 }
 
+/**
+ * 
+ * Implements hook_user_delete()
+ * @param user account object $account
+ */
 function slickgrid_user_delete($account){
   slickgrid_delete_settings(array(
     'uid' => $account->uid
   ));
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ * Add metadata so we know what to call to get the add entity form 
+ */
+function slickgrid_entity_info_alter(&$entity_info){
+  // foreach node bundle create an add callback 
+  $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'node') . "/node.pages.inc";
+  foreach($entity_info['node']['bundles'] as $type => $bundle){
+    $entity_info['node']['bundles'][$type]['add'] = array(
+      'callback' => $type . '_node_form',
+      'file' => $file
+    );
+  }
 }
 
 /*********************************************************************************************
@@ -339,7 +275,7 @@ function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){
   $options = array();
   $plugins = slickgrid_get_plugins($plugin_type);
   foreach($plugins as $type => $plugin){
-    if(!$plugin['field_types']){
+    if(!isset($plugin['field_types'])){
       $options[$type] = $plugin['title'];
     }elseif(in_array($field_type, $plugin['field_types'])){
       $options[$type] = $plugin['title'];
@@ -484,40 +420,6 @@ function slickgrid_add_modal(){
   drupal_add_js($style_settings, 'setting');
 }
 
-function slickgrid_modal_form_after_build(&$form, &$form_state){
-  if(!slickgrid_callback_get_form_element($form, $form_state['field_name'])){
-    drupal_set_message(t('Field not found'), 'error');
-  }
-  return $form;
-}
-
-function slickgrid_callback_get_form_element(&$form, $field_name){
-  static $element_exists = false;
-  foreach(element_children($form) as $key){
-    if($form[$key]['#type'] == 'hidden' || $key === 'submit' || $form[$key]['#type'] == 'token'){
-      continue;
-    }elseif($key === $field_name || (isset($form[$key]['#name']) && $form[$key]['#name'] == $field_name)){
-      $element_exists = true;
-      if($form['#type'] == 'fieldset'){
-        unset($form['#attributes']);
-        // Groups will already have been removed so unset the attribute
-        unset($form['#groups']);
-      }
-    }else{
-      if(count(element_children($form[$key]))){
-        // If this item has children, call again
-        slickgrid_callback_get_form_element($form[$key], $field_name);
-      }
-      // This needs to count again - if there are now no visible children, remove the element
-      if(!count(element_children($form[$key]))){
-        // If this item has children, call again
-        unset($form[$key]);
-      }
-    }
-  }
-  return $element_exists;
-}
-
 /**
  * 
  * Encode the columns as a json array
@@ -579,12 +481,18 @@ function slickgrid_get_entity_keys($entity_type = null, $keys_to_ignore = array(
   foreach($entities_info as $entity_info){
     foreach($keys_to_ignore as $key_to_ignore){
       unset($entity_info['entity keys'][$key_to_ignore]);
-    }    
+    }
     $entity_keys += array_values($entity_info['entity keys']);
   }
   return $entity_keys;
 }
 
+/**
+ * 
+ * Get all fields of a aprticular type
+ * @param string $type
+ * @param string $entity_type
+ */
 function slickgrid_get_fields_of_type($type, $entity_type = null){
   $query = db_select('field_config', 'fc');
   $query->fields('fc', array(
@@ -599,6 +507,135 @@ function slickgrid_get_fields_of_type($type, $entity_type = null){
   return $result->fetchAllKeyed();
 }
 
+/**
+ * 
+ * Default form used for editors
+ * @param array $form
+ * @param array $form_state
+ */
+function slickgrid_editor_form($form, &$form_state){
+  $editor = $form_state['editor'];
+  // Use the first entity - this will be used as the default value for all selected entities 
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Create an instance of the field
+    if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      $editor->set_error($id, t('Field doesn\'t exist'), 'form');
+      return;
+    }elseif($instance['required']){ // If any field instance is required, set required to true
+      $required = true;
+    }
+    // have we retrieved the form field yet?
+    if(!count($form)){
+      // file_field_widget_form() requires parents to be an array so ensure it is
+      $form['#parents'] = array();
+      // Invoke & return the field form
+      $form = _field_invoke_default('form', $editor->entity_type, $entity, $form, $form_state, array(
+        'field_id' => $editor->field_id,
+        'field_name' => $editor->field_id
+      ));
+    }
+  }
+  // If any of the bundles have the field as required, make the form field required
+  if($required){
+    $langcode = $form[$editor->field_id]['#language'];
+    $form[$editor->field_id][$langcode][0]['#required'] = $required;
+  }
+  // Ensure values passed in from the slickgrid are persistent across the form rebuild
+  foreach(array(
+    'field_name',
+    'field_id',
+    'view',
+    'display_id',
+    'plugin',
+    'revision',
+    'entity_type',
+    'entity_ids'
+  ) as $element_name){
+    if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
+      foreach($form_state['values'][$element_name] as $element_value){
+        $form[$element_name][] = array(
+          '#type' => 'hidden',
+          '#value' => $element_value,
+          '#parents' => array(
+            $element_name,
+            ''
+          ) // Make these items into an array
+        );
+      }
+    }else{
+      $form[$element_name] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['values'][$element_name]
+      );
+    }
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  return $form;
+}
 
+/**
+ * 
+ * Validate the slickgrid editor form
+ * If multiple items are being edited, need to ensure all are validated properly 
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function slickgrid_editor_form_validate($form, &$form_state){
+  $editor = &$form_state['editor'];
+  // Loop through all of the entities
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    if($instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      _field_invoke_default('extract_form_values', $editor->entity_type, $entity, $form, $form_state);
+      try{
+        field_attach_validate($editor->entity_type, $entity);
+        // If reached here, validation has passed
+        continue;
+      }
+      catch(FieldValidationException $e){
+        foreach($e->errors as $field_name => $field_errors){
+          $error .= $field_errors;
+        }
+      }
+    }else{
+      $error = t('Field doesn\'t exist');
+    }
+    // If got to this point the bundle failed validation
+    $editor->set_error($id, $error);
+    // Set form error to prevent form submission
+    form_set_error($editor->field_id, t('Validation error'));
+  }
+}
 
-
+function slickgrid_editor_form_submit($form, &$form_state){
+  $editor = &$form_state['editor'];
+  foreach($editor->entities as $entity){
+    // Get the entity ids
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Create an instance of the field
+    if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      // Add entity to the editor's error array
+      $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
+      continue;
+    }
+    // Populate the entity with the submitted values
+    entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);
+    // Try to save the entity
+    try{
+      entity_save($editor->entity_type, $entity);
+      // Add entity to the editor's updated array
+      $editor->updated[$id] = array(
+        'vid' => $vid
+      );
+    }
+    // ERROR: Entity save callback has thrown an exception
+    catch(Exception $e){
+      // Add entity to the editor's error array
+      $editor->set_error($id, t('Error trying to update entity'), 'submit');
+    }
+  }
+}

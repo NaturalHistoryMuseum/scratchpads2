@@ -176,8 +176,8 @@ input.editor-text {
   background: #fff;
 }
 
-.active-row .slick-cell.editable.invalid {
-  border-color: red;
+.slick-cell.invalid {
+  border-color: #CE0020!important;
 }
 
 /* Rows */
@@ -228,8 +228,10 @@ div.slick-cell-checkboxsel.selected{
 }  
 
 
-div.slick-cell-checkboxsel input{
+div.slick-cell-checkboxsel input,
+.slick-column-name input[type='checkbox']{
   margin-left: 3px;
+  margin-top: 6px;
 }
 
 .slick-cell.selected,
@@ -265,49 +267,112 @@ div.slick-cell-checkboxsel input{
   padding: 0;
 }
 
-/* Slickgrid loading bar */
-
-#slickgrid-loading-bar{
-  float: right;
-  width: 400px;
-  height: 20px;
-  margin-top: 4px;
-  text-align: right;
-  margin-right: 10px;  
-}
-
-#slickgrid-loading-bar.loading{
-  background: url('../images/loading-bar.gif') no-repeat right;
-}
-
 /* Slickgrid status */
 
 #slickgrid-status{
   float: right;
-  margin-top: 4px;
-  text-align: right;
-
+  margin-top: 3px;
+  text-align: center;
+  height: 26px;
+  min-width: 30px;
+  border-left: 1px solid #B2B2B2;  
+  margin-left: 5px;
 }
 
-/* Only give it dimensions when it has content*/
-#slickgrid-status.slickgrid-error,
-#slickgrid-status.slickgrid-no-error{
-  height: 20px;
-  width: 16px;
+#slickgrid-status.slickgrid-loading{
+  background: url('../images/ajax-loader.gif') no-repeat center;
 }
 
-#slickgrid-status.slickgrid-error{
-  background: url('../images/error.png') no-repeat left;
+#slickgrid-status span{
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  height: 12px;
+  color: #fff;
+  display: inline-block;
+  line-height: 8px;
+  padding: 1px 2px 0 2px;
+  min-width: 12px;
+  margin-top: 6px;
 }
 
-#slickgrid-status.slickgrid-no-error{
-  background: url('../images/no-error.png') no-repeat left;
+#slickgrid-status span.slickgrid-status-errors{
+  background-color: #CE0020;
+  cursor: pointer;
+}
+
+#slickgrid-status span.slickgrid-status-success{
+  background-color: #9BBF19;
+  cursor: pointer;
+}
+
+.slickgrid-dialog h6{
+  font-size: 1.2em;
+  color: inherit!important;
+  margin-top: 0!important;
+  font-weight: bold;
+}
+
+.slickgrid-dialog button{
+  margin-right: 10px;
+}
+
+.slickgrid-dialog input{
+  display: block;
+}
+
+.slickgrid-dialog input#export-selected-rows{
+  display: inline;
+}
+
+.slickgrid-dialog label{
+  display: inline-block;
+  margin-left: 5px;
+  font-weight: normal;
 }
 
 /* Response messages */
 
 ul.slickgrid-messages{
   margin: 0;
+  padding: 0 6px!important;
+}
+
+ul.slickgrid-messages li{
+  list-style: none;
+  padding-left: 24px;
+}
+
+ul.slickgrid-messages li.status{
+  background: url('../images/no-error.png') no-repeat left;
+}
+
+ul.slickgrid-messages li.error{
+  font-weight: bold;
+  color: #CE0020;
+  padding: 0;
+}
+
+ul.slickgrid-messages li.error .item-list{
+  max-height: 100px;
+  overflow-y: auto;
+  color: inherit!important;
+  margin-top: 10px;
+  font-weight: normal;
+  color: #000;
+}
+
+
+
+
+ul.slickgrid-messages li ul{
+  margin-top: 0!important;
+}
+
+ul.slickgrid-messages li ul li{
+  padding-left: 0;
+  list-style: disc!important;
+  color: #333;
 }
 
 /* Context menu */
@@ -321,25 +386,21 @@ ul.slickgrid-messages{
 	z-index: 99999;
   padding-bottom: 5px;
   background: #F4F4F4;
+  font-size: 0.9em;
 }
 
-.slick-columnpicker{
-  font-size: 0.9em;
+.slick-columnpicker label{
+  display: inline;
+  font-weight: normal;
 }
 
 .slick-columnpicker hr{
   margin: 5px;
-  border: 1px inset #F4F4F4;
+  border: 1px inset #B2B2B2;
 }
 
 /* Dialog */
-
-/*.bt-wrapper,
-.bt-wrapper canvas{
-/*  height: 100px!important;*/
-}
-
 .bt-content{
   background-color: #fff;
   border: 1px solid #A5A5A5;
-}*/
+}
