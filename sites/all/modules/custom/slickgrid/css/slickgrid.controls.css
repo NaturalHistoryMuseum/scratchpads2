@@ -12,10 +12,6 @@
   text-align: center;
 }
 
-#controls .slickgrid-control.bt-active{
-  background: #ddd;
-}
-
 #controls .slickgrid-control span.slickgrid-control-button{
   opacity: 0.5;
   background-repeat: no-repeat;
@@ -37,6 +33,11 @@ opacity: 1;
 
 #controls #slickgrid-pager .slick-pager-settings span{
   display: none;
+}
+
+#controls #slickgrid-pager  .slick-pager{
+  background: none!important;
+  border-style: none!important;
 }
 
 #controls #slickgrid-pager span.slick-pager-nav{
@@ -124,7 +125,11 @@ opacity: 1;
 /* Add control */
 
 #slickgrid-add span{
-  background-image: url('../images/delete.png');
+  background-image: url('../images/add.png');
+}
+
+#slickgrid-add span:hover{
+  background-image: url('../images/add-active.png');
 }
 
 /* Delete control */
@@ -146,19 +151,19 @@ opacity: 1;
 /* Export control */
 
 #slickgrid-export span{
-  background-image: url('../images/undo.png');
+  background-image: url('../images/export.png');
 }
 
 #slickgrid-export span.enabled:hover{
-  background-image: url('../images/undo-active.png');
+  background-image: url('../images/export-active.png');
 }
 
 #slickgrid-clone span{
-  background-image: url('../images/undo.png');
+  background-image: url('../images/copy.png');
 }
 
 #slickgrid-clone span.enabled:hover{
-  background-image: url('../images/undo-active.png');
+  background-image: url('../images/copy-active.png');
 }
 
 /* Export links are part of the feed icon links */

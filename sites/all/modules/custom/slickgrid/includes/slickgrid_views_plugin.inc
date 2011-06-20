@@ -9,7 +9,7 @@ class slickgrid_views_plugin extends views_plugin_style{
 
   function init(&$view, &$display, $options = NULL){
     parent::init($view, $display, $options);
-    if(isset($options['pager'])){
+    if(isset($options['pager']) && $options['pager']){
       // If using slickgrid pager, need to set items per page to 0 so all items are available
       $this->display->handler->default_display->options['pager']['options']['items_per_page'] = 0;
     }
@@ -144,6 +144,9 @@ class slickgrid_views_plugin extends views_plugin_style{
    */
   function options_form(&$form, &$form_state){
     parent::options_form($form, $form_state);
+    $form['#attached']['js'] = array(
+      drupal_get_path('module', 'slickgrid') . '/js/slickgrid.admin.js'
+    );
     $handlers = $this->display->handler->get_handlers('field');
     if(!isset($this->options['columns'])){
       $this->options['columns'] = array();
@@ -207,12 +210,15 @@ class slickgrid_views_plugin extends views_plugin_style{
             '#markup' => t('This field cannot be edited.')
           );
           continue;
-        }        
+        }
         if(count($plugin_options = slickgrid_get_plugin_options_for_field($plugin_type, (isset($handlers[$field_id]->options['type']) ? $handlers[$field_id]->options['type'] : null)))){
           $form['columns'][$field_id][$plugin_type] = array(
             '#type' => 'select',
             '#default_value' => (isset($this->options['columns'][$field_id][$plugin_type]) ? $this->options['columns'][$field_id][$plugin_type] : ''),
-            '#options' => $plugin_options
+            '#options' => $plugin_options,
+            '#attributes' => array(
+              'class' => array($plugin_type)
+            )
           );
         }else{
           $form['columns'][$field_id][$plugin_type] = array(
@@ -446,7 +452,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     );
     $form['editing']['export_selected_rows'] = array(
       '#title' => t('Export selected rows'),
-      '#description' => t('Allow users to select rows to export.'),
+      '#description' => t('Allow users to select rows to export (requires views data export).'),
       '#type' => 'checkbox',
       '#default_value' => $this->options['export_selected_rows'],
       '#parents' => array(
@@ -516,8 +522,8 @@ class slickgrid_views_plugin extends views_plugin_style{
   function list_addable_entities(){
     $entities = array();
     foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
-      if(isset($entity_info['edit callback'])){
-        foreach($entity_info['bundles'] as $bundle_name => $bundle){
+      foreach($entity_info['bundles'] as $bundle_name => $bundle){
+        if($bundle['add']){
           $entities[$entity_type . '/' . $bundle_name] = $entity_info['label'] . ': ' . $bundle['label'];
         }
       }

@@ -16,9 +16,11 @@ $plugin = array(
   'handler' => array(
     'class' => 'slickgrid_editors'
   ),
+  'field_types' => array_keys(field_info_formatter_types()), // Works for all fields
   'process' => 'slickgrid_plugin_modal_form_process',
   'error' => 'slickgrid_plugin_modal_form_error'
 ); // No specified field_types, so this plugin can be used for all fields
+
 
 /**
  * 
@@ -58,9 +60,12 @@ function slickgrid_plugin_modal_form_process($editor){
   exit();
 }
 
-function slickgrid_plugin_modal_form_error($error){
-  print ctools_modal_render(t('Error'), $err);
-  exit();
+function slickgrid_plugin_modal_form_error($id, $error, $op){
+  // If we're not in the submission process print error & exit
+  if($op != 'submit'){
+    print ctools_modal_render(t('Error'), $error);
+    exit();
+  }
 }
 
 

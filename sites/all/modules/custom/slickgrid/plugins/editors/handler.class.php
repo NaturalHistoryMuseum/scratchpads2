@@ -28,6 +28,9 @@ class slickgrid_editors{
 
   var $display_id;
 
+  // Function for handling errors
+  var $error_callback;
+
   function __construct($plugin){
     $this->plugin = $plugin;
     // Entity variables
@@ -40,8 +43,16 @@ class slickgrid_editors{
     $this->field_id = $_POST['field_id'];
     $this->view = $_POST['view'];
     $this->display_id = $_POST['display_id'];
+    // Register the error handler if one exists
+    if(function_exists($this->plugin['error'])){
+      $this->error_callback = $this->plugin['error'];
+    }
   }
 
+  /**
+   * 
+   * Do the actual update - passes the update to the plugin's process functions
+   */
   function update(){
     if(function_exists($this->plugin['process'])){
       $this->plugin['process']($this);
@@ -49,15 +60,29 @@ class slickgrid_editors{
     return $this->get_result();
   }
 
-  function handle_error($e){
-    if(function_exists($this->plugin['error'])){
-      $this->plugin['error']($e);
+  /**
+   * 
+   * Log an error to the editor
+   * @param entity id $id
+   * @param strign - error $error
+   * @param where in the process the error is - either submit or validate $op
+   */
+  function set_error($id, $error, $op = 'validate'){
+    // Register the error
+    $this->errors[$id] = t('%title can not be edited: @error', array(
+      '%title' => $this->entities[$id]->title,
+      '@error' => $error
+    ));
+    // Remove the entity so it won't be updated
+    unset($this->entities[$id]);
+    // If there's an error callback, call it
+    if(isset($this->error_callback)){
+      call_user_func_array($this->error_callback, array(
+        $id,
+        $this->errors[$id],
+        $op
+      ));
     }
-  }
-
-  // Set an error item
-  function set_error($id, $err){
-    $this->errors[$id] = $err;
   }
 
   // Set an update item
@@ -84,7 +109,11 @@ class slickgrid_editors{
       drupal_set_message(format_plural($count_updated, 'One item was updated succesfully.', '@count items were updated succesfully.'));
     }
     if($count_errors = count($this->errors)){
-      drupal_set_message(format_plural($count_errors, 'There was an error.', 'There were @count errors.'), 'error');
+      $message = format_plural($count_errors, 'Update failed: there was an error', 'Update failed: There were @count errors.');
+      $message .= theme('item_list', array(
+        'items' => $this->errors
+      ));
+      drupal_set_message($message, 'error');
     }
     // Return array of data to be returned to the grid
     return array(

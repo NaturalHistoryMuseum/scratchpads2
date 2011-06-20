@@ -18,6 +18,7 @@ $plugin = array(
     'number_integer'
   ),
   'process' => 'slickgrid_plugin_inline_cell_process',
+  'error' => 'slickgrid_plugin_inline_cell_error',
   'handler' => array(
     'class' => 'slickgrid_editors'
   )
@@ -40,15 +41,11 @@ function slickgrid_plugin_inline_cell_process($editor){
   $form_state['programmed'] = true;
   // Additional form_state settings required for ctools modal forms
   $editor->entity_info = entity_get_info($editor->entity_type);
+  $form_state['values'] = $_POST;
   $form_state['editor'] = $editor;
   // Form isn't being displayed - so no rendering or redirecting
   $form_state['re_render'] = true;
   $form_state['no_redirect'] = true;
+  // Build & submit the form
   drupal_build_form('slickgrid_editor_form', $form_state);
-  if(count($errors = form_get_errors())){
-    foreach($errors as $error){
-      $editor->errors[] = $error;
-    }
-  }
 }
-

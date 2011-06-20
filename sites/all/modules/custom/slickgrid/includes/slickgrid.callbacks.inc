@@ -57,9 +57,11 @@ function slickgrid_callback_delete(){
  */
 function slickgrid_callback_settings(){
   global $user;
-  slickgrid_set_settings($user->uid, $_POST['view'], $_POST['display_id'], array(
-    $_POST['setting'] => $_POST['value']
-  ));
+  if($user->uid){ // do not save settings for anonymous users
+    slickgrid_set_settings($user->uid, $_POST['view'], $_POST['display_id'], array(
+      $_POST['setting'] => $_POST['value']
+    ));
+  }
 }
 
 /**
@@ -121,9 +123,10 @@ function slickgrid_callback_clone(){
 function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display_id){
   global $user;
   $entity_info = entity_get_info($entity_type);
-  // See if there's an edit callback funtion defined for the entity
-  if(function_exists($entity_info['edit callback'])){
-    $form_id = call_user_func($entity_info['edit callback'], $bundle_type);
+  // We've defined add settings for this in slickgrid_entity_info_alter()
+  $form_id = $entity_info['bundles'][$bundle_type]['add']['callback'];
+  if($entity_info['bundles'][$bundle_type]['add']['file']){
+    require_once ($entity_info['bundles'][$bundle_type]['add']['file']);
   }
   ctools_include('modal');
   ctools_include('ajax');

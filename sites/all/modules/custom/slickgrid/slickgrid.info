@@ -5,6 +5,7 @@ dependencies[] = ctools
 dependencies[] = libraries
 dependencies[] = entity
 dependencies[] = beautytips
+dependencies[] = jquery_update
 package = "Views"
 core = 7.x
 

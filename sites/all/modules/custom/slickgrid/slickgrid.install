@@ -1,6 +1,39 @@
 <?php
 
 /**
+ * Implementation of hook_requirements().
+ */
+function slickgrid_requirements($phase){
+  $requirements = array();
+  if($phase == 'runtime'){
+    $t = get_t();
+    $slickgrid_library = drupal_get_library('slickgrid', 'slickgrid');
+    foreach($slickgrid_library['js'] as $path => $js){
+      if(!file_exists($path)){
+        $requirements['slickgrid'] = array(
+          'severity' => REQUIREMENT_ERROR,
+          'title' => $slickgrid_library['title'],
+          'value' => $t('Missing'),
+          'description' => $t('The slickgrid library isn\'t available so this module will not work. Please download slickgrid %version from !website.', array(
+            '!website' => l($slickgrid_library['website'], $slickgrid_library['website']),
+            '%version' => $slickgrid_library['version']
+          ))
+        );
+        break;
+      }
+    }
+    if(!$requirements['slickgrid']){
+      $requirements['slickgrid'] = array(
+        'severity' => REQUIREMENT_OK,
+        'title' => $slickgrid_library['title'],
+        'value' => $slickgrid_library['version']
+      );
+    }
+  }
+  return $requirements;
+}
+
+/**
  * Implementation of hook_schema().
  */
 function slickgrid_schema(){

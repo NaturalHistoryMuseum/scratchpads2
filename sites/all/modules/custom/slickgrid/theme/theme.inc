@@ -40,7 +40,6 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     }else{
       $column_width = 100;
     }
-
     $column = array(
       'id' => $field_id, // The ID of the field from the view - NO DUPLICATES ALLOWED
       'name' => $field_handler->options['label'], // Column title / label
@@ -49,13 +48,11 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       'cssClass' => 'cell-title',
       'resizable' => ($view->style_plugin->options['enableColumnResize'] ? 1 : 0)
     );
-    
     if(isset($field_handler->definition['field_name'])){
-    	$column['fieldName'] = $field_handler->definition['field_name'];
+      $column['fieldName'] = $field_handler->definition['field_name'];
     }else{
-    	$column['fieldName'] = $field_handler->real_field;
+      $column['fieldName'] = $field_handler->real_field;
     }
-    
     // Loop through all the plugin types and see if it's been set for this column
     foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
       // Is there an plugin defined for this column
@@ -90,7 +87,10 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             break;
           case 'filter':
             $view->style_plugin->options['filterable'] = TRUE;
-            $view->style_plugin->options['showHeaderRow'] = TRUE;
+            // DOn't show header row if this is a collapsibleFilter plugin - that happens within the data
+            if($view->style_plugin->options['columns'][$field_id][$plugin_type] != 'collapsibleFilter'){
+              $view->style_plugin->options['showHeaderRow'] = TRUE;
+            }
             break;
         }
       }
@@ -107,7 +107,6 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     // If this is an order column, add it to the ordered columns array in the approprioate place
     if(isset($view->style_plugin->options['ordered_columns']) && is_numeric($ordered_column_position = array_search($field_id, $view->style_plugin->options['ordered_columns']))){ // This is an ordered column
       if(!empty($view->style_plugin->options['columns'][$field_id]['tab'])){
-      	
         $column['tab'] = $view->style_plugin->options['columns'][$field_id]['tab'];
         $tabs[$view->style_plugin->options['columns'][$field_id]['tab']]['ordered_columns'][$ordered_column_position] = $column;
       }else{
@@ -120,14 +119,13 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       }else{
         $unordered_columns[] = $column;
       }
-    }    
+    }
   }
   // sort the ordered columns based on key (the ordered column position)
   ksort($ordered_columns);
   // Merge ordered & unordered columns 
   // Any unordered columns are added to the end to allow for new columns added through the view
   $view->columns = array_merge($ordered_columns, $unordered_columns);
-  
   if(count($tabs)){
     $tab_offset = 0;
     // All tabbed columns are added after un-tabbed columns
@@ -151,7 +149,6 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       'view' => $view
     ));
   }
-  
   $parents = array(); // array of tid => array(nid => nid, indent => indent) so we can retrive the nid & indentation of a parent node
   $view->data = array(); // The array of data to be used by slickgrid
   // Loop through all the rows, constructing the data set
@@ -177,7 +174,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             $item[$column['id']] = $view->field[$column['id']]->theme($row);
             // If the value is null, make it an empty string ""
             if(is_null($item[$column['id']])){
-            	$item[$column['id']] = '';
+              $item[$column['id']] = '';
             }
           }
         }
@@ -306,8 +303,9 @@ function theme_slickgrid_controls($variables){
     drupal_add_css($library_path . '/js/slickgrid/controls/slick.pager.css');
     $output .= '<div class="slickgrid-control" id="slickgrid-pager"></div>';
   }
+  $output .= '<div id="slickgrid-status"></div>';
   if($view->style_plugin->options['add']){
-    $output .= '<div class="slickgrid-control" id="slickgrid-add">' . ctools_modal_text_button(t('Add'), SLICKGRID_CALLBACK_PATH . '/add/' . $view->style_plugin->options['add'] . '/' . $variables['view']->name . '/' . $variables['view']->current_display, t('Add'), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
+    $output .= '<div class="slickgrid-control" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', SLICKGRID_CALLBACK_PATH . '/add/' . $view->style_plugin->options['add'] . '/' . $variables['view']->name . '/' . $variables['view']->current_display, t('Add'), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
   }
   // Add controls defined by our slickgrid module (undo, export, delete)
   if($view->style_plugin->options['undo']){
@@ -326,8 +324,6 @@ function theme_slickgrid_controls($variables){
     drupal_add_js($path . '/js/controls/slickgrid.clone.js');
     $output .= '<div class="slickgrid-control" id="slickgrid-clone"></div>';
   }
-  $output .= '<div id="slickgrid-status"></div>';
-  $output .= '<div id="slickgrid-loading-bar"></div>';
   return $output;
 }
 

@@ -23,8 +23,7 @@ var dataView;
         var locked; // Is this grid locked? We use own locking mechanism, so it prevents editing across the whole grid
         
         // Remove
-        var $status; // $status container for result icons & messages
-        var $loadingBar; // $loadingBar container for loading bar
+        var $status; // $status container for result icons & messages & loading ic
         
         // Controls
         var undoControl;
@@ -36,7 +35,6 @@ var dataView;
             
             
             $status = $('#slickgrid-status');
-            $loadingBar = $('#slickgrid-loading-bar');
             
             // Add row checkboxes if multi edit, delete or clone is enabled
             if (options['row_selection_checkbox']) {
@@ -337,13 +335,7 @@ var dataView;
           
           setActiveRow(ui.row); 
 
-          // BUG fix: need to turn off & remove tooltips prior to re-editing
-          cellNode = grid.getCellNode(ui.row, ui.cell);  
-
-          if(typeof $(cellNode).attr('bt-xTitle') != 'undefined'){
-            $(cellNode).btOff();  
-            $(cellNode).bt({removeTip: 1});            
-          }          
+          cellNode = grid.getCellNode(ui.row, ui.cell);     
 
           $(cellNode).removeClass('invalid');
           
@@ -593,7 +585,7 @@ var dataView;
           lock();
 
           // Show loading bar is working
-          updateLoadingBar(true);
+          updateStatus({loading: true});
           
           // Check to see if there is an AJAX request already in
           // progress that needs to be stopped.
@@ -649,24 +641,30 @@ var dataView;
             callback('log', {error : errorLog});
           
           }
-          
-          updateLoadingBar(false);
+
           updateStatus(true, errorMessage);
           
         }
         
         function callbackSuccess(response, status){
           
+          // Ensure there are no invalid cells selected from previous update
+          $('div.invalid').removeClass('invalid');
+          
           deselectAllRows();
           
-          updateLoadingBar(false);
+          var status = {
+            loading: false,
+            success: 0,
+            errors: 0
+          };
 
           if(response){
             
             // Are there any update nodes
             if(response.updated){
 
-                $.each(response.updated, function(id, node) { 
+                $.each(response.updated, function(id, entity) { 
                 
                   // Get the row denoted by the nid
                   row = dataView.getRowById(id);
@@ -675,62 +673,53 @@ var dataView;
                   var item = dataView.getItem(row);
                 
                   // Update the item with the new value (if necessary)
-                  if(item[response.field_id] != node.value){
+                  if(item[response.field_id] != entity.value){
 
                       // Change the value
-                      item[response.field_id] = node.value;
+                      item[response.field_id] = entity.value;
 
                       // Update the dataView
                       dataView.updateItem(item.id, item);
 
                   }           
                 
+                status.success++;
                 
                 });
 
               // Are we allowing undoing content (there will be a command queue if we are)
-              if(options['undo'] && response.op == 'update'){              
+              if(options['undo'] && response.op == 'update' && status.success > 0){              
                 // Add the update items to the undo command queue
                 undoControl.queueCommand(response.updated);
                 
               }
+              
+            
 
             }
             
             // Were there any errors?
-            if(typeof response.errors != 'undefined' && response.errors.length){  
+            if(typeof response.errors !== 'undefined'){  
 
-              response.error = true;
-
-              $.each(response.errors, function(nid, errorMessage) { 
+              $.each(response.errors, function(id, err) { 
                 
-                if(errorMessage[response.field_name]){
-                  
-                  row = dataView.getRowById(nid);
-
-                  cell = grid.getColumnIndex(response.field_id);
+                // console.log
+                // Get the row denoted by the nid
+                row = dataView.getRowById(id);
+              
+                // Get the data item for the row
+                cell = grid.getColumnIndex(response.field_id);
                 
-                  cellNode = grid.getCellNode(row, cell);
+                cellNode = grid.getCellNode(row, cell);
                 
-                  $(cellNode).addClass('invalid');
-                  
-                   $(cellNode).bt(errorMessage[response.field_name], {
-                    positions : 'right',
-                    fill : 'rgba(0, 0, 0, .7)',
-                    strokeWidth : 0,
-                    spikeLength : 10,
-                    cssStyles : {
-                      color : 'white',
-                      'font-size' : '10px'
-                    },
-                    width: 150,
-                    closeWhenOthersOpen : true
-                  });
+                $(cellNode).addClass('invalid');
+                $(cellNode).stop(true,true).effect("highlight", {color:"red"}, 300);
                 
-                }
+                status.errors++;
                 
                                          
               });
+              
               
             }
             
@@ -739,13 +728,13 @@ var dataView;
               
               $.each(response.deleted, function(i, id) {
                  dataView.deleteItem(id);
+                 status.success++;
                });
               
             }
 
-            if(response.messages){
-            updateStatus(response.error, response.messages);
-            }
+            updateStatus(status, response.messages);
+            
             
             // If the callback has returned a new data array (which will happen on node clone & node add) reload the data
             if(typeof response.data === 'object'){
@@ -763,27 +752,41 @@ var dataView;
           
         }
         
-        function updateStatus(error, statusMessages){
+        function updateStatus(status, statusMessages){
 
-           if(error){
-             $status.attr('class', 'slickgrid-error');
-           }else{
-             $status.attr('class', 'slickgrid-no-error');
-           }
-           
-           $status.click(function(){
-             openDialog($status, Drupal.theme('slickgridMessages', statusMessages));
-           })       
-          
-        }
+          $status.empty();
 
-        function updateLoadingBar(loading){
-                    
-          if(loading){
-            $loadingBar.addClass('loading');
+          if(typeof status.loading !== 'undefined' && status.loading){
+            $status.addClass('slickgrid-loading');
           }else{
-            $loadingBar.removeClass('loading');
+            
+            $status.removeClass('slickgrid-loading');
+            
+            
+            
+            if(status.errors){
+              
+              $('<span class="slickgrid-status-errors">'+status.errors+'</span>').appendTo($status);
+              
+            }
+            
+            if(status.success){
+              
+              $('<span class="slickgrid-status-success">'+status.success+'</span>').appendTo($status);
+              
+            }
+
+            if(statusMessages){
+              $status.click(function(){
+                openDialog($status, Drupal.theme('slickgridMessages', statusMessages));
+              })              
+            }
+
+            
           }
+
+           
+      
           
         }
         
@@ -825,7 +828,7 @@ var dataView;
             width: 200,
             trigger : 'none',  // Already clicked so manually activate
             cornerRadius: 0,
-            overlap: 4,
+            overlap: 7,
           };
 
           if(typeof content == 'object'){

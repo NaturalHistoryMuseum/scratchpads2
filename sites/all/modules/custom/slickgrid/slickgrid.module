@@ -189,10 +189,30 @@ function slickgrid_views_pre_view(&$view, $display_id){
   }
 }
 
+/**
+ * 
+ * Implements hook_user_delete()
+ * @param user account object $account
+ */
 function slickgrid_user_delete($account){
   slickgrid_delete_settings(array(
     'uid' => $account->uid
   ));
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ * Add metadata so we know what to call to get the add entity form 
+ */
+function slickgrid_entity_info_alter(&$entity_info){
+  // foreach node bundle create an add callback 
+  $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'node') . "/node.pages.inc";
+  foreach($entity_info['node']['bundles'] as $type => $bundle){
+    $entity_info['node']['bundles'][$type]['add'] = array(
+      'callback' => $type . '_node_form',
+      'file' => $file
+    );
+  }
 }
 
 /*********************************************************************************************
@@ -252,7 +272,6 @@ function slickgrid_get_plugin_types(){
 }
 
 function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){
-  if(!isset($field_type)){return;}
   $options = array();
   $plugins = slickgrid_get_plugins($plugin_type);
   foreach($plugins as $type => $plugin){
@@ -497,23 +516,31 @@ function slickgrid_get_fields_of_type($type, $entity_type = null){
 function slickgrid_editor_form($form, &$form_state){
   $editor = $form_state['editor'];
   // Use the first entity - this will be used as the default value for all selected entities 
-  $entity = current($editor->entities);
-  list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
-  // Create an instance of the field
-  if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
-    $editor->handle_error(t('The field %field_id doesn\'t exist for this %type.', array(
-      '%field_id' => $editor->field_id,
-      '%type' => $editor->entity_info['label']
-    )));
-    return;
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Create an instance of the field
+    if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      $editor->set_error($id, t('Field doesn\'t exist'), 'form');
+      return;
+    }elseif($instance['required']){ // If any field instance is required, set required to true
+      $required = true;
+    }
+    // have we retrieved the form field yet?
+    if(!count($form)){
+      // file_field_widget_form() requires parents to be an array so ensure it is
+      $form['#parents'] = array();
+      // Invoke & return the field form
+      $form = _field_invoke_default('form', $editor->entity_type, $entity, $form, $form_state, array(
+        'field_id' => $editor->field_id,
+        'field_name' => $editor->field_id
+      ));
+    }
   }
-  // file_field_widget_form() requires parents to be an array so ensure it is
-  $form['#parents'] = array();
-  // Invoke & return the field form
-  $form = _field_invoke_default('form', $editor->entity_type, $entity, $form, $form_state, array(
-    'field_id' => $editor->field_id,
-    'field_name' => $editor->field_id
-  ));
+  // If any of the bundles have the field as required, make the form field required
+  if($required){
+    $langcode = $form[$editor->field_id]['#language'];
+    $form[$editor->field_id][$langcode][0]['#required'] = $required;
+  }
   // Ensure values passed in from the slickgrid are persistent across the form rebuild
   foreach(array(
     'field_name',
@@ -550,6 +577,40 @@ function slickgrid_editor_form($form, &$form_state){
   return $form;
 }
 
+/**
+ * 
+ * Validate the slickgrid editor form
+ * If multiple items are being edited, need to ensure all are validated properly 
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function slickgrid_editor_form_validate($form, &$form_state){
+  $editor = &$form_state['editor'];
+  // Loop through all of the entities
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    if($instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      _field_invoke_default('extract_form_values', $editor->entity_type, $entity, $form, $form_state);
+      try{
+        field_attach_validate($editor->entity_type, $entity);
+        // If reached here, validation has passed
+        continue;
+      }
+      catch(FieldValidationException $e){
+        foreach($e->errors as $field_name => $field_errors){
+          $error .= $field_errors;
+        }
+      }
+    }else{
+      $error = t('Field doesn\'t exist');
+    }
+    // If got to this point the bundle failed validation
+    $editor->set_error($id, $error);
+    // Set form error to prevent form submission
+    form_set_error($editor->field_id, t('Validation error'));
+  }
+}
+
 function slickgrid_editor_form_submit($form, &$form_state){
   $editor = &$form_state['editor'];
   foreach($editor->entities as $entity){
@@ -558,7 +619,7 @@ function slickgrid_editor_form_submit($form, &$form_state){
     // Create an instance of the field
     if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
       // Add entity to the editor's error array
-      $editor->errors[$id] = t('Field does not exist for this bundle');
+      $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
       continue;
     }
     // Populate the entity with the submitted values
@@ -574,7 +635,7 @@ function slickgrid_editor_form_submit($form, &$form_state){
     // ERROR: Entity save callback has thrown an exception
     catch(Exception $e){
       // Add entity to the editor's error array
-      $editor->errors[$id] = t('Error trying to update entity');
+      $editor->set_error($id, t('Error trying to update entity'), 'submit');
     }
   }
 }
