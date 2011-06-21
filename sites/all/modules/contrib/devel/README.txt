@@ -29,11 +29,12 @@ You can use svn checkout http://firephp.googlecode.com/svn/trunk/trunk/Libraries
 Then you can log php variables to the Firebug console. Is quite useful.
 
 Included in this package is also: 
-
-- devel_node_access module which prints out the node_access records for a given node. Also offers hook_node_access_explain for all node access modules to implement. Handy.
-- devel_generate.module which bulk creates nodes, users, comment, terms for development
-
-Some nifty drush integration ships with devel and devel_generate. See drush help for details.
+- devel_node_access module which prints out the node_access records for a given 
+  node. Also offers hook_node_access_explain for all node access modules to 
+  implement. Handy.
+- devel_generate.module which bulk creates nodes, users, comment, terms for 
+  development.
+- performance module.
 
 COMPATIBILITY NOTES
 ==================
@@ -45,4 +46,3 @@ AUTHOR/MAINTAINER
 ======================
 -moshe weitzman <weitzman at tejasa DOT com>
 http://cyrve.com
-Hans Salvisberg <drupal at salvisberg DOT com>
