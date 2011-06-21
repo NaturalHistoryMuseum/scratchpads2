@@ -25,13 +25,13 @@ $plugin = array(
 function ctools_term_from_node_context($context, $conf) {
   // If unset it wants a generic, unfilled context, which is just NULL.
   if (empty($context->data)) {
-    return ctools_context_create_empty('term', NULL);
+    return ctools_context_create_empty('entity_taxonomy:term', NULL);
   }
 
   if (isset($context->data->taxonomy)) {
     foreach ($context->data->taxonomy as $term) {
       if ($term->vid == $conf['vid']) {
-        return ctools_context_create('term', $term);
+        return ctools_context_create('entity:taxonomy_term', $term);
       }
     }
   }

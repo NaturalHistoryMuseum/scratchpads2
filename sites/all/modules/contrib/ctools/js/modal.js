@@ -244,10 +244,6 @@
       $('#modal-content form:not(.ctools-use-modal-processed)', context)
         .addClass('ctools-use-modal-processed')
         .each(function() {
-          $('input[type=submit], button', this).click(function() {
-            this.form.clk = this;
-          });
-
           var element_settings = {};
 
           element_settings.url = $(this).attr('action');
@@ -257,6 +253,12 @@
 
           Drupal.ajax[base] = new Drupal.ajax(base, this, element_settings);
           Drupal.ajax[base].form = $(this);
+
+          $('input[type=submit], button', this).click(function() {
+            Drupal.ajax[base].element = this;
+            this.form.clk = this;
+          });
+
         });
     }
   };

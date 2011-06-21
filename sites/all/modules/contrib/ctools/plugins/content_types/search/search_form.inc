@@ -57,7 +57,6 @@ function ctools_search_form_content_type_render($subtype, $conf, $panel_args, $c
   $prompt = $conf['override_prompt'] ? $conf['prompt'] : NULL;
 
   $form_state = array(
-    'no_redirect' => TRUE,
     'build_info' => array(
       'args' => array($path, $keys, $conf['type'], $prompt),
     ),
@@ -65,13 +64,9 @@ function ctools_search_form_content_type_render($subtype, $conf, $panel_args, $c
 
   module_load_include('inc', 'search', 'search.pages');
 
-  $form_id = $conf['form'] == 'simple' ? 'ctools_search_form' : 'search_form';
-  $block->content = drupal_build_form($form_id, $form_state);
-
-  // We do the redirect manually because the built in search form is stupid
-  // and won't redirect even though action is a valid argument for it.
-  if (empty($block->content)) {
-    drupal_goto($path . '/' . $form_state['values']['processed_keys']);
+  $block->content = drupal_build_form('search_form', $form_state);
+  if ($conf['form'] == 'simple' && isset($block->content['advanced'])) {
+    $block->content['advanced']['#access'] = FALSE;
   }
 
   return $block;
@@ -84,8 +79,8 @@ function ctools_search_form_content_type_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
   $types = array();
-  foreach (module_implements('search') as $name) {
-    $types[$name] = module_invoke($name, 'search', 'name', TRUE);
+  foreach (search_get_info() as $module => $info) {
+    $types[$module] = $info['title'];
   }
 
   $form['type'] = array(
@@ -121,7 +116,6 @@ function ctools_search_form_content_type_edit_form($form, &$form_state) {
   $form['path'] = array(
     '#type' => 'textfield',
     '#default_value' => $conf['path'],
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-path-type' => array('custom')),
     '#suffix' => '</div>',
   );
@@ -136,7 +130,6 @@ function ctools_search_form_content_type_edit_form($form, &$form_state) {
   $form['prompt'] = array(
     '#type' => 'textfield',
     '#default_value' => $conf['prompt'],
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-override-prompt' => array(1)),
     '#suffix' => '</div>',
   );
@@ -157,14 +150,7 @@ function ctools_search_form_content_type_edit_form_submit($form, &$form_state) {
  * Returns the administrative title for a type.
  */
 function ctools_search_form_content_type_admin_title($subtype, $conf, $context) {
-  $type = module_invoke($conf['type'], 'search', 'name', TRUE);
+  $info = search_get_info();
+  $type = isset($info[$conf['type']]['title']) ? $info[$conf['type']]['title'] : t('Missing/broken type');
   return t('@type search form', array('@type' => $type));
-}
-
-/**
- * Form alter the submit/validate onto our customized search form.
- */
-function ctools_form_ctools_search_form_alter(&$form, &$form_state) {
-  $form['#validate'] = array('search_form_validate');
-  $form['#submit'] = array('search_form_submit');
 }
