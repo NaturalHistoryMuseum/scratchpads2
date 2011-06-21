@@ -2,3 +2,4 @@ name = WebSockets
 description = "Provides a basic WebSockets server that integrates with Drupal.  This allows other modules to use two-way messaging with client browsers."
 core = 7.x
 package = WebSockets
+configure = admin/config/services/websockets

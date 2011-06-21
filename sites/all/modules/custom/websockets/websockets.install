@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ * 
+ * - Check we have write permissions to configuration file.
+ * - Check we have write permissions to PID file
+ */
+function websockets_requirements($phase){
+  $t = get_t();
+  $requirements = array(
+    'write_configuration_file' => array(
+      'title' => $t('WebSockets: Write to configuration file'),
+      'severity' => REQUIREMENT_OK,
+      'value' => 'Web server user is able to write to the config file'
+    ),
+    'write_pid_file' => array(
+      'title' => $t('WebSockets: Write to PID file'),
+      'severity' => REQUIREMENT_OK,
+      'value' => 'Web server user is able to write to the PID file'
+    )
+  );
+  @touch(drupal_get_path('module', 'websockets').'/websockets.ini');
+  @touch(drupal_get_path('module', 'websockets').'/websockets.pid');
+  if(!is_writable(drupal_get_path('module', 'websockets').'/websockets.ini')){
+    $requirements['write_configuration_file']['severity'] = REQUIREMENT_ERROR;
+    $requirements['write_configuration_file']['value'] = t('Unable to write to file, please ensure you change the permissions of the config file.');
+    
+  }
+  if(!is_writable(drupal_get_path('module', 'websockets').'/websockets.pid')){
+    $requirements['write_pid_file']['severity'] = REQUIREMENT_ERROR;
+    $requirements['write_pid_file']['value'] = t('Unable to write to file, please ensure you change the permissions of the PID file.');
+  }
+  if($phase != 'install'){
+    return $requirements;
+  }
+}
