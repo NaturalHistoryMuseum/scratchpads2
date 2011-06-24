@@ -23,10 +23,11 @@ function ctools_argument_entity_id_get_child($plugin, $parent, $child) {
   return $plugins[$parent . ':' . $child];
 }
 
-function ctools_argument_entity_id_get_children($plugin, $parent) {
+function ctools_argument_entity_id_get_children($original_plugin, $parent) {
   $entities = entity_get_info();
   $plugins = array();
   foreach ($entities as $entity_type => $entity) {
+    $plugin = $original_plugin;
     $plugin['title'] = t('@entity: ID', array('@entity' => $entity['label']));
     $plugin['keyword'] = $entity_type;
     $plugin['description'] = t('Creates @entity context from an ID argument.', array('@entity' => $entity_type));

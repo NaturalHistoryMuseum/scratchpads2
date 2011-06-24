@@ -144,7 +144,6 @@ function views_content_views_row_edit($form, &$form_state) {
       '#default_value' => $conf['fields'],
       '#prefix' => '<div id="edit-fields-wrapper"><div id="edit-fields">',
       '#suffix' => '</div></div>',
-      '#process' => array('ctools_dependent_process', 'form_process_radios'),
       '#dependency' => array('edit-use-fields' => array(TRUE)),
     );
   }

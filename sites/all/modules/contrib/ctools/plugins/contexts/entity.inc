@@ -74,7 +74,7 @@ function ctools_context_create_entity($empty, $data = NULL, $conf = FALSE, $plug
   elseif (is_numeric($data)) {
     $id = $data;
     $data = entity_load($entity_type, array($id));
-    $data = $data[$id];
+    $data = !empty($data[$id]) ? $data[$id] : FALSE;
   }
 
   if (is_array($data)) {

@@ -116,7 +116,7 @@ function page_manager_page_menu(&$items, $task) {
     $items[$menu_path] = page_manager_page_menu_item($task, $subtask->menu, $access_arguments, $page_arguments, $load_arguments);
 
     // Add a parent menu item if one is configured.
-    if (isset($subtask->menu['type']) && $subtask->menu['type'] == 'default tab' && $subtask->menu['parent']['type'] != 'none') {
+    if (isset($subtask->menu['type']) && $subtask->menu['type'] == 'default tab') {
       array_pop($path);
       $parent_path = implode('/', $path);
       $items[$parent_path] = page_manager_page_menu_item($task, $subtask->menu['parent'], $access_arguments, $page_arguments, $load_arguments);
@@ -699,7 +699,6 @@ function page_manager_page_form_menu($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => $menu['title'],
     '#description' => t('If set to normal or tab, enter the text to use for the menu item.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab', 'action')),
   );
 
@@ -713,7 +712,6 @@ function page_manager_page_form_menu($form, &$form_state) {
       '#options' => menu_get_menus(),
       '#default_value' => $menu['name'],
       '#description' => t('Insert item into an available menu.'),
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('radio:menu[type]' => array('normal')),
     );
   }
@@ -731,7 +729,6 @@ function page_manager_page_form_menu($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => isset($menu['weight']) ? $menu['weight'] : 0,
     '#description' => t('The lower the weight the higher/further left it will appear.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab', 'action')),
   );
 
@@ -740,10 +737,9 @@ function page_manager_page_form_menu($form, &$form_state) {
     '#suffix' => '</div>',
     '#title' => t('Parent menu item'),
     '#type' => 'radios',
-    '#options' => array('none' => t('Already exists'), 'normal' => t('Normal menu item'), 'tab' => t('Menu tab')),
+    '#options' => array('none' => t('No menu entry'), 'normal' => t('Normal menu item'), 'tab' => t('Menu tab')),
     '#default_value' => $menu['parent']['type'],
     '#description' => t('When providing a menu item as a default tab, Drupal needs to know what the parent menu item of that tab will be. Sometimes the parent will already exist, but other times you will need to have one created. The path of a parent item will always be the same path with the last part left off. i.e, if the path to this view is <em>foo/bar/baz</em>, the parent path would be <em>foo/bar</em>.'),
-    '#process' => array('form_process_radios', 'ctools_dependent_process'),
     '#dependency' => array('radio:menu[type]' => array('default tab')),
   );
   $form['menu']['parent']['title'] = array(
@@ -751,7 +747,6 @@ function page_manager_page_form_menu($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => $menu['parent']['title'],
     '#description' => t('If creating a parent menu item, enter the title of the item.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:menu[type]' => array('default tab'), 'radio:menu[parent][type]' => array('normal', 'tab')),
     '#dependency_count' => 2,
   );
@@ -763,7 +758,6 @@ function page_manager_page_form_menu($form, &$form_state) {
       '#options' => menu_get_menus(),
       '#default_value' => $menu['parent']['name'],
       '#description' => t('Insert item into an available menu.'),
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('radio:menu[type]' => array('default tab'), 'radio:menu[parent][type]' => array('normal')),
       '#dependency_count' => 2,
     );
@@ -780,7 +774,6 @@ function page_manager_page_form_menu($form, &$form_state) {
     '#default_value' => $menu['parent']['weight'],
     '#size' => 5,
     '#description' => t('If the parent menu item is a tab, enter the weight of the tab. The lower the number, the more to the left it will be.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:menu[type]' => array('default tab'), 'radio:menu[parent][type]' => array('tab')),
     '#dependency_count' => 2,
   );
@@ -1036,7 +1029,10 @@ function page_manager_page_subtask_argument_ajax($step = NULL, $task_name = NULL
   );
 
   $output = ctools_wizard_multistep_form($form_info, $step, $form_state);
-  if (!empty($form_state['complete'])) {
+  if (!empty($form_state['cancel'])) {
+    $commands = array(ctools_modal_command_dismiss());
+  }
+  else if (!empty($form_state['complete'])) {
     if (isset($page->temporary_arguments[$keyword])) {
       $page->arguments[$keyword] = $page->temporary_arguments[$keyword];
     }

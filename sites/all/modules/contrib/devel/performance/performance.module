@@ -1,4 +1,5 @@
 <?php
+// $Id: performance.module,v 1.37 2010/08/04 22:24:59 kbahey Exp $
 
 /**
  * @file
@@ -401,12 +402,10 @@ function performance_log_details($params = array()) {
 function performance_apc_list_all() {
   $key_list = array();
   $list = apc_cache_info('user');
-  if (!empty($list['cache_list'])) {
-    foreach ($list['cache_list'] as $cache_id => $cache_data) {
-      $regex = '/^' . PERFORMANCE_KEY . '/';
-      if (preg_match($regex, $cache_data['info'])) {
-        $key_list[] = $cache_data['info'];
-      }
+  foreach ($list['cache_list'] as $cache_id => $cache_data) {
+    $regex = '/^' . PERFORMANCE_KEY . '/';
+    if (preg_match($regex, $cache_data['info'])) {
+      $key_list[] = $cache_data['info'];
     }
   }
   return $key_list;
@@ -766,7 +765,7 @@ function performance_clear_memcache_confirm_submit($form, &$form_state) {
     return;
   }
 
-  // We have to iterate over all entries and delete them, reaching down
+  // We have to iterate over all entries and delete them, reaching down 
   // the API stack and calling dmemcache_delete directly.
   // This is suboptimal, but there is no other alternative
   if ($keys_cache = cache_get(PERFORMANCE_KEY, PERFORMANCE_MEMCACHE_BIN)) {

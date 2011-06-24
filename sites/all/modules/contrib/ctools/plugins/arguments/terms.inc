@@ -47,14 +47,14 @@ function ctools_terms_context($arg = NULL, $conf = NULL, $empty = FALSE) {
 /**
  * Settings form for the argument
  */
-function ctools_terms_settings_form($form, &$form_state, $conf) {
+function ctools_terms_settings_form(&$form, &$form_state, $conf) {
   $form['settings']['breadcrumb'] = array(
     '#title' => t('Inject hierarchy of first term into breadcrumb trail'),
     '#type' => 'checkbox',
     '#default_value' => !empty($conf['breadcrumb']),
     '#description' => t('If checked, taxonomy term parents will appear in the breadcrumb trail.'),
   );
-  return $form;
+//  return $form;
 }
 
 /**
