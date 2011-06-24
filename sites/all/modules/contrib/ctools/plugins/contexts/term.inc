@@ -29,7 +29,9 @@ $plugin = array(
     'vid' => t('Vocabulary ID'),
   ),
   'convert' => 'ctools_context_term_convert',
+  // This context is deprecated and should not be usable in the UI.
   'no ui' => TRUE,
+  'no required context ui' => TRUE,
 );
 
 /**
@@ -88,7 +90,6 @@ function ctools_context_term_settings_form($form, &$form_state) {
       '#type' => 'textfield',
       '#description' => t('Select a term from @vocabulary.', array('@vocabulary' => $vocabulary->name)) . $description,
       '#autocomplete_path' => 'taxonomy/autocomplete/' . $vocabulary->vid,
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('ctools-select-vid' => array($vocabulary->vid)),
     );
 

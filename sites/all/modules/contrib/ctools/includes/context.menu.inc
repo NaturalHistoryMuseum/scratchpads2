@@ -13,6 +13,7 @@ function ctools_context_menu(&$items) {
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/context-admin.inc',
+    'theme callback' => 'ajax_base_page_theme',
   );
   $items['ctools/context/ajax/add'] = array(
     'page callback' => 'ctools_context_ajax_item_add',

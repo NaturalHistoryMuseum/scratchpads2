@@ -1,22 +1,21 @@
 /* $Id$ */
 
-.ctools-dropbutton {
-  left: auto; /* LTR */
+.ctools-dropbutton-processed {
   padding-right: 18px;
-  position: absolute;
-  top: auto;
+  position: relative;
+  background-color: inherit;
 }
 
-.ctools-dropbutton.open {
+.ctools-dropbutton-processed.open {
   z-index: 200;
 }
 
-.ctools-dropbutton .ctools-content li,
-.ctools-dropbutton .ctools-content a {
+.ctools-dropbutton-processed .ctools-content li,
+.ctools-dropbutton-processed .ctools-content a {
   display: block;
 }
 
-.ctools-dropbutton .ctools-link {
+.ctools-dropbutton-processed .ctools-link {
   bottom: 0;
   display: block;
   height: auto;
@@ -25,6 +24,19 @@
   text-indent: -9999px; /* LTR */
   top: 0;
   width: 17px;
+}
+
+.ctools-dropbutton-processed .ctools-link a {
+  overflow: hidden;
+}
+
+.ctools-dropbutton-processed .ctools-content ul {
+  margin: 0;
+  overflow: hidden;
+}
+
+.ctools-dropbutton-processed.open li + li {
+  padding-top: 4px;
 }
 
 /**
@@ -42,10 +54,14 @@
   top: 0.75em;
 }
 
-.ctools-dropbutton.open .ctools-twisty {
+.ctools-dropbutton-processed.open .ctools-twisty {
   border-bottom: 4px solid;
   border-left-color: transparent;
   border-right-color: transparent;
   border-top-color: transparent;
   top: 0.5em;
+}
+
+.ctools-no-js .ctools-twisty {
+  display: none;
 }

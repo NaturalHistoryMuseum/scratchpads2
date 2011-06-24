@@ -13,7 +13,7 @@ $plugin = array(
   'title' => t('Term parent'),
   'keyword' => 'parent_term',
   'description' => t('Adds a taxonomy term parent from a term context.'),
-  'required context' => new ctools_context_required(t('Term'), 'term'),
+  'required context' => new ctools_context_required(t('Term'), 'entity_taxonomy_term'),
   'context' => 'ctools_term_parent_context',
   'edit form' => 'ctools_term_parent_settings_form',
   'defaults' => array('type' => 'top'),
@@ -25,7 +25,7 @@ $plugin = array(
 function ctools_term_parent_context($context, $conf) {
   // If unset it wants a generic, unfilled context, which is just NULL.
   if (empty($context->data)) {
-    return ctools_context_create_empty('term');
+    return ctools_context_create_empty('entity:taxonomy_term');
   }
 
   if (isset($context->data)) {
@@ -46,7 +46,7 @@ function ctools_term_parent_context($context, $conf) {
     // Load the term.
     if ($result) {
       $term = taxonomy_term_load($result['tid']);
-      return ctools_context_create('term', $term);
+      return ctools_context_create('entity:taxonomy_term', $term);
     }
   }
 }
