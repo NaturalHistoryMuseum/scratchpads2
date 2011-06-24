@@ -25,7 +25,9 @@ $plugin = array(
     '#type' => 'textfield',
     '#description' => t('Enter the node ID of a node for this context.'),
   ),
+  // This context is deprecated and should not be usable in the UI.
   'no ui' => TRUE,
+  'no required context ui' => TRUE,
 );
 
 /**
@@ -115,19 +117,19 @@ function ctools_context_node_settings_form_validate($form, &$form_state) {
 
   $nid          = $form_state['values']['node'];
   $preg_matches = array();
-  $match        = preg_match('/\[nid: (\d+)\]/', $nid, $preg_matches);
+  $match        = preg_match('/\[id: (\d+)\]/', $nid, $preg_matches);
   if (!$match) {
-    $match = preg_match('/^nid: (\d+)/', $nid, $preg_matches);
+    $match = preg_match('/^id: (\d+)/', $nid, $preg_matches);
   }
 
   if ($match) {
     $nid = $preg_matches[1];
   }
   if (is_numeric($nid)) {
-    $node = db_query('SELECT nid FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchObject();
+    $node = db_query('SELECT nid, status FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchObject();
   }
   else {
-    $node = db_query('SELECT nid FROM {node} WHERE LOWER(title) = LOWER(:title)', array(':title' => $nid))->fetchObject();
+    $node = db_query('SELECT nid, status FROM {node} WHERE LOWER(title) = LOWER(:title)', array(':title' => $nid))->fetchObject();
   }
 
   // Do not allow unpublished nodes to be selected by unprivileged users
@@ -136,7 +138,6 @@ function ctools_context_node_settings_form_validate($form, &$form_state) {
   }
   else {
     form_set_value($form['nid'], $node->nid, $form_state);
-    // $form_state['values']['nid'] = $node->nid;
   }
 }
 

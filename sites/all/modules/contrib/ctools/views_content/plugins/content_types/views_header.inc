@@ -11,9 +11,6 @@ $plugin = array(
   'icon' => 'icon_views_page.png',
   'description' => t('Display the view header if there are no results.'),
   'required context' => new ctools_context_required(t('View'), 'view'),
-  'defaults' => array(
-    'which' => array(),
-  ),
 );
 
 /**
@@ -38,6 +35,8 @@ function views_content_views_header_content_type_render($subtype, $conf, $panel_
 }
 
 function views_content_views_header_content_type_edit_form($form, &$form_state) {
+  // This form does nothing; it exists to let the main form select the view context.
+  return $form;
 }
 
 function views_content_views_header_content_type_edit_form_submit(&$form, &$form_state) {
