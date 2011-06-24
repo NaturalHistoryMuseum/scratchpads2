@@ -168,7 +168,9 @@ function ctools_context_add_required_context_form($module, &$form, &$form_state,
 
   $choices = array();
   foreach (ctools_get_contexts() as $name => $arg) {
-    $choices[$name] = $arg['title'];
+    if (empty($arg['no required context ui'])) {
+      $choices[$name] = $arg['title'];
+    }
   }
 
   asort($choices);
@@ -262,6 +264,7 @@ function ctools_context_add_item_table_buttons($type, $module, &$form, $availabl
       '#value' => url("ctools/context/ajax/add/$module/$type/$cache_key", array('absolute' => TRUE)),
     );
 
+    asort($available_contexts);
     // This also will be in the URL.
     $form['buttons'][$type]['item'] = array(
       '#attributes' => array('class' => array("ctools-$type-add-url")),
@@ -380,10 +383,19 @@ function ctools_context_ajax_item_add($mechanism = NULL, $type = NULL, $cache_ke
     'cache storage' => 'object',
   );
 
+  if ($type == 'requiredcontext') {
+    $form_info += array(
+      'add form name' => 'required context add form',
+      'edit form name' => 'required context edit form',
+    );
+  }
+
   $output = ctools_plugin_configure_form($form_info, $form_state);
 
-  // If $rc is FALSE, there was no actual form.
-  if ($output === FALSE || !empty($form_state['complete'])) {
+  if (!empty($form_state['cancel'])) {
+    $output = array(ctools_modal_command_dismiss());
+  }
+  else if (!empty($form_state['complete'])) {
     // Successful submit -- move temporary data to location.
 
     // Create a reference to the place our context lives. Since this is fairly
@@ -546,10 +558,19 @@ function ctools_context_ajax_item_edit($mechanism = NULL, $type = NULL, $cache_k
     'cache storage' => 'object',
   );
 
+  if ($type == 'requiredcontext') {
+    $form_info += array(
+      'add form name' => 'required context add form',
+      'edit form name' => 'required context edit form',
+    );
+  }
+
   $output = ctools_plugin_configure_form($form_info, $form_state);
 
-  // If $rc is FALSE, there was no actual form.
-  if ($output === FALSE || !empty($form_state['complete'])) {
+  if (!empty($form_state['cancel'])) {
+    $output = array(ctools_modal_command_dismiss());
+  }
+  else if (!empty($form_state['complete'])) {
     // successful submit
     $ref[$position] = $conf;
     if (isset($object->temporary)) {

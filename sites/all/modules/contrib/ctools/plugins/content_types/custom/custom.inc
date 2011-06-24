@@ -258,7 +258,7 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#title' => t('Title'),
   );
 
-    $form['body'] = array(
+  $form['body'] = array(
     '#type' => 'text_format',
     '#title' => t('Body'),
     '#default_value' => $settings['body'],
@@ -321,7 +321,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Machine name'),
     '#description' => t('The machine readable name of this content. It must be unique, and it must contain only alphanumeric characters and underscores. Once created, you will not be able to change this value!'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
 
@@ -329,7 +328,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Category'),
     '#description' => t('What category this content should appear in. If left blank the category will be "Miscellaneous".'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
 
@@ -337,7 +335,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textarea',
     '#title' => t('Administrative description'),
     '#description' => t('A description of what this content is, does or is for, for administrative use.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
   return $form;
