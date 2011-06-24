@@ -29,4 +29,17 @@ tr.ctools-export-ui-disabled td {
 th.ctools-export-ui-operations,
 td.ctools-export-ui-operations {
   text-align: right; /* LTR */
+  vertical-align: top;
+}
+
+/* Force the background color to inherit so that the dropbuttons do not need
+   a specific background color. */
+td.ctools-export-ui-operations {
+  background-color: inherit;
+}
+
+td.ctools-export-ui-operations .ctools-dropbutton {
+  text-align: left; /* LTR */
+  position: absolute;
+  right: 10px;
 }

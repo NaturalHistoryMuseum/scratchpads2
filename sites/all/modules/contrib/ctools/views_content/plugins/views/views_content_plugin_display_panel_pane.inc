@@ -243,6 +243,9 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
         ctools_include('dependent');
         $form['argument_input']['#tree'] = TRUE;
 
+        $converters = ctools_context_get_all_converters();
+        ksort($converters);
+
         foreach ($argument_input as $id => $argument) {
           $form['argument_input'][$id] = array(
             '#tree' => TRUE,
@@ -265,14 +268,12 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
             '#title' => t('@arg source', array('@arg' => $argument['name'])),
             '#default_value' => $argument['type'],
           );
-
           $form['argument_input'][$id]['context'] = array(
             '#type' => 'select',
             '#title' => t('Required context'),
             '#description' => t('If "From context" is selected, which type of context to use.'),
             '#default_value' => $argument['context'],
-            '#options' => ctools_context_get_all_converters(),
-            '#process' => array('form_process_select', 'ctools_dependent_process'),
+            '#options' => $converters,
             '#dependency' => array($type_id => array('context')),
           );
 
@@ -281,7 +282,6 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
             '#title' => t('Context is optional'),
             '#description' => t('This context need not be present for the pane to function. If you plan to use this, ensure that the argument handler can handle empty values gracefully.'),
             '#default_value' => $argument['context_optional'],
-            '#process' => array('form_process_checkbox', 'ctools_dependent_process'),
             '#dependency' => array($type_id => array('context')),
           );
 
@@ -291,7 +291,6 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
             '#description' => t('If "From panel argument" is selected, which panel argument to use.'),
             '#default_value' => $argument['panel'],
             '#options' => array(0 => t('First'), 1 => t('Second'), 2 => t('Third'), 3 => t('Fourth'), 4 => t('Fifth'), 5 => t('Sixth')),
-            '#process' => array('form_process_select', 'ctools_dependent_process'),
             '#dependency' => array($type_id => array('panel')),
           );
 
@@ -300,7 +299,6 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
             '#title' => t('Fixed argument'),
             '#description' => t('If "Fixed" is selected, what to use as an argument.'),
             '#default_value' => $argument['fixed'],
-            '#process' => array('ctools_dependent_process'),
             '#dependency' => array($type_id => array('fixed')),
           );
 
@@ -309,7 +307,6 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
             '#title' => t('Label'),
             '#description' => t('If this argument is presented to the panels user, what label to apply to it.'),
             '#default_value' => empty($argument['label']) ? $argument['name'] : $argument['label'],
-            '#process' => array('ctools_dependent_process'),
             '#dependency' => array($type_id => array('user')),
           );
         }

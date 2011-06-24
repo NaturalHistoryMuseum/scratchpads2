@@ -95,6 +95,7 @@ function page_manager_menu() {
   $base = array(
     'access arguments' => array('use page manager'),
     'file' => 'page_manager.admin.inc',
+    'theme callback' => 'ajax_base_page_theme',
   );
 
   $items['admin/structure/pages'] = array(
@@ -114,13 +115,13 @@ function page_manager_menu() {
     'title' => 'Edit',
     'page callback' => 'page_manager_edit_page',
     'page arguments' => array(4),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   ) + $base;
 
   $items['admin/structure/pages/%ctools_js/operation/%page_manager_cache'] = array(
     'page callback' => 'page_manager_edit_page_operation',
     'page arguments' => array(3, 5),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   ) + $base;
 
   $items['admin/structure/pages/%ctools_js/enable/%page_manager_cache'] = array(
@@ -158,6 +159,9 @@ function page_manager_menu() {
 }
 
 function page_manager_admin_paths() {
+  /* @todo FIX ME this is a major resource suck. */
+  return;
+
   $items = array();
   ctools_include('page', 'page_manager', 'plugins/tasks');
   $pages = page_manager_page_load_all();
@@ -171,8 +175,13 @@ function page_manager_admin_paths() {
           $path_parts[$key] = '*';
         }
       }
-      $path_parts = implode('/', $path_parts);
-      $items[$path_parts] = TRUE;
+      $path = implode('/', $path_parts);
+      if ($page->menu['type'] == 'default tab') {
+        array_pop($path_parts);
+        $parent_path = implode('/', $path_parts);
+        $items[$parent_path] = TRUE;
+      }
+      $items[$path] = TRUE;
     }
   }
   return $items;
