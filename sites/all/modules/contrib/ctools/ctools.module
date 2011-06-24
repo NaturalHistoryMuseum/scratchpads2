@@ -9,7 +9,7 @@
  * must be implemented in the module file.
  */
 
-define('CTOOLS_API_VERSION', '2.0-alpha2');
+define('CTOOLS_API_VERSION', '2.0.1');
 
 /**
  * Test the CTools API version.
@@ -439,18 +439,6 @@ function ctools_flush_caches() {
 }
 
 /**
- * Provide a search form with a different id so that form_alters will miss it
- * and thus not get advanced search settings.
- */
-function ctools_forms() {
-  $forms['ctools_search_form']= array(
-    'callback' => 'search_form',
-  );
-
-  return $forms;
-}
-
-/**
  * Implements hook_element_info_alter().
  *
  */
@@ -519,11 +507,11 @@ function ctools_ctools_plugin_type() {
  * templates based upon input when the panel was configured.
  */
 function ctools_preprocess_node(&$vars) {
-  // The 'panel_identifier' attribute of the node is added when the pane is
+  // The 'ctools_template_identifier' attribute of the node is added when the pane is
   // rendered.
-  if (!empty($vars['node']->panel_identifier)) {
-    $vars['panel_identifier'] = check_plain($vars['node']->panel_identifier);
-    $vars['template_files'][] = 'node-panel-' . check_plain($vars['node']->panel_identifier);
+  if (!empty($vars['node']->ctools_template_identifier)) {
+    $vars['ctools_template_identifier'] = check_plain($vars['node']->ctools_template_identifier);
+    $vars['theme_hook_suggestions'][] = 'node__panel__' . check_plain($vars['node']->ctools_template_identifier);
   }
 }
 
@@ -657,11 +645,10 @@ function ctools_export_ui_load($item_name, $plugin_name) {
   if (!$return) {
     ctools_include('export-ui');
     $plugin = ctools_get_export_ui($plugin_name);
+    $handler = ctools_export_ui_get_handler($plugin);
 
-    if ($plugin) {
-      // Get the load callback.
-      $item = ctools_export_crud_load($plugin['schema'], $item_name);
-      return empty($item) ? FALSE : $item;
+    if ($handler) {
+      return $handler->load_item($item_name);
     }
   }
 
@@ -773,7 +760,7 @@ function ctools_block_list_alter(&$blocks) {
     foreach ($blocks as $block_id => $block) {
       // @todo -- possibly we can set configuration for this so that users can
       // specify which blocks will not get rendered.
-      if (substr_compare($block->region, 'sidebar', 0)) {
+      if (substr_compare($block->region, 'sidebar', 0) >= 0) {
         unset($blocks[$block_id]);
       }
     }
@@ -807,12 +794,25 @@ function ctools_ajax_theme_callback() {
 function ctools_ctools_entity_context_alter(&$plugin, &$entity, $plugin_id) {
   ctools_include('context');
   switch ($plugin_id) {
+    case 'entity_id:taxonomy_term':
+      $plugin['no ui'] = TRUE;
+      break;
     case 'entity:user':
       $plugin = ctools_get_context('user');
       unset($plugin['no ui']);
+      unset($plugin['no required context ui']);
       break;
-    case 'entity_from_schema:uid-node-user':
-      $plugin['title'] = t('Node author');
-      break;
+  }
+
+  // Apply restrictions on taxonomy term reverse relationships whose
+  // restrictions are in the settings on the field.
+  if (!empty($plugin['parent']) &&
+      $plugin['parent'] == 'entity_from_field' &&
+      !empty($plugin['reverse']) &&
+      $plugin['to entity'] == 'taxonomy_term') {
+    $field = field_info_field($plugin['field name']);
+    if (isset($field['settings']['allowed_values'][0]['vocabulary'])) {
+      $plugin['required context']->restrictions = array('vocabulary' => array($field['settings']['allowed_values'][0]['vocabulary']));
+    }
   }
 }

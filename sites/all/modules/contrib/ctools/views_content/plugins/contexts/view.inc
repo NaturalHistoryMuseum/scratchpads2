@@ -25,20 +25,52 @@ $plugin = array(
   'keyword' => 'view',
   'context name' => 'view',
 
-  /*
-  'convert list' => 'views_content_context_view_convert_list',
-  'convert' => 'views_content_context_view_convert',
-  */
-
-  /*
-  'placeholder form' => array(
-    '#type' => 'textfield',
-    '#description' => t('Enter the node ID of a node for this context.'),
-  ),
-  */
+  'get child' => 'views_content_context_view_get_child',
+  'get children' => 'views_content_context_view_get_children',
 );
 
-function views_content_context_view_create($empty, $data = NULL, $conf = FALSE) {
+function views_content_context_view_get_child($plugin, $parent, $child) {
+  list($name, $id) = explode('-', $child, 2);
+  $view = views_get_view($name);
+  if (!$view) {
+    return;
+  }
+
+  $view->set_display($id);
+  if ($view->current_display != $id) {
+    return;
+  }
+
+  $info = _views_content_get_context_from_display($view, $id, $parent, FALSE);
+  if ($info) {
+    return $info;
+  }
+  return;
+}
+
+function views_content_context_view_get_children($plugin, $parent) {
+  $types = array(
+    'view' => $plugin,
+  );
+
+  // We're keeping the 'view' context around for legacy reasons but
+  // we want to disable the UI so you can't add it that way anymore.
+  $types['view']['no ui'] = TRUE;
+
+  $views = views_get_applicable_views('returns context');
+  foreach ($views as $data) {
+    list($view, $id) = $data;
+    $info = _views_content_get_context_from_display($view, $id, $parent, FALSE);
+    if ($info) {
+      $info['no required context ui'] = TRUE;
+      $types[$info['name']] = $info;
+    }
+  }
+
+  return $types;
+}
+
+function views_content_context_view_create($empty, $data = NULL, $conf = FALSE, $plugin = array()) {
   $context = new ctools_context('view');
   $context->plugin = 'view';
 
@@ -48,17 +80,27 @@ function views_content_context_view_create($empty, $data = NULL, $conf = FALSE) 
 
   if ($conf) {
     if (is_array($data) && !empty($data['view'])) {
+      // This code is left in for backward compatibility. Will not be used
+      // with child plugins.
       list($name, $display_id) = explode(':', $data['view'], 2);
       $data = views_get_view($name);
       if ($data) {
         $data->set_display($display_id);
       }
     }
+    else if (!empty($plugin['view name'])) {
+      $data = views_get_view($plugin['view name']);
+      $data->set_display($plugin['view display id']);
+    }
   }
 
-  if (is_object($data)) {
+  if (is_object($data) && $data->current_display != 'default') {
     // We don't store the loaded view as we don't want the view object
-    // cached.
+    // cached. However, in order to extract it you can use:
+    // @code
+    // $output = views_content_context_get_output($context);
+    // $view = $output['view'];
+    // @endcode
     $context->data     = array(
       'name' => $data->name,
       'display' => $data->current_display,
@@ -82,10 +124,7 @@ function views_content_context_view_settings_form($form, &$form_state) {
   $views = views_get_applicable_views('returns context');
   foreach ($views as $data) {
     list($view, $id) = $data;
-    $title = $view->display_handler->get_option('admin_title');
-    if (!$title) {
-      $title = $view->name;
-    }
+    $title = views_content_get_display_title($view, $id, 'admin_title');
     $options[$view->name . ':' . $id] = $title;
   }
 

@@ -1,4 +1,5 @@
 <?php
+// $Id: devel.drush.inc,v 1.9 2010/12/27 18:14:24 weitzman Exp $
 
 /**
  * @file
@@ -92,7 +93,7 @@ function drush_devel_download() {
   else {
     $path = drush_get_context('DRUSH_DRUPAL_ROOT');
     if (module_exists('libraries')) {
-      $path .= '/' . libraries_get_path('FirePHPCore') . '/FirePHPCore';
+      $path .= libraries_get_path('FirePHPCore') . '/FirePHPCore';
     }
     else {
       $path .= '/'. drupal_get_path('module', 'devel') . '/FirePHPCore';
@@ -115,7 +116,7 @@ function drush_devel_download() {
  */
 function drush_devel_post_pm_enable() {
   $modules = func_get_args();
-  if (in_array('devel', $modules) && !drush_get_option('skip')) {
+  if (in_array('devel', $modules)) {
     drush_devel_download();
   }
 }

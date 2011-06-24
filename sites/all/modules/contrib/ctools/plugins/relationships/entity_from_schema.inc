@@ -22,32 +22,74 @@ function ctools_entity_from_schema_get_child($plugin, $parent, $child) {
   return $plugins[$parent . ':' . $child];
 }
 
-function ctools_entity_from_schema_get_children($plugin, $parent) {
+function ctools_entity_from_schema_get_children($parent_plugin, $parent) {
   $entities = entity_get_info();
   $plugins = array();
 
   foreach (module_implements('entity_info') as $module) {
     module_load_install($module);
-    $schemas = module_invoke($module, 'schema');
-    foreach ($schemas as $table => $schema) {
-      foreach ($entities as $from_entity => $from_entity_info) {
-        if ($table == $from_entity_info['base table'] && isset($schema['foreign keys'])) {
-          foreach ($schema['foreign keys'] as $relationship => $info) {
-            foreach ($entities as $to_entity => $to_entity_info) {
-              if ($info['table'] == $to_entity_info['base table'] && in_array($to_entity_info['entity keys']['id'], $info['columns'])) {
-                $this_col = ctools_entity_from_schema_columns_filter($info['columns'], $to_entity_info['entity keys']['id']);
-                $plugin['title'] = t('@to_entity @relationship relationship', array('@relationship' => $relationship, '@to_entity' => $to_entity));
-                $plugin['keyword'] = $to_entity;
-                $plugin['context name'] = $this_col . '-' . $from_entity . '-' . $to_entity;
-                $plugin['name'] = $parent . ':' . $this_col . '-' . $from_entity . '-' . $to_entity;
-                $plugin['description'] = t('Builds a @relationship relationship from a @from_entity to a @to_entity', array('@relationship' => $relationship, '@from_entity' => $from_entity, '@to_entity' => $to_entity));
-                $plugin['required context'] = new ctools_context_required(t(ucfirst($from_entity_info['label'])), $from_entity);
-                $plugin_id = $parent . ':' . $this_col . '-' . $from_entity . '-' . $to_entity;
-                $plugin_entities = array('to' => $to_entity_info, 'from' => $from_entity_info);
-                $plugin_entities = array('to' => array($to_entity => $to_entity_info), 'from' => array($from_entity => $from_entity_info));
-                drupal_alter('ctools_entity_context', $plugin, $plugin_entities, $plugin_id);
-                $plugins[$plugin_id] = $plugin;
-              }
+    $schemas = drupal_get_schema();
+
+    foreach ($entities as $from_entity => $from_entity_info) {
+      if (empty($from_entity_info['base table'])) {
+        continue;
+      }
+
+      $table = $from_entity_info['base table'];
+      if (isset($schemas[$table]['foreign keys'])) {
+        foreach ($schemas[$table]['foreign keys'] as $relationship => $info) {
+          foreach ($entities as $to_entity => $to_entity_info) {
+            if (empty($info['table'])) {
+              continue;
+            }
+
+            if (isset($to_entity_info['base table']) && $info['table'] == $to_entity_info['base table'] && in_array($to_entity_info['entity keys']['id'], $info['columns'])) {
+              $this_col = ctools_entity_from_schema_columns_filter($info['columns'], $to_entity_info['entity keys']['id']);
+
+              // Set up our t() replacements as we reuse these.
+              $replacements = array(
+                '@relationship' => $relationship,
+                '@base_table' => $table,
+                '@to_entity' => $to_entity_info['label'],
+                '@from_entity' => $from_entity_info['label'],
+              );
+
+              $name = $this_col . '-' . $from_entity . '-' . $to_entity;
+              $plugin_id = $parent . ':' . $name;
+              $plugin = $parent_plugin;
+
+              $plugin['title'] = t('@to_entity from @from_entity (on @base_table.@relationship)', $replacements);
+              $plugin['keyword'] = $to_entity;
+              $plugin['context name'] = $name;
+              $plugin['name'] = $plugin_id;
+              $plugin['description'] = t('Builds a relationship from a @from_entity to a @to_entity using the @base_table.@relationship field.', $replacements);
+
+              $plugin['required context'] = new ctools_context_required($from_entity_info['label'], $from_entity);
+
+              $plugin_entities = array('to' => $to_entity_info, 'from' => $from_entity_info);
+              $plugin_entities = array('to' => array($to_entity => $to_entity_info), 'from' => array($from_entity => $from_entity_info));
+
+              drupal_alter('ctools_entity_context', $plugin, $plugin_entities, $plugin_id);
+              $plugins[$plugin_id] = $plugin;
+
+              // Add the relation in the reverse direction.
+              $name = $this_col . '-' . $to_entity . '-' . $from_entity;
+              $plugin_id = $parent . ':' . $name;
+              $plugin = $parent_plugin;
+
+              $plugin['title'] = t('@from_entity from @to_entity (on @base_table.@relationship)', $replacements);
+              $plugin['keyword'] = $to_entity;
+              $plugin['context name'] = $name;
+              $plugin['name'] = $plugin_id;
+              $plugin['description'] = t('Builds a relationship from a @to_entity to a @from_entity using the @base_table.@relationship field.', $replacements);
+
+              $plugin['required context'] = new ctools_context_required($to_entity_info['label'], $to_entity);
+
+              $plugin_entities = array('to' => $from_entity_info, 'from' => $to_entity_info);
+              $plugin_entities = array('to' => array($from_entity => $from_entity_info), 'from' => array($to_entity => $to_entity_info));
+              drupal_alter('ctools_entity_context', $plugin, $plugin_entities, $plugin_id);
+               $plugins[$plugin_id] = $plugin;
+
             }
           }
         }

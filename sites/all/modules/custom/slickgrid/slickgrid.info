@@ -1,0 +1,22 @@
+name = Slickgrid
+description = A spreadsheet-style views plugin using slickgrid
+dependencies[] = views
+dependencies[] = ctools
+dependencies[] = libraries
+dependencies[] = entity
+dependencies[] = beautytips
+dependencies[] = jquery_update
+package = "Views"
+core = 7.x
+
+files[] = slickgrid.module
+files[] = slickgrid.install
+
+; Views
+files[] = includes/slickgrid.views.inc
+files[] = includes/slickgrid_views_plugin.inc
+
+; Plugins
+files[] = plugins/editors/handler.class.php
+files[] = plugins/editors/ModalForm.inc
+files[] = plugins/editors/InlineCell.inc

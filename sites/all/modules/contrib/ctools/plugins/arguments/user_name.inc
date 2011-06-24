@@ -36,7 +36,7 @@ function ctools_argument_user_name_context($arg = NULL, $conf = NULL, $empty = F
     return ctools_context_create('user', $arg);
   }
 
-  $account = user_load_by_name(array('name' => $arg));
+  $account = user_load_by_name($arg);
   if (!$account) {
     return NULL;
   }

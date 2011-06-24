@@ -15,7 +15,9 @@ $plugin = array(
   'description' => t('Multiple taxonomy terms, as a group.'),
   'context' => 'ctools_context_create_terms',
   'keyword' => 'terms',
+  // This context is deprecated and should not be usable in the UI.
   'no ui' => TRUE,
+  'no required context ui' => TRUE,
   'context name' => 'terms',
   'convert list' => array(
     'tid' => t('Term ID of first term'),

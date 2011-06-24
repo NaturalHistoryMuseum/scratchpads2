@@ -53,6 +53,21 @@ body form#page-manager-list-pages-form {
   background: url(../images/locked-other.png) no-repeat scroll left center; /* LTR */
 }
 
+/* Force the background color to inherit so that the dropbuttons do not need
+   a specific background color. */
+#page-manager-list-pages td.page-manager-page-operations {
+  vertical-align: top;
+  background-color: inherit;
+}
+
+#page-manager-list-pages td.page-manager-page-operations .ctools-dropbutton {
+  text-align: left; /* LTR */
+  position: absolute;
+  right: 10px;
+}
+
+
+
 #page-manager-edit .page-manager-wrapper {
   margin: 0;
   padding: 0 0 0 149px;
@@ -339,3 +354,20 @@ body form#page-manager-list-pages-form {
   line-height: 1.75em;
 }
 
+
+/** Override that obnoxious float on throbber. **/
+#page-manager-edit .progress-disabled {
+  float: none;
+}
+
+#page-manager-edit .progress-disabled + .ajax-progress {
+  float: right;
+  position: relative;
+  top: -2em;
+}
+
+#page-manager-list-pages-form .progress-disabled + .ajax-progress {
+  position: relative;
+  top: 2em;
+  left: -.5em;
+}
