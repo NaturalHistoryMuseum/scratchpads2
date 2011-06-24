@@ -7,19 +7,19 @@
  * On gadgets you want to auto-submit when changed, add the ctools-auto-submit
  * class. With FAPI, add:
  * @code
- *  '#attributes' => array('class' => 'ctools-auto-submit'),
+ *  '#attributes' => array('class' => array('ctools-auto-submit')),
  * @endcode
  *
  * If you want to have auto-submit for every form element,
  * add the ctools-auto-submit-full-form to the form. With FAPI, add:
  * @code
- *   '#attributes' => array('class' => 'ctools-auto-submit-full-form'),
+ *   '#attributes' => array('class' => array('ctools-auto-submit-full-form')),
  * @endcode
  *
  * Finally, you have to identify which button you want clicked for autosubmit.
  * The behavior of this button will be honored if it's ajaxy or not:
  * @code
- *  '#attributes' => array('class' => 'ctools-use-ajax ctools-auto-submit-click'),
+ *  '#attributes' => array('class' => array('ctools-use-ajax', 'ctools-auto-submit-click')),
  * @endcode
  *
  * Currently only 'select' and 'textfield' types are supported. We probably

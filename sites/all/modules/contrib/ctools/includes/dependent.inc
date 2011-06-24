@@ -147,15 +147,22 @@ function ctools_dependent_pre_render($element) {
       'type' => $element['#dependency_type'],
     );
 
-    // Add a additional wrapper id around textareas to support depedency on it.
-    if ($element['#type'] == 'textarea') {
+    // Add a additional wrapper id around fieldsets, textareas to support depedency on it.
+    if (in_array($element['#type'], array('textarea', 'fieldset', 'text_format'))) {
       $element['#theme_wrappers'][] = 'container';
       $element['#attributes']['id'] = $element['#id'] . '-wrapper';
+    }
+
+    // Text formats need to unset the dependency on the textarea
+    // or it gets applied twice.
+    if ($element['#type'] == 'text_format') {
+      unset($element['value']['#dependency']);
     }
 
     $element['#attached']['js'][] = ctools_attach_js('dependent');
     $options['CTools']['dependent'][$element['#id']] = $js;
     $element['#attached']['js'][] = array('type' => 'setting', 'data' => $options);
+
   }
 
   return $element;
@@ -167,7 +174,7 @@ function ctools_dependent_pre_render($element) {
  * because you don't have to add #process.
  */
 function ctools_dependent_element_info_alter(&$type) {
-  $form_elements = array('checkbox', 'checkboxes', 'fieldset', 'item', 'markup', 'radio', 'radios', 'select', 'textarea', 'textfield');
+  $form_elements = array('checkbox', 'checkboxes', 'fieldset', 'item', 'markup', 'radio', 'radios', 'select', 'textarea', 'textfield', 'text_format');
   foreach ($form_elements as $element) {
     $type[$element]['#pre_render'][] = 'ctools_dependent_pre_render';
   }

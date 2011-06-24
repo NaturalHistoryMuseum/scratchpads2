@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ * 
+ * - Check we have write permissions to configuration file.
+ * - Check we have write permissions to PID file
+ */
+function websockets_requirements($phase){
+  $t = get_t();
+  $requirements = array(
+    'write_files' => array(
+      'title' => $t('WebSockets: Write to configuration/PID files'),
+      'severity' => REQUIREMENT_OK,
+      'value' => 'Web server user is able to write to the configuration and PID files'
+    ),
+    'executables' => array(
+      'title' => $t('nohup and php commands executable'),
+      'severity' => REQUIREMENT_OK,
+      'value' => 'Web server is able to execute the nohup and php commands'
+    )
+  );
+  @touch(drupal_get_path('module', 'websockets') . '/websockets.ini');
+  @touch(drupal_get_path('module', 'websockets') . '/websockets.pid');
+  if(!is_writable(drupal_get_path('module', 'websockets') . '/websockets.ini') || !is_writable(drupal_get_path('module', 'websockets') . '/websockets.pid')){
+    $requirements['write_files']['severity'] = REQUIREMENT_ERROR;
+    $requirements['write_files']['value'] = t('Unable to write to the PID file or configuration file.  Please ensure both files are owned, and writable by your webserver user.');
+  }
+  exec('nohup --help', $output_nohup, $return_nohup);
+  exec('php --help', $output_php, $return_php);
+  if($return_nohup || $return_php){
+    $requirements['executables']['severity'] = REQUIREMENT_ERROR;
+    $requirements['executables']['value'] = t('Unable to execute nohup or php command.  Please ensure both commands can be executed by your webserver user.<p>Output of php command:</p><pre>%php_output</pre><p>Output of nohup command:</p><pre>%nohup_output</pre>', array(
+      '%php_output' => implode("\n", $output_php),
+      '%nohup_output' => implode("\n", $output_nohup)
+    ));
+  }
+  if($phase != 'install'){return $requirements;}
+}

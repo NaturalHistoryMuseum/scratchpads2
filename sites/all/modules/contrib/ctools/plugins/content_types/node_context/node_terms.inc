@@ -30,29 +30,41 @@ function ctools_node_terms_content_type_render($subtype, $conf, $panel_args, $co
   // Get a shortcut to the node.
   $node = $context->data;
 
-  if (empty($node->taxonomy)) {
-    return;
+  // Load all terms for this node from all vocabularies
+  $query = db_select('taxonomy_index', 't');
+  $result = $query
+    ->fields('t')
+    ->condition('t.nid', $node->nid)
+    ->execute();
+
+  $tids = array();
+  foreach ($result AS $term) {
+    $tids[] = $term->tid;
   }
 
-  $formatted_terms = '';
-  if (empty($conf['vid']) && $conf['term_format'] == 'term-links') {
-    // They want all terms, formatted as term links, so we can just use
-    // taxonomy_link() directly.
-    $terms = taxonomy_link('taxonomy terms', $node);
-    $formatted_terms = theme('links', $terms);
+  // Get the real term objects
+  $term_objects = taxonomy_term_load_multiple($tids);
+
+  $terms = array();
+
+  if (empty($conf['vid'])) {
+    // All terms.
+    foreach ($term_objects AS $term) {
+      $terms['taxonomy_term_' . $term->tid] = array(
+        'title' => check_plain($term->name),
+        'href' => 'taxonomy/term/' . $term->tid,
+        'attributes' => array('rel' => 'tag', 'title' => strip_tags($term->description))
+      );
+    }
   }
   else {
     // They want something special and custom, we'll have to do this ourselves.
-    $terms = array();
-    foreach ($context->data->taxonomy as $term) {
-      if (empty($conf['vid']) || $term->vid == $conf['vid']) {
+    foreach ($term_objects as $term) {
+      if ($term->vid == $conf['vid']) {
         if ($conf['term_format'] == 'term-links') {
-          // We have to do this manually since taxonomy_link() doesn't let you
-          // filter by vocabulary, so we just replicate it for the subset of
-          // terms matching the requested vid.
           $terms['taxonomy_term_' . $term->tid] = array(
             'title' => $term->name,
-            'href' => taxonomy_term_path($term),
+            'href' => 'taxonomy/term/' . $term->tid,
             'attributes' => array('rel' => 'tag', 'title' => strip_tags($term->description)),
           );
         }
@@ -60,29 +72,31 @@ function ctools_node_terms_content_type_render($subtype, $conf, $panel_args, $co
           $terms[] = check_plain($term->name);
         }
         else {
-          $terms[] = l($term->name, taxonomy_term_path($term), array('attributes' => array('rel' => 'tag', 'title' => strip_tags($term->description))));
+          $terms[] = l($term->name, 'taxonomy/term/' . $term->tid, array('attributes' => array('rel' => 'tag', 'title' => strip_tags($term->description))));
         }
       }
     }
+  }
 
-    switch ($conf['term_format']) {
-      case 'term-links':
-        // Since we didn't use taxonomy_link() directly, we need to invoke
-        // hook_link_alter() for this to work as sites will expect.
-        drupal_alter('link', $terms, $node);
-        $formatted_terms = theme('links', $terms);
-        break;
+  $formatted_terms = '';
+  switch ($conf['term_format']) {
+    case 'term-links':
+      drupal_alter('link', $terms, $node);
+      $formatted_terms = theme('links', $terms);
+      break;
 
-      case 'ul':
-        $formatted_terms = theme('item_list', $terms);
-        break;
+    case 'ul':
+      $formatted_terms = theme('item_list', $terms);
+      break;
 
-      case 'inline-delimited':
-        $delimiter = isset($conf['term_delimiter']) ? $conf['term_delimiter'] : ', ';
-        $formatted_terms = implode($delimiter, $terms);
-        break;
-
-    }
+    case 'inline-delimited':
+      $term_names = array();
+      foreach ($terms AS $term) {
+        $term_names[] = $term['title'];
+      }
+      $delimiter = isset($conf['term_delimiter']) ? $conf['term_delimiter'] : ', ';
+      $formatted_terms = implode($delimiter, $term_names);
+      break;
   }
 
   // Build the content type block.
@@ -146,7 +160,6 @@ function ctools_node_terms_content_type_edit_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#default_value' => $conf['link'],
     '#description' => t('Check here to make the terms link to the term paths.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:term_format' => array('inline-delimited', 'ul')),
     '#prefix' => '<div class="clearfix">',
     '#suffix' => '</div>',
@@ -157,7 +170,6 @@ function ctools_node_terms_content_type_edit_form($form, &$form_state) {
     '#title' => t('Term delimiter'),
     '#default_value' => $conf['term_delimiter'],
     '#size' => 10,
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:term_format' => array('inline-delimited')),
   );
   return $form;
