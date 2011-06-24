@@ -1,0 +1,4 @@
+name = Form flow UI
+description = Admin interface for building multisteps forms
+core = 7.x
+dependencies[] = formflow

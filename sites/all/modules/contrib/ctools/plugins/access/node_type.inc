@@ -87,12 +87,29 @@ function ctools_node_type_ctools_access_summary($conf, $context) {
   $types = node_type_get_types();
 
   $names = array();
+  // If a node type doesn't exist, let the user know, but prevent a notice.
+  $missing_types = array();
+
   foreach (array_filter($conf['type']) as $type) {
-    $names[] = check_plain($types[$type]->name);
+    if (!empty($types[$type])) {
+      $names[] = check_plain($types[$type]->name);
+    }
+    else {
+      $missing_types[] = check_plain($type);
+    }
   }
 
-  if (empty($names)) {
+  if (empty($names) && empty($missing_types)) {
     return t('@identifier is any node type', array('@identifier' => $context->identifier));
+  }
+
+  if (!empty($missing_types)) {
+    $output = array();
+    if (!empty($names)) {
+      $output[] = format_plural(count($names), '@identifier is type "@types"', '@identifier type is one of "@types"', array('@types' => implode(', ', $names), '@identifier' => $context->identifier));
+    }
+    $output[] = format_plural(count($missing_types), 'Missing/ deleted type "@types"', 'Missing/ deleted type is one of "@types"', array('@types' => implode(', ', $missing_types)));
+    return implode(' | ', $output);
   }
 
   return format_plural(count($names), '@identifier is type "@types"', '@identifier type is one of "@types"', array('@types' => implode(', ', $names), '@identifier' => $context->identifier));

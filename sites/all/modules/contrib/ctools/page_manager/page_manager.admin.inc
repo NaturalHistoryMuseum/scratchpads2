@@ -203,11 +203,11 @@ function page_manager_get_pages($tasks, &$pages, $task_id = NULL) {
 
     if (!empty($task['enable callback'])) {
       if (!empty($task['disabled'])) {
-        $operations[] = array(
+        array_unshift($operations, array(
           'title' => t('Enable'),
           'href' => 'admin/structure/pages/nojs/enable/' . $task_name,
           'query' => array('token' => drupal_get_token($task_name)),
-        );
+        ));
       }
       else {
         $operations[] = array(
@@ -218,7 +218,9 @@ function page_manager_get_pages($tasks, &$pages, $task_id = NULL) {
       }
     }
 
-    $row['data']['operations'] = array('data' => theme('links', array('links' => $operations)), 'class' => array('page-manager-page-operations'));
+    $ops = theme('links__ctools_dropbutton', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
+
+    $row['data']['operations'] = array('data' => $ops, 'class' => array('page-manager-page-operations'));
 
     $pages['disabled'][$task_name] = !empty($task['disabled']);
     $pages['tasks'][] = $task_name;
@@ -1414,7 +1416,6 @@ function page_manager_handler_add_form($form, $form_state, $features = array()) 
 
       if ($plugin != 'default') {
         $form['features'][$plugin][$feature_id] += array(
-          '#process' => array('ctools_dependent_process'),
           '#dependency' => array('edit-handler' => array($plugin)),
         );
       }

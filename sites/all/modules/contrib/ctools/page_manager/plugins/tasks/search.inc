@@ -59,115 +59,47 @@ function page_manager_search_menu_alter(&$items, $task) {
   // is necessary because search/node/% and search/node need to be
   // different due to the way the search menu items function.
 
+  $default_info = search_get_default_module_info();
+  if (empty($default_info)) {
+    // Nothing to do.
+    return;
+  }
+
   // Go through each search module item.
-  foreach (module_implements('search') as $name) {
-    // Do not bother with search menu items that should not have search tabs.
-    if (!module_invoke($name, 'search', 'name')) {
+  foreach (search_get_info() as $module => $info) {
+    if (variable_get('page_manager_search_disabled_' . $module, TRUE)) {
       continue;
     }
 
-    // Put these items under the default search tab which is node.
-    $items["search/$name/%menu_tail"]['tab_parent'] = "search/node/%menu_tail";
-    $items["search/$name/%menu_tail"]['tab_root'] = "search/node/%menu_tail";
-
-    $callback = $items["search/$name/%menu_tail"]['page callback'];
-
-    // Even if a search page is not implemented, we need to add an extra
-    // entry anyway, for two reasons.
-    //
-    // 1) The 'search' menu entry actually handles all entries by default
-    // and that is going to be bad if the node search is overridden and
-    // 2) We need to have dual entries to make sure that the tabs are right.
-    if (variable_get('page_manager_search_disabled_' . $name, TRUE) || ($callback != 'search_view' && !variable_get('page_manager_override_anyway', FALSE))) {
-      $items["search/$name"] = $items["search/$name/%menu_tail"];
-
-      // Put these items under the real search tab.
-      $items["search/$name"]['tab_parent'] = 'search';
-      $items["search/$name"]['tab_root'] = 'search';
-
-      if ($name == 'node') {
-        $items["search/$name"]['type'] = MENU_DEFAULT_LOCAL_TASK;
-        // The default tab should always be left weighted. Because of the way
-        // menu sorts, this item tends to float around if not weighted.
-        $items["search/$name"]['weight'] = -10;
-        $items["search/$name/%menu_tail"]['weight'] = -10;
-      }
-
-      if ($callback == 'search_view' || variable_get('page_manager_override_anyway', FALSE)) {
-        $items["search/$name/%menu_tail"]['page callback'] = 'page_manager_search_view';
-        $items["search/$name/%menu_tail"]['file path'] = $task['path'];
-        $items["search/$name/%menu_tail"]['file'] = $task['file'];
-      }
-
-      continue;
-    }
+    $path = 'search/' . $info['path'];
+    $callback = $items["$path/%menu_tail"]['page callback'];
 
     if ($callback == 'search_view' || variable_get('page_manager_override_anyway', FALSE)) {
-      $items["search/$name/%menu_tail"]['page callback'] = 'page_manager_search_page';
-      $items["search/$name/%menu_tail"]['file path'] = $task['path'];
-      $items["search/$name/%menu_tail"]['file'] = $task['file'];
+      $items["$path"]['page callback'] = 'page_manager_search_page';
+      $items["$path"]['file path'] = $task['path'];
+      $items["$path"]['file'] = $task['file'];
 
-      // Add a version that doesn't contain the menu tail for the no keywords
-      // version. Ordinarily this works because the top level 'search' just
-      // passes through.
-      $items["search/$name"] = $items["search/$name/%menu_tail"];
-      $items["search/$name/%menu_tail"]['page arguments'] = array(1, 2);
-
-      // Put these items under the real search tab.
-      $items["search/$name"]['tab_parent'] = 'search';
-      $items["search/$name"]['tab_root'] = 'search';
-
-      // Content search is the default search link, so we have to override
-      // the default task as well.
-      if ($name == 'node') {
-        $items["search/$name"]['type'] = MENU_DEFAULT_LOCAL_TASK;
-        // The default tab should always be left weighted. Because of the way
-        // menu sorts, this item tends to float around if not weighted.
-        $items["search/$name"]['weight'] = -10;
-        $items["search/$name/%menu_tail"]['weight'] = -10;
-
-        $items["search"]['page callback'] = 'page_manager_search_page';
-        $items["search"]['page arguments'] = array('node');
-        $items["search"]['file path'] = $task['path'];
-        $items["search"]['file'] = $task['file'];
-      }
+      $items["$path/%menu_tail"]['page callback'] = 'page_manager_search_page';
+      $items["$path/%menu_tail"]['file path'] = $task['path'];
+      $items["$path/%menu_tail"]['file'] = $task['file'];
     }
     else {
       // automatically disable this task if it cannot be enabled.
-      variable_set('page_manager_search_disabled_' . $name, TRUE);
+      variable_set('page_manager_search_disabled_' . $module, TRUE);
       if (!empty($GLOBALS['page_manager_enabling_search'])) {
-        drupal_set_message(t('Page manager module is unable to enable search/@name/%menu_tail because some other module already has overridden with %callback.', array('%callback' => $callback, '@name' => $name)), 'error');
+        drupal_set_message(t('Page manager module is unable to enable @path because some other module already has overridden with %callback.', array('%callback' => $callback, '@path' => $path)), 'error');
       }
     }
   }
 }
 
 /**
- * Replacement function for normal search view.
+ * Entry point for our overridden search page.
  *
- * This function resets the active trail because menu system loses track
- * of it due to the special way we're handling search items.
- */
-function page_manager_search_view($type = 'node') {
-  // @TODO: test that this actually works once page_manager is upgraded.
-  drupal_static_reset('menu_set_active_trail');
-  drupal_static_reset('menu_tree_page_data');
-  menu_set_active_trail();
-
-  module_load_include('inc', 'search', 'search.pages');
-  return search_view($type);
-}
-
-/**
- * Entry point for our overridden node view.
- *
- * This function asks its assigned handlers who, if anyone, would like
- * to run with it. If no one does, it passes through to Drupal core's
- * node view, which is node_page_view().
  */
 function page_manager_search_page($type) {
   ctools_include('menu');
-  menu_set_active_trail(ctools_get_menu_trail('search/' . $type));
+//  menu_set_active_trail(ctools_get_menu_trail('search/' . $type));
 
   // Get the arguments and construct a keys string out of them.
   $args = func_get_args();
@@ -254,9 +186,11 @@ function page_manager_search_enable($cache, $status) {
  */
 function page_manager_search_subtasks($task) {
   $return = array();
-  foreach (module_implements('search') as $name) {
-    if (module_invoke($name, 'search', 'name')) {
-      $return[$name] = page_manager_search_build_subtask($task, $name);
+  foreach (search_get_info() as $module => $info) {
+    if ($info['path']) {
+      // We don't pass the $info because the subtask build could be called
+      // singly without the $info when just the subtask needs to be built.
+      $return[$module] = page_manager_search_build_subtask($task, $module);
     }
   }
 
@@ -273,17 +207,19 @@ function page_manager_search_subtask($task, $subtask_id) {
 /**
  * Build a subtask array for a given page.
  */
-function page_manager_search_build_subtask($task, $name) {
-  $type = module_invoke($name, 'search', 'name', TRUE);
+function page_manager_search_build_subtask($task, $module) {
+  $search_info = search_get_info();
+  $info = $search_info[$module];
+  $path = 'search/' . $info['path'];
   $subtask = array(
-    'name' => $name,
-    'admin title' => $type,
-    'admin path' => "search/$name/!keywords",
-    'admin description' => t('Search @type', array('@type' => $type)),
+    'name' => $module,
+    'admin title' => $info['title'],
+    'admin path' => "$path/!keywords",
+    'admin description' => t('Search @type', array('@type' => $info['title'])),
     'admin type' => t('System'),
     'row class' => empty($page->disabled) ? 'page-manager-enabled' : 'page-manager-disabled',
     'storage' => t('In code'),
-    'disabled' => variable_get('page_manager_search_disabled_' . $name, TRUE),
+    'disabled' => variable_get('page_manager_search_disabled_' . $module, TRUE),
     // This works for both enable AND disable
     'enable callback' => 'page_manager_search_enable',
   );
