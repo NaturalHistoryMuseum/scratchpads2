@@ -1,4 +1,5 @@
 <?php
+// $Id: devel.module,v 1.472 2011/01/04 19:47:31 weitzman Exp $
 
 // This module holds functions useful for Drupal development.
 // Please contribute!
@@ -32,25 +33,10 @@ function devel_help($section) {
 }
 
 /**
- * Implements hook_modules_installed().
- *
- * @see devel_install()
- */
-function devel_modules_installed($modules) {
-  if (in_array('menu', $modules)) {
-    $menu = array(
-      'menu_name' => 'devel',
-      'title' => t('Development'),
-      'description' => t('Development link'),
-    );
-    menu_save($menu);
-  }
-}
-
-/**
- * Implements hook_menu().
+ * Implementationation of hook_menu().
  */
 function devel_menu() {
+  $items = array();
   // Note: we can't dynamically append destination to querystring. Do so at theme layer. Fix in D7?
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
@@ -758,7 +744,6 @@ function devel_switch_user_list() {
     $roles = user_roles(TRUE, 'switch users');
     $query = db_select('users', 'u');
     $query->addField('u', 'uid');
-    $query->addField('u', 'access');
     $query->distinct();
     $query->condition('u.uid', 0, '>');
     $query->condition('u.status', 0, '>');
@@ -977,7 +962,7 @@ function devel_shutdown_real() {
     }
 
     if (isset($user) && user_access('access devel information')) {
-      $queries = (devel_query_enabled() ? Database::getLog('devel', 'default') : NULL);
+      $queries = Database::getLog('devel', 'default');
       $output .= devel_shutdown_summary($queries);
       $output .= devel_shutdown_query($queries);
     }
@@ -1219,7 +1204,6 @@ function devel_switch_user($name = NULL) {
   if (isset($name) && $account = user_load_by_name($name)) {
     $old_uid = $user->uid;
     $user = $account;
-    $user->timestamp = time() - 9999;
     if (!$old_uid) {
       // Switch from anonymous to authorized.
       drupal_session_regenerate();

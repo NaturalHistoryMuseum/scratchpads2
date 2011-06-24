@@ -27,7 +27,7 @@
  *   - 'weight': The weight to use in ordering the tabs.
  *   - 'type': Optional. If set to MENU_DEFAULT_LOCAL_TASK this can be used to
  *     add a fake 'default' local task, which is useful if you have to add
- *     tabs to a page that has noen.
+ *     tabs to a page that has none.
  */
 function ctools_menu_add_tab($link = NULL) {
   $links = &drupal_static(__FUNCTION__, array());

@@ -71,7 +71,7 @@ function ctools_term_parent_ctools_access_check($conf, $context) {
   }
   $vid = $conf['vid'];
 
-  $count = db_result(db_query('SELECT COUNT(*) FROM {term_hierarchy} th INNER JOIN {term_data} td ON th.parent = td.tid WHERE th.tid = %d AND td.vid = %d',  $context->data->tid, $vid));
+  $count = db_query('SELECT COUNT(*) FROM {taxonomy_term_hierarchy} th INNER JOIN {taxonomy_term_data} td ON th.parent = td.tid WHERE th.tid = :tid AND td.vid = :vid', array(':tid' => $context->data->tid, ':vid' => $vid))->fetchField();
 
   return $count ? TRUE : FALSE;
 }

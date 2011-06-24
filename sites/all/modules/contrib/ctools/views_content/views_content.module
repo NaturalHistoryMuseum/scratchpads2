@@ -183,3 +183,101 @@ function views_content_context_get_output(&$context) {
 
   return $context->output;
 }
+
+/**
+ * Get the title to display for a views content display for pane or context.
+ */
+function views_content_get_display_title($view, $display_id, $option = 'pane_title') {
+  $handler = $view->display[$display_id]->handler;
+  $title = $handler->get_option($option);
+  if (!$title) {
+    if ($handler->display->display_title == $handler->definition['title']) {
+      $title = t('View: @view', array('@view' => $view->get_human_name()));
+    }
+    else {
+      $title = t('View: @view: @display', array('@view' => $view->get_human_name(), '@display' => $handler->display->display_title));
+    }
+  }
+
+  return $title;
+}
+
+/**
+ * Get the proper label for a display.
+ *
+ * Views renamed the default to Master, but it can still have a conflicting
+ * display title. Fix that.
+ */
+function views_content_get_display_label($view, $display_id) {
+  $title = $display_id == 'default' ? t('Master') : $view->display[$display_id]->display_title;
+  return $title;
+}
+
+/**
+ * Get the child plugin for a view context display.
+ *
+ * This can return both the context and relationship style. The
+ * $required parameter is used to distinguish if context is required
+ * or not, so we know whether we need it suitable as a pure context
+ * (i.e, no context required) or a relationship (i.e, context required).
+ */
+function _views_content_get_context_from_display($view, $id, $parent, $required = TRUE) {
+  $title = views_content_get_display_title($view, $id, 'admin_title');
+
+  $description = $view->description;
+  $contexts = array();
+
+  $arguments = $view->display_handler->get_argument_input();
+  ctools_include('views');
+  foreach ($arguments as $argument) {
+    $argument['label'] = $argument['name'] ? $argument['name'] : '';
+    $contexts[] = ctools_views_get_argument_context($argument);
+  }
+
+  $pass = FALSE;
+  if ($required) {
+    // If context is required, make sure we have at least one optional
+    // or required context.
+    foreach ($contexts as $context) {
+      if (is_object($context)) {
+        $pass = TRUE;
+        break;
+      }
+    }
+
+    if (!$pass) {
+      return;
+    }
+  }
+  else {
+    // If context is not required, then having any required context
+    // causes a fail.
+    foreach ($contexts as $context) {
+      if (is_object($context) && get_class($context) == 'ctools_context_required') {
+        return;
+      }
+    }
+
+    // Since we know we don't want contexts, we an unset this now.
+    $contexts = array();
+  }
+
+  if ($required) {
+    $function = 'views_content_view_from_argument_context';
+  }
+  else {
+    $function = 'views_content_context_view_create';
+  }
+
+  return array(
+    'title' => $title,
+    'description' => filter_xss_admin($description),
+    'required context' => $contexts,
+    'keyword' => 'view',
+    'context' => $function,
+    'context name' => $view->name,
+    'name' => $parent . ':' . $view->name . '-' . $id,
+    'view name' => $view->name,
+    'view display id' => $id,
+  );
+}

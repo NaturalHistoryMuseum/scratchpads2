@@ -1,0 +1,5 @@
+name = Form flow example
+description = Form flow example plugin
+core = 7.x
+dependencies[] = formflow_ui
+dependencies[] = ctools_ajax_sample

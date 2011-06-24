@@ -154,7 +154,8 @@ function ctools_ajax_sample_page() {
   if ($user->uid == 0) {
     $links[] = ctools_modal_text_button(t('Modal Login (default style)'), 'ctools_ajax_sample/nojs/login', t('Login via modal'));
 
-    // The extra class points to the info in ctools-sample-style which we added to the settings.
+    // The extra class points to the info in ctools-sample-style which we added
+    // to the settings, prefixed with 'ctools-modal'.
     $links[] = ctools_modal_text_button(t('Modal Login (custom style)'), 'ctools_ajax_sample/nojs/login', t('Login via modal'),  'ctools-modal-ctools-sample-style');
   }
 

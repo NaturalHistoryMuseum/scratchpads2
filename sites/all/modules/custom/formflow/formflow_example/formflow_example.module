@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Let ctools know we're using a plugin
+ */
+function formflow_example_ctools_plugin_directory($module, $plugin){
+  if($module == 'formflow'){return 'plugins';}
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function formflow_example_formflow_alter(&$flow, &$form_state){
+
+	// Ctools ajax sample expects a cache object so add one here
+	if($flow['name'] == 'example'){
+		$form_state['object'] = ctools_ajax_sample_cache_get($flow['name']);
+	}
+	
+}

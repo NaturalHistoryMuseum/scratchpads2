@@ -18,7 +18,7 @@
  * addition. It modifies the array by reference and doesn't need to return it.
  */
 function ctools_passthrough($module, $type, &$items) {
-  $files = drupal_system_listing('/\.' . $type . '\.inc$/', drupal_get_path('module', $module) . '/includes', 'name', 0);
+  $files = file_scan_directory(drupal_get_path('module', $module) . '/includes', '/\.' . $type . '\.inc$/', array('key' => 'name'));
   foreach ($files as $file) {
     require_once DRUPAL_ROOT . '/' . $file->uri;
     list($tool) = explode('.', $file->name, 2);
