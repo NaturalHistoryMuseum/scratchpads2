@@ -59,7 +59,7 @@ function gmap_theme() {
     'gmap_views_ui_gmapextended' => array('render element' => 'form'),
     'views_view_gmap' => array('render element' => 'element'),
     'gmap_views_marker_label' => array('render element' => 'element'),
-    'gmap_marker_popup' => array('arguments' => array('label')), // @@@ FIXME
+    'gmap_marker_popup' => array('variables' => array('label' => '')),
 //    'gmap_overlay_edit' => array('render element' => 'element'),
 //    'gmap_macrotext' => array('render element' => 'element'),
     'gmap_dimension' => array('render element' => 'element'),
@@ -257,7 +257,6 @@ function _gmap_base_js() {
   $ret[$path . '/js/gmap.js'] = array('weight' => 1);
   $ret[$path . '/js/icon.js'] = array('weight' => 2);
 
-  $mm = variable_get('gmap_mm_type', 'gmap');
 /*
   $mms = variable_get('gmap_markermanager', array());
   if (empty($mms[$mm])) {
@@ -279,7 +278,15 @@ function _gmap_base_js() {
 
   $ret[$path . '/js/marker.js'] = array('weight' => 2);
   $ret[$path . '/js/highlight.js'] = array('weight' => 2);
-  $ret[$path . '/js/' . $mm . '_marker.js'] = array('weight' => 3);
+
+  // Add the markermanager.
+  // @@@TODO Need to allow multiple inclusion and have marker manager set at the map level.
+  $mm = variable_get('gmap_mm_type', 'gmap');
+  $mms = variable_get('gmap_markermanager', array());
+  if (isset($mms[$mm]['filename'])) {
+    $ret[$path . '/thirdparty/' . $mms[$mm]['filename']] = array('weight' => 3);
+  }
+  $ret[$path . '/js/' . $mm . '_marker.js'] = array('weight' => 4);
 /*
   drupal_add_js(array('gmap_markermanager' => $mms[$mm]), 'setting');
 */
@@ -361,8 +368,8 @@ function gmap_parse_macro($instring, $ver = 2) {
  * This will get called for markers embedded in macros.
  * @ingroup themeable
  */
-function theme_gmap_marker_popup($label) {
-  return $label;
+function theme_gmap_marker_popup($vars) {
+  return $vars['label'];
 }
 
 /**
@@ -642,14 +649,14 @@ function _gmap_pre_render_map($element) {
   }
 
   if (!empty($map['markers']) || !empty($map['lines'])) {
-    $element['#attached']['js']["$path/markerloader_static.js"] = array('weight' => 2);
+    $element['#attached']['js']["$path/markerloader_static.js"] = array('weight' => 5);
   }
   if (!empty($map['shapes'])) {
-    $element['#attached']['js']["$path/shapeloader_static.js"] = array('weight' => 2);
-    $element['#attached']['js']["$path/gmap_shapes.js"] = array('weight' => 2);
+    $element['#attached']['js']["$path/shapeloader_static.js"] = array('weight' => 5);
+    $element['#attached']['js']["$path/gmap_shapes.js"] = array('weight' => 5);
   }
   if (isset($map['feed']) && is_array($map['feed'])) {
-    $element['#attached']['js']["$path/markerloader_georss.js"] = array('weight' => 2);
+    $element['#attached']['js']["$path/markerloader_georss.js"] = array('weight' => 5);
   }
 
   return $element;

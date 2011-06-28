@@ -323,7 +323,7 @@ function _gmap_parse_macro($instring, $ver = 2) {
       // @@@ Gmap allows both a tooltip and a popup, how to represent?
       if (strpos($point, ':')) {
         list($point, $marker['text']) = explode(':', $point, 2);
-        $marker['text'] = theme('gmap_marker_popup', $marker['text']);
+        $marker['text'] = theme('gmap_marker_popup', array('label' => $marker['text']));
       }
       if (strpos($point, '%')) {
         list($point, $addons) = explode('%', $point, 2);

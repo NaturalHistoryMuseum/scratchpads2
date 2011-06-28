@@ -25,7 +25,7 @@ function gmap_location_uninstall() {
   variable_del('gmap_location_author_block_types');
   variable_del('gmap_location_author_block_marker');
   $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'gmap_location_block_macro_%%'");
-  while ($row = db_fetch_object($result)) {
+  foreach ($result as $row) {
     variable_del($row->name);
   }
 }

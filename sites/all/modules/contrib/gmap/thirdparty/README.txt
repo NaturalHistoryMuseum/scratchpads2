@@ -34,7 +34,7 @@ MarkerManager.js
 ----------------
 Google Maps API Utility Library addon
 This is an improved version of GMarkerManager.
-Website: http://code.google.com/p/gmaps-utility-library/
+Website: http://code.google.com/p/gmaps-utility-library-dev/
 Tested version: 1.0
 
 MarkerClusterer.js

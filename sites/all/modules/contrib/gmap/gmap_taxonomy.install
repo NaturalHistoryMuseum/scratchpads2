@@ -9,16 +9,16 @@
  * Implement hook_requirements().
  */
 function gmap_taxonomy_requirements($phase) {
+  $requirements = array();
   if (!variable_get('taxonomy_maintain_index_table', TRUE)) {
-    return array(
-      'gmap_taxonomy_able_to_index' => array(
-        'title' => t('GMap Taxonomy Markers'),
-        'value' => '',
-        'description' => t('The variable <em>taxonomy_maintain_index_table</em> is set to FALSE. gmap_taxonomy.module will not work properly.'),
-        'severity' => REQUIREMENT_ERROR,
-      ),
+    $requirements['gmap_taxonomy_able_to_index'] = array(
+      'title' => t('GMap Taxonomy Markers'),
+      'value' => '',
+      'description' => t('The variable <em>taxonomy_maintain_index_table</em> is set to FALSE. gmap_taxonomy.module will not work properly.'),
+      'severity' => REQUIREMENT_ERROR,
     );
   }
+  return $requirements;
 }
 
 

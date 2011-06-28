@@ -51,7 +51,10 @@
     globalChange: function (name, userdata) {
       for (var mapid in Drupal.settings.gmap) {
         if (Drupal.settings.gmap.hasOwnProperty(mapid)) {
-          maps[mapid].change(name, -1, userdata);
+          // Skip maps that are set up but not shown, etc.
+          if (maps[mapid]) {
+            maps[mapid].change(name, -1, userdata);
+          }
         }
       }
     },
@@ -203,6 +206,23 @@ Drupal.gmap.addHandler('gmap', function (elem) {
   // Respond to incoming moves
   _ib.move = obj.bind("move", function () {
     obj.map.panTo(new GLatLng(obj.vars.latitude, obj.vars.longitude));
+  });
+
+  // Respond to incoming recenter commands.
+  _ib.recenter = obj.bind("recenter", function (vars) {
+    if (vars) {
+      if (vars.bounds) {
+        obj.vars.latitude = vars.bounds.getCenter().lat();
+        obj.vars.longitude = vars.bounds.getCenter().lng();
+        obj.vars.zoom = obj.map.getBoundsZoomLevel(vars.bounds);
+      }
+      else {
+        obj.vars.latitude = vars.latitude;
+        obj.vars.longitude = vars.longitude;
+        obj.vars.zoom = vars.zoom;
+      }
+    }
+    obj.map.setCenter(new GLatLng(obj.vars.latitude, obj.vars.longitude), obj.vars.zoom);
   });
 
   // Respond to incoming map type changes

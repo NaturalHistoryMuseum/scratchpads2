@@ -10,9 +10,9 @@ files[] = gmap_plugin_style_gmap.inc
 files[] = gmap_plugin_style_gmapextended.inc
 files[] = tests/gmap.test
 
-; Information added by drupal.org packaging script on 2011-02-25
+; Information added by drupal.org packaging script on 2011-04-01
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "gmap"
-datestamp = "1298619342"
+datestamp = "1301616521"
 
