@@ -5,7 +5,6 @@
  */
 function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
   $vocabularies = taxonomy_get_vocabularies();
-  dpm($form);
   foreach($vocabularies as $vocabulary){
     $form[$vocabulary->vid]['list'] = array(
       '#type' => 'link',
