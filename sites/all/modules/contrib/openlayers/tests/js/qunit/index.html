@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+                    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>OpenLayers Drupal Module JS Test Page</title>
+  <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <link rel="stylesheet" href="qunit.css" type="text/css" media="screen" />
+  <script type="text/javascript" src="harness.js"></script>
+  <script type="text/javascript" src="http://www.openlayers.org/dev/OpenLayers.js"></script>
+  <script type="text/javascript" src="../../js/openlayers.js"></script>
+  <script type="text/javascript" src="../../includes/layer_types/js/kml.js"></script>
+  <script type="text/javascript" src="../../includes/layer_types/js/osm.js"></script>
+  <script type="text/javascript" src="../../includes/layer_types/js/wms.js"></script>
+  <script type="text/javascript" src="../../includes/layer_types/js/xyz.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_attribution.js"></script>
+  <script type="text/javascript" src="../../includes/layer_types/js/xyz.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_fullscreen.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_mouseposition.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_keyboarddefaults.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_layerswitcher.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_navigation.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_dragpan.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_panzoombar.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_boxselect.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_permalink.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_scaleline.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_zoombox.js"></script>
+  <script type="text/javascript" src="../../includes/behaviors/js/openlayers_behavior_zoomtomaxextent.js"></script>
+  
+  
+  <script type="text/javascript" src="qunit.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, {"basePath":"\/openlayers-7\/","ajaxPageState":{"theme":"seven","theme_token":"Tx8AJOZKOHXYzVx3Ud74FqiSYW7lLGI7N2taT3jYpio","js":{"misc\/jquery.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"sites\/all\/modules\/admin_menu\/admin_menu.js":1,"http:\/\/openlayers.org\/dev\/OpenLayers.js":1,"sites\/all\/modules\/openlayers\/js\/openlayers.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_attribution.js":1,"sites\/all\/modules\/openlayers\/includes\/layer_types\/js\/xyz.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_fullscreen.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_mouseposition.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_keyboarddefaults.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_layerswitcher.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_navigation.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_dragpan.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_panzoombar.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_boxselect.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_permalink.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_scaleline.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_zoombox.js":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_zoomtomaxextent.js":1,"sites\/all\/modules\/views\/js\/jquery.ui.dialog.patch.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"modules\/system\/system.admin.css":1,"modules\/field\/theme\/field.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"sites\/all\/modules\/views\/css\/views.css":1,"sites\/all\/modules\/ctools\/css\/ctools.css":1,"sites\/all\/modules\/admin_menu\/admin_menu.css":1,"sites\/all\/modules\/admin_menu\/admin_menu.uid1.css":1,"sites\/all\/modules\/openlayers\/openlayers.css":1,"sites\/all\/modules\/openlayers\/includes\/behaviors\/js\/openlayers_behavior_fullscreen.css":1,"themes\/seven\/reset.css":1,"themes\/seven\/style.css":1,"themes\/seven\/ie.css":1,"themes\/seven\/ie6.css":1}},"admin_menu":{"destination":"destination=admin\/structure\/openlayers\/test","replacements":{".admin-menu-users a":"0 \/ 1"},"margin_top":1},"openlayers":{"maps":{"openlayers-map-e5d426cc":{"projection":"900913","width":"auto","height":"400px","default_layer":"osm_mapnik","center":{"initial":{"centerpoint":"0,0","zoom":"2"}},"displayProjection":"4326","maxExtent":[-180,-90,180,90],"behaviors":{"openlayers_behavior_attribution":{"attribution":""},"openlayers_behavior_keyboarddefaults":{"keyboarddefaults":""},"openlayers_behavior_layerswitcher":{"layerswitcher":"","ascending":true},"openlayers_behavior_navigation":{"navigation":"","zoomWheelEnabled":true},"openlayers_behavior_panzoombar":{"panzoombar":""}},"layers":{"osm_mapnik":{"baselayer":true,"attribution":"\u0026copy;\u003ca href=\"http:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/\"\u003eCCBYSA\u003c\/a\u003e 2010\n      \u003ca href=\"http:\/\/www.openstreetmap.org\/\"\u003eOpenStreetMap.org\u003c\/a\u003e contributors","projection":["900913"],"layer_type":"openlayers_layer_type_xyz","url":"http:\/\/tile.openstreetmap.org\/${z}\/${x}\/${y}.png","serverResolutions":[156543.0339,78271.51695,39135.758475,19567.8792375,9783.93961875,4891.96980938,2445.98490469,1222.99245234,611.496226172,305.748113086,152.874056543,76.4370282715,38.2185141357,19.1092570679,9.55462853394,4.77731426697,2.38865713348,1.19432856674,0.597164283371],"maxExtent":[-20037508,-20037508,20037508,20037508],"layer_handler":"xyz","title":"OSM Mapnik","weight":1}},"id":"openlayers-map-e5d426cc","styles":[],"layer_styles":[],"errors":false},"openlayers-map-5e9dd4f0":{"projection":"900913","width":"auto","default_layer":"osm_mapnik","height":"400px","center":{"initial":{"centerpoint":"0,0","zoom":"2"}},"options":{"displayProjection":"4326","maxExtent":[-180,-90,180,90]},"behaviors":{"openlayers_behavior_attribution":{"attribution":""},"openlayers_behavior_fullscreen":{"activated":false},"openlayers_behavior_keyboarddefaults":{"keyboarddefaults":""},"openlayers_behavior_layerswitcher":{"layerswitcher":"","ascending":true},"openlayers_behavior_mouseposition":{"mouseposition":""},"openlayers_behavior_navigation":{"navigation":"","zoomWheelEnabled":true},"openlayers_behavior_dragpan":{"navigation":""},"openlayers_behavior_panzoombar":{"panzoombar":""},"openlayers_behavior_boxselect":{"input_fields":""},"openlayers_behavior_permalink":{"permalink":""},"openlayers_behavior_scaleline":{"scaleline":""},"openlayers_behavior_zoombox":{"zoombox":""},"openlayers_behavior_zoomtomaxextent":{"zoomtomaxextent":""}},"layers":{"osm_mapnik":{"baselayer":true,"attribution":"\u0026copy;\u003ca href=\"http:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/\"\u003eCCBYSA\u003c\/a\u003e 2010\n      \u003ca href=\"http:\/\/www.openstreetmap.org\/\"\u003eOpenStreetMap.org\u003c\/a\u003e contributors","projection":["900913"],"layer_type":"openlayers_layer_type_xyz","url":"http:\/\/tile.openstreetmap.org\/${z}\/${x}\/${y}.png","serverResolutions":[156543.0339,78271.51695,39135.758475,19567.8792375,9783.93961875,4891.96980938,2445.98490469,1222.99245234,611.496226172,305.748113086,152.874056543,76.4370282715,38.2185141357,19.1092570679,9.55462853394,4.77731426697,2.38865713348,1.19432856674,0.597164283371],"maxExtent":[-20037508,-20037508,20037508,20037508],"layer_handler":"xyz","title":"OSM Mapnik","weight":1}},"id":"openlayers-map-5e9dd4f0","styles":[],"layer_styles":[],"errors":false}}}});
+//--><!]]>
+
+</script>
+  <script>
+  $(document).ready(function() {
+    module("Utility Functions");
+
+    test("Testing Drupal.openlayers.relatePath correctness", function() {
+      var root_path = "/this/is/path.js";
+      var relative_path = "this/is/path.js";
+      var domain_path = "http://www.test.com/this/is/path.js";
+      equals(root_path, 
+        Drupal.openlayers.relatePath(root_path, 'foo'), "Root path is correct" );
+      equals(domain_path, 
+        Drupal.openlayers.relatePath(domain_path, 'foo'), "Domain path is correct" );
+      equals("http://foo.com/this/is/path.js", 
+        Drupal.openlayers.relatePath(relative_path, 'http://foo.com/'), "Relative path is correct" )});
+
+    test("Testing object_from_feature correctness", function() {
+      var latlonobject = {lat: 5, lon: 10};
+      var llobj = Drupal.openlayers.objectFromFeature(latlonobject);
+      equals(10, llobj.geometry.x, "Latitude is correct" );
+      equals(5,  llobj.geometry.y, "Latitude is correct" );
+
+      var wktobject = {wkt: 'POINT(50 40)'};
+      var wktobj = Drupal.openlayers.objectFromFeature(wktobject);
+
+      equals(50, wktobj.geometry.x, "Latitude is correct" );
+      equals(40,  wktobj.geometry.y, "Latitude is correct" );
+    });
+  });
+  </script>
+  
+</head>
+<body>
+  <h1 id="qunit-header">OpenLayers Tests</h1>
+  <h2 id="qunit-banner"></h2>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  
+  <div class="maps">
+    <div id="openlayers-container-openlayers-map-e5d426cc" class="openlayers-container openlayers-container-map-default" style="width: auto; height: 400px;">
+      <div id="openlayers-map-e5d426cc" class="openlayers-map openlayers-map-default openlayers-processed olMap" style="width: auto; height: 400px;">
+    </div>
+  </div>
+</body>
+</html>

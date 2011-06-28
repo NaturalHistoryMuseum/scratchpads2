@@ -9,6 +9,7 @@
  */
 Drupal.openlayers.layer.tms = function(title, map, options) {
   var styleMap = Drupal.openlayers.getStyleMap(map, options.drupalID);
+  options.isBaseLayer = options.baselayer;
     if (options.maxExtent !== undefined) {
       options.maxExtent = new OpenLayers.Bounds.fromArray(options.maxExtent);
     }

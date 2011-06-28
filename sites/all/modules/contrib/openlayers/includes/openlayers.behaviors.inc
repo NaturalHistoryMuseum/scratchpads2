@@ -255,5 +255,15 @@ function _openlayers_openlayers_behaviors() {
         'parent' => 'openlayers_behavior',
       ),
     ),
+    'openlayers_behavior_geolocate' => array(
+      'title' => t('Geolocate'),
+      'description' => t('Provides the geolcoation control and simply zooms to users location.'),
+      'path' => drupal_get_path('module', 'openlayers') . '/includes/behaviors',
+      'file' => 'openlayers_behavior_geolocate.inc',
+      'behavior' => array(
+        'class' => 'openlayers_behavior_geolocate',
+        'parent' => 'openlayers_behavior',
+      ),
+    ),
   );
 }

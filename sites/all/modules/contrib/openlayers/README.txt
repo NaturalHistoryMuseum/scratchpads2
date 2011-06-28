@@ -32,16 +32,16 @@ You'll most likely want to enable OpenLayers UI and OpenLayers Views modules for
 * Views - Allows data to be displayed on a map
   via Views
 * Filters - Creates a filter to replace
-  [openlayers preset_name] with a map.
+  [openlayers map_name] with a map.
 
 # Basic Concepts
 
-## Presets
+## Maps
 
 An OpenLayers map in Drupal is a combination of decisions about which 
 layers to show, what styles to apply, the minimum and maximum zoom levels, 
-and how the user can interact with the map. A map preset object is where 
-the options for these settings are combined and stored. Presets can be 
+and how the user can interact with the map. A map object is where 
+the options for these settings are combined and stored. Maps can be 
 rendered through OpenLayers views of the type "OpenLayers Map," through 
 filters provided by the OpenLayers Filters module, or directly in your 
 modules using the api function openlayers_render_map()
@@ -63,11 +63,11 @@ vector overlays. The primary use-case here will be data from OpenLayers
 data views but this could also include KML files. Styles define things like 
 stroke width, background and outline colors, and point size and allow the 
 use of icons if desired. They must be associated with layers on a per-
-preset basis.
+map basis.
 
 ## Behaviors
 
-Behaviors can be enabled on map presets to control how users interact with 
+Behaviors can be enabled on maps to control how users interact with 
 the map. Examples of behaviors include navigation, which, when enabled, 
 allows users to zoom and pan, and Layer Switcher, which provides a UI that 
 allows users to toggle on and off the layers available on the map.
@@ -77,16 +77,16 @@ allows users to toggle on and off the layers available on the map.
 OpenLayers views come in two varieties. The first is a display type called 
 OpenLayers Data. This is what allows users to control which pieces of 
 content show up on the map and in what manner. Each OpenLayers data view 
-provides a layer that can be added to maps when configuring a preset. The 
+provides a layer that can be added to maps when configuring a map. The 
 second is a style called OpenLayers Map that can be applied to pages, 
 blocks, attachments, and so on and give users an easy way of rendering 
-presets.
+maps.
 
 # Installation
 
 1. Normal Drupal module installation
 
-2. Set OpenLayers Source at: admin/build/openlayers
+2. Set OpenLayers Source at: admin/structure/openlayers
    It is suggested to download the library and use it locally for performance.
 
 3. A tutorial 

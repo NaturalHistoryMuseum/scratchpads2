@@ -20,7 +20,10 @@ function openlayers_ui_styles_form($form, $form_state, $style = NULL, $edit = FA
   $properties = array(
     'externalGraphic' => array(
       'default' => '',
-      'desc' => t('The URL of an icon for points in a layer.'),
+      'desc' => t('The URL of an icon for points in a layer.  The following options are available:
+        <ul><li>Full path, such as http://example.com/icon.png</li>
+        <li>Relative Drupal path, such as sites/all/modules/example/icon.png</li>
+        <li>Absolute path, such as /icon.png (though this is not suggested for maintainability reasons)</li></ul>'),
     ),
     'pointRadius' => array(
       'default' => 6,
@@ -238,7 +241,7 @@ function openlayers_ui_styles_form($form, $form_state, $style = NULL, $edit = FA
     $form['data'][$key] = array(
       '#type' => !isset($prop['options']) ? 'textfield' : 'select',
       '#title' => check_plain($key),
-      '#description' => check_plain($prop['desc']),
+      '#description' => filter_xss($prop['desc']),
       '#default_value' => isset($style->data[$key]) ?
         $style->data[$key] : $prop['default'],
     );
@@ -292,7 +295,7 @@ function openlayers_ui_styles_form_submit(&$form, &$form_state) {
   // Redirect to edit page
   if ($success) {
     drupal_set_message(t('Style saved.'));
-    $form_state['redirect'] = 'admin/build/openlayers/styles/' . $style->name . '/edit';
+    $form_state['redirect'] = 'admin/structure/openlayers/styles/' . $style->name . '/edit';
   }
   else {
     form_set_error('openlayers', t('Error trying to save style.'));

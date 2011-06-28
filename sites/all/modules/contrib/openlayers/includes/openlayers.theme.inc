@@ -12,7 +12,7 @@
  */
 function theme_openlayers_map($args) {
   $map = $args['map'];
-  $preset_name = $args['preset_name'];
+  $map_name = $args['map_name'];
   // To ensure that any controls are on the map correctly, we need to
   // wrap the map in a container, and take into account percentage dimensions
   $container_width = $map['width'];
@@ -24,9 +24,9 @@ function theme_openlayers_map($args) {
   $output = '
     <div style="width: ' . $container_width . '; height: ' . $container_height .
       ';" id="openlayers-container-' . $map['id'] .
-      '" class="openlayers-container openlayers-container-preset-' . $preset_name . '">
+      '" class="openlayers-container openlayers-container-map-' . $map_name . '">
       <div style="width: ' . $map['width'] . '; height: ' . $map['height'] . ';" id="' .
-      $map['id'] . '" class="openlayers-map openlayers-preset-' . $preset_name . '"></div>
+      $map['id'] . '" class="openlayers-map openlayers-map-' . $map_name . '"></div>
     </div>';
   return $output;
 }

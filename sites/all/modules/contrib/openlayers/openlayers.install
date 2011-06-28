@@ -33,34 +33,34 @@ function openlayers_uninstall() {
 function openlayers_schema() {
   $schema = array();
   // Maps table (ctools extras)
-  $schema['openlayers_map_presets'] = array(
-    'description' => 'Storage for User defined OpenLayers map presets.',
+  $schema['openlayers_maps'] = array(
+    'description' => 'Storage for User defined OpenLayers maps.',
     'export' => array(
       'key' => 'name',
-      'identifier' => 'openlayers_presets',
-      'default hook' => 'openlayers_presets',
+      'identifier' => 'openlayers_maps',
+      'default hook' => 'openlayers_maps',
       'api' => array(
         'owner' => 'openlayers',
-        'api' => 'openlayers_presets',
+        'api' => 'openlayers_maps',
         'minimum_version' => 1,
         'current_version' => 1,
       ),
     ),
     'fields' => array(
       'name' => array(
-        'description' => 'The primary identifier for the preset.',
+        'description' => 'The primary identifier for the map.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
       ),
       'title' => array(
-        'description' => 'The title of the preset.',
+        'description' => 'The title of the map.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
       ),
       'description' => array(
-        'description' => 'The description of the preset.',
+        'description' => 'The description of the map.',
         'type' => 'text',
         'not null' => TRUE,
       ),
@@ -166,4 +166,17 @@ function openlayers_schema() {
     ),
   );
   return $schema;
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Rename of presets to maps.
+ */
+function openlayers_update_7201() {
+  // Change table name
+  db_rename_table('openlayers_map_presets', 'openlayers_maps');
+  // Set default map variable
+  variable_set('openlayers_default_map', variable_get('openlayers_default_preset', 'default'));
+  variable_del('openlayers_default_preset');
 }

@@ -21,9 +21,6 @@
   display:none;
 }
 
-/**
- * Preset form
- */
 div.openlayers-column-right input.form-text,
 div.openlayers-column-left input.form-text { width:90%; }
 
@@ -51,17 +48,13 @@ span.openlayers-dependency-broken {
 /**
  * Behaviors table
  */
- /*
-.openlayers-form-behaviors-table .openlayers-form-behaviors-enable {
-  width: 15%;
+div.vertical-tabs table tbody tr fieldset {
+  font-size: .85em;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 10px;
+  background-color: #EEEEEE;
+  position: inherit;
 }
-.openlayers-form-behaviors-table .openlayers-form-behaviors-title {
-  width: 35%;
-}
-.openlayers-form-behaviors-table .openlayers-form-behaviors-options {
-  width: 50%;
-}
-*/
-div.openlayers-column-right .openlayers-form-behaviors-table .openlayers-form-behaviors-options input.form-text {
-  width: 200px;
-}
+
+

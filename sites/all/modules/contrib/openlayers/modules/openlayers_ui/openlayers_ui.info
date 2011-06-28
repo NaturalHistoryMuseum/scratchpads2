@@ -6,9 +6,9 @@ dependencies[] = "openlayers"
 ; Core files
 files[] = openlayers_ui.module
 
-; Information added by drupal.org packaging script on 2011-03-01
+; Information added by drupal.org packaging script on 2011-06-15
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "openlayers"
-datestamp = "1298981375"
+datestamp = "1308140035"
 

@@ -167,7 +167,7 @@ function openlayers_views_form_alter(&$form, $form_state, $form_id) {
               Views interface as a view. <a href="@url">Export this view 
               using the views module.</a>',
               array(
-                '@url' => url('admin/build/views/export/' . 
+                '@url' => url('admin/structure/views/export/' . 
                 $form['#parameters'][3]->data['views']['view'])
               )
             )
@@ -194,7 +194,7 @@ function openlayers_views_form_alter(&$form, $form_state, $form_id) {
               'This layer is provided by a view, so it can be cloned by cloning 
               the view in the <a href="@url">Views interface.</a>',
               array(
-                '@url' => url('admin/build/views/')
+                '@url' => url('admin/structure/views/')
               )
             )
           )

@@ -10,13 +10,16 @@
  *  Formatted HTML.
  */
 Drupal.theme.prototype.openlayersTooltip = function(feature) {
-  var output =
-    '<div class="openlayers-popup openlayers-tooltip-name">' +
-      feature.attributes.name +
-    '</div>' +
-    '<div class="openlayers-popup openlayers-tooltip-description">' +
-      feature.attributes.description +
-    '</div>';
+  var output = '';
+  
+  if (feature.attributes.name) {
+    output += '<div class="openlayers-popup openlayers-tooltip-name">' + feature.attributes.name + '</div>';
+  }
+  
+  if (feature.attributes.description) {
+    output += '<div class="openlayers-popup openlayers-tooltip-description">' + feature.attributes.description + '</div>';
+  }
+  
   return output;
 };
 
@@ -54,22 +57,27 @@ Drupal.behaviors.openlayers_behavior_tooltip = {
           multiple: false,
           onSelect: function(feature) {
             // Create FramedCloud popup for tooltip.
-            popup = new OpenLayers.Popup.FramedCloud(
-              'tooltip',
-              feature.geometry.getBounds().getCenterLonLat(),
-              null,
-              Drupal.theme('openlayersTooltip', feature),
-              null,
-              true
-            );
-            feature.popup = popup;
-            feature.layer.map.addPopup(popup);
+            var output = Drupal.theme('openlayersTooltip', feature);
+            if (typeof output != 'undefined') {
+              popup = new OpenLayers.Popup.FramedCloud(
+                'tooltip',
+                feature.geometry.getBounds().getCenterLonLat(),
+                null,
+                output,
+                null,
+                true
+              );
+              feature.popup = popup;
+              feature.layer.map.addPopup(popup);
+            }
           },
           onUnselect: function(feature) {
             // Remove popup.
-            feature.layer.map.removePopup(feature.popup);
-            feature.popup.destroy();
-            feature.popup = null;
+            if (typeof feature.popup != 'undefined') {
+              feature.layer.map.removePopup(feature.popup);
+              feature.popup.destroy();
+              feature.popup = null;
+            }
           }
         }
       );

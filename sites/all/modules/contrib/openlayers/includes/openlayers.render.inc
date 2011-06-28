@@ -97,6 +97,18 @@ function _openlayers_styles_process($styles = array(),
       $processed[$style] = $info;
     }
   }
+  
+  // Update URLs to support different types of paths
+  foreach ($processed as $k => $style) {
+    if (!empty($style['externalGraphic'])) {
+      // Check full URL or absolute path
+      if (!valid_url($style['externalGraphic'], TRUE) 
+        && strpos($style['externalGraphic'], '/') !== 0) {
+        // Make full URL from Drupal path
+        $processed[$k]['externalGraphic'] = url($style['externalGraphic'], array('absolute' => TRUE));
+      }
+    }
+  }
 
   // Run through theme function
   $processed = theme('openlayers_styles', array(

@@ -9,7 +9,7 @@
  */
 (function($) {
   Drupal.behaviors.openlayers_behavior_permalink = {
-      'attach': function(context, settings) {
+    'attach': function(context, settings) {
       var data = $(context).data('openlayers');
       if (data && data.map.behaviors['openlayers_behavior_permalink']) {
         // Add control

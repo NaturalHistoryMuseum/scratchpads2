@@ -29,7 +29,7 @@ function theme_openlayers_ui_form_projection_description($args) {
   return $output;
 }
 
-function theme_openlayers_ui_presets_form_layers($args) {
+function theme_openlayers_ui_maps_form_layers($args) {
   $form = $args['elements'];
 
   $output = drupal_render($form['ahah-start']) .
@@ -85,9 +85,9 @@ function theme_openlayers_ui_presets_form_layers($args) {
 }
 
 /**
- * Drupal theme implementation for Behaviors in the Preset form
+ * Drupal theme implementation for Behaviors in the map form
  */
-function theme_openlayers_ui_presets_form_behaviors($args) {
+function theme_openlayers_ui_maps_form_behaviors($args) {
   $form = $args['elements'];
 
   $rows = array();

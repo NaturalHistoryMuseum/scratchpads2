@@ -16,7 +16,7 @@ module.](http://drupal.org/project/advanced_help)
 
 # Map Build Process
 
-The parts to build a map - layers, behaviors, presets, and styles - are loaded
+The parts to build a map - layers, behaviors, maps, and styles - are loaded
 with menu loaders, like `openlayers_layer_export_load`. They should not be
 loaded manually because menu loaders do the necessary instantiation and
 cache-clearing.

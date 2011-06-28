@@ -81,11 +81,11 @@ Here's what you'll write for this behavior:
     }
 
 As you can see, there's an options_form method which is called when the list of
-behaviors is generated for each preset, and given a `$defaults` array if there
+behaviors is generated for each map, and given a `$defaults` array if there
 have already been values saved. It isn't required to implement this method,
 although many behaviors will need it. And at this level - in the options_form,
-you have access to the preset/map with $this - so you can get layers, styles,
-and other parts of the preset to play around with The `render(&$map)` function
+you have access to the map object with $this - so you can get layers, styles,
+and other parts of the map to play around with The `render(&$map)` function
 is indeed required, since it is called for every behavior.
 
 There's quite a bit of Javascript to write for this behavior:

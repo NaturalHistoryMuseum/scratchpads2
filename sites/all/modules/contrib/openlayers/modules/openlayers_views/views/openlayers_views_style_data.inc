@@ -15,8 +15,41 @@
  * a style plugin for the Open Layers module.
  */
 class openlayers_views_style_data extends views_plugin_style {
+ 
+   /**
+   * Render the map features.
+   *
+   * Overrides views_plugin_style->render
+   */
+  function render($result) {
+    $grouped_results = $this->render_grouping($result, $this->options['grouping']);
+    $data = $this->map_features($grouped_results);
+    
+    // If we are not in preview, just return the data
+    if (empty($this->view->live_preview)) {
+      return $data;
+    }
+    else {
+      // If we are in preview mode, dump out some useful information about this data layer
+      $output = "You can use the following parameters in your styles as dynamic values";
+      $output .= "\n------------\n";
+      $keys = array_keys($data);
+      foreach ($data[$keys[0]]['attributes'] as $key => $value) {
+        $output .= '${'.$key."}\n";
+      }
+      $output .= "\n------------\n";
+      
+      $output .= t('The following is a dump of the data that is rendered from this display. It is used for debugging purposes only.') . '
+        ' . var_export($data, TRUE);
+      
+      return $output;
+    }
+  }
+   
   /**
    * Set default options
+   *
+   * Overrides views_plugin_style->option_definition
    */
   function option_definition() {
     $options = parent::option_definition();
@@ -25,17 +58,9 @@ class openlayers_views_style_data extends views_plugin_style {
   }
 
   /**
-   * Basically a macro because
-   * #state is rather verbose
-   */
-  function datasource_dependent($type) {
-    return array('visible' => array(
-        '#edit-style-options-data-source-value' => 
-            array('value' => $type)));
-  }
-
-  /**
    * Options form
+   *
+   * Overrides views_plugin_style->options_form
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
@@ -56,17 +81,7 @@ class openlayers_views_style_data extends views_plugin_style {
 
     $fields = array();
     foreach ($handlers as $field_id => $handler) {
-        if ($handler->content_field['type'] == 'openlayers_wkt' &&
-          $handler->options['format'] !== 'openlayers_wkt'
-        ) {
-          form_set_error('', t('WKT Field %field not available 
-            because it is formatted as a map. Set its format to WKT Value to 
-            make it available.', array(
-                '%field' => $handler->definition['title'])));
-        }
-        else {
-          $fields[$field_id] = $handler->definition['title'];
-        }
+      $fields[$field_id] = $handler->definition['title'];
     }
 
     $form['data_source'] = array(
@@ -82,8 +97,8 @@ class openlayers_views_style_data extends views_plugin_style {
       '#description' => t('Choose which sources of data that the map will '
       . 'provide features for.'),
       '#options' => array(
-        'other_latlon' => t('Other: Lat/Lon Point'),
-        'other_boundingbox' => t('Other: Bounding Box'),
+        'other_latlon' => t('Lat/Lon Pair'),
+        'other_boundingbox' => t('Bounding Box'),
         'wkt' => t('WKT')
       ),
       '#default_value' => $this->options['data_source']['value'],
@@ -202,58 +217,126 @@ class openlayers_views_style_data extends views_plugin_style {
       . 'their respective feature (point, line, polygon) as attributes.  '
       . 'These attributes can then be used to add variable styling to your '
       . 'themes.  This is accomplished by using the %syntax syntax in the '
-      . 'values for a style.  The following is a list of formatted variables '
-      . 'that are currently available; these can be placed right in the style '
-      . 'interface.  The %rendered one means that it has been processed '
+      . 'values for a style.  You can see a list of available variables in '
+      . 'the view preview; these can be placed right in the style interface. '
+      . 'The %rendered one means that it has been processed '
       . 'by Views and may have a different value.',
       array(
         '%syntax' => '${field_name}',
         '%rendered' => '_rendered'))
       . '</p>'
-      . theme('item_list', $variable_fields)
+      . theme('item_list', array('items' => $variable_fields))
       . '<p>'
       . t('Please note that this does not apply to Grouped Displays.')
       . '</p>',
     );
   }
 
+
   /**
-   * Find the data source of an element and pull it into a
-   * wkt field
+   * @param $records ...
+   *
+   * openlayers_views_style_data specific
    */
-  function coalesce_wkt($feature, $handlers, $ds) {
-    $feature['projection'] = '4326';
-    switch ($ds['value']) {
-      case 'wkt':
-        $feature['wkt'] = $feature[$ds['wkt']];
-        break;
-      case 'other_latlon':
-        $feature['wkt'] = 'POINT(' . $feature[$ds['other_lon']] . ' ' . $feature[$ds['other_lat']] . ')';
-        break;
+  function map_features($sets = array()) {
+    $features = $excluded_fields = array();
+    $handlers = $this->display->handler->get_handlers('field');
+    foreach ($sets as $title => $records) {
+      foreach ($records as $id => $record) {
+        $this->view->row_index = $id;
+        $attributes = array();
+        foreach ($handlers as $hid => $handler) {
+          if (!empty($handler->options['exclude'])) {
+            $excluded_fields[] = $hid;
+          }
+          else {
+            $attributes[$hid . '_rendered'] = $handler->allow_advanced_render() ? $handler->advanced_render($record) : $handler->render($record);
+            $attributes[$hid] = isset($handler->original_value) ? $handler->original_value : NULL;
+          }
+        }
+        
+        $feature = array(
+          'projection' => '4326',
+          'attributes' => $attributes,
+          'wkt' => $this->get_wkt($attributes, $handlers, $this->options['data_source']),
+        );
+
+        $features = $this->reduce_features($this->options['grouping'], $features, $feature, $title);
+      }
     }
-    return $feature;
+    
+    if ($this->options['grouping']) {
+      $features = $this->coalesce_groups($features, $handlers, $this->options['data_source']);
+    }
+    else {
+      $features = $this->add_title_desc($features, $handlers, $this->options['data_source']);
+    }
+    return $features;
   }
 
   /**
-   * Coalesce features into single grouped feature when
-   * grouping is enabled.
+   * Basically a macro because
+   * #state is rather verbose
+   *
+   * openlayers_views_style_data specific
+   */
+  function datasource_dependent($type) {
+    return array('visible' => array('#edit-style-options-data-source-value' => array('value' => $type)));
+  }
+  
+  /**
+   * Find the data source of an element and pull it into a wkt field
+   *
+   * openlayers_views_style_data specific
+   */
+  function get_wkt($feature, $handlers, $datasource) {
+    $feature['projection'] = '4326';
+    switch ($datasource['value']) {
+      case 'wkt':
+        return strip_tags($feature[$datasource['wkt']]);
+        break;
+
+      case 'other_latlon':
+        return 'POINT(' . strip_tags($feature[$datasource['other_lon']]) . ' ' . strip_tags($feature[$datasource['other_lat']]) . ')';
+        break;
+    }
+  }
+
+  /**
+   * Coalesce features into single grouped feature when grouping is enabled.
+   *
+   * openlayers_views_style_data specific
    */
   function coalesce_groups($features, $handlers, $ds) {
-    foreach ($features as $k => &$f) {
-      $f['attributes']['name'] = $k;
-
+    
+    // Combine wkt into geometry collections if they are an array
+    foreach ($features as &$feature) {
+      if (is_array($feature['wkt'])) {
+        if (count($feature['wkt']) > 1) {
+          $feature['wkt'] = $this->get_group_wkt($feature['wkt']);
+        }
+        else {
+          $feature['wkt'] = $feature['wkt'][0];
+        }
+      }
+    }
+    
+    // Process title and description
+    foreach ($features as $k => &$feature) {
+      $feature['attributes']['name'] = $k;
+      $feature['attributes'] = array_merge($feature['attributes'], $feature['features'][0]['attributes']);
+      
       $formatted_features = array();
-      foreach ($f['features'] as $feature) {
+      foreach ($feature['features'] as $subfeature) {
         $formatted_features[] = theme('openlayers_views_group_display_item',
           array(
-            'name' => isset($handlers[$ds['name_field']]) ?
-              $feature[$ds['name_field'] . '_rendered'] : false,
-            'description' => isset($handlers[$ds['description_field']]) ?
-              $feature[$ds['description_field'] . '_rendered'] : false
+            'name' => isset($handlers[$ds['name_field']]) ? $subfeature['attributes'][$ds['name_field'] . '_rendered'] : false,
+            'description' => isset($handlers[$ds['description_field']]) ? $subfeature['attributes'][$ds['description_field'] . '_rendered'] : false
           )
         );
       }
-      $f['attributes']['description'] = theme('item_list',
+      
+      $feature['attributes']['description'] = theme('item_list',
         array(
           'items' => $formatted_features
         )
@@ -261,21 +344,99 @@ class openlayers_views_style_data extends views_plugin_style {
     }
     return $features;
   }
+  
+  /**
+   * Combine all group wkt into a single geometry collection
+   * 
+   * openlayers_views_style_data specific
+   */
+  function get_group_wkt($wkt_array) {
+    //@@TODO: DO this in geoPHP - four lines of code...
+    $output = 'GEOMETRYCOLLECTION(';
+    $i = 0;
+    foreach ($wkt_array as $wkt) {
+      $wkt = strtoupper($wkt);
+      if ($i != 0) {
+        $output .= ',';
+      }
+      switch (substr($wkt,0,5)) {
+        case 'POINT':
+        case 'LINES':
+        case 'POLYG':
+          $output .= $wkt;
+          break;
+        case 'MULTI':
+          $subwkt = str_replace(array('MULTIPOINT','MULTIPOLYGON','MULTILINESTRING'),'',$wkt);
+          $subwkt = str_replace(', ',',',$subwkt);
+          $subwkt = trim($subwkt);
+          switch (substr($wkt,0,10)) {
+            case 'MULTIPOINT':
+              $subwkt = str_replace(array('(',')'),'',$subwkt);
+              $parts = explode(',',$subwkt);
+              $j = 0;
+              foreach ($parts as $part) {
+                if ($j != 0) $output .= ',';
+                $output .= 'POINT('.$part.')';
+                $j++;
+              }
+              break;
+            case 'MULTILINES':
+              $subwkt = str_replace(array('((','))'),'',$subwkt);
+              $parts = explode('),(',$subwkt);
+              $j = 0;
+              foreach ($parts as $part) {
+                if ($j != 0) $output .= ',';
+                $output .= 'LINESTRING('.$part.')';
+                $j++;
+              }
+              break;
+            case 'MULTIPOLYG':
+              //@@TODO: This does not support polygons with holes
+              $subwkt = str_replace(array('(((',')))'),'',$subwkt);
+              $parts = explode(')),((',$subwkt);
+              $j = 0;
+              foreach ($parts as $part) {
+                if ($j != 0) $output .= ',';
+                $output .= 'POLYGON(('.$part.'))';
+                $j++;
+              }
+              break;
+          }
+          break;
+        case 'GEOME':
+          $output .= trim(substr($wkt,18,-1));
+          break;  
+      }
+      $i++;
+    }
+    $output .= ')';
+    return $output;
+  }
 
   /**
-   * Retrieve name and description for individual features when
-   * grouping is not enabled.
+   * Retrieve name and description for individual features when grouping is not enabled.
+   * 
+   * openlayers_views_style_data specific
    */
-  function coalesce_features($features, $handlers, $ds) {
+  function add_title_desc($features, $handlers, $ds) {
     foreach ($features as $k => &$f) {
-      $f['attributes']['name'] = isset($handlers[$ds['name_field']])
-        ? $f['attributes'][$ds['name_field'] . '_rendered']
-        : false;
-      $f['attributes']['description'] = isset($handlers[$ds['description_field']])
-        ? $f['attributes'][$ds['description_field'] . '_rendered']
-        : false;
+      if (isset($handlers[$ds['name_field']])) {
+        $f['attributes']['name'] = $f['attributes'][$ds['name_field'] . '_rendered'];
+      }
+      if (isset($handlers[$ds['description_field']])) {
+        $f['attributes']['description'] = $f['attributes'][$ds['description_field'] . '_rendered'];
+      }
     }
     return $features;
+  }
+
+  /**
+   * Split string according to first match of passed regEx index of $regExes
+   */
+  function preg_explode($regEx, $str) {
+    $matches = array();
+    preg_match($this->regExes[$regEx], $str, $matches);
+    return empty($matches)?array(trim($str)):explode($matches[0], trim($str));
   }
 
   /**
@@ -283,18 +444,21 @@ class openlayers_views_style_data extends views_plugin_style {
    * a feature, a list of features, etc., return a full $features
    * array with the element added, either straight non-grouped, 
    * or within a new or existing group
+   *
+   * openlayers_views_style_data specific
    */
   function reduce_features($is_grouped, $features, $feature, $group) {
     if ($is_grouped) {
       if (isset($features[$group])) {
         $features[$group]['attributes']['count']++;
+        $features[$group]['wkt'][] = $feature['wkt'];
         $features[$group]['features'][] = $feature;
         return $features;
       }
       else {
         $features[$group] = array(
           'attributes' => array('count' => 1),
-          'wkt' => $feature['wkt'],
+          'wkt' => array($feature['wkt']),
           'projection' => $feature['projection'],
           'features' => array($feature)
         );
@@ -302,77 +466,9 @@ class openlayers_views_style_data extends views_plugin_style {
       }
     }
     else {
-      array_push($features, array(
-        'attributes' => $feature,
-        'wkt' => $feature['wkt'],
-        'projection' => $feature['projection'],
-        'features' => array($feature)
-      ));;
+      array_push($features, $feature);
       return $features;
     }
   }
-
-  /**
-   * @param $records ...
-   */
-  function map_features($sets = array()) {
-    $features = $excluded_fields = array();
-    $handlers = $this->display->handler->get_handlers('field');
-
-    foreach ($sets as $title => $records) {
-      foreach ($records as $id => $record) {
-        foreach ($handlers as $hid => $handler) { 
-          if (!empty($handler->options['exclude'])) {
-            $excluded_fields[] = $hid;
-          }
-          else {
-            if ($handler->real_field == 'entity_id') {
-              $type = $handler->definition['field_info']['type'];
-              $entity = $record->_field_data[$handler->field_alias]['entity'];
-              $language = $handler->field_language();
-              if (in_array($type, array('text', 'text_long', 'text_with_summary', 'number_integer', 'number_decimal','number_float'))) {
-                  $feature[$hid] = $entity->{$handler->definition['field_name']}[$language][0]['value'];
-              }
-              else {
-                  $feature[$hid] = isset($handler->original_value) ? $handler->original_value : NULL;
-              }
-            }
-            else {
-              $feature[$hid] = isset($handler->original_value) ? $handler->original_value : NULL;
-            }
-            $feature[$hid . '_rendered'] = $handler->allow_advanced_render() ? $handler->advanced_render($record) : $handler->render($record);
-          }
-        }
-        
-        $features = $this->reduce_features(
-          $this->options['grouping'],
-          $features,
-          $this->coalesce_wkt($feature,
-            $handlers,
-            $this->options['data_source']),
-          $title);
-      }
-    }
-    if ($this->options['grouping']) {
-      return $this->coalesce_groups($features,
-        $handlers,
-        $this->options['data_source']);
-    }
-    else {
-      return $this->coalesce_features($features,
-        $handlers,
-        $this->options['data_source']);
-    }
-  }
-
-  /**
-   * Render the map features.
-   */
-  function render($result) {
-    return empty($this->view->live_preview) ?
-      $this->map_features(
-        $this->render_grouping($result, $this->options['grouping'])
-      ) :
-      t('OpenLayers views are not compatible with live preview.');
-  }
+  
 }

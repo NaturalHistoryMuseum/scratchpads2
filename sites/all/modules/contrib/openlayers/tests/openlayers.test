@@ -10,13 +10,68 @@
  * limited in ensuring that the OpenLayers module
  * functions 100% correctly.
  *
+ * For reference, @see:
+ * http://api.drupal.org/api/drupal/modules--simpletest--drupal_web_test_case.php/class/DrupalWebTestCase/7
+ *
  * @ingroup openlayers
+ */
+ 
+/**
+ * Test the OpenLayers core functionality.
+ */
+class OpenLayersCore extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'OpenLayers Core',
+      'description' => 'Tests OpenLayers core functions.',
+      'group' => 'OpenLayers',
+    );
+  }
+
+  function setUp() {
+    // Install modules
+    parent::setUp('openlayers', 'ctools', 'openlayers_ui', 'openlayers_test');
+  }
+
+  /**
+   * Test openlayers_include
+   */
+  function testInclude() {
+    $user = $this->drupalCreateUser(array('administer openlayers'));
+    $this->drupalLogin($user);
+    
+    // Go to test page and ensure includes happened.
+    $this->drupalGet('admin/structure/openlayers/test');
+    $this->assertRaw('openlayers.css', t('The OpenLayers CSS file was included'));
+    $this->assertRaw('openlayers.js', t('The OpenLayers JS file was included'));
+  }
+
+  /**
+   * Test map rendering
+   */
+  function testRender() {
+    $rendered = openlayers_render_map();
+    //$this->verbose('Map output: ' . var_export($rendered, TRUE));
+
+    // Check output
+    $this->assertTrue((stripos($rendered, 'default') !== FALSE), t('Default name found'));
+    $this->assertTrue((stripos($rendered, 'id="openlayers-container-openlayers-map') !== FALSE), 
+      t('Container ID found'));
+    $this->assertTrue((stripos($rendered, 'id="openlayers-map') !== FALSE), 
+      t('Map ID found'));
+    $this->assertTrue((stripos($rendered, 'class="openlayers-map') !== FALSE), 
+      t('Map Class found'));
+  }
+}
+
+/**
+ * Test OpenLayers basic UI
  */
 class OpenLayersUI extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'OpenLayers UI',
-      'description' => 'Tests OpenLayers core settings.',
+      'description' => 'Tests OpenLayers basic UI.',
       'group' => 'OpenLayers',
     );
   }
@@ -27,34 +82,33 @@ class OpenLayersUI extends DrupalWebTestCase {
   }
 
   /**
-   * Ensure that the preset shows up in the interface
+   * Ensure that the source can be updated
    */
-  function testOpenLayersPresets() {
+  function testSourceChange() {
     $user = $this->drupalCreateUser(array('administer openlayers'));
     $this->drupalLogin($user);
 
-    $new_openlayers_source = "http://openlayers.org/nightly/OpenLayers.js";
+    // Update source settings
+    $new_openlayers_source = 'http://openlayers.org/nightly/OpenLayers.js';
     $openlayers_settings = array('openlayers_source' => $new_openlayers_source);
-    $this->drupalPost('admin/build/openlayers', $openlayers_settings, t('Save configuration'));
-
-    // Go to preset page
-    $this->drupalGet('admin/build/openlayers');
+    $this->drupalPost('admin/structure/openlayers', $openlayers_settings, t('Save configuration'));
+    // Go to map page
+    $this->drupalGet('admin/structure/openlayers');
     $this->assertResponse(200, t('User can reach the settings page.'));
-
-    $this->drupalGet('admin/build/openlayers');
+    // Check that the new source change is represented
+    $this->drupalGet('admin/structure/openlayers');
     $this->assertRaw($new_openlayers_source, t('The OpenLayers source was changed'));
-    // Presets
   }
 }
 
 /**
- * Test OpenLayers presets.
+ * Test OpenLayers maps.
  */
-class OpenLayersPresets extends DrupalWebTestCase {
+class OpenLayersMaps extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'OpenLayers Presets',
-      'description' => 'Tests the OpenLayers Presets system.',
+      'name' => 'OpenLayers Maps',
+      'description' => 'Tests the OpenLayers maps system.',
       'group' => 'OpenLayers',
     );
   }
@@ -65,29 +119,52 @@ class OpenLayersPresets extends DrupalWebTestCase {
   }
 
   /**
-   * Ensure that the preset shows up in the interface
+   * Ensure that the map shows up in the interface
    */
-  function testOpenLayersPresets() {
+  function testOpenLayersMaps() {
     $user = $this->drupalCreateUser(array('administer openlayers'));
     $this->drupalLogin($user);
 
-    // Go to preset page
-    $this->drupalGet('admin/build/openlayers/presets');
-    $this->assertResponse(200, t('User can reach preset list.'));
+    // Go to map page
+    $this->drupalGet('admin/structure/openlayers/maps');
+    $this->assertResponse(200, t('User can reach map list.'));
 
     // Ensure that the default test is listed
     $this->assertText(t('Default Map'),
-      t('Assert that the default preset\'s title appears.'));
+      t('Assert that the default map\'s title appears.'));
 
-    // Presets
-    $this->drupalGet('admin/build/openlayers/default/export');
-    $this->assertResponse(200, t('User can reach default preset export page.'));
+    // Maps
+    $this->drupalGet('admin/structure/openlayers/maps/default/export');
+    $this->assertResponse(200, t('User can reach default map export page.'));
 
-    $this->drupalGet('admin/build/openlayers/default/clone');
-    $this->assertResponse(200, t('User can reach default preset clone page.'));
+    $this->drupalGet('admin/structure/openlayers/maps/clone/default');
+    $this->assertResponse(200, t('User can reach default map clone page.'));
 
-    $this->drupalGet('admin/build/openlayers/presets/add');
-    $this->assertResponse(200, t('User can reach preset add page.'));
+    $this->drupalGet('admin/structure/openlayers/maps/add');
+    $this->assertResponse(200, t('User can reach map add page.'));
+  }
+
+  /**
+   * Add a new map
+   */
+  function testMapAdd() {
+    $user = $this->drupalCreateUser(array('administer openlayers'));
+    $this->drupalLogin($user);
+
+    // Add new map.  Add scaleline so we can look for it later
+    $map_settings = array(
+      'name' => 'testing_map',
+      'title' => t('Testing Map'),
+      'description' => t('Testing Map description.'),
+      'behaviors[openlayers_behavior_scaleline][enabled]' => TRUE,
+    );
+    $this->drupalPost('admin/structure/openlayers/maps/add', $map_settings, t('Save'));
+    $this->assertText(t('Map saved.'), t('The map was successfully saved.'));
+
+    // Remove Map
+    $this->drupalPost('admin/structure/openlayers/maps/' . $map_settings['name'] . '/delete', 
+      array(), t('Confirm'));
+    $this->assertText($map_settings['name'] .' was deleted.', t('Map removed succesfully.'));
   }
 }
 
@@ -120,23 +197,23 @@ class OpenLayersStyles extends DrupalWebTestCase {
     );
     
     // Check basic navigation.
-    $this->drupalGet('admin/build/openlayers/styles/default/export');
+    $this->drupalGet('admin/structure/openlayers/styles/default/export');
     $this->assertResponse(200, t('User can reach default style export page.'));
-    $this->drupalGet('admin/build/openlayers/styles/add');
+    $this->drupalGet('admin/structure/openlayers/styles/add');
     $this->assertResponse(200, t('User can reach style add page.'));
 
     // Add new style.
-    $this->drupalPost('admin/build/openlayers/styles/add', $new_style, t('Save'));
+    $this->drupalPost('admin/structure/openlayers/styles/add', $new_style, t('Save'));
     $this->assertText(t('Style saved.'),
       t('The style was successfully saved.'));
 
     // Test that the style shows up in the style list.
-    $this->drupalGet('admin/build/openlayers/styles');
+    $this->drupalGet('admin/structure/openlayers/styles');
     $this->assertRaw(t('UnitStyle'),
       t('A new style has been added by the test'));
       
     // Test removing style.
-    $this->drupalPost('admin/build/openlayers/styles/UnitStyle/delete', 
+    $this->drupalPost('admin/structure/openlayers/styles/UnitStyle/delete', 
       array(), t('Confirm'));
     $this->assertText($new_style['name'] .' was deleted.', 
       t('Style removed succesfully.'));
@@ -209,25 +286,25 @@ class OpenLayersLayers extends DrupalWebTestCase {
     );
 
     // Basic navigation.  
-    $this->drupalGet('admin/build/openlayers/layers/add');
+    $this->drupalGet('admin/structure/openlayers/layers/add');
     $this->assertResponse(200, t('User can reach layer add page.'));
 
     // Go through each new layer for testing.
     foreach ($layer_inputs as $layer_type => $input_data) {
       // Test saving new layer.
-      $this->drupalPost('admin/build/openlayers/layers/add/' . $layer_type,
+      $this->drupalPost('admin/structure/openlayers/layers/add/' . $layer_type,
         $input_data, t('Save'));
       $this->assertText(t('Layer saved.'),
         t('The layer was successfully saved.'));
 
       // Ensure that the layer shows up in the list.
-      $this->drupalGet('admin/build/openlayers/layers');
+      $this->drupalGet('admin/structure/openlayers/layers');
       $this->assertRaw($input_data['name'],
         t('A new layer of layer type %type_name has been added by the test',
           array('%type_name' => $layer_type)));
       
       // Test removing layer.
-      $this->drupalPost('admin/build/openlayers/layers/' . 
+      $this->drupalPost('admin/structure/openlayers/layers/' . 
         $input_data['name'] . '/delete', array(), t('Confirm'));
       $this->assertText($input_data['name'] . ' was deleted.', 
         t('Layer removed succesfully.'));
@@ -257,7 +334,7 @@ class OpenLayersMapAlters extends DrupalWebTestCase {
     $this->drupalLogin($user);
 
     // Styles
-    $this->drupalGet('admin/build/openlayers/test');
+    $this->drupalGet('admin/structure/openlayers/test');
     $this->assertText(t('OpenLayers preprocess map alter hook fired.'),
       t('Map preprocess alter fired correctly.'));
     $this->assertText(t('OpenLayers map alter hook fired.'),

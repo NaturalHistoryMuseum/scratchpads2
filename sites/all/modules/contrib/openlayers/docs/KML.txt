@@ -21,7 +21,7 @@ Without a special workaround.
 
 # Proxy Host
 
-For this, there is a special setting in every preset called "Proxy Host." It is
+For this, there is a special setting in every map called "Proxy Host." It is
 in the 'General information' tab, at the bottom of the page. You can use any of
 a number of [PHP
 proxies](http://www.google.com/search?sourceid=chrome&ie=UTF-8&q=php+proxy) for
