@@ -82,6 +82,105 @@ function formflow_form_alter(&$form, &$form_state, $form_id){
   }
 }
 
+/**
+ * Implements hook_field_attach_form().
+ */
+function formflow_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode){
+  formflow_attach_groups($form, $form_state, 'form');
+}
+
+/**
+ * Attach groups to the (form) build.
+ * @param Array $element The part of the form.
+ * @param String $view_mode The mode for the build.
+ */
+function formflow_attach_groups(&$form, &$form_state, $build_mode){
+  if(!isset($form_state['current_step'])){
+    $form_state['current_step'] = @array_shift(array_keys($form['#groups']));
+  }
+  // Build a trail to display at the top of the form
+  $form['trail'] = array(
+    '#theme' => 'formflow_wizard_trail',
+    '#value' => array(),
+    '#weight' => -1000
+  );
+  foreach($form['#groups'] as $group){
+    $form['trail']['#value'][] = $group->label;
+  }
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+    '#weight' => 15,
+    '#limit_validation_errors' => array(),
+    '#submit' => array(
+      'formflow_field_group_next_submit'
+    )
+  );
+  // limit validation errors to only the form items in the current group
+  foreach($form['#group_children'] as $element_name => $group){
+    if($group == $form_state['current_step']){
+      $form['next']['#limit_validation_errors'][] = array(
+        $element_name
+      );
+    }
+  }
+}
+
+function formflow_field_group_previous_submit($form, &$form_state){
+  foreach($form['#groups'] as $group){
+    if($group->group_name == $form_state['current_step']){
+      $next_group = next($form['#groups']);
+    }
+  }
+  $form_state['current_step'] = $next_group->group_name;
+  $form_state['rebuild'] = TRUE;
+}
+
+function formflow_field_group_next_submit($form, &$form_state){
+  foreach($form['#groups'] as $group){
+    if($group->group_name == $form_state['current_step']){
+      $next_group = next($form['#groups']);
+    }
+  }
+  $form_state['current_step'] = $next_group->group_name;
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Implements hook_field_group_formatter_info().
+ */
+function formflow_field_group_formatter_info(){
+  return array(
+    'form' => array(
+      'formflow' => array(
+        'label' => t('Formflow'),
+        'description' => t('Treat this group as a stage in a formflow.'),
+        'instance_settings' => array(
+          'classes' => ''
+        )
+      )
+    )
+  );
+}
+
+
+/** 
+ * Implementation of hook_theme(). 
+ */
+function formflow_theme(){
+  return array(
+    // Theme the views plugin form table
+    'formflow_wizard_trail' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    ),
+    'formflow_group' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
 /*********************************************************************************************
  * 
  * CTOOLS PLUGIN INTEGRATION
@@ -120,7 +219,7 @@ function formflow_ctools_plugin_type(){
  * 
  * Retrieve all flows defined via plugins
  */
-function formflow_load_plugins(){
+function formflow_get_plugin_flows(){
   ctools_include('plugins');
   $plugins = ctools_get_plugins('formflow', 'flows');
   return $plugins;
@@ -135,32 +234,38 @@ function formflow_load_plugins(){
  * 
  * Get all flows (plugins & DB)
  */
-function formflow_get_flows(){
-  $flows = formflow_load_flows();
-  $plugins = formflow_load_plugins();
+function formflow_get_flows($name = null){
+  $flows = formflow_get_db_flows();
+  $plugins = formflow_get_plugin_flows();
   if(count($plugins)){
-    foreach($plugins as $name => $plugin){
-      $flows[$name] = $plugin['flow'];
+    foreach($plugins as $plugin){
+      // Don't overwrite DB plugins - allow for overriding 
+      if(!isset($flows[$plugin['flow']['name']])){
+        $flows[$plugin['flow']['name']] = $plugin['flow'];
+      }
+      // Register that this is defined in code
+      $flows[$plugin['flow']['name']]['plugin'] = true;
     }
   }
-  return $flows;
+  if($name){
+    return $flows[$name];
+  }else{
+    return $flows;
+  }
 }
 
 /**
  * 
  * Retrieve all flows defined in DB
- * @param optional formflow id $fid
+ * @param optional formflow name $name
  */
-function formflow_load_flows($fid = null){
+function formflow_get_db_flows(){
   $query = db_select('formflow', 'ff');
   $query->fields('ff');
-  if($fid){
-    $query->condition('fid', $fid, '=');
-  }
   $result = $query->execute();
   $flows = $result->fetchAllAssoc('name', PDO::FETCH_ASSOC);
   foreach($flows as $name => $flow){
-    $flows[$name]['steps'] = formflow_get_steps($flow['fid']);
+    $flows[$name]['steps'] = formflow_get_db_steps($flow['fid']);
   }
   return $flows;
 }
@@ -170,7 +275,7 @@ function formflow_load_flows($fid = null){
  * Retrieve the steps for a formflow from the db
  * @param formflow id $fid
  */
-function formflow_get_steps($fid){
+function formflow_get_db_steps($fid){
   $query = db_select('formflow_step', 'ffs');
   $query->fields('ffs', array(
     'title',
@@ -412,4 +517,35 @@ function formflow_cache_clear($id){
  */
 function formflow_menu_cache_clear(){
   menu_rebuild();
+}
+
+
+/*********************************************************************************************
+ * 
+ * Cache functions
+ * 
+ ********************************************************************************************/
+
+function formflow_field_group_pre_render(&$element, $group, &$form){
+  $view_mode = isset($form['#view_mode']) ? $form['#view_mode'] : 'form';
+  $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $view_mode . '_' . $group->group_name;
+  // Prepare extra classes.
+  $classes = array(
+    $group->format_type,
+    str_replace('_', '-', $group->group_name)
+  );
+  switch($group->format_type){
+    case 'formflow':
+      $element += array(
+        '#id' => $id,
+        '#weight' => $group->weight,
+        '#theme_wrappers' => array(
+          'formflow_group'
+        ),
+        '#prefix' => '<div class="field-group-' . $group->format_type . '-wrapper ' . $classes . '">',
+        '#suffix' => '</div>',
+        '#group' => $group
+      );
+      break;
+  }
 }
