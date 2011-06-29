@@ -55,9 +55,10 @@ function _biblio_admin_build_user_select($my_uid) {
  * @return
  *   An array which will be used by the form builder to build the import form
  */
-function biblio_import_form() {
+function biblio_import_form($form, &$form_state) {
   global $user;
   $msg = '';
+  $biblio_vocabs = array();
 
   if (biblio_access('import')) { // && !user_access('administer nodes')) {
     $form['#attributes']['enctype'] = 'multipart/form-data';
@@ -98,7 +99,15 @@ function biblio_import_form() {
     );
     $form ['userid'] = _biblio_admin_build_user_select($user->uid);
     // Get the vocabularies  attached to the biblio node type ...
-    $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
+    foreach (field_info_instances('node', 'biblio') as $instance) {
+      $field = field_info_field_by_id($instance['field_id']);
+      if ($field['type'] == 'taxonomy_term_reference') {
+        foreach ($field['settings']['allowed_values'] as $delta => $tree) {
+          $biblio_vocabs[$tree['vocabulary']] = array('instance' => $instance, 'field' => $field);
+        }
+      }
+    }
+
     // ... and print a form to select the terms in each of them
     $form['import_taxonomy'] = array(
       '#type' => 'fieldset',
@@ -106,7 +115,8 @@ function biblio_import_form() {
       '#collapsed' => TRUE,
       '#title' => t('Taxonomy Settings'),
       '#description' => t('Typically you don\'t have to do anything here, however if you wish, you may select terms to be assigned to imported records. This effectively adds a keyword to all entries being imported.'));
-    if (count($vocabularies)) {
+    if (count($biblio_vocabs)) {
+      $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
       if (variable_get('biblio_keyword_freetagging', 0)) {
         $freetag_vocab = $vocabularies[variable_get('biblio_keyword_vocabulary', 0)];
         unset($vocabularies[variable_get('biblio_keyword_vocabulary', 0)]);
@@ -116,23 +126,38 @@ function biblio_import_form() {
         $msg = t('<b>NOTE:</b> Keyword "free tagging" is turned off, consequently keywords will <b>NOT</b> be added to the vocabulary as specified in the Taxonomy section of the !url page.', array('!url' => l(t('admin/config/biblio'), 'admin/config/biblio')));
       }
       $i = 0;
-      foreach ($vocabularies as $vocabulary) {
-        $form['import_taxonomy']['vocabulary' . $i] = module_invoke('taxonomy', 'form', $vocabulary->vid, 0);
-        $form['import_taxonomy']['vocabulary' . $i]['#weight'] = $vocabulary->weight;
-        $form['import_taxonomy']['vocabulary' . $i++]['#description'] = t("Select taxonomy term to be assigned to imported entries");
-      }
-      $form['import_taxonomy']['copy_to_biblio'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Copy these terms to the biblio keyword database'),
-        '#return_value' => 1,
-        '#default_value' =>  variable_get('biblio_copy_taxo_terms_to_keywords', 0),
-        '#description' => t('If this option is selected, the selected taxonomy terms will be copied to the ' . check_plain(variable_get('biblio_base_title', 'Biblio')) . ' keyword database and be displayed as keywords (as well as taxonomy terms) for this entry.')
-      );
+      $form += array('#parents' => array());
+      $form['import_taxonomy']['vocabularies'] = array();
+      $term_refs = array();
 
+      foreach ($vocabularies as $vocabulary) {
+        if (in_array($vocabulary->machine_name, array_keys($biblio_vocabs))) {
+          $term_refs[] = $biblio_vocabs[$vocabulary->machine_name]['instance']['field_name'];
+          $entity = new stdClass();
+          $entity->type = 'biblio';
+          $field = $biblio_vocabs[$vocabulary->machine_name]['field'];
+          $instance = $biblio_vocabs[$vocabulary->machine_name]['instance'];
+          $items = array();
+          $form['import_taxonomy']['vocabularies'] += field_default_form('node', $entity, $field, $instance, 'und', $items, $form, $form_state);
+        }
+      }
+      if (!empty($term_refs)) {
+        $form['term_refs'] = array(
+          '#type' => 'hidden',
+          '#value' => $term_refs,
+        );
+        $form['import_taxonomy']['copy_to_biblio'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Copy these terms to the biblio keyword database'),
+          '#return_value' => 1,
+          '#default_value' =>  variable_get('biblio_copy_taxo_terms_to_keywords', 0),
+          '#description' => t('If this option is selected, the selected taxonomy terms will be copied to the ' . check_plain(variable_get('biblio_base_title', 'Biblio')) . ' keyword database and be displayed as keywords (as well as taxonomy terms) for this entry.')
+        );
+      }
     }
     else {
       if (module_exists('taxonomy')) {
-        $vocab_msg = t('There are currently no vocabularies assigned to the biblio node type, please go the the !url page to fix this', array('!url' => l(t('admin/content/taxonomy'), 'admin/content/taxonomy')));
+        $vocab_msg = t('There are currently no "Term references" attached to the biblio node type. If you would like to associate a Taxonomy vocabulary with the Biblio node type, go the the !url page and add one or more "Term reference" fields.', array('!url' => l(t('admin/structure/types/manage/biblio/fields'), 'admin/structure/types/manage/biblio/fields')));
       }
       else{
         $vocab_msg = '<div class="admin-dependencies">' . t('Depends on') . ': ' . t('Taxonomy') . ' (<span class="admin-disabled">' . t('disabled') . '</span>)</div>';
@@ -199,18 +224,25 @@ function biblio_import_form_submit($form, & $form_state) {
       // Concatenate all the terms of the different vocabularies
       // in a single array to be sent to biblio_import
       $terms = array();
-      foreach (array_keys($form_state['values']) as $key) {
-        if (preg_match('/(vocabulary[0-9]+)/', $key)) {
-          if (!empty($form_state['values'][$key])) {
-            if (is_array($form_state['values'][$key])) {
-              $terms[] = $form_state['values'][$key];
+      if (isset($form_state['values']['term_refs'])) {
+        foreach ($form_state['values']['term_refs'] as $key) {
+          if (isset($form_state['values'][$key]) && !empty($form_state['values'][$key])) {
+            foreach ($form_state['values'][$key]['und'] as $id => $item) {
+              if (!is_array($item) || (empty($item['tid']) && (string) $item['tid'] !== '0')) {
+                unset($form_state['values'][$key]['und'][$id]);
+              }
+            }
+            if (empty($form_state['values'][$key]['und'])) {
+              unset($form_state['values'][$key]);
             }
             else {
-              $terms[] = array($form_state['values'][$key]);
+              $terms[$key] = $form_state['values'][$key];
             }
           }
+          //       }
+
+          //FIXME     if (count($terms) && $key == 'copy_to_biblio') $terms['copy_to_biblio'] = $form_state['values'][$key];
         }
-        if (count($terms) && $key == 'copy_to_biblio') $terms['copy_to_biblio'] = $form_state['values'][$key];
       }
 
       // Added the $terms argument
@@ -279,7 +311,7 @@ function biblio_import_batch_operations($session_id, $user, $userid, $terms, &$c
   $result = db_query_range("SELECT id, data FROM {biblio_import_cache} WHERE id > :id AND session_id = :sessid ORDER BY id ASC", 0, $limit, array(':id' => $context['sandbox']['current_id'], ':sessid' => $session_id));
   foreach ($result as $row) {
     if ($node = unserialize(base64_decode($row->data))) {
-      biblio_save_node($node);
+      biblio_save_node($node, $terms);
       $context['results']['nids'][] = $node->nid;
     }
     $context['sandbox']['progress']++;
@@ -413,7 +445,7 @@ function biblio_export_form_submit($form, & $form_state) {
  * Import data from a file and return the node ids created.
  *
  * @param $userid
- *   The user id of that will be assigned to each node imported
+ *   The user id that will be assigned to each node imported
  * @param $filename
  *   The name of the file containing the data to import
  * @param $type
@@ -421,10 +453,9 @@ function biblio_export_form_submit($form, & $form_state) {
  * @param $terms
  *   the vocabulary that the imported nodes will be associated with
  * @return
- *   An array the node id's of the items imported
+ *   An array of node id's of the items imported
  */
 function biblio_import($import_file, $type, $userid = 1, $terms = NULL, $batch = FALSE, $session_id = NULL, &$context ) {
-
   global $user;
   $parsed = 0;
   $nids = array();
@@ -451,7 +482,7 @@ function biblio_import($import_file, $type, $userid = 1, $terms = NULL, $batch =
   $context['results']['user']   = $user;
   $context['results']['file']   = $import_file;
 
-  return ;
+  return $batch ? NULL : $nids;
 }
 /**
  * Export nodes in a given file format.
@@ -472,23 +503,12 @@ function biblio_export($format = "tagged", $nid = NULL, $popup = FALSE) {
   $params = array();
   $nids = array();
   $arg_list = array();
-  if ($nid === NULL && isset ($_SESSION['last_biblio_query']) ) {
+  if ($nid === NULL ) {
     module_load_include('inc', 'biblio', 'includes/biblio.pages');
-
     $uri = drupal_parse_url(request_uri());
     $arg_list += $uri['query'];
     $arg_list['page_limit'] = 0;
-    $query_info = biblio_build_query($arg_list);
-    if (isset($query_info['query'])) {
-      $result = $query_info['query'];
-    }
-    else {
-      $result = array();
-    }
-
-    foreach ($result as $node) {
-      $nids[] = $node->nid;
-    }
+    list($nids,,) = biblio_build_query($arg_list);
   }
   elseif (!empty ($nid)) {
     $nids[] = $nid;
@@ -523,15 +543,23 @@ function biblio_save_imported_nodes(& $node_array) {
 */
   return $node_ids;
 }
-function biblio_save_node($node, $batch = FALSE, $session_id = NULL, $save_node = TRUE) {
+function biblio_save_node($node, $terms = array(), $batch = FALSE, $session_id = NULL, $save_node = TRUE) {
   global $user;
+
   if ($batch && $session_id) { // we are batch processing some import data
     $node = base64_encode(serialize($node));// base64_encode to avoid problems unserializing strings with embeded quotes.
     db_query("INSERT INTO {biblio_import_cache} (session_id, data) VALUES (:sessid, :node)", array(':sessid' => $session_id, ':node' => $node));
     return;
   }
 
-  $options = variable_get('node_options_biblio', array('status'));
+  $node->type = 'biblio';
+  node_object_prepare($node);
+
+  if (!empty($terms)) {
+    foreach ($terms as $key => $value) {
+      $node->{$key} = $value;
+    }
+  }
 
   $node->language = 'und';  //start by setting the language to undefined and then try to refine it.
   if (module_exists('locale')) {
@@ -540,29 +568,18 @@ function biblio_save_node($node, $batch = FALSE, $session_id = NULL, $save_node 
   if (module_exists('i18n') && variable_get('i18n_node_biblio', 0) && variable_get('language_content_type_biblio', 0) ) {
     $node->language = module_invoke('i18n', 'default_language');
   }
-  $node->uid = $user->uid;
-  $node->type = 'biblio';
-  $node->comment = variable_get('comment_biblio', 0);
-  $node->promote = (int) in_array('promote', $options);
-  $node->moderate = (int) in_array('moderate', $options);
-  $node->sticky = (int) in_array('sticky', $options);
-  $node->format = 0;
-  $node->status = (int) in_array('status', $options);
 
   if (!isset($node->biblio_type)) {
     $node->biblio_type = 129; // default to misc if not set.
   }
 
+
   if ($save_node) { // $save_node = TRUE, the normal save path
     if (strlen($node->title) > 255) {
       $node->title = substr($node->title, 0, 255);
-      node_save($node);
       watchdog('biblio - import', 'Title value truncated to 255 characters', array(), WATCHDOG_ALERT, l($node->title, 'node/' . $node->nid));
     }
-    else {
-      node_save($node);
-    }
-
+    node_save($node);
     return; // (isset($node->nid)) ? $node->nid : 0;
   }
   else { // $save_node = FALSE, primarily used to parse data and return it to the input form
