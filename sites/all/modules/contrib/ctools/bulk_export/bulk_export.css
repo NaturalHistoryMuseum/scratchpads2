@@ -12,6 +12,13 @@ div.export-container table {
 div.export-container table input,
 div.export-container table th,
 div.export-container table td {
-  padding: 0 0 0 .5em;
+  padding: 0 0 2px .5em;
   margin: 0;
+  border-right: none;
+  border-left: none;
+  vertical-align: center;
+}
+
+div.export-container .select-all {
+  width: 1.5em;
 }

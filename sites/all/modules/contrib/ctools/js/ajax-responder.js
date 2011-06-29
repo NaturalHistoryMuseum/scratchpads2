@@ -104,7 +104,6 @@
 
 
     Drupal.ajax.prototype.commands.redirect = function(ajax, data, status) {
-      console.log(redirect);
       if (data.delay > 0) {
         setTimeout(function () {
           location.href = data.url;

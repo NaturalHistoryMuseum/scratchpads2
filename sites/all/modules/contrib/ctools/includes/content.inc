@@ -498,7 +498,6 @@ function ctools_content_configure_form_defaults($form, &$form_state) {
       '#default_value' => isset($conf['override_title_text']) ? $conf['override_title_text'] : '',
       '#size' => 35,
       '#id' => 'override-title-textfield',
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('override-title-checkbox' => array(1)),
       '#dependency_type' => 'disable',
     );

@@ -7,7 +7,7 @@
  *
  * The javascript relies on four classes:
  * - The dropbutton must be fully contained in a div with the class
- *   ctools-dropbutton. It must also contain the class ctools-dropbutton-no-js
+ *   ctools-dropbutton. It must also contain the class ctools-no-js
  *   which will be immediately removed by the javascript; this allows for
  *   graceful degradation.
  * - The trigger that opens the dropbutton must be an a tag wit hthe class
@@ -25,8 +25,12 @@
 (function ($) {
   Drupal.behaviors.CToolsDropbutton = {
     attach: function() {
+      // Process buttons. All dropbuttons are buttons.
+      $('.ctools-button:not(.ctools-button-processed)')
+      .removeClass('ctools-no-js')
+      .addClass('ctools-button-processed');
+      // Process dropbuttons. Not all buttons are dropbuttons.
       $('.ctools-dropbutton:not(.ctools-dropbutton-processed)')
-      .removeClass('ctools-dropbutton-no-js')
       .addClass('ctools-dropbutton-processed')
       .each(function() {
         var $dropbutton = $(this);
@@ -36,7 +40,7 @@
         var open = false;
         var hovering = false;
         var timerID = 0;
-        
+
         var toggle = function(close) {
           // if it's open or we're told to close it, close it.
           if (open || close) {
@@ -70,7 +74,7 @@
         }
         // Hide the secondary actions initially.
         $secondaryActions.hide();
-        
+
         $twisty.click(function() {
             toggle();
             return false;

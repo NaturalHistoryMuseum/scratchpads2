@@ -3,6 +3,7 @@
 class biblio_handler_field_biblio_keyword_kid extends views_handler_field_prerender_list {
   function init(&$view, $options) {
     parent::init($view, $options);
+    $this->multiple = TRUE;
     if ($view->base_table == 'node_revision') {
       $this->additional_fields['vid'] = array('table' => 'node_revision', 'field' => 'vid');
     }
@@ -21,20 +22,17 @@ class biblio_handler_field_biblio_keyword_kid extends views_handler_field_preren
       }
     }
     if ($vids) {
-
-      $result = db_query("SELECT bk.vid AS node_vid, bkd.*
-      					  FROM {biblio_keyword_data} bkd
-      					  INNER JOIN {biblio_keyword} bk ON bkd.kid = bk.kid
-      					  WHERE bk.vid IN (:vids)
-                          ORDER BY  bkd.word",  array(':vids' => implode(', ', $vids)));
+      $query = db_select('biblio_keyword_data', 'bkd');
+      $query->innerJoin('biblio_keyword', 'bk', 'bkd.kid = bk.kid');
+      $query->fields('bkd');
+      $query->addField('bk', 'vid', 'node_vid');
+      $query->orderby('bkd.word');
+      $query->condition('bk.vid', $vids);
+      $query->addTag('node_access');
+      $result = $query->execute();
 
       foreach ($result as $term) {
-//        if (empty($this->options['link_to_taxonomy'])) {
-          $this->items[$term->node_vid][$term->kid] = check_plain($term->word);
-//        }
-//        else {
-//          $this->items[$term->node_vid][$term->kid] = l($term->word, taxonomy_term_path($term));
-//        }
+        $this->items[$term->node_vid][$term->kid] = check_plain($term->word);
       }
     }
   }

@@ -54,12 +54,11 @@ class BiblioCrossRefClient
 
   public function fetch() {
     $this->query = $this->url . '?pid=' . $this->pid . '&noredirect=true&format=unixref&id=doi%3A' . $this->doi;
-    if (!($fp = fopen($this->query, "r"))) {
+    if (!($xml = file_get_contents($this->query))) {
       drupal_set_message(t('Could not open crossref.org for XML input'),'error');
       return;
     }
     $this->nodes = array();
-    $xml = fread($fp, 2048);
     $this->parser = drupal_xml_parser_create($xml);
     // use case-folding so we are sure to find the tag in
     xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
@@ -69,18 +68,14 @@ class BiblioCrossRefClient
     xml_set_element_handler($this->parser, 'unixref_startElement', 'unixref_endElement');
     xml_set_character_data_handler($this->parser, 'unixref_characterData');
 
-    xml_parse($this->parser, $xml);
-    while ($xml = fread($fp, 2048)) {
-      set_time_limit(30);
-      if (!xml_parse($this->parser, $xml, feof($fp))) {
-        drupal_set_message(sprintf("XML error: %s at line %d",
-        xml_error_string(xml_get_error_code($this->parser)),
-        xml_get_current_line_number($this->parser)),'error');
-      }
+    if(!xml_parse($this->parser, $xml)){
+      drupal_set_message(sprintf("XML error: %s at line %d",
+      xml_error_string(xml_get_error_code($this->parser)),
+      xml_get_current_line_number($this->parser)),'error');
     }
+
     xml_parser_free($this->parser);
-    fclose($fp);
-    //$this->nodes =(!empty($nodes)) ? $nodes : array();
+
     return $this->node;
   }
 
@@ -89,6 +84,7 @@ class BiblioCrossRefClient
     switch ($name) {
       case 'doi_record' :
         $this->node = array();
+        $this->node['biblio_contributors'] = array();
         $this->contributors = array();
         $this->element = $name;
         break;
@@ -124,11 +120,11 @@ class BiblioCrossRefClient
         $this->element = $name;
         break;
       case 'issn':
-        if ($attrs['media_type'] == 'print') $this->attribute = 'issn_print';
+        if (isset($attrs['media_type']) ) $this->attribute = $attrs['media_type'];
         $this->element = $name;
         break;
       case 'isbn':
-        if ($attrs['media_type'] == 'print') $this->attribute = 'isbn_print';
+        if (isset($attrs['media_type']) ) $this->attribute = $attrs['media_type'];
         $this->element = $name;
         break;
       case 'i':  // HTML font style tags
@@ -181,7 +177,9 @@ class BiblioCrossRefClient
 
         break;
       case 'journal_issue':
-        $this->node['biblio_date'] = (!empty($this->node['month']) ? $this->node['month'] . '/':'') . $this->node['year'];
+        if (!isset($this->node['biblio_date'])) {
+          $this->node['biblio_date'] = (!empty($this->node['month']) ? $this->node['month'] . '/':'') . $this->node['year'];
+        }
         break;
       case 'journal_article':
       case 'conference_paper':
@@ -190,16 +188,15 @@ class BiblioCrossRefClient
       case 'standard_metadata':
       case 'database_date':
       case 'component':
-        $this->node['biblio_year'] = $this->node['year'];
-        $this->node['biblio_doi']  = $this->node['doi'];
+        if (!isset($this->node['biblio_year']) && isset($this->node['year'])) {
+          $this->node['biblio_year'] = $this->node['year'];
+          unset($this->node['year']);
+        }
+//        $this->node['biblio_doi']  = $this->node['doi'];
         break;
       case 'issn':
-        if ($this->attribute == 'issn_print' && isset($this->node['issn'])) $this->node['biblio_issn'] = $this->node['issn'];
-        $this->node['issn'] = '';
-        break;
       case 'isbn':
-        if ($this->attribute == 'isbn_print' && isset($this->node['isbn'])) $this->node['biblio_isbn'] = $this->node['isbn'];
-        $this->node['isbn'] = '';
+        $this->attribute = '';
         break;
       case 'i':  // HTML font style tags
       case 'b':
@@ -232,21 +229,28 @@ class BiblioCrossRefClient
           $this->contributors[$this->contrib_count]['name'] = $data;
           break;
         case 'year':
-          $this->node['year'] = $data;
-          break;
         case 'month':
-          $this->node['month'] = $data;
-          break;
         case 'day':
-          $this->node['day'] = $data;
+         $this->node[$this->element] = $data;
+          break;
+        case 'issn':
+        case 'isbn':
+          if ($this->attribute == 'print') {
+            if ($field = $this->_unixref_field_map(trim($this->element))) {
+              $this->_set_data($field, $data);
+            }
+          }
           break;
         default:
           if ($field = $this->_unixref_field_map(trim($this->element))) {
-            $this->node[$field] = $data;
+            $this->_set_data($field, $data);
           }
 
       }
     }
+  }
+  function _set_data($field, $data) {
+    $this->node[$field] = (isset($this->node[$field]) ? $this->node[$field] . $data : $data);
   }
   /*
    * map a unixref XML field to a biblio field
