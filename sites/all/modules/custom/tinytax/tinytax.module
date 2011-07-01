@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Description of the tinytax.module file.
+ */
+/**
+ * Implementation of hook_theme().
+ */
+function tinytax_theme(){
+  return array(
+    'tinytax_branch' => array(
+      'variables' => array(
+        'term_theme_function' => 'tinytax_term',
+        'open_tids' => array(),
+        'tid' => 0,
+        'vid' => FALSE
+      ),
+      'file' => 'tinytax.theme.inc'
+    ),
+    'tinytax_term' => array(
+      'variables' => array(
+        'term' => FALSE,
+        'open_tids' => array()
+      ),
+      'file' => 'tinytax.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function tinytax_menu(){
+  return array(
+    'tinytax/get/%taxonomy_term' => array(
+      'title' => 'tinytax',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_js',
+      'page arguments' => array(
+        2
+      ),
+      'delivery callback' => 'ajax_deliver',
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_...
+ * 
+ * hook_block_view
+ * hook_block_save
+ * hook_block_info
+ * hook_block_configure
+ */
+/**
+ * hook_block_view().
+ */
+function tinytax_block_view($delta = ''){
+  // The delta should be set as the vid, we simply need to return the themed
+  // branch with tid 0.
+  $block = array();
+  $vocabulary = taxonomy_vocabulary_load($delta);
+  $open_tids = array();
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    $parents_all = taxonomy_get_parents_all(arg(2));
+    array_shift($parents_all);
+    foreach($parents_all as $parent){
+      $open_tids[] = $parent->tid;
+    }
+  }
+  if($vocabulary){
+    $block['subject'] = check_plain($vocabulary->name);
+    $block['content'] = '<div class="tinytax">' . theme('tinytax_branch', array(
+      'vid' => $delta,
+      'open_tids' => $open_tids
+    )) . '</div>';
+  }
+  return $block;
+}
+
+/**
+ * hook_block_info().
+ */
+function tinytax_block_info(){
+  $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
+  $blocks = array();
+  foreach($vocabularies as $vocabulary){
+    $blocks[$vocabulary->vid] = array(
+      'info' => t('Tinytax block for "@vocabulary_name"', array(
+        '@vocabulary_name' => $vocabulary->name
+      )),
+      'cache' => DRUPAL_CACHE_PER_PAGE | DRUPAL_CACHE_PER_ROLE
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * hook_block_configure().
+ */
+function tinytax_block_configure($delta){
+  // FIXME:  Need to add configuration options
+// open_to_tid
+// show_child_numbers
+// hide_invalid (should perhaps do this inteligently - ask the user which
+// field to use, and what values).
+}
+
+/**
+ * hook_block_save().
+ */
+function tinytax_block_save($delta){
+  // FIXME: Save the options set above.
+}
