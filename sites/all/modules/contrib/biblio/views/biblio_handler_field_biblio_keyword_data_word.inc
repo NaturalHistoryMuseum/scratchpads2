@@ -13,7 +13,16 @@ class biblio_handler_field_biblio_keyword_data_word extends views_handler_field 
 
   function option_definition() {
     $options = parent::option_definition();
-    $options['link_to_keyword'] = array('default' => FALSE);
+    $options['link_to_keyword'] = array(
+    	'default' => FALSE
+    );
+    $options['multi_type'] = array(
+      'default' => 'separator'
+    );
+    $options['separator'] = array(
+      'default' => ', '
+    );
+
     return $options;
   }
 
@@ -45,6 +54,6 @@ class biblio_handler_field_biblio_keyword_data_word extends views_handler_field 
 
   function render($values) {
     return $this->render_link(check_plain($values->{$this->field_alias}), $values);
-    
+
   }
 }

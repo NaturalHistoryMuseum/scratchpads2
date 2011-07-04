@@ -18,9 +18,9 @@ function biblio_citeproc_theme() {
     'biblio_citeproc_style' => array(
         'function' => 'theme_biblio_citeproc_style',
         'file' => 'biblio_citeproc.module',
-        'arguments' => array(
-          'node',
-          'style_name',
+        'variables' => array(
+          'node' => '',
+          'style_name' => 'cse',
           ),
     ),
     'biblio_citeproc_style_manager_form' => array(

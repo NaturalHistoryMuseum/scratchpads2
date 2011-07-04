@@ -133,12 +133,8 @@ function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $ses
     if (!empty($node)) {
       $node->biblio_marc_md5 = md5(serialize($node));
 
-      if (!empty($terms)) {
-        if (!isset($node->taxonomy)) $node->taxonomy = array();
-        $node->taxonomy = array_merge($terms, $node->taxonomy);
-      }
       if (! ($dup = biblio_marc_check_md5($node->biblio_marc_md5))) {
-        biblio_save_node($node, $batch, $session_id);
+        biblio_save_node($node, $terms, $batch, $session_id);
         if (!empty($node->nid)) $nids[] = $node->nid;
       }
       else {
