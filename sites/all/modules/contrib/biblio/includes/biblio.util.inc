@@ -12,11 +12,19 @@ function biblio_normalize_title($title) {
   }
 
   $title = trim(_strip_punctuation($title));
-  mb_regex_encoding( "utf-8" );
-  $title_words = mb_split( ' +', $title );
+
+  if (function_exists('mb_regex_encoding')) {
+    mb_regex_encoding("utf-8");
+    $title_words = mb_split(' +', $title);
+  }
+  else {
+    $title_words = explode(' ', $title);
+  }
+
   while (array_search(drupal_strtolower($title_words[0]), $stop_words) !== FALSE) {
     array_shift($title_words);
   }
+
   return drupal_substr(implode(' ', $title_words), 0, 64);
 }
 function biblio_coins($node) {

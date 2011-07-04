@@ -6,9 +6,9 @@ dependencies[] = biblio
 files[] = EntrezClient.php
 files[] = EntrezPubmedArticle.php
 
-; Information added by drupal.org packaging script on 2011-05-07
+; Information added by drupal.org packaging script on 2011-06-28
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1304726634"
+datestamp = "1309262626"
 
