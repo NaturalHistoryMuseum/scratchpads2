@@ -595,6 +595,13 @@ class csl_name extends csl_format {
 
       $given = $this->format($name['firstname'], 'given');
       if (isset($name['lastname'])) {
+        if (!empty($name['prefix'])) {
+          $name['lastname'] = $name['prefix'] . ' ' . $name['lastname'];
+        }
+        if (!empty($name['suffix'])) {
+          $name['lastname'] = $name['lastname'] . ', ' . $name['suffix'];
+        }
+
         $name['lastname'] = $this->format($name['lastname'], 'family');
         if ($this->form == 'short') {
           $text = $name['lastname'];

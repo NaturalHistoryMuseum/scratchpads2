@@ -19,15 +19,16 @@ files[] = views/biblio_handler_field_contributor.inc
 files[] = views/biblio_handler_field.inc
 files[] = views/biblio_handler_filter_biblio_contributor_auth_type.inc
 files[] = views/biblio_handler_filter_biblio_keyword_kid.inc
+files[] = views/biblio_handler_filter_biblio_keyword_word.inc
 files[] = views/biblio_handler_filter_biblio_type.inc
 files[] = views/biblio_handler_filter_contributor_lastname.inc
 files[] = views/biblio_handler_filter_contributor_uid.inc
 files[] = views/biblio_handler_filter_contributor.inc
 files[] = views/biblio_handler_sort_contributor_lastname.inc
 files[] = views/biblio_handler_argument_many_to_one.inc
-; Information added by drupal.org packaging script on 2011-05-07
+; Information added by drupal.org packaging script on 2011-06-28
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1304726634"
+datestamp = "1309262626"
 
