@@ -1,0 +1,15 @@
+; $Id: field_collection.info,v 1.1.2.6 2011/02/01 15:12:04 fago Exp $
+name = Field collection
+description = Provides a field-collection field, to which any number of fields can be attached.
+core = 7.x
+dependencies[] = entity
+files[] = field_collection.test
+files[] = field_collection.info.inc
+configure = admin/structure/field-collections
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "field_collection"
+datestamp = "1296573488"
+
