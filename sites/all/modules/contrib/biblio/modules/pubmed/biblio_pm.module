@@ -139,10 +139,6 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
   foreach ($xml->xpath('//PubmedArticle') as $article) {
     $node = $data->setArticle($article)->getBiblioAsObject();
     if (isset($node)) {
-      if (!empty($terms)) {
-        if (!isset($node->taxonomy)) $node->taxonomy = array();
-        $node->taxonomy = array_merge($terms, $node->taxonomy);
-      }
       $dup = biblio_pm_check_md5($node->biblio_pubmed_id, $node->biblio_pubmed_md5);
       $action = variable_get('biblio_pm_dup_action', 'newrev');
       if ($dup < 0 && $action == 'newrev') { //entry has be imported before, but may have changed
@@ -157,7 +153,7 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
         $dup = NULL;
       }
       if (!$dup) {
-        biblio_save_node($node, $batch, $session_id);
+        biblio_save_node($node, $terms, $batch, $session_id);
         if (!empty($node->nid)) $nids[] = $node->nid;
       }
       else {

@@ -20,15 +20,6 @@
  *
  */
 /**
- * Default page callback for batches.
- */
-
-function biblio_admin_ahah($form, $element, $value) {
-  switch ($form) {
-
-  }
-}
-/**
 * Implementation of hook_settings().
 */
 function biblio_admin_settings() {
@@ -1970,42 +1961,70 @@ function biblio_admin_author_edit_form_submit($form, &$form_state) {
 }
 
 
-function biblio_admin_orphans_form($form_state) {
-  $form = array();
+function biblio_admin_orphans_form($form, &$form_state) {
+  $authors = $orphans = $options = array();
+
   $base = variable_get('biblio_base', 'biblio');
-/* TODO translate this query... it should be faster
-  $result = pager_query('SELECT distinct d.cid cid, name, affiliation
-                         FROM {biblio_contributor_data} d
-                         LEFT JOIN {biblio_contributor} c ON (d.cid=c.cid)
-                         WHERE c.cid IS NULL', 50);
 
-*/
+  $query = db_select('biblio_contributor', 'bc');
+  $active_cids = $query
+    ->fields('bc', array('cid'))
+    ->groupBy('cid')
+    ->execute()
+    ->fetchCol();
 
-  $sub_query = db_select('biblio_contributor', 'bc');
-  $sub_query->fields('bc', array('cid'));
-  $sub_query->groupBy('cid');
-  $query = db_select('biblio_contributor_data', 'bcd')->extend('PagerDefault')->limit(50);
-  $query->fields('bcd'); // SELECT * FROM {biblio_contributor_data}
-  $query->condition('cid', $sub_query, 'NOT IN');
+  $query = db_select('biblio_contributor_data', 'bcd');
+  $all_cids = $query
+    ->fields('bcd', array('cid'))
+    ->groupBy('cid')
+    ->execute()
+    ->fetchCol();
 
-  $result = $query->execute(); //pager_query('SELECT * FROM {biblio_contributor_data} WHERE cid NOT IN (SELECT cid FROM {biblio_contributor} GROUP BY cid)', 50);
-  $authors = array();
-  foreach ($result as $author) {
-    $authors[$author->cid] = '';
-    $form['name'][$author->cid] = array('#value' => l($author->name, $base . '/authors/' . $author->cid . '/edit'));
-    $form['affiliation'][$author->cid] = array('#value' => check_plain($author->affiliation));
+  $orphans = array_diff($all_cids, $active_cids);
+  if (!empty($orphans)) {
+    $query = db_select('biblio_contributor_data', 'bcd')->extend('PagerDefault')->limit(50);
+    $query->fields('bcd'); // SELECT * FROM {biblio_contributor_data}
+    $query->condition('cid', $orphans, 'IN');
+
+    $result = $query->execute(); //pager_query('SELECT * FROM {biblio_contributor_data} WHERE cid NOT IN (SELECT cid FROM {biblio_contributor} GROUP BY cid)', 50);
+    $authors = array();
+    foreach ($result as $author) {
+      $options[$author->cid] = array(
+        'author' => array(
+          'data' => array(
+            '#type' => 'link',
+            '#title' => $author->name,
+            '#href' => $base . '/authors/' . $author->cid . '/edit',
+          ),
+        ),
+        'affiliation' => check_plain($author->affiliation),
+      );
+      $names[$author->cid] = $author->name;
+    }
+    $form['names'] = array('#type' => 'hidden', '#value' => $names);
+
   }
-  if (!empty($authors)) {
-  $form['authors'] = array('#type' => 'checkboxes', '#options' => $authors);
-  $form['pager']   = array('#value' => theme('pager', array('tags' => NULL, 'element' => 0)));
-  $form['#theme'] = 'biblio_admin_orphans_form';
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#disabled' => (!count($authors)),
-    '#submit' => array('biblio_admin_orphans_form_submit'),
+
+  $header = array(
+    'author' => t('Author name'),
+    'affiliation' => t('Author affiliation')
   );
-  }
+
+//  if (!empty($authors)) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#disabled' => (!count($options)),
+      '#submit' => array('biblio_admin_orphans_form_submit'),
+    );
+    $form['authors'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#empty' => t('No orphaned authors.'),
+    );
+    $form['pager']   = theme('pager');
+//  }
   return $form;
 }
 function biblio_admin_orphans_form_validate($form, &$form_state) {
@@ -2016,49 +2035,78 @@ function biblio_admin_orphans_form_validate($form, &$form_state) {
 }
 
 function biblio_admin_orphans_form_submit($form, &$form_state) {
+  $authors = $names = array();
   // Filter out unchecked authors
   $authors = array_filter($form_state['values']['authors']);
+  $names   = array_intersect_key($form_state['values']['names'], $authors);
+  $del_names = implode('; ', $names);
   db_delete('biblio_contributor_data')
     ->condition('cid', $authors, 'IN')
     ->execute();
-  drupal_set_message(t('The orphaned authors (@author_list) have been deleted.', array('@author_list', implode(',', $authors))));
+  drupal_set_message(t('The orphaned authors (@author_list) have been deleted.', array('@author_list' => $del_names)));
 
 }
 function biblio_admin_keyword_orphans_form($form, $form_state) {
+  $orphans = $keywords = $options = array();
+
   $base = variable_get('biblio_base', 'biblio');
-/* TODO TRANSLATE THIS QUERY...
-  $result = pager_query('SELECT distinct bkd.kid kid, word
-                         FROM {biblio_keyword_data} bkd
-                         LEFT JOIN {biblio_keyword} bk ON (bkd.kid=bk.kid)
-                         WHERE bk.kid IS NULL', 50);
 
-*/
-  $sub_query = db_select('biblio_keyword', 'bk');
-  $sub_query->fields('bk', array('kid'));
-  $sub_query->groupBy('kid');
-  $query = db_select('biblio_keyword_data', 'bkd')->extend('PagerDefault')->limit(50);
-  $query->fields('bkd'); // SELECT * FROM {biblio_contributor_data}
-  $query->condition('kid', $sub_query, 'NOT IN');
-  $result = $query->execute(); //pager_query('SELECT * FROM {biblio_keyword_data} WHERE kid NOT IN (SELECT kid FROM {biblio_keyword} GROUP BY kid)', 50);
-  $keywords = array();
-  foreach ($result as $keyword) {
-    $keywords[$keyword->kid] = '';
-    $form['keyword'][$keyword->kid] = array('#markup' => l($keyword->word, $base . '/keyword/' . $keyword->kid . '/edit'));
-  }
-  $form['keywords'] = array('#type' => 'checkboxes', '#options' => $keywords);
-
-  $form['pager']   = array('#value' => theme('pager', array('tags' => NULL, 'element' => 0)));
-  $form['#theme'] = 'biblio_admin_keyword_orphans_form';
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#disabled' => (!count($keywords)),
-    '#submit' => array('biblio_admin_keyword_orphans_form_submit'),
+  $header = array(
+    'keyword' => t('Keyword')
   );
+
+  $query = db_select('biblio_keyword', 'bk');
+  $active_kids = $query
+    ->fields('bk', array('kid'))
+    ->groupBy('kid')
+    ->execute()
+    ->fetchCol();
+
+  $query = db_select('biblio_keyword_data', 'bkd');
+  $all_kids = $query
+    ->fields('bkd', array('kid'))
+    ->groupBy('kid')
+    ->execute()
+    ->fetchCol();
+
+  $orphans = array_diff($all_kids, $active_kids);
+
+  if (count($orphans)) {
+    $query = db_select('biblio_keyword_data', 'bkd')->extend('PagerDefault')->limit(50);
+    $query->fields('bkd'); // SELECT * FROM {biblio_contributor_data}
+    $query->condition('kid', $orphans, 'IN');
+    $result = $query->execute(); //pager_query('SELECT * FROM {biblio_keyword_data} WHERE kid NOT IN (SELECT kid FROM {biblio_keyword} GROUP BY kid)', 50);
+    foreach ($result as $keyword) {
+      $options[$keyword->kid] = array(
+        'keyword' => array(
+          'data' => array(
+            '#type' => 'link',
+            '#title' => $keyword->word,
+            '#href' => $base . '/keywords/' . $keyword->kid . '/edit',
+          ),
+        ),
+      );
+    }
+  }
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#disabled' => (!count($options)),
+      '#submit' => array('biblio_admin_keyword_orphans_form_submit'),
+    );
+    $form['words'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#empty' => t('No orphaned keywords.'),
+    );
+
+    $form['pager'] = array('#markup' => theme('pager'));
+
   return $form;
 }
 function biblio_admin_keyword_orphans_form_validate($form, &$form_state) {
-  $check_count = array_filter($form_state['values']['keywords']);
+  $check_count = array_filter($form_state['values']['words']);
   if (count($check_count) == 0) {
     form_set_error('', t('No items selected.'));
   }
@@ -2066,18 +2114,18 @@ function biblio_admin_keyword_orphans_form_validate($form, &$form_state) {
 
 function biblio_admin_keyword_orphans_form_submit($form, &$form_state) {
 
-  $keywords = array_filter($form_state['values']['keywords']);
+  $keywords = array_filter($form_state['values']['words']);
   db_delete('biblio_keyword_data')
     ->condition('kid', $keywords, 'IN')
     ->execute();
-  $count = count($keywords);
-  drupal_set_message(t('%count orphaned keywords have been deleted.', array('%count' => $count)));
+
+  drupal_set_message(t('%count orphaned keywords have been deleted.', array('%count' => count($keywords))));
 
 }
 
 function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
-  $base = variable_get('biblio_base', 'biblio');
-  $options = NULL;
+  $options = array();
+
   $keyword = db_query('SELECT * FROM {biblio_keyword_data} bkd WHERE bkd.kid = :kid ', array(':kid' => $keyword_id))->fetchObject();
 
   $base = variable_get('biblio_base', 'biblio');
@@ -2100,12 +2148,18 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
 
   $keywords = db_query("SELECT * FROM {biblio_keyword_data} kd WHERE word LIKE :word AND kid <> :kid", array(':word' => '%%' . drupal_substr($keyword->word, 0, 5) . '%%', ':kid' => $keyword_id));
 
-  unset($options);
-  $base = variable_get('biblio_base', 'biblio');
-  foreach ($keywords as $kw) {
-    $options[$kw->kid] = l($kw->word, $base . '/keywords/' . $kw->kid . '/edit');
+  foreach ($keywords as $keyword) {
+    $options[$keyword->kid] = array(
+        'keyword' => array(
+          'data' => array(
+            '#type' => 'link',
+            '#title' => $keyword->word,
+            '#href' => $base . '/keywords/' . $keyword->kid . '/edit',
+          ),
+        ),
+      );
   }
-  if (isset($options) && !empty($options)) {
+  if (count($options)) {
     $form['merge'] = array(
       '#type' => 'fieldset',
       '#title' => t('Keyword Merge'),
@@ -2114,39 +2168,33 @@ function biblio_admin_keyword_edit_form($form, &$form_state, $keyword_id) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
-    $form['merge']['merge_keywords'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Similar keywords'),
+    $header = array('keyword' => t('Similar keywords '));
+    $form['merge']['words'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
       '#options' => $options,
-      '#weight' => 12,
-      '#required' => FALSE,
-      '#multiple' => TRUE,
-    '#size' => min(count($options), 6),
+      '#empty' => t('No similar keywords.'),
     );
   }
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save')
+    '#value' => t('Save'),
+    '#weight' => 6,
   );
-    $form['delete'] = array(
+  $form['delete'] = array(
     '#type' => 'submit',
-    '#value' => t('Delete')
-    );
+    '#value' => t('Delete'),
+    '#weight' => 7,
+  );
   $form['cancel'] = array(
     '#type' => 'submit',
-    '#value' => t('Cancel')
+    '#value' => t('Cancel'),
+    '#weight' => 8,
   );
 
   return $form;
 }
-function theme_biblio_admin_keyword_edit_form($variables) {
-  $form = $variables['form'];
-  $output = drupal_render($form['word']);
-  $output .= drupal_render($form['merge']);
-  $output .= drupal_render_children($form);
 
-  return $output;
-}
 function biblio_admin_keyword_delete_confirm($form, &$form_state, $keyword_id) {
   $base = variable_get('biblio_base', 'biblio');
   $keyword = db_query('SELECT * FROM {biblio_keyword_data} bkd WHERE bkd.kid = :kid ', array(':kid' => $keyword_id))->fetchObject();
@@ -2167,7 +2215,7 @@ function biblio_admin_keyword_delete_confirm($form, &$form_state, $keyword_id) {
 
 function biblio_admin_keyword_delete_confirm_submit($form, &$form_state) {
   $base = variable_get('biblio_base', 'biblio');
-  module_load_include('inc', 'biblio', 'biblio.keywords');
+  module_load_include('inc', 'biblio', 'includes/biblio.keywords');
   biblio_delete_keyword($form_state['values']['kid']);
   drupal_goto($base . '/keywords');
 }

@@ -323,7 +323,7 @@ function biblio_views_data() {
       'numeric' => TRUE,
     ),
     'filter' => array(
-      'title' => t('Keyword'),
+      'title' => t('Keyword ID'),
       'handler' => 'biblio_handler_filter_biblio_keyword_kid',
       'numeric' => TRUE,
     ),
@@ -374,7 +374,7 @@ function biblio_views_data() {
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'title'     => t('Keyword'),
-    'skip base' => array('node', 'node_revision'),
+  //  'skip base' => array('node', 'node_revision'),
   );
   $data['kid'] =  array(
     'field'     => array('handler' => 'views_handler_field_numeric'),
