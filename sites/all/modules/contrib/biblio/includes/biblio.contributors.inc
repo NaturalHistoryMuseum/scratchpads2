@@ -47,16 +47,31 @@ function biblio_get_first_contributor($vid) {
  * @return unknown_type
  */
 function biblio_load_contributors($vid) {
+  $vids = (isset($vid) ? array($vid) : array());
+  return biblio_load_contributors_multiple($vids);
+}
+
+function biblio_load_contributors_multiple($vids = array()) {
   $contributors = array();
-  $query = db_select('biblio_contributor', 'bc', array('fetch' => PDO::FETCH_ASSOC));
-  $query->join('biblio_contributor_data', 'bcd', 'bc.cid = bcd.cid');
+  if (empty($vids)) return $contributors;
+
+  $query = db_select('biblio_contributor', 'bc');
+  $query->innerJoin('biblio_contributor_data', 'bcd', 'bcd.cid = bc.cid');
+  $query->fields('bc');
   $query->fields('bcd');
-  $query->fields('bc', array('auth_type', 'auth_category', 'rank'));
-  $query->condition('bc.vid', $vid)->orderBy('bc.rank', 'ASC');
+  $query->orderby('bc.vid');
+  $query->orderby('bc.rank');
+  if (count($vids) == 1) {
+    $query->condition('bc.vid', $vids[0]);
+  }
+  else {
+    $query->condition('bc.vid', $vids, 'IN');
+  }
+  $query->addTag('node_access');
   $result = $query->execute();
 
-  foreach  ($result as $creator ) {
-    $contributors[] = $creator;
+  foreach ($result as $creator) {
+    $contributors[$creator->vid][] = (array)$creator;
   }
 
   return $contributors;

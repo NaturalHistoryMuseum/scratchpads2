@@ -553,14 +553,30 @@ function theme_biblio_format_authors($variables) {
 
 function theme_biblio_author_link($variables) {
   $author = $variables['author'];
-//  $aid    = $variables['authorID'];
-//  $base   = $variables['base'];
 
   $uri = drupal_parse_url(request_uri());
+  if (!isset($uri['attributes'])) {
+    $uri['attributes'] = array();
+  }
+  $path = $uri['path'];
   $uri['path'] = variable_get('biblio_base', 'biblio');
-
   $uri['query']['f']['author'] = $author['cid'];
 
+  if (isset($author['drupal_uid']) && $author['drupal_uid'] > 0) {
+    $uri['attributes'] += array('class' => array('biblio-local-author'));
+  }
+  if (variable_get('biblio_links_target_new_window', null)){
+    $uri['attributes'] +=  array('target'=>'_blank');
+    $uri['html'] = TRUE;
+  }
+
+  if (variable_get('biblio_author_link_profile', 0) && $author['drupal_uid'] ) {
+    $profile_path = 'user/' . $author['drupal_uid'] . '/' . $uri['path'];
+    if ($path != '/' . $profile_path) {  // we only create links to the profile page if we are not already on it.
+      $uri['path'] = $profile_path;
+      unset($uri['query']);
+    }
+  }
 
   return l(trim($author['name']), $uri['path'], $uri );
 
@@ -830,24 +846,36 @@ function theme_biblio_admin_types_edit_form($variables) {
 }
 
 function theme_biblio_download_links($variables) {
+  static $langcode = NULL;
+  $file_links = array();
   $node = $variables['node'];
-  $files = '';
-  if (!empty ($node->upload) && count($node->upload['und']) > 0 && user_access('view uploaded files')) {
-    $files .= '<span class="biblio_file_links">';
-    $files .= '&nbsp;' . t('Download') . ':&nbsp;';
-    $file_count = 0;
-    foreach ($node->upload['und'] as $file) {
-      $file = (object) $file;
-      if ($file->display) {
-        $file_count++;
-        $alias = FALSE;
+  if (!isset($langcode)) {
+    $langcode = $GLOBALS['language_content']->language;
+  }
+
+  $fields = field_attach_view('node', $node, 'full', $langcode);
+  foreach (element_children($fields) as $field) {
+    if($fields[$field]['#field_type'] == 'file') {
+      foreach ($fields[$field]['#items'] as $delta => $item) {
         if (module_exists('filefield_paths')) {
-          $alias =  drupal_get_path_alias('filefield_paths/alias/' . $file->fid);
+          $alias =  drupal_get_path_alias('filefield_paths/alias/' . $item['fid']);
         }
-        $href = ($alias) ?  $alias : file_create_url($file->uri);
-        $text = $file->description ? $file->description : $file->filename;
-        $files .= l($text, $href) . '&nbsp;(' . format_size($file->filesize) . ')';
+        $file_links[] = array(
+          theme('file_link', array('file' => (object) $item)),
+          format_size($item['filesize']),
+        );
       }
+
+    }
+  }
+  $files = '';
+  if (count($file_links) > 0 && (user_access('show download links') || user_access('show own download links'))) {
+    $files .= '<span class="biblio_file_links">';
+   // $files .= '&nbsp;' . t('Download') . ':&nbsp;';
+    $file_count = 0;
+    foreach ($file_links as $file) {
+        $files .= $file[0] . '&nbsp;(' . $file[1] . ')';
+
     }
     $files .= '</span>';
   }
@@ -863,6 +891,7 @@ function theme_biblio_download_links($variables) {
 function theme_biblio_export_links($variables) {
   global $pager_total_items;
   $node = $variables['node'];
+  $filter = ($variables['node'] == NULL && isset($variables['filter'])) ? $variables['filter'] : array();
   $links = array();
   $output = '';
 
@@ -873,7 +902,7 @@ function theme_biblio_export_links($variables) {
       $lookup_links['biblio_google_scholar'] = theme('google_scholar_link', array('node' => $node));
     }
     $nid = (isset($node->nid)) ? $node->nid : NULL;
-    $export_links = module_invoke_all('biblio_export_link', $nid);
+    $export_links = module_invoke_all('biblio_export_link', $nid, $filter);
     $links = array_merge($lookup_links, $export_links);
   }
   if (empty($node) && !empty($links)) {
@@ -966,6 +995,7 @@ function theme_biblio_alpha_line($variables) {
   $base = variable_get('biblio_base', 'biblio');
   $all = '';
   $uri = drupal_parse_url(request_uri());
+  $uri['path'] = $path; //variable_get('biblio_base', 'biblio');
   if (substr($uri['path'], 0, 1) == '/') {
     $uri['path'] = substr($uri['path'], 1);
   }
@@ -1044,73 +1074,9 @@ function theme_biblio_admin_author_edit_form($variables) {
 
 }
 
-function theme_biblio_admin_orphans_form($variables) {
-  $form = $variables['form'];
-  // If there are any orphans, then $form['name'] contains a list of the author names
-  $has_items = isset($form['name']) && is_array($form['name']);
-  $select_header = $has_items ? theme('table_select_header_cell') : '';
-  $header = array($select_header, t('Author Name'), t('Affiliation'));
-
-  $output = '';
-  $output .= drupal_render($form['submit']);
-  if ($has_items) {
-    foreach (element_children($form['name']) as $key) {
-      $row = array();
-      $row[] = drupal_render($form['authors'][$key]);
-      $row[] = drupal_render($form['name'][$key]);
-      $row[] = drupal_render($form['affiliation'][$key]);
-      $rows[] = $row;
-    }
-  }
-  else {
-    $rows[] = array(array('data' => t('There are no orphaned authors in the database.'), 'colspan' => '3'));
-  }
-  $output .= theme('table', array('header' => $header, 'rows' => $rows));
-
-  if (isset($form['pager']['#value'])) {
-    $output .= drupal_render($form['pager']);
-  }
-
-//  $output .= drupal_render($form);
-
-  return $output;
-}
-function theme_biblio_admin_keyword_orphans_form($variables) {
-
-  $form = $variables['form'];
-  // If there are any orphans, then $form['name'] contains a list of the author names
-
-  $has_items = isset($form['keyword']) && is_array($form['keyword']);
-  $select_header = $has_items ? theme('table_select_header_cell') : '';
-  $header = array($select_header, t('Keyword'));
-
-  $output = '';
-  $output .= drupal_render($form['submit']);
-  if ($has_items) {
-    foreach (element_children($form['keyword']) as $key) {
-      $row = array();
-      $row[] = drupal_render($form['keywords'][$key]);
-      $row[] = drupal_render($form['keyword'][$key]);
-      $rows[] = $row;
-    }
-  }
-  else {
-    $rows[] = array(array('data' => t('There are no orphaned keywords in the database.'), 'colspan' => '2'));
-  }
-  $output .= theme('table', array('header' => $header, 'rows' => $rows));
-
-  if ($form['pager']['#value']) {
- //   $output .= drupal_render($form['pager']);
-  }
-
-//  $output .= drupal_render($form);
-
-  return $output;
-}
 function _biblio_keyword_links($keywords, $base='biblio') {
   $uri = drupal_parse_url(request_uri());
-  $base      = variable_get('biblio_base', 'biblio');
-  $uri['path'] = $base;
+  $uri['path'] = variable_get('biblio_base', 'biblio');;
 
   $html = "";
   if (!is_array($keywords)) {

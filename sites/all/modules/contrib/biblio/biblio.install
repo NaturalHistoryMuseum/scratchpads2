@@ -605,18 +605,13 @@ function biblio_schema() {
       'vid'
       ),
     'indexes' => array(
-      'nid' => array(
-        'nid'
-        ),
-      'md5' => array(
-        'biblio_md5'
-        ),
-      'year' => array(
-        'biblio_year'
-        )
-        ),
-
-        );
+      'nid' => array('nid'),
+      'md5' => array('biblio_md5'),
+      'year' => array('biblio_year'),
+      'title_sort' => array('biblio_sort_title'),
+      'date' => array('biblio_date')
+      ),
+    );
 
    $schema['biblio_fields'] = array(
     'fields' => array(
@@ -1942,4 +1937,10 @@ function biblio_update_7012() {
 
   // there was a problem with update 7006 and it might no have done anything so lets try again.
   biblio_update_7006();
+}
+
+function biblio_update_7013() {
+  db_add_index('biblio', 'title_sort', array('biblio_sort_title'));
+  db_add_index('biblio', 'date', array('biblio_date'));
+
 }
