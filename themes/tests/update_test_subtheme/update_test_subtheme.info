@@ -4,8 +4,8 @@ core = 7.x
 base theme = update_test_basetheme
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-05-25
-version = "7.2"
+; Information added by drupal.org packaging script on 2011-06-30
+version = "7.4"
 project = "drupal"
-datestamp = "1306357016"
+datestamp = "1309397516"
 

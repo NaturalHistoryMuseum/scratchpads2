@@ -41,13 +41,15 @@ files[] = tests/upgrade/upgrade.test
 files[] = tests/upgrade/upgrade.comment.test
 files[] = tests/upgrade/upgrade.filter.test
 files[] = tests/upgrade/upgrade.forum.test
+files[] = tests/upgrade/upgrade.locale.test
+files[] = tests/upgrade/upgrade.menu.test
 files[] = tests/upgrade/upgrade.node.test
 files[] = tests/upgrade/upgrade.taxonomy.test
 files[] = tests/upgrade/upgrade.upload.test
-files[] = tests/upgrade/upgrade.locale.test
+files[] = tests/upgrade/upgrade.user.test
 
-; Information added by drupal.org packaging script on 2011-05-25
-version = "7.2"
+; Information added by drupal.org packaging script on 2011-06-30
+version = "7.4"
 project = "drupal"
-datestamp = "1306357016"
+datestamp = "1309397516"
 
