@@ -60,24 +60,35 @@ function biblio_get_keyword_by_id($kid) {
  * @return unknown_type
  */
 function biblio_load_keywords($vid) {
-  $keywords = array();
-  if (!isset($keywords[$vid])) {
-    $query = db_select('biblio_keyword', 'bk');
-    $query->join('biblio_keyword_data', 'bkd', 'bk.kid = bkd.kid');
-    $query->fields('bkd');
-    $query->condition('bk.vid', $vid)->orderBy('bkd.word', 'ASC');
-
-    $result = $query->execute();
-
-    $keywords[$vid] = array();
-    foreach ($result as $keyword) {
-      $keywords[$vid][$keyword->kid] = $keyword->word;
-    }
-  }
-  return $keywords[$vid];
+  $vids = (isset($vid) ? array($vid) : array());
+  return biblio_load_keywords_multiple($vids);
 }
 
+function biblio_load_keywords_multiple($vids = array()) {
+  $keywords = array();
+  if (empty($vids)) return $keywords;
 
+  $query = db_select('biblio_keyword', 'bk');
+  $query->innerJoin('biblio_keyword_data', 'bkd', 'bk.kid = bkd.kid');
+  $query->addField('bk', 'vid');
+  $query->fields('bkd', array('kid', 'word'));
+  $query->orderby('bk.vid');
+  $query->orderby('bkd.word');
+  if (count($vids) == 1) {
+    $query->condition('bk.vid', $vids[0]);
+  }
+  else {
+    $query->condition('bk.vid', $vids, 'IN');
+  }
+  $query->addTag('node_access');
+  $result = $query->execute();
+
+  foreach ($result as $keyword) {
+    $keywords[$keyword->vid][$keyword->kid] = $keyword->word;
+  }
+
+  return $keywords;
+}
 /**
  * Update the keyword database from the supplied node
  *

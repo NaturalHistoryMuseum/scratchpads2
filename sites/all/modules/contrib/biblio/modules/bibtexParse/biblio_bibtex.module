@@ -108,7 +108,7 @@ function biblio_bibtex_node_view($node, $view_mode) {
  * @param $nid  the node id, if NULL then the current view is exported
  * @return  a link (<a href=...>BibTEX</a>)
  */
-function biblio_bibtex_biblio_export_link($nid = NULL) {
+function biblio_bibtex_biblio_export_link($nid = NULL, $filter = array()) {
   $show_link = variable_get('biblio_export_links', array('bibtex' => TRUE));
   if (!$show_link['bibtex'] || !biblio_access('export')) return array();
   $base = variable_get('biblio_base', 'biblio');
@@ -124,11 +124,14 @@ function biblio_bibtex_biblio_export_link($nid = NULL) {
         'attributes' => array(
           'title' => t("Click to download the BibTEX formatted file")));
   }
-  $link['href']  = "$base/export/bibtex/$nid";
+  $link['href']  = "$base/export/bibtex" ;
+  if (!empty($nid)) {
+    $link['href'] .= '/' . $nid;
+  }
   $link['title'] = t('BibTex');
 
-  if (empty($nid)) { // add any filters which may be on the current page
-    $link += drupal_parse_url(request_uri());
+  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+    $link['query'] = $filter;
   }
 
   return array('biblio_bibtex' => $link);
@@ -268,16 +271,9 @@ function _biblio_bibtex_import($entries, $terms = array(), $batch = FALSE, $sess
     $node->biblio_bibtex_md5      = md5(serialize($node));
     $node->biblio_import_type     = 'bibtex';
 
-    if (!empty($terms)) {
-      if (!isset($node->taxonomy)) {
-        $node->taxonomy = array();
-      }
-      $node->taxonomy = array_merge($terms, $node->taxonomy);
-    }
-
     if (!($dup = biblio_bibtex_check_md5($node->biblio_bibtex_md5))) {
       if ($save) {
-        biblio_save_node($node, $batch, $session_id, $save);
+        biblio_save_node($node, $terms, $batch, $session_id, $save);
         $nids[] = (!empty($node->nid))? $node->nid : NULL;
       }
       else { // return the whole node if we are not saveing to the DB (used for the paste function on the input form)

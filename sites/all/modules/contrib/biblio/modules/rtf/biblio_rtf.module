@@ -49,7 +49,7 @@ function biblio_rtf_link($type, $node = NULL, $teaser = FALSE) {
  * @param $nid  the node id, if NULL then the current view is exported
  * @return  a link (<a href=...>rtf</a>)
  */
-function biblio_rtf_biblio_export_link($nid = NULL) {
+function biblio_rtf_biblio_export_link($nid = NULL, $filter = array()) {
   $show_link = variable_get('biblio_export_links', array('rtf' => TRUE));
   if (!isset($show_link['rtf']) || empty($show_link['rtf']) || !biblio_access('export') ) {
     return array();
@@ -58,13 +58,13 @@ function biblio_rtf_biblio_export_link($nid = NULL) {
 
   $link = array(
       'attributes' => array(
-           'title' => t("Click to download the rtf formatted file")));
+           'title' => t("Click to download the RTF formatted file")));
 
   $link['href']  = (!empty($nid) ? "$base/export/rtf/$nid" : "$base/export/rtf");
   $link['title'] = t('RTF');
 
-  if (empty($nid)) { // add any filters which may be on the current page
-    $link += drupal_parse_url(request_uri());
+  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+    $link['query'] = $filter;
   }
   return array('biblio_rtf' => $link);
 }

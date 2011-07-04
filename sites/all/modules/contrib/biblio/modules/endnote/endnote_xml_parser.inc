@@ -142,11 +142,7 @@ class EndNoteXMLParser {
         $this->element = $this->contributors_type = $this->contrib_count = $this->dates = $this->urls = '';
         $this->node->biblio_xml_md5 = md5(serialize($this->node));
         if ( !($dup = $this->biblio_xml_check_md5($this->node->biblio_xml_md5)) ) {
-          if (!empty($this->terms)) {
-            if (!isset($this->node->taxonomy)) $this->node->taxonomy = array();
-            $this->node->taxonomy = array_merge($this->terms, $this->node->taxonomy);
-          }
-          biblio_save_node($this->node, $this->batch_proc, $this->session_id);
+          biblio_save_node($this->node, $this->terms, $this->batch_proc, $this->session_id);
           if (!empty($this->node->nid)) $this->nids[] = $this->node->nid;
         }
         else {
@@ -323,11 +319,7 @@ class EndNoteXMLParser {
       case 'RECORD' :
         $this->node->biblio_xml_md5 = md5(serialize($this->node));
         if ( !($dup = $this->biblio_xml_check_md5($this->node->biblio_xml_md5)) ) {
-          if (!empty($this->terms)) {
-            if (!isset($this->node->taxonomy)) $this->node->taxonomy = array();
-            $this->node->taxonomy = array_merge($this->terms, $this->node->taxonomy);
-          }
-          biblio_save_node($this->node, $this->batch_proc, $this->session_id);
+          biblio_save_node($this->node, $this->terms, $this->batch_proc, $this->session_id);
           if (!empty($this->node->nid)) $this->nids[] = $this->node->nid;
         }
         else {
