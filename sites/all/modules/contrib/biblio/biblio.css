@@ -332,3 +332,7 @@ ul.biblio-export-buttons,ul.biblio-export-buttons li {
   float: left; /* LTR */
   margin-right: 1em; /* LTR */
 }
+.biblio-highlight {
+    background-color: #FFF4F4;
+    border: 2px solid #494949;
+}
