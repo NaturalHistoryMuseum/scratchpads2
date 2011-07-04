@@ -53,7 +53,7 @@ function biblio_xml_node_view($node, $view_mode) {
  * @param $nid  the node id, if NULL then the current view is exported
  * @return  a link (<a href=...>xml</a>)
  */
-function biblio_xml_biblio_export_link($nid = NULL) {
+function biblio_xml_biblio_export_link($nid = NULL, $filter = array()) {
   $show_link = variable_get('biblio_export_links', array('xml' => TRUE));
   if (!isset($show_link['xml']) || empty($show_link['xml']) || !biblio_access('export')) {
     return array();
@@ -62,11 +62,14 @@ function biblio_xml_biblio_export_link($nid = NULL) {
 
   $link = array();
   $link['attributes']['title'] = t("Click to download the EndNote XML formatted file");
-  $link['href']  = "$base/export/xml/$nid";
+  $link['href']  = "$base/export/xml";
+  if (!empty($nid)) {
+    $link['href'] .= '/' . $nid;
+  }
   $link['title'] = t('XML');
 
-  if (empty($nid)) { // add any filters which may be on the current page
-    $link += drupal_parse_url(request_uri());
+  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+    $link['query'] = $filter;
   }
   return array('biblio_xml' => $link);
 }
