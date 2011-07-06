@@ -61,7 +61,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
 
     $entities = entity_get_info();
     foreach ($entities as $entity_type => $entity_info) {
-      if ($this->base_table == $entity_info['base table']) {
+      if (isset($entity_info['base table']) && $this->base_table == $entity_info['base table']) {
         $this->entity_info = $entity_info;
         $this->entity_type = $entity_type;
       }
@@ -79,7 +79,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
 
     $form['displays']['page'] = array(
       '#type' => 'fieldset',
-      '#attributes' => array('class' => array('views-attachment'),),
+      '#attributes' => array('class' => array('views-attachment', 'fieldset-no-legend'),),
       '#tree' => TRUE,
     );
     $form['displays']['page']['create'] = array(
@@ -87,6 +87,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
       '#type' => 'checkbox',
       '#attributes' => array('class' => array('strong')),
       '#default_value' => TRUE,
+      '#id' => 'edit-page-create',
     );
 
     // All options for the page display are included in this container so they
@@ -94,11 +95,12 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
     $form['displays']['page']['options'] = array(
       '#type' => 'container',
       '#attributes' => array('class' => array('options-set'),),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="page[create]"]' => array('checked' => TRUE),
-        ),
+      '#dependency' => array(
+        'edit-page-create' => array(1),
       ),
+      '#pre_render' => array('ctools_dependent_pre_render'),
+      '#prefix' => '<div><div id="edit-page-wrapper">',
+      '#suffix' => '</div></div>',
       '#parents' => array('page'),
     );
 
@@ -113,7 +115,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
     );
     $form['displays']['page']['options']['style'] = array(
       '#type' => 'fieldset',
-      '#attributes' => array('class' => array('container-inline')),
+      '#attributes' => array('class' => array('container-inline', 'fieldset-no-legend')),
     );
 
     // Create the dropdown for choosing the display format.
@@ -131,23 +133,25 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
 
     $this->build_form_style($form, $form_state, 'page');
     $form['displays']['page']['options']['items_per_page'] = array(
-      '#title' => t('Items per page'),
+      '#title' => t('Items to display'),
       '#type' => 'textfield',
       '#default_value' => '10',
       '#size' => 5,
-      '#element_validate' => array('_element_validate_integer_positive'),
+      '#element_validate' => array('views_element_validate_integer_positive'),
     );
     $form['displays']['page']['options']['link'] = array(
       '#title' => t('Create a menu link'),
       '#type' => 'checkbox',
+      '#id' => 'edit-page-link',
     );
     $form['displays']['page']['options']['link_properties'] = array(
       '#type' => 'container',
-      '#states' => array(
-        'visible' => array(
-          ':input[name="page[link]"]' => array('checked' => TRUE),
-        ),
+      '#dependency' => array(
+        'edit-page-link' => array(1),
       ),
+      '#pre_render' => array('ctools_dependent_pre_render'),
+      '#prefix' => '<div id="edit-page-link-properties-wrapper">',
+      '#suffix' => '</div>',
     );
     if (module_exists('menu')) {
       $menu_options = menu_get_menus();
@@ -173,14 +177,16 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
       $form['displays']['page']['options']['feed'] = array(
         '#title' => t('Include an RSS feed'),
         '#type' => 'checkbox',
+        '#id' => 'edit-page-feed',
       );
       $form['displays']['page']['options']['feed_properties'] = array(
         '#type' => 'container',
-        '#states' => array(
-          'visible' => array(
-            ':input[name="page[feed]"]' => array('checked' => TRUE),
-          ),
+        '#dependency' => array(
+          'edit-page-feed' => array(1),
         ),
+        '#pre_render' => array('ctools_dependent_pre_render'),
+        '#prefix' => '<div id="edit-page-feed-properties-wrapper">',
+        '#suffix' => '</div>',
       );
       $form['displays']['page']['options']['feed_properties']['path'] = array(
         '#title' => t('Feed path'),
@@ -194,23 +200,25 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
         '#options' => $feed_row_options,
         '#default_value' => key($feed_row_options),
         '#access' => (count($feed_row_options) > 1),
-        '#states' => array(
-          'visible' => array(
-            ':input[name="page[feed]"]' => array('checked' => TRUE),
-          ),
+        '#dependency' => array(
+          'edit-page-feed' => array(1),
         ),
+        '#pre_render' => array('ctools_dependent_pre_render'),
+        '#prefix' => '<div id="edit-page-feed-properties-row-plugin-wrapper">',
+        '#suffix' => '</div>',
       );
     }
 
     $form['displays']['block'] = array(
       '#type' => 'fieldset',
-      '#attributes' => array('class' => array('views-attachment'),),
+      '#attributes' => array('class' => array('views-attachment', 'fieldset-no-legend'),),
       '#tree' => TRUE,
     );
     $form['displays']['block']['create'] = array(
       '#title' => t('Create a block'),
       '#type' => 'checkbox',
       '#attributes' => array('class' => array('strong')),
+      '#id' => 'edit-block-create',
     );
 
     // All options for the block display are included in this container so they
@@ -218,11 +226,12 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
     $form['displays']['block']['options'] = array(
       '#type' => 'container',
       '#attributes' => array('class' => array('options-set'),),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="block[create]"]' => array('checked' => TRUE),
-        ),
+      '#dependency' => array(
+        'edit-block-create' => array(1),
       ),
+      '#pre_render' => array('ctools_dependent_pre_render'),
+      '#prefix' => '<div id="edit-block-wrapper">',
+      '#suffix' => '</div>',
       '#parents' => array('block'),
     );
 
@@ -232,7 +241,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
     );
     $form['displays']['block']['options']['style'] = array(
       '#type' => 'fieldset',
-      '#attributes' => array('class' => array('container-inline')),
+      '#attributes' => array('class' => array('container-inline', 'fieldset-no-legend')),
     );
 
     // Create the dropdown for choosing the display format.
@@ -254,7 +263,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
       '#type' => 'textfield',
       '#default_value' => '5',
       '#size' => 5,
-      '#element_validate' => array('_element_validate_integer_positive'),
+      '#element_validate' => array('views_element_validate_integer_positive'),
     );
 
     return $form;
@@ -409,10 +418,12 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
    * By default, this adds a "sorted by [date]" filter (when it is available).
    */
   protected function build_sorts(&$form, &$form_state) {
-    // Check if we are allowed to sort by creation date.
-    $sorts = array();
+    $sorts = array(
+      'none' => t('Unsorted'),
+    );
+    // Check if we are allowed to sort by creation date.    
     if (!empty($this->plugin['created_column'])) {
-      $sorts = array(
+      $sorts += array(
         $this->plugin['created_column'] . ':DESC' => t('Newest first'),
         $this->plugin['created_column'] . ':ASC' => t('Oldest first'),
       );
@@ -420,17 +431,16 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
         $sorts += $this->plugin['available_sorts'];
       }
     }
-    if (!empty($sorts)) {
-      $form['displays']['show']['sort'] = array(
-        '#type' => 'select',
-        '#title' => t('sorted by'),
-        '#options' => $sorts,
-        '#default_value' => isset($this->plugin['created_column']) ? $this->plugin['created_column'] . ':DESC' : NULL,
-      );
-    }
+    $form['displays']['show']['sort'] = array(
+      '#type' => 'select',
+      '#title' => t('sorted by'),
+      '#options' => $sorts,
+      '#default_value' => isset($this->plugin['created_column']) ? $this->plugin['created_column'] . ':DESC' : NULL,
+    );
   }
 
   protected function instantiate_view($form, &$form_state) {
+    // Build the basic view properties.
     $view = views_new_view();
     $view->name = $form_state['values']['name'];
     $view->human_name = $form_state['values']['human_name'];
@@ -439,53 +449,131 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
     $view->core = VERSION;
     $view->base_table = $this->base_table;
 
+    // Build all display options for this view.
+    $display_options = $this->build_display_options($form, $form_state);
+
+    // Allow the fully built options to be altered. This happens before adding
+    // the options to the view, so that once they are eventually added we will
+    // be able to get all the overrides correct.
+    $this->alter_display_options($display_options, $form, $form_state);
+
+    $this->add_displays($view, $display_options, $form, $form_state);
+
+    return $view;
+  }
+
+  /**
+   * Build an array of display options for the view.
+   *
+   * @return
+   *   An array whose keys are the names of each display and whose values are
+   *   arrays of options for that display.
+   */
+  protected function build_display_options($form, $form_state) {
     // Display: Master
-    $default_display = $view->new_display('default', 'Master', 'default');
-    $options = $this->default_display_options($form, $form_state);
-    if (!isset($options['filters'])) {
-      $options['filters'] = array();
-    }
-    $options['filters'] += $this->default_display_filters($form, $form_state);
-    if (!isset($options['sorts'])) {
-      $options['sorts'] = array();
-    }
-    $options['sorts'] += $this->default_display_sorts($form, $form_state);
-    foreach ($options as $option => $value) {
-      $default_display->set_option($option, $value);
-    }
+    $display_options['default'] = $this->default_display_options($form, $form_state);
+    $display_options['default'] += array(
+      'filters' => array(),
+      'sorts' => array(),
+    );
+    $display_options['default']['filters'] += $this->default_display_filters($form, $form_state);
+    $display_options['default']['sorts'] += $this->default_display_sorts($form, $form_state);
 
     // Display: Page
     if (!empty($form_state['values']['page']['create'])) {
-      $display = $view->new_display('page', 'Page', 'page');
-      $options = $this->page_display_options($form, $form_state);
-      // The page display is usually the main one (from the user's point of
-      // view). Its options should therefore become the overall view defaults,
-      // so that new displays which are added later automatically inherit them.
+      $display_options['page'] = $this->page_display_options($form, $form_state);
 
-      $this->set_default_options($options, $display, $default_display);
       // Display: Feed (attached to the page)
       if (!empty($form_state['values']['page']['feed'])) {
-        $display = $view->new_display('feed', 'Feed', 'feed');
-        $options = $this->page_feed_display_options($form, $form_state);
-        $this->set_override_options($options, $display, $default_display);
+        $display_options['feed'] = $this->page_feed_display_options($form, $form_state);
       }
     }
 
     // Display: Block
     if (!empty($form_state['values']['block']['create'])) {
-      $display = $view->new_display('block', 'Block', 'block');
-      $options = $this->block_display_options($form, $form_state);
-      // When there is no page, the block display options should become the
-      // overall view defaults.
-      if (empty($form_state['values']['page']['create'])) {
-        $this->set_default_options($options, $display, $default_display);
+      $display_options['block'] = $this->block_display_options($form, $form_state);
+    }
+
+    return $display_options;
+  }
+
+  /**
+   * Alter the full array of display options before they are added to the view.
+   */
+  protected function alter_display_options(&$display_options, $form, $form_state) {
+    // If any of the displays use jump menus, we want to add fields to the view
+    // that store the path that will be used in the jump menu. The fields to
+    // use for this are defined by the plugin.
+    if (isset($this->plugin['path_field'])) {
+      $path_field = $this->plugin['path_field'];
+      $path_fields_added = FALSE;
+      foreach ($display_options as $display_type => $options) {
+        if (!empty($options['style_plugin']) && $options['style_plugin'] == 'jump_menu') {
+          // Regardless of how many displays have jump menus, we only need to
+          // add a single set of path fields to the view.
+          if (!$path_fields_added) {
+            // The plugin might provide supplemental fields that it needs to
+            // generate the path (for example, node revisions need the node ID
+            // as well as the revision ID). We need to add these first so they
+            // are available as replacement patterns in the main path field.
+            $path_fields = !empty($this->plugin['path_fields_supplemental']) ? $this->plugin['path_fields_supplemental'] : array();
+            $path_fields[] = &$path_field;
+
+            // Generate a unique ID for each field so we don't overwrite
+            // existing ones.
+            foreach ($path_fields as &$field) {
+              $field['id'] = view::generate_item_id($field['id'], $display_options['default']['fields']);
+              $display_options['default']['fields'][$field['id']] = $field;
+            }
+
+            $path_fields_added = TRUE;
+          }
+
+          // Configure the style plugin to use the path field to generate the
+          // jump menu path.
+          $display_options[$display_type]['style_options']['path'] = $path_field['id'];
+        }
       }
-      else {
-        $this->set_override_options($options, $display, $default_display);
+    }
+  }
+
+  /**
+   * Add the array of display options to the view, with appropriate overrides.
+   */
+  protected function add_displays($view, $display_options, $form, $form_state) {
+    // Display: Master
+    $default_display = $view->new_display('default', 'Master', 'default');
+    foreach ($display_options['default'] as $option => $value) {
+      $default_display->set_option($option, $value);
+    }
+
+    // Display: Page
+    if (isset($display_options['page'])) {
+      $display = $view->new_display('page', 'Page', 'page');
+      // The page display is usually the main one (from the user's point of
+      // view). Its options should therefore become the overall view defaults,
+      // so that new displays which are added later automatically inherit them.
+      $this->set_default_options($display_options['page'], $display, $default_display);
+
+      // Display: Feed (attached to the page)
+      if (isset($display_options['feed'])) {
+        $display = $view->new_display('feed', 'Feed', 'feed');
+        $this->set_override_options($display_options['feed'], $display, $default_display);
       }
     }
 
-    return $view;
+    // Display: Block
+    if (isset($display_options['block'])) {
+      $display = $view->new_display('block', 'Block', 'block');
+      // When there is no page, the block display options should become the
+      // overall view defaults.
+      if (!isset($display_options['page'])) {
+        $this->set_default_options($display_options['block'], $display, $default_display);
+      }
+      else {
+        $this->set_override_options($display_options['block'], $display, $default_display);
+      }
+    }
   }
 
   /**
@@ -546,9 +634,24 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
 
     if (!empty($form_state['values']['show']['type']) && $form_state['values']['show']['type'] != 'all') {
       $bundle_key = $this->entity_info['bundle keys']['bundle'];
+      // Figure out the table where $bundle_key lives. It may not be the same as
+      // the base table for the view; the taxonomy vocabulary machine_name, for
+      // example, is stored in taxonomy_vocabulary, not taxonomy_term_data.
+      $fields = views_fetch_fields($this->base_table, 'filter');
+      if (isset($fields[$this->base_table . '.' . $bundle_key])) {
+        $table = $this->base_table;
+      }
+      else {
+        foreach ($fields as $field_name => $value) {
+          if ($pos = strpos($field_name, '.' . $bundle_key)) {
+            $table = substr($field_name, 0, $pos);
+            break;
+          }
+        }
+      }
       $filters[$bundle_key] = array(
         'id' => $bundle_key,
-        'table' => $this->base_table,
+        'table' => $table,
         'field' => $bundle_key,
         'value' => drupal_map_assoc(array($form_state['values']['show']['type'])),
       );
@@ -593,7 +696,8 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
   protected function default_display_sorts_user($form, $form_state) {
     $sorts = array();
 
-    if (!empty($form_state['values']['show']['sort'])) {
+    // Don't add a sort if there is no form value or the user selected none as sort.
+    if (!empty($form_state['values']['show']['sort']) && $form_state['values']['show']['sort'] != 'none') {
       list($column, $sort) = explode(':', $form_state['values']['show']['sort']);
       // Column either be a column-name or the table-columnn-ame.
       $column = explode('-', $column);

@@ -25,9 +25,11 @@ class views_plugin_exposed_form extends views_plugin {
     $options['submit_button'] = array('default' => t('Apply'), 'translatable' => TRUE);
     $options['reset_button'] = array('default' => FALSE, 'bool' => TRUE);
     $options['reset_button_label'] = array('default' => 'Reset', 'translatable' => TRUE);
-    $options['exposed_sorts_label'] = array('default' => 'Sort By', 'translatable' => TRUE);
+    $options['exposed_sorts_label'] = array('default' => 'Sort by', 'translatable' => TRUE);
     $options['sort_asc_label'] = array('default' => 'Asc', 'translatable' => TRUE);
     $options['sort_desc_label'] = array('default' => 'Desc', 'translatable' => TRUE);
+    $options['autosubmit'] = array('default' => FALSE);
+    $options['autosubmit_hide'] = array('default' => TRUE);
     return $options;
   }
 
@@ -80,6 +82,23 @@ class views_plugin_exposed_form extends views_plugin {
       '#description' => t('Text to use when exposed sort is ordered descending.'),
       '#default_value' => $this->options['sort_desc_label'],
       '#required' => TRUE,
+    );
+
+    $form['autosubmit'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Autosubmit'),
+      '#description' => t('Automatically submit the form once an element is changed.'),
+      '#default_value' => $this->options['autosubmit'],
+    );
+
+    $form['autosubmit_hide'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Hide submit button'),
+      '#description' => t('Hide submit button if javascript is enabled.'),
+      '#default_value' => $this->options['autosubmit_hide'],
+      '#dependency' => array(
+        'edit-exposed-form-options-autosubmit' => array(1),
+      ),
     );
   }
 
@@ -138,6 +157,7 @@ class views_plugin_exposed_form extends views_plugin {
         if (isset($exposed_data['sort_order']) && in_array($exposed_data['sort_order'], array('ASC', 'DESC'))) {
           $handler->options['order'] = $exposed_data['sort_order'];
         }
+        $handler->set_relationship();
         $handler->query();
         foreach ($view->sort as $sort) {
           if (!$sort->is_exposed()) {
@@ -177,18 +197,29 @@ class views_plugin_exposed_form extends views_plugin {
       $form['sort_by'] = array(
         '#type' => 'select',
         '#options' => $exposed_sorts,
-        '#title' => t($this->options['exposed_sorts_label']),
+        '#title' => $this->options['exposed_sorts_label'],
       );
       $sort_order = array(
         'ASC' => $this->options['sort_asc_label'],
         'DESC' => $this->options['sort_desc_label'],
       );
-      $first_sort = reset($this->view->sort);
+      if (isset($form_state['input']['sort_by']) && isset($this->view->sort[$form_state['input']['sort_by']])) {
+        $default_sort_order = $this->view->sort[$form_state['input']['sort_by']]->options['order'];
+      } else {
+        $first_sort = reset($this->view->sort);
+        $default_sort_order = $first_sort->options['order'];
+      }
+
+      if (!isset($form_state['input']['sort_by'])) {
+        $keys = array_keys($exposed_sorts);
+        $form_state['input']['sort_by'] = array_shift($keys);
+      }
+
       $form['sort_order'] = array(
         '#type' => 'select',
         '#options' => $sort_order,
         '#title' => t('Order'),
-        '#default_value' => $first_sort->options['order'],
+        '#default_value' => $default_sort_order,
       );
       $form['submit']['#weight'] = 10;
       if (isset($form['reset'])) {
@@ -200,6 +231,19 @@ class views_plugin_exposed_form extends views_plugin {
     if ($pager) {
       $pager->exposed_form_alter($form, $form_state);
       $form_state['pager_plugin'] = $pager;
+    }
+
+
+    // Apply autosubmit values.
+    if (!empty($this->options['autosubmit'])) {
+      $form = array_merge_recursive($form, array('#attributes' => array('class' => array('ctools-auto-submit-full-form'))));
+      $form['submit']['#attributes']['class'][] = 'ctools-use-ajax';
+      $form['submit']['#attributes']['class'][] = 'ctools-auto-submit-click';
+      $form['#attached']['js'][] = drupal_get_path('module', 'ctools') . '/js/auto-submit.js';
+
+      if (!empty($this->options['autosubmit_hide'])) {
+        $form['submit']['#attributes']['class'][] = 'js-hide';
+      }
     }
   }
 
@@ -231,8 +275,27 @@ class views_plugin_exposed_form extends views_plugin {
   }
 
   function reset_form(&$form, &$form_state) {
-    unset($_SESSION['views'][$this->view->name][$this->view->current_display]);
-    $form_state = array();
+    // _SESSION is not defined for users who are not logged in.
+
+    // If filters are not overridden, store the 'remember' settings on the
+    // default display. If they are, store them on this display. This way,
+    // multiple displays in the same view can share the same filters and
+    // remember settings.
+    $display_id = ($this->view->display_handler->is_defaulted('filters')) ? 'default' : $this->view->current_display;
+
+    if (isset($_SESSION['views'][$this->view->name][$display_id])) {
+      unset($_SESSION['views'][$this->view->name][$display_id]);
+    }
+
+    // Set the form to allow redirect.
+    if (empty($this->view->live_preview)) {
+      $form_state['no_redirect'] = FALSE;
+    }
+    else {
+      $form_state['rebuild'] = TRUE;
+      $this->view->exposed_data = array();
+    }
+
     $form_state['values'] = array();
   }
 }
