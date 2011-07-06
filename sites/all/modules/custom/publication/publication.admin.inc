@@ -265,7 +265,7 @@ function publication_edit_form($form, &$form_state, $publication){
   // Add the default field elements.
   $form['title'] = array(
     '#type' => 'textfield',
-    '#title' => t('Publication title'),
+    '#title' => t('Short title'),
     '#default_value' => isset($publication->title) ? $publication->title : '',
     '#maxlength' => 255,
     '#required' => TRUE,
