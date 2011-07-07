@@ -24,6 +24,18 @@
           img_clicked.attr('src', Drupal.settings.tinytax.plus);
         }
       });
+      $('.tinytax-search-field', context).focusin(function(){
+        $(this).removeClass('tinytax-no-focus');
+        if($(this).val() == Drupal.settings.tinytax.no_focus){
+          $(this).val('')
+        }
+      })
+      $('.tinytax-search-field', context).focusout(function(){
+        $(this).addClass('tinytax-no-focus');
+        if($(this).val() == ''){
+          $(this).val(Drupal.settings.tinytax.no_focus)
+        }
+      })
       $('.tinytax-search-field', context).keypress(function(event){
         var keyCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode;
         if (keyCode == 13) {

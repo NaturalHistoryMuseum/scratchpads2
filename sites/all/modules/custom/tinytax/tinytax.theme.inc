@@ -19,14 +19,21 @@ function theme_tinytax_block($variables){
  * Search form
  */
 function tinytax_search_form($form, $form_state){
+  drupal_add_js(array(
+    'tinytax' => array(
+      'no_focus' => t('Search...')
+    )
+  ), 'setting');
   return array(
     'autocomplete' => array(
       '#title' => '',
       '#type' => 'textfield',
       '#autocomplete_path' => 'tinytax/autocomplete/' . $form_state['build_info']['args'][0],
+      '#default_value' => t('Search...'),
       '#attributes' => array(
         'class' => array(
-          'tinytax-search-field'
+          'tinytax-search-field',
+          'tinytax-no-focus'
         )
       ),
       '#id' => 'tinytax-search-field-' . $form_state['build_info']['args'][0]
