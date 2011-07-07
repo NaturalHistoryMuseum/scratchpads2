@@ -1,0 +1,14 @@
+
+name = BeautyTips UI
+description = Adds settings menu and contributed beautytip popups
+core = 7.x
+package = User interface 
+files[] = beautytips_ui.module
+dependencies[] = beautytips
+
+; Information added by drupal.org packaging script on 2011-06-08
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "beautytips"
+datestamp = "1307491451"
+

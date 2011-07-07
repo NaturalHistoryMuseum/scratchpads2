@@ -1,0 +1,333 @@
+<?php
+
+/**
+ * Implement hook_entity_info().
+ *
+ */
+function publication_entity_info(){
+  $return['publication'] = array(
+    'label' => t('Publication'),
+    // The entity class and controller class extend the classes provided by the Entity API
+    'entity class' => 'Publication',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'publication',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'pid',
+      'bundle' => 'type',
+      'label' => 'title'
+    ),
+    // Bundles are defined by the publication types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'access callback' => 'publication_access',
+    'module' => 'publication',
+    'admin ui' => array(
+      'path' => 'admin/content/publications',
+      'file' => 'publication.admin.inc',
+      'controller class' => 'PublicationUIController'
+    )
+  );
+  // The entity that holds information about the entity types	  
+  $return['publication_type'] = array(
+    'label' => t('Publication type'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'publication_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'publication',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label'
+    ),
+    'access callback' => 'publication_type_access',
+    'module' => 'publication',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/publication_types',
+      'file' => 'publication_type.admin.inc'
+    )
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We are adding the info about the publication types via a hook to avoid a recursion
+ * issue as loading the publication types requires the entity info as well.
+ *
+ * @todo This needs to be improved
+ */
+function publication_entity_info_alter(&$entity_info){
+  foreach(publication_get_types() as $type => $info){
+    $entity_info['publication']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/publication_types/manage/%publication_type',
+        'real path' => 'admin/structure/publication_types/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array(
+          'administer publication'
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function publication_admin_paths(){
+  $paths = array(
+    'publication/*/edit' => TRUE,
+    'publication/*/delete' => TRUE
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function publication_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  // Add action link 'admin/structure/publication/add' on 'admin/structure/publications'.
+  if($root_path == 'admin/content/publications'){
+    $item = menu_get_item('admin/content/publications/add');
+    if($item['access']){
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item
+      );
+    }
+  }
+}
+
+/**
+ * Implement hook_theme().
+ */
+function publication_theme(){
+  $path = drupal_get_path('module', 'publication');
+  return array(
+    'publication_add_list' => array(
+      'variables' => array(
+        'content' => array()
+      ),
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    ),
+    'publication' => array(
+      'render element' => 'elements',
+      'template' => 'publication',
+      'path' => $path . '/theme'
+    )
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function publication_permission(){
+  // We set up permisssions to manage entity types, manage all entities and the
+  // permissions for each individual entity
+  $permissions = array(
+    'administer publication types' => array(
+      'title' => t('Administer publication types'),
+      'description' => t('Create and delete fields for publication types, and set their permissions.')
+    ),
+    'administer publications' => array(
+      'title' => t('Administer publications'),
+      'description' => t('Edit and delete all publication')
+    )
+  );
+  //Generate permissions per publication 
+  foreach(publication_get_types() as $type){
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit any $type_name publication" => array(
+        'title' => t('%type_name: Edit any publication', array(
+          '%type_name' => $type->label
+        ))
+      ),
+      "view any $type_name publication" => array(
+        'title' => t('%type_name: View any publication', array(
+          '%type_name' => $type->label
+        ))
+      )
+    );
+  }
+  return $permissions;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function publication_field_extra_fields(){
+  $extra = array();
+  foreach(publication_get_types() as $type => $info){
+    $extra['publication'][$type] = array(
+      'form' => array(
+        'title' => array(
+          'label' => t("Short title"),
+          'description' => t('Publication module element'),
+          'weight' => -5
+        )
+      )
+    );
+  }
+  return $extra;
+}
+
+/**
+ * Determines whether the given user has access to a publication.
+ *
+ * @param $op
+ * The operation being performed. One of 'view', 'update', 'create', 'delete'
+ * or just 'edit' (being the same as 'create' or 'update').
+ * @param $publication
+ * Optionally a publication or a publication type to check access for. If nothing is
+ * given, access for all publications is determined.
+ * @param $account
+ * The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ * Whether access is allowed or not.
+ */
+function publication_access($op, $publication = NULL, $account = NULL){
+  if(user_access('administer publication', $account)){return TRUE;}
+  if(isset($publication) && $type_name = $publication->type){
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if(user_access("$op any $type_name publication", $account)){return TRUE;}
+  }
+  return FALSE;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function publication_type_access($op, $type = NULL, $account = NULL){
+  return user_access('administer publication types', $account);
+}
+
+/**
+ * Gets an array of all publication types, keyed by the type name.
+ *
+ * @param $type_name
+ * If set, the type with the given name is returned.
+ * @return PublicationType[]
+ * Depending whether $type isset, an array of publication types or a single one.
+ */
+function publication_get_types($type_name = NULL){
+  // entity_load will get the Entity controller for our publication entity and call the load
+  // function of that object.
+  $types = entity_load('publication_type', isset($type_name) ? array(
+    $type_name
+  ) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Menu argument loader; Load a publication type by string.
+ *
+ * @param $type
+ * The machine-readable name of a publication type to load.
+ * @return
+ * A publication type array or FALSE if $type does not exist.
+ */
+function publication_type_load($type){
+  return publication_get_types($type);
+}
+
+/**
+ * Fetch a publication object
+ */
+function publication_load($pid, $reset = FALSE){
+  $publication = publication_load_multiple(array(
+    $pid
+  ), array(), $reset);
+  return reset($publication);
+}
+
+/**
+ * Load multiple publications
+ */
+function publication_load_multiple($pids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('publication', $pids, $conditions, $reset);
+}
+
+/**
+ * Create a publication object.
+ */
+function publication_create($values = array()){
+  return entity_get_controller('publication')->create($values);
+}
+
+/**
+ * Deletes a publication.
+ */
+function publication_delete(Publication $publication){
+  $publication->delete();
+}
+
+/**
+ * Delete multiple publications.
+ *
+ * @param $publication_ids
+ * An array of publication IDs.
+ */
+function publication_delete_multiple(array $publication_ids){
+  entity_get_controller('publication')->delete($publication_ids);
+}
+
+/**
+ * URI callback for publications
+ */
+function publication_uri(Publication $publication){
+  return array(
+    'path' => 'publication/' . $publication->publication_id
+  );
+}
+
+/**
+ * Menu title callback for showing individual entities
+ */
+function publication_page_title(Publication $publication){
+  return $publication->title;
+}
+
+/**
+ * Sets up content to show an individula publication
+ */
+function publication_page_view($publication, $view_mode = 'full'){
+  $controller = entity_get_controller('publication');
+  $content = $controller->view(array(
+    $publication->pid => $publication
+  ));
+  drupal_set_title($publication->title);
+  return $content;
+}
+
+/**
+ * The class used for publication entities
+ */
+class Publication extends Entity{
+
+  public function __construct($values = array()){
+    parent::__construct($values, 'publication');
+  }
+
+  protected function defaultLabel(){
+    return $this->title;
+  }
+
+  protected function defaultUri(){
+    return array(
+      'path' => 'publication/' . $this->pid
+    );
+  }
+}

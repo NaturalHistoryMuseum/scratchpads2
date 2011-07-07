@@ -1,0 +1,17 @@
+name = Character editor
+description = Scratchpad character editor
+core = 7.x
+files[] = includes/character_editor.entity.inc
+files[] = includes/character_editor.admin.inc
+files[] = includes/character_editor.info.inc
+
+; Views
+files[] = includes/character_editor.views.inc
+files[] = includes/character_editor_views_plugin.inc
+
+dependencies[] = entity
+dependencies[] = field_collection
+dependencies[] = subform
+dependencies[] = views
+dependencies[] = slickgrid
+package = Scratchpads
