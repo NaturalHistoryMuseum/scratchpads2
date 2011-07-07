@@ -7,6 +7,7 @@
 $plugin = array(
   'flow' => array(
     'title' => t('Example flow'),
+		'name' => 'example_flow',
     'description' => t('An example flow using ctools plugin.'),
     'path' => 'formflow/example',
     'show_trail' => 1,

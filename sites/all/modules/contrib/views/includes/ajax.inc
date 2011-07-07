@@ -18,7 +18,7 @@ function views_ajax() {
     $display_id = $_REQUEST['view_display_id'];
     $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', $_REQUEST['view_args']) : array();
     $path = isset($_REQUEST['view_path']) ? $_REQUEST['view_path'] : NULL;
-    $dom_id = isset($_REQUEST['view_dom_id']) ? intval($_REQUEST['view_dom_id']) : NULL;
+    $dom_id = isset($_REQUEST['view_dom_id']) ? preg_replace('/[^a-zA-Z0-9_-]+/', '-', $_REQUEST['view_dom_id']) : NULL;
     $pager_element = isset($_REQUEST['pager_element']) ? intval($_REQUEST['pager_element']) : NULL;
 
     $commands = array();
@@ -270,10 +270,10 @@ function views_ajax_form_wrapper($form_id, &$form_state) {
  * Page callback for views user autocomplete
  */
 function views_ajax_autocomplete_user($string = '') {
-  // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+  // The user enters a comma-separated list of user name. We only autocomplete the last name.
   $array = drupal_explode_tags($string);
 
-  // Fetch last tag
+  // Fetch last name
   $last_string = trim(array_pop($array));
   $matches = array();
   if ($last_string != '') {
@@ -282,19 +282,21 @@ function views_ajax_autocomplete_user($string = '') {
     if (strpos('anonymous', strtolower($last_string)) !== FALSE) {
       $matches[$prefix . 'Anonymous'] = 'Anonymous';
     }
-    $result = db_query_range("SELECT name FROM {users} WHERE name = :string",
-      0, 1,
-      array(
-        ':string' => $last_string
-      ));
+
+    $result = db_select('users', 'u')
+      ->fields('u', array('uid', 'name'))
+      ->condition('u.name', db_like($last_string) . '%', 'LIKE')
+      ->range(0, 10)
+      ->execute()
+      ->fetchAllKeyed();
 
     foreach ($result as $account) {
-      $n = $account->name;
+      $n = $account;
       // Commas and quotes in terms are special cases, so encode 'em.
-      if (strpos($account->name, ',') !== FALSE || strpos($account->name, '"') !== FALSE) {
-        $n = '"' . str_replace('"', '""', $account->name) . '"';
+      if (strpos($account, ',') !== FALSE || strpos($account, '"') !== FALSE) {
+        $n = '"' . str_replace('"', '""', $account) . '"';
       }
-      $matches[$prefix . $n] = check_plain($account->name);
+      $matches[$prefix . $n] = check_plain($account);
     }
   }
 

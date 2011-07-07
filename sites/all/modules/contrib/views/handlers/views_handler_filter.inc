@@ -47,12 +47,6 @@ class views_handler_filter extends views_handler {
       $this->options['expose']['operator_id'] = $options['expose']['operator_id'] = $options['expose']['operator'];
     }
 
-    // Compatibility: Set use_operator to true if the old way of using
-    // the operator is set and use_operator is NULL (was never set).
-    if (!empty($options['exposed']) && !empty($options['expose']['operator_id']) && !isset($options['expose']['use_operator'])) {
-      $this->options['expose']['use_operator'] = TRUE;
-    }
-
     // If there are relationships in the view, allow empty should be true
     // so that we can do IS NULL checks on items. Not all filters respect
     // allow empty, but string and numeric do and that covers enough.
@@ -107,8 +101,14 @@ class views_handler_filter extends views_handler {
     if ($this->can_expose()) {
       $this->show_expose_button($form, $form_state);
     }
+    $form['clear_markup_start'] = array(
+      '#markup' => '<div class="clearfix">',
+    );
     $this->show_operator_form($form, $form_state);
     $this->show_value_form($form, $form_state);
+    $form['clear_markup_end'] = array(
+      '#markup' => '</div>',
+    );
     if ($this->can_expose()) {
       $this->show_expose_form($form, $form_state);
     }
@@ -142,7 +142,7 @@ class views_handler_filter extends views_handler {
    */
   function show_operator_form(&$form, &$form_state) {
     $this->operator_form($form, $form_state);
-    $form['operator']['#prefix'] = '<div class="views-left-30">';
+    $form['operator']['#prefix'] = '<div class="views-group-box views-left-30">';
     $form['operator']['#suffix'] = '</div>';
   }
 
@@ -187,7 +187,7 @@ class views_handler_filter extends views_handler {
   function show_value_form(&$form, &$form_state) {
     $this->value_form($form, $form_state);
     if (empty($this->no_operator)) {
-      $form['value']['#prefix'] = '<div class="views-right-70">' . (isset($form['value']['#prefix']) ? $form['value']['#prefix'] : '');
+      $form['value']['#prefix'] = '<div class="views-group-box views-right-70">' . (isset($form['value']['#prefix']) ? $form['value']['#prefix'] : '');
       $form['value']['#suffix'] = (isset($form['value']['#suffix']) ? $form['value']['#suffix'] : '') . '</div>';
     }
   }
@@ -218,8 +218,8 @@ class views_handler_filter extends views_handler {
     $form['expose_button'] = array(
       '#prefix' => '<div class="views-expose clearfix">',
       '#suffix' => '</div>',
-      // Should always come first
-      '#weight' => -1000,
+      // Should always come after the description and the relationship.
+      '#weight' => -200,
     );
 
     // Add a checkbox for JS users, which will have behavior attached to it
@@ -229,7 +229,7 @@ class views_handler_filter extends views_handler {
       '#attributes' => array('class' => array('js-only')),
     );
     $form['expose_button']['checkbox']['checkbox'] = array(
-      '#title' => t('Expose this filter to visitors, to allow them to change it.'),
+      '#title' => t('Expose this filter to visitors, to allow them to change it'),
       '#type' => 'checkbox',
     );
 
@@ -276,6 +276,12 @@ class views_handler_filter extends views_handler {
         '#default_value' => $this->options['expose']['required'],
       );
     }
+    else {
+      $form['expose']['required'] = array(
+        '#type' => 'value',
+        '#value' => TRUE,
+      );
+    }
     $form['expose']['label'] = array(
       '#type' => 'textfield',
       '#default_value' => $this->options['expose']['label'],
@@ -285,9 +291,9 @@ class views_handler_filter extends views_handler {
 
     if (!empty($form['operator']['#type'])) {
        // Increase the width of the left (operator) column.
-      $form['operator']['#prefix'] = '<div class="views-left-40">';
+      $form['operator']['#prefix'] = '<div class="views-group-box views-left-40">';
       $form['operator']['#suffix'] = '</div>';
-      $form['value']['#prefix'] = '<div class="views-right-60">';
+      $form['value']['#prefix'] = '<div class="views-group-box views-right-60">';
       $form['value']['#suffix'] = '</div>';
 
       $form['expose']['use_operator'] = array(
@@ -365,7 +371,7 @@ class views_handler_filter extends views_handler {
       'use_operator' => FALSE,
       'operator' => $this->options['id'] . '_op',
       'identifier' => $this->options['id'],
-      'label' => $this->ui_name(),
+      'label' => $this->definition['title'],
       'remember' => FALSE,
       'multiple' => FALSE,
       'required' => FALSE,
@@ -450,9 +456,13 @@ class views_handler_filter extends views_handler {
     }
 
     if ($type == 'value' && empty($this->always_required) && empty($this->options['expose']['required']) && $form['#type'] == 'select' && empty($form['#multiple'])) {
-      $any_label = variable_get('views_exposed_filter_any_label', 'old_any') == 'old_any' ? t('<Any>') : t('- Any -');
+      $any_label = variable_get('views_exposed_filter_any_label', 'new_any') == 'old_any' ? t('<Any>') : t('- Any -');
       $form['#options'] = array('All' => $any_label) + $form['#options'];
       $form['#default_value'] = 'All';
+    }
+
+    if (!empty($this->options['expose']['required'])) {
+      $form['#required'] = TRUE;
     }
   }
 

@@ -217,7 +217,9 @@ class slickgrid_views_plugin extends views_plugin_style{
             '#default_value' => (isset($this->options['columns'][$field_id][$plugin_type]) ? $this->options['columns'][$field_id][$plugin_type] : ''),
             '#options' => $plugin_options,
             '#attributes' => array(
-              'class' => array($plugin_type)
+              'class' => array(
+                $plugin_type
+              )
             )
           );
         }else{
@@ -523,12 +525,17 @@ class slickgrid_views_plugin extends views_plugin_style{
     $entities = array();
     foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
       foreach($entity_info['bundles'] as $bundle_name => $bundle){
-        if($bundle['add']){
+        if(isset($bundle['add']) && $bundle['add']){
           $entities[$entity_type . '/' . $bundle_name] = $entity_info['label'] . ': ' . $bundle['label'];
         }
       }
     }
     return $entities;
+  }
+
+  function query(){
+    // We always want the query to be distinct - this also adds the correct base field
+    $this->view->query->set_distinct();
   }
 }
 ?>
