@@ -166,6 +166,25 @@ function publication_permission(){
 }
 
 /**
+ * Implements hook_field_extra_fields().
+ */
+function publication_field_extra_fields(){
+  $extra = array();
+  foreach(publication_get_types() as $type => $info){
+    $extra['publication'][$type] = array(
+      'form' => array(
+        'title' => array(
+          'label' => t("Short title"),
+          'description' => t('Publication module element'),
+          'weight' => -5
+        )
+      )
+    );
+  }
+  return $extra;
+}
+
+/**
  * Determines whether the given user has access to a publication.
  *
  * @param $op
@@ -248,22 +267,20 @@ function publication_create($values = array()){
   return entity_get_controller('publication')->create($values);
 }
 
-
 /**
  * Deletes a publication.
  */
-function publication_delete(Publication $publication) {
+function publication_delete(Publication $publication){
   $publication->delete();
 }
-
 
 /**
  * Delete multiple publications.
  *
  * @param $publication_ids
- *   An array of publication IDs.
+ * An array of publication IDs.
  */
-function publication_delete_multiple(array $publication_ids) {
+function publication_delete_multiple(array $publication_ids){
   entity_get_controller('publication')->delete($publication_ids);
 }
 

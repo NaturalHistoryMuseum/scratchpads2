@@ -3,7 +3,7 @@
 <p>Before working through this example, enable the <strong>Blog</strong> module and populate some entries from a few different users.</p>
 
 <h3>Creating the View</h3>
-<p>The first step is creating a view for our recent blog entries block. Because the block will show the titles of blog entries, this view is considered a "Node" type. Go to <a target="_blank" href="/admin/structure/views/add">add new view</a>, enter the following properties, and click <strong>Next</strong>:</p>
+<p>The first step is creating a view for our recent blog entries block. Because the block will show the titles of blog entries, this view is considered a "Node" type. Go to <a target="_blank" href="base_url:admin/structure/views/add">add new view</a>, enter the following properties, and click <strong>Next</strong>:</p>
 
 <dl>
   <dt>View name</dt>
@@ -45,7 +45,7 @@
 <li>The <strong>Defaults: Configure Argument User: Uid</strong> settings page has a lot going on, but only a few things that need our attention.</li>
 <li>The <strong>Title</strong> field here, unlike the Title field under <em>Basic Settings</em>, can be based upon the context that the view is being displayed in. Change the title to 'Recent entries by %1.' %1 will later be expanded to the user's name (based on the User: Uid argument) when the view is displayed.</li>
 <li>Under <strong>Action to take if argument is not present</strong>, there are a variety of options, ranging from displaying a 404 or a 403 page to simply displaying all values in the view. In our case, if an argument isn't specified (which it won't be, since this view will be displayed in a sidebar block, not as a page with its own URL), we want to give it a default one to act on. Select <em>Provide default argument</em>.</li>
-<li>Assuming JavaScript is enabled in your browser, you should now get another selection for <strong>Default argument type</strong>. Select <em>User ID from URL</em>. This will cause Views to first see if it can figure out a user ID from the current URL (for example, user/1). If it can't, it will instead check to see if the current page is a node page (such as node/42) and, if so, take the user ID from the node's author field instead.</li>
+<li>Assuming JavaScript is enabled in your browser, you should now get another selection for <strong>Default argument type</strong>. Select <em>User ID from URL</em>, which will then provide a new option, <em>Also look for a node and use the node author</em>. Select it. This will cause Views to first see if it can figure out a user ID from the current URL (for example, user/1). If it can't, it will instead check to see if the current page is a node page (such as node/42) and, if so, take the user ID from the node's author field instead.</li>
 <li><strong>Validator options</strong> provide a useful way to control what kind of arguments your view will accept. Select <em>User</em> as the <strong>Validator</strong>. By default, changing this setting will check the incoming argument and ensure it's a valid user ID; if not, the view will be hidden from the page.</li>
 <li>Once you have changed the argument's title, default argument, and validator options, click <strong>Update</strong> to save your changes.</li>
 <li>You'll notice that now the Live preview no longer shows anything. Did we just break the view? Fortunately, no. It's merely abiding by our wishes to hide itself if there is no valid user ID given to it. Try entering a '1' in the <strong>Arguments</strong> box and clicking <strong>Preview</strong>. You should now see a list of only user 1's blog entries.</li>
@@ -58,15 +58,15 @@
 <li>In the first column, under <strong>Defaults</strong>, there is a select box containing entries such as <em>Page</em>, <em>Feed</em>, and, yes, <em>Block</em>! Select <em>Block</em> and click <strong>Add display</strong>.</li>
 <li>There's not much else to do here as far as Views is concerned. Under <strong>Block settings</strong>, click the <em>None</em> link next to <strong>Admin</strong> and fill in a description for the block in the administrative interface, such as: 'Recent blog entries by author.' and click <strong>Update</strong>.</li>
 <li>Save your work by clicking the <strong>Save</strong> button at the bottom of the Views interface. You should receive a message that the view has been saved.</li>
-<li>Next, navigate to the <a target="_blank" href="/admin/build/block">blocks interface</a> and drag the 'Recent blog entries by author' block to the right sidebar region (or similar) and click <strong>Save blocks</strong>.</li>
-<li>You'll notice this appeared to do nothing. No block shows in the sidebar. But remember, we are looking at an adminitrative page; we are not looking at a page that would provide a user ID context. Navigate to the <a target="_blank" href="/blog">main blog listing</a> and click on an entry there. You should now see a sidebar block, titled something like "Recent entries by admin," with a list of blog entries beneath it.</li>
+<li>Next, navigate to the <a target="_blank" href="base_url:admin/structure/block">blocks interface</a> and drag the 'Recent blog entries by author' block to the right sidebar region (or similar) and click <strong>Save blocks</strong>.</li>
+<li>You'll notice this appeared to do nothing. No block shows in the sidebar. But remember, we are looking at an adminitrative page; we are not looking at a page that would provide a user ID context. Navigate to the <a target="_blank" href="base_url:blog">main blog listing</a> and click on an entry there. You should now see a sidebar block, titled something like "Recent entries by admin," with a list of blog entries beneath it.</li>
 </ol>
 
 <h3>Finishing touches</h3>
 <p>There are still a few remaining things to do before our view is complete. For example, we said that the block was to show <em>recent</em> blog entries, but instead it's showing them in the order they were entered, with oldest on top. Additionally, even unpublished entries are showing in the list currently.</p>
 
 <ol>
-<li>Return to the <a target="_blank" href="/admin/structure/views/view/recent_blog_entries">recent_blog_entries view edit page</a>.</li>
+<li>Return to the <a target="_blank" href="base_url:admin/structure/views/view/recent_blog_entries">recent_blog_entries view edit page</a>.</li>
 <li>Add an additional filter by clicking the <strong>+</strong> icon in the <strong>Filters</strong> section in the fourth column.</li>
 <li>Change <strong>Groups</strong> to <em>Node</em> and select <em>Node: Published</em>. Click <strong>Add</strong>.</li>
 <li>Under the <strong>Published</strong> selection, choose <em>Yes</em> and click <strong>Update</strong>.</li>

@@ -1,6 +1,15 @@
 <?php
-// $Id: $
 
+/**
+ * @file
+ * Contains the CTools Export UI integration code.
+ *
+ * Note that this is only a partial integration.
+ */
+
+/**
+ * CTools Export UI class handler for Views UI.
+ */
 class views_ui extends ctools_export_ui {
 
   function init($plugin) {
@@ -10,13 +19,15 @@ class views_ui extends ctools_export_ui {
     // Reset the edit path to match what we're really using.
     $plugin['menu']['items']['edit']['path'] = 'view/%ctools_export_ui/edit';
     $plugin['menu']['items']['clone']['path'] = 'view/%ctools_export_ui/clone';
-    $plugin['menu']['items']['clone']['type'] = MENU_CALLBACK;
+    $plugin['menu']['items']['clone']['type'] = MENU_VISIBLE_IN_BREADCRUMB;
     $plugin['menu']['items']['export']['path'] = 'view/%ctools_export_ui/export';
-    $plugin['menu']['items']['export']['type'] = MENU_CALLBACK;
+    $plugin['menu']['items']['export']['type'] = MENU_VISIBLE_IN_BREADCRUMB;
     $plugin['menu']['items']['enable']['path'] = 'view/%ctools_export_ui/enable';
     $plugin['menu']['items']['disable']['path'] = 'view/%ctools_export_ui/disable';
     $plugin['menu']['items']['delete']['path'] = 'view/%ctools_export_ui/delete';
+    $plugin['menu']['items']['delete']['type'] = MENU_VISIBLE_IN_BREADCRUMB;
     $plugin['menu']['items']['revert']['path'] = 'view/%ctools_export_ui/revert';
+    $plugin['menu']['items']['revert']['type'] = MENU_VISIBLE_IN_BREADCRUMB;
 
     $prefix_count = count(explode('/', $plugin['menu']['menu prefix']));
     $plugin['menu']['items']['add-template'] = array(
@@ -37,6 +48,9 @@ class views_ui extends ctools_export_ui {
     // We are using our own 'edit' still, rather than having edit on this
     // object (maybe in the future) so unset the edit callbacks:
 
+    // Store this so we can put them back as sometimes they're needed
+    // again laster:
+    $stored_items = $this->plugin['menu']['items'];
     // We leave these to make sure the operations still exist in the plugin so
     // that the path finder.
     unset($this->plugin['menu']['items']['edit']);
@@ -45,6 +59,12 @@ class views_ui extends ctools_export_ui {
     unset($this->plugin['menu']['items']['edit callback']);
 
     parent::hook_menu($items);
+
+    $this->plugin['menu']['items'] = $stored_items;
+  }
+
+  function load_item($item_name) {
+    return views_ui_cache_load($item_name);
   }
 
   function list_form(&$form, &$form_state) {
@@ -202,13 +222,15 @@ class views_ui extends ctools_export_ui {
         break;
     }
 
+    $ops = theme('links__ctools_dropbutton', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
+
     $this->rows[$view->name] = array(
       'data' => array(
         array('data' => $info, 'class' => array('views-ui-name')),
         array('data' => check_plain($view->description), 'class' => array('views-ui-description')),
         array('data' => check_plain($view->tag), 'class' => array('views-ui-tag')),
         array('data' => $paths, 'class' => array('views-ui-path')),
-        array('data' => theme('links__ctools_dropbutton', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline')), 'class' => array('views-ui-operations'))),),
+        array('data' => $ops, 'class' => array('views-ui-operations')),
       ),
       'title' => t('Machine name: ') . check_plain($view->name),
       'class' => array(!empty($view->disabled) ? 'ctools-export-ui-disabled' : 'ctools-export-ui-enabled'),
@@ -240,6 +262,7 @@ class views_ui extends ctools_export_ui {
     $table = array(
       'header' => $header,
       'rows' => $this->rows,
+      'empty' => t('No views match the search criteria.'),
       'attributes' => array('id' => 'ctools-export-ui-list-items'),
     );
     return theme('table', $table);
@@ -325,6 +348,27 @@ class views_ui extends ctools_export_ui {
     drupal_set_title(t('Create view from template @template', array('@template' => $template->get_human_name())));
     return $output;
   }
+
+  function set_item_state($state, $js, $input, $item) {
+    ctools_export_set_object_status($item, $state);
+    menu_rebuild();
+
+    if (!$js) {
+      drupal_goto(ctools_export_ui_plugin_base_path($this->plugin));
+    }
+    else {
+      return $this->list_page($js, $input);
+    }
+  }
+
+  function list_page($js, $input) {
+    // wrap output in a div for CSS
+    $output = parent::list_page($js, $input);
+    if (is_string($output)) {
+      $output = '<div id="views-ui-list-page">' . $output . '</div>';
+      return $output;
+    }
+  }
 }
 
 /**
@@ -334,12 +378,13 @@ class views_ui extends ctools_export_ui {
  */
 function views_ui_clone_form($form, &$form_state) {
   $counter = 1;
+  $view = views_get_view($form_state['original name']);
   do {
     if (empty($form_state['item']->is_template)) {
-      $name = format_plural($counter, 'Clone of', 'Clone @count of') . ' ' . $form_state['original name'];
+      $name = format_plural($counter, 'Clone of', 'Clone @count of') . ' ' . $view->get_human_name();
     }
     else {
-      $name = $form_state['original name'];
+      $name = $view->get_human_name();
       if ($counter > 1) {
         $name .= ' ' . $counter;
       }
@@ -352,13 +397,16 @@ function views_ui_clone_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('View name'),
     '#default_value' => $name,
+    '#size' => 32,
+    '#maxlength' => 255,
   );
 
   $form['name'] = array(
     '#title' => t('View name'),
     '#type' => 'machine_name',
     '#required' => TRUE,
-    '#maxlength' => 255,
+    '#maxlength' => 32,
+    '#size' => 32,
     '#machine_name' => array(
       'exists' => 'ctools_export_ui_edit_name_exists',
       'source' => array('human_name'),

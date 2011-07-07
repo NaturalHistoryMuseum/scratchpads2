@@ -19,8 +19,8 @@ function theme_formflow_wizard_trail(&$vars){
  * @ingroup themeable
  */
 function theme_formflow_group($variables){
+	$output = '';
   $element = $variables['element'];
-  $output = '<h2>' . $element['#group']->label . '</h2>';
   $output .= '<div class="formflow-group">' . $element['#children'] . '</div>';
   return $output;
 }

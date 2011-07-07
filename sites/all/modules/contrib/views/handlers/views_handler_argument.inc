@@ -31,6 +31,8 @@
  */
 class views_handler_argument extends views_handler {
   var $name_field = NULL;
+  var $validator = NULL;
+
   /**
    * Constructor
    */
@@ -58,7 +60,10 @@ class views_handler_argument extends views_handler {
       $this->options['exception']['title'] = $options['wildcard_substitution'];
     }
 
-    $this->options['summary']['format'] = $options['style_plugin'];
+    if (!isset($options['summary']['format']) && !empty($options['style_plugin'])) {
+      $this->options['summary']['format'] = $options['style_plugin'];
+    }
+
     if (!isset($options['summary']['sort_order']) && !empty($options['default_action']) && $options['default_action'] == 'summary asc') {
       $this->options['default_action'] = 'summary';
       $this->options['summary']['sort_order'] = 'asc';
@@ -92,10 +97,12 @@ class views_handler_argument extends views_handler {
     }
 
     if (!empty($options['validate_type']) && !isset($options['validate']['type'])) {
-      $options['validate']['type'] = $options['validate_type'];
+      $this->options['validate']['type'] = $options['validate_type'];
+      $this->options['specify_validation'] = 1;
     }
     if (!empty($options['validate_fail']) && !isset($options['validate']['fail'])) {
-      $options['validate']['fail'] = $options['validate_fail'];
+      $this->options['validate']['fail'] = $options['validate_fail'];
+      $this->options['specify_validation'] = 1;
     }
   }
 
@@ -161,6 +168,7 @@ class views_handler_argument extends views_handler {
     $options['breadcrumb'] = array('default' => '', 'translatable' => TRUE);
     $options['default_argument_type'] = array('default' => 'fixed', 'export' => 'export_plugin');
     $options['default_argument_options'] = array('default' => array(), 'export' => FALSE);
+    $options['default_argument_skip_url'] = array('default' => FALSE);
     $options['summary_options'] = array('default' => array(), 'export' => FALSE);
     $options['summary'] = array(
       'contains' => array(
@@ -184,11 +192,19 @@ class views_handler_argument extends views_handler {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
+    $argument_text = $this->view->display_handler->get_argument_text();
+
     $form['#pre_render'][] = 'views_ui_pre_render_move_argument_options';
+
+    $form['description'] = array(
+      '#markup' => $argument_text['description'],
+      '#theme_wrappers' => array('container'),
+      '#attributes' => array('class' => array('description')),
+    );
 
     $form['no_argument'] = array(
       '#type' => 'fieldset',
-      '#title' => t('When the filter value is <em>NOT</em> in the URL'),
+      '#title' => $argument_text['filter value not present'],
     );
     // Everything in the fieldset is floated, so the last element needs to
     // clear those floats.
@@ -250,7 +266,7 @@ class views_handler_argument extends views_handler {
 
     $form['argument_present'] = array(
       '#type' => 'fieldset',
-      '#title' => t('When the filter value <em>IS</em> in the URL or a default is provided'),
+      '#title' => $argument_text['filter value present'],
     );
     $form['title_enable'] = array(
       '#type' => 'checkbox',
@@ -453,7 +469,7 @@ class views_handler_argument extends views_handler {
         'default only' => TRUE, // this can only be used for missing argument, not validation failure
       ),
       'not found' => array(
-        'title' => t('Show "Page not found"'),
+        'title' => t('Hide view'),
         'method' => 'default_not_found',
         'hard fail' => TRUE, // This is a hard fail condition
       ),
@@ -470,6 +486,10 @@ class views_handler_argument extends views_handler {
         'breadcrumb' => TRUE, // generate a breadcrumb to here
       ),
     );
+
+    if ($this->view->display_handler->has_path()) {
+      $defaults['not found']['title'] = t('Show "Page not found"');
+    }
 
     if ($which) {
       if (!empty($defaults[$which])) {
@@ -488,6 +508,13 @@ class views_handler_argument extends views_handler {
   function default_argument_form(&$form, &$form_state) {
     $plugins = views_fetch_plugin_data('argument default');
     $options = array();
+
+    $form['default_argument_skip_url'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Skip default argument for view URL'),
+      '#default_value' => $this->options['default_argument_skip_url'],
+      '#description' => t('Select whether to include this default argument when constructing the URL for this view. Skipping default arguments is useful e.g. in the case of feeds.')
+    );
 
     $form['default_argument_type'] = array(
       '#prefix' => '<div id="edit-options-default-argument-type-wrapper">',
@@ -698,6 +725,20 @@ class views_handler_argument extends views_handler {
   }
 
   /**
+   * Process the summary arguments for display.
+   *
+   * For example, the validation plugin may want to alter an argument for use in
+   * the URL.
+   */
+  function process_summary_arguments(&$args) {
+    if ($this->options['validate']['type'] != 'none') {
+      if (isset($this->validator) || $this->validator = $this->get_plugin('argument validator')) {
+        $this->validator->process_summary_arguments($args);
+      }
+    }
+  }
+
+  /**
    * Default action: summary.
    *
    * If an argument was expected and was not given, in this case, display
@@ -758,7 +799,7 @@ class views_handler_argument extends views_handler {
     if (isset($this->name_table)) {
       // if the alias is different then we're probably added, not ensured,
       // so look up the join and add it instead.
-      if ($this->table_alias != $this->table) {
+      if ($this->table_alias != $this->name_table) {
         $j = views_get_table_join($this->name_table, $this->table);
         if ($j) {
           $join = clone $j;
@@ -980,6 +1021,9 @@ class views_handler_argument extends views_handler {
     $argument = clone $this;
     if (!isset($arg) && $argument->has_default_argument()) {
       $arg = $argument->get_default_argument();
+
+      // remember that this argument was computed, not passed on the URL.
+      $this->is_default = TRUE;
     }
     // Set the argument, which will also validate that the argument can be set.
     if ($argument->set_argument($arg)) {
@@ -1002,7 +1046,7 @@ class views_handler_argument extends views_handler {
 
     $plugin = views_get_plugin('style', $name);
     if ($plugin) {
-      $plugin->init($this->view, $this->display, $options);
+      $plugin->init($this->view, $this->view->display_handler->display, $options);
       // Write which plugin to use.
       $output .= $indent . $prefix . "['summary']['$option'] = '$name';\n";
 
@@ -1095,7 +1139,13 @@ class views_handler_argument extends views_handler {
 
     $plugin = views_get_plugin($type, $name);
     if ($plugin) {
-      $plugin->init($this->view, $this, $options);
+      // Style plugins expects different parameters as argument related plugins.
+      if ($type == 'style') {
+        $plugin->init($this->view, $this->view->display_handler->display, $options);
+      }
+      else {
+        $plugin->init($this->view, $this, $options);
+      }
       return $plugin;
     }
   }

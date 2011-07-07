@@ -33,6 +33,11 @@ class views_plugin_display extends views_plugin {
 
   var $handlers = array();
 
+  /**
+   * Stores all availible display extenders.
+   */
+  var $extender = array();
+
   function init(&$view, &$display, $options = NULL) {
     $this->view = &$view;
     $this->display = &$display;
@@ -45,7 +50,6 @@ class views_plugin_display extends views_plugin {
     if ($this->is_default_display() && isset($options['defaults'])) {
       unset($options['defaults']);
     }
-
     $this->unpack_options($this->options, $options);
 
     // Translate changed settings:
@@ -132,6 +136,20 @@ class views_plugin_display extends views_plugin {
     }
   }
 
+  function construct() {
+    // Load extenders as soon as possible
+    $this->extender = array();
+    $extenders = array_filter(variable_get('views_display_extenders', array()));
+    // If you update to the dev version the registry might not be loaded yet.
+    if (!empty($extenders) && class_exists('views_plugin_display_extender')) {
+      foreach ($extenders as $extender) {
+        $data = views_fetch_plugin_data('display_extender', $extender);
+        $this->extender[$extender] = new $data['handler']($view, $this);
+      }
+    }
+    parent::construct();
+  }
+
   function destroy() {
     parent::destroy();
 
@@ -145,6 +163,10 @@ class views_plugin_display extends views_plugin {
 
     if (isset($this->default_display)) {
       unset($this->default_display);
+    }
+
+    foreach ($this->extender as $extender) {
+      $extender->destroy();
     }
   }
 
@@ -224,7 +246,7 @@ class views_plugin_display extends views_plugin {
   }
 
   /**
-   * Does the display have a more link enabled?
+   * Does the display have groupby enabled?
    */
   function use_group_by() {
     return $this->get_option('group_by');
@@ -278,26 +300,30 @@ class views_plugin_display extends views_plugin {
    */
   function defaultable_sections($section = NULL) {
     $sections = array(
-      'access' => array('access'),
-      'cache' => array('cache'),
+      'access' => array('access', 'access_options'),
+      'access_options' => array('access', 'access_options'),
+      'cache' => array('cache', 'cache_options'),
+      'cache_options' => array('cache', 'cache_options'),
       'title' => array('title'),
-      'enabled' => array('enabled'),
       'css_class' => array('css_class'),
       'use_ajax' => array('use_ajax'),
       'hide_attachment_summary' => array('hide_attachment_summary'),
+      'group_by' => array('group_by'),
       'query' => array('query'),
-      'items_per_page' => array('items_per_page', 'offset', 'use_pager', 'pager_element'),
-      'pager' => array('pager'),
       'use_more' => array('use_more', 'use_more_always', 'use_more_text'),
       'link_display' => array('link_display'),
-      'exposed_block' => array('exposed_block'),
-      'exposed_form' => array('exposed_form'),
 
       // Force these to cascade properly.
       'style_plugin' => array('style_plugin', 'style_options', 'row_plugin', 'row_options'),
       'style_options' => array('style_plugin', 'style_options', 'row_plugin', 'row_options'),
       'row_plugin' => array('style_plugin', 'style_options', 'row_plugin', 'row_options'),
       'row_options' => array('style_plugin', 'style_options', 'row_plugin', 'row_options'),
+
+      'pager' => array('pager', 'pager_options'),
+      'pager_options' => array('pager', 'pager_options'),
+
+      'exposed_form' => array('exposed_form', 'exposed_form_options'),
+      'exposed_form_options' => array('exposed_form', 'exposed_form_options'),
 
       // These guys are special
       'header' => array('header'),
@@ -314,6 +340,10 @@ class views_plugin_display extends views_plugin {
     if (empty($this->definition['use pager'])) {
       unset($sections['pager']);
       unset($sections['items_per_page']);
+    }
+
+    foreach ($this->extender as $extender) {
+      $extender->defaultable_sections($sections, $section);
     }
 
     if ($section) {
@@ -334,22 +364,18 @@ class views_plugin_display extends views_plugin {
           'cache' => TRUE,
           'query' => TRUE,
           'title' => TRUE,
-          'display_comment' => TRUE,
-          'enabled' => TRUE,
           'css_class' => TRUE,
 
           'display_description' => FALSE,
           'use_ajax' => TRUE,
           'hide_attachment_summary' => TRUE,
-          'items_per_page' => TRUE,
-          'use_pager' => TRUE,
-          'offset' => TRUE,
           'pager' => TRUE,
+          'pager_options' => TRUE,
           'use_more' => TRUE,
           'use_more_always' => TRUE,
           'use_more_text' => TRUE,
-          'exposed_block' => TRUE,
           'exposed_form' => TRUE,
+          'exposed_form_options' => TRUE,
 
           'link_display' => TRUE,
           'group_by' => TRUE,
@@ -401,6 +427,10 @@ class views_plugin_display extends views_plugin {
         'default' => FALSE,
         'bool' => TRUE,
       ),
+      // This is legacy code:
+      // Items_per/offset/use_pager is moved to the pager plugin
+      // but the automatic update path needs this items defined, so don't remove it.
+      // @see views_plugin_display::init()
       'items_per_page' => array(
         'default' => 10,
       ),
@@ -417,7 +447,7 @@ class views_plugin_display extends views_plugin {
       ),
       'use_more_always' => array(
         'default' => FALSE,
-        'bool' => TRUE,
+        'bool' => FALSE,
       ),
       'use_more_text' => array(
         'default' => 'more',
@@ -557,6 +587,11 @@ class views_plugin_display extends views_plugin {
     if ($this->is_default_display()) {
       unset($options['defaults']);
     }
+
+    foreach ($this->extender as $extender) {
+      $extender->option_definition($options);
+    }
+
     return $options;
   }
 
@@ -740,7 +775,15 @@ class views_plugin_display extends views_plugin {
       $this->handlers[$type] = array();
       $types = views_object_types();
       $plural = $types[$type]['plural'];
+
       foreach ($this->get_option($plural) as $id => $info) {
+        // If this is during form submission and there are temporary options
+        // which can only appear if the view is in the edit cache, use those
+        // options instead. This is used for AJAX multi-step stuff.
+        if (isset($_POST['form_id']) && isset($this->view->temporary_options[$type][$id])) {
+          $info = $this->view->temporary_options[$type][$id];
+        }
+
         if ($info['id'] != $id) {
           $info['id'] = $id;
         }
@@ -938,13 +981,6 @@ class views_plugin_display extends views_plugin {
       'desc' => t('Change the title that this display will use.'),
     );
 
-    $options['enabled'] = array(
-      'category' => 'other',
-      'title' => t('Display status'),
-      'value' => $this->get_option('enabled') ? t('Enabled') : t('Disabled'),
-      'desc' => t('Define if this display is or is not enabled.'),
-    );
-
     $style_plugin = views_fetch_plugin_data('style', $this->get_option('style_plugin'));
     $style_plugin_instance = $this->get_plugin('style');
     $style_summary = empty($style_plugin['title']) ? t('Missing style plugin') : $style_plugin_instance->summary_title();
@@ -1038,7 +1074,7 @@ class views_plugin_display extends views_plugin {
     if ($this->view->query->get_aggregation_info()) {
       $options['group_by'] = array(
         'category' => 'other',
-        'title' => t('Use grouping'),
+        'title' => t('Use aggregation'),
         'value' => $this->get_option('group_by') ? t('Yes') : t('No'),
         'desc' => t('Allow grouping and aggregation (calculation) of fields.'),
       );
@@ -1119,12 +1155,14 @@ class views_plugin_display extends views_plugin {
       }
     }
 
-    $options['exposed_block'] = array(
-      'category' => 'exposed',
-      'title' => t('Exposed form in block'),
-      'value' => $this->get_option('exposed_block') ? t('Yes') : t('No'),
-      'desc' => t('Allow the exposed form to appear in a block instead of the view.'),
-    );
+    if ($this->has_path()) {
+      $options['exposed_block'] = array(
+        'category' => 'exposed',
+        'title' => t('Exposed form in block'),
+        'value' => $this->get_option('exposed_block') ? t('Yes') : t('No'),
+        'desc' => t('Allow the exposed form to appear in a block instead of the view.'),
+      );
+    }
 
     $exposed_form_plugin = $this->get_plugin('exposed_form');
     if (!$exposed_form_plugin) {
@@ -1164,6 +1202,10 @@ class views_plugin_display extends views_plugin {
       'value' => t('Information'),
       'desc' => t('Get information on how to theme this display'),
     );
+
+    foreach ($this->extender as $extender) {
+      $extender->options_summary($categories, $options);
+    }
   }
 
   /**
@@ -1228,15 +1270,6 @@ class views_plugin_display extends views_plugin {
           '#default_value' => $this->get_option('title'),
         );
         break;
-      case 'enabled':
-        $form['#title'] .= t('Status of this display');
-        $form['enabled'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Enable display'),
-          '#description' => t('If unchecked, this display will not be available in the site.'),
-          '#default_value' => $this->get_option('enabled'),
-        );
-        break;
       case 'css_class':
         $form['#title'] .= t('CSS class');
         $form['css_class'] = array(
@@ -1274,23 +1307,28 @@ class views_plugin_display extends views_plugin {
         );
         $form['use_more_always'] = array(
           '#type' => 'checkbox',
-          '#title' => t('Always display more link'),
+          '#title' => t('Do not display more link unless there is more content'),
           '#description' => t("This will display the more link even if there are no more items to display."),
-          '#default_value' => $this->get_option('use_more_always'),
+          '#default_value' => !$this->get_option('use_more_always'),
+            '#dependency' => array(
+              'edit-use-more' => array(TRUE),
+            ),
         );
-        $form['#title'] .= t('Text to use for the more link.');
         $form['use_more_text'] = array(
           '#type' => 'textfield',
           '#title' => t('More link text'),
           '#description' => t("The text to display for the more link."),
           '#default_value' => $this->get_option('use_more_text'),
+          '#dependency' => array(
+            'edit-use-more' => array(TRUE),
+          ),
         );
         break;
       case 'group_by':
         $form['#title'] .= t('Allow grouping and aggregation (calculation) of fields.');
         $form['group_by'] = array(
           '#type' => 'checkbox',
-          '#title' => t('Group by'),
+          '#title' => t('Aggregate'),
           '#description' => t('If enabled, some fields may become unavailable. All fields that are selected for grouping will be collapsed to one record per distinct value. Other fields which are selected for aggregation will have the function run on them. For example, you can group nodes on title and count the number of nids in order to get a list of duplicate titles.'),
           '#default_value' => $this->get_option('group_by'),
         );
@@ -1614,6 +1652,9 @@ class views_plugin_display extends views_plugin {
         }
 
         foreach (list_themes() as $key => $theme) {
+          if (!empty($theme->info['hidden'])) {
+            continue;
+          }
           $options[$key] = $theme->info['name'];
         }
 
@@ -1833,6 +1874,9 @@ class views_plugin_display extends views_plugin {
         break;
     }
 
+    foreach ($this->extender as $extender) {
+      $extender->options_form($form, $form_state);
+    }
   }
 
   /**
@@ -1868,21 +1912,26 @@ class views_plugin_display extends views_plugin {
    */
   function options_validate(&$form, &$form_state) {
     switch ($form_state['section']) {
+      case 'display_title':
+        if (empty($form_state['values']['display_title'])) {
+          form_error($form['options']['display_title'], t('Display title may not be empty.'));
+        }
+        break;
       case 'css_class':
         $css_class = $form_state['values']['css_class'];
-        if (preg_match('/[^a-zA-Z0-9- ]/', $css_class)) {
+        if (preg_match('/[^a-zA-Z0-9-_ ]/', $css_class)) {
           form_error($form['css_class'], t('CSS classes must be alphanumeric or dashes only.'));
         }
       break;
       case 'display_id':
         if ($form_state['values']['display_id']) {
           if (preg_match('/[^a-zA-Z0-9_]/', $form_state['values']['display_id'])) {
-            form_error($form['display_id'], t('Display name must be letters, numbers, or underscores only.'));
+            form_error($form['options']['display_id'], t('Display name must be letters, numbers, or underscores only.'));
           }
 
           foreach ($this->view->display as $id => $display) {
             if ($id != $this->view->current_display && ($form_state['values']['display_id'] == $id || (isset($display->new_id) && $form_state['values']['display_id'] == $display->new_id))) {
-              form_error($form['display_id'], t('Display id should be unique.'));
+              form_error($form['options']['display_id'], t('Display id should be unique.'));
             }
           }
         }
@@ -1925,6 +1974,10 @@ class views_plugin_display extends views_plugin {
           $plugin->options_validate($form['pager_options'], $form_state);
         }
         break;
+    }
+
+    foreach ($this->extender as $extender) {
+      $extender->options_validate($form, $form_state);
     }
   }
 
@@ -2006,14 +2059,13 @@ class views_plugin_display extends views_plugin {
       case 'display_comment':
         $this->set_option($section, $form_state['values'][$section]);
         break;
-      case 'enabled':
       case 'use_ajax':
       case 'hide_attachment_summary':
         $this->set_option($section, (bool)$form_state['values'][$section]);
         break;
       case 'use_more':
         $this->set_option($section, intval($form_state['values'][$section]));
-        $this->set_option('use_more_always', intval($form_state['values']['use_more_always']));
+        $this->set_option('use_more_always', !intval($form_state['values']['use_more_always']));
         $this->set_option('use_more_text', $form_state['values']['use_more_text']);
       case 'distinct':
         $this->set_option($section, $form_state['values'][$section]);
@@ -2116,6 +2168,10 @@ class views_plugin_display extends views_plugin {
         }
         break;
     }
+
+    foreach ($this->extender as $extender) {
+      $extender->options_submit($form, $form_state);
+    }
   }
 
   /**
@@ -2158,7 +2214,11 @@ class views_plugin_display extends views_plugin {
   /**
    * Inject anything into the query that the display handler needs.
    */
-  function query() {  }
+  function query() {
+    foreach ($this->extender as $extender) {
+      $extender->query();
+    }
+  }
 
   /**
    * Not all display plugins will support filtering
@@ -2176,7 +2236,7 @@ class views_plugin_display extends views_plugin {
    * Render the 'more' link
    */
   function render_more_link() {
-    if ($this->use_more() && ($this->use_more_always() || $this->view->query->pager->has_more_records())) {
+    if ($this->use_more() && ($this->use_more_always() || (!empty($this->view->query->pager) && $this->view->query->pager->has_more_records()))) {
       $path = $this->get_path();
       if ($path) {
         $path = $this->view->get_url(NULL, $path);
@@ -2281,6 +2341,10 @@ class views_plugin_display extends views_plugin {
       $exposed_form = $this->get_plugin('exposed_form');
       $exposed_form->pre_execute();
     }
+
+    foreach ($this->extender as $extender) {
+      $extender->pre_execute();
+    }
   }
 
   /**
@@ -2381,6 +2445,10 @@ class views_plugin_display extends views_plugin {
    * Provide the block system with any exposed widget blocks for this display.
    */
   function get_special_blocks() {
+    if (!$this->has_path()) {
+      return;
+    }
+
     $delta = '-exp-' . $this->view->name . '-' . $this->display->id;
     $desc = t('Exposed form: @view-@display_id', array('@view' => $this->view->name, '@display_id' => $this->display->id));
 
@@ -2402,7 +2470,8 @@ class views_plugin_display extends views_plugin {
         return;
       }
       $this->view->init_handlers();
-      if ($this->uses_exposed()) {
+
+      if ($this->uses_exposed() && $this->get_option('exposed_block')) {
         $exposed_form = $this->get_plugin('exposed_form');
         return array(
           'content' => $exposed_form->render_exposed_form(TRUE),
@@ -2465,7 +2534,20 @@ class views_plugin_display extends views_plugin {
       else {
         $handler_type = $type;
       }
-      $handler = views_get_handler($info['table'], $info['field'], $handler_type);
+      // If aggregation is on, the group type might override the actual
+      // handler that is in use. This piece of code checks that and,
+      // if necessary, sets the override handler.
+      $override = NULL;
+      if ($this->use_group_by() && !empty($info['group_type'])) {
+        if (empty($this->view->query)) {
+          $this->view->init_query();
+        }
+        $aggregate = $this->view->query->get_aggregation_info();
+        if (!empty($aggregate[$info['group_type']]['handler'][$type])) {
+          $override = $aggregate[$info['group_type']]['handler'][$type];
+        }
+      }
+      $handler = views_get_handler($info['table'], $info['field'], $handler_type, $override);
       if ($handler) {
         $handler->init($this->view, $info);
         $output .= $indent . '/* ' . $types[$type]['stitle'] . ': ' . $handler->ui_name() . " */\n";
@@ -2621,6 +2703,38 @@ class views_plugin_display extends views_plugin {
     }
 
     return $output;
+  }
+
+  /**
+   * Provide some helpful text for the arguments.
+   * The result should contain of an array with
+   *   - filter value present: The title of the fieldset in the argument
+   *     where you can configure what should be done with a given argument.
+   *   - filter value not present: The tiel of the fieldset in the argument
+   *     where you can configure what should be done if the argument does not
+   *     exist.
+   *   - description: A description about how arguments comes to the display.
+   *     For example blocks don't get it from url.
+   */
+  function get_argument_text() {
+    return array(
+      'filter value not present' => t('When the filter value is <em>NOT</em> available'),
+      'filter value present' => t('When the filter value <em>IS</em> available or a default is provided'),
+      'description' => t("This display does not have a source for contextual filters, so no contextual filter value will be available unless you select 'Provide default'."),
+    );
+  }
+
+  /**
+   * Provide some helpful text for pagers.
+   *
+   * The result should contain of an array within
+   *   - items per page title
+   */
+  function get_pager_text() {
+    return array(
+      'items per page title' => t('Items to display'),
+      'items per page description' => t('The number of items to display. Enter 0 for no limit.')
+    );
   }
 }
 
