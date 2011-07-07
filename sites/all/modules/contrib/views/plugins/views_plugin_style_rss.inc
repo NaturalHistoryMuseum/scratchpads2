@@ -56,7 +56,6 @@ class views_plugin_style_rss extends views_plugin_style {
       '#title' => t('RSS description'),
       '#default_value' => $this->options['description'],
       '#description' => t('This will appear in the RSS feed itself.'),
-      '#dependency' => array('edit-style-options-override' => array(FALSE)),
     );
   }
 
@@ -90,15 +89,18 @@ class views_plugin_style_rss extends views_plugin_style {
       }
     }
 
-    foreach ($this->view->result as $row) {
+    foreach ($this->view->result as $row_index => $row) {
+      $this->view->row_index = $row_index;
       $rows .= $this->row_plugin->render($row);
     }
 
-    return theme($this->theme_functions(),
+    $output = theme($this->theme_functions(),
       array(
         'view' => $this->view,
         'options' => $this->options,
         'rows' => $rows
       ));
+    unset($this->view->row_index);
+    return $output;
   }
 }

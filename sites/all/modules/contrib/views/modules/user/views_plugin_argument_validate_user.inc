@@ -37,7 +37,7 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
 
     $form['roles'] = array(
       '#type' => 'checkboxes',
-      '#prefix' => '<div id="edit-options-argument-validate-user-roles-wrapper">',
+      '#prefix' => '<div id="edit-options-validate-options-user-roles-wrapper">',
       '#suffix' => '</div>',
       '#title' => t('Restrict to the selected roles'),
       '#options' => array_map('check_plain', user_roles(TRUE)),
@@ -45,7 +45,7 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
       '#description' => t('If no roles are selected, users from any role will be allowed.'),
       '#process' => array('form_process_checkboxes', 'ctools_dependent_process'),
       '#dependency' => array(
-        'edit-options-argument-validate-user-restrict-roles' => array(1),
+        'edit-options-validate-options-user-restrict-roles' => array(1),
       ),
     );
   }
@@ -81,7 +81,8 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
     }
     else {
       if ($type == 'name' || $type == 'either') {
-        if ($argument == $GLOBALS['user']->name) {
+        $name = !empty($GLOBALS['user']->name) ? $GLOBALS['user']->name : variable_get('anonymous', t('Anonymous'));
+        if ($argument == $name) {
           $account = clone $GLOBALS['user'];
         }
         $where = "name = :argument";
@@ -120,5 +121,16 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
     $this->argument->validated_title = check_plain($account->name);
     return TRUE;
   }
-}
 
+  function process_summary_arguments(&$args) {
+    // If the validation says the input is an username, we should reverse the
+    // argument so it works for example for generation summary urls.
+    $uids_arg_keys = array_flip($args);
+    if ($this->options['type'] == 'name') {
+      $users = user_load_multiple($args);
+      foreach ($users as $uid => $account) {
+        $args[$uids_arg_keys[$uid]] = $account->name;
+      }
+    }
+  }
+}

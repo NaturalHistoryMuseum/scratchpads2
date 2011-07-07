@@ -1,0 +1,659 @@
+<?php
+/*********************************************************************************************
+ * 
+ * CONSTANTS
+ * 
+ ********************************************************************************************/
+define('CHARACTER_EDITOR_ADMIN_PATH', 'admin/structure/character-editor');
+define('CHARACTER_EDITOR_CALLBACK_PATH', 'character-editor/callback');
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_help().
+ */
+function character_editor_help($path, $arg){
+  if($path == 'admin/help#character-editor'){return t('Scratchpads charcter editor.');}
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function character_editor_permission(){
+  return array(
+    'access character projects' => array(
+      'title' => t('Access character projects')
+    ),
+    'create character projects' => array(
+      'title' => t('Create character projects')
+    ),
+    'edit character projects' => array(
+      'title' => t('Edit character projects')
+    ),
+    'delete character projects' => array(
+      'title' => t('Delete character projects')
+    )
+  );
+}
+
+/**
+ * Implement hook_entity_info().
+ */
+function character_editor_entity_info(){
+  $ui_path = drupal_get_path('module', 'character_editor') . '/includes';
+  $items['character_editor_project_type'] = array(
+    'label' => t('Character project type'),
+    'controller class' => 'EntityAPIController',
+    'entity class' => 'CharacterEditorProjectType',
+    'base table' => 'character_editor_project_type',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'label',
+      'name' => 'type'
+    ),
+    'bundle of' => 'character_editor_project',
+    'module' => 'character_editor',
+    'uri callback' => 'entity_class_uri',
+    'access callback' => 'character_editor_access',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'controller class' => 'CharacterEditorProjectTypeUIController',
+      'path' => CHARACTER_EDITOR_ADMIN_PATH,
+      'file' => 'character_editor.admin.inc',
+      'file path' => $ui_path
+    )
+  );
+  $items['character_editor_project'] = array(
+    'label' => t('Character project'),
+    'controller class' => 'CharacterEditorProjectAPIController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'entity class' => 'CharacterEditorProject',
+    'base table' => 'character_editor_project',
+    'fieldable' => TRUE,
+    'uri callback' => 'entity_class_uri',
+    'access callback' => 'character_editor_access',
+    'entity keys' => array(
+      'id' => 'pid',
+      'label' => 'label',
+      'bundle' => 'type',
+      'name' => 'name'
+    ),
+    'bundles' => array(),
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ),
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'controller class' => 'CharacterEditorProjectUIController',
+      'path' => CHARACTER_EDITOR_ADMIN_PATH . '/%',
+      'file' => 'character_editor.admin.inc',
+      'file path' => $ui_path
+    )
+  );
+  $items['character_editor_type'] = array(
+    'label' => t('Character type'),
+    'controller class' => 'CharacterEditorTypeAPIController',
+    //    'views controller class' => FALSE,
+    'entity class' => 'CharacterEditorType',
+    'base table' => 'character_editor_type',
+    'fieldable' => TRUE,
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'label',
+      'name' => 'type'
+    ),
+    'bundle of' => 'character_editor_character',
+    'module' => 'character_editor',
+    'access callback' => 'character_editor_access',
+    'admin ui' => array(
+      'path' => CHARACTER_EDITOR_ADMIN_PATH . '/character-type',
+      'file' => 'character_editor.admin.inc',
+      'controller class' => 'CharacterEditorTypeUIController',
+      'file path' => drupal_get_path('module', 'character_editor') . '/includes'
+    )
+  );
+  $items['character_editor_character'] = array(
+    'label' => t('Character'),
+    'controller class' => 'CharacterEditorCharacterAPIController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'entity class' => 'CharacterEditorCharacter',
+    'base table' => 'character_editor_character',
+    'fieldable' => TRUE,
+    'exportable' => TRUE,
+    'access callback' => 'character_editor_access',
+    'entity keys' => array(
+      'id' => 'cid',
+      'label' => 'label',
+      'bundle' => 'type'
+    ),
+    'bundles' => array(),
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full'),
+        'custom settings' => FALSE
+      )
+    ),
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'path' => CHARACTER_EDITOR_ADMIN_PATH . '/characters/%character_editor_project',
+      'file' => 'character_editor.admin.inc',
+      'controller class' => 'CharacterEditorCharacterUIController',
+      'file path' => drupal_get_path('module', 'character_editor') . '/includes'
+    )
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * Use this hook to specify bundles to avoid a recursion, as loading the entity
+ * message types needs the entity info too.
+ */
+function character_editor_entity_info_alter(&$entity_info){
+  // Provide label & URLs for fieldable character types
+//  $character_types = character_editor_get_entities('character_editor_type');
+//  foreach($character_types as $character_type){
+//    $entity_info['character_editor_character']['bundles'][$character_type->type] = array(
+//      'label' => $character_type->label,
+//      'admin' => array(
+//        'path' => CHARACTER_EDITOR_ADMIN_PATH . '/character-type/manage/%character_editor_type',
+//        'real path' => CHARACTER_EDITOR_ADMIN_PATH . '/character-type/manage/' . $character_type->type,
+//        'bundle argument' => 5,
+//        'access arguments' => array(
+//          'administer character projects'
+//        )
+//      )
+//    );
+//  }
+//  // Set up bundles so they are selectable in views (see ViewsWizardException:build_filters() 
+//  $project_types = character_editor_get_entities('character_editor_project_type');
+//  foreach($project_types as $project_type){
+//    $entity_info['character_editor_project']['bundles'][$project_type->type] = array(
+//      'label' => $project_type->label,
+//      'admin' => array(
+//        'path' => CHARACTER_EDITOR_ADMIN_PATH . '/manage/%character_editor_project_type',
+//        'real path' => CHARACTER_EDITOR_ADMIN_PATH . '/manage/' . $project_type->type,
+//        'bundle argument' => 4,
+//        'access arguments' => array(
+//          'administer character projects'
+//        )
+//      )
+//    );
+//  }
+}
+
+/**
+ * Implementation of hook_views_api
+ */
+function character_editor_views_api(){
+  $path = drupal_get_path('module', 'character_editor');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes',
+    'template path' => $path . '/theme'
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * MENU LOADERS & ACCESS
+ * 
+ ********************************************************************************************/
+/**
+ * Menu access callback
+ */
+function character_editor_access($op, $type = NULL, $account = NULL){
+  switch($op){
+    case 'view':
+      return user_access('access character projects', $account);
+      break;
+    case 'create':
+      return user_access('create character projects', $account);
+      break;
+    case 'update':
+      return user_access('edit character projects', $account);
+      break;
+    case 'delete':
+      return user_access('delete character projects', $account);
+      break;
+  }
+}
+
+/**
+ * 
+ * Menu load function
+ * @param entity name $name
+ */
+function character_editor_project_type_load($name = null){
+  return character_editor_get_entities('character_editor_project_type', $name);
+}
+
+/**
+ * 
+ * Menu load function
+ * @param entity name $name
+ */
+function character_editor_project_load($name = null){
+  return character_editor_get_entities('character_editor_project', $name);
+}
+
+/**
+ * 
+ * Menu load function
+ * @param entity name $name
+ */
+function character_editor_type_load($name = null){
+  return character_editor_get_entities('character_editor_type', $name);
+}
+
+/**
+ * 
+ * Menu load function
+ * @param entity name $name
+ */
+function character_editor_character_load($name = null){
+  return character_editor_get_entities('character_editor_character', $name);
+}
+
+/*********************************************************************************************
+ * 
+ * EXTENDING THE ENTITY CLASS
+ * 
+ ********************************************************************************************/
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class CharacterEditorProject extends Entity{
+
+  public $name;
+
+  public $label;
+
+  public $description;
+
+  protected function defaultUri(){
+    return array(
+      'path' => 'character-editor/' . $this->identifier()
+    );
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class CharacterEditorProjectType extends Entity{
+
+  protected function defaultUri(){
+    return array(
+      'path' => CHARACTER_EDITOR_ADMIN_PATH . '/' . $this->identifier()
+    );
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class CharacterEditorType extends Entity{
+
+  public $type;
+
+  public $label;
+
+  public $description;
+
+  /**
+   * Returns whether the profile type is locked, thus may not be deleted or renamed.
+   *
+   * Profile types provided in code are automatically treated as locked, as well
+   * as any fixed profile type.
+   */
+  public function isLocked(){
+    return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class CharacterEditorCharacter extends Entity{
+
+  public $pid;
+
+  public $type;
+
+  public $label;
+
+  public $weight;
+
+  public $group;
+
+  public $description;
+}
+
+class CharacterEditorProjectAPIController extends EntityAPIController{
+
+  public function delete($ids, DatabaseTransaction $transaction = NULL){
+    $cids = array();
+    $entities = $ids ? $this->load($ids) : FALSE;
+    // Do nothing, in case invalid or no ids have been passed.
+    if(!$entities){return;}
+    foreach($entities as $entity){
+      $this->deleteTaxonomyIndex($entity);
+      // Get an array of all CIDs to delete
+      if(is_array($characters = character_editor_get_characters(array(
+        'pid' => $entity->pid
+      )))){
+        $cids = array_merge(array_keys($characters), $cids);
+      }
+    }
+    entity_delete_multiple('character_editor_character', $cids);
+    // Delete the project itself
+    parent::delete($ids, $transaction);
+  }
+
+  public function save($entity, DatabaseTransaction $transaction = NULL){
+    // If this is just being created, delete exisitng taxonomy index terms
+    if(!$entity->is_new){
+      $this->deleteTaxonomyIndex($entity);
+    }
+    // Call the parent save function to save the entity
+    parent::save($entity, $transaction);
+    // Update the taxonomy index
+    $this->updateTaxonomyIndex($entity);
+  }
+
+  protected function updateTaxonomyIndex($entity){
+    // Get the field instances for this entity
+    foreach(field_info_instances($this->entityType, $entity->type) as $instance){
+      $field_instance = field_info_field_by_id($instance['field_id']);
+      // If it's a taxonomy term field, insert the new tids into the taoxnomy index table
+      if($field_instance['type'] == 'taxonomy_term_reference'){
+        if(isset($entity->{$field_instance['field_name']}[LANGUAGE_NONE])){
+          $terms = $entity->{$field_instance['field_name']}[LANGUAGE_NONE];
+          if(!empty($terms)){
+            $query = db_insert('character_editor_taxonomy_index')->fields(array(
+              'pid',
+              'tid'
+            ));
+            foreach($terms as $term){
+              $query->values(array(
+                'pid' => $entity->pid,
+                'tid' => $term['tid']
+              ));
+            }
+            $query->execute();
+          }
+        }
+      }
+    }
+  }
+
+  protected function deleteTaxonomyIndex($entity){
+    $delete = db_delete('character_editor_taxonomy_index');
+    $delete->condition('pid', $entity->pid);
+    $delete->execute();
+    return $delete;
+  }
+}
+
+class CharacterEditorTypeAPIController extends EntityAPIController{
+
+  public function delete($ids, DatabaseTransaction $transaction = NULL){
+    $cids = array();
+    $entities = $ids ? $this->load($ids) : FALSE;
+    // Do nothing, in case invalid or no ids have been passed.
+    if(!$entities){return;}
+    foreach($entities as $entity){
+      if(is_array($characters = character_editor_get_characters(array(
+        'type' => $entity->type
+      )))){
+        $cids = array_merge(array_keys($characters), $cids);
+      }
+    }
+    entity_delete_multiple('character_editor_character', $cids);
+    // Call the parent delete function
+    parent::delete($ids, $transaction);
+  }
+}
+
+class CharacterEditorCharacterAPIController extends EntityAPIController{
+
+  public function delete($ids, DatabaseTransaction $transaction = NULL){
+    $child_cids = array();
+    $cids = array();
+    $entities = $ids ? $this->load($ids) : FALSE;
+    // Do nothing, in case invalid or no ids have been passed.
+    if(!$entities){return;}
+    foreach($entities as $entity){
+      $cids[] = $entity->cid;
+      // Is this entity a character group & does it have children
+      if($entity->type == 'group'){
+        $children = character_editor_character_get_hierarchy(array(
+          'parent' => $entity->cid
+        ));
+        $child_cids = array_merge(array_keys($children), $child_cids);
+      }
+    }
+    // Delete the children characters
+    entity_delete_multiple('character_editor_character', $child_cids);
+    // Delete the hierarchy
+    character_editor_character_delete_hierarchy($cids);
+    // Call the parent delete function
+    parent::delete($ids, $transaction);
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * List all bundles for an entity type
+ * @param bundle type $type
+ */
+function character_editor_list_bundles($entity_type){
+  $bundles = field_info_bundles($entity_type);
+  return array_map(create_function('$bundle', 'return $bundle["label"];'), $bundles);
+}
+
+/**
+ * 
+ * Load all entities of a particular type (or a particular entity if name is used)
+ * @param entity type $entity_type
+ * @param the name of an individual entity $name
+ */
+function character_editor_get_entities($entity_type, $name = NULL){
+  $entities = entity_load($entity_type, isset($name) ? array(
+    $name
+  ) : FALSE);
+  return isset($name) ? reset($entities) : $entities;
+}
+
+/*
+ * Get all characters belonging to a project
+ */
+function character_editor_get_characters($params = array(), $list = true){
+  $characters = array();
+  $query = db_select('character_editor_character', 'c');
+  $query->join('character_editor_hierarchy', 'h', 'h.cid = c.cid');
+  $query->fields('c');
+  $query->fields('h', array(
+    'parent'
+  ));
+  if(count($params)){
+    foreach($params as $key => $value){
+      $query->condition('c.' . $key, $value);
+    }
+  }
+  $query->orderBy('c.weight');
+  $query->orderBy('c.label');
+  $result = $query->execute();
+  foreach($result as $character){
+    // If we just want a list, use just the label
+    if($list){
+      $characters[$character->cid] = $character->label;
+       // Otherwise return the entire object		 	
+    }else{
+      $characters[$character->cid] = $character;
+    }
+  }
+  return $characters;
+}
+
+/*
+ * Update the character editor hierarchy
+ */
+function character_editor_character_update_hierarchy($cid, $parent){
+  $hierarchy = new stdClass();
+  $hierarchy->cid = $cid;
+  $hierarchy->parent = $parent;
+  if(character_editor_character_get_hierarchy(array(
+    'cid' => $cid,
+    'parent' => $parent
+  ))){
+    $primary_keys = array(
+      'cid',
+      'parent'
+    );
+  }else{
+    $primary_keys = array();
+  }
+  drupal_write_record('character_editor_hierarchy', $hierarchy, $primary_keys);
+}
+
+/*
+ * Delete characters from the hierarchy
+ */
+function character_editor_character_delete_hierarchy($cid){
+  $delete = db_delete('character_editor_hierarchy');
+  if(is_array($cid)){
+    $delete->condition('cid', $cid, 'IN');
+  }else{
+    $delete->condition('cid', $cid);
+  }
+  $delete->execute();
+  return $delete;
+}
+
+/*
+ * Get child characters from the hierarchy
+ */
+function character_editor_character_get_hierarchy($params){
+  $children = array();
+  $query = db_select('character_editor_hierarchy', 'h');
+  $query->fields('h');
+  foreach($params as $column => $value){
+    $query->condition("h.{$column}", $value);
+  }
+  $result = $query->execute();
+  foreach($result as $child){
+    $children[$child->cid] = $child;
+  }
+  return $children;
+}
+
+// TODO - Investigate if this possible in entity info properties?
+function character_editor_views_data_alter(&$data){
+  $data['character_editor_project']['table']['join'] = array(
+    // vocabulary links to taxonomy_term_data directly via vid.
+    'character_editor_character' => array(
+      'left_field' => 'pid',
+      'field' => 'pid'
+    )
+  );
+  $data['character_editor_project']['character_editor_character'] = array(
+    'title' => t('Characters'),
+    'help' => t('Characters belonging in this project.'),
+    'relationship' => array(
+      'base' => 'character_editor_character',
+      'base field' => 'pid',
+      'relationship field' => 'pid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('Project characters')
+    )
+  );
+  //  $data['character_editor_character']['table']['group'] = 'Character project';
+  $data['character_editor_project']['table']['join'] = array(
+    // vocabulary links to taxonomy_term_data directly via vid.
+    'character_editor_character' => array(
+      'left_field' => 'pid',
+      'field' => 'pid'
+    )
+  );
+  return $data;
+}
+
+function character_editor_views_data(){
+  $data['character_editor_taxonomy_index']['table']['group'] = t('Taxonomy');
+  $data['character_editor_taxonomy_index']['table']['join'] = array(
+    'taxonomy_term_data' => array(
+      // links directly to taxonomy_term_data via tid
+      'left_field' => 'tid',
+      'field' => 'tid'
+    ),
+    'character_editor_project' => array(
+      // links directly to node via vid
+      'left_field' => 'pid',
+      'field' => 'pid'
+    ),
+    'taxonomy_term_hierarchy' => array(
+      'left_field' => 'tid',
+      'field' => 'tid'
+    )
+  );
+  $data['character_editor_taxonomy_index']['pid'] = array(
+    'title' => t('Character projects'),
+    'help' => t('Get all projects tagged with a term.'),
+    'relationship' => array(
+      'handler' => 'views_handler_relationship',
+      'base' => 'character_editor_project',
+      'base field' => 'pid',
+      'label' => t('project')
+    )
+  );
+  return $data;
+}
+//
+//function character_editor_entity_insert($entity, $type){
+//  // Get the bunde name for this entity
+//  list(, , $bundle) = entity_extract_ids($type, $entity);
+//  foreach(field_info_instances($type, $bundle) as $instance){
+//    // Load the field
+//    $field_instance = field_info_field_by_id($instance['field_id']);
+//    // Make sure we're operating on a term
+//    if($field_instance['type'] == 'taxonomy_term_reference'){
+//      if(isset($entity->{$field_instance['field_name']}[LANGUAGE_NONE])){
+//        $terms = $entity->{$field_instance['field_name']}[LANGUAGE_NONE];
+//        if(!empty($terms)){
+//          $query = db_insert('character_editor_taxonomy_index')->fields(array(
+//            'pid',
+//            'tid'
+//          ));
+//          foreach($terms as $term){
+//            $query->values(array(
+//              'pid' => $entity->pid,
+//              'tid' => $term['tid']
+//            ));
+//          }
+//          $query->execute();
+//        }
+//      }
+//    }
+//  }
+//}
+//    

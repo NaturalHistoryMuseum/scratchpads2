@@ -115,6 +115,7 @@ class views_handler_relationship extends views_handler {
     }
 
     $join->definition = $def;
+    $join->options = $this->options;
     $join->construct();
     $join->adjusted = TRUE;
 
@@ -122,6 +123,13 @@ class views_handler_relationship extends views_handler {
     $alias = $def['table'] . '_' . $this->table;
 
     $this->alias = $this->query->add_relationship($alias, $join, $this->definition['base'], $this->relationship);
+  }
+
+  /**
+   * You can't groupby a relationship.
+   */
+  function use_group_by() {
+    return FALSE;
   }
 }
 
