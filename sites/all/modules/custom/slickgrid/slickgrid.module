@@ -84,7 +84,7 @@ function slickgrid_library(){
   $libraries['slickgrid'] = array(
     'title' => 'Slickgrid',
     'website' => 'https://github.com/mleibman/SlickGrid/',
-    'version' => '2.0b',
+    'version' => 'Master',
     'js' => array(
       $path . '/lib/firebugx.js' => array(),
       $path . '/lib/jquery.event.drag-2.0.min.js' => array(),

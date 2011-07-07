@@ -1,7 +1,10 @@
 <?php
-// $Id$
 
-// Parent plugin.
+/**
+ * @file
+ * Views wizard for node revision views.
+ */
+
 $plugin = array(
   'name' => 'node_revision',
   'base_table' => 'node_revision',
@@ -16,6 +19,25 @@ $plugin = array(
       'value' => '1',
       'table' => 'node', // @todo - unclear if this should be node or node_revision
       'field' => 'status',
+    ),
+  ),
+  'path_field' => array(
+    'id' => 'vid',
+    'table' => 'node_revision',
+    'field' => 'vid',
+    'exclude' => TRUE,
+    'alter' => array(
+      'alter_text' => 1,
+      'text' => 'node/[nid]/revisions/[vid]/view',
+    ),
+  ),
+  'path_fields_supplemental' => array(
+    array(
+      'id' => 'nid',
+      'table' => 'node',
+      'field' => 'nid',
+      'exclude' => TRUE,
+      'link_to_node' => FALSE,
     ),
   ),
 );

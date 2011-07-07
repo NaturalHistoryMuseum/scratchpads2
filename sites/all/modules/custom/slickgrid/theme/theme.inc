@@ -156,7 +156,14 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     // Keep a record of all ids & trigger an error on duplication	
     $ids = array();
     foreach($variables['rows'] as $count => $row){
+      $view->row_index = $count;
       $item = array();
+      if(!isset($row->{$view->base_field})){
+        watchdog('slickgrid', t('@base_field is missing.'), array(
+          '@base_field' => $view->base_field
+        ), WATCHDOG_ERROR);
+        continue;
+      }
       // Has this already been added to the data grid?
       if(in_array($row->{$view->base_field}, $ids)){
         drupal_set_message(t('There are duplicate @base_fields in this grid - each row must be unique.', array(
@@ -171,7 +178,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
         // Add the data fields
         foreach($view->columns as $column){
           if(!($view->field[$column['id']]->options['exclude'])){
-            $item[$column['id']] = $view->field[$column['id']]->theme($row);
+            $item[$column['id']] = $view->render_field($column['id'], $count);
             // If the value is null, make it an empty string ""
             if(is_null($item[$column['id']])){
               $item[$column['id']] = '';

@@ -1,5 +1,3 @@
-// $Id$
-
 Drupal.viewsUi = {};
 
 
@@ -178,6 +176,7 @@ Drupal.viewsUi.addItemForm.prototype.handleCheck = function (event) {
       if (i == position) {
         this.checkedItems.splice(i, 1);
         i--;
+        break;
       }
     }
     // Hide it again if none item is selected.
@@ -195,6 +194,7 @@ Drupal.viewsUi.addItemForm.prototype.handleCheck = function (event) {
 Drupal.viewsUi.addItemForm.prototype.refreshCheckedItems = function() {
   // Perhaps we should precache the text div, too.
   this.$selected_div.find('.views-selected-options').html(this.checkedItems.join(', '));
+  Drupal.viewsUi.resizeModal('', true);
 }
 
 
@@ -208,7 +208,8 @@ Drupal.behaviors.viewsUiRenderAddViewButton = {};
 Drupal.behaviors.viewsUiRenderAddViewButton.attach = function (context, settings) {
   var $ = jQuery;
   // Build the add display menu and pull the display input buttons into it.
-  var $menu = $('#views-ui-edit-form .secondary', context).once('views-ui-render-add-view-button-processed');
+  var $menu = $('#views-display-menu-tabs', context).once('views-ui-render-add-view-button-processed');
+
   if (!$menu.length) {
     return;
   }
@@ -384,10 +385,10 @@ Drupal.behaviors.viewsUiPreview.attach = function (context, settings) {
   // show the form.
   var contextualFilters = $('.views-display-setting a', contextualFiltersBucket);
   if (contextualFilters.length) {
-    $('.form-item-displays-settings-settings-content-preview-controls-view-args').show();
+    $('#preview-args').parent().show();
   }
   else {
-    $('.form-item-displays-settings-settings-content-preview-controls-view-args').hide();
+    $('#preview-args').parent().hide();
   }
 };
 
@@ -839,20 +840,127 @@ Drupal.viewsUi.Checkboxifier.prototype.clickHandler = function (e) {
 };
 
 /**
- * Add extra dependency behavior, in addition to CTools visibility management.
- *
- * @todo Abstract this and perhaps add to CTools.
+ * Change the Apply button text based upon the override select state.
  */
-Drupal.behaviors.viewsUiDependent = {};
-Drupal.behaviors.viewsUiDependent.attach = function (context, settings) {
+Drupal.behaviors.viewsUiOverrideSelect = {};
+Drupal.behaviors.viewsUiOverrideSelect.attach = function (context, settings) {
   var $ = jQuery;
-  $('#views-ui-config-item-form #edit-options-custom-label').once('views-ui-dependent', function () {
-    var $checkbox = $(this);
-    $checkbox.click(function (event) {
-      if (!$checkbox.is(':checked')) {
-        $('#views-ui-config-item-form #edit-options-label').val('');
-        $('#views-ui-config-item-form #edit-options-element-label-colon').attr('checked', false);
+  $('#edit-override-dropdown', context).once('views-ui-override-button-text', function() {
+    // Closures! :(
+    var $submit = $('#edit-submit', context);
+    var old_value = $submit.val();
+
+    $submit.once('views-ui-override-button-text')
+      .bind('mouseup', function() {
+        $(this).val(old_value);
+        return true;
+      });
+
+    $(this).bind('change', function() {
+      if ($(this).val() == 'default') {
+        $submit.val(Drupal.t('Apply (all displays)'));
       }
-    });
+      else {
+        $submit.val(Drupal.t('Apply (this display)'));
+      }
+    })
+    .trigger('change');
   });
+
 };
+
+Drupal.viewsUi.resizeModal = function (e, no_shrink) {
+  var $ = jQuery;
+  var $modal = $('.views-ui-dialog');
+  var $scroll = $('.scroll', $modal);
+  if ($modal.size() == 0 || $modal.css('display') == 'none') {
+    return;
+  }
+
+  var maxWidth = parseInt($(window).width() * .85); // 70% of window
+  var minWidth = parseInt($(window).width() * .6); // 70% of window
+
+  // Set the modal to the minwidth so that our width calculation of
+  // children works.
+  $modal.css('width', minWidth);
+  var width = minWidth;
+
+  // Don't let the window get more than 80% of the display high.
+  var maxHeight = parseInt($(window).height() * .8);
+  var minHeight = 200;
+  if (no_shrink) {
+    minHeight = $modal.height();
+  }
+
+  if (minHeight > maxHeight) {
+    minHeight = maxHeight;
+  }
+
+  var height = 0;
+
+  // Calculate the height of the 'scroll' region.
+  var scrollHeight = 0;
+
+  scrollHeight += parseInt($scroll.css('padding-top'));
+  scrollHeight += parseInt($scroll.css('padding-bottom'));
+
+  $scroll.children().each(function() {
+    var w = $(this).innerWidth();
+    if (w > width) {
+      width = w;
+    }
+    scrollHeight += $(this).outerHeight(true);
+  });
+
+  // Now, calculate what the difference between the scroll and the modal
+  // will be.
+
+  var difference = 0;
+  difference += parseInt($scroll.css('padding-top'));
+  difference += parseInt($scroll.css('padding-bottom'));
+  difference += $('.views-override').outerHeight(true);
+  difference += $('.views-messages').outerHeight(true);
+  difference += $('#views-ajax-title').outerHeight(true);
+  difference += $('.views-add-form-selected').outerHeight(true);
+  difference += $('.form-buttons', $modal).outerHeight(true);
+
+  height = scrollHeight + difference;
+
+  if (height > maxHeight) {
+    height = maxHeight;
+    scrollHeight = maxHeight - difference;
+  }
+  else if (height < minHeight) {
+    height = minHeight;
+    scrollHeight = minHeight - difference;
+  }
+
+  if (width > maxWidth) {
+    width = maxWidth;
+  }
+
+  // Get where we should move content to
+  var top = ($(window).height() / 2) - (height / 2);
+  var left = ($(window).width() / 2) - (width / 2);
+
+  $modal.css({
+    'top': top + 'px',
+    'left': left + 'px',
+    'width': width + 'px',
+    'height': height + 'px'
+  });
+
+  // Ensure inner popup height matches.
+  $(Drupal.settings.views.ajax.popup).css('height', height + 'px');
+
+  $scroll.css({
+    'height': scrollHeight + 'px',
+    'max-height': scrollHeight + 'px'
+  });
+
+};
+
+jQuery(function() {
+  jQuery(window).bind('resize', Drupal.viewsUi.resizeModal);
+  jQuery(window).bind('scroll', Drupal.viewsUi.resizeModal);
+});

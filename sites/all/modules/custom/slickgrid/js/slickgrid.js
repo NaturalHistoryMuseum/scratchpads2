@@ -472,8 +472,8 @@ var dataView;
 
         // Basic comparison function used in sorting columns
         function comparer(a, b) {
-            var x = a[sortcol],
-            y = b[sortcol];
+            var x = a[sortcol].toLowerCase(),
+            y = b[sortcol].toLowerCase();
             return (x == y ? 0: (x > y ? 1: -1));
         }
         
