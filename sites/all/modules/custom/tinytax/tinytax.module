@@ -10,6 +10,14 @@
  */
 function tinytax_theme(){
   return array(
+    'tinytax_block' => array(
+      'variables' => array(
+        'open_tids' => array(),
+        'vid' => FALSE,
+        'show_search_field' => TRUE
+      ),
+      'file' => 'tinytax.theme.inc'
+    ),
     'tinytax_branch' => array(
       'variables' => array(
         'term_theme_function' => 'tinytax_term',
@@ -23,8 +31,7 @@ function tinytax_theme(){
       'variables' => array(
         'term' => FALSE,
         'open_tids' => array()
-      ),
-      'file' => 'tinytax.theme.inc'
+      )
     )
   );
 }
@@ -35,7 +42,7 @@ function tinytax_theme(){
 function tinytax_menu(){
   return array(
     'tinytax/get/%taxonomy_term' => array(
-      'title' => 'tinytax',
+      'title' => 'Tinytax',
       'title callback' => FALSE, // JSON callback, title not required.
       'page callback' => 'tinytax_js',
       'page arguments' => array(
@@ -44,6 +51,34 @@ function tinytax_menu(){
       'delivery callback' => 'ajax_deliver',
       'access arguments' => array(
         'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    ),
+    'tinytax/search/%taxonomy_vocabulary/%' => array(
+      'title' => 'Tinytax',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_search_js',
+      'page arguments' => array(
+        2,3
+      ),
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'delivery callback' => 'ajax_deliver',
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    ),
+    'tinytax/autocomplete/%taxonomy_vocabulary' => array(
+      'title' => 'Tinytax autocomplete',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_autocomplete',
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'page arguments' => array(
+        2,
+        3
       ),
       'type' => MENU_CALLBACK,
       'file' => 'tinytax.callbacks.inc'
@@ -77,10 +112,10 @@ function tinytax_block_view($delta = ''){
   }
   if($vocabulary){
     $block['subject'] = check_plain($vocabulary->name);
-    $block['content'] = '<div class="tinytax">' . theme('tinytax_branch', array(
+    $block['content'] = theme('tinytax_block', array(
       'vid' => $delta,
       'open_tids' => $open_tids
-    )) . '</div>';
+    ));
   }
   return $block;
 }
@@ -103,14 +138,33 @@ function tinytax_block_info(){
 }
 
 /**
+ * hook_taxonomy_vocabulary_delete($vocabulary)
+ */
+function tinytax_taxonomy_vocabulary_delete($vocabulary){
+  db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
+}
+
+/**
+ * hook_taxonomy_vocabulary_insert($vocabulary)
+ */
+function tinytax_taxonomy_vocabulary_insert($vocabulary){
+  module_load_include('admin.inc', 'block');
+  block_admin_display();
+  $theme = variable_get('theme_default', 'garland');
+  $region = system_default_region($theme);
+  db_update('block')->fields(array(
+    'status' => 1,
+    'region' => $region,
+    'weight' => -100,
+    'theme' => $theme
+  ))->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
+}
+
+/**
  * hook_block_configure().
  */
 function tinytax_block_configure($delta){
-  // FIXME:  Need to add configuration options
-// open_to_tid
-// show_child_numbers
-// hide_invalid (should perhaps do this inteligently - ask the user which
-// field to use, and what values).
+  // FIXME: Add options.  These have been removed, and may be added back.
 }
 
 /**

@@ -6,6 +6,35 @@
  * Description of the tinytax.theme.inc file
  */
 /**
+ * tinytax_
+ */
+function theme_tinytax_block($variables){
+  return drupal_render(drupal_get_form('tinytax_search_form', $variables['vid'])) . '<div class="tinytax">' . theme('tinytax_branch', array(
+    'vid' => $variables['vid'],
+    'open_tids' => $variables['open_tids']
+  )) . '</div>';
+}
+
+/**
+ * Search form
+ */
+function tinytax_search_form($form, $form_state){
+  return array(
+    'autocomplete' => array(
+      '#title' => '',
+      '#type' => 'textfield',
+      '#autocomplete_path' => 'tinytax/autocomplete/' . $form_state['build_info']['args'][0],
+      '#attributes' => array(
+        'class' => array(
+          'tinytax-search-field'
+        )
+      ),
+      '#id' => 'tinytax-search-field-' . $form_state['build_info']['args'][0]
+    )
+  );
+}
+
+/**
  * tinytax_branch theme function
  */
 function theme_tinytax_branch($variables){
@@ -14,7 +43,8 @@ function theme_tinytax_branch($variables){
   drupal_add_js(drupal_get_path('module', 'tinytax') . '/js/tinytax.js');
   drupal_add_js(array(
     'tinytax' => array(
-      'callback' => url('tinytax/get')
+      'callback' => url('tinytax/get'),
+      'search_callback' => url('tinytax/search')
     )
   ), 'setting');
   // Get the terms to render
@@ -73,7 +103,8 @@ function theme_tinytax_term($variables){
       'path' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/leaf.gif')
     ));
   }
-  $output .= $variables['term']->name;
+  $term_uri = taxonomy_term_uri($variables['term']);
+  $output .= l($variables['term']->name, $term_uri['path']);
   if(in_array($variables['term']->tid, $variables['open_tids']) && $has_children){ // Check here for open!
     $output .= theme('tinytax_branch', array(
       'open_tids' => $variables['open_tids'],
