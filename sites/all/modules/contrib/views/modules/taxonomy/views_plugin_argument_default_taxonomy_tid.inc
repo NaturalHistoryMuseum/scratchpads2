@@ -5,7 +5,7 @@
  */
 
 class views_plugin_argument_default_taxonomy_tid extends views_plugin_argument_default {
-  function init(&$view, &$argument, &$options) {
+  function init(&$view, &$argument, $options) {
     parent::init($view, $argument, $options);
 
     // Convert legacy vids option to machine name vocabularies.
@@ -38,7 +38,7 @@ class views_plugin_argument_default_taxonomy_tid extends views_plugin_argument_d
     );
     $form['node'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Load default filter from node page, that\'s good for related taxonomy blocks.'),
+      '#title' => t('Load default filter from node page, that\'s good for related taxonomy blocks'),
       '#default_value' => $this->options['node'],
     );
 
@@ -73,9 +73,9 @@ class views_plugin_argument_default_taxonomy_tid extends views_plugin_argument_d
     );
   }
 
-  function options_submit(&$form, &$form_state, &$options) {
+  function options_submit(&$form, &$form_state) {
     // Clear checkbox values.
-    $options['vocabularies'] = array_filter($options['vocabularies']);
+    $form_state['values']['vocabularies'] = array_filter($form_state['values']['vocabularies']);
   }
 
   function get_argument() {
@@ -123,6 +123,13 @@ class views_plugin_argument_default_taxonomy_tid extends views_plugin_argument_d
           return implode(",", array_keys($taxonomy));
         }
       }
+    }
+
+    // If the current page is a view that takes tid as an argument,
+    // find the tid argument and return it.
+    $views_page = views_get_page_view();
+    if ($views_page && isset($views_page->view->argument['tid'])) {
+      return $views_page->view->argument['tid']->argument;
     }
   }
 }

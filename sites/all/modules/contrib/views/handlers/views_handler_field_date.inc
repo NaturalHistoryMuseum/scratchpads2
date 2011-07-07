@@ -15,13 +15,17 @@ class views_handler_field_date extends views_handler_field {
   }
 
   function options_form(&$form, &$form_state) {
+
+    $date_formats = array();
+    $date_types = system_get_date_types();
+    foreach ($date_types as $key => $value) {
+      $date_formats[$value['type']] = check_plain(t($value['title'] . ' format')) . ': ' . format_date(REQUEST_TIME, $value['type']);
+    }
+
     $form['date_format'] = array(
       '#type' => 'select',
       '#title' => t('Date format'),
-      '#options' => array(
-        'small' => t('Short date format') . ' ' . format_date(REQUEST_TIME, 'small'),
-        'medium' => t('Medium date format') . ' ' . format_date(REQUEST_TIME, 'medium'),
-        'large' => t('Long date format') . ' ' . format_date(REQUEST_TIME, 'large'),
+      '#options' => $date_formats + array(
         'custom' => t('Custom'),
         'raw time ago' => t('Time ago'),
         'time ago' => t('Time ago (with "ago" appended)'),
@@ -36,7 +40,7 @@ class views_handler_field_date extends views_handler_field {
     $form['custom_date_format'] = array(
       '#type' => 'textfield',
       '#title' => t('Custom date format'),
-      '#description' => t('If "Custom", see <a href="http://us.php.net/manual/en/function.date.php" target="_blank">the PHP docs</a> for date formats. If "Time ago" this is the the number of different units to display, which defaults to two.'),
+      '#description' => t('If "Custom", see <a href="http://us.php.net/manual/en/function.date.php" target="_blank">the PHP docs</a> for date formats. If "Time ago", enter the number of different time units to display, which defaults to 2.'),
       '#default_value' => isset($this->options['custom_date_format']) ? $this->options['custom_date_format'] : '',
       '#dependency' => array('edit-options-date-format' => array('custom', 'raw time ago', 'time ago', 'raw time span', 'time span', 'raw time span', 'inverse time span', 'time span')),
     );

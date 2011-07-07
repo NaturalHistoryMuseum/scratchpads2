@@ -6,7 +6,7 @@
  * because it uses a subquery to find nodes with
  */
 class views_handler_filter_term_node_tid_depth extends views_handler_filter_term_node_tid {
-  function operator_options() {
+  function operator_options($which = 'title') {
     return array(
       'or' => t('Is one of'),
     );
@@ -37,6 +37,10 @@ class views_handler_filter_term_node_tid_depth extends views_handler_filter_term
       return;
     }
     elseif (count($this->value) == 1) {
+      // Somethis $this->value is an array with a single element so convert it.
+      if (is_array($this->value)) {
+        $this->value = current($this->value);
+      }
       $operator = '=';
     }
     else {

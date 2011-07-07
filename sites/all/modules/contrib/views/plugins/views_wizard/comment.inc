@@ -1,5 +1,9 @@
 <?php
-// $Id$
+
+/**
+ * @file
+ * Views wizard for comment views.
+ */
 
 // Parent plugin.
 if (module_exists('comment')) {
@@ -23,6 +27,17 @@ if (module_exists('comment')) {
         'table' => 'node',
         'field' => 'status',
         'relationship' => 'nid',
+      ),
+    ),
+    'path_field' => array(
+      'id' => 'cid',
+      'table' => 'comment',
+      'field' => 'cid',
+      'exclude' => TRUE,
+      'link_to_comment' => FALSE,
+      'alter' => array(
+        'alter_text' => 1,
+        'text' => 'comment/[cid]#comment-[cid]',
       ),
     ),
   );

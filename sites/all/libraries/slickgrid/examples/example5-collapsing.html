@@ -117,19 +117,19 @@
 		function myFilter(item) {
 			if (item["percentComplete"] < percentCompleteThreshold)
 				return false;
-			
+
 			if (searchString != "" && item["title"].indexOf(searchString) == -1)
 				return false;
-			
+
 			var idx = dataView.getIdxById(item.id);
-			
+
 			if (item.parent != null) {
 				var parent = data[item.parent];
-			
+
 				while (parent) {
 					if (parent._collapsed || (parent["percentComplete"] < percentCompleteThreshold) || (searchString != "" && parent["title"].indexOf(searchString) == -1) )
 						return false;
-			
+
 					parent = data[parent.parent];
 				}
 			}
@@ -176,13 +176,15 @@
 				d["finish"] = "01/05/2009";
 				d["effortDriven"] = (i % 5 == 0);
 			}
-		
+
+
 			// initialize the model
 			dataView = new Slick.Data.DataView();
 			dataView.beginUpdate();
 			dataView.setItems(data);
 			dataView.setFilter(myFilter);
 			dataView.endUpdate();
+
 
 			// initialize the grid
 			grid = new Slick.Grid("#myGrid", dataView, columns, options);
@@ -191,22 +193,26 @@
                 dataView.updateItem(args.item.id,args.item);
             });
             
-
+			grid.onAddNewRow.subscribe(function(e,args) {
+                var item = {"id": "new_" + (Math.round(Math.random()*10000)), "indent":0, "title":"New task", "duration":"1 day", "percentComplete":0, "start":"01/01/2009", "finish":"01/01/2009", "effortDriven":false};
+                $.extend(item,args.item);
+                dataView.addItem(item);
+            });
 
 			grid.onClick.subscribe(function(e,args) {
-			                if ($(e.target).hasClass("toggle")) {
-			                    var item = dataView.getItem(args.row);
-			                    if (item) {
-			                        if (!item._collapsed)
-			                            item._collapsed = true;
-			                        else
-			                            item._collapsed = false;
-			
-			                        dataView.updateItem(item.id, item);
-			                    }
-			                    e.stopImmediatePropagation();
-			                }
-			            });
+                if ($(e.target).hasClass("toggle")) {
+                    var item = dataView.getItem(args.row);
+                    if (item) {
+                        if (!item._collapsed)
+                            item._collapsed = true;
+                        else
+                            item._collapsed = false;
+
+                        dataView.updateItem(item.id, item);
+                    }
+                    e.stopImmediatePropagation();
+                }
+            });
 
 
 			// wire up model events to drive the grid
@@ -220,6 +226,36 @@
 				grid.render();
 			});
 
+
+			var h_runfilters = null;
+
+			// wire up the slider to apply the filter to the model
+			$("#pcSlider").slider({
+				"range":	"min",
+				"slide":	function(event,ui) {
+                    Slick.GlobalEditorLock.cancelCurrentEdit();
+
+					if (percentCompleteThreshold != ui.value)
+					{
+						window.clearTimeout(h_runfilters);
+						h_runfilters = window.setTimeout(dataView.refresh, 10);
+						percentCompleteThreshold = ui.value;
+					}
+				}
+			});
+
+
+			// wire up the search textbox to apply the filter to the model
+			$("#txtSearch").keyup(function(e) {
+                Slick.GlobalEditorLock.cancelCurrentEdit();
+
+				// clear on Esc
+				if (e.which == 27)
+					this.value = "";
+
+				searchString = this.value;
+				dataView.refresh();
+			})
 		})
 		</script>
 	</body>

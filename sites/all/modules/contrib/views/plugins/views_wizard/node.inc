@@ -1,7 +1,10 @@
 <?php
-// $Id$
 
-// Parent plugin.
+/**
+ * @file
+ * Views wizard for node views.
+ */
+
 $plugin = array(
   'name' => 'node',
   'base_table' => 'node',
@@ -19,6 +22,17 @@ $plugin = array(
       'value' => NODE_PUBLISHED,
       'table' => 'node',
       'field' => 'status',
+    ),
+  ),
+  'path_field' => array(
+    'id' => 'nid',
+    'table' => 'node',
+    'field' => 'nid',
+    'exclude' => TRUE,
+    'link_to_node' => FALSE,
+    'alter' => array(
+      'alter_text' => 1,
+      'text' => 'node/[nid]',
     ),
   ),
 );
