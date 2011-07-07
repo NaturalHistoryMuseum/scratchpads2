@@ -7,12 +7,11 @@
 class views_handler_filter_string extends views_handler_filter {
   // exposed filter options
   var $always_multiple = TRUE;
-  var $always_required = TRUE;
 
-  function option_defintion() {
-    $options = parent::option_defintion();
+  function option_definition() {
+    $options = parent::option_definition();
 
-    $options['expose']['contains']['required'] = array('default' => TRUE);
+    $options['expose']['contains']['required'] = array('default' => FALSE);
 
     return $options;
   }
@@ -136,7 +135,10 @@ class views_handler_filter_string extends views_handler_filter {
     }
 
     $options = $this->operator_options('short');
-    $output = check_plain($options[$this->operator]);
+    $output = '';
+    if(!empty($options[$this->operator])) {
+      $output = check_plain($options[$this->operator]);
+    }
     if (in_array($this->operator, $this->operator_values(1))) {
       $output .= ' ' . check_plain($this->value);
     }

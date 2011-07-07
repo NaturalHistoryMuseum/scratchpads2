@@ -9,7 +9,7 @@ class views_plugin_exposed_form_input_required extends views_plugin_exposed_form
     $options = parent::option_definition();
 
     $options['text_input_required'] = array('default' => t('Select any filter and click on Apply to see results'), 'translatable' => TRUE);
-    $options['text_input_required_format'] = array('default' => filter_default_format());
+    $options['text_input_required_format'] = array('default' => NULL);
     return $options;
   }
 
@@ -21,12 +21,14 @@ class views_plugin_exposed_form_input_required extends views_plugin_exposed_form
       '#title' => t('Text on demand'),
       '#description' => t('Text to display instead of results until the user selects and applies an exposed filter.'),
       '#default_value' => $this->options['text_input_required'],
-      '#format' => $this->options['text_input_required_format'],
+      '#format' => isset($this->options['text_input_required_format']) ? $this->options['text_input_required_format'] : filter_default_format(),
+      '#wysiwyg' => FALSE,
     );
   }
 
   function options_submit(&$form, &$form_state) {
-    $form_state['values']['exposed_form_options']['text_input_required_format'] = $form_state['values']['options']['text_input_required']['format'];
+    $form_state['values']['exposed_form_options']['text_input_required_format'] = $form_state['values']['exposed_form_options']['text_input_required']['format'];
+    $form_state['values']['exposed_form_options']['text_input_required'] = $form_state['values']['exposed_form_options']['text_input_required']['value'];
     parent::options_submit($form, $form_state);
   }
 
@@ -34,7 +36,6 @@ class views_plugin_exposed_form_input_required extends views_plugin_exposed_form
     static $cache = NULL;
     if (!isset($cache)) {
       $view = $this->view;
-      $exposed_data = $view->exposed_data;
       if (is_array($view->filter) && count($view->filter)) {
         foreach ($view->filter as $filter_id => $filter) {
           if ($filter->is_exposed()) {

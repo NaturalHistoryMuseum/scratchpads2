@@ -131,9 +131,8 @@ function formflow_ui_title($op, $flow){
  * 
  * @param integer $fid
  */
-function formflow_ui_load($fid){
-  $flows = formflow_load_flows($fid);
-  return array_shift($flows);
+function formflow_ui_load($name){
+  return formflow_get_flows($name);
 }
 
 /**
@@ -153,37 +152,63 @@ function formflow_ui_overview_page(){
     )
   );
   // Loop through all the flows & turn it into a table
-  foreach($flows as $flow){
-    $row = array();
-    $row[] = l($flow['title'], $flow['path']) . ($flow['description'] ? '<p>' . $flow['description'] . '</p>' : '');
-    if(count($flow['steps'])){
-      $forms = array();
-      foreach($flow['steps'] as $step){
-        $forms['items'][] = $step['title'];
+  if(count($flows)){
+    foreach($flows as $name => $flow){
+      $row = array();
+      if(isset($flow['plugin'])){
+        if($flow['fid']){
+          $status = t('Overridden in database');
+          $links = array(
+            'edit' => t("Settings"),
+            'steps' => t("Forms"),
+            'delete' => t("Reset")
+          );
+        }else{
+          $status = t('In code');
+          $links = array(
+            'edit' => t("Overide"),
+            'steps' => false,
+            'delete' => false
+          );
+        }
+      }else{
+        $status = t('In database');
+        $links = array(
+          'edit' => t("Settings"),
+          'steps' => t("Forms"),
+          'delete' => t("Delete")
+        );
       }
-      $row[] = theme('item_list', $forms);
-    }else{
-      $row[] = '';
+      $row[] = l($flow['title'], $flow['path']) . ($flow['description'] ? '<p>' . $flow['description'] . '</p>' : '') . '<div class="description">' . $status . '</div>';
+      if(count($flow['steps'])){
+        $forms = array();
+        foreach($flow['steps'] as $step){
+          $forms['items'][] = $step['title'];
+        }
+        $row[] = theme('item_list', $forms);
+      }else{
+        $row[] = '';
+      }
+      foreach($links as $link => $title){
+        if($title){
+          $row[] = l($title, 'admin/structure/formflow/' . $name . '/' . $link);
+        }else{
+          $row[] = '';
+        }
+      }
+      $rows[] = $row;
     }
-    // If there's a FID it's a DB flow & editable
-    if(isset($flow['fid'])){
-      $row[] = l('Settings', 'admin/structure/formflow/' . $flow['fid'] . '/edit');
-      $row[] = l('Forms', 'admin/structure/formflow/' . $flow['fid'] . '/steps');
-      $row[] = l('Delete', 'admin/structure/formflow/' . $flow['fid'] . '/delete');
-    }else{ // Defined via a plugin so cannot be edited
-      $row[] = '<span class="locked">In code<span>';
-      $row[] = '';
-      $row[] = '';
-    }
-    $rows[] = $row;
+    $output = theme('table', array(
+      'header' => $header,
+      'rows' => $rows,
+      'attributes' => array(
+        'id' => 'formflow-overview'
+      )
+    ));
+  }else{
+    $output = t('There are no flows');
   }
-  return theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-    'attributes' => array(
-      'id' => 'formflow-overview'
-    )
-  ));
+  return $output;
 }
 
 /*********************************************************************************************
@@ -346,7 +371,10 @@ function formflow_ui_form_submit($form, &$form_state){
   $form['#flow']['show_return'] = $form_state['values']['show_return'];
   $form['#flow']['cancel_path'] = $form_state['values']['cancel_path'];
   $form['#flow']['finish_path'] = $form_state['values']['finish_path'];
-  unset($form['#flow']['steps']);
+  // If this isn't a plugin being overridden, delelete the flows as they don't need to be saved
+  if(!(isset($form['#flow']['plugin']) & !$form['#flow']['fid'])){
+    unset($form['#flow']['steps']);
+  }
   formflow_save($form['#flow']);
   if(isset($form['#flow']['fid'])){
     drupal_set_message(t('Form flow %title updated', array(

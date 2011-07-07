@@ -1,0 +1,235 @@
+<?php
+// $Id: field_collection.test,v 1.1.2.7 2011/02/01 15:12:16 fago Exp $
+
+/**
+ * @file
+ * field_collections tests.
+ */
+
+/**
+ * Test basics.
+ */
+class FieldCollectionBasicTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Field collection',
+      'description' => 'Tests creating and using field-collections.',
+      'group' => 'Field types',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('field_collection');
+
+    // Create a field_collection field to use for the tests.
+    $this->field_name = 'field_test_collection';
+    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => 4);
+    $this->field = field_create_field($this->field);
+    $this->field_id = $this->field['id'];
+
+    $this->instance = array(
+      'field_name' => $this->field_name,
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => $this->randomName() . '_label',
+      'description' => $this->randomName() . '_description',
+      'weight' => mt_rand(0, 127),
+      'settings' => array(),
+      'widget' => array(
+        'type' => 'hidden',
+        'label' => 'Test',
+        'settings' => array(),
+      ),
+    );
+    $this->instance = field_create_instance($this->instance);
+  }
+
+  /**
+   * Tests CRUD.
+   */
+  function testCRUD() {
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    // Manually create a field_collection.
+    $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
+    $entity->setHostEntity('node', $node);
+    $entity->save();
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'a field_collection has been successfully created.');
+
+    // Test adding an additional field_collection during node edit.
+    $entity2 = entity_create('field_collection_item', array('field_name' => $this->field_name));
+    $node->{$this->field_name}[LANGUAGE_NONE][] = array('entity' => $entity2);
+    node_save($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertTrue(!empty($entity2->item_id), 'field_collection has been saved.');
+    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
+    $this->assertEqual($entity2->item_id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New field_collection has been properly referenced');
+
+    // Make sure deleting the field_collection removes the reference.
+    $entity2->delete();
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertTrue(!isset($node->{$this->field_name}[LANGUAGE_NONE][1]), 'Reference correctly deleted.');
+
+    // Make sure field_collections are removed during deletion of the host.
+    node_delete($node->nid);
+    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
+  }
+
+  /**
+   * Make sure the basic UI and access checks are working.
+   */
+  function testBasicUI() {
+    // Add a field to the collection.
+    $field = array(
+      'field_name' => 'field_text',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    );
+    field_create_field($field);
+    $instance = array(
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_text',
+      'bundle' => $this->field_name,
+      'label' => 'Test text field',
+      'widget' => array(
+        'type' => 'text_textfield',
+      ),
+    );
+    field_create_instance($instance);
+
+    $user = $this->drupalCreateUser();
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+
+    $this->drupalLogin($user);
+    // Make sure access is denied.
+    $path = 'field-collection/field-test-collection/add/node/' . $node->nid;
+    $this->drupalGet($path);
+    $this->assertText(t('Access denied'), 'Access has been denied.');
+
+    $user_privileged = $this->drupalCreateUser(array('access content', 'edit any article content'));
+    $this->drupalLogin($user_privileged);
+    $this->drupalGet("node/$node->nid");
+    $this->drupalGet($path);
+    $this->assertText(t('Test text field'), 'Add form is shown.');
+
+    $edit['field_text[und][0][value]'] = $this->randomName();
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertText(t('The changes have been saved.'), 'Field collection saved.');
+
+    $this->assertText($edit['field_text[und][0][value]'], "Added field value is shown.");
+
+    $edit['field_text[und][0][value]'] = $this->randomName();
+    $this->drupalPost('field-collection/field-test-collection/1/edit', $edit, t('Save'));
+    $this->assertText(t('The changes have been saved.'), 'Field collection saved.');
+    $this->assertText($edit['field_text[und][0][value]'], "Field collection has been edited.");
+
+    $this->drupalGet('field-collection/field-test-collection/1');
+    $this->assertText($edit['field_text[und][0][value]'], "Field collection can be viewed.");
+
+    // Add further 3 items, so we have reached 4 == maxium cardinality.
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->drupalPost($path, $edit, t('Save'));
+    // Make sure adding doesn't work any more as we have restricted cardinality
+    // to 1.
+    $this->drupalGet($path);
+    $this->assertText(t('Too many items.'), 'Maxium cardinality has been reached.');
+
+    $this->drupalPost('field-collection/field-test-collection/1/delete', array(), t('Delete'));
+    $this->drupalGet($path);
+    // Add form is shown again.
+    $this->assertText(t('Test text field'), 'Field collection item has been deleted.');
+  }
+}
+
+
+/**
+ * Test using field-collection with Rules.
+ */
+class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Field collection Rules integration',
+      'description' => 'Tests using field-collections with rules.',
+      'group' => 'Field types',
+      'dependencies' => array('rules'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('field_collection', 'rules'));
+    // Create a field_collection field to use for the tests.
+    $this->field_name = 'field_test_collection';
+    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => 4);
+    $this->field = field_create_field($this->field);
+    $this->field_id = $this->field['id'];
+
+    $this->instance = array(
+      'field_name' => $this->field_name,
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => $this->randomName() . '_label',
+      'description' => $this->randomName() . '_description',
+      'weight' => mt_rand(0, 127),
+      'settings' => array(),
+      'widget' => array(
+        'type' => 'hidden',
+        'label' => 'Test',
+        'settings' => array(),
+      ),
+    );
+    $this->instance = field_create_instance($this->instance);
+    // Add a field to the collection.
+    $field = array(
+      'field_name' => 'field_text',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    );
+    field_create_field($field);
+    $instance = array(
+      'entity_type' => 'field_collection_item',
+      'field_name' => 'field_text',
+      'bundle' => $this->field_name,
+      'label' => 'Test text field',
+      'widget' => array(
+        'type' => 'text_textfield',
+      ),
+    );
+    field_create_instance($instance);
+  }
+
+  /**
+   * Test creation field collection items.
+   */
+  function testCreation() {
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    // Create a field collection.
+    $action_set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
+    $action_set->action('entity_create', array(
+      'type' => 'field_collection_item',
+      'param_field_name' => $this->field_name,
+      'param_host_entity:select' => 'node',
+    ));
+    $action_set->action('data_set', array('data:select' => 'entity-created:field-text', 'value' => 'foo'));
+    $action_set->execute($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertTrue(!empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'A field_collection has been successfully created.');
+    $item_id = $node->{$this->field_name}[LANGUAGE_NONE][0]['value'];
+
+    // Now try making use of the field-collection in rules.
+    $action_set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
+    $action_set->action('drupal_message', array('message:select' => 'node:field-test-collection:0:field-text'));
+    $action_set->execute($node);
+
+    $msg = drupal_get_messages();
+    $this->assertEqual(array_pop($msg['status']), 'foo', 'Field-collection can be used.');
+    RulesLog::logger()->checkLog();
+  }
+}
