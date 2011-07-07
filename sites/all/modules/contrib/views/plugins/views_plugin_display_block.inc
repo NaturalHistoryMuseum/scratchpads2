@@ -29,7 +29,12 @@ class views_plugin_display_block extends views_plugin_display {
     $desc = $this->get_option('block_description');
 
     if (empty($desc)) {
-      $desc = t('@view: @display', array('@view' => $this->view->name, '@display' => $this->display->display_title));
+      if ($this->display->display_title == $this->definition['title']) {
+        $desc = t('View: @view', array('@view' => $this->view->get_human_name()));
+      }
+      else {
+        $desc = t('View: @view: @display', array('@view' => $this->view->get_human_name(), '@display' => $this->display->display_title));
+      }
     }
     return array(
       $delta => array(
@@ -74,14 +79,10 @@ class views_plugin_display_block extends views_plugin_display {
       $block_description = t('None');
     }
 
-    if (strlen($block_description) > 16) {
-      $block_description = substr($block_description, 0, 16) . '...';
-    }
-
     $options['block_description'] = array(
       'category' => 'block',
       'title' => t('Block name'),
-      'value' => $block_description,
+      'value' => views_ui_truncate($block_description, 24),
     );
 
     $cache_type = $this->get_option('block_caching');
@@ -161,12 +162,15 @@ class views_plugin_display_block extends views_plugin_display {
     // It is very important to call the parent function here:
     parent::options_submit($form, $form_state);
     switch ($form_state['section']) {
+      case 'display_id':
+        $this->update_block_bid($form_state['view']->name, $this->display->id, $this->display->new_id);
+        break;
       case 'block_description':
         $this->set_option('block_description', $form_state['values']['block_description']);
         break;
       case 'block_caching':
         $this->set_option('block_caching', $form_state['values']['block_caching']);
-        $this->save_block_cache($form_state['view']->name.'-'.$form_state['display_id'], $form_state['values']['block_caching']);
+        $this->save_block_cache($form_state['view']->name . '-'. $form_state['display_id'], $form_state['values']['block_caching']);
         break;
     }
   }
@@ -182,6 +186,23 @@ class views_plugin_display_block extends views_plugin_display {
     return FALSE;
   }
 
+  /**
+   * Update the block delta when you change the machine readable name of the display.
+   */
+  function update_block_bid($name, $old_delta, $delta) {
+    $old_delta = $name . '-' . $old_delta;
+    $delta = $name . '-' . $delta;
+    if (strlen($old_delta) >= 32) {
+      $old_delta = md5($old_delta);
+    }
+    if (strlen($delta) >= 32) {
+      $delta = md5($delta);
+    }
+    db_update('block')
+      ->fields(array('delta' => $delta))
+      ->condition('delta', $old_delta)
+      ->execute();
+  }
   /**
    * Save the block cache setting in the blocks table if this block allready
    * exists in the blocks table. Dirty fix untill http://drupal.org/node/235673 gets in.

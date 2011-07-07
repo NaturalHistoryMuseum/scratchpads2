@@ -125,7 +125,7 @@ function system_views_data() {
   );
 
   // extension
-  $data['files']['extension'] = array(
+  $data['file_managed']['extension'] = array(
     'title' => t('Extension'),
     'help' => t('The extension of the file.'),
     'real field' => 'filename',
@@ -180,6 +180,18 @@ function system_views_data() {
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  // uid
+  $data['file_managed']['uid'] = array(
+    'title' => t('User who uploaded'),
+    'help' => t('The user that uploaded the file.'),
+    'relationship' => array(
+      'title' => t('User who uploaded'),
+      'label' => t('User who uploaded'),
+      'base' => 'users',
+      'base field' => 'uid',
     ),
   );
 
@@ -563,19 +575,6 @@ function _views_file_status($choice = NULL) {
 
   return $status;
 }
-
-  // uid field
-  $data['files']['uid'] = array(
-    'title' => t('User'),
-    'help' => t('The user, who uploaded the file.'),
-    'relationship' => array(
-      'base' => 'users',
-      'base field' => 'uid',
-      'handler' => 'views_handler_relationship',
-      'label' => t('User'),
-    ),
-  );
-
 
 /**
  * @}
