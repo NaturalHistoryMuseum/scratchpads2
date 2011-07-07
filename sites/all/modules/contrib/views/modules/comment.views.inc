@@ -7,7 +7,7 @@
 /**
  * @defgroup views_comment_module comment.module handlers
  *
- * Includes the tables 'comments' and 'node_comment_statistics'
+ * Includes the tables 'comment' and 'node_comment_statistics'
  * @{
  */
 
@@ -17,6 +17,8 @@
 
 function comment_views_data() {
   $data['comments']['moved to'] = 'comment';
+  $data['comment']['comment']['moved to'] = array('field_data_comment_body', 'comment_body');
+  $data['comment']['comment']['field']['moved to'] = array('field_data_comment_body', 'comment_body');
   // Define the base group of this table. Fields that don't
   // have a group defined will go into this field by default.
   $data['comment']['table']['group']  = t('Comment');
@@ -27,12 +29,11 @@ function comment_views_data() {
     'help' => t("Comments are responses to node content."),
   );
 
-  //joins
-  $data['comment']['table']['join'] = array(
-    //...to the node table
+  // Provide a "default relationship" to keep older views from choking.
+  $data['comment']['table']['default_relationship'] = array(
     'node' => array(
-      'left_field' => 'nid',
-      'field' => 'nid',
+      'table' => 'node',
+      'field' => 'cid',
     ),
   );
 
@@ -172,7 +173,7 @@ function comment_views_data() {
   $data['comments']['timestamp']['moved to'] = array('comment', 'changed');
   // changed (when comment was last updated)
   $data['comment']['changed'] = array(
-    'title' => t('Post date'),
+    'title' => t('Updated date'),
     'help' => t('Date and time of when the comment was last updated.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
@@ -314,24 +315,46 @@ function comment_views_data() {
   );
 
   $data['comment']['nid'] = array(
-    'title' => t('Content'),
-    'help' => t('The content to which the comment is a reply to.'),
+    'title' => t('Nid'),
+    'help' => t('The node ID to which the comment is a reply to.'),
     'relationship' => array(
+      'title' => t('Content'),
+      'help' => t('The content to which the comment is a reply to.'),
       'base' => 'node',
       'base field' => 'nid',
       'handler' => 'views_handler_relationship',
       'label' => t('Content'),
     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+    ),
   );
 
   $data['comment']['uid'] = array(
-    'title' => t('User'),
+    'title' => t('Uid'),
     'help' => t("The User ID of the comment's author."),
     'relationship' => array(
+      'title' => t('Author'),
+      'help' => t('Relate comment to the user who created it.'),
       'base' => 'users',
       'base field' => 'uid',
       'handler' => 'views_handler_relationship',
-      'label' => t('User'),
+      'label' => t('author'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_filter_user_name',
     ),
   );
 
@@ -390,9 +413,11 @@ function comment_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_ncs_last_comment_name',
       'click sortable' => TRUE,
+      'no group by' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort_ncs_last_comment_name',
+      'no group by' => TRUE,
     ),
   );
 
@@ -422,9 +447,11 @@ function comment_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_ncs_last_updated',
       'click sortable' => TRUE,
+      'no group by' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort_ncs_last_updated',
+      'no group by' => TRUE,
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_ncs_last_updated',
@@ -495,12 +522,26 @@ function comment_views_data_alter(&$data) {
       'name table' => 'users',
       'name field' => 'name',
       'handler' => 'views_handler_argument_comment_user_uid',
+      'no group by' => TRUE,
     ),
     'filter' => array(
       'field' => 'uid',
       'name table' => 'users',
       'name field' => 'name',
       'handler' => 'views_handler_filter_comment_user_uid'
+    ),
+  );
+
+  $data['node']['cid'] = array(
+    'title' => t('Comments of the node'),
+    'help' => t('Relate all comments on the node. This will create 1 duplicate record for every comment. Usually if you need this it is better to create a comment view.'),
+    'relationship' => array(
+      'group' => t('Comment'),
+      'label' => t('Comments'),
+      'base' => 'comment',
+      'base field' => 'nid',
+      'relationship field' => 'nid',
+      'handler' => 'views_handler_relationship',
     ),
   );
 
@@ -550,7 +591,18 @@ function template_preprocess_views_view_row_comment(&$vars) {
   // Put the view on the node so we can retrieve it in the preprocess.
   $node->view = &$view;
 
-  $vars['comment'] = drupal_render(comment_view_multiple(array($comment->cid => $comment), $node));
+  $build = comment_view_multiple(array($comment->cid => $comment), $node);
+  // If we're displaying the comments without links, remove them from the
+  // renderable array. There is no way to avoid building them in the first
+  // place (see comment_build_content()).
+  if (empty($options['links'])) {
+    foreach ($build as $cid => &$comment_build) {
+      if (isset($comment_build['links'])) {
+        unset($comment_build['links']);
+      }
+    }
+  }
+  $vars['comment'] = drupal_render($build);
 }
 
 /**

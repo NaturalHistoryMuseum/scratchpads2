@@ -81,7 +81,7 @@
 			}
 
 			if ($(e.target).is(":checkbox")) {
-				if ($menu.find(":checkbox[id^=columnpicker]:checked").length == 0) {
+				if ($menu.find(":checkbox:checked").length == 0) {
 					$(e.target).attr("checked","checked");
 					return;
 				}
