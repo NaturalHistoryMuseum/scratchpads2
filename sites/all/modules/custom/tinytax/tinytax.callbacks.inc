@@ -25,7 +25,12 @@ function tinytax_search_js($vocabulary, $tags_typed = ''){
     $terms = taxonomy_get_term_by_name($tag);
     foreach($terms as $term){
       if($term->vid == $vocabulary->vid){
-        $open_tids[] = $term->tid;
+        // Get the parents of this tid, and add them all to the open_tids array.
+        $parents = taxonomy_get_parents_all($term->tid);
+        array_shift($parents);
+        foreach($parents as $parent){
+          $open_tids[] = $parent->tid;
+        }
       }
     }
   }
