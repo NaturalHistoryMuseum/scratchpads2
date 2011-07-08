@@ -1,0 +1,353 @@
+# $Id: fr.po,v 1.1.2.1 2009/02/10 15:19:16 slybud Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  taxonomy_manager.admin.inc: n/a
+#  taxonomy_manager.module,v 1.5.2.17.2.10 2008/09/16 12:06:29 mh86
+#  taxonomy_manager.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: french translation for drupal taxonomy_manager module\n"
+"POT-Creation-Date: 2009-02-10 11:54+0100\n"
+"PO-Revision-Date: 2009-02-10 16:12+0100\n"
+"Last-Translator: Sylvain Moreau <sylvain.moreau@ows.fr>\n"
+"Language-Team: Sylvain Moreau, OWS <sylvain.moreau@ows.fr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Poedit-Language: French\n"
+
+#: taxonomy_manager.admin.inc:15
+msgid "No Vocabularies available"
+msgstr "Aucun Vocabulaire disponible"
+
+#: taxonomy_manager.admin.inc:17
+msgid "Vocabularies:"
+msgstr "Vocabulaires :"
+
+#: taxonomy_manager.admin.inc:50
+msgid "Taxonomy Manager - %voc_name"
+msgstr "Gestionnaire de Taxonomie - %voc_name"
+
+#: taxonomy_manager.admin.inc:53
+msgid "No vocabulary with this ID available!. "
+msgstr "Aucun vocabulaire avec cet ID disponible !"
+
+#: taxonomy_manager.admin.inc:54
+msgid "Check this !link_list for available vocabularies or !link_create a new one"
+msgstr "Consultez cette !link_list pour les vocabulaires disponibles, ou !link_create pour en créer un nouveau"
+
+#: taxonomy_manager.admin.inc:64
+msgid "No terms available"
+msgstr "Aucun terme disponible"
+
+#: taxonomy_manager.admin.inc:90
+msgid ""
+"You can search directly for exisiting terms. \n"
+"      If your input doesn't match an existing term, it will be used for filtering root level terms (useful for non-hierarchical vocabularies)."
+msgstr ""
+"Vous pouvez rechercher directement des termes existant. \n"
+"     Si votre saisie ne correspond à aucun terme existant, elle sera utilisée pour filtrer les termes du niveau racine (utile pour les vocabulaires non-hiérarchiques)."
+
+#: taxonomy_manager.admin.inc:96;114;747
+msgid "Search"
+msgstr "Recherche"
+
+#: taxonomy_manager.admin.inc:105
+msgid "Search String"
+msgstr "Chaîne de caractères pour la recherche"
+
+#: taxonomy_manager.admin.inc:120
+msgid "Toolbar"
+msgstr "Barre d'outils"
+
+#: taxonomy_manager.admin.inc:127
+msgid "Up"
+msgstr "Haut"
+
+#: taxonomy_manager.admin.inc:135
+msgid "Down"
+msgstr "Bas"
+
+#: taxonomy_manager.admin.inc:142;285;855
+msgid "Delete"
+msgstr "Supprimer"
+
+#: taxonomy_manager.admin.inc:156;346
+msgid "Add"
+msgstr "Ajouter"
+
+#: taxonomy_manager.admin.inc:162;469
+msgid "Move"
+msgstr "Déplacer"
+
+#: taxonomy_manager.admin.inc:170;408
+msgid "Merge"
+msgstr "Fusionner"
+
+#: taxonomy_manager.admin.inc:177;504
+msgid "CSV Export"
+msgstr "Export CSV"
+
+#: taxonomy_manager.admin.inc:215;582
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+#: taxonomy_manager.admin.inc:265
+msgid "Confirmation"
+msgstr "Confirmation"
+
+#: taxonomy_manager.admin.inc:268
+msgid "Are you sure you want to delete all selected terms? "
+msgstr "Etes-vous sûr(e) de vouloir supprimer tous les termes sélectionnés ?"
+
+#: taxonomy_manager.admin.inc:269
+msgid "Remember all term specific data will be lost. This action cannot be undone."
+msgstr "Rappelez-vous que toutes les données propre au terme seront perdues. Cette action n'est pas réversible."
+
+#: taxonomy_manager.admin.inc:274
+msgid "Delete children of selected terms, if there are any"
+msgstr "Supprimer les enfants des termes sélectionnés, s'ils existent"
+
+#: taxonomy_manager.admin.inc:279;401;462
+msgid "Options"
+msgstr "Options"
+
+#: taxonomy_manager.admin.inc:294;352;416;476;545;856
+msgid "Cancel"
+msgstr "Annuler"
+
+#: taxonomy_manager.admin.inc:315
+msgid "If you have selected one or more terms in the tree view, the new terms are automatically children of those."
+msgstr "Si vous avez sélectionné un ou plusieurs termes dans la vue en arbre, les nouveaux termes seront automatiquement leurs enfants. "
+
+#: taxonomy_manager.admin.inc:321
+msgid "Add new terms"
+msgstr "Ajouter de nouveaux termes"
+
+#: taxonomy_manager.admin.inc:333
+msgid "Mass term import (with textarea)"
+msgstr "Import de masse de termes (avec le champ texte) "
+
+#: taxonomy_manager.admin.inc:339
+msgid "Terms"
+msgstr "Termes"
+
+#: taxonomy_manager.admin.inc:340
+msgid "One term per line"
+msgstr "Un terme par ligne"
+
+#: taxonomy_manager.admin.inc:373
+msgid ""
+"The selected terms get merged into one term. \n"
+"    This resulting merged term can either be an exisiting term or a completely new term. \n"
+"    The selected terms will automatically get synomyms of the merged term and will be deleted afterwards."
+msgstr ""
+"Les termes sélectionnés sont fusionnés dans un seul terme. \n"
+"    Ce terme fusionné résultant peut soit être un terme existant, soit un terme entièrement nouveau.\n"
+"    Les termes sélectionnés obtiendront automatiquement les synonymes du terme fusionné et seront supprimes ensuite."
+
+#: taxonomy_manager.admin.inc:381
+msgid "Merging of terms"
+msgstr "Fusion de termes"
+
+#: taxonomy_manager.admin.inc:387
+msgid "Resulting merged term"
+msgstr "Terme fusionné résultant"
+
+#: taxonomy_manager.admin.inc:394
+msgid "Collect all parents of selected terms an add it to the merged term"
+msgstr "Collecter tous les parents des termes sélectionnés et les ajouter au terme fusionné"
+
+#: taxonomy_manager.admin.inc:395
+msgid "Collect all children of selected terms an add it to the merged term"
+msgstr "Collecter tous les enfants des termes sélectionnés et les ajouter au terme fusionné"
+
+#: taxonomy_manager.admin.inc:396
+msgid "Collect all relations of selected terms an add it to the merged term"
+msgstr "Collecter toutes les relations (parents/enfants) des termes sélectionnés et les ajouter au terme fusionné"
+
+#: taxonomy_manager.admin.inc:435
+msgid ""
+"You can change the parent of one or more selected terms. \n"
+"      If you leave the autocomplete field empty, the term will be a root term."
+msgstr ""
+"Vous pouvez modifier le parent de un ou plusieurs termes sélectionnés.\n"
+"      Si vous laissez vide le champ d'autocomplétion, le terme sera un terme racine."
+
+#: taxonomy_manager.admin.inc:442
+msgid "Moving of terms"
+msgstr "Déplacement de termes"
+
+#: taxonomy_manager.admin.inc:447
+msgid "Separate parent terms with a comma. "
+msgstr "Séparer les termes parents avec une virgule."
+
+#: taxonomy_manager.admin.inc:452
+msgid "Parent term(s)"
+msgstr "Terme(s) parent(s)"
+
+#: taxonomy_manager.admin.inc:459
+msgid "Keep old parents and add new ones (multi-parent). Otherwise old parents get replaced."
+msgstr "Conserver les anciens parents et en ajouter de nouveaux (multi-parent). Autrement, les anciens parents sont remplacés."
+
+#: taxonomy_manager.admin.inc:511
+msgid "Delimiter for CSV File"
+msgstr "Séparateur pour le fichier CSV"
+
+#: taxonomy_manager.admin.inc:516
+msgid "Whole Vocabulary"
+msgstr "Vocabulaire Complet"
+
+#: taxonomy_manager.admin.inc:517
+msgid "Child terms of a selected term"
+msgstr "Termes enfants pour un terme sélectionné"
+
+#: taxonomy_manager.admin.inc:518
+msgid "Root level terms only"
+msgstr "Termes du niveau racine seulement"
+
+#: taxonomy_manager.admin.inc:522
+msgid "Terms to export"
+msgstr "Termes à exporter"
+
+#: taxonomy_manager.admin.inc:531
+msgid "Exported CSV"
+msgstr "Fichier CSV exporté"
+
+#: taxonomy_manager.admin.inc:532
+msgid "The generated code will appear here (per AJAX). You can copy and paste the code into a .csv file. The csv has following columns: voc id | term id | term name | description | parent id 1 | ... | parent id n"
+msgstr "Le code généré apparaîtra ici (en AJAX). Vous pouvez le copier/coller dans un fichier .csv. Le csv possède les colonnes suivantes :  voc id | term id | term name | description | parent id 1 | ... | parent id n"
+
+#: taxonomy_manager.admin.inc:539
+msgid "Export now"
+msgstr "Exporter maintenant"
+
+#: taxonomy_manager.admin.inc:636
+msgid "Name"
+msgstr "Nom"
+
+#: taxonomy_manager.admin.inc:646
+msgid "Description"
+msgstr "Description"
+
+#: taxonomy_manager.admin.inc:652
+msgid "Synonyms"
+msgstr "Synonymes"
+
+#: taxonomy_manager.admin.inc:656
+msgid "Relations"
+msgstr "Relations"
+
+#: taxonomy_manager.admin.inc:662
+msgid "Parents"
+msgstr "Parents"
+
+#: taxonomy_manager.admin.inc:672
+msgid "Weight"
+msgstr "Poids"
+
+#: taxonomy_manager.admin.inc:675
+msgid "Go to the term page site"
+msgstr "Aller à la page du site du terme"
+
+#: taxonomy_manager.admin.inc:748
+msgid "Search field is empty"
+msgstr "Le champ de recherche est vide"
+
+#: taxonomy_manager.admin.inc:812
+msgid "No terms for deleting selected"
+msgstr "Aucun terme sélectionné pour la suppression"
+
+#: taxonomy_manager.admin.inc:849
+msgid "Deleting a term will delete all its children if there are any. "
+msgstr "La suppression d'un terme entraînera la suppression de tous ses enfants, s'ils existent."
+
+#: taxonomy_manager.admin.inc:850
+msgid "This action cannot be undone."
+msgstr "Cette action est irréversible."
+
+#: taxonomy_manager.admin.inc:852
+msgid "Are you sure you want to delete the following terms: "
+msgstr "Etes-vous sûr(e) de vouloir supprimer les termes suivants :"
+
+#: taxonomy_manager.admin.inc:879
+msgid "Please selected terms you want to move in the hierarchy"
+msgstr "Veuillez sélectionner les termes que vous souhaitez déplacer au sein de la hiérarchie"
+
+#: taxonomy_manager.admin.inc:921
+msgid "Please enter a name into %title"
+msgstr "Veuillez saisir un nom dans %title"
+
+#: taxonomy_manager.admin.inc:921;925
+msgid "Main term"
+msgstr "Terme principal"
+
+#: taxonomy_manager.admin.inc:925
+msgid "Please only enter single names into %title"
+msgstr "Veuillez saisir seulement des termes uniques dans %title"
+
+#: taxonomy_manager.admin.inc:930
+msgid "Please selected terms you want to merge"
+msgstr "Veuillez sélectionner les termes que vous souhaitez fusionner"
+
+#: taxonomy_manager.admin.inc:934
+msgid "Please select less than 50 terms to merge. Merging to many terms in one step can cause timeouts and inconsistent database states"
+msgstr "Veuillez sélectionner moins de 50 termes à fusionner. La fusion d'un trop grand nombre de termes en une seule fois peut entraîner des arrêts de script et des instabilités d'état de base de données."
+
+#: taxonomy_manager.admin.inc:963
+msgid "Disable mouse-over effect for terms (weights and direct link)"
+msgstr "Désactiver l'effet au survol de la souris pour les termes (poids et lien direct)"
+
+#: taxonomy_manager.admin.inc:965
+msgid "Disabeling this feature speeds up the Taxonomy Manager"
+msgstr "La désactivation de cette fonctionnalité accélère le Gestionnaire de Taxonomie"
+
+#: taxonomy_manager.admin.inc:969
+msgid "Pager count"
+msgstr "Compte de la pagination"
+
+#: taxonomy_manager.admin.inc:972
+msgid "Select how many terms should be listed on one page. Huge page counts can slow down the Taxonomy Manager"
+msgstr "Sélectionnez combien de termes doivent être listés sur une page. Un nombre important d'éléments par page peut ralentir le Gestionnaire de Taxonomie"
+
+#: taxonomy_manager.module:141
+msgid ""
+"The Taxonomy Manager provides an additional interface for managing vocabularies of the taxonomy module. It's especially very useful for long sets of terms. \n"
+"                   The vocabulary is represented in a dynamic tree view. \n"
+"                   It supports operation like mass adding and deleting of terms, fast weight editing, moving of terms in hierarchies, merging of terms and fast term data editing.\n"
+"                   For more information on how to use please read the readme file included in the taxonomy_manager directory."
+msgstr ""
+"Le Gestionnaire de Taxonomie fournit une interface supplémentaire pour administrer les vocabulaires du module taxonomy. Il est particulièrement utile pour les longues séries de termes.\n"
+"                     Le vocabulaire est representé sous forme de vue dynamique en arbre.\n"
+"                     Il supporte des opérations telles que l'ajout et la suppression en masse de termes, l'édition rapide des poids, le déplacement des termes au sein des hiérarchies, la fusion de termes, et l'édition rapide des données associées aux termes.\n"
+"                     Pour plus d'informations sur l'utilisation du module, veuillez lire le fichier readme inclus dans le répertoire taxonomy_manager."
+
+#: taxonomy_manager.module:733
+msgid "An illegal choice has been detected. Please contact the site administrator."
+msgstr "Un choix interdit a été détecté. Veuillez contacter l'administrateur du site."
+
+#: taxonomy_manager.module:21;70;79
+#: taxonomy_manager.info:0
+msgid "Taxonomy Manager"
+msgstr "Taxonomy Manager"
+
+#: taxonomy_manager.module:22
+msgid "Administer vocabularies with the Taxonomy Manager"
+msgstr "Administrer les vocabulaires avec le Gestionnaire de Taxonomie"
+
+#: taxonomy_manager.module:80
+msgid "Advanced settings for the Taxonomy Manager"
+msgstr "Paramètres avancés pour le Gestionnaire de Taxonomie"
+
+#: taxonomy_manager.module:0
+msgid "taxonomy_manager"
+msgstr "taxonomy_manager"
+
+#: taxonomy_manager.info:0
+msgid "Tool for administrating taxonomy terms."
+msgstr "Outil pour administrer les termes de taxonomie."
+
