@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Description of the tinytax.module file.
+ */
+/**
+ * Implementation of hook_theme().
+ */
+function tinytax_theme(){
+  return array(
+    'tinytax_block' => array(
+      'variables' => array(
+        'open_tids' => array(),
+        'vid' => FALSE,
+        'show_search_field' => TRUE
+      ),
+      'file' => 'tinytax.theme.inc'
+    ),
+    'tinytax_branch' => array(
+      'variables' => array(
+        'term_theme_function' => 'tinytax_term',
+        'open_tids' => array(),
+        'tid' => 0,
+        'vid' => FALSE
+      ),
+      'file' => 'tinytax.theme.inc'
+    ),
+    'tinytax_term' => array(
+      'variables' => array(
+        'term' => FALSE,
+        'open_tids' => array()
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function tinytax_menu(){
+  return array(
+    'tinytax/get/%taxonomy_term' => array(
+      'title' => 'Tinytax',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_js',
+      'page arguments' => array(
+        2
+      ),
+      'delivery callback' => 'ajax_deliver',
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    ),
+    'tinytax/search/%taxonomy_vocabulary/%' => array(
+      'title' => 'Tinytax',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_search_js',
+      'page arguments' => array(
+        2,3
+      ),
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'delivery callback' => 'ajax_deliver',
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    ),
+    'tinytax/autocomplete/%taxonomy_vocabulary' => array(
+      'title' => 'Tinytax autocomplete',
+      'title callback' => FALSE, // JSON callback, title not required.
+      'page callback' => 'tinytax_autocomplete',
+      'access arguments' => array(
+        'access content' // FIXME - Should this be a little more inteligent?
+      ),
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tinytax.callbacks.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_...
+ * 
+ * hook_block_view
+ * hook_block_save
+ * hook_block_info
+ * hook_block_configure
+ */
+/**
+ * hook_block_view().
+ */
+function tinytax_block_view($delta = ''){
+  // The delta should be set as the vid, we simply need to return the themed
+  // branch with tid 0.
+  $block = array();
+  $vocabulary = taxonomy_vocabulary_load($delta);
+  $open_tids = array();
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    $parents_all = taxonomy_get_parents_all(arg(2));
+    array_shift($parents_all);
+    foreach($parents_all as $parent){
+      $open_tids[] = $parent->tid;
+    }
+  }
+  if($vocabulary){
+    $block['subject'] = check_plain($vocabulary->name);
+    $block['content'] = theme('tinytax_block', array(
+      'vid' => $delta,
+      'open_tids' => $open_tids
+    ));
+  }
+  return $block;
+}
+
+/**
+ * hook_block_info().
+ */
+function tinytax_block_info(){
+  $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
+  $blocks = array();
+  foreach($vocabularies as $vocabulary){
+    $blocks[$vocabulary->vid] = array(
+      'info' => t('Tinytax block for "@vocabulary_name"', array(
+        '@vocabulary_name' => $vocabulary->name
+      )),
+      'cache' => DRUPAL_CACHE_PER_PAGE | DRUPAL_CACHE_PER_ROLE
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * hook_taxonomy_vocabulary_delete($vocabulary)
+ */
+function tinytax_taxonomy_vocabulary_delete($vocabulary){
+  db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
+}
+
+/**
+ * hook_taxonomy_vocabulary_insert($vocabulary)
+ */
+function tinytax_taxonomy_vocabulary_insert($vocabulary){
+  module_load_include('admin.inc', 'block');
+  block_admin_display();
+  $theme = variable_get('theme_default', 'garland');
+  $region = system_default_region($theme);
+  db_update('block')->fields(array(
+    'status' => 1,
+    'region' => $region,
+    'weight' => -100,
+    'theme' => $theme
+  ))->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
+}
+
+/**
+ * hook_block_configure().
+ */
+function tinytax_block_configure($delta){
+  // FIXME: Add options.  These have been removed, and may be added back.
+}
+
+/**
+ * hook_block_save().
+ */
+function tinytax_block_save($delta){
+  // FIXME: Save the options set above.
+}
