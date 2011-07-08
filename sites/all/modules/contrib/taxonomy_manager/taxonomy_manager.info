@@ -1,0 +1,13 @@
+; $Id$
+name = Taxonomy Manager
+description = Tool for administrating taxonomy terms.
+core = "7.x"
+dependencies[] = taxonomy
+files[] = taxonomy_manager.admin.inc
+package = Taxonomy
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "taxonomy_manager"
+datestamp = "1295461608"
+
