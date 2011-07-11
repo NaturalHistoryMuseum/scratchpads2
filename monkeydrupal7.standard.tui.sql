@@ -1,3 +1,5 @@
+DROP DATABASE monkeydrupal7; CREATE DATABASE monkeydrupal7; USE monkeydrupal7;
+
 -- MySQL dump 10.13  Distrib 5.1.54, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: monkeydrupal7
