@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * Test cases for the xpath query parser.
+ */
+class FeedsXPathQueryParserTestCase extends DrupalWebTestCase {
+  /**
+   * Describe this test.
+   */
+  public function getInfo() {
+    return array(
+      'name' => t('XPath Parser: Query Parser'),
+      'description' => t('Unit tests for the query parser inside Feeds XPath Parser.'),
+      'group' => t('Feeds'),
+    );
+  }
+
+  /**
+   * Set up.
+   */
+  public function setUp() {
+    parent::setUp();
+    // Load the files necessary instead of enabling the modules.
+    module_load_include('inc', 'feeds', 'includes/FeedsConfigurable');
+    module_load_include('inc', 'feeds', 'includes/FeedsSource');
+    module_load_include('inc', 'feeds', 'plugins/FeedsPlugin');
+    module_load_include('inc', 'feeds', 'plugins/FeedsParser');
+    module_load_include('inc', 'feeds_xpathparser', 'FeedsXPathParser');
+  }
+
+  function testSimple() {
+    $parser = new FeedsXPathQueryParser('cow');
+    $this->assertEqual($parser->getQuery(), '__default__:cow');
+    $parser = new FeedsXPathQueryParser('/cow');
+    $this->assertEqual($parser->getQuery(), '/__default__:cow');
+    $parser = new FeedsXPathQueryParser('/cow/barn');
+    $this->assertEqual($parser->getQuery(), '/__default__:cow/__default__:barn');
+    $parser = new FeedsXPathQueryParser('/cow/barn[@id = "asdfsaf"]');
+    $this->assertEqual($parser->getQuery(), '/__default__:cow/__default__:barn[@id = "asdfsaf"]');
+    $parser = new FeedsXPathQueryParser('/cow/barn[@id=chair]');
+    $this->assertEqual($parser->getQuery(), '/__default__:cow/__default__:barn[@id=__default__:chair]');
+    $parser = new FeedsXPathQueryParser('/cow:asdf');
+    $this->assertEqual($parser->getQuery(), '/cow:asdf');
+    $parser = new FeedsXPathQueryParser('@cow');
+    $this->assertEqual($parser->getQuery(), '@cow');
+    $parser = new FeedsXPathQueryParser('starts-with(@id, "cat")');
+    $this->assertEqual($parser->getQuery(), 'starts-with(@id, "cat")');
+    $parser = new FeedsXPathQueryParser('starts-with(cat/dog/fire:breather, "cat")');
+    $this->assertEqual($parser->getQuery(), 'starts-with(__default__:cat/__default__:dog/fire:breather, "cat")');
+    $parser = new FeedsXPathQueryParser('//state[@id = ../city[name="CityName"]/state_id]/name');
+    $this->assertEqual($parser->getQuery(), '//__default__:state[@id = ../__default__:city[__default__:name="CityName"]/__default__:state_id]/__default__:name');
+    $parser = new FeedsXPathQueryParser('attribute::lang');
+    $this->assertEqual($parser->getQuery(), 'attribute::lang');
+    $parser = new FeedsXPathQueryParser('child::book');
+    $this->assertEqual($parser->getQuery(), 'child::__default__:book');
+    $parser = new FeedsXPathQueryParser('child::*');
+    $this->assertEqual($parser->getQuery(), 'child::*');
+    $parser = new FeedsXPathQueryParser('child::text()');
+    $this->assertEqual($parser->getQuery(), 'child::text()');
+    $parser = new FeedsXPathQueryParser('ancestor-or-self::book');
+    $this->assertEqual($parser->getQuery(), 'ancestor-or-self::__default__:book');
+    $parser = new FeedsXPathQueryParser('child::*/child::price');
+    $this->assertEqual($parser->getQuery(), 'child::*/child::__default__:price');
+    $parser = new FeedsXPathQueryParser("/asdfasfd[@id = 'a' or @id='b']");
+    $this->assertEqual($parser->getQuery(), "/__default__:asdfasfd[@id = 'a' or @id='b']");
+    // Go! difficult xpath queries from stack overflow.
+    $parser = new FeedsXPathQueryParser("id('yui-gen2')/x:div[3]/x:div/x:a[1]");
+    $this->assertEqual($parser->getQuery(), "id('yui-gen2')/x:div[3]/x:div/x:a[1]");
+    $parser = new FeedsXPathQueryParser("/descendant::a[@class='buttonCheckout']");
+    $this->assertEqual($parser->getQuery(), "/descendant::__default__:a[@class='buttonCheckout']");
+    $parser = new FeedsXPathQueryParser("//a[@href='javascript:void(0)']");
+    $this->assertEqual($parser->getQuery(), "//__default__:a[@href='javascript:void(0)']");
+    $parser = new FeedsXPathQueryParser('//*/@attribute');
+    $this->assertEqual($parser->getQuery(), '//*/@attribute');
+    $parser = new FeedsXPathQueryParser('/descendant::*[attribute::attribute]');
+    $this->assertEqual($parser->getQuery(), '/descendant::*[attribute::attribute]');
+    $parser = new FeedsXPathQueryParser('//Event[not(System/Level = preceding::Level) or not(System/Task = preceding::Task)]');
+    $this->assertEqual($parser->getQuery(), '//__default__:Event[not(__default__:System/__default__:Level = preceding::__default__:Level) or not(__default__:System/__default__:Task = preceding::__default__:Task)]');
+    $parser = new FeedsXPathQueryParser("section[@type='cover']/line/@page");
+    $this->assertEqual($parser->getQuery(), "__default__:section[@type='cover']/__default__:line/@page");
+    $parser = new FeedsXPathQueryParser('/articles/article/*[name()="title" or name()="short"]');
+    $this->assertEqual($parser->getQuery(), '/__default__:articles/__default__:article/*[name()="title" or name()="short"]');
+    $parser = new FeedsXPathQueryParser("/*/article[@id='2']/*[self::title or self::short]");
+    $this->assertEqual($parser->getQuery(), "/*/__default__:article[@id='2']/*[self::__default__:title or self::__default__:short]");
+    $parser = new FeedsXPathQueryParser('not(/asdfasfd/asdfasf//asdfasdf) | /asdfasf/sadfasf/@asdf');
+    $this->assertEqual($parser->getQuery(), 'not(/__default__:asdfasfd/__default__:asdfasf//__default__:asdfasdf) | /__default__:asdfasf/__default__:sadfasf/@asdf');
+  }
+}
