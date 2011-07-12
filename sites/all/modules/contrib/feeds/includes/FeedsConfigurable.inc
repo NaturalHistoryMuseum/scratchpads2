@@ -46,7 +46,7 @@ abstract class FeedsConfigurable {
   /**
    * Instantiate a FeedsConfigurable object.
    *
-   * Don't use directly, use feeds_importer() or feeds_plugin()
+   * Don't use directly, use feeds_importer() or feeds_plugin_instance()
    * instead.
    */
   public static function instance($class, $id) {
@@ -136,17 +136,14 @@ abstract class FeedsConfigurable {
     if ($name == 'config') {
       return $this->getConfig();
     }
-    return isset($this->$name) ? $this->$name : NULL;
+    return $this->{$name};
   }
 
   /**
-   * Implements getConfig().
-   *
-   * Return configuration array, ensure that all default values are present.
+   * Implementation of getConfig().
    */
   public function getConfig() {
-    $defaults = $this->configDefaults();
-    return $this->config + $defaults;
+    return $this->config;
   }
 
   /**
@@ -207,12 +204,14 @@ abstract class FeedsConfigurable {
  *   The form method that should be rendered.
  *
  * @return
- *   Config form array if available. NULL otherwise.
+ *   Rendered config form, if available. Empty string otherwise.
  */
 function feeds_get_form($configurable, $form_method) {
+  $form_state = array();
   if (method_exists($configurable, $form_method)) {
-    return drupal_get_form(get_class($configurable) . '_feeds_form', $configurable, $form_method);
+    return drupal_get_form(get_class($configurable) .'_feeds_form', $configurable, $form_method);
   }
+  return '';
 }
 
 /**
@@ -228,7 +227,7 @@ function feeds_get_form($configurable, $form_method) {
  * @param $form_method
  *   The $form_method that should be rendered.
  */
-function feeds_form($form, &$form_state, $configurable, $form_method) {
+function feeds_form(&$form_state, $configurable, $form_method) {
   $form = $configurable->$form_method($form_state);
   $form['#configurable'] = $configurable;
   $form['#feeds_form_method'] = $form_method;
@@ -246,7 +245,7 @@ function feeds_form($form, &$form_state, $configurable, $form_method) {
  * Validation handler for feeds_form().
  */
 function feeds_form_validate($form, &$form_state) {
-  $validate_method = $form['#feeds_form_method'] . 'Validate';
+  $validate_method = $form['#feeds_form_method'] .'Validate';
   if (method_exists($form['#configurable'], $validate_method)) {
     $form['#configurable']->$validate_method($form_state['values']);
   }
@@ -256,7 +255,7 @@ function feeds_form_validate($form, &$form_state) {
  * Submit handler for feeds_config_form().
  */
 function feeds_form_submit($form, &$form_state) {
-  $submit_method = $form['#feeds_form_method'] . 'Submit';
+  $submit_method = $form['#feeds_form_method'] .'Submit';
   if (method_exists($form['#configurable'], $submit_method)) {
     $form['#configurable']->$submit_method($form_state['values']);
   }

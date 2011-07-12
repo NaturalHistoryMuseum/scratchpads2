@@ -2,76 +2,85 @@
 
 /**
  * @file
- * On behalf implementation of Feeds mapping API for link.module.
+ * On behalf implementation of Feeds mapping API for link.module (CCK).
  */
 
 /**
- * Implements hook_feeds_processor_targets_alter().
- *
- * @see FeedsNodeProcessor::getMappingTargets().
+ * Implementation of hook_feeds_node_processor_targets_alter().
  */
-function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
-  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
-    $info = field_info_field($name);
-    if ($info['type'] == 'link_field') {
-      if (array_key_exists('url', $info['columns'])) {
-        $targets[$name . ':url'] = array(
-          'name' => t('@name URL', array('@name' => $instance['label'])),
+function link_feeds_node_processor_targets_alter(&$targets, $content_type) {
+  $info = content_types($content_type);
+
+  $fields = array();
+  if (isset($info['fields']) && count($info['fields'])) {
+    foreach ($info['fields'] as $field_name => $field) {
+
+      if (in_array($field['type'], array('link'))) {
+        $name = isset($field['widget']['label']) ? $field['widget']['label'] : $field_name;
+        $targets[$field_name .':url'] = array(
+          'name' => t('@field_name (URL)', array('@field_name' => $name)),
           'callback' => 'link_feeds_set_target',
-          'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
+          'description' => t('The URL for the CCK @name field of the node.', array('@name' => $name)),
+          'real_target' => $field_name,
         );
-      }
-      if (array_key_exists('title', $info['columns'])) {
-        $targets[$name . ':title'] = array(
-          'name' => t('@name Title', array('@name' => $instance['label'])),
-          'callback' => 'link_feeds_set_target',
-          'description' => t('The @label field of the node.', array('@label' => $instance['label'])),
-        );
+
+        //Provides a mapping target for the field title if used.
+        if (in_array($field['title'], array('optional', 'required'))) {
+          $targets[$field_name .':title'] = array(
+            'name' => t('@name (title)', array('@name' => $name)),
+            'callback' => 'link_feeds_set_target',
+            'description' => t('The title for the CCK @name field of the node.', array('@name' => $name)),
+            'real_target' => $field_name,
+          );
+        }
       }
     }
   }
 }
 
 /**
- * Callback for mapping. Here is where the actual mapping happens.
+ * Callback for mapping to link field.
  *
- * When the callback is invoked, $target contains the name of the field the
- * user has decided to map to and $value contains the value of the feed item
- * element the user has picked as a source.
+ * @param $node
+ *   Reference to the node object we are working on.
+ * @param $target
+ *   The selected link CCK field.
+ * @param $value
+ *   The value to assign to the CCK field.
  */
-function link_feeds_set_target($source, $entity, $target, $value) {
-  if (empty($value)) {
-    return;
-  }
+function link_feeds_set_target($node, $target, $value) {
+  module_load_include('inc', 'link');
+  if (!empty($value)) {
+    static $defaults = array();
+    list($field_name, $sub_field) = explode(':', $target);
 
-  // Handle non-multiple value fields.
-  if (!is_array($value)) {
-    $value = array($value);
-  }
-
-  // Iterate over all values.
-  $i = 0;
-  $info = field_info_field($target);
-  list($field_name, $sub_field) = explode(':', $target);
-  foreach ($value as $v) {
-    if (!is_array($v) && !is_object($v)) {
-      if (strstr($target, 'url')) {
-        if (isset($entity->{$field_name}['und'][$i]['title'])) {
-          $field['und'][$i]['title'] = $entity->{$field_name}['und'][$i]['title'];
-        }
-        $field['und'][$i]['url'] = $v;
-      }
-      elseif (strstr($target, 'title')) {
-        if (isset($entity->{$field_name}['und'][$i]['url'])) {
-          $field['und'][$i]['url'] = $entity->{$field_name}['und'][$i]['url'];
-        }
-        $field['und'][$i]['title'] = $v;
+    if (!isset($defaults[$node->type][$field_name])) {
+      $field = content_fields($field_name, $node->type);
+      $defaults[$node->type][$field_name]['attributes'] = $field['attributes'];
+      if (!in_array($field['title'], array('optional', 'required', 'none'))) {
+        $defaults[$node->type][$field_name]['title'] = $field['title_value'];
       }
     }
-    if ($info['cardinality'] == 1) {
-      break;
+    $field_data = isset($node->$field_name) ? $node->$field_name : array();
+
+    if (!is_array($value)) {
+      $value = array($value);
     }
-    $i++;
+
+    $i = 0;
+    foreach ($value as $v) {
+      if ($v instanceof FeedsEnclosure) {
+        $v = $v->getValue();
+      }
+      if (!isset($field_data[$i])) {
+        $field_data[$i] = $defaults[$node->type][$field_name];
+      }
+      if ($sub_field != 'url' || (($v = link_cleanup_url($v)) && valid_url($v, TRUE))) {
+        $field_data[$i][$sub_field] = $v;
+      }
+      $i++;
+    }
+
+    $node->$field_name = $field_data;
   }
-  $entity->{$field_name} = $field;
 }

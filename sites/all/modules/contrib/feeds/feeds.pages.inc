@@ -15,16 +15,16 @@ function feeds_page() {
       if ($importer->disabled) {
         continue;
       }
-      if (!(user_access('import ' . $importer->id . ' feeds') || user_access('administer feeds'))) {
+      if (!(user_access('import '. $importer->id .' feeds') || user_access('administer feeds'))) {
         continue;
       }
       if (empty($importer->config['content_type'])) {
-        $link = 'import/' . $importer->id;
+        $link = 'import/'. $importer->id;
         $title = $importer->config['name'];
       }
       elseif (node_access('create', $importer->config['content_type'])) {
-        $link = 'node/add/' . str_replace('_', '-', $importer->config['content_type']);
-        $title = node_type_get_name($importer->config['content_type']);
+        $link = 'node/add/'. str_replace('_', '-', $importer->config['content_type']);
+        $title = node_get_types('name', $importer->config['content_type']);
       }
       else {
         continue;
@@ -36,34 +36,27 @@ function feeds_page() {
     }
   }
   if (empty($rows)) {
-    drupal_set_message(t('There are no importers, go to <a href="@importers">Feed importers</a> to create one or enable an existing one.', array('@importers' => url('admin/structure/feeds'))));
+    drupal_set_message(t('There are no importers, go to <a href="@importers">Feed importers</a> to create one or enable an existing one.', array('@importers' => url('admin/build/feeds'))));
   }
   $header = array(
     t('Import'),
     t('Description'),
   );
-  return theme('table', array('header' => $header, 'rows' => $rows));
+  return theme('table', $header, $rows);
 }
 
 /**
  * Render a feeds import form on import/[config] pages.
  */
-function feeds_import_form($form, &$form_state, $importer_id) {
+function feeds_import_form(&$form_state, $importer_id) {
   $source = feeds_source($importer_id, empty($form['nid']['#value']) ? 0 : $form['nid']['#value']);
 
   $form = array();
   $form['#importer_id'] = $importer_id;
   // @todo Move this into fetcher?
   $form['#attributes']['enctype'] = 'multipart/form-data';
-  $form['source_status'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Status'),
-    '#tree' => TRUE,
-    '#value' => feeds_source_status($source),
-  );
   $form['feeds'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Import'),
     '#tree' => TRUE,
   );
   $form['feeds'] += $source->configForm($form_state);
@@ -71,12 +64,6 @@ function feeds_import_form($form, &$form_state, $importer_id) {
     '#type' => 'submit',
     '#value' => t('Import'),
   );
-  $progress = $source->progressImporting();
-  if ($progress !== FEEDS_BATCH_COMPLETE) {
-    $form['submit']['#disabled'] = TRUE;
-    $form['submit']['#value'] =
-      t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
-  }
   return $form;
 }
 
@@ -100,7 +87,7 @@ function feeds_import_form_submit($form, &$form_state) {
 
   // Refresh feed if import on create is selected.
   if ($source->importer->config['import_on_create']) {
-    $source->startImport();
+    feeds_batch_set(t('Importing'), 'import', $form['#importer_id']);
   }
 
   // Add to schedule, make sure importer is scheduled, too.
@@ -111,28 +98,14 @@ function feeds_import_form_submit($form, &$form_state) {
 /**
  * Render a feeds import form on node/id/import pages.
  */
-function feeds_import_tab_form($form, &$form_state, $node) {
+function feeds_import_tab_form(&$form_state, $node) {
   $importer_id = feeds_get_importer_id($node->type);
-  $source = feeds_source($importer_id, $node->nid);
 
   $form = array();
   $form['#feed_nid'] = $node->nid;
   $form['#importer_id'] = $importer_id;
-  $form['#redirect'] = 'node/' . $node->nid;
-  $form['source_status'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Status'),
-    '#tree' => TRUE,
-    '#value' => feeds_source_status($source),
-  );
-  $form = confirm_form($form, t('Import all content from source?'), 'node/' . $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
-  $progress = $source->progressImporting();
-  if ($progress !== FEEDS_BATCH_COMPLETE) {
-    $form['actions']['submit']['#disabled'] = TRUE;
-    $form['actions']['submit']['#value'] =
-      t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
-  }
-  return $form;
+  $form['#redirect'] = 'node/'. $node->nid;
+  return confirm_form($form, t('Import all content from feed?'), 'node/'. $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -140,7 +113,7 @@ function feeds_import_tab_form($form, &$form_state, $node) {
  */
 function feeds_import_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
-  feeds_source($form['#importer_id'], $form['#feed_nid'])->startImport();
+  feeds_batch_set(t('Importing'), 'import', $form['#importer_id'], $form['#feed_nid']);
 }
 
 /**
@@ -149,33 +122,18 @@ function feeds_import_tab_form_submit($form, &$form_state) {
  * Used on both node pages and configuration pages.
  * Therefore $node may be missing.
  */
-function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) {
+function feeds_delete_tab_form(&$form_state, $importer_id, $node = NULL) {
   if (empty($node)) {
-    $source = feeds_source($importer_id);
-    $form['#redirect'] = 'import/' . $source->id;
+    $form['#redirect'] = 'import/'. $importer_id;
   }
   else {
     $importer_id = feeds_get_importer_id($node->type);
-    $source = feeds_source($importer_id, $node->nid);
-    $form['#redirect'] = 'node/' . $source->feed_nid;
+    $form['#feed_nid'] = $node->nid;
+    $form['#redirect'] = 'node/'. $node->nid;
   }
-  // Form cannot pass on source object.
-  $form['#importer_id'] = $source->id;
-  $form['#feed_nid'] = $source->feed_nid;
-  $form['source_status'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Status'),
-    '#tree' => TRUE,
-    '#value' => feeds_source_status($source),
-  );
-  $form = confirm_form($form, t('Delete all items from source?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
-  $progress = $source->progressClearing();
-  if ($progress !== FEEDS_BATCH_COMPLETE) {
-    $form['actions']['submit']['#disabled'] = TRUE;
-    $form['actions']['submit']['#value'] =
-      t('Deleting (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
-  }
-  return $form;
+  // Form cannot pass on feed object.
+  $form['#importer_id'] = $importer_id;
+  return confirm_form($form, t('Delete all items from feed?'), $form['#redirect'], '', t('Delete'), t('Cancel'), 'confirm feeds update');
 }
 
 /**
@@ -184,7 +142,7 @@ function feeds_delete_tab_form($form, &$form_state, $importer_id, $node = NULL) 
 function feeds_delete_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
   $feed_nid = empty($form['#feed_nid']) ? 0 : $form['#feed_nid'];
-  feeds_source($form['#importer_id'], $feed_nid)->startClear();
+  feeds_batch_set(t('Deleting'), 'clear', $form['#importer_id'], $feed_nid);
 }
 
 /**
@@ -203,95 +161,30 @@ function feeds_fetcher_callback($importer, $feed_nid = 0) {
 }
 
 /**
- * Template generation
- */
-function feeds_importer_template($importer_id) {
-  $importer = feeds_importer($importer_id);
-  if ($importer->parser instanceof FeedsCSVParser) {
-    return $importer->parser->getTemplate();
-  }
-  return drupal_not_found();
-}
-
-/**
- * Renders a status display for a source.
- */
-function feeds_source_status($source) {
-  $progress_importing = $source->progressImporting();
-  $v = array();
-  if ($progress_importing != FEEDS_BATCH_COMPLETE) {
-    $v['progress_importing'] = $progress_importing;
-  }
-  $progress_clearing = $source->progressClearing();
-  if ($progress_clearing != FEEDS_BATCH_COMPLETE) {
-    $v['progress_clearing'] = $progress_clearing;
-  }
-  $v['imported'] = $source->imported;
-  $v['count'] = $source->itemCount();
-  if (!empty($v)) {
-    return theme('feeds_source_status', $v);
-  }
-}
-
-/**
- * Themes a status display for a source.
- */
-function theme_feeds_source_status($v) {
-  $output = '<div class="info-box feeds-source-status">';
-  $items = array();
-  if ($v['progress_importing']) {
-    $progress = number_format(100.0 * $v['progress_importing'], 0);
-    $items[] = t('Importing - @progress % complete.', array('@progress' => $progress));
-  }
-  if ($v['progress_clearing']) {
-    $progress = number_format(100.0 * $v['progress_clearing'], 0);
-    $items[] = t('Deleting items - @progress % complete.', array('@progress' => $progress));
-  }
-  if (!count($items)) {
-    if ($v['count']) {
-      if ($v['imported']) {
-        $items[] = t('Last import: @ago ago.', array('@ago' => format_interval(REQUEST_TIME - $v['imported'], 1)));
-      }
-      $items[] = t('@count imported items total.', array('@count' => $v['count']));
-    }
-    else {
-      $items[] = t('No imported items.');
-    }
-  }
-  $output .= theme('item_list', array('items' => $items));
-  $output .= '</div>';
-  return $output;
-}
-
-/**
  * Theme upload widget.
  */
-function theme_feeds_upload($variables) {
-  $element = $variables['element'];
-  drupal_add_css(drupal_get_path('module', 'feeds') . '/feeds.css');
+function theme_feeds_upload($element) {
+  drupal_add_css(drupal_get_path('module', 'feeds') .'/feeds.css');
   _form_set_class($element, array('form-file'));
-  $description = '';
+  $output = '';
   if (!empty($element['#file_info'])) {
-    $file = $element['#file_info'];
-    $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
-    $description .= '<div class="file-info">';
-    $description .= '<div class="file-name">';
-    $description .= l($file->filename, $wrapper->getExternalUrl());
-    $description .= '</div>';
-    $description .= '<div class="file-size">';
-    $description .= format_size($file->filesize);
-    $description .= '</div>';
-    $description .= '<div class="file-mime">';
-    $description .= check_plain($file->filemime);
-    $description .= '</div>';
-    $description .= '</div>';
+    $info = $element['#file_info'];
+    $output .= '<div class="file-info">';
+    $output .= '<div class="file-name">';
+    $output .= l(basename($info['path']), $info['path']);
+    $output .= '</div>';
+    $output .= '<div class="file-size">';
+    $output .= format_size($info['size']);
+    $output .= '</div>';
+    if (isset($info['mime'])) {
+      $output .= '<div class="file-mime">';
+      $output .= check_plain($info['mime']);
+      $output .= '</div>';
+    }
+    $output .= '</div>';
   }
-  $description .= '<div class="file-upload">';
-  $description .= '<input type="file" name="' . $element['#name'] . '"' . ($element['#attributes'] ? ' ' . drupal_attributes($element['#attributes']) : '') . ' id="' . $element['#id'] . '" size="' . $element['#size'] . "\" />\n";
-  $description .= '</div>';
-  $element['#description'] = $description;
-
-  // For some reason not unsetting #title leads to printing the title twice.
-  unset($element['#title']);
-  return theme('form_element', $element);
+  $output .= '<div class="file-upload">';
+  $output .= '<input type="file" name="'. $element['#name'] .'"'. ($element['#attributes'] ? ' '. drupal_attributes($element['#attributes']) : '') .' id="'. $element['#id'] .'" size="'. $element['#size'] ."\" />\n";
+  $output .= '</div>';
+  return theme('form_element', $element, $output);
 }

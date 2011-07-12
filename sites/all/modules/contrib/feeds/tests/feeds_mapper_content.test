@@ -1,0 +1,94 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds_mapper');
+
+/**
+ * @file
+ * Test case for simple CCK field mapper mappers/content.inc.
+ */
+
+/**
+ * Class for testing Feeds <em>content</em> mapper.
+ */
+class FeedsMapperContentTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Content',
+      'description' => 'Test Feeds Mapper support for CCK fields.',
+      'group' => 'Feeds',
+      'dependencies' => array('content'),
+    );
+  }
+
+  function setUp() {
+    // Call parent setup with required modules.
+    parent::setUp(array('content', 'number', 'text'));
+  }
+
+  /**
+   * Basic test loading a doulbe entry CSV file.
+   */
+  function test() {
+
+    // Create content type.
+    $typename = $this->createContentType(array(), array(
+      'alpha' => 'text',
+      'beta' => 'number_integer',
+      'gamma' => 'number_decimal',
+      'delta' => 'number_float',
+    ));
+
+    // Create and configure importer.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setSettings('csv', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER));
+    $this->setPlugin('csv', 'FeedsFileFetcher');
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('content_type' => $typename));
+    $this->addMappings('csv', array(
+      array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      array(
+        'source' => 'created',
+        'target' => 'created',
+      ),
+      array(
+        'source' => 'body',
+        'target' => 'body',
+      ),
+      array(
+        'source' => 'alpha',
+        'target' => 'field_alpha',
+      ),
+      array(
+        'source' => 'beta',
+        'target' => 'field_beta',
+      ),
+      array(
+        'source' => 'gamma',
+        'target' => 'field_gamma',
+      ),
+      array(
+        'source' => 'delta',
+        'target' => 'field_delta',
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('csv', $this->absolutePath() .'/tests/feeds/content.csv');
+    $this->assertText('Created 2 '. $typename .' nodes.');
+
+    // Check the two imported files.
+    $this->drupalGet('node/1/edit');
+    $this->assertCCKFieldValue('alpha', 'Lorem');
+    $this->assertCCKFieldValue('beta', '42');
+    $this->assertCCKFieldValue('gamma', '4.20');
+    $this->assertCCKFieldValue('delta', '3.14159');
+
+    $this->drupalGet('node/2/edit');
+    $this->assertCCKFieldValue('alpha', 'Ut wisi');
+    $this->assertCCKFieldValue('beta', '32');
+    $this->assertCCKFieldValue('gamma', '1.20');
+    $this->assertCCKFieldValue('delta', '5.62951');
+  }
+}

@@ -1,0 +1,121 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds_mapper');
+
+/**
+ * @file
+ * Test case for OG mapper mappers/og.inc.
+ */
+
+/**
+ * Class for testing Feeds <em>locale</em> mapper.
+ */
+class FeedsMapperOGTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Organic Groups',
+      'description' => 'Test Feeds Mapper support for Organic Groups (Language).',
+      'group' => 'Feeds',
+      'dependencies' => array('og'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('og'), array('administer organic groups'));
+
+    // Add and configure a group content type, configure story, page type.
+    $edit = array(
+      'name' => 'Group',
+      'type' => 'group',
+      'og_content_type_usage' => 'group',
+    );
+    $this->drupalPost('admin/content/types/add', $edit, t('Save content type'));
+    $edit = array(
+      'og_content_type_usage' => 'group_post_standard',
+    );
+    foreach (array('story', 'page') as $type) {
+      $this->drupalPost("admin/content/node-type/$type", $edit, t('Save content type'));
+    }
+
+    // Create an importer configuration with basic mapping.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->addMappings('syndication',
+      array(
+        array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'description',
+          'target' => 'body',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'timestamp',
+          'target' => 'created',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'url',
+          'target' => 'url',
+          'unique' => TRUE,
+        ),
+        array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+      )
+    );
+  }
+
+  /**
+   * Test inheriting groups from the feed node.
+   */
+  function testInheritOG() {
+    // Map feed node's group to feed item node's language.
+    $this->addMappings('syndication',
+      array(
+        array(
+          'source' => 'parent:og_groups',
+          'target' => 'og_groups',
+        ),
+      )
+    );
+
+    // Create a group node.
+    $edit = array(
+      'title' => 'Group A',
+      'og_description' => 'Test group.',
+    );
+    $this->drupalPost('node/add/group', $edit, 'Save');
+    $group_nid = $this->getNid($this->getUrl());
+
+    // Create a feed node, add to group created above.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
+      'og_groups[1]' => TRUE,
+    );
+    $this->drupalPost('node/add/page', $edit, 'Save');
+
+    // Count number of items for this group, should be 11.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = %d", $group_nid));
+    $this->assertEqual(11, $count, 'Found correct number of nodes in group.');
+
+    // Make page (= feed content type) itself a group content type, test again.
+    $edit = array(
+      'og_content_type_usage' => 'group',
+    );
+    $this->drupalPost('admin/content/node-type/page', $edit, 'Save content type');
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/developmentseed.rss2',
+      'og_description' => 'This is a feed node that is an organic group at the same time.',
+    );
+    $this->drupalPost('node/add/page', $edit, 'Save');
+    $group_nid = $this->getNid($this->getUrl());
+
+    // Count number of items for this group, should be 10.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {og_ancestry} WHERE group_nid = %d", $group_nid));
+    $this->assertEqual(10, $count, 'Found correct number of nodes in group.');
+  }
+}

@@ -1,0 +1,98 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds_mapper');
+
+/**
+ * @file
+ * Test case for locale (language) mapper mappers/locale.inc.
+ */
+
+/**
+ * Class for testing Feeds <em>locale</em> mapper.
+ */
+class FeedsMapperLocaleTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Locale',
+      'description' => 'Test Feeds Mapper support for Locale (Language).',
+      'group' => 'Feeds',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('locale'), array('administer languages'));
+
+    // Add an additional language and enable it for page and story.
+    $edit = array(
+      'langcode' => 'zh-hans',
+    );
+    $this->drupalPost('admin/settings/language/add', $edit, t('Add language'));
+    $this->assertText('The language Chinese, Simplified has been created and can now be used.');
+    $edit = array(
+      'language_content_type' => TRUE,
+    );
+    foreach (array('story', 'page') as $type) {
+      $this->drupalPost("admin/content/node-type/$type", $edit, t('Save content type'));
+    }
+
+    // Create an importer configuration with basic mapping.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->addMappings('syndication',
+      array(
+        array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'description',
+          'target' => 'body',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'timestamp',
+          'target' => 'created',
+          'unique' => FALSE,
+        ),
+        array(
+          'source' => 'url',
+          'target' => 'url',
+          'unique' => TRUE,
+        ),
+        array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+      )
+    );
+  }
+
+  /**
+   * Test inheriting language from the feed node.
+   */
+  function testInheritLanguage() {
+    // Map feed node's language to feed item node's language.
+    $this->addMappings('syndication',
+      array(
+        array(
+          'source' => 'parent:language',
+          'target' => 'language',
+        ),
+      )
+    );
+    // Turn off import on create, create feed node, add language, import.
+    $edit = array(
+      'import_on_create' => FALSE,
+    );
+    $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
+    $this->assertText('Do not import on create');
+    $nid = $this->createFeedNode();
+    $edit = array(
+      'language' => 'zh-hans',
+    );
+    $this->drupalPost("node/$nid/edit", $edit, t('Save'));
+    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
+    $count = db_result(db_query("SELECT COUNT(*) FROM {node} WHERE language = 'zh-hans'", $nid));
+    $this->assertEqual(11, $count, 'Found correct number of nodes.');
+  }
+}

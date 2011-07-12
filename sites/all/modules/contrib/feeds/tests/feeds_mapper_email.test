@@ -1,0 +1,79 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds_mapper');
+
+/**
+ * @file
+ * Test case for simple CCK field mapper mappers/email.inc.
+ */
+
+/**
+ * Class for testing Feeds <em>email</em> mapper.
+ */
+class FeedsMapperEmailTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Email',
+      'description' => 'Test Feeds Mapper support for Email CCK fields.',
+      'group' => 'Feeds',
+      'dependencies' => array('content', 'email'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('content', 'email'));
+  }
+
+  /**
+   * Basic test loading a doulbe entry CSV file.
+   */
+  function test() {
+
+    // Create content type.
+    $typename = $this->createContentType(array(), array(
+      'email' => 'email',
+    ));
+
+    // Create and configure importer.
+    $this->createImporterConfiguration('Email CSV', 'csv');
+    $this->setSettings('csv', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER));
+    $this->setPlugin('csv', 'FeedsFileFetcher');
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('content_type' => $typename));
+    $this->addMappings('csv', array(
+      array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      array(
+        'source' => 'created',
+        'target' => 'created',
+      ),
+      array(
+        'source' => 'body',
+        'target' => 'body',
+      ),
+      array(
+        'source' => 'email',
+        'target' => 'field_email',
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('csv', $this->absolutePath() .'/tests/feeds/email.csv');
+    $this->assertText('Created 2 '. $typename .' nodes.');
+
+    // Check the two imported files.
+    $this->drupalGet('node/1/edit');
+    $this->assertCCKFieldValue('email', 'user1@example.org');
+
+    $this->drupalGet('node/2/edit');
+    $this->assertCCKFieldValue('email', 'user2@example.org');
+  }
+
+  /**
+   * Override parent::getFormFieldsNames().
+   */
+  protected function getFormFieldsNames($field_name, $index) {
+    return array("field_{$field_name}[{$index}][email]");
+  }
+}

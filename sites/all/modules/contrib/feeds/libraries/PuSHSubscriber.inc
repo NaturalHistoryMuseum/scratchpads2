@@ -267,7 +267,7 @@ class PuSHSubscriber {
       $this->log("Positive response to \"$mode\" request ($code).");
     }
     else {
-      $sub->status = $mode . ' failed';
+      $sub->status = $mode .' failed';
       $sub->save();
       $this->log("Error issuing \"$mode\" request to $hub ($code).", 'error');
     }

@@ -1,15 +1,10 @@
 <?php
-/**
- * @file
- * feeds_import.feeds_importer_default.inc
- */
 
 /**
  * Implementation of hook_feeds_importer_default().
  */
 function feeds_import_feeds_importer_default() {
   $export = array();
-
   $feeds_importer = new stdClass;
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
@@ -32,32 +27,32 @@ function feeds_import_feeds_importer_default() {
     'processor' => array(
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
-        'content_type' => 'article',
+        'content_type' => 'story',
         'update_existing' => 1,
         'expire' => '-1',
         'mappings' => array(
-          0 => array(
+          '0' => array(
             'source' => 'title',
             'target' => 'title',
             'unique' => FALSE,
           ),
-          1 => array(
+          '1' => array(
             'source' => 'body',
             'target' => 'body',
             'unique' => FALSE,
           ),
-          2 => array(
+          '2' => array(
             'source' => 'published',
             'target' => 'created',
             'unique' => FALSE,
           ),
-          3 => array(
+          '3' => array(
             'source' => 'guid',
             'target' => 'guid',
             'unique' => 1,
           ),
         ),
-        'input_format' => 'plain_text',
+        'input_format' => 0,
         'author' => 0,
       ),
     ),
@@ -67,8 +62,8 @@ function feeds_import_feeds_importer_default() {
     'expire_period' => 3600,
     'import_on_create' => 1,
   );
-  $export['node'] = $feeds_importer;
 
+  $export['node'] = $feeds_importer;
   $feeds_importer = new stdClass;
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
@@ -95,17 +90,17 @@ function feeds_import_feeds_importer_default() {
         'update_existing' => FALSE,
         'status' => 1,
         'mappings' => array(
-          0 => array(
+          '0' => array(
             'source' => 'name',
             'target' => 'name',
             'unique' => 0,
           ),
-          1 => array(
+          '1' => array(
             'source' => 'mail',
             'target' => 'mail',
             'unique' => 1,
           ),
-          2 => array(
+          '2' => array(
             'source' => 'created',
             'target' => 'created',
             'unique' => FALSE,
@@ -119,7 +114,7 @@ function feeds_import_feeds_importer_default() {
     'expire_period' => 3600,
     'import_on_create' => 1,
   );
-  $export['user'] = $feeds_importer;
 
+  $export['user'] = $feeds_importer;
   return $export;
 }

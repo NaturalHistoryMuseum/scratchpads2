@@ -47,7 +47,7 @@ function common_syndication_parser_parse($string) {
  * Get the cached version of the <var>$url</var>
  */
 function _parser_common_syndication_cache_get($url) {
-  $cache_file = _parser_common_syndication_sanitize_cache() . '/' . md5($url);
+  $cache_file = _parser_common_syndication_sanitize_cache() .'/'. md5($url);
   if (file_exists($cache_file)) {
     $file_content = file_get_contents($cache_file);
     return unserialize($file_content);
@@ -257,9 +257,9 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
   // Process the <rss:channel> resource containing feed metadata:
   foreach ($feed_XML->children($canonical_namespaces['rss'])->channel as $rss_channel) {
     $parsed_source = array(
-      'title'       => _parser_common_syndication_title((string) $rss_channel->title),
-      'description' => (string) $rss_channel->description,
-      'link'        => (string) $rss_channel->link,
+      'title'       => _parser_common_syndication_title((string)$rss_channel->title),
+      'description' => (string)$rss_channel->description,
+      'link'        => (string)$rss_channel->link,
       'items'       => array(),
     );
     break;
@@ -279,11 +279,11 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
       // still be able to correctly handle it.
       foreach ($rss_item->attributes($ns_uri) as $attr_name => $attr_value) {
         $ns_prefix = ($ns_prefix = array_search($ns_uri, $canonical_namespaces)) ? $ns_prefix : $ns;
-        $rdf_data[$ns_prefix . ':' . $attr_name][] = (string) $attr_value;
+        $rdf_data[$ns_prefix .':'. $attr_name][] = (string)$attr_value;
       }
       foreach ($rss_item->children($ns_uri) as $rss_property) {
         $ns_prefix = ($ns_prefix = array_search($ns_uri, $canonical_namespaces)) ? $ns_prefix : $ns;
-        $rdf_data[$ns_prefix . ':' . $rss_property->getName()][] = (string) $rss_property;
+        $rdf_data[$ns_prefix .':'. $rss_property->getName()][] = (string)$rss_property;
       }
     }
 
@@ -292,7 +292,7 @@ function _parser_common_syndication_RDF10_parse($feed_XML) {
       'title'       => array('rss:title', 'dc:title'),
       'description' => array('rss:description', 'dc:description', 'content:encoded'),
       'url'         => array('rss:link', 'rdf:about'),
-      'author_name' => array('dc:creator', 'dc:publisher'),
+      'author_name'      => array('dc:creator', 'dc:publisher'),
       'guid'        => 'rdf:about',
       'timestamp'   => 'dc:date',
       'tags'        => 'dc:subject'
@@ -349,8 +349,8 @@ function _parser_common_syndication_RSS20_parse($feed_XML) {
 
   $ns = array(
     "content" => "http://purl.org/rss/1.0/modules/content/",
-     "dc" => "http://purl.org/dc/elements/1.1/",
-     "georss" => "http://www.georss.org/georss",
+    "dc" => "http://purl.org/dc/elements/1.1/",
+    "georss" => "http://www.georss.org/georss",
   );
 
   $parsed_source = array();
@@ -572,7 +572,7 @@ function _parser_common_syndication_title($title, $body = FALSE) {
   if (empty($title) && !empty($body)) {
     // Explode to words and use the first 3 words.
     $words = preg_split("/[\s,]+/", strip_tags($body));
-    $title = $words[0] . ' ' . $words[1] . ' ' . $words[2];
+    $title = $words[0] .' '. $words[1] .' '. $words[2];
   }
   return $title;
 }

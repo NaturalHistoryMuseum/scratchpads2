@@ -1,0 +1,173 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds_mapper');
+
+/**
+ * Class for testing Feeds <em>content</em> mapper.
+ */
+class FeedsMapperContentTaxonomyTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Content Taxonomy',
+      'description' => 'Test Feeds Mapper support for Content Taxonomy CCK fields.',
+      'group' => 'Feeds',
+      'dependencies' => array('content', 'content_taxonomy'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp(array('content', 'content_taxonomy', 'content_taxonomy_autocomplete', 'content_taxonomy_options'));
+  }
+
+  /**
+   * Basic test loading a single entry CSV file.
+   */
+  public function test() {
+
+    // Create vocabularies
+    $vocabularies = array(
+      'tags' => array(
+        'name' => $this->randomName(),
+        'tags' => TRUE,
+      ),
+      'categories' => array(
+        'name' => $this->randomName(),
+        'tags' => FALSE,
+      )
+    );
+    foreach ($vocabularies as &$vocabulary) {
+      taxonomy_save_vocabulary($vocabulary);
+    }
+
+    // Create terms
+    $terms = array(
+      array(
+        'name' => 'foo',
+        'vid' => $vocabularies['tags']['vid'],
+        'weight' => 0,
+      ),
+      array(
+        'name' => 'lorem',
+        'vid' => $vocabularies['tags']['vid'],
+        'weight' => 0,
+      ),
+      array(
+        'name' => 'ipsum',
+        'vid' => $vocabularies['tags']['vid'],
+        'weight' => 0,
+      ),
+      array(
+        'name' => 'bar',
+        'vid' => $vocabularies['categories']['vid'],
+        'weight' => 0,
+      ),
+      'consectetuer' => array(
+        'name' => 'consectetuer',
+        'vid' => $vocabularies['categories']['vid'],
+        'weight' => 0,
+      ),
+    );
+    foreach ($terms as &$term) {
+      taxonomy_save_term($term);
+    }
+
+    // Create content type
+    $typename = $this->createContentType(array(), array(
+      'tags' => array(
+        'type' => 'content_taxonomy',
+        'widget' => 'content_taxonomy_autocomplete',
+        'settings' => array(
+          'new_terms' => 'insert',
+          'multiple' =>  '1',
+          'vid' => $vocabularies['tags']['vid'],
+        ),
+      ),
+      'categories' => array(
+        'type' => 'content_taxonomy',
+        'widget' => 'content_taxonomy_select',
+        'settings' => array(
+          'multiple' => '1',
+          'vid' => $vocabularies['categories']['vid'],
+        ),
+      ),
+    ));
+
+    // Create importer configuration
+    $this->createImporterConfiguration('Content Taxonomy CSV', 'csv'); // Create a default importer configuration
+    $this->setSettings('csv', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER)); // Importer setting
+    $this->setPlugin('csv', 'FeedsFileFetcher'); //Set fetcher
+    $this->setPlugin('csv', 'FeedsCSVParser'); //Set parser
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('content_type' => $typename)); // Processor settings
+    $this->addMappings('csv', array(
+      array(
+        'source' => 'title',
+        'target' => 'title'
+      ),
+      array(
+        'source' => 'created',
+        'target' => 'created'
+      ),
+      array(
+        'source' => 'body',
+        'target' => 'body'
+      ),
+      array(
+        'source' => 'tags',
+        'target' => 'field_tags'
+      ),
+      array(
+        'source' => 'categories',
+        'target' => 'field_categories'
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('csv', $this->absolutePath() . '/tests/feeds/content-taxonomy.csv');
+    $this->assertText('Created 1 ' . $typename . ' node.');
+
+    // Check that the tags were stored correctly
+    $this->drupalGet('node/1/edit');
+    $this->assertCCKFieldValue('tags', array('lorem', 'ipsum', 'dolor', 'sit', 'amet'));
+
+    // Check that the category values were stored to the database correctly
+    $this->assertEqual(
+      $terms['consectetuer']['tid'],
+      db_result(db_query("SELECT field_categories_value FROM {content_field_categories} WHERE nid=1")),
+      t('Found expected content_taxonomy value')
+    );
+  }
+
+  protected function selectFieldWidget($field_name, $field_type) {
+    if ($field_type == 'content_taxonomy') {
+      return 'content_taxonomy_select';
+    }
+    else {
+      return parent::selectFieldWidget($field_name, $field_type);
+    }
+  }
+
+  protected function getFormFieldsNames($field_name, $index) {
+    switch ($field_name) {
+      case 'tags':
+        return array("field_{$field_name}[value]");
+      case 'categories':
+        return array("field_{$field_name}[value][]");
+      default:
+        return parent::getFormFieldsNames($field_name, $index);
+    }
+  }
+
+  protected function getFormFieldsValues($field_name, $value) {
+    switch ($field_name) {
+      case 'tags':
+        if (is_array($value)) {
+          // @todo sort tags by weight before joining
+          $value = join(', ', $value);
+        }
+        return array($value);
+      case 'categories':
+        // @todo return tid(s) from $value
+      default:
+        return parent::getFormFieldsValues($field_name, $value);
+    }
+  }
+}

@@ -1,4 +1,5 @@
 <?php
+module_load_include('test', 'feeds', 'test/feeds');
 
 /**
  * @file
@@ -42,39 +43,38 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/build/feeds/edit/term_import/settings', $edit, 'Save');
 
     $edit = array(
       'name' => 'Addams vocabulary',
-      'machine_name' => 'addams',
     );
-    $this->drupalPost('admin/structure/taxonomy/add', $edit, t('Save'));
+    $this->drupalPost('admin/content/taxonomy/add/vocabulary', $edit, t('Save'));
 
     $edit = array(
-      'vocabulary' => 'addams',
+      'vocabulary' => 1,
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
+    $this->drupalPost('admin/build/feeds/edit/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
 
     // Import and assert.
-    $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
-    $this->assertText('Created 5 terms');
-    $this->drupalGet('admin/structure/taxonomy/addams');
+    $this->importFile('term_import', $this->absolutePath() .'/tests/feeds/users.csv');
+    $this->assertText('Created 5 terms in Addams vocabulary.');
+    $this->drupalGet('admin/content/taxonomy/1');
     $this->assertText('Morticia');
     $this->assertText('Fester');
     $this->assertText('Gomez');
     $this->assertText('Pugsley');
 
     // Import again.
-    $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->importFile('term_import', $this->absolutePath() .'/tests/feeds/users.csv');
     $this->assertText('There are no new terms.');
 
     // Add a term manually, delete all terms, this term should still stand.
     $edit = array(
       'name' => 'Cousin Itt',
     );
-    $this->drupalPost('admin/structure/taxonomy/addams/add', $edit, t('Save'));
+    $this->drupalPost('admin/content/taxonomy/1/add/term', $edit, t('Save'));
     $this->drupalPost('import/term_import/delete-items', array(), t('Delete'));
-    $this->drupalGet('admin/structure/taxonomy/addams');
+    $this->drupalGet('admin/content/taxonomy/1');
     $this->assertText('Cousin Itt');
     $this->assertNoText('Morticia');
     $this->assertNoText('Fester');

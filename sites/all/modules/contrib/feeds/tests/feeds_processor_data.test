@@ -1,0 +1,163 @@
+<?php
+module_load_include('test', 'feeds', 'test/feeds');
+
+/**
+ * @file
+ * Tests for plugins/FeedsDataProcessor.inc.
+ */
+
+/**
+ * Test aggregating a feed as data records.
+ */
+class FeedsRSStoDataTest extends FeedsWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'RSS import to data records',
+      'description' => 'Tests a feed configuration that is attached to a content type, uses common syndication parser and a node processor.',
+      'group' => 'Feeds',
+      'dependencies' => array('data', 'views'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp(array('data', 'data_ui', 'views'));
+  }
+
+  /**
+   * Test node creation, refreshing/deleting feeds and feed items.
+   */
+  public function test() {
+
+    // Create an importer.
+    $this->createImporterConfiguration('Data feed', 'rss');
+
+    // Go to edit page and select the data processor.
+    $edit = array(
+      'plugin_key' => 'FeedsDataProcessor',
+    );
+    $this->drupalPost('admin/build/feeds/edit/rss/processor', $edit, 'Save');
+    $this->assertPlugins('rss', 'FeedsHTTPFetcher', 'FeedsSyndicationParser', 'FeedsDataProcessor');
+
+    // Go to mapping page and create a couple of mappings.
+    $mappings = array(
+      array(
+        'source' => 'guid',
+        'target' => 'new:text',
+        'unique' => TRUE,
+      ),
+      array(
+        'source' => 'url',
+        'target' => 'new:text',
+        'unique' => TRUE,
+      ),
+      array(
+        'source' => 'timestamp',
+        'target' => 'timestamp', // timestamp is an existing target.
+        'unique' => FALSE,
+      ),
+      array(
+        'source' => 'title',
+        'target' => 'new:varchar',
+        'unique' => FALSE,
+      ),
+      array(
+        'source' => 'description',
+        'target' => 'new:text',
+        'unique' => FALSE,
+      ),
+    );
+    $this->addMappings('rss', $mappings);
+
+    // Verify the mapping configuration.
+    $config = unserialize(db_result(db_query("SELECT config FROM {feeds_importer} WHERE id = 'rss'")));
+    $stored_mappings = $config['processor']['config']['mappings'];
+    foreach ($mappings as $i => $mapping) {
+      $this->assertEqual($mapping['source'], $stored_mappings[$i]['source']);
+      // This is intentional: the target of the stored mapping should have the
+      // same key as the source, this has to do with the fact that feeds data
+      // creates storage as the mapping is created.
+      $this->assertEqual($mapping['source'], $stored_mappings[$i]['target']);
+      $this->assertEqual($mapping['unique'], $stored_mappings[$i]['unique']);
+    }
+
+    // Create standard feed node.
+    $nid = $this->createFeedNode('rss');
+    // Assert 10 items aggregated after creation of the node.
+    $this->assertText('Created 10 items.');
+
+    // Login with a user with administer data permissions and review aggregated
+    // content.
+    $this->drupalLogin(
+      $this->drupalCreateUser(
+        array(
+          'administer data tables',
+          'administer feeds',
+          'administer nodes',
+        )
+      )
+    );
+
+    // Assert accuracy of aggregated information.
+    $this->drupalGet('admin/content/data/view/feeds_data_rss');
+    $this->assertText('Open Atrium Translation Workflow: Two Way Translation Updates');
+    $this->assertText('A new translation process for Open Atrium &amp; integration with Localize Drupal');
+    $this->assertText('Week in DC Tech: October 5th Edition');
+    $this->assertText('There are some great technology events happening this week');
+    $this->assertText('Mapping Innovation at the World Bank with Open Atrium');
+    $this->assertText('is being used as a base platform for collaboration at the World Bank because of its feature flexibility');
+    $this->assertText('September GeoDC Meetup Tonight');
+    $this->assertText('Today is the last Wednesday of the month');
+    $this->assertText('Week in DC Tech: September 28th Edition');
+    $this->assertText('Looking to geek out this week? There are a bunch of');
+    $this->assertText('Open Data for Microfinance: The New MIXMarket.org');
+    $this->assertText('There are profiles for every country that the MIX Market is hosting.');
+    $this->assertText('Integrating the Siteminder Access System in an Open Atrium-based Intranet');
+    $this->assertText('In addition to authentication, the Siteminder system');
+    $this->assertText('Week in DC Tech: September 21 Edition');
+    $this->assertText('an interesting variety of technology events happening in Washington, DC ');
+    $this->assertText('s Software Freedom Day: Impressions &amp; Photos');
+    $this->assertText('Presenting on Features in Drupal and Open Atrium');
+    $this->assertText('Scaling the Open Atrium UI');
+    $this->assertText('The first major change is switching');
+
+    // Assert DB status.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_data_rss}"));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Import again.
+    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
+    $this->assertText('There are no new items.');
+
+    // Assert DB status, there still shouldn't be more than 10 items.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_data_rss}"));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Now delete all items.
+    $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
+    $this->assertText('All items have been deleted.');
+
+    // Assert DB status, now there should be no items.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_data_rss}"));
+    $this->assertEqual($count, 0, 'Accurate number of items in database.');
+
+    // Import again, we should find new content.
+    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
+    $this->assertText('Created 10 items.');
+
+    // Assert DB status, there should be 10 again.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_data_rss}"));
+    $this->assertEqual($count, 10, 'Accurate number of items in database.');
+
+    // Test 'Delete items with source' setting.
+    $this->setSettings('rss', 'FeedsDataProcessor', array('delete_with_source' => 1));
+    $this->drupalPost('node/'. $nid .'/delete', array(), 'Delete');
+    $this->assertText('Page Development Seed - Technological Solutions for Progressive Organizations has been deleted.');
+
+    // Assert DB status.
+    $count = db_result(db_query("SELECT COUNT(*) FROM {feeds_data_rss}"));
+    $this->assertEqual($count, 0, 'Accurate number of items in database.');
+
+    // @todo Standalone import form testing.
+    // @todo Create a second feed and test.
+  }
+}

@@ -95,14 +95,14 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   // Only download and parse data if really needs refresh.
   // Based on "Last-Modified" and "If-Modified-Since".
   $headers = array();
-  if ($cache = cache_get('feeds_http_download_' . md5($url))) {
+  if ($cache = cache_get('feeds_http_download_'. md5($url))) {
     $last_result = $cache->data;
     $last_headers = $last_result->headers;
 
     $has_etag = TRUE;
     if (!empty($last_headers['ETag'])) {
       if ($curl) {
-        $headers[] = 'If-None-Match: ' . $last_headers['ETag'];
+        $headers[] = 'If-None-Match: '. $last_headers['ETag'];
       }
       else {
         $headers['If-None-Match'] = $last_headers['ETag'];
@@ -110,14 +110,14 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     }
     if (!empty($last_headers['Last-Modified'])) {
       if ($curl) {
-        $headers[] = 'If-Modified-Since: ' . $last_headers['Last-Modified'];
+        $headers[] = 'If-Modified-Since: '. $last_headers['Last-Modified'];
       }
       else {
         $headers['If-Modified-Since'] = $last_headers['Last-Modified'];
       }
     }
     if (!empty($username) && !$curl) {
-      $headers['Authorization'] = 'Basic ' . base64_encode("$username:$password");
+      $headers['Authorization'] = 'Basic '. base64_encode("$username:$password");
     }
   }
 
@@ -181,7 +181,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
         if (isset($result->headers[$header]) && $header == 'Set-Cookie') {
           // RFC 2109: the Set-Cookie response header comprises the token Set-
           // Cookie:, followed by a comma-separated list of one or more cookies.
-          $result->headers[$header] .= ',' . trim($value);
+          $result->headers[$header] .= ','. trim($value);
         }
         else {
           $result->headers[$header] = trim($value);
@@ -193,7 +193,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     }
   }
   else {
-    $result = drupal_http_request($url, array('headers' => $headers));
+    $result = drupal_http_request($url, $headers);
   }
 
   $result->code = isset($result->code) ? $result->code : 200;
@@ -208,7 +208,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
     else {
       // It's a tragedy, this file must exist and contain good data.
       // In this case, clear cache and repeat.
-      cache_clear_all('feeds_http_download_' . md5($url), 'cache');
+      cache_clear_all('feeds_http_download_'. md5($url), 'cache');
       return http_request_get($url, $username, $password);
     }
   }
@@ -220,7 +220,7 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   }
 
   // Set caches.
-  cache_set('feeds_http_download_' . md5($url), $result);
+  cache_set('feeds_http_download_'. md5($url), $result);
   $download_cache[$url] = $result;
 
   return $result;
@@ -247,7 +247,7 @@ function http_request_use_curl() {
  * Clear cache for a specific URL.
  */
 function http_request_clear_cache($url) {
-  cache_clear_all('feeds_http_download_' . md5($url), 'cache');
+  cache_clear_all('feeds_http_download_'. md5($url), 'cache');
 }
 
 /**

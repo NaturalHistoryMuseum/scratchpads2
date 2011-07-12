@@ -1,0 +1,19 @@
+core = "6.x"
+dependencies[] = "data"
+dependencies[] = "feeds"
+description = "A fast news aggregator built with feeds, creates flat database records from imported feed items."
+features[ctools][] = "data:data_default:1"
+features[ctools][] = "data:data_table:1"
+features[ctools][] = "feeds:feeds_importer_default:1"
+features[data_tables][] = "feeds_data_feed_fast"
+features[feeds_importer][] = "feed_fast"
+features[node][] = "feed_fast"
+name = "Feeds Fast News"
+package = "Feeds"
+
+; Information added by drupal.org packaging script on 2011-06-28
+version = "6.x-1.0-beta11"
+core = "6.x"
+project = "feeds"
+datestamp = "1309301816"
+

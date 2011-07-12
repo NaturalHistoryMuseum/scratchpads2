@@ -1,17 +1,16 @@
-core = "7.x"
+core = "6.x"
 dependencies[] = "feeds"
 description = "An example of a node importer and a user importer."
 features[ctools][] = "feeds:feeds_importer_default:1"
 features[feeds_importer][] = "node"
 features[feeds_importer][] = "user"
-files[] = "feeds_import.test"
+files[] = feeds_import.test
 name = "Feeds Import"
 package = "Feeds"
-php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-06-29
-version = "7.x-2.x-dev"
-core = "7.x"
+; Information added by drupal.org packaging script on 2011-06-28
+version = "6.x-1.0-beta11"
+core = "6.x"
 project = "feeds"
-datestamp = "1309306989"
+datestamp = "1309301816"
 
