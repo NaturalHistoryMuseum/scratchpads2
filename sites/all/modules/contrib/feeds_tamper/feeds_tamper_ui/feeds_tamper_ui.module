@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * Implements hook_menu.
+ */
+function feeds_tamper_ui_menu() {
+  $items = array();
+  $items['admin/structure/feeds_tamper'] = array(
+    'title' => 'Feed tamper',
+    'description' => 'Configure Feeds tamper to modify incoming feeds data.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_ui_select_importer_form'),
+    'access arguments' => array('administer feeds_tamper'),
+    'file' => 'feeds_tamper_ui.admin.inc',
+  );
+  $items['admin/structure/feeds_tamper/edit/%feeds_importer'] = array(
+    'title callback' => 'feeds_tamper_ui_main_title',
+    'title arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_ui_edit_form', 4),
+    'access arguments' => array('administer feeds_tamper'),
+    'file' => 'feeds_tamper_ui.admin.inc',
+  );
+  $items['admin/structure/feeds_tamper/edit/%feeds_importer/add/%'] = array(
+    'title' => t('Add Plugin'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_ui_add_plugin_form', 4, 6),
+    'access arguments' => array('administer feeds_tamper'),
+    'file' => 'feeds_tamper_ui.admin.inc',
+  );
+  $items['admin/structure/feeds_tamper/edit_plugin/%feeds_tamper_plugin_instance'] = array(
+    'title callback' => 'feeds_tamper_ui_edit_title',
+    'title arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_ui_edit_plugin_form', 4),
+    'access arguments' => array('administer feeds_tamper'),
+    'file' => 'feeds_tamper_ui.admin.inc',
+  );
+  $items['admin/structure/feeds_tamper/delete/%feeds_tamper_plugin_instance'] = array(
+    'title callback' => 'feeds_tamper_ui_delete_title',
+    'title arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_ui_delete_form', 4),
+    'access arguments' => array('administer feeds_tamper'),
+    'file' => 'feeds_tamper_ui.admin.inc',
+  );
+  return $items;
+}
+
+function feeds_tamper_plugin_instance_load($instance_id) {
+  return feeds_tamper_load_instance($instance_id);
+}
+
+function feeds_tamper_ui_edit_title($instance) {
+  if ($instance->export_type == EXPORT_IN_DATABASE) {
+    return t('Edit plugin: ') . $instance->id;
+  }
+  return t('Override plugin: ') . $instance->id;
+}
+function feeds_tamper_ui_delete_title($instance) {
+  if ($instance->export_type == EXPORT_IN_DATABASE) {
+    return t('Delete plugin: ') . $instance->id;
+  }
+  return t('Revert plugin: !id?', array('!id' => $instance->id));
+}
+
+function feeds_tamper_ui_main_title($importer) {
+  return t('Configure tamper plugins for: !id', array('!id' => $importer->id));
+}
+
+function feeds_tamper_ui_theme() {
+  return array(
+    'feeds_tamper_ui_edit_form' => array(
+      'render element' => 'form',
+      'file' => 'feeds_tamper_ui.admin.inc',
+    ),
+  );
+}

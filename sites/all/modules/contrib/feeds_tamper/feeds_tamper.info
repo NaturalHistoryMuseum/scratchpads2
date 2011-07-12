@@ -1,0 +1,12 @@
+name = Feeds Tamper
+description = Modify feeds data before it gets saved.
+package = Feeds
+dependencies[] = feeds
+core = 7.x
+
+; Information added by drupal.org packaging script on 2011-04-23
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "feeds_tamper"
+datestamp = "1303517605"
+
