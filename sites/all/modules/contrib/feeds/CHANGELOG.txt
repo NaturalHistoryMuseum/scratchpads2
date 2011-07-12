@@ -1,64 +1,129 @@
-- Issue #980212 by joshuajabbour,David Goode: Added Support guid/url for
-  taxonomy term importer.
-- Issue #992590 by Jan van Diepen: Fixed Description and weight on
-  FeedsTermElement not saved during import
-- Issue #1057050 by joshuajabbour: Fixed Undefined variable: populate in
-  FeedsNodeProcessor->buildNode().
-- Issue #1008384 by twistor: Fixed feeds not pulling publication date with feed
-  using dc:date and RSS 2.0
-- Issue #1041646 by Dane Powell: Add check for permissions before creating a
-  node from a feed.
-- #718414 pvhee, twistor: Mapper for email field.
-- #791316 B-Prod: fix messages are not properly displayed by Feeds data
-  processor plugin.
+- Issue #1011958 by David Goode: Allow hashes to be updated when content in a 
+  feed is updated.
+- Issue #1048642 by greg.harvey: Check for remove_flags in Feeds UI before using 
+  that variable.
+- #967018 jcarlson34, David Goode, alex_b: Mapping to String lists not supported
 
-Feeds 6.x 1.0 Beta 10, 2010-10-29
+Feeds 7.x 2.0 Alpha 3, 2011-01-14
 ---------------------------------
 
-- #925264 alex_b: Don't allow commas in tag names.
-- #935908 njbooher: FeedsTermProcessor: Synonyms array not joined.
+- Add index for looking up by entity_type + url/ guid to feeds_item table.
+- #994026 tristanoneil: Optionally defuse email addresses.
+
+Feeds 7.x 2.0 Alpha 2, 2010-11-02
+---------------------------------
+
+- #940866 tristanoneil: PHP 5.3 FeedsImporter::copy function must be compatible.
+- #944986 tristanoneil: Link Mapper Upgrade.
+- #959066 tristanoneil: Remove old mappers and tests.
 - #883342 Steven Jones: Don't force usage of cURL.
 - #776854 imclean et. al.: Support parsing CSV files without column headers.
-- #857216 derhasi: Set Date to empty if no date is present.
-  Note: previously date mapper would set date to the current date if no date
-  was present.
-- #637334 mongolito404, elliotttf et. al.: Mapper for Content Taxonomy.
-- #953638 joshuajabbour: FeedsTermProcessor looks for feed_nid in wrong object.
-- #954080 mlsamuelson: mimedetect_mime() expects a file object.
-- #608844 Will White: Optionally delete data items with feed nodes.
-- #926616 Mark Trapp: FeedsEnclosure::getFile() should allow files to exist in
-  the temp directory.
-- #912630 twistor: FeedsImportBatch: make items accessible for modification.
+- Ian Ward: ensure that arrays of numerics are handled correctly.
+- #953728 tristanoneil: Upgrade text formats, use on all processors.
+- alex_b: Fix file mapper, add file mapper tests, generate flickr.xml and
+  files.csv dynamically.
+- #953538 yhahn: Remove BOM from UTF-8 files.
+  Adds sanitizeFile() and sanitizeRaw() methods to FeedsFetcherResult.
+  Extending classes that override either the getRaw() or getFilePath() methods
+  should call these sanitization methods to ensure that the returned output /
+  file has been cleaned for parsing.
+- #606612 alex_b: More detailed log.
+- #949236 Ian Ward, alex_b: Allow mapping empty values to fields.
+- #912630 twistor, alex_b: FeedsParserResult: make items accessible for
+  modification.
+- #933306 alex_b: Fix Feeds creates subscriptions for not existing importers.
 - #946822 twistor: FeedsSitemapParser broken: Serialization of
   'SimpleXMLElement' is not allowed.
-- #933306 alex_b: Fix Feeds creates subscriptions for not existing importers.
+- #949916 alex_b: Convert values mapped to user->created.
+- #949236 Ian Ward: Allow mapping empty values to fields.
+- Allow for mapping to list_number field types.
+- Fix entity inspection in file fetcher.
+- #932772 alex_b: FeedsProcessor: Consolidate process() and clear().
+  FeedsProcessor now implements the process() and clear() methods for creating
+  and deleting entities. The extending processors FeedsNodeProcessor,
+  FeedsTermProcessor and FeedsUserProcessor merely implement entity manipulation
+  methods (newEntity(), entityLoad(), entitySave(), entityDeleteMultiple()...).
+  This brings features previously only available on FeedsNodeProcessor to all
+  entity processors: fast change detection on imported items with hashes,
+  batching on process() and clear() and in the case of FeedsUserProcessor, the
+  actual implementation of clear(). Together with #929066 this is a further
+  step towards harmonizing features of processor plugins.
+- Move term and user validation into a validate() method.
+- Remove check for present name and mail. Needs to be solved on a more pluggable
+  level.
+- FeedsTermProcessor: Do not filter taxonomy_term_data table by vid when
+  clearing.
+- #932572 alex_b: FeedsTermProcessor: Batch term processing.
+- Remove check for present name in terms that are imported. If we do such
+  validation, we need to do this on a more pluggable level.
+- Fix Feeds News tests, add a 'description' field to the  Feeds Item content
+  type.
+- #728534 alex_b: Remove FeedsFeedNodeProcessor. If you have used
+  FeedsFeedNodeProcessor in the past, use FeedsNodeProcessor (Node Processor)
+  instead now. It supports all of FeedsFeedNodeProcessor's functionality and
+  more.
+- #929066 alex_b: Track all imported items. Note: All views that use 'Feeds
+  Item' fields or relationships need updating.
+- #930018 alex_b: Don't show file upload when 'Supply path directly' is
+  selected.
+- #927892 alex_b: Add "Process in background" feature. Allows one-off imports to
+  be processed in the background rather than using Batch API. Useful for very
+  large imports.
+- #929058 alex_b: Report status of source on import and delete forms, track
+  last updated time on a source level.
+- #928836: Set progress floating point directly. Note: fetchers and parsers
+  must use $state->progress() for setting the batch progress now IF they support
+  batching.
+- #928728: Track source states by stage, not by plugin. Note: call signature of
+  FeedsSource::state() has changed.
+- Remove 6.x upgrade hooks.
+- #923318: Fix Fatal error: Call to a member function import() on a non-object
+  occuring on cron.
+- Clean up basic settings form.
+- Make getConfig() include configuration defaults.
 
-Feeds 6.x 1.0 Beta 9, 2010-09-26
---------------------------------
+Feeds 7.x 2.0 Alpha 1, 2010-09-29
+---------------------------------
 
-- #923318 alex_b: Fix "Fatal error: Call to a member function import() on a
-  non-object" occuring on cron.
-
-Feeds 6.x 1.0 Beta 8, 2010-09-25
---------------------------------
-
+- #925842 alex_b: Support batching through directories on disk.
 - #625196 mstrelan, alex_b: Fix array_merge(), array_intersect_key() warnings.
-- #831470 infojunkie, alex_b: Fix Import fails due to dates not converted
-  correctly.
-- #916962 alex_b: Fix undefined feeds_reschedule() when upgrading.
-- #919172 andrewlevine, alex_b: Fix enclosure source files deleted.
-- Fix emfield mapper not handling single values properly.
-- Fix emfield mapper not accepting FeedsElement objects.
+- Remove hidden setting feeds_worker_time. Use hook_cron_queue_info_alter() to
+  modify this setting.
+- #744660-80 alex_b: Expand batch support to fetchers and parsers.
+ - Removed FeedsBatch classes in favor of FeedsResult classes.
+ - Variable 'feeds_node_batch_size' is now called 'feeds_process_limit'.
+ - Signature of FeedsParser::getSourceElement() changed.
+ - Signature of FeedsProcessor::uniqueTargets() changed.
+ - Signature of FeedsProcessor::existingItemId() changed.
+ - Sigature for callbacks registered by hook_feeds_parser_sources_alter()
+   changed.
+ - Return value of FeedsFetcher::fetch() changed.
+ - Signature and return value of FeedsParser::parse() changed.
+ - Signature of FeedsProcessor::process() changed.
+ - Signature of hook_feeds_after_parse() changed.
+ - Signature of hook_feeds_after_import() changed.
+ - Signature of hook_feeds_after_clear() changed.
 
-Feeds 6.x 1.0 Beta 7, 2010-09-17
---------------------------------
+Feeds 7.x 1.0 Alpha 1, 2010-09-21
+---------------------------------
 
-- #914692: Fix calltime pass-by-reference errors.
+Equal to http://github.com/lxbarth/Feeds/commits/DRUPAL-7--1-0-alpha1
+
+- Expire files returned by FeedsImportBatch after DRUPAL_MAXIMUM_TEMP_FILE_AGE
+  seconds.
+- FeedsFileFetcher: track uploaded files, delete unused files.
+- yhahn: Upgrade FeedsTaxonomyProcessor.
+- Remove handling of target items that are array. All target items must be
+  objects now.
+- Upgrade file and image mapper.
+- Upgrade taxonomy mapper.
+- Upgrade field mapper.
+- Move plugin handling into FeedsPlugin class.
+- Base level upgrade.
 
 Feeds 6.x 1.0 Beta 6, 2010-09-16
 --------------------------------
 
-- Branched to DRUPAL-6--1.
 - #623432 Alex UA, dixon_, pvhee, cglusky, alex_b et al.: Mapper for emfield.
 - #913672 andrewlevine: Break out CSV Parser into submethods so it is more
   easily overridable

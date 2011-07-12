@@ -34,13 +34,12 @@ Requirements
 
 - CTools 1.x
   http://drupal.org/project/ctools
-- Job Scheduler 1.x
+- Job Scheduler
   http://drupal.org/project/job_scheduler
-- Drupal 6.x
+- Drupal 7.x
   http://drupal.org/project/drupal
 - PHP safe mode is not supported, depending on your Feeds Importer configuration
   safe mode may cause no problems though.
-- PHP 5.2.x recommended
 
 Installation
 ============
@@ -176,11 +175,6 @@ Name:        feeds_source_class
 Default:     'FeedsSource'
 Description: The class to use for handling feed sources.
 
-Name:        feeds_worker_time
-Default:     15
-Description: Execution time for a queue worker, only effective if used with
-             drupal_queue.
-
 Name:        feeds_data_$importer_id
 Default:     feeds_data_$importer_id
 Description: The table used by FeedsDataProcessor to store feed items. Usually a
@@ -188,7 +182,7 @@ Description: The table used by FeedsDataProcessor to store feed items. Usually a
              and the importer's id ($importer_id). This default table name can
              be overridden by defining a variable with the same name.
 
-Name:        feeds_node_batch_size
+Name:        feeds_process_limit
 Default:     50
              The number of nodes feed node processor creates or deletes in one
              page load.

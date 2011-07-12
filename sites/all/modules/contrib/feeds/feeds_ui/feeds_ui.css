@@ -48,6 +48,8 @@ div.feeds-container.plain {
   }
   div.feeds-container.plain h4 {
     font-size: 1.0em;
+    margin: 0;
+    padding: 0;
     }
   div.feeds-container-body p {
     padding: 5px 0;
@@ -57,6 +59,7 @@ div.feeds-container.plain {
     margin: 0;
     }
     div.feeds-container-body div.item-list ul li {
+      list-style-type: none;
       margin: 0;
       padding: 0;
       background-image: none;
@@ -67,6 +70,7 @@ div.feeds-container.plain {
     margin: 0;
     }
     ul.container-actions li {
+      list-style-type: none;
       text-align: right;
       background-image: none;
       margin: 0;

@@ -1,10 +1,15 @@
 <?php
+/**
+ * @file
+ * feeds_news.feeds_importer_default.inc
+ */
 
 /**
  * Implementation of hook_feeds_importer_default().
  */
 function feeds_news_feeds_importer_default() {
   $export = array();
+
   $feeds_importer = new stdClass;
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
@@ -15,8 +20,8 @@ function feeds_news_feeds_importer_default() {
     'fetcher' => array(
       'plugin_key' => 'FeedsHTTPFetcher',
       'config' => array(
-        'auto_detect_feeds' => FALSE,
-        'use_pubsubhubbub' => FALSE,
+        'auto_detect_feeds' => 1,
+        'use_pubsubhubbub' => 0,
         'designated_hub' => '',
       ),
     ),
@@ -28,36 +33,36 @@ function feeds_news_feeds_importer_default() {
       'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
         'content_type' => 'feed_item',
-        'update_existing' => 0,
+        'update_existing' => '0',
         'expire' => '-1',
         'mappings' => array(
-          '0' => array(
+          0 => array(
             'source' => 'title',
             'target' => 'title',
             'unique' => FALSE,
           ),
-          '1' => array(
-            'source' => 'description',
-            'target' => 'body',
-            'unique' => FALSE,
-          ),
-          '2' => array(
+          1 => array(
             'source' => 'timestamp',
             'target' => 'created',
             'unique' => FALSE,
           ),
-          '3' => array(
+          2 => array(
             'source' => 'url',
             'target' => 'url',
-            'unique' => TRUE,
+            'unique' => 1,
           ),
-          '4' => array(
+          3 => array(
             'source' => 'guid',
             'target' => 'guid',
-            'unique' => TRUE,
+            'unique' => 1,
+          ),
+          4 => array(
+            'source' => 'description',
+            'target' => 'field_feed_item_description',
+            'unique' => FALSE,
           ),
         ),
-        'input_format' => 0,
+        'input_format' => 'filtered_html',
         'author' => 0,
       ),
     ),
@@ -66,9 +71,10 @@ function feeds_news_feeds_importer_default() {
     'import_period' => '1800',
     'expire_period' => 3600,
     'import_on_create' => 1,
+    'process_in_background' => FALSE,
   );
-
   $export['feed'] = $feeds_importer;
+
   $feeds_importer = new stdClass;
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
@@ -87,19 +93,20 @@ function feeds_news_feeds_importer_default() {
       'config' => array(),
     ),
     'processor' => array(
-      'plugin_key' => 'FeedsFeedNodeProcessor',
+      'plugin_key' => 'FeedsNodeProcessor',
       'config' => array(
         'content_type' => 'feed',
         'update_existing' => 0,
+        'expire' => '-1',
         'mappings' => array(
-          '0' => array(
+          0 => array(
             'source' => 'title',
             'target' => 'title',
             'unique' => FALSE,
           ),
-          '1' => array(
+          1 => array(
             'source' => 'xmlurl',
-            'target' => 'source',
+            'target' => 'feeds_source',
             'unique' => 1,
           ),
         ),
@@ -111,7 +118,7 @@ function feeds_news_feeds_importer_default() {
     'expire_period' => 3600,
     'import_on_create' => 1,
   );
-
   $export['opml'] = $feeds_importer;
+
   return $export;
 }

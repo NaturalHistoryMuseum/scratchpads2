@@ -9,102 +9,76 @@
  * Feeds processor plugin. Create users from feed items.
  */
 class FeedsUserProcessor extends FeedsProcessor {
+  /**
+   * Define entity type.
+   */
+  public function entityType() {
+    return 'user';
+  }
 
   /**
-   * Implementation of FeedsProcessor::process().
+   * Implements parent::entityInfo().
    */
-  public function process(FeedsImportBatch $batch, FeedsSource $source) {
+  protected function entityInfo() {
+    $info = parent::entityInfo();
+    $info['label plural'] = t('Users');
+    return $info;
+  }
 
-    // Count number of created and updated nodes.
-    $created  = $updated = $failed = 0;
+  /**
+   * Creates a new user account in memory and returns it.
+   */
+  protected function newEntity(FeedsSource $source) {
+    $account = new stdClass();
+    $account->uid = 0;
+    $account->roles = array_filter($this->config['roles']);
+    $account->status = $this->config['status'];
+    return $account;
+  }
 
-    while ($item = $batch->shiftItem()) {
+  /**
+   * Loads an existing user.
+   */
+  protected function entityLoad(FeedsSource $source, $uid) {
+    return user_load($uid);
+  }
 
-      if (!($uid = $this->existingItemId($batch, $source)) || $this->config['update_existing']) {
+  /**
+   * Validates a user account.
+   */
+  protected function entityValidate($account) {
+    if (empty($account->name) || empty($account->mail) || !valid_email_address($account->mail)) {
+      throw new FeedsValidationException(t('User name missing or email not valid.'));
+    }
+  }
 
-        // Map item to a term.
-        $account = $this->map($batch);
-
-        // Check if user name and mail are set, otherwise continue.
-        if (empty($account->name) || empty($account->mail) || !valid_email_address($account->mail)) {
-          $failed++;
-          continue;
-        }
-
-        // Add term id if available.
-        if (!empty($uid)) {
-          $account->uid = $uid;
-        }
-
-        // Save the user.
-        user_save($account, (array) $account);
-        if ($account->uid && !empty($account->openid)) {
-          $authmap = array(
-            'uid' => $account->uid,
-            'module' => 'openid',
-            'authname' => $account->openid,
-          );
-          if (SAVED_UPDATED != drupal_write_record('authmap', $authmap, array('uid', 'module'))) {
-            drupal_write_record('authmap', $authmap);
-          }
-        }
-
-        if ($uid) {
-          $updated++;
-        }
-        else {
-          $created++;
-        }
+  /**
+   * Save a user account.
+   */
+  protected function entitySave($account) {
+    if ($this->config['defuse_mail']) {
+      $account->mail = $account->mail . '_test';
+    }
+    user_save($account, (array) $account);
+    if ($account->uid && !empty($account->openid)) {
+      $authmap = array(
+        'uid' => $account->uid,
+        'module' => 'openid',
+        'authname' => $account->openid,
+      );
+      if (SAVED_UPDATED != drupal_write_record('authmap', $authmap, array('uid', 'module'))) {
+        drupal_write_record('authmap', $authmap);
       }
     }
-
-    // Set messages.
-    if ($failed) {
-      drupal_set_message(
-        format_plural(
-          $failed,
-          'There was @number user that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.',
-          'There were @number users that could not be imported because either their name or their email was empty or not valid. Check import data and mapping settings on User processor.',
-          array('@number' => $failed)
-        ),
-        'error'
-      );
-    }
-    if ($created) {
-      drupal_set_message(format_plural($created, 'Created @number user.', 'Created @number users.', array('@number' => $created)));
-    }
-    elseif ($updated) {
-      drupal_set_message(format_plural($updated, 'Updated @number user.', 'Updated @number users.', array('@number' => $updated)));
-    }
-    else {
-      drupal_set_message(t('There are no new users.'));
-    }
   }
 
   /**
-   * Implementation of FeedsProcessor::clear().
+   * Delete multiple user accounts.
    */
-  public function clear(FeedsBatch $batch, FeedsSource $source) {
-    // Do not support deleting users as we have no way of knowing which ones we
-    // imported.
-    throw new Exception(t('User processor does not support deleting users.'));
-  }
-
-  /**
-   * Execute mapping on an item.
-   */
-  protected function map(FeedsImportBatch $batch, $target_account = NULL) {
-    // Prepare user account object.
-    if (empty($target_account)) {
-      $target_account = new stdClass();
+  protected function entityDeleteMultiple($uids) {
+    foreach ($uids as $uid) {
+      user_delete($uid);
     }
-
-    $target_account->uid = 0;
-    $target_account->roles = array_filter($this->config['roles']);
-    $target_account->status = $this->config['status'];
-
-    // Have parent class do the iterating.
-    return parent::map($batch, $target_account);
   }
 
   /**
@@ -113,18 +87,16 @@ class FeedsUserProcessor extends FeedsProcessor {
   public function configDefaults() {
     return array(
       'roles' => array(),
-      'update_existing' => FALSE,
       'status' => 1,
-      'mappings' => array(),
-    );
+      'defuse_mail' => FALSE,
+    ) + parent::configDefaults();
   }
 
   /**
    * Override parent::configForm().
    */
   public function configForm(&$form_state) {
-    $form = array();
-
+    $form = parent::configForm($form_state);
     $form['status'] = array(
       '#type' => 'radios',
       '#title' => t('Status'),
@@ -151,21 +123,35 @@ class FeedsUserProcessor extends FeedsProcessor {
       '#description' => t('If an existing user is found for an imported user, replace it. Existing users will be determined using mappings that are a "unique target".'),
       '#default_value' => $this->config['update_existing'],
     );
+    $form['defuse_mail'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Defuse e-mail addresses'),
+      '#description' => t('This appends _test to all imported e-mail addresses to ensure they cannot be used as recipients.'),
+      '#default_value' => $this->config['defuse_mail'],
+    );
     return $form;
   }
 
   /**
-   * Set target element.
+   * Override setTargetElement to operate on a target item that is a node.
    */
-  public function setTargetElement(&$target_item, $target_element, $value) {
-    $target_item->$target_element = $value;
+  public function setTargetElement(FeedsSource $source, $target_user, $target_element, $value) {
+    switch ($target_element) {
+      case 'created':
+        $target_user->created = feeds_to_unixtime($value, REQUEST_TIME);
+        break;
+      default:
+        parent::setTargetElement($source, $target_user, $target_element, $value);
+        break;
+    }
   }
 
   /**
    * Return available mapping targets.
    */
   public function getMappingTargets() {
-    $targets = array(
+    $targets = parent::getMappingTargets();
+    $targets += array(
       'name' => array(
         'name' => t('User name'),
         'description' => t('Name of the user.'),
@@ -195,7 +181,7 @@ class FeedsUserProcessor extends FeedsProcessor {
 
     // Let other modules expose mapping targets.
     self::loadMappers();
-    drupal_alter('feeds_user_processor_targets', $targets);
+    feeds_alter('feeds_processor_targets', $targets, 'user', 'user');
 
     return $targets;
   }
@@ -203,20 +189,23 @@ class FeedsUserProcessor extends FeedsProcessor {
   /**
    * Get id of an existing feed item term if available.
    */
-  protected function existingItemId(FeedsImportBatch $batch, FeedsSource $source) {
+  protected function existingEntityId(FeedsSource $source, FeedsParserResult $result) {
+    if ($uid = parent::existingEntityId($source, $result)) {
+      return $uid;
+    }
 
     // Iterate through all unique targets and try to find a user for the
     // target's value.
-    foreach ($this->uniqueTargets($batch) as $target => $value) {
+    foreach ($this->uniqueTargets($source, $result) as $target => $value) {
       switch ($target) {
         case 'name':
-          $uid = db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $value));
+          $uid = db_query("SELECT uid FROM {users} WHERE name = :name", array(':name' => $value))->fetchField();
           break;
         case 'mail':
-          $uid = db_result(db_query("SELECT uid FROM {users} WHERE mail = '%s'", $value));
+          $uid = db_query("SELECT uid FROM {users} WHERE mail = :mail", array(':mail' => $value))->fetchField();
           break;
         case 'openid':
-          $uid = db_result(db_query("SELECT uid FROM {authmap} WHERE authname = '%s' AND module = 'openid'", $value));
+          $uid = db_query("SELECT uid FROM {authmap} WHERE authname = :authname AND module = 'openid'", array(':authname' => $value))->fetchField();
           break;
       }
       if ($uid) {

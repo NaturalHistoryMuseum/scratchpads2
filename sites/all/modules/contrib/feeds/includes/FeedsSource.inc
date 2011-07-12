@@ -6,6 +6,20 @@
  */
 
 /**
+ * Distinguish exceptions occuring when handling locks.
+ */
+class FeedsLockException extends Exception {}
+
+/**
+ * Denote a import or clearing stage. Used for multi page processing.
+ */
+define('FEEDS_START', 'start_time');
+define('FEEDS_FETCH', 'fetch');
+define('FEEDS_PARSE', 'parse');
+define('FEEDS_PROCESS', 'process');
+define('FEEDS_PROCESS_CLEAR', 'process_clear');
+
+/**
  * Declares an interface for a class that defines default values and form
  * descriptions for a FeedSource.
  */
@@ -51,6 +65,77 @@ interface FeedsSourceInterface {
 }
 
 /**
+ * Status of an import or clearing operation on a source.
+ */
+class FeedsState {
+  /**
+   * Floating point number denoting the progress made. 0.0 meaning no progress
+   * 1.0 = FEEDS_BATCH_COMPLETE meaning finished.
+   */
+  public $progress;
+
+  /**
+   * Used as a pointer to store where left off. Must be serializable.
+   */
+  public $pointer;
+
+  /**
+   * Natural numbers denoting more details about the progress being made.
+   */
+  public $total;
+  public $created;
+  public $updated;
+  public $deleted;
+  public $skipped;
+  public $failed;
+
+  /**
+   * Constructor, initialize variables.
+   */
+  public function __construct() {
+    $this->progress = FEEDS_BATCH_COMPLETE;
+    $this->total =
+    $this->created =
+    $this->updated =
+    $this->deleted =
+    $this->skipped =
+    $this->failed = 0;
+  }
+
+  /**
+   * Safely report progress.
+   *
+   * When $total == $progress, the state of the task tracked by this state is
+   * regarded to be complete.
+   *
+   * Handles the following cases gracefully:
+   *
+   * - $total is 0
+   * - $progress is larger than $total
+   * - $progress approximates $total so that $finished rounds to 1.0
+   *
+   * @param $total
+   *   A natural number that is the total to be worked off.
+   * @param $progress
+   *   A natural number that is the progress made on $total.
+   */
+  public function progress($total, $progress) {
+    if ($progress > $total) {
+      $this->progress = FEEDS_BATCH_COMPLETE;
+    }
+    elseif ($total) {
+      $this->progress = $progress / $total;
+      if ($this->progress == FEEDS_BATCH_COMPLETE && $total != $progress) {
+        $this->progress = 0.99;
+      }
+    }
+    else {
+      $this->progress = FEEDS_BATCH_COMPLETE;
+    }
+  }
+}
+
+/**
  * This class encapsulates a source of a feed. It stores where the feed can be
  * found and how to import it.
  *
@@ -83,8 +168,15 @@ class FeedsSource extends FeedsConfigurable {
   // The FeedsImporter object that this source is expected to be used with.
   protected $importer;
 
-  // A FeedsBatch object. NULL if there is no active batch.
-  protected $batch;
+  // A FeedsSourceState object holding the current import/clearing state of this
+  // source.
+  protected $state;
+
+  // Fetcher result, used to cache fetcher result when batching.
+  protected $fetcher_result;
+
+  // Timestamp when this source was imported the last time.
+  protected $imported;
 
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
@@ -113,22 +205,119 @@ class FeedsSource extends FeedsConfigurable {
    * Preview = fetch and parse a feed.
    *
    * @return
-   *   FeedsImportBatch object, fetched and parsed.
+   *   FeedsParserResult object.
    *
    * @throws
    *   Throws Exception if an error occurs when fetching or parsing.
    */
   public function preview() {
-    $this->batch = $this->importer->fetcher->fetch($this);
-    $this->importer->parser->parse($this->batch, $this);
-    module_invoke_all('feeds_after_parse', $this->importer, $this);
-    $batch = $this->batch;
-    unset($this->batch);
-    return $batch;
+    $result = $this->importer->fetcher->fetch($this);
+    $result = $this->importer->parser->parse($this, $result);
+    module_invoke_all('feeds_after_parse', $this, $result);
+    return $result;
   }
 
   /**
-   * Import a feed: execute fetching, parsing and processing stage.
+   * Start importing a source.
+   *
+   * This method starts an import job. Depending on the configuration of the
+   * importer of this source, a Batch API job or a background job with Job
+   * Scheduler will be created.
+   *
+   * @throws Exception
+   *   If processing in background is enabled, the first batch chunk of the
+   *   import will be executed on the current page request. This means that this
+   *   method may throw the same exceptions as FeedsSource::import().
+   */
+  public function startImport() {
+    $config = $this->importer->getConfig();
+    if ($config['process_in_background']) {
+      $this->startBackgroundJob('import');
+    }
+    else {
+      $this->startBatchAPIJob(t('Importing'), 'import');
+    }
+  }
+
+  /**
+   * Start deleting all imported items of a source.
+   *
+   * This method starts a clear job. Depending on the configuration of the
+   * importer of this source, a Batch API job or a background job with Job
+   * Scheduler will be created.
+   *
+   * @throws Exception
+   *   If processing in background is enabled, the first batch chunk of the
+   *   clear task will be executed on the current page request. This means that
+   *   this method may throw the same exceptions as FeedsSource::clear().
+   */
+  public function startClear() {
+    $config = $this->importer->getConfig();
+    if ($config['process_in_background']) {
+      $this->startBackgroundJob('clear');
+    }
+    else {
+      $this->startBatchAPIJob(t('Deleting'), 'clear');
+    }
+  }
+
+  /**
+   * Schedule all periodic tasks for this source.
+   */
+  public function schedule() {
+    $this->scheduleImport();
+  }
+
+  /**
+   * Schedule periodic or background import tasks.
+   */
+  public function scheduleImport() {
+    // Check whether any fetcher is overriding the import period.
+    $period = $this->importer->config['import_period'];
+    $fetcher_period = $this->importer->fetcher->importPeriod($this);
+    if (is_numeric($fetcher_period)) {
+      $period = $fetcher_period;
+    }
+    $period = $this->progressImporting() === FEEDS_BATCH_COMPLETE ? $period : 0;
+    $job = array(
+      'type' => $this->id,
+      'id' => $this->feed_nid,
+      // Schedule as soon as possible if a batch is active.
+      'period' => $period,
+      'periodic' => TRUE,
+    );
+    if ($period != FEEDS_SCHEDULE_NEVER) {
+      JobScheduler::get('feeds_source_import')->set($job);
+    }
+    else {
+      JobScheduler::get('feeds_source_import')->remove($job);
+    }
+  }
+
+  /**
+   * Schedule background clearing tasks.
+   */
+  public function scheduleClear() {
+    // Schedule as soon as possible if batch is not complete.
+    if ($this->progressClearing() !== FEEDS_BATCH_COMPLETE) {
+      $job = array(
+        'type' => $this->id,
+        'id' => $this->feed_nid,
+        'period' => 0,
+        'periodic' => TRUE,
+      );
+      JobScheduler::get('feeds_source_clear')->set($job);
+    }
+    else {
+      JobScheduler::get('feeds_source_clear')->remove($job);
+    }
+  }
+
+  /**
+   * Import a source: execute fetching, parsing and processing stage.
+   *
+   * This method only executes the current batch chunk, then returns. If you are
+   * looking to import an entire source, use FeedsSource::startImport() instead.
    *
    * @return
    *   FEEDS_BATCH_COMPLETE if the import process finished. A decimal between
@@ -138,30 +327,53 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when importing.
    */
   public function import() {
+    $this->acquireLock();
     try {
-      if (!$this->batch || !($this->batch instanceof FeedsImportBatch)) {
-        $this->batch = $this->importer->fetcher->fetch($this);
-        $this->importer->parser->parse($this->batch, $this);
-        module_invoke_all('feeds_after_parse', $this->importer, $this);
+      // If fetcher result is empty, we are starting a new import, log.
+      if (empty($this->fetcher_result)) {
+        $this->state[FEEDS_START] = time();
       }
-      $this->importer->processor->process($this->batch, $this);
-      $result = $this->batch->getProgress();
-      if ($result == FEEDS_BATCH_COMPLETE) {
-        unset($this->batch);
-        module_invoke_all('feeds_after_import', $this->importer, $this);
+
+      // Fetch.
+      if (empty($this->fetcher_result) || FEEDS_BATCH_COMPLETE == $this->progressParsing()) {
+        $this->fetcher_result = $this->importer->fetcher->fetch($this);
+        // Clean the parser's state, we are parsing an entirely new file.
+        unset($this->state[FEEDS_PARSE]);
       }
+
+      // Parse.
+      $parser_result = $this->importer->parser->parse($this, $this->fetcher_result);
+      module_invoke_all('feeds_after_parse', $this, $parser_result);
+
+      // Process.
+      $this->importer->processor->process($this, $parser_result);
     }
     catch (Exception $e) {
-      unset($this->batch);
-      $this->save();
-      throw $e;
+      // Do nothing.
+    }
+    $this->releaseLock();
+
+    // Clean up.
+    $result = $this->progressImporting();
+    if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
+      module_invoke_all('feeds_after_import', $this);
+      $this->imported = time();
+      $this->log('import', 'Imported in !s s', array('!s' => $this->imported - $this->state[FEEDS_START]), WATCHDOG_INFO);
+      unset($this->fetcher_result, $this->state);
     }
     $this->save();
+    if (isset($e)) {
+      throw $e;
+    }
     return $result;
   }
 
   /**
    * Remove all items from a feed.
+   *
+   * This method only executes the current batch chunk, then returns. If you are
+   * looking to delete all items of a source, use FeedsSource::startClear()
+   * instead.
    *
    * @return
    *   FEEDS_BATCH_COMPLETE if the clearing process finished. A decimal between
@@ -171,63 +383,102 @@ class FeedsSource extends FeedsConfigurable {
    *   Throws Exception if an error occurs when clearing.
    */
   public function clear() {
+    $this->acquireLock();
     try {
       $this->importer->fetcher->clear($this);
       $this->importer->parser->clear($this);
-      if (!$this->batch || !($this->batch instanceof FeedsClearBatch)) {
-        $this->batch = new FeedsClearBatch();
-      }
-      $this->importer->processor->clear($this->batch, $this);
-      $result = $this->batch->getProgress();
-      if ($result == FEEDS_BATCH_COMPLETE) {
-        unset($this->batch);
-        module_invoke_all('feeds_after_clear', $this->importer, $this);
-      }
+      $this->importer->processor->clear($this);
     }
     catch (Exception $e) {
-      unset($this->batch);
-      $this->save();
-      throw $e;
+      // Do nothing.
+    }
+    $this->releaseLock();
+
+    // Clean up.
+    $result = $this->progressClearing();
+    if ($result == FEEDS_BATCH_COMPLETE || isset($e)) {
+      module_invoke_all('feeds_after_clear', $this);
+      unset($this->state);
     }
     $this->save();
+    if (isset($e)) {
+      throw $e;
+    }
     return $result;
   }
 
   /**
-   * Schedule this source.
+   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
    */
-  public function schedule() {
-    // Check whether any fetcher is overriding the import period.
-    $period = $this->importer->config['import_period'];
-    $fetcher_period = $this->importer->fetcher->importPeriod($this);
-    if (is_numeric($fetcher_period)) {
-      $period = $fetcher_period;
+  public function progressParsing() {
+    return $this->state(FEEDS_PARSE)->progress;
+  }
+
+  /**
+   * Report progress as float between 0 and 1. 1 = FEEDS_BATCH_COMPLETE.
+   */
+  public function progressImporting() {
+    $fetcher = $this->state(FEEDS_FETCH);
+    $parser = $this->state(FEEDS_PARSE);
+    if ($fetcher->progress == FEEDS_BATCH_COMPLETE && $parser->progress == FEEDS_BATCH_COMPLETE) {
+      return FEEDS_BATCH_COMPLETE;
     }
-    $job = array(
-      'callback' => 'feeds_source_import',
-      'type' => $this->id,
-      'id' => $this->feed_nid,
-      // Schedule as soon as possible if a batch is active.
-      'period' => $this->batch ? 0 : $period,
-      'periodic' => TRUE,
-    );
-    if ($job['period'] != FEEDS_SCHEDULE_NEVER) {
-      job_scheduler()->set($job);
+    // Fetching envelops parsing.
+    // @todo: this assumes all fetchers neatly use total. May not be the case.
+    $fetcher_fraction = $fetcher->total ? 1.0 / $fetcher->total : 1.0;
+    $parser_progress = $parser->progress * $fetcher_fraction;
+    $result = $fetcher->progress - $fetcher_fraction + $parser_progress;
+    if ($result == FEEDS_BATCH_COMPLETE) {
+      return 0.99;
     }
-    else {
-      job_scheduler()->remove($job);
+    return $result;
+  }
+
+  /**
+   * Report progress on clearing.
+   */
+  public function progressClearing() {
+    return $this->state(FEEDS_PROCESS_CLEAR)->progress;
+  }
+
+  /**
+   * Return a state object for a given stage. Lazy instantiates new states.
+   *
+   * @todo Rename getConfigFor() accordingly to config().
+   *
+   * @param $stage
+   *   One of FEEDS_FETCH, FEEDS_PARSE, FEEDS_PROCESS or FEEDS_PROCESS_CLEAR.
+   *
+   * @return
+   *   The FeedsState object for the given stage.
+   */
+  public function state($stage) {
+    if (!is_array($this->state)) {
+      $this->state = array();
     }
+    if (!isset($this->state[$stage])) {
+      $this->state[$stage] = new FeedsState();
+    }
+    return $this->state[$stage];
+  }
+
+  /**
+   * Count items imported by this source.
+   */
+  public function itemCount() {
+    return $this->importer->processor->itemCount($this);
   }
 
   /**
    * Save configuration.
    */
   public function save() {
-    $config = $this->getConfig();
     // Alert implementers of FeedsSourceInterface to the fact that we're saving.
     foreach ($this->importer->plugin_types as $type) {
       $this->importer->$type->sourceSave($this);
     }
+    $config = $this->getConfig();
+
     // Store the source property of the fetcher in a separate column so that we
     // can do fast lookups on it.
     $source = '';
@@ -237,11 +488,13 @@ class FeedsSource extends FeedsConfigurable {
     $object = array(
       'id' => $this->id,
       'feed_nid' => $this->feed_nid,
+      'imported' => $this->imported,
       'config' => $config,
       'source' => $source,
-      'batch' => isset($this->batch) ? $this->batch : FALSE,
+      'state' => isset($this->state) ? $this->state : FALSE,
+      'fetcher_result' => isset($this->fetcher_result) ? $this->fetcher_result : FALSE,
     );
-    if (db_result(db_query_range("SELECT 1 FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid, 0, 1))) {
+    if (db_query_range("SELECT 1 FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", 0, 1, array(':id' => $this->id, ':nid' => $this->feed_nid))->fetchField()) {
       drupal_write_record('feeds_source', $object, array('id', 'feed_nid'));
     }
     else {
@@ -255,13 +508,19 @@ class FeedsSource extends FeedsConfigurable {
    * @todo Patch CTools to move constants from export.inc to ctools.module.
    */
   public function load() {
-    if ($record = db_fetch_object(db_query("SELECT config, batch FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid))) {
+    if ($record = db_query("SELECT imported, config, state, fetcher_result FROM {feeds_source} WHERE id = :id AND feed_nid = :nid", array(':id' => $this->id, ':nid' => $this->feed_nid))->fetchObject()) {
       // While FeedsSource cannot be exported, we still use CTool's export.inc
       // export definitions.
       ctools_include('export');
       $this->export_type = EXPORT_IN_DATABASE;
+      $this->imported = $record->imported;
       $this->config = unserialize($record->config);
-      $this->batch = unserialize($record->batch);
+      if (!empty($record->state)) {
+        $this->state = unserialize($record->state);
+      }
+      if (!empty($record->fetcher_result)) {
+        $this->fetcher_result = unserialize($record->fetcher_result);
+      }
     }
   }
 
@@ -275,14 +534,16 @@ class FeedsSource extends FeedsConfigurable {
     foreach ($this->importer->plugin_types as $type) {
       $this->importer->$type->sourceDelete($this);
     }
-    db_query("DELETE FROM {feeds_source} WHERE id = '%s' AND feed_nid = %d", $this->id, $this->feed_nid);
+    db_delete('feeds_source')
+      ->condition('id', $this->id)
+      ->condition('feed_nid', $this->feed_nid)
+      ->execute();
     // Remove from schedule.
     $job = array(
-      'callback' => 'feeds_source_import',
       'type' => $this->id,
       'id' => $this->feed_nid,
     );
-    job_scheduler()->remove($job);
+    JobScheduler::get('feeds_source_import')->remove($job);
   }
 
   /**
@@ -304,7 +565,7 @@ class FeedsSource extends FeedsConfigurable {
   }
 
   /**
-   * Convenience function. Returns the configuration for a specific class.
+   * Returns the configuration for a specific client class.
    *
    * @param FeedsSourceInterface $client
    *   An object that is an implementer of FeedsSourceInterface.
@@ -314,6 +575,21 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function getConfigFor(FeedsSourceInterface $client) {
     return $this->config[get_class($client)];
+  }
+
+  /**
+   * Sets the configuration for a specific client class.
+   *
+   * @param FeedsSourceInterface $client
+   *   An object that is an implementer of FeedsSourceInterface.
+   * @param $config
+   *   The configuration for $client.
+   *
+   * @return
+   *   An array stored for $client.
+   */
+  public function setConfigFor(FeedsSourceInterface $client, $config) {
+    $this->config[get_class($client)] = $config;
   }
 
   /**
@@ -339,7 +615,8 @@ class FeedsSource extends FeedsConfigurable {
     foreach ($this->importer->plugin_types as $type) {
       if ($this->importer->$type->hasSourceConfig()) {
         $class = get_class($this->importer->$type);
-        $form[$class] = $this->importer->$type->sourceForm($this->config[$class]);
+        $config = isset($this->config[$class]) ? $this->config[$class] : array();
+        $form[$class] = $this->importer->$type->sourceForm($config);
         $form[$class]['#tree'] = TRUE;
       }
     }
@@ -356,5 +633,84 @@ class FeedsSource extends FeedsConfigurable {
         $this->importer->$type->sourceFormValidate($values[$class]);
       }
     }
+  }
+
+  /**
+   * Writes to feeds log.
+   */
+  public function log($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE) {
+    feeds_log($this->id, $this->feed_nid, $type, $message, $variables, $severity);
+  }
+
+  /**
+   * Background job helper. Starts a background job using Job Scheduler.
+   *
+   * Execute the first batch chunk of a background job on the current page load,
+   * moves the rest of the job processing to a cron powered background job.
+   *
+   * Executing the first batch chunk is important, otherwise, when a user
+   * submits a source for import or clearing, we will leave her without any
+   * visual indicators of an ongoing job.
+   *
+   * @see FeedsSource::startImport().
+   * @see FeedsSource::startClear().
+   *
+   * @param $method
+   *   Method to execute on importer; one of 'import' or 'clear'.
+   *
+   * @throws Exception $e
+   */
+  protected function startBackgroundJob($method) {
+    if (FEEDS_BATCH_COMPLETE != $this->$method()) {
+      $job = array(
+        'type' => $this->id,
+        'id' => $this->feed_nid,
+        'period' => 0,
+        'periodic' => FALSE,
+      );
+      JobScheduler::get("feeds_source_{$method}")->set($job);
+    }
+  }
+
+  /**
+   * Batch API helper. Starts a Batch API job.
+   *
+   * @see FeedsSource::startImport().
+   * @see FeedsSource::startClear().
+   * @see feeds_batch()
+   *
+   * @param $title
+   *   Title to show to user when executing batch.
+   * @param $method
+   *   Method to execute on importer; one of 'import' or 'clear'.
+   */
+  protected function startBatchAPIJob($title, $method) {
+    $batch = array(
+      'title' => $title,
+      'operations' => array(
+        array('feeds_batch', array($method, $this->id, $this->feed_nid)),
+      ),
+      'progress_message' => '',
+    );
+    batch_set($batch);
+  }
+
+  /**
+   * Acquires a lock for this source.
+   *
+   * @throws FeedsLockException
+   *   If a lock for the requested job could not be acquired.
+   */
+  protected function acquireLock() {
+    if (!lock_acquire("feeds_source_{$this->id}_{$this->feed_nid}", 60.0)) {
+      throw new FeedsLockException(t('Cannot acquire lock for source @id / @feed_nid.', array('@id' => $this->id, '@feed_nid' => $this->feed_nid)));
+    }
+  }
+
+  /**
+   * Releases a lock for this source.
+   */
+  protected function releaseLock() {
+    lock_release("feeds_source_{$this->id}_{$this->feed_nid}");
   }
 }

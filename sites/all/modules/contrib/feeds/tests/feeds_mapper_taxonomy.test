@@ -1,5 +1,4 @@
 <?php
-module_load_include('test', 'feeds', 'test/feeds_mapper');
 
 /**
  * @file
@@ -21,11 +20,11 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
   function setUp() {
     parent::setUp();
 
-    // Add a new taxonomy vocabulary, add to story content type.
+    // Add a new taxonomy vocabulary, add to article content type.
     $edit = array(
       'name' => 'Tags',
       'tags' => TRUE,
-      'nodes[story]' => TRUE,
+      'nodes[article]' => TRUE,
       'nodes[page]' => TRUE,
     );
     $this->drupalPost('admin/content/taxonomy/add/vocabulary', $edit, 'Save');
@@ -79,16 +78,16 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $edit = array(
       'import_on_create' => FALSE,
     );
-    $this->drupalPost('admin/build/feeds/edit/syndication/settings', $edit, 'Save');
-    $this->assertText('Do not import on create');
+    $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
+    $this->assertText('Do not import on submission');
     $nid = $this->createFeedNode();
     $terms = array('testterm1', 'testterm2', 'testterm3');
     $edit = array(
       'taxonomy[tags][1]' => implode(',', $terms),
     );
     $this->drupalPost("node/$nid/edit", $edit, t('Save'));
-    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $count = db_result(db_query("SELECT COUNT(*) FROM {term_node}", $nid));
+    $this->drupalPost("node/$nid/import", array(), 'Import');
+    $count = db_query("SELECT COUNT(*) FROM {term_node}")->fetchField();
     $this->assertEqual(33, $count, 'Found correct number of tags for all feed nodes and feed items.');
     foreach ($terms as $term) {
       $this->assertTaxonomyTerm($term);
@@ -112,10 +111,10 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     // Aggregate feed node with "Tag" vocabulary.
     $nid = $this->createFeedNode();
     // Assert 10 items aggregated after creation of the node.
-    $this->assertText('Created 10 Story nodes.');
+    $this->assertText('Created 10 nodes');
     // There should be 30 terms and 44 term-node relations.
-    $this->assertEqual(30, db_result(db_query("SELECT count(*) FROM {term_data}")), "Found correct number of terms.");
-    $this->assertEqual(44, db_result(db_query("SELECT count(*) FROM {term_node}")), "Found correct number of term-node relations.");
+    $this->assertEqual(30, db_query("SELECT count(*) FROM {term_data}")->fetchField(), "Found correct number of terms.");
+    $this->assertEqual(44, db_query("SELECT count(*) FROM {term_node}")->fetchField(), "Found correct number of term-node relations.");
 
     // Take a look at the actual terms on frontpage.
     $this->drupalGet('node');
@@ -156,51 +155,51 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     }
 
     // Delete all items, all associations are gone.
-    $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
-    $this->assertText('Deleted 10 nodes.');
-    $this->assertEqual(30, db_result(db_query("SELECT count(*) FROM {term_data}")), "Found correct number of terms.");
-    $this->assertEqual(0, db_result(db_query("SELECT count(*) FROM {term_node}")), "Found correct number of term-node relations.");
+    $this->drupalPost("node/$nid/delete-items", array(), 'Delete');
+    $this->assertText('Deleted 10 nodes');
+    $this->assertEqual(30, db_query("SELECT count(*) FROM {term_data}")->fetchField(), "Found correct number of terms.");
+    $this->assertEqual(0, db_query("SELECT count(*) FROM {term_node}")->fetchField(), "Found correct number of term-node relations.");
 
     // Remove "Tag" setting, import again.
     $edit = array(
       'tags' => FALSE,
     );
     $this->drupalPost('admin/content/taxonomy/edit/vocabulary/1', $edit, 'Save');
-    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $this->assertText('Created 10 Story nodes.');
+    $this->drupalPost("node/$nid/import", array(), 'Import');
+    $this->assertText('Created 10 nodes');
 
     // We should only get one term-node association per node.
-    $this->assertEqual(30, db_result(db_query("SELECT count(*) FROM {term_data}")), "Found correct number of terms.");
-    $this->assertEqual(10, db_result(db_query("SELECT count(*) FROM {term_node}")), "Found correct number of term-node relations.");
+    $this->assertEqual(30, db_query("SELECT count(*) FROM {term_data}")->fetchField(), "Found correct number of terms.");
+    $this->assertEqual(10, db_query("SELECT count(*) FROM {term_node}")->fetchField(), "Found correct number of term-node relations.");
 
     // Delete all items.
-    $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
+    $this->drupalPost("node/$nid/delete-items", array(), 'Delete');
 
     // Set vocabulary to multiple terms, import again.
     $edit = array(
       'multiple' => TRUE,
     );
     $this->drupalPost('admin/content/taxonomy/edit/vocabulary/1', $edit, 'Save');
-    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $this->assertText('Created 10 Story nodes.');
+    $this->drupalPost("node/$nid/import", array(), 'Import');
+    $this->assertText('Created 10 nodes');
 
     // We should get all term-node associations again.
-    $this->assertEqual(30, db_result(db_query("SELECT count(*) FROM {term_data}")), "Found correct number of terms.");
-    $this->assertEqual(44, db_result(db_query("SELECT count(*) FROM {term_node}")), "Found correct number of term-node relations.");
+    $this->assertEqual(30, db_query("SELECT count(*) FROM {term_data}")->fetchField(), "Found correct number of terms.");
+    $this->assertEqual(44, db_query("SELECT count(*) FROM {term_node}")->fetchField(), "Found correct number of term-node relations.");
 
     // Delete all items.
-    $this->drupalPost('node/'. $nid .'/delete-items', array(), 'Delete');
+    $this->drupalPost("node/$nid/delete-items", array(), 'Delete');
 
     // Remove a term, import again.
     $this->drupalPost('admin/content/taxonomy/edit/term/1', array(), 'Delete');
     $this->drupalPost(NULL, array(), 'Delete');
     $this->assertText('Deleted term');
-    $this->drupalPost('node/'. $nid .'/import', array(), 'Import');
-    $this->assertText('Created 10 Story nodes.');
+    $this->drupalPost("node/$nid/import", array(), 'Import');
+    $this->assertText('Created 10 nodes');
 
     // This term should now be missing from term-node associations.
-    $this->assertEqual(29, db_result(db_query("SELECT count(*) FROM {term_data}")), "Found correct number of terms.");
-    $this->assertEqual(39, db_result(db_query("SELECT count(*) FROM {term_node}")), "Found correct number of term-node relations.". db_result(db_query("SELECT count(*) FROM {term_node}")));
+    $this->assertEqual(29, db_query("SELECT count(*) FROM {term_data}")->fetchField(), "Found correct number of terms.");
+    $this->assertEqual(39, db_query("SELECT count(*) FROM {term_node}")->fetchField(), "Found correct number of term-node relations.");
   }
 
   /**
@@ -208,6 +207,6 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
    */
   public function assertTaxonomyTerm($term) {
     $term = check_plain($term);
-    $this->assertPattern('/<a href="(.*?)\/taxonomy\/term\/([0-9]*?)"(.*)>'. $term .'<\/a>/', 'Found '. $term);
+    $this->assertPattern('/<a href="(.*?)\/taxonomy\/term\/([0-9]*?)"(.*)>' . $term . '<\/a>/', 'Found ' . $term);
   }
 }

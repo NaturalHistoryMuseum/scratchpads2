@@ -6,18 +6,19 @@
 class FeedsCSVParser extends FeedsParser {
 
   /**
-   * Implementation of FeedsParser::parse().
+   * Implements FeedsParser::parse().
    */
-  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
+    $source_config = $source->getConfigFor($this);
+    $state = $source->state(FEEDS_PARSE);
 
     // Load and configure parser.
     feeds_include_library('ParserCSV.inc', 'ParserCSV');
-    $iterator = new ParserCSVIterator(realpath($batch->getFilePath()));
-    $source_config = $source->getConfigFor($this);
     $parser = new ParserCSV();
     $delimiter = $source_config['delimiter'] == 'TAB' ? "\t" : $source_config['delimiter'];
     $parser->setDelimiter($delimiter);
 
+    $iterator = new ParserCSVIterator($fetcher_result->getFilePath());
     if (empty($source_config['no_headers'])) {
       // Get first line and use it for column names, convert them to lower case.
       $header = $this->parseHeader($parser, $iterator);
@@ -27,8 +28,19 @@ class FeedsCSVParser extends FeedsParser {
       $parser->setColumnNames($header);
     }
 
-    // Populate batch.
-    $batch->items = $this->parseItems($parser, $iterator);
+    // Determine section to parse, parse.
+    $start = $state->pointer ? $state->pointer : $parser->lastLinePos();
+    $limit = $source->importer->getLimit();
+    $rows = $this->parseItems($parser, $iterator, $start, $limit);
+
+    // Report progress.
+    $state->total = filesize($fetcher_result->getFilePath());
+    $state->pointer = $parser->lastLinePos();
+    $progress = $parser->lastLinePos() ? $parser->lastLinePos() : $state->total;
+    $state->progress($state->total, $progress);
+
+    // Create a result object and return it.
+    return new FeedsParserResult($rows, $source->feed_nid);
   }
 
   /**
@@ -62,10 +74,9 @@ class FeedsCSVParser extends FeedsParser {
    * @return
    *   An array of rows of the CSV keyed by the column names previously set
    */
-  protected function parseItems(ParserCSV $parser, ParserCSVIterator $iterator) {
-    // Set line limit to 0 and start byte to last position and parse rest.
-    $parser->setLineLimit(0);
-    $parser->setStartByte($parser->lastLinePos());
+  protected function parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0) {
+    $parser->setLineLimit($limit);
+    $parser->setStartByte($start);
     $rows = $parser->parse($iterator);
     return $rows;
   }
@@ -80,8 +91,8 @@ class FeedsCSVParser extends FeedsParser {
   /**
    * Override parent::getSourceElement() to use only lower keys.
    */
-  public function getSourceElement(FeedsImportBatch $batch, $element_key) {
-    return parent::getSourceElement($batch, drupal_strtolower($element_key));
+  public function getSourceElement(FeedsSource $source, FeedsParserResult $result, $element_key) {
+    return parent::getSourceElement($source, $result, drupal_strtolower($element_key));
   }
 
   /**
@@ -112,12 +123,11 @@ class FeedsCSVParser extends FeedsParser {
       }
     }
 
-    $items = array(
-      t('Import !csv_files with one or more of these columns: !columns.', array('!csv_files' => l(t('CSV files'), 'http://en.wikipedia.org/wiki/Comma-separated_values'), '!columns' => implode(', ', $sources))),
-      format_plural(count($uniques), t('Column <strong>!column</strong> is mandatory and considered unique: only one item per !column value will be created.', array('!column' => implode(', ', $uniques))), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array('!columns' => implode(', ', $uniques)))),
-    );
-    $form['help']['#value'] = '<div class="help">'. theme('item_list', $items) .'</div>';
-
+    $output = t('Import !csv_files with one or more of these columns: !columns.', array('!csv_files' => l(t('CSV files'), 'http://en.wikipedia.org/wiki/Comma-separated_values'), '!columns' => implode(', ', $sources)));
+    $items = array();
+    $items[] = format_plural(count($uniques), t('Column <strong>!column</strong> is mandatory and considered unique: only one item per !column value will be created.', array('!column' => implode(', ', $uniques))), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array('!columns' => implode(', ', $uniques))));
+    $items[] = l(t('Download a template'), 'import/' . $this->id . '/template');
+    $form['help']['#markup'] = '<div class="help"><p>' . $output . '</p>' . theme('item_list', array('items' => $items)) . '</div>';
     $form['delimiter'] = array(
       '#type' => 'select',
       '#title' => t('Delimiter'),
@@ -171,5 +181,31 @@ class FeedsCSVParser extends FeedsParser {
       '#default_value' => $this->config['no_headers'],
     );
     return $form;
+  }
+
+  public function getTemplate() {
+    $mappings = feeds_importer($this->id)->processor->config['mappings'];
+    $sources = $uniques = array();
+    foreach ($mappings as $mapping) {
+      if ($mapping['unique']) {
+        $uniques[] = check_plain($mapping['source']);
+      }
+      else {
+        $sources[] = check_plain($mapping['source']);
+      }
+    }
+    $sep = ',';
+    $columns = array();
+    foreach (array_merge($uniques, $sources) as $col) {
+      if (strpos($col, $sep) !== FALSE) {
+        $col = '"' . str_replace('"', '""', $col) . '"';
+      }
+      $columns[] = $col;
+    }
+    drupal_add_http_header('Cache-Control', 'max-age=60, must-revalidate');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="' . $this->id . '_template.csv"');
+    drupal_add_http_header('Content-type', 'text/csv; charset=utf-8');
+    print implode($sep, $columns);
+    return;
   }
 }

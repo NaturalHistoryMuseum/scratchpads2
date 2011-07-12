@@ -34,7 +34,7 @@ function opml_parser_parse($raw) {
         $item['title'] = $item['text'];
       }
       else {
-        $item['title'] = trim(substr($item['text'], 0, 30)) .' ...';
+        $item['title'] = trim(substr($item['text'], 0, 30)) . ' ...';
       }
     }
     if (isset($item['title']) && isset($item['xmlurl'])) {

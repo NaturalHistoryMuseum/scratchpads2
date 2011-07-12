@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?php
+print '<?xml version="1.0" encoding="utf-8" standalone="yes"?>';
+?>
 <feed xmlns="http://www.w3.org/2005/Atom"
       xmlns:dc="http://purl.org/dc/elements/1.1/"  xmlns:flickr="urn:flickr:" xmlns:media="http://search.yahoo.com/mrss/">
 
@@ -29,7 +31,7 @@
 			<uri>http://www.flickr.com/people/a-barth/</uri>
 					</author>
 		<link rel="license" type="text/html" href="http://creativecommons.org/licenses/by-nc/2.0/deed.en" />
-        <link rel="enclosure" type="image/jpeg" href="http://farm4.static.flickr.com/3599/3596408735_ce2f0c4824_b.jpg" />
+        <link rel="enclosure" type="image/jpeg" href="<?php print $image_urls[0]; ?>" />
 
 		<category term="color" scheme="http://www.flickr.com/photos/tags/" />
 		<category term="film" scheme="http://www.flickr.com/photos/tags/" />
@@ -61,7 +63,7 @@
 			<uri>http://www.flickr.com/people/a-barth/</uri>
 					</author>
 		<link rel="license" type="text/html" href="http://creativecommons.org/licenses/by-nc/2.0/deed.en" />
-        <link rel="enclosure" type="image/jpeg" href="http://farm4.static.flickr.com/3261/2640019371_495c3f51a2_b.jpg" />
+        <link rel="enclosure" type="image/jpeg" href="<?php print $image_urls[1]; ?>" />
 
 		<category term="b" scheme="http://www.flickr.com/photos/tags/" />
 		<category term="blackandwhite" scheme="http://www.flickr.com/photos/tags/" />
@@ -104,7 +106,7 @@
 			<uri>http://www.flickr.com/people/a-barth/</uri>
 					</author>
 		<link rel="license" type="text/html" href="http://creativecommons.org/licenses/by-nc/2.0/deed.en" />
-        <link rel="enclosure" type="image/jpeg" href="http://farm4.static.flickr.com/3606/3686290986_334c427e8c_b.jpg" />
+        <link rel="enclosure" type="image/jpeg" href="<?php print $image_urls[2]; ?>" />
 
 		<category term="lake" scheme="http://www.flickr.com/photos/tags/" />
 		<category term="green" scheme="http://www.flickr.com/photos/tags/" />
@@ -139,7 +141,7 @@
 			<uri>http://www.flickr.com/people/a-barth/</uri>
 					</author>
 		<link rel="license" type="text/html" href="http://creativecommons.org/licenses/by-nc/2.0/deed.en" />
-        <link rel="enclosure" type="image/jpeg" href="http://farm4.static.flickr.com/3083/2640845934_85c11e5a18_b.jpg" />
+        <link rel="enclosure" type="image/jpeg" href="<?php print $image_urls[3]; ?>" />
 
 		<category term="nightphotography" scheme="http://www.flickr.com/photos/tags/" />
 		<category term="b" scheme="http://www.flickr.com/photos/tags/" />

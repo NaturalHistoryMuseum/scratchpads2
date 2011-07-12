@@ -9,7 +9,7 @@
  * Break out for feeds_feed_plugins().
  */
 function _feeds_feeds_plugins() {
-  $path = drupal_get_path('module', 'feeds') .'/plugins';
+  $path = drupal_get_path('module', 'feeds') . '/plugins';
 
   $info = array();
   $info['FeedsPlugin'] = array(
@@ -140,17 +140,6 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  $info['FeedsFeedNodeProcessor'] = array(
-    'name' => 'Feed Node processor',
-    'description' => 'Create <em>Feed nodes</em>.',
-    'help' => 'Create <em>Feed nodes</em> from parsed content. Feed nodes are nodes that can import feeds themselves. This can be useful for instance when importing OPML feeds.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'FeedsFeedNodeProcessor',
-      'file' => 'FeedsFeedNodeProcessor.inc',
-      'path' => $path,
-    ),
-  );
   $info['FeedsUserProcessor'] = array(
     'name' => 'User processor',
     'description' => 'Create users.',
@@ -162,19 +151,6 @@ function _feeds_feeds_plugins() {
       'path' => $path,
     ),
   );
-  if (module_exists('data')) {
-    $info['FeedsDataProcessor'] = array(
-      'name' => 'Data processor',
-      'description' => 'Create data table records.',
-      'help' => 'Create data table records from parsed content.',
-      'handler' => array(
-        'parent' => 'FeedsProcessor',
-        'class' => 'FeedsDataProcessor',
-        'file' => 'FeedsDataProcessor.inc',
-        'path' => $path,
-      ),
-    );
-  }
   if (module_exists('taxonomy')) {
     $info['FeedsTermProcessor'] = array(
       'name' => 'Taxonomy term processor',

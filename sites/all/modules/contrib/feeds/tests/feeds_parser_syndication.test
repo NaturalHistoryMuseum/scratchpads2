@@ -1,5 +1,4 @@
 <?php
-module_load_include('test', 'feeds', 'test/feeds');
 
 /**
  * @file
@@ -36,7 +35,7 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
       $this->setPlugin('syndication', $parser);
       foreach ($this->feedUrls() as $url => $assertions) {
         $this->createFeedNode('syndication', $url);
-        $this->assertText('Created '. $assertions['item_count'] .' Story nodes.');
+        $this->assertText('Created ' . $assertions['item_count'] . ' nodes');
       }
     }
   }
@@ -45,7 +44,7 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
    * Return an array of test feeds.
    */
   protected function feedUrls() {
-    $path = $GLOBALS['base_url'] .'/'. drupal_get_path('module', 'feeds') .'/tests/feeds/';
+    $path = $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/';
     return array(
       "{$path}developmentseed.rss2" => array(
         'item_count' => 10,

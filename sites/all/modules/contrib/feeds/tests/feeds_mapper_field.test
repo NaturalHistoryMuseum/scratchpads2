@@ -1,5 +1,4 @@
 <?php
-module_load_include('test', 'feeds', 'test/feeds_mapper');
 
 /**
  * @file
@@ -7,28 +6,25 @@ module_load_include('test', 'feeds', 'test/feeds_mapper');
  */
 
 /**
- * Class for testing Feeds <em>content</em> mapper.
+ * Class for testing Feeds field mapper.
  */
-class FeedsMapperContentTestCase extends FeedsMapperTestCase {
+class FeedsMapperFieldTestCase extends FeedsMapperTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'Mapper: Content',
-      'description' => 'Test Feeds Mapper support for CCK fields.',
+      'name' => 'Mapper: Fields',
+      'description' => 'Test Feeds Mapper support for fields.',
       'group' => 'Feeds',
-      'dependencies' => array('content'),
     );
   }
 
-  function setUp() {
-    // Call parent setup with required modules.
-    parent::setUp(array('content', 'number', 'text'));
+  public function setUp() {
+    parent::setUp(array('number'));
   }
 
   /**
-   * Basic test loading a doulbe entry CSV file.
+   * Basic test loading a double entry CSV file.
    */
   function test() {
-
     // Create content type.
     $typename = $this->createContentType(array(), array(
       'alpha' => 'text',
@@ -75,20 +71,20 @@ class FeedsMapperContentTestCase extends FeedsMapperTestCase {
     ));
 
     // Import CSV file.
-    $this->importFile('csv', $this->absolutePath() .'/tests/feeds/content.csv');
-    $this->assertText('Created 2 '. $typename .' nodes.');
+    $this->importFile('csv', $this->absolutePath() . '/tests/feeds/content.csv');
+    $this->assertText('Created 2 nodes');
 
     // Check the two imported files.
     $this->drupalGet('node/1/edit');
-    $this->assertCCKFieldValue('alpha', 'Lorem');
-    $this->assertCCKFieldValue('beta', '42');
-    $this->assertCCKFieldValue('gamma', '4.20');
-    $this->assertCCKFieldValue('delta', '3.14159');
+    $this->assertNodeFieldValue('alpha', 'Lorem');
+    $this->assertNodeFieldValue('beta', '42');
+    $this->assertNodeFieldValue('gamma', '4.20');
+    $this->assertNodeFieldValue('delta', '3.14159');
 
     $this->drupalGet('node/2/edit');
-    $this->assertCCKFieldValue('alpha', 'Ut wisi');
-    $this->assertCCKFieldValue('beta', '32');
-    $this->assertCCKFieldValue('gamma', '1.20');
-    $this->assertCCKFieldValue('delta', '5.62951');
+    $this->assertNodeFieldValue('alpha', 'Ut wisi');
+    $this->assertNodeFieldValue('beta', '32');
+    $this->assertNodeFieldValue('gamma', '1.20');
+    $this->assertNodeFieldValue('delta', '5.62951');
   }
 }

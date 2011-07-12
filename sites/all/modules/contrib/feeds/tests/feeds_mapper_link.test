@@ -1,5 +1,4 @@
 <?php
-module_load_include('test', 'feeds', 'test/feeds_mapper');
 
 /**
  * @file
@@ -13,14 +12,14 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Mapper: Link',
-      'description' => 'Test Feeds Mapper support for Link CCK fields.',
+      'description' => 'Test Feeds Mapper support for Link fields.',
       'group' => 'Feeds',
-      'dependencies' => array('content', 'link'),
+      'dependencies' => array('link'),
     );
   }
 
   public function setUp() {
-    parent::setUp(array('content', 'link'));
+    parent::setUp(array('link'));
   }
 
   /**
@@ -32,32 +31,28 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
     // Create content type.
     $typename = $this->createContentType(array(), array(
       'alpha' => array(
-        'type' => 'link',
+        'type' => 'link_field',
         'settings' => array(
-          'title' => 'required',
-          'multiple' =>  '0',
+          'field[settings][title]' => 'required',
         ),
       ),
       'beta' => array(
-        'type' => 'link',
+        'type' => 'link_field',
         'settings' => array(
-          'title' => 'none',
-          'multiple' => '0',
+          'field[settings][title]' => 'none',
         ),
       ),
       'gamma' => array(
-        'type' => 'link',
+        'type' => 'link_field',
         'settings' => array(
-          'title' => 'optional',
-          'multiple' =>  '0',
+          'field[settings][title]' => 'optional',
         ),
       ),
       'omega' => array(
-      'type' => 'link',
+      'type' => 'link_field',
         'settings' => array(
-          'title' => 'value',
-          'title_value' => $static_title,
-          'multiple' =>  '0',
+          'field[settings][title]' => 'value',
+          'field[settings][title_value]' => $static_title,
         ),
       ),
     ));
@@ -107,17 +102,17 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
     // Import RSS file.
     $nid = $this->createFeedNode();
     // Assert 10 items aggregated after creation of the node.
-    $this->assertText('Created 10 '. $typename .' nodes.');
+    $this->assertText('Created 10 nodes');
 
     // Edit the imported node.
     $this->drupalGet('node/2/edit');
 
     $url = 'http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating';
     $title = 'Open Atrium Translation Workflow: Two Way Translation Updates';
-    $this->assertCCKFieldValue('alpha', array('url' => $url, 'static' => $title));
-    $this->assertCCKFieldValue('beta', array('url' =>  $url));
-    $this->assertCCKFieldValue('gamma', array('url' => $url, 'static' => $title));
-    $this->assertCCKFieldValue('omega', array('url' => $url, 'static' => $static_title));
+    $this->assertNodeFieldValue('alpha', array('url' => $url, 'static' => $title));
+    $this->assertNodeFieldValue('beta', array('url' =>  $url));
+    $this->assertNodeFieldValue('gamma', array('url' => $url, 'static' => $title));
+    $this->assertNodeFieldValue('omega', array('url' => $url, 'static' => $static_title));
 
     // Test the static title.
     $this->drupalGet('node/2');
@@ -130,9 +125,9 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
    */
   protected function getFormFieldsNames($field_name, $index) {
     if (in_array($field_name, array('alpha', 'beta', 'gamma', 'omega'))) {
-      $fields = array("field_{$field_name}[{$index}][url]");
+      $fields = array("field_{$field_name}[und][{$index}][url]");
       if (in_array($field_name, array('alpha', 'gamma'))) {
-        $fields[] = "field_{$field_name}[{$index}][title]";
+        $fields[] = "field_{$field_name}[und][{$index}][title]";
       }
       return $fields;
     }
@@ -145,7 +140,6 @@ class FeedsMapperLinkTestCase extends FeedsMapperTestCase {
    * Override parent::getFormFieldsValues().
    */
   protected function getFormFieldsValues($field_name, $value) {
-    $field = content_fields($field_name);
     if (in_array($field_name, array('alpha', 'beta', 'gamma', 'omega'))) {
       if (!is_array($value)) {
         $value = array('url' => $value);

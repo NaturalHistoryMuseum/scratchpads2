@@ -11,13 +11,14 @@
 class FeedsOPMLParser extends FeedsParser {
 
   /**
-   * Implementation of FeedsParser::parse().
+   * Implements FeedsParser::parse().
    */
-  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_library('opml_parser.inc', 'opml_parser');
-    $result = opml_parser_parse($batch->getRaw());
-    $batch->title = $result['title'];
-    $batch->items = $result['items'];
+    $opml = opml_parser_parse($fetcher_result->getRaw());
+    $result = new FeedsParserResult($opml['items']);
+    $result->title = $opml['title'];
+    return $result;
   }
 
   /**
