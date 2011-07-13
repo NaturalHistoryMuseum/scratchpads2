@@ -1,0 +1,1290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet title="XSL_formatting" href="render-taxonomy-rdf.xsl" type="text/xsl"?>
+<!--
+    This file was created by Drupal taxonomy_xml import/export tool. 
+    http://drupal.org/project/taxonomy_xml
+    /* :  $ */
+
+    The RDF schema in this file is intended to follow the Working Draft
+    described at http://www.w3.org/TR/wordnet-rdf/ for the notation of
+    thesauri and taxonomies.
+    -->
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" rdfs:title="Initializing namespace in PHP is hard" owl:hack="Initializing namespace in PHP is hard">
+  <owl:Ontology rdf:ID="vocabulary-3" rdf:about="http://www.taxonomyserver.monster/?q=taxonomy_xml/3/rdf">
+    <rdfs:label>North American Countries and States</rdfs:label>
+    <rdfs:comment>These state names and descriptions were compiled from a non-canonical online reference.
+    Corrections or updates are welcome.</rdfs:comment>
+    <owl:versionInfo>Wednesday, December 19, 2007 - 14:12</owl:versionInfo>
+  </owl:Ontology>
+
+  <rdfs:Class rdf:ID="term-208">
+    <rdfs:label>Canada</rdfs:label>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-207">
+    <rdfs:label>Alberta</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Alberta.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AB</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-217">
+    <rdfs:label>British Columbia</rdfs:label>
+
+    <rdfs:comment>The Canadian province of British Columbia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>BC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-249">
+    <rdfs:label>Manitoba</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Manitoba.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MB</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-262">
+    <rdfs:label>New Brunswick</rdfs:label>
+
+    <rdfs:comment>The Canadian province of New Brunswick.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NB</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-266">
+    <rdfs:label>Newfoundland</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Newfoundland.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NF</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-272">
+    <rdfs:label>Northwest Territories</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Northwest Territories.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-271">
+    <rdfs:label>Nova Scotia</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Nova Scotia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-273">
+    <rdfs:label>Nunavut</rdfs:label>
+
+    <rdfs:comment>The Canadian territory of Nunavut.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NU</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-279">
+    <rdfs:label>Ontario</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Ontario.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>ON</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-282">
+    <rdfs:label>Prince Edward Island</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Prince Edward Island.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PE</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-283">
+    <rdfs:label>Quebec</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Quebec.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PQ</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-293">
+    <rdfs:label>Saskatchewan</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Saskatchewan.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SK</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-311">
+    <rdfs:label>Yukon Territory</rdfs:label>
+
+    <rdfs:comment>The Canadian province of Yukon Territory.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>YT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-208">Canada</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-210">
+    <rdfs:label>Mexico</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Mexico.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MEX</owl:equivalentClass>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-209">
+    <rdfs:label>Aguascalientes</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Aguascalientes.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AGS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-218">
+    <rdfs:label>Baja California</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Baja California.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>BC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-219">
+    <rdfs:label>Baja California Sur</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Baja California Sur.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>BCS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-221">
+    <rdfs:label>Campeche</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Campeche.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CAM</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-223">
+    <rdfs:label>Chiapas</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Chiapas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CHIS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-222">
+    <rdfs:label>Chihuahua</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Chihuahua.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CHIH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-225">
+    <rdfs:label>Coahuila de Zaragoza</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Coahuila de Zaragoza.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>COAH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-226">
+    <rdfs:label>Colima</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Colima.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>COL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-231">
+    <rdfs:label>Durango</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Durango.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>DGO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-236">
+    <rdfs:label>Guanajuato</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Guanajuato.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>GTO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-235">
+    <rdfs:label>Guerrero</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Guerrero.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>GRO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-238">
+    <rdfs:label>Hildalgo</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Hildalgo.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>HGO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-244">
+    <rdfs:label>Jalisco</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Jalisco.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>JAL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-254">
+    <rdfs:label>Michoacan de Ocampo</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Michoacan de Ocampo.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MICH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-257">
+    <rdfs:label>Morelos</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Morelos.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MOR</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-261">
+    <rdfs:label>Nayarit</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Nayarit.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NAY</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-269">
+    <rdfs:label>Nuevo Leon</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Nuevo Leon.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-276">
+    <rdfs:label>Oaxaca</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Oaxaca.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>OAX</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-285">
+    <rdfs:label>Puebla</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Puebla.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PUE</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-287">
+    <rdfs:label>Queretaro de Arteaga</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Queretaro de Arteaga.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>QRO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-288">
+    <rdfs:label>Quintana Roo</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Quintana Roo.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>QROO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-294">
+    <rdfs:label>San Luis Potosi</rdfs:label>
+
+    <rdfs:comment>The Mexican state of San Luis Potosi.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SLP</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-292">
+    <rdfs:label>Sinaloa</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Sinaloa.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SIN</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-295">
+    <rdfs:label>Sonora</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Sonora.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SON</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-296">
+    <rdfs:label>Tabasco</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Tabasco.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>TAB</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-297">
+    <rdfs:label>Tamaulipas</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Tamaulipas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>TAMPS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-230">
+    <rdfs:label>The Mexican Distrito Federal</rdfs:label>
+
+    <rdfs:comment>The Mexican Distrito Federal.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>DF</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-298">
+    <rdfs:label>Tlaxcala</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Tlaxcala.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>TLAX</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-304">
+    <rdfs:label>Veracruz-Llave</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Veracruz-Llave.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>VER</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-312">
+    <rdfs:label>Yucatan</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Yucatan.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>YUC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-313">
+    <rdfs:label>Zacatecas</rdfs:label>
+
+    <rdfs:comment>The Mexican state of Zacatecas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>ZAC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-210">Mexico</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-212">
+    <rdfs:label>United States of America</rdfs:label>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-213">
+    <rdfs:label>Alabama</rdfs:label>
+
+    <rdfs:comment>The state of Alabama.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-211">
+    <rdfs:label>Alaska</rdfs:label>
+
+    <rdfs:comment>The state of Alaska.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AK</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-215">
+    <rdfs:label>American Samoa</rdfs:label>
+
+    <rdfs:comment>The territory of American Samoa.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-216">
+    <rdfs:label>Arizona</rdfs:label>
+
+    <rdfs:comment>The state of Arizona.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AZ</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-214">
+    <rdfs:label>Arkansas</rdfs:label>
+
+    <rdfs:comment>The state of Arkansas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>AR</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-220">
+    <rdfs:label>California</rdfs:label>
+
+    <rdfs:comment>The state of California.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-224">
+    <rdfs:label>Colorado</rdfs:label>
+
+    <rdfs:comment>The state of Colorado.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-227">
+    <rdfs:label>Connecticut</rdfs:label>
+
+    <rdfs:comment>The state of Connecticut.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>CT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-229">
+    <rdfs:label>Delaware</rdfs:label>
+
+    <rdfs:comment>The state of Delaware.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>DE</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-228">
+    <rdfs:label>District of Columbia</rdfs:label>
+
+    <rdfs:comment>The state of District of Columbia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>DC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-232">
+    <rdfs:label>Florida</rdfs:label>
+
+    <rdfs:comment>The state of Florida.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>FL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-234">
+    <rdfs:label>Georgia</rdfs:label>
+
+    <rdfs:comment>The state of Georgia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>GA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-237">
+    <rdfs:label>Guam</rdfs:label>
+
+    <rdfs:comment>The territory of Guam.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>GU</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-239">
+    <rdfs:label>Hawaii</rdfs:label>
+
+    <rdfs:comment>The state of Hawaii.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>HI</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-241">
+    <rdfs:label>Idaho</rdfs:label>
+
+    <rdfs:comment>The state of Idaho.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>ID</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-242">
+    <rdfs:label>Illinois</rdfs:label>
+
+    <rdfs:comment>The state of Illinois.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>IL</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-243">
+    <rdfs:label>Indiana</rdfs:label>
+
+    <rdfs:comment>The state of Indiana.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>IN</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-240">
+    <rdfs:label>Iowa</rdfs:label>
+
+    <rdfs:comment>The state of Iowa.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>IA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-245">
+    <rdfs:label>Kansas</rdfs:label>
+
+    <rdfs:comment>The state of Kansas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>KS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-246">
+    <rdfs:label>Kentucky</rdfs:label>
+
+    <rdfs:comment>The state of Kentucky.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>KY</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-247">
+    <rdfs:label>Louisiana</rdfs:label>
+
+    <rdfs:comment>The state of Louisiana.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>LA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-251">
+    <rdfs:label>Maine</rdfs:label>
+
+    <rdfs:comment>The state of Maine.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>ME</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-252">
+    <rdfs:label>Marshall Islands</rdfs:label>
+
+    <rdfs:comment>The republic of the Marshall Islands.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-250">
+    <rdfs:label>Maryland</rdfs:label>
+
+    <rdfs:comment>The state of Maryland.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MD</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-248">
+    <rdfs:label>Massachusetts</rdfs:label>
+
+    <rdfs:comment>The state of Massachusetts.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-253">
+    <rdfs:label>Michigan</rdfs:label>
+
+    <rdfs:comment>The state of Michigan.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MI</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-233">
+    <rdfs:label>Micronesia</rdfs:label>
+
+    <rdfs:comment>The federated states of Micronesia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>FM</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-255">
+    <rdfs:label>Minnesota</rdfs:label>
+
+    <rdfs:comment>The state of Minnesota.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MN</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-259">
+    <rdfs:label>Mississippi</rdfs:label>
+
+    <rdfs:comment>The state of Mississippi.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MS</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-256">
+    <rdfs:label>Missouri</rdfs:label>
+
+    <rdfs:comment>The state of Missouri.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MO</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-260">
+    <rdfs:label>Montana</rdfs:label>
+
+    <rdfs:comment>The state of Montana.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-265">
+    <rdfs:label>Nebraska</rdfs:label>
+
+    <rdfs:comment>The state of Nebraska.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NE</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-274">
+    <rdfs:label>Nevada</rdfs:label>
+
+    <rdfs:comment>The state of Nevada.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NV</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-267">
+    <rdfs:label>New Hampshire</rdfs:label>
+
+    <rdfs:comment>The state of New Hampshire.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-268">
+    <rdfs:label>New Jersey</rdfs:label>
+
+    <rdfs:comment>The state of New Jersey.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NJ</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-270">
+    <rdfs:label>New Mexico</rdfs:label>
+
+    <rdfs:comment>The state of New Mexico.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NM</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-275">
+    <rdfs:label>New York</rdfs:label>
+
+    <rdfs:comment>The state of New York.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NY</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-263">
+    <rdfs:label>North Carolina</rdfs:label>
+
+    <rdfs:comment>The state of North Carolina.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>NC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-264">
+    <rdfs:label>North Dakota</rdfs:label>
+
+    <rdfs:comment>The state of North Dakota.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>ND</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-258">
+    <rdfs:label>Northern Mariana Islands</rdfs:label>
+
+    <rdfs:comment>The territory of Northern Mariana Islands.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>MP</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-277">
+    <rdfs:label>Ohio</rdfs:label>
+
+    <rdfs:comment>The state of Ohio.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>OH</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-278">
+    <rdfs:label>Oklahoma</rdfs:label>
+
+    <rdfs:comment>The state of Oklahoma.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>OK</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-280">
+    <rdfs:label>Oregon</rdfs:label>
+
+    <rdfs:comment>The state of Oregon.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>OR</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-286">
+    <rdfs:label>Palau</rdfs:label>
+
+    <rdfs:comment>The republic of Palau.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PW</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-281">
+    <rdfs:label>Pennsylvania</rdfs:label>
+
+    <rdfs:comment>The state of Pennsylvania.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-284">
+    <rdfs:label>Puerto Rico</rdfs:label>
+
+    <rdfs:comment>The territory of Puerto Rico.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>PR</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-289">
+    <rdfs:label>Rhode Island</rdfs:label>
+
+    <rdfs:comment>The state of Rhode Island.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>RI</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-290">
+    <rdfs:label>South Carolina</rdfs:label>
+
+    <rdfs:comment>The state of South Carolina.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SC</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-291">
+    <rdfs:label>South Dakota</rdfs:label>
+
+    <rdfs:comment>The state of South Dakota.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>SD</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-299">
+    <rdfs:label>Tennessee</rdfs:label>
+
+    <rdfs:comment>The state of Tennessee.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>TN</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-300">
+    <rdfs:label>Texas</rdfs:label>
+
+    <rdfs:comment>The state of Texas.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>TX</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-301">
+    <rdfs:label>US Minor Outlying Islands</rdfs:label>
+
+    <rdfs:comment>The territory of U.S. Minor Outlying Islands.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>UM</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-302">
+    <rdfs:label>Utah</rdfs:label>
+
+    <rdfs:comment>The state of Utah.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>UT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-306">
+    <rdfs:label>Vermont</rdfs:label>
+
+    <rdfs:comment>The state of Vermont.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>VT</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-305">
+    <rdfs:label>Virgin Islands of the United States</rdfs:label>
+
+    <rdfs:comment>The territory of the Virgin Islands of the United States.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>VI</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-303">
+    <rdfs:label>Virginia</rdfs:label>
+
+    <rdfs:comment>The state of Virginia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>VA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-307">
+    <rdfs:label>Washington</rdfs:label>
+
+    <rdfs:comment>The state of Washington.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>WA</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-309">
+    <rdfs:label>West Virginia</rdfs:label>
+
+    <rdfs:comment>The state of West Virginia.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>WV</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-308">
+    <rdfs:label>Wisconsin</rdfs:label>
+
+    <rdfs:comment>The state of Wisconsin.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>WI</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:ID="term-310">
+    <rdfs:label>Wyoming</rdfs:label>
+
+    <rdfs:comment>The state of Wyoming.</rdfs:comment>
+
+    <rdfs:isDefinedBy rdf:resource="#vocabulary-3" />
+
+    <owl:equivalentClass>WY</owl:equivalentClass>
+
+    <rdfs:subClassOf rdf:resource="#term-212">United States of America</rdfs:subClassOf>
+  </rdfs:Class>
+</rdf:RDF>
+

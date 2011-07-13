@@ -1,0 +1,40 @@
+/**
+ Small UI enhancements to the import form
+ */
+/* Hide unused options via js and css */
+#edit-data-source.filtered .form-item-files-upload-file{
+  display:none;
+}
+#edit-data-source.filtered .form-item-url{
+  display:none;
+}
+#edit-data-source.filtered #edit-service{
+  display:none;
+}
+#edit-data-source.filtered .form-item-format{
+  display:none;
+}
+
+/* Then selectively re-show the appropriate ones depending on what is selected */
+/* Note that fieldsets are identified by their id, and fields by class */
+
+#edit-data-source.upload-file .form-item-files-upload-file{
+  display:block;
+}
+#edit-data-source.upload-file .form-item-format{
+  display:block;
+}
+
+#edit-data-source.url .form-item-url{
+  display:block;
+}
+#edit-data-source.url .form-item-format{
+  display:block;
+}
+
+#edit-data-source.service #edit-service{
+  display:block;
+}
+#edit-data-source.service .form-item-format{
+  display:none;
+}

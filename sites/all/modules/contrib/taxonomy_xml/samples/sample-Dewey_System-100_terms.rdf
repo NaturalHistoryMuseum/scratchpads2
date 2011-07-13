@@ -1,0 +1,980 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="render-taxonomy-rdf.xsl" type="text/xsl" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" rdfs:title="namespace in PHP is hard" owl:hack="namespace in PHP is hard">
+   <owl:Ontology rdf:ID="vocabulary-1" rdf:about="http://www.taxonomyserver.monster/?q=taxonomy_xml/1/rdf">
+      <rdfs:label>sample-Dewey_System-top_levels.csv</rdfs:label>
+
+      <owl:versionInfo>Tuesday, December 18, 2007 - 11:33</owl:versionInfo>
+   </owl:Ontology>
+
+   <rdfs:Class rdf:ID="term-1">
+      <rdfs:label>Generalities</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>000</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-2">
+      <rdfs:label>Bibliography</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>010</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-8">
+      <rdfs:label>General collections</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>080</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-4">
+      <rdfs:label>General encyclopedic works</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>030</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-6">
+      <rdfs:label>General organization &amp; museology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>060</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-5">
+      <rdfs:label>General serials &amp; their indexes</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>050</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-3">
+      <rdfs:label>Library &amp; information sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>020</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-9">
+      <rdfs:label>Manuscripts &amp; rare books</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>090</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-7">
+      <rdfs:label>News media, journalism, publishing</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>070</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-1">Generalities</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-90">
+      <rdfs:label>Geography &amp; history</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>900</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-92">
+      <rdfs:label>Biography, genealogy, insignia</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>920</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-96">
+      <rdfs:label>General history of Africa</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>960</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-95">
+      <rdfs:label>General history of Asia Far East</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>950</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-94">
+      <rdfs:label>General history of Europe</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>940</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-97">
+      <rdfs:label>General history of North America</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>970</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-99">
+      <rdfs:label>General history of other areas</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>990</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-98">
+      <rdfs:label>General history of South America</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>980</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-91">
+      <rdfs:label>Geography &amp; travel</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>910</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-93">
+      <rdfs:label>History of ancient world</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>930</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-90">Geography &amp; history</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-40">
+      <rdfs:label>Language</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>400</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-42">
+      <rdfs:label>English &amp; Old English</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>420</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-43">
+      <rdfs:label>Germanic languages German</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>430</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-48">
+      <rdfs:label>Hellenic languages Classical Greek</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>480</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-45">
+      <rdfs:label>Italian, Romanian, Rhaeto-Romantic</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>450</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-47">
+      <rdfs:label>Italic Latin</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>470</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-41">
+      <rdfs:label>Linguistics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>410</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-49">
+      <rdfs:label>Other languages</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>490</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-44">
+      <rdfs:label>Romance languages French</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>440</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-46">
+      <rdfs:label>Spanish &amp; Portugese languages</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>460</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-40">Language</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-80">
+      <rdfs:label>Literature &amp; rhetoric</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>800</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-81">
+      <rdfs:label>American literature in English</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>810</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-82">
+      <rdfs:label>English &amp; Old English literatures</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>820</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-88">
+      <rdfs:label>Hellenic literatures Classical Greek</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>880</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-85">
+      <rdfs:label>Italian, Romanian, Rhaeto-Romanic</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>850</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-87">
+      <rdfs:label>Italic literatures Latin</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>870</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-83">
+      <rdfs:label>Literatures of Germanic languages</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>830</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-89">
+      <rdfs:label>Literatures of other languages</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>890</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-84">
+      <rdfs:label>Literatures of Romance languages</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>840</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-86">
+      <rdfs:label>Spanish &amp; Portuguese literatures</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>860</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-80">Literature &amp; rhetoric</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-50">
+      <rdfs:label>Natural sciences &amp; mathematics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>500</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-52">
+      <rdfs:label>Astronomy &amp; allied sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>520</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-58">
+      <rdfs:label>Botanical sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>580</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-54">
+      <rdfs:label>Chemistry &amp; allied sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>540</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-55">
+      <rdfs:label>Earth sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>550</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-57">
+      <rdfs:label>Life sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>570</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-51">
+      <rdfs:label>Mathematics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>510</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-56">
+      <rdfs:label>Paleontology Paleozoology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>560</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-53">
+      <rdfs:label>Physics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>530</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-59">
+      <rdfs:label>Zoological sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>590</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-50">Natural sciences &amp; mathematics</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-10">
+      <rdfs:label>Philosophy &amp; psychology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>100</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-18">
+      <rdfs:label>Ancient, medieval, Oriental philosophy</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>180</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-12">
+      <rdfs:label>Epistemology, causation, humankind</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>120</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-17">
+      <rdfs:label>Ethics (Moral philosophy)</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>170</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-16">
+      <rdfs:label>Logic</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>160</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-11">
+      <rdfs:label>Metaphysics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>110</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-19">
+      <rdfs:label>Modern Western philosophy</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>190</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-13">
+      <rdfs:label>Paranormal phenomena</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>130</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-15">
+      <rdfs:label>Psychology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>150</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-14">
+      <rdfs:label>Specific philosophical schools</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>140</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-10">Philosophy &amp; psychology</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-20">
+      <rdfs:label>Religion</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>200</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-22">
+      <rdfs:label>Bible</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>220</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-27">
+      <rdfs:label>Christian church history</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>270</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-28">
+      <rdfs:label>Christian denominations &amp; sects</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>280</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-24">
+      <rdfs:label>Christian moral &amp; devotional theology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>240</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-25">
+      <rdfs:label>Christian orders &amp; local church</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>250</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-26">
+      <rdfs:label>Christian social theology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>260</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-23">
+      <rdfs:label>Christian theology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>230</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-21">
+      <rdfs:label>Natural theology</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>210</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-29">
+      <rdfs:label>Other &amp; comparative religions</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>290</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-20">Religion</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-30">
+      <rdfs:label>Social sciences</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>300</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-38">
+      <rdfs:label>Commerce, communications, transport</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>380</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-39">
+      <rdfs:label>Customs, etiquette, folklore</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>390</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-33">
+      <rdfs:label>Economics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>330</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-37">
+      <rdfs:label>Education</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>370</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-31">
+      <rdfs:label>General statistics</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>310</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-34">
+      <rdfs:label>Law</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>340</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-32">
+      <rdfs:label>Political science</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>320</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-35">
+      <rdfs:label>Public administration</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>350</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-36">
+      <rdfs:label>Social services; association</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>360</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-30">Social sciences</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-60">
+      <rdfs:label>Technology (Applied sciences)</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>600</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-63">
+      <rdfs:label>Agriculture</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>630</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-69">
+      <rdfs:label>Buildings</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>690</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-66">
+      <rdfs:label>Chemical engineering</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>660</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-62">
+      <rdfs:label>Engineering &amp; allied operations</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>620</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-64">
+      <rdfs:label>Home economics &amp; family living</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>640</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-65">
+      <rdfs:label>Management &amp; auxiliary services</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>650</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-68">
+      <rdfs:label>Manufacture for specific uses</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>680</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-67">
+      <rdfs:label>Manufacturing</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>670</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-61">
+      <rdfs:label>Medical sciences Medicine</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>610</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-60">Technology (Applied sciences)</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-70">
+      <rdfs:label>The arts</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>700</owl:equivalentClass>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-72">
+      <rdfs:label>Architecture</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>720</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-71">
+      <rdfs:label>Civic &amp; landscape art</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>710</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-74">
+      <rdfs:label>Drawing &amp; decorative arts</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>740</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-76">
+      <rdfs:label>Graphic arts Printmaking &amp; prints</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>760</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-78">
+      <rdfs:label>Music</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>780</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-75">
+      <rdfs:label>Painting &amp; paintings</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>750</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-77">
+      <rdfs:label>Photography &amp; photographs</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>770</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-73">
+      <rdfs:label>Plastic arts Sculpture</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>730</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+
+   <rdfs:Class rdf:ID="term-79">
+      <rdfs:label>Recreational &amp; performing arts</rdfs:label>
+
+      <rdfs:isDefinedBy rdf:resource="#vocabulary-1" />
+
+      <owl:equivalentClass>790</owl:equivalentClass>
+
+      <rdfs:subClassOf rdf:resource="#term-70">The arts</rdfs:subClassOf>
+   </rdfs:Class>
+</rdf:RDF>
+

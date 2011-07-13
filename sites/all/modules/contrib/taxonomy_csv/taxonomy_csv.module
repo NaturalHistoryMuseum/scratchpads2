@@ -1,0 +1,113 @@
+<?php
+// $Id: taxonomy_csv.module,v 2.9.2.6.2.6 2011/01/06 18:08:27 danielkm Exp $
+
+/**
+ * taxonomy_csv module for Drupal
+ *
+ * Copyright (c) 2007-2008 Dennis Stevense, see LICENSE.txt for more information
+ * Copyright (c) 2009-2010 Daniel Berthereau <daniel.drupal@berthereau.net>
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+/**
+ * @file
+ * Quick export and import of taxonomies, structure or lists of terms to or from
+ * a csv local or distant file or a text area.
+ *
+ * Automatically exports or imports a list of terms, structure, children,
+ * related, synonyms, descriptions and/or weights from or into a vocabulary with
+ * a simple csv file.  General infos can be found in README.txt. Technical
+ * infos can be found in TECHINFO.txt.
+ *
+ * taxonomy_csv.module manage general hooks of module.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function taxonomy_csv_help($path, $arg) {
+  global $language;
+
+  switch ($path) {
+    case 'admin/structure/taxonomy/csv_import':
+      $output = '<p>' . t('Use this form to import a taxonomy, a structure or a list of terms into a vocabulary from a simple <a href="!link" title="Wikipedia definition">CSV</a> file, a url or a copy-and-paste text.', array('!link' => url('http://en.wikipedia.org/wiki/Comma-separated_values'))) . '</p>'
+      . '<p>' . t('For performance reasons, it is recommended to disable some other taxonomy related modules before import of big taxonomies and to reactivate them after process.') . '</p>'
+      . '<p>' . t('<strong>Warning:</strong> If you want to update an existing vocabulary, make sure you have a backup before you proceed so you can roll back, if necessary.')
+      . theme('more_help_link', array('url' => 'admin/help/taxonomy_csv')) . '</p>';
+      return $output;
+
+    case 'admin/structure/taxonomy/csv_export':
+      $output = '<p>' . t('Use this form to export a taxonomy, a structure or a list of terms to a simple <a href="!link" title="Wikipedia definition">CSV</a> file.', array('!link' => url('http://en.wikipedia.org/wiki/Comma-separated_values'))) . '<br />'
+      . t('Set vocabulary to export in first tab, format to use in second tab and order of terms in third tab.')
+      . theme('more_help_link', array('url' => 'admin/help/taxonomy_csv')) . '</p>';
+      return $output;
+
+    case 'admin/help#taxonomy_csv':
+      $output = file_get_contents(drupal_get_path('module', 'taxonomy_csv') . ((is_file(drupal_get_path('module', 'taxonomy_csv') . "/translations/taxonomy_csv.help.{$language->prefix}.html")) ? "/translations/taxonomy_csv.help.{$language->prefix}.html" : '/taxonomy_csv.help.html'));
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ *
+ * @note See hook_menu for a description of return values.
+ */
+function taxonomy_csv_menu() {
+  $items = array();
+
+  $items['admin/structure/taxonomy/csv_import'] = array(
+    'title'            => 'CSV import',
+    'description'      => 'Import taxonomies, hierarchical structure or simple lists of terms and properties with CSV file or text.',
+    'page callback'    => 'taxonomy_csv_form_import_prepare',
+    'access arguments' => array('administer taxonomy'),
+    'weight'           => 12,
+    'type'             => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/structure/taxonomy/csv_export'] = array(
+    'title'            => 'CSV export',
+    'description'      => 'Export terms and properties to a CSV file.',
+    'page callback'    => 'taxonomy_csv_form_export_prepare',
+    'access arguments' => array('administer taxonomy'),
+    'weight'           => 13,
+    'type'             => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback of the main import form.
+ */
+function taxonomy_csv_form_import_prepare() {
+  // Invoke taxonomy_csv api (defines and functions).
+  $module_dir = drupal_get_path('module', 'taxonomy_csv');
+  require_once("$module_dir/import/taxonomy_csv.import.admin.inc");
+
+  return drupal_get_form('taxonomy_csv_form_import');
+}
+
+/**
+ * Menu callback of the main export form.
+ */
+function taxonomy_csv_form_export_prepare() {
+  // Invoke taxonomy_csv api (defines and functions).
+  $module_dir = drupal_get_path('module', 'taxonomy_csv');
+  require_once("$module_dir/export/taxonomy_csv.export.admin.inc");
+
+  return drupal_get_form('taxonomy_csv_form_export');
+}

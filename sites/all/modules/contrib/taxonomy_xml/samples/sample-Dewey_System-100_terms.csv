@@ -1,0 +1,191 @@
+# CSV representation of the Dew Decimal System,,
+# Using a list sourced from http://www.tnrdlib.bc.ca/dewey.html,,
+#,,
+Generalities,Used for,000
+Bibliography,Used for,010
+Bibliography,Broader Terms,Generalities
+Library & information sciences,Used for,020
+Library & information sciences,Broader Terms,Generalities
+General encyclopedic works,Used for,030
+General encyclopedic works,Broader Terms,Generalities
+General serials & their indexes,Used for,050
+General serials & their indexes,Broader Terms,Generalities
+General organization & museology,Used for,060
+General organization & museology,Broader Terms,Generalities
+"News media, journalism, publishing",Used for,070
+"News media, journalism, publishing",Broader Terms,Generalities
+General collections,Used for,080
+General collections,Broader Terms,Generalities
+Manuscripts & rare books,Used for,090
+Manuscripts & rare books,Broader Terms,Generalities
+Philosophy & psychology,Used for,100
+Metaphysics,Used for,110
+Metaphysics,Broader Terms,Philosophy & psychology
+"Epistemology, causation, humankind",Used for,120
+"Epistemology, causation, humankind",Broader Terms,Philosophy & psychology
+Paranormal phenomena,Used for,130
+Paranormal phenomena,Broader Terms,Philosophy & psychology
+Specific philosophical schools,Used for,140
+Specific philosophical schools,Broader Terms,Philosophy & psychology
+Psychology,Used for,150
+Psychology,Broader Terms,Philosophy & psychology
+Logic,Used for,160
+Logic,Broader Terms,Philosophy & psychology
+Ethics (Moral philosophy),Used for,170
+Ethics (Moral philosophy),Broader Terms,Philosophy & psychology
+"Ancient, medieval, Oriental philosophy",Used for,180
+"Ancient, medieval, Oriental philosophy",Broader Terms,Philosophy & psychology
+Modern Western philosophy,Used for,190
+Modern Western philosophy,Broader Terms,Philosophy & psychology
+Religion,Used for,200
+Natural theology,Used for,210
+Natural theology,Broader Terms,Religion
+Bible,Used for,220
+Bible,Broader Terms,Religion
+Christian theology,Used for,230
+Christian theology,Broader Terms,Religion
+Christian moral & devotional theology,Used for,240
+Christian moral & devotional theology,Broader Terms,Religion
+Christian orders & local church,Used for,250
+Christian orders & local church,Broader Terms,Religion
+Christian social theology,Used for,260
+Christian social theology,Broader Terms,Religion
+Christian church history,Used for,270
+Christian church history,Broader Terms,Religion
+Christian denominations & sects,Used for,280
+Christian denominations & sects,Broader Terms,Religion
+Other & comparative religions,Used for,290
+Other & comparative religions,Broader Terms,Religion
+Social sciences,Used for,300
+General statistics,Used for,310
+General statistics,Broader Terms,Social sciences
+Political science,Used for,320
+Political science,Broader Terms,Social sciences
+Economics,Used for,330
+Economics,Broader Terms,Social sciences
+Law,Used for,340
+Law,Broader Terms,Social sciences
+Public administration,Used for,350
+Public administration,Broader Terms,Social sciences
+Social services; association,Used for,360
+Social services; association,Broader Terms,Social sciences
+Education,Used for,370
+Education,Broader Terms,Social sciences
+"Commerce, communications, transport",Used for,380
+"Commerce, communications, transport",Broader Terms,Social sciences
+"Customs, etiquette, folklore",Used for,390
+"Customs, etiquette, folklore",Broader Terms,Social sciences
+Language,Used for,400
+Linguistics,Used for,410
+Linguistics,Broader Terms,Language
+English & Old English,Used for,420
+English & Old English,Broader Terms,Language
+Germanic languages German,Used for,430
+Germanic languages German,Broader Terms,Language
+Romance languages French,Used for,440
+Romance languages French,Broader Terms,Language
+"Italian, Romanian, Rhaeto-Romantic",Used for,450
+"Italian, Romanian, Rhaeto-Romantic",Broader Terms,Language
+Spanish & Portugese languages,Used for,460
+Spanish & Portugese languages,Broader Terms,Language
+Italic Latin,Used for,470
+Italic Latin,Broader Terms,Language
+Hellenic languages Classical Greek,Used for,480
+Hellenic languages Classical Greek,Broader Terms,Language
+Other languages,Used for,490
+Other languages,Broader Terms,Language
+Natural sciences & mathematics,Used for,500
+Mathematics,Used for,510
+Mathematics,Broader Terms,Natural sciences & mathematics
+Astronomy & allied sciences,Used for,520
+Astronomy & allied sciences,Broader Terms,Natural sciences & mathematics
+Physics,Used for,530
+Physics,Broader Terms,Natural sciences & mathematics
+Chemistry & allied sciences,Used for,540
+Chemistry & allied sciences,Broader Terms,Natural sciences & mathematics
+Earth sciences,Used for,550
+Earth sciences,Broader Terms,Natural sciences & mathematics
+Paleontology Paleozoology,Used for,560
+Paleontology Paleozoology,Broader Terms,Natural sciences & mathematics
+Life sciences,Used for,570
+Life sciences,Broader Terms,Natural sciences & mathematics
+Botanical sciences,Used for,580
+Botanical sciences,Broader Terms,Natural sciences & mathematics
+Zoological sciences,Used for,590
+Zoological sciences,Broader Terms,Natural sciences & mathematics
+Technology (Applied sciences),Used for,600
+Medical sciences Medicine,Used for,610
+Medical sciences Medicine,Broader Terms,Technology (Applied sciences)
+Engineering & allied operations,Used for,620
+Engineering & allied operations,Broader Terms,Technology (Applied sciences)
+Agriculture,Used for,630
+Agriculture,Broader Terms,Technology (Applied sciences)
+Home economics & family living,Used for,640
+Home economics & family living,Broader Terms,Technology (Applied sciences)
+Management & auxiliary services,Used for,650
+Management & auxiliary services,Broader Terms,Technology (Applied sciences)
+Chemical engineering,Used for,660
+Chemical engineering,Broader Terms,Technology (Applied sciences)
+Manufacturing,Used for,670
+Manufacturing,Broader Terms,Technology (Applied sciences)
+Manufacture for specific uses,Used for,680
+Manufacture for specific uses,Broader Terms,Technology (Applied sciences)
+Buildings,Used for,690
+Buildings,Broader Terms,Technology (Applied sciences)
+The arts,Used for,700
+Civic & landscape art,Used for,710
+Civic & landscape art,Broader Terms,The arts
+Architecture,Used for,720
+Architecture,Broader Terms,The arts
+Plastic arts Sculpture,Used for,730
+Plastic arts Sculpture,Broader Terms,The arts
+Drawing & decorative arts,Used for,740
+Drawing & decorative arts,Broader Terms,The arts
+Painting & paintings,Used for,750
+Painting & paintings,Broader Terms,The arts
+Graphic arts Printmaking & prints,Used for,760
+Graphic arts Printmaking & prints,Broader Terms,The arts
+Photography & photographs,Used for,770
+Photography & photographs,Broader Terms,The arts
+Music,Used for,780
+Music,Broader Terms,The arts
+Recreational & performing arts,Used for,790
+Recreational & performing arts,Broader Terms,The arts
+Literature & rhetoric,Used for,800
+American literature in English,Used for,810
+American literature in English,Broader Terms,Literature & rhetoric
+English & Old English literatures,Used for,820
+English & Old English literatures,Broader Terms,Literature & rhetoric
+Literatures of Germanic languages,Used for,830
+Literatures of Germanic languages,Broader Terms,Literature & rhetoric
+Literatures of Romance languages,Used for,840
+Literatures of Romance languages,Broader Terms,Literature & rhetoric
+"Italian, Romanian, Rhaeto-Romanic",Used for,850
+"Italian, Romanian, Rhaeto-Romanic",Broader Terms,Literature & rhetoric
+Spanish & Portuguese literatures,Used for,860
+Spanish & Portuguese literatures,Broader Terms,Literature & rhetoric
+Italic literatures Latin,Used for,870
+Italic literatures Latin,Broader Terms,Literature & rhetoric
+Hellenic literatures Classical Greek,Used for,880
+Hellenic literatures Classical Greek,Broader Terms,Literature & rhetoric
+Literatures of other languages,Used for,890
+Literatures of other languages,Broader Terms,Literature & rhetoric
+Geography & history,Used for,900
+Geography & travel,Used for,910
+Geography & travel,Broader Terms,Geography & history
+"Biography, genealogy, insignia",Used for,920
+"Biography, genealogy, insignia",Broader Terms,Geography & history
+History of ancient world,Used for,930
+History of ancient world,Broader Terms,Geography & history
+General history of Europe,Used for,940
+General history of Europe,Broader Terms,Geography & history
+General history of Asia Far East,Used for,950
+General history of Asia Far East,Broader Terms,Geography & history
+General history of Africa,Used for,960
+General history of Africa,Broader Terms,Geography & history
+General history of North America,Used for,970
+General history of North America,Broader Terms,Geography & history
+General history of South America,Used for,980
+General history of South America,Broader Terms,Geography & history
+General history of other areas,Used for,990
+General history of other areas,Broader Terms,Geography & history

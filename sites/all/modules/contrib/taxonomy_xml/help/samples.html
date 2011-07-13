@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      taxonomy_xml Samples
+    </title>
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+  </head>
+  <body>
+    <h1 id="title">
+      Samples for taxonomy_xml
+    </h1>
+    <p>
+      Distributed with the taxonomy_xml module is a collection of
+      starter vocabularies intended to both illustrate the various
+      formats, and provide a few useful topic sets.
+    </p>
+    <p>
+      The content of each of the demo vocabularies was the
+      responsibility of the original publishers at the time it was
+      imported. All imports were done in a semi-automated manner
+      with no editorial input. I am not responsible for errors of
+      fact or spelling.
+      <br />
+      Structural problems, Character encoding problems and the
+      occasional ommission<em>are</em> probably my fault.
+      <em>Caveat Lector</em>
+      <br />
+       Credit is given here to the institutions that made this data
+      available. All data redistributed here has carefully been
+      selected as being free for copyright-free transformative
+      re-use.
+      <br />
+       In some cases, <em>tools</em> or instructions will also be
+      provided for you to import your own versions of vocabulary
+      libraries for reasons of either scale, timeliness or
+      copyright. In cases of copyright you should read and
+      understand the terms of use of those respective data sources.
+      Usually it's "free for personal use but not redistribution"
+      and the taxonomy_xml module can enable that use.
+    </p>
+    <div class="section">
+      <h3>
+        Dewey Decimal System
+      </h3>
+      <h4>
+        Subject area: Publishing, General Interest.
+      </h4>
+      <h4>
+        Taxonomy Format: CSV.
+      </h4>
+      <p>
+        Although the ownership on the Dewey Decimal system is
+        claimed by <a href="http://www.oclc.org/">OCLC - Online
+        Computer Library Center</a> they don't actually provide any
+        list (or offer access to a list) as a machine-readable
+        download, so I was unable to use them as a source.
+        <br />
+         Instead I found <a
+        href="http://www.tnrdlib.bc.ca/dewey.html">a public library
+        website</a> that provided the Dewey lists into the Public
+        Domain. (Since gone away)
+      </p>
+      <p>
+        As samples, the taxonomy_xml module contains both a
+        100-term and 1000-term* version of the Dewey classification
+        scheme, with the implied decimal heirarchy and the 'Dewey
+        Number' supplied as a synonym.
+        <br />
+         As the Dewey system is extremely simple, it is provided as
+        an example of the CSV format.
+      </p>
+<pre>
+Geography &amp; history (900)
+ +  History of ancient world (930)
+ +   +  History of ancient world China (931)
+ +   +  History of ancient world Egypt (932)
+ +   +  History of ancient world Europe north &amp; west of Italy  (936)
+ +   +  History of ancient world Greece (938)
+</pre>
+      <sub>* There's not really 1000 terms in use at that level.
+      There are however many more subsections on a truly decimal
+      breakdown in some areas (not included).</sub>
+    </div>
+    <div class="section">
+      <h3>
+        International Press Telecommunications Council (IPTC) Topic
+        Catalog
+      </h3>
+      <h4>
+        Subject area: Publishing, News Media.
+      </h4>
+      <h4>
+        Taxonomy Format: RDF.
+      </h4>
+      <p>
+        From the <a href="http://iptc.org/">International Press
+        Telecommunications Council</a> we have a 'TopicSet' of 1365
+        controlled vocabulary words and phrases (subjectCodes)
+        useful for classifying news stories and tagging media
+        releases.
+      </p>
+      <p>
+        Subject areas include branches like:
+      </p>
+      <ul>
+        <li>
+          Arts, Culture &amp; Entertainment,
+        </li>
+        <li>
+          Disaster &amp; Accident,
+        </li>
+        <li>
+          Economy, Business &amp; Finance,
+        </li>
+        <li>
+          Education,
+        </li>
+        <li>
+          Environmental Issues,
+        </li>
+        <li>
+          Health,
+        </li>
+        <li>
+          Labour,
+        </li>
+        <li>
+          Lifestyle &amp; Leisure,
+        </li>
+        <li>
+          Politics,
+        </li>
+        <li>
+          Religion &amp; Belief,
+        </li>
+        <li>
+          Science &amp; Technology,
+        </li>
+        <li>
+          Social Issues,
+        </li>
+        <li>
+          Sport (half the list!)
+        </li>
+        <li>
+          Unrest, Conflict &amp; War
+        </li>
+        <li>
+          Weather
+        </li>
+      </ul>
+      <p>
+        The taxonomy is hierarchical, and contains full-text
+        descriptions of each terms and a UID number provided by the
+        IPTC. It does not contain synonyms or related terms
+        (although it probably should).
+      </p>
+<pre>
+unrest, conflicts and war
+ +  act of terror
+ +  armed conflict
+ +  civil unrest
+ +   +  political dissent
+ +   +  rebellions
+ +   +  religious conflict
+ +   +  revolutions
+</pre>
+      <p>
+        This data was imported by way of an XSL transformation from
+        an XML file <a
+        href="http://iptc.cms.apa.at/std/topicset/topicset.iptc-subjectcode.xml">
+        topicset.iptc-subjectcode.xml</a> taken from the site in
+        2007. The IPTC also maintains several other useful
+        vocabularies on their (hard to bookmark) <a
+        href="http://iptc.org/cms/site/index.html?channel=CH0103">Resource
+        page</a>. Visit them for more.
+      </p>
+    </div>
+    <div class="section">
+      <h3>
+        Services of New Zealand (SONZ) Suggested Vocabulary
+      </h3>
+      <h4>
+        Subject area: Government.
+      </h4>
+      <h4>
+        Taxonomy Format: CSV/Service.
+      </h4>
+      <p>
+        The <a href="http://www.e.govt.nz/">E-government
+        Initiative</a> from the New Zealand government has produced
+        <a href="http://www.e.govt.nz/standards/nzgls/thesauri">the
+        NZGLS thesauri</a> - including a list of 2364 keyword-type
+        ratified terms to be used when classifying government
+        services or interest areas. It is only lightly
+        hierarchical, and exists mainly as a synonym collapser and
+        list of 'preferred' consistent terminology.
+      </p>
+      <p>
+        It contains many 'related terms' as well as several weaker
+        synonyms for many terms.
+      </p>
+<pre>
+Aircraft 
+  (Related Terms: Pilots, Aviation) 
+  (Synonyms: Light aircraft, Airships, Aeroplanes)
+ +  Helicopters
+ +  Microlite Aircraft
+Airlines
+  (Related Terms: Aviation) 
+</pre>
+      <p>
+        This data is currently <b>being retrieved directly from the
+        e.govt.nz website</b> as a demonstration of the simplest
+        kind of web service the taxonomy_xml module supports. The
+        original file is provided as a CSV which is retrieved
+        directly from the URL when the taxonomy_xml admin selects
+        [Web Service][SONZ] as an import source.
+      </p>
+      <p>
+        This dataset is in fact the first test case, and the reason
+        I started developing syntax readers for Drupal Taxonomies
+      </p>
+    </div>
+    <div class="section">
+      <h3>
+        Google Merchant "Product Type" taxonomy
+      </h3>
+      <h4>
+        Subject area: Commerce.
+      </h4>
+      <h4>
+        Taxonomy Format: CSV-ancestry.
+      </h4>
+      <p>
+        This is a copy of <em>a subset of</em> the Google merchant
+        recommended product category labels. The full thing is
+        documented and downloadable from <a
+        href="http://www.google.com/support/merchants/bin/answer.py?hl=en&amp;answer=160081">
+        the Google Merchant Centre Help Pages</a>
+      </p>
+      <p>
+        The distributed version contains only the top two levels
+        (200 terms). The full thing - which you can download,
+        convert to CSV and import yourself - can go to 5 levels
+        deep and contain close to 4000 terms.
+      </p>
+      <p>
+        This is an alternate CSV format, taking each term on a new
+        line with its ancestors repeated in each previous column.
+      </p>
+<pre>
+Media,
+Media, Books
+Media, Books, Fiction
+Media, Books, Non-fiction
+Media, DVDs &amp; Videos
+Media, Magazines &amp; Newspapers
+Media, Music
+Media, Sheet Music
+</pre>
+      <p>
+        ...etc, It's very limited (and wordy), but also about as
+        obvious as possible.
+      </p>
+      <p>
+        This format was used by google base for its merchant
+        product taxonomy, and represents the terms it wants to see
+        in product descriptions. It could serve as a start for
+        organizing an ecommerce store.
+      </p>
+      Top-level headings are: 
+<pre>
+Animals
+Arts &amp; Entertainment
+Baby &amp; Toddler
+Business &amp; Industrial
+Cameras &amp; Optics
+Clothing &amp; Accessories
+Electronics
+Food, Beverages &amp; Tobacco
+Furniture
+Hardware
+Health &amp; Beauty
+Home &amp; Garden
+Luggage
+Mature
+Media
+Office Supplies
+Software
+Sporting Goods
+Toys &amp; Games
+Vehicles &amp; Parts
+</pre>
+    </div>
+  </body>
+</html>
+

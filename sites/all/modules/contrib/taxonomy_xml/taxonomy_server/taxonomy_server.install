@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ *   Install, update and uninstall functions for the taxonomy_server module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function taxonomy_server_install() {
+  drupal_set_message(t("
+    System vocabularies are now published
+    (to roles with the appropriate permissions)
+    underneath <a href='!taxonomy_vocabulary'>taxonomy/vocabulary</a>.
+    A menu SUGGESTED item is available for this path, 
+    (In the 'Navigation' menu by default)
+    you may want to enable it now.
+  ", array(
+    '!taxonomy_vocabulary' => url('taxonomy/vocabulary'),
+  )));
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function taxonomy_server_uninstall() {
+
+}

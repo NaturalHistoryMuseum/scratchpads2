@@ -1,0 +1,10 @@
+name = Taxonomy Server
+description = Publishes full vocabularies in ways that other semantic tools can import.
+dependencies[] = taxonomy
+dependencies[] = taxonomy_xml
+package = "Taxonomy"
+core=7.x
+
+
+files[] = taxonomy_server.install
+files[] = taxonomy_server.module
