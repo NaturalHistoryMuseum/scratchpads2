@@ -2,8 +2,7 @@ name = Feeds XPath Parser
 description = Parse an XML or HTML document using XPath.
 package = Feeds
 dependencies[] = feeds
-files[] = tests/feeds_xpathparser_parser.test
-files[] = tests/feeds_xpathparser_query_parser.test
+files[] = FeedsXPathParser.inc
 core = 7.x
 php = 5.2
 
