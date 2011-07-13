@@ -5,35 +5,41 @@
  * 
  * 
  */
-
 /**
  * Implementation of hook_menu().
  */
 function tcsdc_menu(){
-    $items[TAXONOMY_XML_ADMIN . '/export'] = array(
-    'title' => t('Export'),
-    'access arguments' => array('administer taxonomy'),
-    'page callback' => 'taxonomy_xml_export',
-    'file' => 'taxonomy_xml.export.inc',
-    'type' => MENU_LOCAL_TASK
+  return array(
+    'admin/structure/taxonomy/export' => array(
+      'title' => t('Export'),
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'page callback' => 'tcsdc_export',
+      'file' => 'tcsdc.export.inc',
+      'type' => MENU_LOCAL_TASK
+    ),
+    'admin/structure/taxonomy/import' => array(
+      'title' => t('Import'),
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'tcsdc_import_form'
+      ),
+      'file' => 'tcsdc.import.inc',
+      'type' => MENU_LOCAL_TASK
+    )
   );
-  $items[TAXONOMY_XML_VOCAB_PATH . '/%taxonomy_vocabulary_machine_name/%'] = array(
-    'title' => t('Export'),
-    'access arguments' => array('administer taxonomy'),
-    'page callback' => 'taxonomy_xml_export_vocabulary',
-    'page arguments' => array(2, 3),
-    'file' => 'taxonomy_xml.export.inc',
-    'type' => MENU_LOCAL_TASK
-  );
-  
+}
 
-  $items[TAXONOMY_XML_ADMIN . '/import'] = array(
-    'title' => t('Import'),
-    'access arguments' => array('administer taxonomy'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('taxonomy_xml_import_form'),
-    'file' => 'taxonomy_xml.admin.inc',
-    'type' => MENU_LOCAL_TASK
-  );
-  
+/**
+ * Implementation of hook_ctools_plugin_directory()
+ */
+function tcsdc_ctools_plugin_directory($module, $plugin){
+  switch($module){
+    case 'formflow':
+      return 'formflow';
+  }
 }
