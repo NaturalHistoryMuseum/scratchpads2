@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.import.result.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -80,7 +79,7 @@ function _taxonomy_csv_info_chosen_options($options) {
   // Local file, distant file or text.
   switch ($options['source_choice']) {
     case 'file':
-      $message = t('Import from Api (use %file).', array(
+      $message = t('File "%file" uploaded.', array(
         '%file' => $options['file']->filename));
       break;
     case 'text':
@@ -91,10 +90,8 @@ function _taxonomy_csv_info_chosen_options($options) {
         '!url'  => $options['url'],
         '%file' => basename($options['url'])));
       break;
-    case 'path':
-      $message = t('File "%file" uploaded.', array(
-        '%file' => $options['file']->filename));
-      break;
+    default:
+      $message = t('Import from Api.');
   }
 
   // Content.

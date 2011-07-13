@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.result.inc,v 1.1.2.4 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -164,6 +163,7 @@ function _taxonomy_csv_message_text($message_code) {
       320 => t("Your file can't be converted to utf-8. Please install iconv, GNU recode or mbstring for PHP or convert your file to utf-8 and disable 'Enable utf-8 conversion' option.") . $error,
       321 => t('Despite your option, your file is not recognize as an UTF-8 encoded one. Convert it before submit it.') . $error,
       340 => t("Vocabulary doesn't exist."),
+      341 => t("Field doesn't exist in this vocabulary.") . $error,
       352 => t("A parent tid is given, but it hasn't been imported in a previous line.") . $error,
       385 => t('No term to export.'),
       390 => t('No line to import. Please first check your file and file uploading, else reinstall module from a fresh release or submit an issue.') . $error,
@@ -206,6 +206,8 @@ function _taxonomy_csv_message_text($message_code) {
       510 => t('Line contains empty items. First item is imported, but next ones are ignored.'),
       511 => t('To change vocabulary of a term is not recommended.'),
       512 => t("Line contains items matching first column term. A term can't be related to itself and a synonym may be different to it.") . ' ' . t('Duplicates will be ignored.'),
+      513 => t('Line contains empty items.'),
+      520 => t('Unable to load the file attached to the term.'),
       530 => t('Line contains empty items. They will be ignored.'),
       531 => t('Line contains duplicate items or repeated soft tabs.') . ' ' . t('Duplicates or repeated soft tabs will be ignored.'),
       532 => t('Line contains duplicate items.') . ' ' . t('Duplicates are allowed.'),
@@ -229,6 +231,7 @@ function _taxonomy_csv_message_text($message_code) {
       563 => t('No object.') . $notice,
       564 => t('Too many items. Surabondant items will be ignored.') . $notice,
       565 => t('Some items are empty. Previous items will be used.') . $notice,
+      566 => t("Line doesn't contain all needed items.") . $notice,
       580 => t('Be careful. This line has only one term and import choice is to replace existing items. So they will be removed.'),
 
       600 => t('Info'),

@@ -1,4 +1,3 @@
-/* $Id: TECHINFO.txt,v 1.1.2.4 2011/01/06 18:08:27 danielkm Exp $ */
 
 
                   TAXONOMY CSV IMPORT/EXPORT TECHNICAL INFOS
@@ -6,12 +5,18 @@
 
 
 
+Taxonomy csv import/export module has a lot of files, but majority of them are
+used for user interface, to check the input and to manage big taxonomies import.
+Furthermore, the process of duplicate terms is complex and code can be largely
+simplified if these terms are not allowed - what is advised - and, therefore,
+not to be managed.
+True import/export process is done by some main functions only.
+
 - Files of module
 - Detail of files
 - Use as an api
 - Logical structure
 - Add a new scheme
-
 
 -- FILES OF MODULE --
   -----------------

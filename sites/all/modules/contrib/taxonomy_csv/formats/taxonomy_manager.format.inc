@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_manager.format.inc,v 1.2.2.3 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file

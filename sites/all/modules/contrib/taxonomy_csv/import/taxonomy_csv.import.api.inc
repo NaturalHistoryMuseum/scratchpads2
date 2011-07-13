@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.import.api.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -31,6 +30,7 @@
  *   - url            : url to distant or local csv file
  *   - path           : path to local csv file
  *   - import_format  : see _taxonomy_csv_values (default: 'alone_terms')
+ *   - custom_format  : array. list of machinename fields (default: 0 => 'name')
  *   - keep_order     : boolean. keep order of imported terms or not (default)
  *   - delimiter      : 1 character csv delimiter (default: ',')
  *   - enclosure      : 0 or 1 character csv enclosure (default: none or '"')
@@ -39,12 +39,13 @@
  *   - locale_custom  : string. specific locale of imported file
  *   - vocabulary_target: 'autocreate' (default), 'duplicate' or 'existing'
  *   - vocabulary_id  : vocabulary id to duplicate or to import into
+ *   - custom_fields  : array. custom fields to add or create (default: array())
  *   - check_hierarchy: boolean. check (default) or not vocabulary hierarchy
  *   - set_hierarchy  : if hierarchy isn't checked, set it (0, 1 or 2 (default))
  *   - existing_items : see _taxonomy_csv_values (default: 'update')
  *   // Specific to relations import:
- *   - relations_create_subrelations: boolean.
- *   - relations_all_vocabularies   : boolean.
+ *   - relations_create_subrelations: boolean. (default: FALSE)
+ *   - relations_all_vocabularies   : boolean. (default: FALSE)
  *   // Level of result process infos.
  *   - check_options  : boolean. check or not (default) this array of options
  *   - result_display : boolean. display or not (default). Only used with UI.
@@ -53,7 +54,7 @@
  *   - result_level   : log: 'first' (default), 'warnings', 'notices' or 'infos'
  *   - result_type    : display log 'by_message' (default) or 'by_line'
  *   Only one option is required: file or text or url or path. Other options
- *   have default values. Warning: default values are different with UI.
+ *   have default values. Warning: default values are little different with UI.
  *
  * @return
  *   Array of errors or nothing (need to execute batch process; result is logged
@@ -92,9 +93,9 @@ function taxonomy_csv_import($options) {
 function _taxonomy_csv_import_input_preload(&$options) {
   $messages = array();
 
-  // File import. Use to with UI import in a second time.
+  // File import. Used with UI.
   if (isset($options['file']) && is_object($options['file'])) {
-    // Ready.
+    // File ready. No more check here.
   }
   // Text import.
   elseif (isset($options['text']) && $options['text'] != '') {
@@ -123,15 +124,18 @@ function _taxonomy_csv_import_input_preload(&$options) {
   }
   // Path import. With UI, path is already uploaded as a file.
   elseif (isset($options['path']) && $options['path'] != '') {
-    // Load source local file.
-    $options['file'] = file_save_upload($options['path']);
+    // Load source local file. No check for extension with API.
+    $file = file_save_upload($options['path'], array('file_validate_extensions' => array('csv txt')));
     // fopen and fseek need a real path.
-    if ($options['file']) {
-      $options['file']->filepath = drupal_realpath($options['file']->uri);
+    if (!empty($file)) {
+      $file->filepath = drupal_realpath($file->uri);
+      if (!empty($file->filepath)) {
+        $options['file'] = $file;
+      }
     }
   }
   else {
-    $messages['source_choice'] = t('Source choice should be a text, an url or a file path and should not be empty.');
+    $messages['source_choice'] = t('Source choice should be a text, an url or a file path and source content should not be empty.');
     return $messages;
   }
 
@@ -323,7 +327,28 @@ function taxonomy_csv_vocabulary_import($options) {
  *   NULL because use of &$context.
  */
 function _taxonomy_csv_vocabulary_import_process($options, &$context) {
-  // First callback.
+  // Session or batch context are needed, because with batch process, static
+  // and $GLOBALS don't work for large import.
+  // Currently, session is used to store some infos about custom fields of
+  // vocabulary and the current csv line in order to be available for the hook
+  // which process extra fields. Context is used to store infos on main process.
+
+  // First callback to prepare SESSION.
+  if (empty($_SESSION['taxonomy_csv_import'])) {
+    $_SESSION['taxonomy_csv_import'] = array(
+      'options'    => $options,
+      'language'   => 'und', // Undetermined.
+      'vocabulary' => taxonomy_vocabulary_load($options['vocabulary_id']),
+      'messages'   => array(),
+    );
+    $_SESSION['taxonomy_csv_import']['instances'] = field_info_instances('taxonomy_term', $_SESSION['taxonomy_csv_import']['vocabulary']->machine_name);
+    $_SESSION['taxonomy_csv_import']['fields'] = array();
+    foreach ($_SESSION['taxonomy_csv_import']['instances'] as $key => $value) {
+      $_SESSION['taxonomy_csv_import']['fields'][$key] = field_info_field($key);
+    }
+  }
+
+  // First callback to prepare batch context.
   if (empty($context['sandbox'])) {
     // Remember options as batch_set can't use form_storage.
     // It allows too that first line in result is numbered 1 and not 0.
@@ -373,6 +398,7 @@ function _taxonomy_csv_vocabulary_import_process($options, &$context) {
 
     // Remember pointer in case of memory or time out.
     $context['sandbox']['handle_pointer'] = ftell($handle);
+    $_SESSION['taxonomy_csv_import']['line'] = $line;
 
     // Process import of current line.
     $result = taxonomy_csv_line_import_process($line, $options, $previous_items, $terms_count);
@@ -479,6 +505,9 @@ function _taxonomy_csv_vocabulary_import_finished($success, $results, $operation
   if ($options['locale_custom']) {
     setlocale(LC_CTYPE, $options['locale_previous']);
   }
+
+  // Clean Session.
+  unset($_SESSION['taxonomy_csv_import']);
 
   // Invoke import stats file if user wants to display texts for result.
   if ($options['result_display']) {
@@ -588,8 +617,75 @@ function _taxonomy_csv_import_vocabulary_prepare(&$options) {
     array() :
     FALSE;
 
-  // Create thesaurus synonyms and relations fields if needed.
+  // Add or create synonyms and relations fields for the vocabulary, if needed.
   $options['vocabulary'] = taxonomy_csv_thesaurus_create($vocabulary->name, $synonym_field, $relation_field);
+
+  // Add or create custom fields if needed.
+  if ($options['import_format'] == TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS) {
+    $custom_fields = array_flip($options['custom_format']);
+    // Set default format to items of the custom format.
+    foreach ($custom_fields as $key => $value) {
+      if (in_array($key, array(
+          'vid',
+          'name',
+          'description',
+          'format',
+          'weight',
+          'vocabulary_machine_name',
+        ))) {
+        unset($custom_fields[$key]);
+      }
+      else {
+        $custom_fields[$key] = 'text';
+      }
+    }
+
+    // Add items of the custom fields. Allowed types are already checked.
+    foreach ($options['custom_fields'] as $key => $value) {
+      $field_name = (strpos($value, '|') === FALSE) ?
+          $value :
+          drupal_substr($value, 0, strpos($value, '|'));
+      $field_type = (strpos($value, '|') === FALSE) ?
+          'text' :
+          drupal_substr($value, strpos($value, '|') + 1);
+      $custom_fields[$field_name] = $field_type;
+    }
+
+    // Add or create each custom fields.
+    foreach ($custom_fields as $field_name => $field_type) {
+      // Set default field type.
+      $field = array(
+        'field_name'   => $field_name,
+        'label'        => $field_name,
+        'description'  => '',
+        'type'         => $field_type,
+        'cardinality'  => FIELD_CARDINALITY_UNLIMITED,
+        'translatable' => FALSE,
+      );
+      switch ($field_type) {
+        case 'text':
+          break;
+        case 'taxonomy_term_reference':
+          $field += array(
+            'settings'     => array('allowed_values' => array(0 => array(
+              // Warning: Term reference field type need a specific vocabulary. This
+              // can create problems when this field is attached to another
+              // vocabulary. So vocabulary_field_add updates this type of field. Even
+              // if other vocabularies with this attached field have more references,
+              // previous references are always available. Another possibility may be
+              // the use of a specific field_term_relation field for each vocabulary,
+              // but it may be complicate to manage.
+              'vid'    => $vocabulary->vid,
+              'parent' => 0,
+          ))));
+          break;
+        case 'file':
+          break;
+        default:
+      }
+      $result = taxonomy_csv_vocabulary_field_add($vocabulary->machine_name, $field);
+    }
+  }
 
   // Check external formats. Use it only if it works.
   $funcname = "_taxonomy_csv_import_vocabulary_prepare_{$options['import_format']}";

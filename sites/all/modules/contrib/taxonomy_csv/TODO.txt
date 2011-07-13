@@ -1,4 +1,3 @@
-/* $Id: TODO.txt,v 2.8.2.4.2.5 2011/01/06 18:08:27 danielkm Exp $ */
 
 
                       TAXONOMY CSV IMPORT/EXPORT
@@ -92,7 +91,7 @@ Code / security
  x 622 740 clean the input line at the beginning of process and never after
  o         use taxonomy_parser?
  x 622 740 change the type of vocabulary (flat, monohierarchy, polyhierarchy)
- x 630 740 add hook_perm
+ x --- --- add hook_perm
  o         add hook_info
  x 630 740 replace _taxonomy_csv_parse_size by a Drupal function
  o         no order to import files

@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.vocabulary.api.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -19,10 +18,10 @@
  *   Name of vocabulary. If vocabulary exists, it's updated, else it's created.
  * @param $synonym_field
  *   (Optional) Array of field options. If FALSE, don't create synonym field.
- *   Warning: this module manages synonyms only if name is 'taxonomy_synonym'.
+ *   Warning: this module manages synonyms only if name is 'field_term_synonym'.
  * @param $relation_field
  *   (Optional) Array of field options. If FALSE, don't create relation field.
- *   Warning: this module manages relations only if name is 'taxonomy_relation'.
+ *   Warning: module manages relations only if name is 'field_term_relation'.
  *
  * @return
  *   Updated vocabulary object or FALSE
@@ -36,7 +35,7 @@ function taxonomy_csv_thesaurus_create($name = '', $synonym_field = array(), $re
   // Prepare synonyms field if needed.
   if ($synonym_field !== FALSE) {
     $synonym_field += array(
-      'field_name'   => 'taxonomy_synonym',
+      'field_name'   => 'field_term_synonym',
       'label'        => 'Synonyms',
       'description'  => 'Synonyms of this term',
       'type'         => 'text',
@@ -49,7 +48,7 @@ function taxonomy_csv_thesaurus_create($name = '', $synonym_field = array(), $re
   // Prepare relations field if needed.
   if ($relation_field !== FALSE) {
     $relation_field += array(
-      'field_name'   => 'taxonomy_relation',
+      'field_name'   => 'field_term_relation',
       'label'        => 'Related terms',
       'description'  => 'Relations to other terms',
       'type'         => 'taxonomy_term_reference',
@@ -61,7 +60,7 @@ function taxonomy_csv_thesaurus_create($name = '', $synonym_field = array(), $re
         // vocabulary. So vocabulary_field_add updates this type of field. Even
         // if other vocabularies with this attached field have more references,
         // previous references are always available. Another possibility may be
-        // the use of a specific taxonomy_relation field for each vocabulary,
+        // the use of a specific field_term_relation field for each vocabulary,
         // but it may be complicate to manage.
         'vid'    => $vocabulary->vid,
         'parent' => 0,
@@ -288,7 +287,7 @@ function _taxonomy_csv_check_vocabulary_hierarchy($vocabulary, $changed_term = '
 }
 
 /**
- * Add a field to a vocabulary.
+ * Add or create a field of a vocabulary.
  *
  * @param $vocabulary_machine_name
  *   Vocabulary machine_name.

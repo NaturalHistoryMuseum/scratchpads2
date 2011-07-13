@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.term.api.inc,v 1.1.2.6 2011/01/07 10:39:55 danielkm Exp $
 
 /**
  * @file
@@ -202,7 +201,7 @@ function taxonomy_csv_term_get_field_values($term_tid, $field_name, $langcode = 
 
   $term = is_object($term_tid) ? $term_tid : taxonomy_term_load($term_tid);
 
-  $value = ($field_name == 'taxonomy_relation') ?
+  $value = ($field_name == 'field_term_relation') ?
     'tid' :
     'value';
 
@@ -240,6 +239,13 @@ function taxonomy_csv_term_get_field_terms($term_tid, $field_name) {
 }
 
 /**
+    // Keep all true custom fields.
+    $options['custom_fields'] = $custom_fields;
+  }
+  // Custom format is use only for custom fields import.
+  else {
+    $options['custom_fields'] = array();
+
  * Return an array of all names of a term reference field of a given term ID.
  *
  * @param $term_tid
@@ -271,7 +277,7 @@ function taxonomy_csv_term_get_field_names($term_tid, $field_name) {
  * Wrapper of taxonomy_csv_term_get_field_values.
  */
 function taxonomy_csv_term_get_synonyms($term_tid) {
-  return taxonomy_csv_term_get_field_values($term_tid, 'taxonomy_synonym');
+  return taxonomy_csv_term_get_field_values($term_tid, 'field_term_synonym');
 }
 
 /**
@@ -279,7 +285,7 @@ function taxonomy_csv_term_get_synonyms($term_tid) {
  * Wrapper of taxonomy_csv_term_get_field_values.
  */
 function taxonomy_csv_term_get_relations($term_tid) {
-  return taxonomy_csv_term_get_field_terms($term_tid, 'taxonomy_relation');
+  return taxonomy_csv_term_get_field_terms($term_tid, 'field_term_relation');
 }
 
 /**
@@ -287,7 +293,7 @@ function taxonomy_csv_term_get_relations($term_tid) {
  * Wrapper of taxonomy_csv_term_get_field_values.
  */
 function taxonomy_csv_term_get_relations_tids($term_tid) {
-  return taxonomy_csv_term_get_field_values($term_tid, 'taxonomy_relation');
+  return taxonomy_csv_term_get_field_values($term_tid, 'field_term_relation');
 }
 
 /**
@@ -295,7 +301,7 @@ function taxonomy_csv_term_get_relations_tids($term_tid) {
  * Wrapper of taxonomy_csv_term_get_field_names.
  */
 function taxonomy_csv_term_get_relations_names($term_tid) {
-  return taxonomy_csv_term_get_field_names($term_tid, 'taxonomy_relation');
+  return taxonomy_csv_term_get_field_names($term_tid, 'field_term_relation');
 }
 
 /**
@@ -343,11 +349,11 @@ function taxonomy_csv_term_set_field_values($term_tid, $field_name, $langcode = 
  *   Formatted term object.
  */
 function _taxonomy_csv_term_format_internal($term) {
-  if (isset($term->taxonomy_synonym)) {
-    $term->synonyms = taxonomy_csv_term_get_field_values($term, 'taxonomy_synonym');
+  if (isset($term->field_term_synonym)) {
+    $term->synonyms = taxonomy_csv_term_get_field_values($term, 'field_term_synonym');
   }
-  if (isset($term->taxonomy_relation)) {
-    $term->relations = taxonomy_csv_term_get_field_values($term, 'taxonomy_relation');
+  if (isset($term->field_term_relation)) {
+    $term->relations = taxonomy_csv_term_get_field_values($term, 'field_term_relation');
   }
 
   return $term;
@@ -377,14 +383,14 @@ function _taxonomy_csv_term_format_regular($term) {
   }
   if (isset($term->synonyms)) {
     $field = taxonomy_csv_term_set_field_values($term, 'synonyms', $langcode);
-    $term->taxonomy_synonym[$langcode] = ($field) ?
+    $term->field_term_synonym[$langcode] = ($field) ?
       array_shift($field) :
       array();
     unset($term->synonyms);
   }
   if (isset($term->relations)) {
     $field = taxonomy_csv_term_set_field_values($term, 'relations', $langcode);
-    $term->taxonomy_relation[$langcode] = ($field) ?
+    $term->field_term_relation[$langcode] = ($field) ?
       array_shift($field) :
       array();
     unset($term->relations);
@@ -419,6 +425,189 @@ function taxonomy_csv_term_save(&$term) {
   $term->tid = $term_to_save->tid;
 
   return $result;
+}
+
+/**
+ * Implements hook_taxonomy_term_update().
+ *
+ * @param $term
+ *   A taxonomy term object with fields.
+ */
+function taxonomy_csv_taxonomy_term_presave($term) {
+  // Check if is an import is in progress.
+  if (!empty($term)
+      && !empty($_SESSION['taxonomy_csv_import'])
+      && ($_SESSION['taxonomy_csv_import']['options']['import_format'] == TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS)
+    ) {
+    // Call back session datas.
+    $language      = $_SESSION['taxonomy_csv_import']['language'];
+    $custom_format = $_SESSION['taxonomy_csv_import']['options']['custom_format'];
+    $vocabulary    = $_SESSION['taxonomy_csv_import']['vocabulary'];
+    $instances     = $_SESSION['taxonomy_csv_import']['instances'];
+    $fields        = $_SESSION['taxonomy_csv_import']['fields'];
+    $line          = $_SESSION['taxonomy_csv_import']['line'];
+
+    $messages = array();
+
+    // Import fields according custom format.
+    foreach ($custom_format as $key => $field_name) {
+      if (in_array($field_name, array(
+          // 'vid', // Never used, because rejected during start check.
+          'name',
+          'description',
+          'format',
+          'weight',
+          // 'vocabulary_machine_name',
+        ))) {
+        // Already imported, as taxonomy_csv synonyms and relations.
+      }
+      elseif (isset($fields[$field_name])) {
+        $field = $fields[$field_name];
+        $instance = $instances[$field_name];
+
+        switch ($field['type']) {
+          case 'text':
+            // Complete term if there are already items.
+            if (is_array($term->$field_name) && !empty($term->$field_name)) {
+              foreach ($term->$field_name as $field_language => &$delta_array) {
+                $delta_array[]['value'] = $line[$key];
+              }
+            }
+            // Else complete term directly.
+            else {
+              $value_array[$language][0]['value'] = $line[$key];
+              $term->$field_name = $value_array;
+            }
+            break;
+
+          case 'file':
+            $uri_scheme = $field['settings']['uri_scheme'];
+            $file_directory = $instance['settings']['file_directory'];
+            $file_extensions = $instance['settings']['file_extensions'];
+
+            $source = $line[$key];
+            $destination = $uri_scheme . '://' . $file_directory;
+
+            // Import source if it exists.
+            if (file_exists($source)) {
+              $filepath = file_unmanaged_copy($source, $destination, FILE_EXISTS_RENAME);
+              if ($filepath !== FALSE) {
+                $file = new stdClass();
+                $file->uid = 1;
+                $file->filename = basename($filepath);
+                $file->uri = $filepath;
+                $file->filemime = file_get_mimetype($filepath);
+                $file->filesize = filesize($filepath);
+                $file->status = 1;
+                $file->timestamp = time();
+
+                $file = file_save($file);
+
+                // Complete term if there are already items.
+                if (is_array($term->$field_name) && !empty($term->$field_name)) {
+                  foreach ($term->$field_name as $field_language => &$delta_array) {
+                    $delta_array[] = array(
+                      'fid'         => $file->fid,
+                      'display'     => 1,
+                      'description' => '',
+                    );
+                  }
+                }
+                // Else complete term directly.
+                else {
+                  $term->$field_name[$language][0] = array(
+                    'fid'         => $file->fid,
+                    'display'     => 1,
+                    'description' => '',
+                  );
+                }
+              }
+            }
+            elseif ($source != '') {
+              $messages[] = 520; // Notice: unable to load file.
+            }
+            // Else nothing to import.
+            break;
+
+          case 'taxonomy_term_reference':
+            $widget_type = $instance['widget']['type'];
+            // Machine name of referenced vocabulary.
+            $referenced_vocabulary = $field['settings']['allowed_values'][0]['vocabulary'];
+            $vocabulary_obj = taxonomy_vocabulary_machine_name_load($referenced_vocabulary);
+
+            $query = new EntityFieldQuery;
+            $result = $query
+              ->entityCondition('entity_type', 'taxonomy_term')
+              ->propertyCondition('vid', $vocabulary_obj->vid)
+              ->propertyCondition('name', $line[$key])
+              ->execute();
+            if (is_array($result)) {
+              $tid = array_keys($result['taxonomy_term']);
+            }
+
+            switch ($widget_type) {
+              case 'options_buttons':
+                // Only tid.
+                if (isset($tid)) {
+                  // Complete term if there are already items.
+                  if (is_array($term->$field_name) && !empty($term->$field_name)) {
+                    foreach ($term->$field_name as $field_language => &$delta_array) {
+                      $delta_array[]['tid'] = $tid[0];
+                    }
+                  }
+                  // Else complete term directly.
+                  else {
+                    $value_array[$language][0]['tid'] = $tid[0];
+                    $term->$field_name = $value_array;
+                  }
+                }
+                break;
+
+              case 'taxonomy_autocomplete':
+                // Need tid, vid, name and vocabulary_machine_name.
+                $column = array();
+                $column['vid'] = $vocabulary_obj->vid;
+                $column['vocabulary_machine_name'] = $vocabulary_obj->machine_name;
+
+                // Prepare items.
+                // If tid exists, load all items.
+                if (isset($tid)) {
+                  $referenced_term = taxonomy_term_load($tid[0]);
+                  $column['tid'] = $referenced_term->tid;
+                  $column['name'] = $referenced_term->name;
+                }
+                // Else create it.
+                else {
+                  $column['name'] = $line[$key];
+
+                  $referenced_term = (object) $column;
+                  unset($referenced_term->tid);
+                  taxonomy_term_save($referenced_term);
+                  $column['tid'] = $referenced_term->tid;
+                }
+
+                // Complete term if there are already items.
+                if (is_array($term->$field_name) && !empty($term->$field_name)) {
+                  foreach ($term->$field_name as $field_language => &$delta_array) {
+                    $delta_array[] = $column;
+                  }
+                }
+                // Else complete term directly.
+                else {
+                  $value_array[$language][0] = $column;
+                  $term->$field_name = $value_array;
+                }
+                break;
+            }
+            break;
+        }
+      }
+      // Else there is an error, already reported in main import process.
+    }
+
+    // Save messages.
+    $_SESSION['taxonomy_csv_import']['messages'] += $messages;
+  }
 }
 
 /**

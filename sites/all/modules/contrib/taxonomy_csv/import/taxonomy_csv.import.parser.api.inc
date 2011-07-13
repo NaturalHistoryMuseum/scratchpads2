@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.import.parser.api.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -35,6 +34,7 @@ function _taxonomy_csv_line_import_check($line, $options, $previous_items = arra
 
   // No input check because line and previous line are already checked.
   // @todo A php callback function may be used to simplify checking.
+  // @todo To be factorized and simplified.
   switch ($options['import_format']) {
     case TAXONOMY_CSV_FORMAT_ALONE_TERMS:
       // Checks empty first column.
@@ -51,6 +51,29 @@ function _taxonomy_csv_line_import_check($line, $options, $previous_items = arra
         $messages[] = 454; // Warning too long.
         break;
       }
+      break;
+
+    case TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS:
+      // Get number of items.
+      $number_items = count($options['custom_format']);
+      if (count($line) < count($options['custom_format'])) {
+        $messages[] = 566; // Notice too little items.
+      }
+      elseif (count($line) > count($options['custom_format'])) {
+        $messages[] = 564; // Notice too many items.
+      }
+      if (count(array_keys($options['custom_format'], '')) >= 1) {
+        $messages[] = 513; // Notice empty items.
+      }
+
+      // @todo Add format check: required or not, type of datas...
+
+      // Currently, check only if the name field is empty or not.
+      if (empty($line[0])) {
+        $messages[] = 464; // Warning no name.
+        break;
+      }
+      $checked_items = $line;
       break;
 
     case TAXONOMY_CSV_FORMAT_DEFINITION_LINKS:

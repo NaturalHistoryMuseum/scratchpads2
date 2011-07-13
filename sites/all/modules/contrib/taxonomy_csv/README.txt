@@ -1,4 +1,3 @@
-/* $Id: README.txt,v 2.5.2.5.2.5 2011/01/06 18:08:27 danielkm Exp $ */
 
 
                       TAXONOMY CSV IMPORT/EXPORT

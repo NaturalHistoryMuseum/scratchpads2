@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.import.line.api.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -94,6 +93,45 @@ function taxonomy_csv_line_import($line, $options, $previous_items = array(), $t
         $result['terms_count'] = $terms_count;
         break;
 
+      case TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS:
+        $term = (object) array(
+          'vid'  => $options['vocabulary_id'],
+        );
+        // Weight is not set with the name and vid above in order to keep
+        // existing one if it exists. It's replaced below with Weights and
+        // definitions formats.
+        ++$terms_count;
+        if ($options['keep_order']) {
+          $term->weight = $terms_count;
+        }
+
+        // Import normal fields according custom format.
+        foreach ($options['custom_format'] as $key => $field_name) {
+          if (in_array($field_name, array(
+              // 'vid', // Never used, because rejected during start check.
+              'name',
+              'description',
+              'format',
+              'weight',
+              // 'vocabulary_machine_name',
+            ))) {
+            $term->$field_name = $line[$key];
+          }
+          elseif (!isset($_SESSION['taxonomy_csv_import']['fields'][$field_name])) {
+            $current_result['msg'] = 341; // Non existing field.
+            break;
+          }
+          // Others are processed with hook taxonomy_csv_taxonomy_term_presave.
+        }
+
+        // Import term then store result. No check because only one term.
+        $current_result = taxonomy_csv_term_import($term, $options['existing_items']);
+        $result['name'][] = $current_result['name'];
+        $result['tid'][]  = $current_result['tid'];
+        $result['msg'] = $current_result['msg'];
+        $result['terms_count'] = $terms_count;
+        break;
+
       case TAXONOMY_CSV_FORMAT_DEFINITION_LINKS:
         // 1. Keep previous imported vocabularies and terms.
         $result['name'] = $previous_items['name'];
@@ -109,6 +147,11 @@ function taxonomy_csv_line_import($line, $options, $previous_items = array(), $t
           'relations'   => array(),
         );
 
+        // Set default vocabulary if no vocabulary is used.
+        if ($line[2] == '') {
+          $line[2] = $options['vocabulary_id'];
+        }
+
         // 3. Prepare links. Zero character ids have been already removed.
         $parents_names  = array_slice($line, 9 + $line[5], $line[6]);
         $children_names = array_slice($line, 9 + $line[5] + $line[6], $line[7]);
@@ -116,7 +159,10 @@ function taxonomy_csv_line_import($line, $options, $previous_items = array(), $t
         $related_vocs   = array_slice($line, 9 + $line[5] + $line[6] + $line[7] + $line[8], $line[8]);
 
         // 4. Check if main and related vocabularies are already in memory.
-        $vocabularies = array_unique(array_merge(array($line[2]), $related_vocs));
+        $vocabularies = $related_vocs;
+        $vocabularies[] = $line[2];
+        $vocabularies = array_unique($vocabularies);
+
         foreach ($vocabularies as $id) {
           // Empty vocabulary identifiant is saved too.
           // Vocabulary is unknown.
@@ -147,6 +193,10 @@ function taxonomy_csv_line_import($line, $options, $previous_items = array(), $t
                 break;
 
               case 'existing':
+              // Even with 'existing' choice, vocabularies have to be created
+              // when a related term belongs to another vocabulary.
+              // Currently not advised with multiple vocabularies in Drupal 7.
+
               default:
                 // Vocabulary exists.
                 if ($vid) {
@@ -690,6 +740,15 @@ function taxonomy_csv_term_import($term, $existing_items = TAXONOMY_CSV_EXISTING
     }
 
     $messages[] = ($result == SAVED_NEW) ? 691 : 692; // Saved or updated.
+
+    // Save hook messages.
+    if (count($_SESSION['taxonomy_csv_import']['messages']) > 0) {
+      foreach ($_SESSION['taxonomy_csv_import']['messages'] as $value) {
+        $messages[] = $value;
+      }
+      $_SESSION['taxonomy_csv_import']['messages'] = array();
+    }
+
   }
   else {
     $messages[] = 391; // Error: not a term.

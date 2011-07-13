@@ -1,4 +1,3 @@
-<!-- $Id: taxonomy_csv.help.html,v 2.1.2.7.2.6 2011/01/06 18:08:27 danielkm Exp $ -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -27,11 +26,14 @@
       background-color: rgb(238, 238, 238);
       margin: 6px 48px 12px 24px;
     }
+    code {
+      white-space: pre;
+    }
   --></style>
 </head>
 <body>
 <p>This module allows to import/export taxonomies, structures or simple lists of terms into/from a vocabulary from/to a <a href="http://en.wikipedia.org/wiki/Comma-separated_values" title="Wikipedia definition">CSV</a> file, a url or a copy-and-paste text.</p>
-<p>Csv format is a simple list of values separated by a delimiter, often comma (<strong><code>,</code></strong>) or semicolon (<strong><code>;</code></strong>), and enclosures, often quotation marks (<strong><code>"</code></strong>). If you are unsure how to create a CSV file, you might want to use <a href="http://www.openoffice.org" title="OpenOffice.org">OpenOffice Calc</a> or another spreadsheet application to export your data into a CSV file.</p>
+<p>Csv format is a simple list of values separated by a delimiter, often comma (<strong><code>,</code></strong>) or semicolon (<strong><code>;</code></strong>), and enclosures, often quotation marks (<strong><code>"</code></strong>). If you are unsure how to create a CSV file, you might want to use <a href="http://www.libreoffice.org" title="LibreOffice.org">LibreOffice Calc</a> or another spreadsheet application to export your data into a CSV file.</p>
 <p>Specific import or export formats can be added simply by a plug-in mecanism (or ask author!).</p>
   <div class="toc">
     <h2 class="nonum"><a id="contents" name="contents">Table of Contents</a></h2>
@@ -41,6 +43,9 @@
         <ol class="toc">
           <li>
             <a href="#alone_terms">Alone terms</a>
+          </li>
+          <li>
+            <a href="#custom_fields">Custom fields (Drupal 7 Fields)</a>
           </li>
           <li>
             <a href="#def_links">Full term fields and links</a>
@@ -135,7 +140,46 @@
         <li><code>Gold</code></li>
         <li><code>Wood</code></li>
       </ul></div>
-  <h4 id="def_links"><a href="#contents">2. Full term fields and links</a></h4>
+  <h4 id="custom_fields"><a href="#contents">2. Custom fields (Drupal 7 Fields)</a></h4>
+    <p>Terms are imported with a csv scheme provided by the user.</p>
+    <p>The csv scheme should contain each column header of the csv input. The column header is the name (not the label) of the field where to import items into. It can be a default header (name, description, weight) or a custom field.</p>
+    <p>For example, you want to import a list of car makers, and you would like each car maker to have custom fields indicating nationality and date of origine(<a href="http://drupal.org/node/1027068#comment-4152194">origine of example, fictional</a>):</p>
+    <div class="codeblock"><ul>
+      <li><code>[Taxonomy Term] - [Custom Field] - [Custom Field]</code></li>
+      <li><code>Car Maker       - Country        - Year Started</code></li>
+      <li><code>-------------------------------------------------</code></li>
+      <li><code>Ford            - US             - 1900</code></li>
+      <li><code>Renault         - France         - 1901</code></li>
+      <li><code>Toyota          - Japan          - 1902</code></li>
+      <li><code>Nissan          - Japan          - 1903</code></li>
+      <li><code>Daimler Benz    - Germany        - 1904</code></li>
+    </ul></div>
+    <p>So, with 'Custom fields' format, you can set your format:</p>
+    <div class="codeblock">
+      <code>name, field_country, field_year_started</code>
+    </div>
+    <p>or more generically:</p>
+    <div class="codeblock">
+      <code>name, field_mycustomfield_1_machinename, field_mycustomfield_2_machinename...</code>
+    </div>
+    <p>Custom fields are automatically created if they don't exist and then attached to the vocabulary.</p>
+    <p>Currently, custom fields can be 'text', reference to another term ('taxonomy_term_reference') and even 'file'.</p>
+    <p>The default type of field is 'text'. If you want to use another one, you have to set it with '|' symbol in the vocabulary section of the form, except if the field exists already.</p>
+    <p>For exemple, you want to import these items (<a href="http://drupal.org/node/1027068#comment-4194716">origine of example</a>):</p>
+    <div class="codeblock"><ul>
+      <li><code>default name 1, tax gtin name 1, description 1, /home/robertom/file1.pdf, status 1</code></li>
+      <li><code>default name 2, tax gtin name 2, description 2, /home/robertom/file2.pdf, status 2</code></li>
+      <li><code>default name 3, tax gtin name 3, description 3, /home/robertom/file3.pdf, status 3</code></li>
+    </ul></div>
+    <p>Your custom format will be:</p>
+    <div class="codeblock"><ul>
+      <li><code>name, field_internal_name, description, field_file, field_status</code></li>
+    </ul></div>
+    <p>Your custom fields will be:</p>
+    <div class="codeblock"><ul>
+      <li><code>field_file|file</code></li>
+    </ul></div>
+  <h4 id="def_links"><a href="#contents">3. Full term fields and links</a></h4>
     <p>This option allows to import full term definitions and direct links to other terms.</p>
     <p>Format is: term name, term id, vocabulary id, term description, weight, number of synonyms, number of first level parents, number of first level children, number of related terms, list of synonyms, list of first level parents ids, list of first level children ids, list of related terms ids, list of vocabulary ids of related terms.</p>
     <p>Only term name should be defined. Other values can be empty. Ids are not internal term ids or vocabulary ids, but a unique identifiant. Ids can be a number or a name. In most case, you can use true name. In fact, term ids need to be specific only for duplicate term names in order to identify each item. So for duplicates, you can use term name with a serial number. Main term id is needed only when term name is a duplicate one.</p>
@@ -146,13 +190,13 @@
       </ul></div>
     <p>With this source content, destination is determined by source. If third column is empty, a new vocabulary will be created. If it's a name or a number, a vocabulary will be created if it doesn't exist. This process is used for related terms too. If vocabulary of a related term is not defined, vocabulary of main term is used. Warning: It's not recommended to change the vocabulary of a term with links.</p>
     <p>A simpler option, <a href="#fields"><code>Full term definitions</code></a>, allows to import only definitions.</p>
-  <h4 id="flat"><a href="#contents">3. Terms (flat vocabulary)</a></h4>
+  <h4 id="flat"><a href="#contents">4. Terms (flat vocabulary)</a></h4>
     <p>Use this option to import a lot of terms in order to create a flat vocabulary. All items in your file will be imported as terms. Example:</p>
       <div class="codeblock"><ul>
         <li><code>Clothes, Trees, Houses</code></li>
         <li><code>Paris, Drupal</code></li>
       </ul></div>
-  <h4 id="tree_structure"><a href="#contents">4. Hierarchical tree structure or one term by line structure</a></h4>
+  <h4 id="tree_structure"><a href="#contents">5. Hierarchical tree structure or one term by line structure</a></h4>
     <p>Use this option to create a tree structure of a vocabulary (geography, classification...). To import a hierarchy with multiple parents as a genealogical one, it's advised to use "Polyhierarchy", "First level children" or "First level parents" imports.</p>
     Your file can be written with two schemes and a mixed one.<br />
     <h5 id="tree_structure_full_line"><a href="#contents">First scheme: Full ancestors of a term</a></h5>
@@ -213,7 +257,7 @@
           <li><code>World, Europe, France, Paris</code></li>
         </ul></div>
       Full lines, partial and one term lines can be mixed, but order is important two by two lines, except when there are only full lines. In this example, if fifth and sixth lines are shift, &lt; <code>Seoul</code> &gt; will become a child of &lt; <code>Japan</code> &gt;.
-  <h4 id="polyhierarchy"><a href="#contents">5. Polyhierarchical structure</a></h4>
+  <h4 id="polyhierarchy"><a href="#contents">6. Polyhierarchical structure</a></h4>
     <p>Use this option to create a a polyhierarchical structure, as a genealogy.<br />
     Format is the same than tree structure: each term is the child of previous item: parent, child, sub-child... and so on.<br />
     There are four differences. First, the first item doesn't need to be a root. Second, duplicate terms are always merged, except when one is the direct parent of the other one, because it's forbidden in Drupal. So, if the vocabulary is monohierarchical and without non-direct duplicate terms, as in the previous geographical example, result is the same than with previous option. Third, lines can be partial too, but in some case of duplicates, result may differ. Last, polyhierarchy can be recursive.<br />
@@ -228,7 +272,7 @@
         <li><code>Grand-Mother 2, Uncle</code></li>
         <li><code>Father, Son 3</code></li>
       </ul></div>
-  <h4 id="parents"><a href="#contents">6. First level parents</a></h4>
+  <h4 id="parents"><a href="#contents">7. First level parents</a></h4>
     <p>This choice allows to create a vocabulary in which terms can have more than one parent, as in a genealogy (polyhierarchy).<br />
     The first item is imported as a term, the second and next as first level parents of first term. For example, lines may be:</p>
       <div class="codeblock"><ul>
@@ -240,7 +284,7 @@
         <li><code>Father, Grand-Mother 2, Grand-Father 2</code></li>
         <li><code>Uncle, Grand-Mother 2, Grand-Father 2</code></li>
       </ul></div>
-  <h4 id="children"><a href="#contents">7. First level children</a></h4>
+  <h4 id="children"><a href="#contents">8. First level children</a></h4>
     <p>This choice allows to create a vocabulary in which terms can have more than one parent, as in a genealogy (polyhierarchy).<br />
     The first item is imported as a term, the second and next as first level children of first term. For example, lines may be:</p>
       <div class="codeblock"><ul>
@@ -252,7 +296,7 @@
         <li><code>Grand-Father 2, Father, Uncle</code></li>
       </ul></div>
     The three previous examples import the same vocabulary when existing items option is "update and merge", which is the recommended one.
-  <h4 id="relations"><a href="#contents">8. Related terms</a></h4>
+  <h4 id="relations"><a href="#contents">9. Related terms</a></h4>
     <p>Warning: in Drupal 7, related terms have been removed and replaced by fields. So this option is available only with Drupal 6. To get same feature, you need to create a "relations" field.<br />
     Use this option to create links between terms, as "see also" in an encyclopedia.
     The second and next columns will be imported as related terms of the first column term. For example, a line may be:</p>
@@ -260,28 +304,28 @@
         <li><code>Baobab, Madagascar, Ghost</code></li>
       </ul></div>
     So &lt; <code>Baobab</code> &gt; will be related to &lt; <code>Madagascar</code> &gt; and &lt; <code>Ghost</code> &gt;. An option allow you to create subrelations, here between &lt; <code>Madagascar</code> &gt; and &lt; <code>Ghost</code> &gt; (see below).
-  <h4 id="synonyms"><a href="#contents">12. Synonyms terms</a></h4>
+  <h4 id="synonyms"><a href="#contents">10. Synonyms terms</a></h4>
     <p>The second and next columns will be imported as synonyms terms of the first column term. Example:</p>
       <div class="codeblock"><ul>
         <li><code>"United Kingdom","Great Britain","England"</code></li>
       </ul></div>
-  <h4 id="fields"><a href="#contents">9. Full term definitions</a></h4>
+  <h4 id="fields"><a href="#contents">11. Full term definitions</a></h4>
     <p>This option allows to import full term definitions. Format is: name, weight, description, list of synonyms if any. Example:</p>
       <div class="codeblock"><ul>
         <li><code>Street, 1, "A urban way", Avenue, Road</code></li>
       </ul></div>
     A more complete option, <a href="#def_links"><code>Full term fields and links</code></a>, allows to import not only definitions, but links to other terms too.
-  <h4 id="descriptions"><a href="#contents">10. Term descriptions</a></h4>
+  <h4 id="descriptions"><a href="#contents">12. Term descriptions</a></h4>
     <p>The second column will be imported as the term description of the first column term. Example:</p>
       <div class="codeblock"><ul>
         <li><code>"Baobab","An African tree"</code></li>
       </ul></div>
-  <h4 id="weights"><a href="#contents">11. Term weights</a></h4>
+  <h4 id="weights"><a href="#contents">13. Term weights</a></h4>
     <p>The second column will be imported as weight of the term defined by first column. Example:</p>
       <div class="codeblock"><ul>
         <li><code>Baobab, 3</code></li>
       </ul></div>
-  <h4 id="taxonomy_manager"><a href="#contents">13. Taxonomy manager</a></h4>
+  <h4 id="taxonomy_manager"><a href="#contents">14. Taxonomy manager</a></h4>
     <p>This format is used by <a href="http://drupal.org/project/taxonomy_manager" title="Taxonomy manager module">Taxonomy manager</a> to export vocabularies. Columns are: vocabulary id, term id, term name, term description, first level parent id 1, ..., first level parent id n. Example:</p>
       <div class="codeblock"><ul>
         <li><code>, 1, "Île-de-France", "Main region"</code></li>
@@ -289,7 +333,7 @@
       </ul></div>
     <p>In this format, order of all lines is important: it's impossible to attach a parent to an item if this parent hasn't been imported in a previous line.</p><br />
     <p>When a vocabulary is imported in an existing one, only option "ignore existing terms" can be used.</p>
-  <h4 id="geotaxonomy"><a href="#contents">14. Geotaxonomy</a></h4>
+  <h4 id="geotaxonomy"><a href="#contents">15. Geotaxonomy</a></h4>
     <p>Import and export <a href="http://drupal.org/project/geotaxonomy" title="Module Geotaxonomy">geotaxonomy</a> terms.</p>
     <p>Format</p>
     <div class="codeblock"><ul>
@@ -409,20 +453,20 @@
     $csv_lines .=  "\n". ',"United Kingdom", "London"';<br />
     $csv_lines .=  "\n". ',"Portugal", "Lisbonne"';<br />
     $result = taxonomy_csv_import(<br />
-    &nbsp;&nbsp;array(<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'text'           => $csv_lines,<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'import_format'  => 'tree_structure',<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'existing_items' => 'update_replace',<br />
+      array(<br />
+        'text'           => $csv_lines,<br />
+        'import_format'  => 'tree_structure',<br />
+        'existing_items' => 'update_replace',<br />
     ));<br />
   </code></div>
   <p>Or as this (line level import):</p>
   <div class="codeblock"><code>
     $result = taxonomy_csv_line_import(<br />
-    &nbsp;&nbsp;array("Europe", "France", "Paris"),<br />
-    &nbsp;&nbsp;array(<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'import_format' => 'tree_structure',<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'vocabulary_id' => 2,<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;'existing_items' => 'update_replace',<br />
+      array("Europe", "France", "Paris"),<br />
+      array(<br />
+        'import_format' => 'tree_structure',<br />
+        'vocabulary_id' => 2,<br />
+        'existing_items' => 'update_replace',<br />
     ));<br />
   </code></div>
   <p>Possible formats are explained in comments or <a href='#formats'>above</a>. Some may be unavailable.</p>

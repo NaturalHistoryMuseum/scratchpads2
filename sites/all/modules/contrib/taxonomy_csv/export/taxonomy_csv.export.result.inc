@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.export.result.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file

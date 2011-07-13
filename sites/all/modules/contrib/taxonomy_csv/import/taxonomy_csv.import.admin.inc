@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_csv.import.admin.inc,v 1.1.2.5 2011/01/06 18:08:27 danielkm Exp $
 
 /**
  * @file
@@ -19,7 +18,8 @@
  * Form contain five fieldsets:
  * - 1. What to import ?
  *   - 1. Content of the source
- *   - 2. Keep order of terms by adding a weight
+ *   - 2. Custom fields order
+ *   - 3. Keep order of terms by adding a weight
  * - 2. Where are items to import ?
  *   - 1. Source select
  *   - 2. Source file or text area
@@ -29,8 +29,9 @@
  *   - 3. Line and utf8 checks
  * - 4. Which vocabulary to import into (destination) ?
  *   - 1. Destination type
- *   - 2. Vocabulary choice
- *   - 3. Vocabulary hierarchy set or check
+ *   - 2. Autocreate custom fields
+ *   - 3. Vocabulary choice
+ *   - 4. Vocabulary hierarchy set or check
  * - 5. When a term exist, what to do with it ?
  *   - 1. Previous or existing terms
  *   - 2. Specific import options depending on source content
@@ -90,13 +91,6 @@ function taxonomy_csv_form_import($form_state) {
 
   // Build form.
 
-  // Needed to upload file.
-  $form = array(
-    '#attributes' => array(
-      'enctype' => 'multipart/form-data',
-    )
-  );
-
   // Warn when modules incompatible with taxonomy_csv are enabled.
   // Problems can't be reproduced with a memory of 256 MB, even with big
   // taxonomies. Only pathauto slows down import process.
@@ -121,22 +115,6 @@ function taxonomy_csv_form_import($form_state) {
       break;
     }
   }
-
-  // Advertise as it's a developpement release.
-  $form['drupal_7_info'] = array(
-    '#type'        => 'fieldset',
-    '#title'       => t('Warning'),
-    '#collapsible' => TRUE,
-    '#collapsed'   => FALSE,
-    '#description' => '<strong>' . t('Vocabulary management has changed between Drupal 6 and Drupal 7.') . '</strong>' . '<br />'
-      . t('In Drupal 7, <a href="!link_synonym">synonyms</a> and <a href="!link_related">related terms</a> have been removed and replaced by fields.', array(
-        '!link_synonym' => url('http://drupal.org/node/224333#no-synonyms-taxonomy'),
-        '!link_related' => url('http://drupal.org/node/224333#related_terms'),
-      )) . '<br />'
-      . t('Comments on this replacement and on the integration in Taxonomy CSV (use schemas or fields, functions, options...) are <a href="!link_comment">welcomed</a>.', array(
-        '!link_comment' => url('http://drupal.org/project/taxonomy_csv'),
-      )),
-  );
 
   // Advertise that javascript is not enabled.
   if (!isset($_COOKIE['has_js'])) {
@@ -198,6 +176,8 @@ function taxonomy_csv_form_import($form_state) {
     // Complete generic form with specific help for each import format.
     $form['tab']['format']['alone_terms']['#description'] = t('Only the term in the first column of each line is imported. Additional columns are ignored.');
 
+    $form['tab']['format'][TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS]['#description'] = t('Allow to choose a custom order of fields on a csv line.');
+
     $form['tab']['format']['def_links']['#description'] = t('Allow to import full term definitions and links.') . '<br />'
       . t('Format: term name, term id, vocabulary id, term description, weight, number of synonyms, number of first level parents, number of first level children, number of related terms, list of synonyms, list of first level parents ids, list of first level children ids, list of related terms ids, list of vocabulary ids of related terms.') . '<br/>'
       . t('Only term name should be defined. Other values can be empty. Ids are not internal term ids or vocabulary ids, but a unique identifiant. Ids can be a number or a name. In most case, you can use true name. In fact, term ids need to be specific only for duplicate term names in order to identify each item. So for duplicates, you can use term name with a serial number. Main term id is only needed when term is a duplicate one.') . '<br />'
@@ -234,6 +214,23 @@ function taxonomy_csv_form_import($form_state) {
     '#description' => t('See <a href="!more_help_link">advanced help</a> for more informations about import types.', array('!more_help_link' => url('admin/help/taxonomy_csv'))),
   );
 
+  $form['tab']['format']['import_custom_format'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Set order of items on a csv line'),
+    '#default_value' => $list_previous_values['import_custom_format'],
+    '#size'          => 60,
+    '#maxlength'     => 1024,
+    '#description'   => t("Set custom order of csv input separated by comma. First field need to be 'name'.") . ' ' . t('Currently, only fixed number of items are supported.') . '<br />'
+      . t('Examples:') . '<ul>'
+      . '<li><code>' . t('name, field_mycustomfield_1_machinename, field_mycustomfield_2_machinename') . '</code></li>'
+      . '<li><code>' . t('name, description, field_country, field_year_started') . '</code></li></ul>',
+    '#states' => array(
+      'visible' => array(
+        ':input[name=import_format]' => array('value' => 'custom_fields'),
+      ),
+    ),
+  );
+
   $form['tab']['format']['keep_order'] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Keep order of terms'),
@@ -260,7 +257,7 @@ function taxonomy_csv_form_import($form_state) {
     '#title'         => '',
     '#options'       => array(
       'text' => t('In the below text area'),
-      'path' => t('In a local file'),
+      'file' => t('In a local file'),
       'url'  => t('In a distant file'),
     ),
     '#default_value' => $list_previous_values['source_choice'],
@@ -277,7 +274,7 @@ function taxonomy_csv_form_import($form_state) {
     '#description'   => t('Write your csv formatted terms directly in this text area.'),
   );
 
-  $form['tab']['import']['path'] = array(
+  $form['tab']['import']['file'] = array(
     '#type'          => 'file',
     '#title'         => t('CSV file'),
     '#description'   => t('Browse to the file') . '<br >'
@@ -293,7 +290,7 @@ function taxonomy_csv_form_import($form_state) {
     '#description'   => t('Enter the url (http, ftp, file, path...)'),
   );
 
-  foreach (array('text', 'path', 'url') as $value) {
+  foreach (array('text', 'file', 'url') as $value) {
     $form['tab']['import'][$value]['#states'] = array(
       'visible' => array(
         ':input[name=source_choice]' => array('value' => $value),
@@ -304,7 +301,8 @@ function taxonomy_csv_form_import($form_state) {
   $form['tab']['csv_format'] = array(
     '#type'        => 'fieldset',
     '#title'       => t('3. How is your source formatted?'),
-    '#description' => t('Notice: either you import terms by a file or by a text area, the csv format is the same. Default delimiter is a comma ("<strong><code> , </code></strong>"). Default enclosure is none, but quotation mark ("<strong><code> " </code></strong>") is automatically managed.'),
+    '#description' => t('Notice: either you import terms by a file or by a text area, the csv format is the same. Default delimiter is a comma ("<strong><code> , </code></strong>"). Default enclosure is none, but quotation mark ("<strong><code> " </code></strong>") is automatically managed.') . '<br />'
+      . t("<strong>Important</strong>: You should enclose any item beginning with a non-ascii letter, such as 'É', 'ç', 'œ' or non-latin letter."),
     '#collapsible' => TRUE,
     '#collapsed'   => FALSE,
   );
@@ -464,6 +462,26 @@ function taxonomy_csv_form_import($form_state) {
       $form['tab']['destination']['vocabulary_id']['#options'][$vocabulary->vid] = $vocabulary->name;
     }
   }
+
+  $form['tab']['destination']['import_custom_fields'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Set custom fields of the vocabulary'),
+    '#default_value' => $list_previous_values['import_custom_fields'],
+    '#size'          => 60,
+    '#maxlength'     => 1024,
+    '#description'   =>  t('Fields of custom format are automatically added (if they exist) or created and attached to the vocabulary.') . ' ' . t('When a field is created, options are set to Drupal defaults for a text field with a unlimited number of values.') . ' ' . t("If you want another type, you have to set it here with the '|' symbol.") . '<br />'
+      . t("Currently only these field types are managed: 'text' (default), 'taxonomy_term_reference' and 'file'.") . '<br />'
+      . t("Be careful with 'taxonomy_term_reference', because this field allows references to one vocabulary only, so referenced vocabulary is set to current one, which can be an issue if the same field is used somewhere else.") . '<br />'
+      . t('Examples:') . '<ul>'
+      . '<li><code>' . t('field_mycustomfield_1_machinename, field_mycustomfield_2_machinename|file') . '</code></li>'
+      . '<li><code>' . t('field_content, field_reference|taxonomy_term_reference') . '</code></li>'
+      . '<li><code>' . t('field_country|text, field_year_started|text') . '</code></li></ul>',
+    '#states' => array(
+      'visible' => array(
+        ':input[name=import_format]' => array('value' => 'custom_fields'),
+      ),
+    ),
+  );
 
   $form['tab']['destination']['info_hierarchy'] = array(
     '#type'        => 'item',
@@ -752,17 +770,38 @@ function taxonomy_csv_form_import_validate($form, &$form_state) {
   $options = &$form_state['values'];
 
   // 1. Preload text or file in order to check it.
-  // When source is path, need to preload here.
-  if ($options['source_choice'] == 'path') {
-    $options['file'] = file_save_upload('path');
-    // fopen and fseek need a real path.
-    if ($options['file']) {
-      $options['file']->filepath = drupal_realpath($options['file']->uri);
-    }
+  switch ($options['source_choice']) {
+    case 'text':
+      $options['url'] = '';
+      $options['file'] = '';
+      break;
+    case 'url':
+      $options['text'] = '';
+      $options['file'] = '';
+      break;
+    case 'file':
+      $options['text'] = '';
+      $options['url'] = '';
+
+      // When source is path, need to preload here.
+      $file = file_save_upload('file', array('file_validate_extensions' => array('csv txt')));
+      // fopen and fseek need a real path.
+      if (!empty($file)) {
+        $file->filepath = drupal_realpath($file->uri);
+        if (!empty($file->filepath)) {
+          $options['file'] = $file;
+        }
+      }
+      break;
   }
   $messages = _taxonomy_csv_import_input_preload($options);
 
   // 2, Simplify values to be compatible with api checks.
+  // Custom format is trimmed array of import_custom_format.
+  $options['custom_format'] = (trim($options['import_custom_format'] == '')) ?
+    array() :
+    array_values(array_map('trim', explode(',', $options['import_custom_format'])));
+
   // Define true delimiter.
   $delimiter = array(
     'comma'            => ',',
@@ -783,6 +822,11 @@ function taxonomy_csv_form_import_validate($form, &$form_state) {
   );
   $options['enclosure'] = $enclosure[$options['import_enclosure']];
 
+  // Custom fields is trimmed array of import_custom_fields.
+  $options['custom_fields'] = (trim($options['import_custom_fields'] == '')) ?
+    array() :
+    array_values(array_map('trim', explode(',', $options['import_custom_fields'])));
+
   // Define existing items choice.
   if (isset($_COOKIE['has_js'])) {
     $import_format = $options['import_format'];
@@ -799,12 +843,14 @@ function taxonomy_csv_form_import_validate($form, &$form_state) {
 
   // Use form set error for api errors.
   foreach (array(
-      'delimiter'   => 'import_delimiter',
-      'enclosure'   => 'import_enclosure',
+      'custom_format' => 'import_custom_format',
+      'delimiter'     => 'import_delimiter',
+      'enclosure'     => 'import_enclosure',
+      'custom_fields' => 'import_custom_fields',
     ) as $key => $value) {
-    if (isset($message[$key])) {
-      $message[$value] = $message[$key];
-      unset($message[$key]);
+    if (isset($messages[$key])) {
+      $messages[$value] = $messages[$key];
+      unset($messages[$key]);
     }
   }
 
@@ -847,6 +893,40 @@ function taxonomy_csv_form_import_validate($form, &$form_state) {
 function _taxonomy_csv_import_check_options(&$options) {
   $messages = array();
 
+  // Custom order check.
+  // @todo Use a regexp.
+  if ($options['import_format'] == TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS) {
+    if (!is_array($options['custom_format'])) {
+      $messages['custom_format'] = t('Custom format is an array of machine name fields.');
+    }
+    elseif ($options['custom_format'] == array()) {
+      $messages['custom_format'] = t("Custom format can't be empty.");
+    }
+    elseif (in_array('', $options['custom_format'])) {
+      $messages['custom_format'] = t('One of the custom csv fields is empty.');
+    }
+    // Check if name is the first item.
+    elseif ($options['custom_format'][0] != 'name') {
+      $messages['custom_format'] = t("First custom field has to be 'name'.");
+    }
+    // Name need to be unique..
+    elseif (count(array_keys($options['custom_format'], 'name')) > 1) {
+      $messages['custom_format'] = t("Custom fields can have only one 'name'.");
+    }
+    elseif (array_map('strtolower', $options['custom_format']) != $options['custom_format']) {
+      $messages['custom_format'] = t("Custom csv fields have to be in lower case.");
+    }
+    elseif (str_replace(' ', '', implode(',', $options['custom_format'])) != implode(',', $options['custom_format'])) {
+      $messages['custom_format'] = t("Custom csv fields can't have spaces.");
+    }
+    elseif (array_intersect(array(
+        'vid',
+        'vocabulary_machine_name',
+      ), $options['custom_format'])) {
+      $messages['custom_format'] = t("Currently, 'vid' and 'vocabulary_machine_name' can't be used as custom fields.");
+    }
+  }
+
   // Delimiter or enclosure greater than one character are useless with fgetcsv,
   // except with soft tab.
   if ($options['delimiter'] == ''
@@ -872,7 +952,7 @@ function _taxonomy_csv_import_check_options(&$options) {
   if (!isset($options['file'])
       || !is_object($options['file'])
       || count(file($options['file']->filepath)) == 0) {
-    $messages['total_lines'] = t('No term to import. Import finished.');
+    $messages['total_lines'] = t('No term to import.');
   }
 
   if (!in_array($options['vocabulary_target'], array(
@@ -888,6 +968,57 @@ function _taxonomy_csv_import_check_options(&$options) {
     $list_vocabularies = taxonomy_get_vocabularies();
     if (!isset($list_vocabularies[$options['vocabulary_id']])) {
       $messages['vocabulary_id'] = t("You choose to use an existing vocabulary, but you haven't choose it.");
+    }
+  }
+
+  // Custom fields check.
+  // @todo Use a regexp.
+  if ($options['import_format'] == TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS) {
+    if (!is_array($options['custom_fields'])) {
+      $messages['custom_fields'] = t('Custom fields is an array of machine name fields.');
+    }
+    elseif ($options['custom_fields'] == array()) {
+      // Good
+    }
+    elseif (in_array('', $options['custom_fields'])) {
+      $messages['custom_fields'] = t('One of the custom fields is empty.');
+    }
+    // Name need to be unique..
+    elseif (count(array_unique($options['custom_fields'])) != count($options['custom_fields'])) {
+      $messages['custom_fields'] = t("Each custom fields sould have a unique machine name.");
+    }
+    elseif (array_map('strtolower', $options['custom_fields']) != $options['custom_fields']) {
+      $messages['custom_fields'] = t("Custom fields have to be in lower case.");
+    }
+    elseif (str_replace(' ', '', implode(',', $options['custom_fields'])) != implode(',', $options['custom_fields'])) {
+      $messages['custom_fields'] = t("Custom fields can't have spaces.");
+    }
+    else {
+      foreach ($options['custom_fields'] as $key => $value) {
+        $field_name = (strpos($value, '|') === FALSE) ?
+            $value :
+            drupal_substr($value, 0, strpos($value, '|'));
+        $field_type = (strpos($value, '|') === FALSE) ?
+            'text' :
+            drupal_substrsubstr($value, strpos($value, '|') + 1);
+        if (in_array($field_name, array(
+            'vid',
+            'name',
+            'description',
+            'format',
+            'weight',
+            'vocabulary_machine_name',
+          ))) {
+          $messages['custom_fields'] = t("Custom fields can't be one of default vocabulary fields.");
+        }
+        elseif (!in_array($field_type, array(
+            'text',
+            'file',
+            'taxonomy_term_reference',
+          ))) {
+          $messages['custom_fields'] = t("Currently allowed custom fields types are 'text' (default), 'taxonomy_term_reference' and 'file'.");
+        }
+      }
     }
   }
 
@@ -932,6 +1063,7 @@ function taxonomy_csv_form_import_submit($form, &$form_state) {
   // Remember last preferences and prepare only options to be sent to Api.
   foreach (array(
       'import_format',
+      'import_custom_format',
       'keep_order',
       'source_choice',
       'import_delimiter',
@@ -944,6 +1076,7 @@ function taxonomy_csv_form_import_submit($form, &$form_state) {
       'locale_custom',
       'vocabulary_target',
       'vocabulary_id',
+      'import_custom_fields',
       'check_hierarchy',
       'set_hierarchy',
       'existing_items',
@@ -964,15 +1097,24 @@ function taxonomy_csv_form_import_submit($form, &$form_state) {
     $options['text'] = &$form_state['values']['text'];
     unset($form_state['values']['text']);
   }
+  unset($options['import_custom_format']);
   unset($options['import_delimiter']);
   unset($options['import_delimiter_soft_tab_width']);
   unset($options['import_delimiter_custom']);
   unset($options['import_enclosure']);
   unset($options['import_enclosure_custom']);
+  unset($options['import_custom_fields']);
+  if ($options['import_format'] == TAXONOMY_CSV_FORMAT_CUSTOM_FIELDS) {
+    $options['custom_format'] = $form_state['values']['custom_format'];
+    $options['custom_fields'] = $form_state['values']['custom_fields'];
+  }
+  else {
+    unset($options['custom_format']);
+    unset($options['custom_fields']);
+  }
   $options['delimiter'] = $form_state['values']['delimiter'];
   $options['enclosure'] = $form_state['values']['enclosure'];
   $options['file'] = $form_state['values']['file'];
-  $options['path'] = $form_state['values']['path'];
   $options['url']  = $form_state['values']['url'];
   $options['check_options'] = FALSE; // Already done.
   $options['result_display'] = TRUE;
