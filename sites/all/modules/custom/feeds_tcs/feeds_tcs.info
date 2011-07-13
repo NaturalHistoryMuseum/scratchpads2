@@ -1,0 +1,5 @@
+name = Feeds TCS
+description = Creates a new Fetcher to allow import from a TCS stream.
+package = Feeds
+core = 7.x
+dependencies[] = feeds

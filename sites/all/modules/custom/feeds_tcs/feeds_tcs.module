@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * 
+ */
+/**
+ * Implementation of hook_feeds_plugins().
+ */
+function feeds_tcs_feeds_plugins(){
+  return array(
+    'FeedsTCSFetcher' => array(
+      'name' => 'File upload',
+      'description' => 'Upload content from a local file.',
+      'handler' => array(
+        'parent' => 'FeedsFetcher',
+        'class' => 'FeedsTCSFetcher',
+        'file' => 'FeedsTCSFetcher.inc',
+      )
+    )
+  );
+}
