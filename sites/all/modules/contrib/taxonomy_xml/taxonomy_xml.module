@@ -615,7 +615,7 @@ function taxonomy_xml_cached_get_contents($url, $options = array(), $flush = FAL
   }
   $old_url = $url;
 
-  $cachedir = file_directory_path() . '/url_cache';
+  $cachedir = variable_get('file_public_path', conf_path() . '/files') . '/url_cache';
   $save_as = $cachedir . '/' . md5($url);
 
   if (file_exists($save_as)) {
@@ -674,7 +674,7 @@ function taxonomy_xml_cached_get_contents($url, $options = array(), $flush = FAL
  * Utility menu callback.
  */
 function taxonomy_xml_flush_cache_file($hash) {
-  $cachedir = file_directory_path() . '/url_cache';
+  $cachedir = variable_get('file_public_path', conf_path() . '/files') . '/url_cache';
   unlink($cachedir . '/' . $hash);
   return "Deleted $hash";
 }
@@ -684,7 +684,7 @@ function taxonomy_xml_flush_cache_file($hash) {
  * form.
  */
 function taxonomy_xml_flush_file_cache() {
-  $cachedir = file_directory_path() . '/url_cache';
+  $cachedir = variable_get('file_public_path', conf_path() . '/files') . '/url_cache';
   $file_list = file_scan_directory($cachedir, '/.*/');
   foreach ($file_list as $filepath => $file_info) {
     unlink($filepath);
