@@ -156,7 +156,7 @@ function formflow_ui_overview_page(){
     foreach($flows as $name => $flow){
       $row = array();
       if(isset($flow['plugin'])){
-        if($flow['fid']){
+        if(isset($flow['fid']) && $flow['fid']){
           $status = t('Overridden in database');
           $links = array(
             'edit' => t("Settings"),
