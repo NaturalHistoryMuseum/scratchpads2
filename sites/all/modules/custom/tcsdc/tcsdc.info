@@ -2,4 +2,5 @@ name = Taxon Concept Schema - Downloader and Converter
 description = "Allows a user to specify the URL to a TCS file, or to search a number of repositories, downloading the linked files and converting them to a single CSV file for import via the Feeds module."
 package = "Scratchpads"
 dependencies[] = feeds
+dependencies[] = formflow
 core = 7.x

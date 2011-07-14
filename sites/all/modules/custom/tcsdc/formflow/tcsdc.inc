@@ -4,22 +4,21 @@
  */
 $plugin = array(
   'flow' => array(
-    'title' => t('Example flow'),
-		'name' => 'example_flow',
-    'description' => t('An example flow using ctools plugin.'),
-    'path' => 'formflow/example',
+    'title' => t('Taxon Concept Schema Import'),
+		'name' => 'tcsdc_import',
+    'description' => t('Download and convert TCS from an external resource.'),
+    'path' => 'admin/structure/taxonomy/import',
     'show_trail' => 1,
     'show_back' => 1,
     'show_cancel' => 1,
     'steps' => array(
       array(
-        'form_id' => 'ctools_ajax_sample_start',
-        'title' => 'Ctools example'
+        'form_id' => 'tcsdc_primary_form',
+        'title' => 'Select TCS'
       ),
       array(
         'form_id' => 'page_node_form',
-        'title' => 'Page',
-        'path' => 'node/add/page'
+        'title' => 'Page'
       )
     )
   )
