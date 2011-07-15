@@ -123,17 +123,15 @@ function eol_validate($form, &$form_state){
  */
 function eol_submit($form, $form_state){
   // Added for D7 to prevent errors on submission/testing.
-  return;
-  $parts = explode("|", $form_state['clicked_button']['#post']['eol-import-id']);
+  $parts = explode("|", $form_state['values']['eol-import-id']);
   $batch = array(
     'operations' => array(
       array(
-        'tcs_import_batch_download_data',
+        'tcsdc_batch_downloader',
         array(
           array(
             EOL_REQUEST_URL . $parts[0]
           ),
-          arg(4),
           $parts[1]
         )
       ),

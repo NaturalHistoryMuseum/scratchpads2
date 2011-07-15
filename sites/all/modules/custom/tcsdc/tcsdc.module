@@ -37,6 +37,57 @@ function tcsdc_primary_form($form, &$form_state){
  * Batch downloader.  This does the recursive downloading of the XML.  The XML
  * is converted and saved in the database, eventually to be output as CSV.
  */
-function tcsdc_batch_downloader(){
-  
+function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
+  if(!isset($context['sandbox']['progress'])){
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = $total;
+    $context['sandbox']['originalurl'] = $urls[0];
+    $context['sandbox']['urls'] = $urls;
+    // Set a static array for the URLs, this means that we can alter it when
+    // parsing the XML.
+    drupal_static('tcsdc_urls', $urls);
+  }
+  $batch = &batch_get();
+  $url = array_shift($context['sandbox']['urls']);
+  drupal_static('tcsdc_urls', $context['sandbox']['urls'], TRUE);
+  tcsdc_batch_downloader_helper($url);
+  $context['sandbox']['urls'] = &drupal_static('tcsdc_urls');
+  // Get the number of names we have downloaded.
+  $num_names_saved = db_query("SELECT COUNT(*) FROM {tcsdc_data} WHERE bid = ?", array(
+    $batch['id']
+  ))->fetchField();
+  $context['sandbox']['progress'] = $num_names_saved / $context['sandbox']['max'];
+  // Set the message
+  $context['message'] = t('Downloaded %numnames names of approximately %totalnames', array(
+    '%numnames' => $num_names_saved,
+    '%totalnames' => $context['sandbox']['max']
+  ));
+  // Inform the batch engine that we are not finished,
+  // and provide an estimation of the completion level we reached.
+  if(count($context['sandbox']['urls'])){
+    if($context['sandbox']['progress'] < 1){
+      $context['finished'] = $context['sandbox']['progress'];
+    }else{
+      $context['finished'] = 0.95;
+    }
+  }else{
+    $context['finished'] = 1;
+  }
+  // Remove following line after debugging.
+  $context['finished'] = 1;
+}
+
+/**
+ * Helper for the above function
+ */
+function tcsdc_batch_downloader_helper($url){
+  $xml = new SimpleXMLElement($url, 0, TRUE);
+  foreach($xml->TaxonNames->TaxonName as $name){
+    dpm((string)$name->Simple);
+  }
+  /*// Inorder to make queries a little simpler, we get the default namespace,
+  // and give it an alias.
+  $namespaces = $xml->getDocNamespaces();
+  $xml->registerXPathNamespace('__empty_ns', $namespaces['']);
+  $result = $xml->xpath('//__empty_ns:TaxonNames/__empty_ns:TaxonName/__empty_ns:Simple');*/
 }
