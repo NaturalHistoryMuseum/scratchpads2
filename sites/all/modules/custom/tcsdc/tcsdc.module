@@ -25,10 +25,18 @@ function tcsdc_ctools_plugin_directory($module, $plugin){
 function tcsdc_primary_form($form, &$form_state){
   // First, we need to get the TCS form definitions from the respective modules.
   // We do this by getting the tcsdc defintions and looping through each.
-  $form = module_invoke_all('tcsdc_form');
+  $form = module_invoke_all('tcsdc_form', $form, $form_state);
   return array_merge($form, array(
     '#submit' => array(
       'tcsdc_primary_form_submit'
     )
   ));
+}
+
+/**
+ * Batch downloader.  This does the recursive downloading of the XML.  The XML
+ * is converted and saved in the database, eventually to be output as CSV.
+ */
+function tcsdc_batch_downloader(){
+  
 }
