@@ -59,6 +59,18 @@ function publication_entity_info(){
 }
 
 /**
+ * Implements hook_forms().
+ * All node forms share the same form handler.
+ */
+function publication_forms() {
+  $forms = array();
+	$forms['publication_settings_form']['callback'] = 'publication_form';
+	$forms['publication_edit_form']['callback'] = 'publication_form';
+	$forms['publication_add_form']['callback'] = 'publication_form';
+  return $forms;
+}
+
+/**
  * Implements hook_entity_info_alter().
  *
  * We are adding the info about the publication types via a hook to avoid a recursion
