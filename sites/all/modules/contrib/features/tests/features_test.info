@@ -5,21 +5,21 @@ dependencies[] = "strongarm"
 dependencies[] = "views"
 description = "Test module for Features testing."
 features[ctools][] = "strongarm:strongarm:1"
+features[ctools][] = "views:views_default:3.0"
 features[field][] = "node-features_test-field_features_test"
 features[filter][] = "features_test"
 features[image][] = "features_test"
 features[node][] = "features_test"
 features[user_permission][] = "create features_test content"
-features[views][] = "features_test"
-features[views_api][] = "api:3.0-alpha1"
+features[views_view][] = "features_test"
 hidden = TRUE
 name = "Features Tests"
 package = "Testing"
 php = "5.2.0"
 
-; Information added by drupal.org packaging script on 2011-02-18
-version = "7.x-1.0-beta1"
+; Information added by drupal.org packaging script on 2011-06-20
+version = "7.x-1.0-beta3"
 core = "7.x"
 project = "features"
-datestamp = "1298073121"
+datestamp = "1308598915"
 

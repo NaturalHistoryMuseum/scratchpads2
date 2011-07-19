@@ -1,5 +1,4 @@
 <?php
-// $Id: features.menu.inc,v 1.1.2.6.2.4 2010/09/17 22:56:45 yhahn Exp $
 
 /**
  * Implementation of hook_features_api().
