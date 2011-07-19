@@ -1,0 +1,341 @@
+# $Id: ja.po,v 1.1.2.1 2008/10/25 12:22:15 imagine Exp $
+# -----------------------------------------------------------------------------
+# Japanese translation of Drupal (modules-taxonomy_manager)
+#
+# Copyright (c) 2008       Drupal Japan  ( http://drupal.jp/ )  /
+#                          Takafumi      ( jp.drupal@imagine **reverse order**)
+#
+# Generated from file:
+#  taxonomy_manager.admin.inc: n/a
+#  taxonomy_manager.module,v 1.5.2.17.2.10 2008/09/16 12:06:29 mh86
+#  taxonomy_manager.info: n/a
+#
+# -----------------------------------------------------------------------------
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2008-09-17 23:11+0900\n"
+"Last-Translator: Takafumi <jp.drupal@imagine **reverse order**>\n"
+"Language-Team: Drupal Japan\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: taxonomy_manager.admin.inc:15
+msgid "No Vocabularies available"
+msgstr "利用できるボキャブラリはありません"
+
+#: taxonomy_manager.admin.inc:17
+msgid "Vocabularies:"
+msgstr "ボキャブラリ："
+
+#: taxonomy_manager.admin.inc:50
+msgid "Taxonomy Manager - %voc_name"
+msgstr "タクソノミーマネージャ － %voc_name"
+
+#: taxonomy_manager.admin.inc:53
+msgid "No vocabulary with this ID available!. "
+msgstr "指定されたIDのボキャブラリは利用できません！"
+
+#: taxonomy_manager.admin.inc:54
+msgid "Check this !link_list for available vocabularies or !link_create a new one"
+msgstr "利用できるボキャブラリを!link_listで確認するか、新しいものを!link_createしてください"
+
+#: taxonomy_manager.admin.inc:64
+msgid "No terms available"
+msgstr "利用できるタームはありません"
+
+#: taxonomy_manager.admin.inc:90
+msgid ""
+"You can search directly for exisiting terms. \n"
+"      If your input doesn't match an existing term, it will be used for filtering root level terms (useful for non-hierarchical vocabularies)."
+msgstr "既存のタームを直接検索することができます。 入力されたものが既存のタームと一致しない場合、最上位レベルタームのフィルタリング（非階層的なボキャブラリに有用）に使用されます。"
+
+#: taxonomy_manager.admin.inc:96;114;747
+msgid "Search"
+msgstr "検索"
+
+#: taxonomy_manager.admin.inc:105
+msgid "Search String"
+msgstr "文字列の検索"
+
+#: taxonomy_manager.admin.inc:120
+msgid "Toolbar"
+msgstr "ツールバー"
+
+#: taxonomy_manager.admin.inc:127
+msgid "Up"
+msgstr "上へ"
+
+#: taxonomy_manager.admin.inc:135
+msgid "Down"
+msgstr "下へ"
+
+#: taxonomy_manager.admin.inc:142;285;855
+msgid "Delete"
+msgstr "削除"
+
+#: taxonomy_manager.admin.inc:156;346
+msgid "Add"
+msgstr "追加"
+
+#: taxonomy_manager.admin.inc:162;469
+msgid "Move"
+msgstr "移動"
+
+#: taxonomy_manager.admin.inc:170;408
+msgid "Merge"
+msgstr "マージ"
+
+#: taxonomy_manager.admin.inc:177;504
+msgid "CSV Export"
+msgstr "CSVエクスポート"
+
+#: taxonomy_manager.admin.inc:215;582
+msgid "Save changes"
+msgstr "変更を保存"
+
+#: taxonomy_manager.admin.inc:265
+msgid "Confirmation"
+msgstr "確認"
+
+#: taxonomy_manager.admin.inc:268
+msgid "Are you sure you want to delete all selected terms? "
+msgstr "本当に、選択された全タームを削除してもよろしいですか？"
+
+#: taxonomy_manager.admin.inc:269
+msgid "Remember all term specific data will be lost. This action cannot be undone."
+msgstr "タームに固有の全データは失われます。 この操作は元に戻すことができませんので、十分に注意して実行してください。"
+
+#: taxonomy_manager.admin.inc:274
+msgid "Delete children of selected terms, if there are any"
+msgstr "存在する場合、選択されたタームの下位タームも削除する"
+
+#: taxonomy_manager.admin.inc:279;401;462
+msgid "Options"
+msgstr "オプション"
+
+#: taxonomy_manager.admin.inc:294;352;416;476;545;856
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: taxonomy_manager.admin.inc:315
+msgid "If you have selected one or more terms in the tree view, the new terms are automatically children of those."
+msgstr "ツリービューで1つ以上のタームを選択した場合、新しいタームは自動的にそれらの下位となります。"
+
+#: taxonomy_manager.admin.inc:321
+msgid "Add new terms"
+msgstr "新規タームの追加"
+
+#: taxonomy_manager.admin.inc:333
+msgid "Mass term import (with textarea)"
+msgstr "タームの一括インポート（テキストエリア使用）"
+
+#: taxonomy_manager.admin.inc:339
+msgid "Terms"
+msgstr "ターム"
+
+#: taxonomy_manager.admin.inc:340
+msgid "One term per line"
+msgstr "タームを行単位で入力します。"
+
+#: taxonomy_manager.admin.inc:373
+msgid ""
+"The selected terms get merged into one term. \n"
+"    This resulting merged term can either be an exisiting term or a completely new term. \n"
+"    The selected terms will automatically get synomyms of the merged term and will be deleted afterwards."
+msgstr "選択されたタームは1つのタームに併合されます。 「併合するターム」は、既存のタームでも、全く新しいタームでも構いません。 選択されたタームは、自動的に併合されたタームのシノニムとされた後、削除されます。"
+
+#: taxonomy_manager.admin.inc:381
+msgid "Merging of terms"
+msgstr "タームのマージ"
+
+#: taxonomy_manager.admin.inc:387
+msgid "Resulting merged term"
+msgstr "併合するターム"
+
+#: taxonomy_manager.admin.inc:394
+msgid "Collect all parents of selected terms an add it to the merged term"
+msgstr "選択されたタームのすべての上位タームを集め、併合するタームへ追加"
+
+#: taxonomy_manager.admin.inc:395
+msgid "Collect all children of selected terms an add it to the merged term"
+msgstr "選択されたタームのすべての下位タームを集め、併合するタームへ追加"
+
+#: taxonomy_manager.admin.inc:396
+msgid "Collect all relations of selected terms an add it to the merged term"
+msgstr "選択されたタームのすべての関連タームを集め、併合するタームへ追加"
+
+#: taxonomy_manager.admin.inc:435
+msgid ""
+"You can change the parent of one or more selected terms. \n"
+"      If you leave the autocomplete field empty, the term will be a root term."
+msgstr "1つ以上の選択されたタームの上位を変更することができます。 自動補完フィールドが空欄の場合、タームは最上位となります。"
+
+#: taxonomy_manager.admin.inc:442
+msgid "Moving of terms"
+msgstr "タームの移動"
+
+#: taxonomy_manager.admin.inc:447
+msgid "Separate parent terms with a comma. "
+msgstr "上位タームをコンマで区切って入力します。"
+
+#: taxonomy_manager.admin.inc:452
+msgid "Parent term(s)"
+msgstr "上位ターム"
+
+#: taxonomy_manager.admin.inc:459
+msgid "Keep old parents and add new ones (multi-parent). Otherwise old parents get replaced."
+msgstr "古い上位を保持したまま新しいものを追加（多重上位）したい場合は、ここにチェックを入れます。 チェックを入れない場合、古い上位は置き換えられます。"
+
+#: taxonomy_manager.admin.inc:511
+msgid "Delimiter for CSV File"
+msgstr "CSVファイルの区切り文字"
+
+#: taxonomy_manager.admin.inc:516
+msgid "Whole Vocabulary"
+msgstr "ボキャブラリ全体"
+
+#: taxonomy_manager.admin.inc:517
+msgid "Child terms of a selected term"
+msgstr "選択されたタームの下位ターム"
+
+#: taxonomy_manager.admin.inc:518
+msgid "Root level terms only"
+msgstr "最上位レベルのタームのみ"
+
+#: taxonomy_manager.admin.inc:522
+msgid "Terms to export"
+msgstr "エクスポートするターム"
+
+#: taxonomy_manager.admin.inc:531
+msgid "Exported CSV"
+msgstr "エクスポートされたCSV"
+
+#: taxonomy_manager.admin.inc:532
+msgid "The generated code will appear here (per AJAX). You can copy and paste the code into a .csv file. The csv has following columns: voc id | term id | term name | description | parent id 1 | ... | parent id n"
+msgstr "エクスポートをするたびに、生成されたコードがここに現れます。 それらをCSVファイルにコピー＆ペーストすることができます。 CSVは次のカラムを持ちます： ボキャブラリID | タームID | タームの名前 | タームの説明 | 上位タームのID 1 | ... | 上位タームのID n "
+
+#: taxonomy_manager.admin.inc:539
+msgid "Export now"
+msgstr "エクスポート開始"
+
+#: taxonomy_manager.admin.inc:636
+msgid "Name"
+msgstr "名前"
+
+#: taxonomy_manager.admin.inc:646
+msgid "Description"
+msgstr "説明"
+
+#: taxonomy_manager.admin.inc:652
+msgid "Synonyms"
+msgstr "シノニム（同義語）"
+
+#: taxonomy_manager.admin.inc:656
+msgid "Relations"
+msgstr "関連"
+
+#: taxonomy_manager.admin.inc:662
+msgid "Parents"
+msgstr "上位"
+
+#: taxonomy_manager.admin.inc:672
+msgid "Weight"
+msgstr "ウェイト"
+
+#: taxonomy_manager.admin.inc:675
+msgid "Go to the term page site"
+msgstr "タームページへ行く<br />"
+
+#: taxonomy_manager.admin.inc:748
+msgid "Search field is empty"
+msgstr "検索フィールドが空です"
+
+#: taxonomy_manager.admin.inc:812
+msgid "No terms for deleting selected"
+msgstr "削除するタームが選択されていません"
+
+#: taxonomy_manager.admin.inc:849
+msgid "Deleting a term will delete all its children if there are any. "
+msgstr "タームを削除すると、下位に含まれるすべてのタームも削除されます。"
+
+#: taxonomy_manager.admin.inc:850
+msgid "This action cannot be undone."
+msgstr "この操作は元に戻すことができませんので、十分に注意して実行してください。"
+
+#: taxonomy_manager.admin.inc:852
+msgid "Are you sure you want to delete the following terms: "
+msgstr "本当に、以下のタームを削除してもよろしいですか？"
+
+#: taxonomy_manager.admin.inc:879
+msgid "Please selected terms you want to move in the hierarchy"
+msgstr "階層に移動したいタームを選択してください"
+
+#: taxonomy_manager.admin.inc:921
+msgid "Please enter a name into %title"
+msgstr "%title へ名前を入力してください"
+
+#: taxonomy_manager.admin.inc:921;925
+msgid "Main term"
+msgstr "メインターム"
+
+#: taxonomy_manager.admin.inc:925
+msgid "Please only enter single names into %title"
+msgstr "%title へは1つの名前のみを入力してください"
+
+#: taxonomy_manager.admin.inc:930
+msgid "Please selected terms you want to merge"
+msgstr "マージしたいタームを選択してください"
+
+#: taxonomy_manager.admin.inc:934
+msgid "Please select less than 50 terms to merge. Merging to many terms in one step can cause timeouts and inconsistent database states"
+msgstr "マージするタームは 50 以下にしてください。 一度に多数のタームをマージすると、タイムアウトや、データベースの不整合を引き起こす場合があります。"
+
+#: taxonomy_manager.admin.inc:963
+msgid "Disable mouse-over effect for terms (weights and direct link)"
+msgstr "タームのマウスオーバーエフェクト（ウェイトとダイレクトリンク）を無効化"
+
+#: taxonomy_manager.admin.inc:965
+msgid "Disabeling this feature speeds up the Taxonomy Manager"
+msgstr "この機能を無効化すると、タクソノミーマネージャの速度が向上します。"
+
+#: taxonomy_manager.admin.inc:969
+msgid "Pager count"
+msgstr "ページャーカウント"
+
+#: taxonomy_manager.admin.inc:972
+msgid "Select how many terms should be listed on one page. Huge page counts can slow down the Taxonomy Manager"
+msgstr "ページ単位のターム数を指定します。 非常に大きな数値を指定すると、タクソノミーマネージャの速度が低下します。"
+
+#: taxonomy_manager.module:141
+msgid ""
+"The Taxonomy Manager provides an additional interface for managing vocabularies of the taxonomy module. It's especially very useful for long sets of terms. \n"
+"                   The vocabulary is represented in a dynamic tree view. \n"
+"                   It supports operation like mass adding and deleting of terms, fast weight editing, moving of terms in hierarchies, merging of terms and fast term data editing.\n"
+"                   For more information on how to use please read the readme file included in the taxonomy_manager directory."
+msgstr "Taxonomy Manager（タクソノミーマネージャ）は、タクソノミーモジュールのボキャブラリを管理するための付加的なインターフェイスを提供します。 これは特にターム数が多い場合に大変役立ちます。 ボキャブラリは動的なツリービューに表示され、タームの一括追加や削除、素早いウェイトの編集、階層でのタームの移動、タームの統合、素早いタームデータの編集などの操作をサポートします。 使用法の詳細は、taxonomy_manager ディレクトリにある readme ファイルを読んでください。"
+
+#: taxonomy_manager.module:733
+msgid "An illegal choice has been detected. Please contact the site administrator."
+msgstr "不正な選択肢が検出されました。 お手数ですが、サイト管理者までご連絡ください。"
+
+#: taxonomy_manager.module:21;70;79 taxonomy_manager.info:0
+msgid "Taxonomy Manager"
+msgstr "タクソノミーマネージャ"
+
+#: taxonomy_manager.module:22
+msgid "Administer vocabularies with the Taxonomy Manager"
+msgstr "タクソノミーマネージャでボキャブラリを管理します。"
+
+#: taxonomy_manager.module:80
+msgid "Advanced settings for the Taxonomy Manager"
+msgstr "タクソノミーマネージャの高度な設定を行います。"
+
+#: taxonomy_manager.module:0
+msgid "taxonomy_manager"
+msgstr "taxonomy_manager"
+
+#: taxonomy_manager.info:0
+msgid "Tool for administrating taxonomy terms."
+msgstr "タクソノミータームを管理するためのツールです。"

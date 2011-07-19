@@ -1,0 +1,513 @@
+
+/**
+ * Taxonomy Manager Tree formating
+ */
+ 
+#taxonomy-manager-double-tree-form,
+#taxonomy-manager-form {
+  line-height: 120%;
+}
+
+#taxonomy-manager-double-tree-form fieldset,
+#taxonomy-manager-form fieldset {
+  margin: 0.5em 0;
+}
+
+#taxonomy-manager-double-tree-form .left,
+#taxonomy-manager-form .left {
+  margin-left: 0; 
+}
+
+#taxonomy2-manager-tree-outer-div,
+#taxonomy-manager-tree-outer-div {
+  height: 550px;	
+  overflow: auto;
+  width: 46%;
+}
+
+#taxonomy2-manager-tree-outer-div fieldset,
+#taxonomy-manager-tree-outer-div fieldset {
+  margin: 0;
+  padding: 0 5px;
+} 
+
+.taxonomy-manager-tree-size {
+  padding: 0px;
+  margin: 0px;
+  /*height: 7px;*/
+  text-align: right;
+  display: inline;
+}
+
+.taxonomy-manager-tree-size img {
+  cursor: pointer;
+}
+
+#taxonomy2-manager-tree-wrapper,
+#taxonomy-manager-tree-wrapper {
+  margin-top: 0em;
+}
+
+/* address .treeview additional with #taxonomy-manager to make it compatible with the admin module */
+#taxonomy-manager .treeview, 
+.treeview, 
+.treeview ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+#taxonomy-manager .treeview .form-item,
+.treeview .form-item {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+#taxonomy-manager .treeview li,
+.treeview li { 
+  margin: 0;
+  padding: 0 0 0 15px;
+}
+	
+#taxonomy-manager .hitArea,
+.hitArea {
+  float: left;
+  height: 15px;
+  width: 15px;
+  margin-left: -15px;
+  cursor: pointer;
+  _background: #fff;
+  _filter: alpha(opacity=0);
+  _display: inline;
+}
+
+#taxonomy-manager .treeview li,
+.treeview li { 
+  background: url(../images/tv-item.gif) 0 0 no-repeat; 
+}
+#taxonomy-manager .treeview .collapsable,
+.treeview .collapsable { 
+  background-image: url(../images/tv-collapsable.gif); 
+}
+#taxonomy-manager .treeview .expandable,
+.treeview .expandable { 
+  background-image: url(../images/tv-expandable.gif); 
+}
+#taxonomy-manager .treeview .last,
+.treeview .last { 
+  background-image: url(../images/tv-item-last.gif); 
+}
+#taxonomy-manager .treeview .lastCollapsable,
+.treeview .lastCollapsable { 
+  background-image: url(../images/tv-collapsable-last.gif); 
+}
+#taxonomy-manager .treeview .lastExpandable,
+.treeview .lastExpandable { 
+  background-image: url(../images/tv-expandable-last.gif); 
+}
+
+.term-line {
+  display: inline;
+}
+
+.term-item {
+  display: inline;
+  padding-right: 5px;
+}
+
+.term-has-more-siblings {
+  height: 38px;
+  cursor: pointer;
+  background-image: url(../images/2downarrow.png);
+  background-repeat: no-repeat;
+}
+
+.term-next-count {
+  display: inline;
+  color: #4ca108;
+  line-height: 38px;
+  padding-left: 38px;
+}
+
+
+.term-operations {
+  display: inline;
+  padding-left: 5px;
+}
+
+.term-operations span.select-all-children {
+  text-decoration: none;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-image: url(../images/select-all-children.png);
+}
+.term-operations span.unselect-all-children {
+  text-decoration: none;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-image: url(../images/unselect-all-children.png);
+}
+
+.term-operations img.term-up,
+.term-operations img.term-down,
+.term-operations span.select-all-children,
+.term-operations span.unselect-all-children,
+.term-operations a img {
+  cursor: pointer;
+  vertical-align: bottom;
+}
+
+.term-operations a:link,
+.term-operations a:visited,
+.term-operations a:hover,
+.term-operations a:active {
+  text-decoration: none;
+}
+
+.highlightActiveTerm{
+  background-color:#dddddd;
+}
+.highlightActiveTerm a{
+  font-weight: bold;
+}
+
+#edit-taxonomy2-manager-top-language-wrapper,
+#edit-taxonomy-manager-top-language-wrapper {
+  padding: 0;
+  padding-right: 0.5em;
+  margin: 0; 
+  text-align: right;
+  display: inline;
+}
+#edit-taxonomy2-manager-top-language-wrapper label,
+#edit-taxonomy-manager-top-language-wrapper label {
+  display: inline;
+}
+
+.taxonomy-manager-tree-top {
+  text-align: right;
+}
+
+#taxonomy-manager-double-tree-operations {
+  float: left;
+  margin-left: 8px;
+  margin-right: 8px;
+  margin-top: 120px;
+  display: inline;
+}
+
+.taxonomy-manager-double-tree-operations-buttons input {
+  padding: 0;
+  margin: 0; 
+}
+
+#double-tree-msg {
+  margin-bottom: 8px;
+}
+
+.taxonomy-manager-term-load-helper {
+  display: none;
+}
+
+/**
+ * Taxonomy Manger Toolbar
+ */
+#taxonomy-manager-toolbar-throbber {
+  float: right;
+  margin: 0px;
+  padding: 0px;
+  height: 25px;
+}
+
+#taxonomy-manager-toolbar-buttons {
+  float:left;
+}
+
+#taxonomy-manager-double-tree-form input.taxonomy-manager-buttons,
+#taxonomy-manager-form input.taxonomy-manager-buttons {
+  cursor: pointer;
+  color: #5a5a5a;
+  border-radius: 15px;
+  -moz-border-radius: 20px;
+  -webkit-border-radius: 15px;
+  text-align: center;
+  font-weight: normal;
+  font-size: 1em;
+  font-family: "Lucida Grande", Verdana, sans-serif;
+  border: 1px solid #e4e4e4;
+  border-bottom: 1px solid #b4b4b4;
+  border-left-color: #D2D2D2;
+  border-right-color: #D2D2D2;
+  padding-left: 30px;
+  padding-bottom: 3px;
+  padding-right: 3px;
+  padding-top: 0px;
+  height: 30px;
+  margin-bottom:0px;
+  
+  background-repeat: no-repeat;
+  background-position:6px;
+  background-color: #F0EFEF;
+  background-attachment: scroll;
+
+}
+
+#taxonomy-manager-double-tree-form input.add,
+#taxonomy-manager-form input.add {
+  background-image: url(../images/list-add.png);
+}
+
+input#edit-weight-up {
+  background-image: url(../images/go-up.png);
+}
+
+input#edit-weight-down {
+  background-image: url(../images/go-down.png);
+}
+
+#taxonomy-manager-double-tree-form input.delete,
+#taxonomy-manager-form input.delete {
+  background-image: url(../images/list-remove.png);
+}
+
+#taxonomy-manager-double-tree-form input.move,
+#taxonomy-manager-form input.move {
+  background-image: url(../images/move.png);
+}
+
+#taxonomy-manager-double-tree-form input.merge,
+#taxonomy-manager-form input.merge {
+  background-image: url(../images/merge.png);
+}
+
+#taxonomy-manager-double-tree-form input.cancel,
+#taxonomy-manager-form input.cancel {
+  background-image: url(../images/dialog-cancel.png);
+}
+
+#taxonomy-manager-double-tree-form input.search,
+#taxonomy-manager-form input.search {
+  background-image: url(../images/edit-find.png);
+}
+
+#taxonomy-manager-double-tree-form input.export,
+#taxonomy-manager-form input.export {
+  background-image: url(../images/csv.png);
+}
+
+#taxonomy-manager-double-tree-form input.save,
+#taxonomy-manager-form input.save {
+  background-image: url(../images/document-save.png);
+  margin-bottom: 5px;
+}
+
+#taxonomy-manager-double-tree-form input.double-tree,
+#taxonomy-manager-form input.double-tree {
+  background-position:8px;
+  padding-left: 32px;
+  background-image: url(../images/double-tree.png);
+}
+
+#taxonomy-manager-double-tree-form input.double-tree-disable,
+#taxonomy-manager-form input.double-tree-disable {
+  background-image: url(../images/double-tree-disable.png);
+}
+
+
+/** 
+ * fixing position of autocomplete in seven theme
+ */
+fieldset#edit-search,
+fieldset#edit-move {
+  position: static;
+}
+
+
+/**
+ * Taxonomy Manager Search
+ */
+#edit-search .fieldset-wrapper {
+  overflow: visible; /*fixes hidden autocomplete result in FF*/
+}
+
+#edit-search-field .form-item {
+  padding: 0;
+  margin: 0;
+}
+
+
+/**
+ * Term Data Form
+ */
+
+
+.term-data-overlay {
+  position: absolute;
+  left: 280px; 
+  top: 100px; 
+  width: 400px; 
+  z-index: 100;
+  background: #FFFFFF;
+}
+
+.term-data-overlay fieldset {
+  border-width: 2px;
+}
+
+.term-data-overlay legend span{
+  cursor: move;
+  background-image: url(../images/move-small.png);
+  background-repeat:no-repeat;
+  background-position: 8px 3px;
+  padding-left: 24px;
+  line-height: 150%;
+}
+
+#term-data-close {
+  padding-top: 8px;
+  margin: 0;
+  text-align: right; 
+  line-height: 100%;
+  
+}
+
+#term-data-close span {
+  text-decoration: none;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-image: url(../images/dialog-cancel-small.png);
+  cursor: pointer;
+}
+
+#term-data-close span:hover {
+  background-image: url(../images/dialog-cancel-small-hover.png);
+}
+
+td.term-data-autocomplete-add,
+td.taxonomy-term-data-operations {
+  text-align: center; 
+}
+
+/*.term-data-autocomplete-add span {
+  text-decoration: none;
+  width: 22px;
+  height: 22px;
+  display:block;
+  background-image: url(../images/list-add.png);
+}
+
+.term-data-autocomplete-add span:hover {
+  text-decoration: none;
+  background-image: url(../images/list-add-hover.png);
+}
+
+.taxonomy-term-data-operations span {
+  text-decoration: none;
+  width: 22px;
+  height: 22px;
+  display:block;
+  background-image: url(../images/list-remove.png);
+}
+
+.taxonomy-term-data-operations span:hover {
+  text-decoration: none;
+  background-image: url(../images/list-remove-hover.png);
+}*/
+
+#taxonomy-term-data #edit-term-data-name-wrapper {
+  margin-top: 0; 
+}
+
+#taxonomy-term-data .resizable-textarea {
+  width: 100%;
+}
+
+#taxonomy-term-data fieldset {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#taxonomy-manager .messages {
+  margin-top: 0px;
+  margin-bottom: 5px;
+}
+
+#taxonomy-term-data input.form-submit {
+  margin-bottom: 0px;
+}
+
+#taxonomy-term-data .filter-wrapper .fieldset-wrapper {
+  padding-bottom: 0px;
+}
+
+#taxonomy-term-data .filter-guidelines {
+  display:none; //hide descriptions, they use too much space
+}
+
+.taxonomy-term-data-operations {
+  cursor: pointer;
+}
+
+.term-data-autocomplete {
+  display: inline;
+}
+.term-data-autocomplete-add {
+  /*display: inline;*/
+  cursor: pointer;
+}
+.term-data-autocomplete-add img {
+  vertical-align: bottom;
+}
+
+#taxonomy-term-data .form-item-term-data-name input {
+  width: 100%;
+  padding-right: 0px;
+}
+
+#term-data-description {
+  height: 130px;
+}
+
+#taxonomy-term-data .form-item {
+  margin-bottom: 0.3em;
+  margin-top: 0.3em;
+}
+
+
+#taxonomy-term-data table .form-item {
+  margin-bottom: 0.2em; 
+}
+
+#taxonomy-term-data table {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+#taxonomy-term-data td, th {
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+#edit-term-data-save {
+  margin: 0.5em 0; 
+}
+
+.clear {
+  clear: both;
+}	
+
+/**
+ overwrites some css settings from the admin module, which break the layout of the taxonomy manager
+*/
+#taxonomy-manager div.form-item:after,
+#taxonomy-manager ul.links:after,
+#taxonomy-manager div.admin-panel .body:after,
+#taxonomy-manager .clear-block:after {
+  display: inline;
+}
