@@ -6,7 +6,7 @@
  * 
  ********************************************************************************************/
 /**
- * Implement hook_menu().
+ * Implementation of hook_menu().
  */
 function formflow_menu(){
   $items = array();
@@ -49,6 +49,7 @@ function formflow_permission(){
  * Hides all buttons - replacements will be added by ctools wizard
  */
 function formflow_form_alter(&$form, &$form_state, $form_id){
+  return;
   // Is this a formflow form?
   if(isset($form_state['formflow'])){
     // Array of submit functions to be called on completion
@@ -285,7 +286,7 @@ function formflow_save_steps($fid, $steps){
 
 /*********************************************************************************************
  * 
- * MENU CALLBACKS
+ * MENU CALLBACKS & HELPERS
  * 
  ********************************************************************************************/
 function formflow_page($flow, $current_step = 0){
@@ -376,6 +377,54 @@ function formflow_page($flow, $current_step = 0){
     $form = $cache[$current_step]['form'];
   }
   return $form;
+}
+
+/**
+ * Create a menu item for a formflow
+ *
+ * @param $flow
+ * The flow to use. Contains menu settings & path
+ */
+function formflow_menu_item($flow){
+  $item = array(
+    'access arguments' => array(
+      'access form flows'
+    ),
+    'page callback' => 'formflow_page',
+    'page arguments' => array(
+      $flow
+    )
+  );
+  if(isset($flow['menu']['title'])){
+    $item['title'] = $flow['menu']['title'];
+  }
+  if(isset($flow['menu']['weight'])){
+    $item['weight'] = $flow['menu']['weight'];
+  }
+  if(empty($flow['menu']['type'])){
+    $flow['menu']['type'] = 'none';
+  }
+  switch($flow['menu']['type']){
+    case 'none':
+    default:
+      $item['type'] = MENU_CALLBACK;
+      break;
+    case 'normal':
+      $item['type'] = MENU_NORMAL_ITEM;
+      // Insert item into the proper menu
+      $item['menu_name'] = $flow['menu']['name'];
+      break;
+    case 'tab':
+      $item['type'] = MENU_LOCAL_TASK;
+      break;
+    case 'action':
+      $item['type'] = MENU_LOCAL_ACTION;
+      break;
+    case 'default tab':
+      $item['type'] = MENU_DEFAULT_LOCAL_TASK;
+      break;
+  }
+  return $item;
 }
 
 /*********************************************************************************************
@@ -685,7 +734,7 @@ function formflow_field_group_remove_elements(&$form, $end_point){
     ))) || ($end_point && isset($form[$key]['#type']) && $form[$key]['#type'] == 'submit')){
       continue;
     }
-    if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'container' && count(element_children($form[$key]))){
+    if(isset($form[$key]['#type']) && ($form[$key]['#type'] == 'actions' || $form[$key]['#type'] == 'container') && count(element_children($form[$key]))){
       formflow_field_group_remove_elements($form[$key], $end_point);
     }elseif(!(isset($form[$key]['#group']) && $form[$key]['#group'] == 'formflow')){
       unset($form[$key]);
@@ -694,53 +743,7 @@ function formflow_field_group_remove_elements(&$form, $end_point){
   return $form;
 }
 
-/**
- * Create a menu item for a formflow
- *
- * @param $flow
- * The flow to use. Contains menu settings & path
- */
-function formflow_menu_item($flow){
-  $item = array(
-    'access arguments' => array(
-      'access form flows'
-    ),
-    'page callback' => 'formflow_page',
-    'page arguments' => array(
-      $flow
-    )
-  );
-  if(isset($flow['menu']['title'])){
-    $item['title'] = $flow['menu']['title'];
-  }
-  if(isset($flow['menu']['weight'])){
-    $item['weight'] = $flow['menu']['weight'];
-  }
-  if(empty($flow['menu']['type'])){
-    $flow['menu']['type'] = 'none';
-  }
-  switch($flow['menu']['type']){
-    case 'none':
-    default:
-      $item['type'] = MENU_CALLBACK;
-      break;
-    case 'normal':
-      $item['type'] = MENU_NORMAL_ITEM;
-      // Insert item into the proper menu
-      $item['menu_name'] = $flow['menu']['name'];
-      break;
-    case 'tab':
-      $item['type'] = MENU_LOCAL_TASK;
-      break;
-    case 'action':
-      $item['type'] = MENU_LOCAL_ACTION;
-      break;
-    case 'default tab':
-      $item['type'] = MENU_DEFAULT_LOCAL_TASK;
-      break;
-  }
-  return $item;
-}
+
 
 
 

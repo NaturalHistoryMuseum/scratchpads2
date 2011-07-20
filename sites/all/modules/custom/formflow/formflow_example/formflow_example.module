@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implementation of hook_default_flows().
+ */
 function formflow_example_default_flows(){
   return array(
     'example_flow' => array(
