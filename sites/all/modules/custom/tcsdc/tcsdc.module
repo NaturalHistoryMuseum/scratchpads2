@@ -74,16 +74,30 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
     $context['finished'] = 1;
   }
   // Remove following line after debugging.
-  $context['finished'] = 1;
+  //$context['finished'] = 1;
 }
 
 /**
  * Helper for the above function
  */
 function tcsdc_batch_downloader_helper($url){
+  dpm($url);
   $xml = new SimpleXMLElement($url, 0, TRUE);
   foreach($xml->TaxonNames->TaxonName as $name){
-    dpm((string)$name->Simple);
+    //dpm((string)$name->Simple);
+  }
+  foreach($xml->TaxonConcepts->TaxonConcept->TaxonRelationships->TaxonRelationship as $relationship){
+    switch((string)$relationship['type']){
+      case 'has synonym':
+        // Add the URL to the list to download.
+        $urls = drupal_static('tcsdc_urls');
+        $urls[] = $relationship->ToTaxonConcept['ref'];
+        drupal_static('tcsdc_urls', $urls);
+        break;
+      default:
+        // Do nothing.
+        break;
+    }
   }
   /*// Inorder to make queries a little simpler, we get the default namespace,
   // and give it an alias.
