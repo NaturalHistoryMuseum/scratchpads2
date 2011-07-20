@@ -9,6 +9,14 @@
  * hook_tcsdc_help()
  * hook_tcsdc_data_alter()
  */
+
+/**
+ * Implementation of hook_menu().
+ */
+function tcsdc_menu(){
+  
+}
+
 /**
  * Form definition, as used by the form flow.
  */
