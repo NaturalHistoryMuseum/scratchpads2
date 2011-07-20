@@ -30,13 +30,14 @@ function tcsdc_schema(){
         )
       ),
       'primary key' => array(
-        'id'
+        'id',
+        'bid'
       ),
       'indexes' => array(
         'tcsdc_data_parent_index' => array(
           'parent'
         ),
-        'tcsdc_data_vid_index' => array(
+        'tcsdc_data_bid_index' => array(
           'bid'
         ),
         'tcsdc_data_name_index' => array(
