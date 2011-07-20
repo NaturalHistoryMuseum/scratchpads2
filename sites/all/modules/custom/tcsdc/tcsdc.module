@@ -10,16 +10,6 @@
  * hook_tcsdc_data_alter()
  */
 /**
- * Implementation of hook_ctools_plugin_directory()
- */
-function tcsdc_ctools_plugin_directory($module, $plugin){
-  switch($module){
-    case 'formflow':
-      return 'formflow';
-  }
-}
-
-/**
  * Form definition, as used by the form flow.
  */
 function tcsdc_primary_form($form, &$form_state){
