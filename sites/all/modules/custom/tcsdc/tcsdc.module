@@ -63,6 +63,7 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
     $context['sandbox']['max'] = $total;
     $context['sandbox']['originalurl'] = $urls[0];
     $context['sandbox']['urls'] = $urls;
+    $context['sandbox']['start_time'] = time();
     // Set a static array for the URLs, this means that we can alter it when
     // parsing the XML.
     tcsdc_variable('tcsdc_urls', $urls);
@@ -70,17 +71,25 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
   $batch = &batch_get();
   $url = array_shift($context['sandbox']['urls']);
   tcsdc_variable('tcsdc_urls', $context['sandbox']['urls']);
+  tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
+  tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
   tcsdc_batch_downloader_helper($url);
   $context['sandbox']['urls'] = tcsdc_variable('tcsdc_urls');
+  $context['sandbox']['vernacular_urls'] = tcsdc_variable('tcsdc_vernaculars');
+  $context['sandbox']['synonym_urls'] = tcsdc_variable('tcsdc_synonyms');
   // Get the number of names we have downloaded.
   $num_names_saved = db_query("SELECT COUNT(*) FROM {tcsdc_data} WHERE bid = ?", array(
     $batch['id']
   ))->fetchField();
   $context['sandbox']['progress'] = $num_names_saved / $context['sandbox']['max'];
   // Set the message
+  $time_taken_so_far = time() - $context['sandbox']['start_time'];
+  $approx_time_remaining = $context['sandbox']['progress'] == 0 ? 'Too soon to guess' : format_interval($time_taken_so_far * ((1 - $context['sandbox']['progress']) / $context['sandbox']['progress']));
   $context['message'] = t('Downloaded %numnames names of approximately %totalnames', array(
     '%numnames' => $num_names_saved,
     '%totalnames' => $context['sandbox']['max']
+  )).'<br/>'.t('Approximate time remaining: %time_remaining', array(
+    '%time_remaining' => $approx_time_remaining 
   ));
   // Inform the batch engine that we are not finished,
   // and provide an estimation of the completion level we reached.
@@ -93,27 +102,46 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
   }else{
     $context['finished'] = 1;
   }
-   // Remove following line after debugging.
-//$context['finished'] = 1;
 }
 
 /**
  * Helper for the above function
  */
 function tcsdc_batch_downloader_helper($url){
-  dpm($url);
   $xml = new SimpleXMLElement($url, 0, TRUE);
+  $batch = &batch_get();
+  $data = array();
+  // Check if we're operating on a vernacular URL.  If so, we add the data to
+  // the parent URL (which WILL be set).
+  $vernacular_urls = tcsdc_variable('tcsdc_vernaculars');
+  if(isset($vernacular_urls[$url])){
+    $row = array_pop(db_select('tcsdc_data', 't')->fields('t')->condition('bid', $batch['id'])->condition('id', $vernacular_urls[$url])->execute()->fetchAll());
+    $data = unserialize($row->data);
+    foreach($xml->TaxonNames->TaxonName as $name){
+      if(isset($data['vernaculars']) && is_array($data['vernaculars'])){
+        $data['vernaculars'][] = (string)$name->Simple;
+      }else{
+        $data['vernaculars'] = array(
+          (string)$name->Simple
+        );
+      }
+    }
+    db_update('tcsdc_data')->fields(array(
+      'data' => serialize($data)
+    ))->condition('id', $vernacular_urls[$url])->condition('bid', $batch['id'])->execute();
+    unset($vernacular_urls[$url]);
+    tcsdc_variable('tcsdc_vernaculars', $vernacular_urls);
+    return;
+  }
   foreach($xml->TaxonNames->TaxonName as $name){
     // Lets save the data to the table so that we can extract it later.
     // Get the type of this element.  If it is a vernacular of synonym, we
     // should have a record of it (for parentage).
-    
     $data = array(
       'simple' => (string)$name->Simple,
       'rank' => (string)$name->Rank,
       'canonicalname' => (string)$name->CanonicalName->Simple
     );
-    dpm($data);
   }
   foreach($xml->TaxonConcepts->TaxonConcept->TaxonRelationships->TaxonRelationship as $relationship){
     switch((string)$relationship['type']){
@@ -125,9 +153,9 @@ function tcsdc_batch_downloader_helper($url){
         $urls[] = (string)$relationship->ToTaxonConcept['ref'];
         tcsdc_variable('tcsdc_urls', $urls);
         // Synonyms
-        $urls = tcsdc_variable('tcsdc_synonyms');
-        $urls[] = (string)$relationship->ToTaxonConcept['ref'];
-        tcsdc_variable('tcsdc_synonyms', $urls);
+        $synonym_urls = tcsdc_variable('tcsdc_synonyms');
+        $synonym_urls[(string)$relationship->ToTaxonConcept['ref']] = $url;
+        tcsdc_variable('tcsdc_synonyms', $synonym_urls);
         break;
       case 'has vernacular':
         // Add the URL to the list to download, and also add to the list of 
@@ -137,13 +165,37 @@ function tcsdc_batch_downloader_helper($url){
         $urls[] = (string)$relationship->ToTaxonConcept['ref'];
         tcsdc_variable('tcsdc_urls', $urls);
         // Vernaculars
-        $urls = tcsdc_variable('tcsdc_vernaculars');
+        $vernacular_urls[(string)$relationship->ToTaxonConcept['ref']] = $url;
+        tcsdc_variable('tcsdc_vernaculars', $vernacular_urls);
+        break;
+      case 'is parent taxon of':
+        // Add the URL to the list
+        $urls = tcsdc_variable('tcsdc_urls');
         $urls[] = (string)$relationship->ToTaxonConcept['ref'];
-        tcsdc_variable('tcsdc_vernaculars', $urls);
+        tcsdc_variable('tcsdc_urls', $urls);
+        break;
+      case 'is child taxon of':
+        $data['parent'] = (string)$relationship->ToTaxonConcept['ref'];
         break;
       default:
         //dpm((string)$relationship['type']);
         break;
     }
+  }
+  $synonym_urls = tcsdc_variable('tcsdc_synonyms');
+  if(isset($synonym_urls[$url])){
+    // Set the parent
+    $data['parent'] = $synonym_urls[$url];
+    unset($synonym_urls[$url]);
+    tcsdc_variable('tcsdc_synonyms', $synonym_urls);    
+  }
+  if(count($data)){
+    db_insert('tcsdc_data')->fields(array(
+      'id' => $url,
+      'name' => $data['simple'],
+      'bid' => $batch['id'],
+      'parent' => $data['parent'],
+      'data' => serialize($data)
+    ))->execute();
   }
 }

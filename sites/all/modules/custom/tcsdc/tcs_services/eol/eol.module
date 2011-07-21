@@ -6,7 +6,7 @@ define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function
  * Implementation of hook_classification_import_form
  */
 function eol_tcsdc_form($form, $form_state){
-  $eol_service_status = @strlen(file_get_contents('http://services.eol.org/lifedesk/service.php', 0, stream_context_create(array(
+  $eol_service_status = @strlen(file_get_contents(EOL_REQUEST_URL, 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
@@ -21,7 +21,8 @@ function eol_tcsdc_form($form, $form_state){
       'eol-status' => array(
         '#weight' => -10,
         '#type' => 'markup',
-        '#markup' => $eol_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The EOL classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The EOL classification service (<a href="http://services.eol.org/lifedesk/service.php">http://services.eol.org/lifedesk/service.php</a>) does not appear to be running.  Please try again later.</div>'
+  
+        '#markup' => $eol_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The EOL classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The EOL classification service (<a href="'.EOL_REQUEST_URL.'">'.(strpos(EOL_REQUEST_URL, '?') ? substr(EOL_REQUEST_URL, 0, strpos(EOL_REQUEST_URL, '?')):EOL_REQUEST_URL).'</a>) does not appear to be running.  Please try again later.</div>'
       ),
       'eol-name' => array(
         '#weight' => -5,
@@ -116,8 +117,6 @@ function eol_validate($form, &$form_state){
   }
 }
 
-// DRUPAL 6 BELOW ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 /**
  * Callback function when pressing "Import from EOL"
  */
@@ -150,43 +149,3 @@ function eol_submit($form, $form_state){
   );
   batch_set($batch);
 }
-
-
-/**
- * Implementation of hook_classification_import_alter_data
-function eol_classification_import_alter_data(&$tweak){
-  // We unfortunately have to hard code here information about the ITIS module.
-  // If this vocabulary is using the ITIS term content type, then we change the
-  // name, and set other fields.
-  // Check for one of the core itis_term functions.  If it exists, then we'll 
-  // start our tweaking.  Note, this may get moved from this module in the
-  // future.
-  if(function_exists('itis_term_form_alter') && function_exists('term_node_taxonomy')){
-    // Both itis_term and term_node modules are installed, lets check to see if
-    // this vocabulary is set to use itis_term
-    $type = _term_node_get_content_type_for_vid($tweak['vocabulary']->vid);
-    if($type == 'itis_term' && isset($tweak['form_state']['values']['canonicalname'])){
-      // Get the name parts from the canonical name
-      $name_parts = explode(" ", $tweak['form_state']['values']['canonicalname']);
-      $i = 1;
-      foreach($name_parts as $name_part){
-        $tweak['form_state']['values']['unit_name' . $i] = $name_part;
-        $i++;
-      }
-      // Set the Authority from the diff in canonical and name, and then set the
-      // name to the canonical
-      if(strlen($tweak['form_state']['values']['name']) > strlen($tweak['form_state']['values']['canonicalname'])){
-        $tweak['form_state']['values']['taxon_author'] = trim(substr($tweak['form_state']['values']['name'], strlen($tweak['form_state']['values']['canonicalname'])));
-        $tweak['form_state']['values']['name'] = $tweak['form_state']['values']['canonicalname'];
-      }
-      // Set the rank (ITIS uses rank_name)
-      $tweak['form_state']['values']['rank_name'] = $tweak['form_state']['values']['rank'];
-      // FIXME - The following will break synonyms, we need to alter this. 
-      // Assume that usage is 'valid'
-      if(!isset($tweak['form_state']['values']['usage'])){
-        $tweak['form_state']['values']['usage'] = 'valid';
-      }
-    }
-  }
-}
- */

@@ -8,9 +8,8 @@ function tcsdc_schema(){
     'tcsdc_data' => array(
       'fields' => array(
         'id' => array(
-          'type' => 'serial',
-          'unsigned' => TRUE,
-          'not null' => TRUE
+          'type' => 'varchar',
+          'length' => 255
         ),
         'name' => array(
           'type' => 'varchar',
