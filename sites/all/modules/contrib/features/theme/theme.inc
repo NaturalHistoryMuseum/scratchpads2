@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.inc,v 1.1.2.16.2.3 2011/02/12 04:11:00 inadarei Exp $
 
 /**
  * Display feature component info
