@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_generate.inc,v 1.27 2010/11/14 00:29:50 weitzman Exp $
 
 /**
  * Generate some random users.
@@ -56,10 +55,11 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       // Populate all core fields on behalf of field.module
       module_load_include('inc', 'devel_generate', 'devel_generate.fields');
       $edit = (object) $edit;
+      $edit->language = LANGUAGE_NONE;
       devel_generate_fields($edit, 'user', 'user');
       $edit = (array) $edit;
 
-      $account = user_save(NULL, $edit);
+      $account = user_save(drupal_anonymous_user(), $edit);
 
       if ($pic_config) {
         // Since the image.module should scale the picture just pick an
@@ -162,7 +162,9 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
         $comment->pid = 0;
     }
 
-    $comment->subject = devel_create_greeking(mt_rand(2, $title_length), TRUE);
+    // The subject column has a max character length of 64
+    // See bug: http://drupal.org/node/1024340
+    $comment->subject = substr(devel_create_greeking(mt_rand(2, $title_length), TRUE), 0, 63);
     $comment->uid = $users[array_rand($users)];
     $comment->language = LANGUAGE_NONE;
     // Populate all core fields on behalf of field.module
@@ -192,6 +194,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('page',
     $voc->relations = 1;
     $voc->hierarchy = 1;
     $voc->weight = mt_rand(0,10);
+    $voc->language = LANGUAGE_NONE;
 
     taxonomy_vocabulary_save($voc);
     $vocs[] = $voc->name;
@@ -208,6 +211,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
   $max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data}')->fetchField();
   $start = time();
   for ($i = 1; $i <= $records; $i++) {
+    $term = new stdClass;
     switch ($i % 2) {
       case 1:
         // Set vid and vocabulary_machine_name properties.
@@ -246,6 +250,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
     $term->description = "description of ". $term->name;
     $term->format = filter_fallback_format();
     $term->weight = mt_rand(0, 10);
+    $term->language = LANGUAGE_NONE;
 
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
@@ -566,7 +571,8 @@ function devel_create_greeking($word_count, $title = FALSE) {
   else {
     // Use slightly different method for titles.
     $words = array_rand($dictionary_flipped, $word_count);
-    $greeking = ucwords(implode(' ', $words));
+    $words = is_array($words) ? implode(' ', $words) : $words;
+    $greeking = ucwords($words);
   }
 
   // Work around possible php garbage collection bug. Without an unset(), this
@@ -658,7 +664,6 @@ function devel_generate_content_pre_node(&$results) {
  *   array of options obtained from devel_generate_content_form.
  */
 function devel_generate_content_add_node(&$results) {
-  global $language;
   $node = new stdClass();
   $node->nid = NULL;
 
@@ -675,13 +680,9 @@ function devel_generate_content_add_node(&$results) {
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
   }
-  if (isset($results['add_language']) && variable_get('language_content_type_' . $node->type, 0)) {
-    $languages = array_keys($results['add_language']);
-    $node->language = $languages[array_rand($languages)];
-  }
-  else {
-    $node->language = LANGUAGE_NONE;
-  }
+
+  devel_generate_set_language($results, $node);
+
   $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
@@ -693,4 +694,18 @@ function devel_generate_content_add_node(&$results) {
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);
+}
+
+/*
+ * Populate $object->language based on $results
+ */
+function devel_generate_set_language($results, $object) {
+  if (isset($results['add_language'])) {
+    $languages = $results['add_language'];
+    $object->language = $languages[array_rand($languages)];
+  }
+  else {
+    $default = language_default('language');
+    $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
+  }
 }
