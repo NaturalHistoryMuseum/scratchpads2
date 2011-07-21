@@ -93,12 +93,10 @@ function slickgrid_library(){
       $path . '/slick.grid.js' => array(),
       $path . '/plugins/slick.checkboxselectcolumn.js' => array(),
       $path . '/plugins/slick.rowselectionmodel.js' => array(),
-      $path . '/controls/slick.pager.js' => array(),
       $path . '/controls/slick.columnpicker.js' => array()
     ),
     'css' => array(
       $path . '/slick.grid.css' => array(),
-      $path . '/controls/slick.pager.css' => array(),
       $path . '/controls/slick.columnpicker.css' => array()
     ),
     'dependencies' => array(
