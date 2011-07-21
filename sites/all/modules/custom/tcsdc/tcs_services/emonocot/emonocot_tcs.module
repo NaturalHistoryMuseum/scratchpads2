@@ -27,10 +27,8 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
         '#weight' => -5,
         '#type' => 'textfield',
         '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
-        '#ajax' => array(
-          'callback' => 'emonocot_tcs_classifications_js',
-          'keypress' => TRUE,
-          'wrapper' => 'emonocot-import-full'
+        '#attributes' => array(
+          'onkeypress' => 'if(event.keyCode == 13){return false;}else{return true}'
         )
       ),
       'emonocot-search' => array(
@@ -139,13 +137,10 @@ function emonocot_tcs_submit($form, $form_state){
         )
       ),
       array(
-        'classification_import_load_terms',
-        array(
-          arg(4)
-        )
+        'tcsdc_generate_tab_file',
+        array()
       )
     ),
-    'finished' => 'classification_import_batch_import_finished',
     'title' => t('Importing'),
     // We use a single multi-pass operation, so the default
     // 'Remaining x of y operations' message will be confusing here.
