@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_node_access.module,v 1.62 2011/01/04 19:26:47 weitzman Exp $
 /**
  * @file
  *
@@ -22,7 +21,7 @@ function devel_node_access_permission() {
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function devel_node_access_help($path, $arg) {
   switch ($path) {
@@ -44,6 +43,9 @@ function devel_node_access_help($path, $arg) {
   }
 }
 
+/**
+ * Implements hook_menu().
+ */
 function devel_node_access_menu() {
   $items = array();
 
@@ -70,6 +72,14 @@ function devel_node_access_menu() {
       'menu_name' => 'devel',
     );
   }
+
+  // create a callback for use by devel_node_access_user_ajax().
+  $items['devel/node_access/by_user/%/%'] = array(
+    'page callback'    => 'devel_node_access_user_ajax',
+    'page arguments'   => array(3, 4),
+    'access arguments' => array(DNA_ACCESS_VIEW),
+    'type'             => MENU_CALLBACK,
+  );
 
   // add this to the custom menu 'devel' created by the devel module.
   $items['devel/node_access/summary'] = array(
@@ -104,6 +114,12 @@ function devel_node_access_form_alter(&$form, $form_state, $form_id) {
         '%DNAbU' => t('Devel Node Access by User'),
         '@link' => url('admin/structure/block/list'),
       )),
+    );
+    $form['devel_node_access']['devel_node_access_user_ajax'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Asynchronously populate the <em>Devel Node Access by User</em> block'),
+      '#default_value' => variable_get('devel_node_access_user_ajax', FALSE),
+      '#description'   => t("Use Ajax to populate the second DNA block. This loads the initial page faster and uses dynamic calls to build the data in the table, one request at a time. It's especially useful during development, if some of the calls are failing.") . '<br />' . t('JavaScript must be enabled in your browser.'),
     );
     // push the Save button down
     $form['actions']['#weight'] = 10;
@@ -504,6 +520,9 @@ function devel_node_access_block_view($delta) {
   if (!user_access(DNA_ACCESS_VIEW)) {
     return;
   }
+
+  $output = array();
+
   switch ($delta) {
     case 'dna_node':
       if (!count(dna_visible_nodes())) {
@@ -536,7 +555,13 @@ function devel_node_access_block_view($delta) {
             implode('<br />', $explained),
           );
         }
-        $output = theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => array('style' => 'text-align: left')));
+        $output[] = array(
+          '#theme'      => 'table',
+          '#header'     => $headers,
+          '#rows'       => $rows,
+          '#attributes' => array('style' => 'text-align: left')
+        );
+
         $hint = t('To see more details enable <a href="@debug_mode">debug mode</a>.', array('@debug_mode' => url('admin/config/development/devel', array('fragment' => 'edit-devel-node-access')))) . (empty($hint) ? '' : ' ' . $hint);
       }
       else {
@@ -838,23 +863,29 @@ function devel_node_access_block_view($delta) {
         foreach ($rows as $i => $row) {
           $rows[$i] = _devel_node_access_format_row($row);
         }
-        $output = theme('table', array(
-          'header'     => $headers,
-          'rows'       => $rows,
-          'attributes' => array(
-            'class'      => array('system-status-report'),
-            'style'      => 'text-align: left;',
-          ),
-        ));
 
-        $output .= theme_form_element(array('element' => array(
+        $output[] = array(
+          '#theme'      => 'table',
+          '#header'     => $headers,
+          '#rows'       => $rows,
+          '#attributes' => array(
+            'class'       => array('system-status-report'),
+            'style'       => 'text-align: left;',
+          ),
+        );
+
+        $output[] = array(
+          '#theme'       => 'form_element',
           '#description' => t('(Some of the table elements provide additional information if you hover your mouse over them.)'),
-          '#children'    => NULL,
-        )));
+        );
 
         if ($error_count > 0) {
           $variables['!Rebuild_permissions'] = '<a href="' . url('admin/reports/status/rebuild') . '">' . $tr('Rebuild permissions') . '</a>';
-          $output .= "\n<div class=\"error\">" . t("You have errors in your !na table! You may be able to fix these for now by running !Rebuild_permissions, but this is likely to destroy the evidence and make it impossible to identify the underlying issues. If you don't fix those, the errors will probably come back again. <br /> DON'T do this just yet if you intend to ask for help with this situation.", $variables) . "</div><br />\n";
+          $output[] = array(
+            '#prefix' => "\n<div class=\"error\">",
+            '#markup' => t("You have errors in your !na table! You may be able to fix these for now by running !Rebuild_permissions, but this is likely to destroy the evidence and make it impossible to identify the underlying issues. If you don't fix those, the errors will probably come back again. <br /> DON'T do this just yet if you intend to ask for help with this situation.", $variables),
+            '#suffix' => "</div><br />\n",
+          );
         }
 
         // Explain whether access is granted or denied, and why (using code from node_access()).
@@ -868,12 +899,19 @@ function devel_node_access_block_view($delta) {
 
         if (user_access('bypass node access')) {
           $variables['%bypass_node_access'] = $tr('bypass node access');
-          $output .= t('!username has the %bypass_node_access permission and thus full access to all nodes.', $variables) . '<br />&nbsp;';
+          $output[] = array(
+            '#markup' => t('!username has the %bypass_node_access permission and thus full access to all nodes.', $variables),
+            '#suffix' => '<br />&nbsp;',
+          );
         }
         else {
           $variables['!list'] = '<div style="margin-left: 2em">' . _devel_node_access_get_grant_list($nid, $ng_alter_data) . '</div>';
           $variables['%access'] = 'view';
-          $output .= "\n<div style='text-align: left' title='" . t('These are the grants returned by hook_node_grants() for this user.') . "'>" . t('!username (user %uid) can use these grants (if they are present above) for %access access: !list', $variables) . "</div>\n";
+          $output[] = array(
+            '#prefix' => "\n<div style='text-align: left' title='" . t('These are the grants returned by hook_node_grants() for this user.') . "'>",
+            '#markup' => t('!username (user %uid) can use these grants (if they are present above) for %access access: !list', $variables),
+            '#suffix' => "</div>\n",
+          );
           $accounts[] = $user;
         }
         if (arg(0) == 'node' && is_numeric(arg(1)) && !$block1_visible) {  // only for single nodes
@@ -881,8 +919,7 @@ function devel_node_access_block_view($delta) {
             $accounts[] = user_load(0);  // Anonymous, too
           }
           foreach ($accounts as $account) {
-            $variables['!username'] = theme('username', array('account' => $account));
-            $output .= "\n<div style='text-align: left'>" . t("!username has the following access", $variables) . ' ';
+            $account_items = array();
             $nid_items = array();
             foreach ($nids as $nid) {
               $op_items = array();
@@ -890,32 +927,46 @@ function devel_node_access_block_view($delta) {
                 $explain = _devel_node_access_explain_access($op, $nid, $account);
                 $op_items[] = "<div style='width: 5em; display: inline-block'>" . t('%op:', array('%op' => $op)) . ' </div>' . $explain[2];
               }
-              $nid_items[] = t('to node !nid:', array('!nid' => l($nid, 'node/' . $nid)))
-                . "\n<div style='margin-left: 2em'>"
-                . theme('item_list', array('items' => $op_items, 'type' => 'ul'))
-                . '</div>';
+              $nid_items[] = array(
+                '#theme'  => 'item_list',
+                '#items'  => $op_items,
+                '#type'   => 'ul',
+                '#prefix' => t('to node !nid:', array('!nid' => l($nid, 'node/' . $nid))) . "\n<div style='margin-left: 2em'>",
+                '#suffix' => '</div>',
+              );
             }
             if (count($nid_items) == 1) {
-              $output .= $nid_items[0];
+              $account_items = $nid_items[0];
             }
             else {
-              $output .= "\n<div style='margin-left: 2em'>"
-                . theme('item_list', array('items' => $nid_items, 'type' => 'ul'))
-                . '</div>';
+              $account_items = array(
+                '#theme'  => 'item_list',
+                '#items'  => $nid_items,
+                '#type'   => 'ul',
+                '#prefix' => "\n<div style='margin-left: 2em'>",
+                '#suffix' => '</div>',
+              );
             }
-            $output .= "\n</div>\n";
+            $variables['!username'] = theme('username', array('account' => $account));
+            $output[] = array(
+              '#prefix' => "\n<div style='text-align: left'>",
+              '#markup' => t("!username has the following access", $variables),
+              'items'   => $account_items,
+              '#suffix' => "\n</div>\n",
+            );
           }
         }
       }
 
       if (!empty($hint)) {
-        $output .= theme_form_element(array('element' => array(
-          '#description' => '(' . $hint . ')',
-          '#children'    => NULL,
-        )));
+        $output[] = array(
+          '#theme'        => 'form_element',
+          '#description'  => '(' . $hint . ')',
+        );
       }
+      $output[]['#markup'] = '<br /><br />';
       $subject = t('node_access entries for nodes shown on this page');
-      return array('subject' => $subject, 'content' => $output . '<br /><br />');
+      return array('subject' => $subject, 'content' => $output);
 
     case 'dna_user':
       // show which users can access this node
@@ -923,6 +974,10 @@ function devel_node_access_block_view($delta) {
         $node_type = node_type_get_type($node);
         $headers = array(t('username'), '<span title="' . t("Create nodes of the '@Node_type' type.", array('@Node_type' => $node_type->name)) . '">' . t('create') . '</span>', t('view'), t('update'), t('delete'));
         $rows = array();
+        // Determine whether to use Ajax or prepopulate the tables.
+        if ($ajax = variable_get('devel_node_access_user_ajax', FALSE)) {
+          drupal_add_js(drupal_get_path('module', 'devel_node_access') . '/devel_node_access.js');
+        }
         // Find all users. The following operations are very inefficient, so we
         // limit the number of users returned.  It would be better to make a
         // pager query, or at least make the number of users configurable.  If
@@ -941,22 +996,40 @@ function devel_node_access_block_view($delta) {
           }
           $rows[] = array(
             $username,
-            theme('dna_permission', _devel_node_access_explain_access('create', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('view', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('update', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('delete', $nid, $account)),
+            array(
+              'id' => 'create-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('create', $nid, $account))),
+            ),
+            array(
+              'id' => 'view-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('view', $nid, $account))),
+            ),
+            array(
+              'id' => 'update-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('update', $nid, $account))),
+            ),
+            array(
+              'id' => 'delete-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('delete', $nid, $account))),
+            ),
           );
         }
         if (count($rows)) {
-          $output = theme('table', array(
-            'header'     => $headers,
-            'rows'       => $rows,
-            'attributes' => array('style' => 'text-align: left'),
-          ));
-          $output .= theme_form_element(array('element' => array(
-            '#description' => t('(This table lists the most-recently active users. Hover your mouse over each result for more details.)'),
-            '#children'    => NULL,
-          )));
+          $output[] = array(
+            '#theme'      => 'table',
+            '#header'     => $headers,
+            '#rows'       => $rows,
+            '#attributes' => array('style' => 'text-align: left'),
+          );
+          $output[] = array(
+            '#theme'        => 'form_element',
+            '#description'  => t('(This table lists the most-recently active users. Hover your mouse over each result for more details.)'),
+          );
+
           return array(
             'subject' => t('Access permissions by user'),
             'content' => $output,
@@ -965,6 +1038,42 @@ function devel_node_access_block_view($delta) {
       }
       break;
   }
+}
+
+/**
+ * Callback function for node access by user block ajax.
+ */
+function devel_node_access_user_ajax($data_type, $cell) {
+  list($op, $nid, $uid) = explode('-', $cell);
+  $account = user_load($uid);
+  $output = array(
+    '#theme' => 'dna_permission',
+    '#permission' => _devel_node_access_explain_access($op, $nid, $account),
+  );
+  // JSON output for Ajax callbacks.
+  if ($data_type == 'json') {
+    drupal_json_output(drupal_render($output));
+    exit;
+  }
+  // HTML output for error message click-throughs.
+  if ($node = node_load($nid)) {
+    $node_title = l($node->title, 'node/' . $node->nid);
+  }
+  else {
+    $node_title = t('unknown node %nid', array('%nid' => $nid));
+  }
+  drupal_set_title(
+    t(
+      'Devel node access: %op permission for !user on !node',
+      array(
+        '%op'   => $op,
+        '!user' => theme('username', array('account' => $account)),
+        '!node' => $node_title,
+      )
+    ),
+    PASS_THROUGH
+  );
+  return $output;
 }
 
 /**
@@ -1156,7 +1265,7 @@ function _devel_node_access_get_grant_list($nid, $ng_alter_data) {
 }
 
 /**
- * Implementation of hook_node_access_explain().
+ * Implements hook_node_access_explain().
  */
 function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {
@@ -1225,12 +1334,14 @@ function _devel_node_access_format_row($row, $may_unpack = TRUE) {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function devel_node_access_theme() {
   return array(
     'dna_permission' => array(
-      'arguments'    => array('permission' => NULL),
+      'variables'    => array(
+        'permission' => NULL,
+      ),
     ),
   );
 }
@@ -1238,6 +1349,7 @@ function devel_node_access_theme() {
 /**
  * Indicate whether user has a permission or not.
  */
-function theme_dna_permission($permission) {
+function theme_dna_permission($variables) {
+  $permission = &$variables['permission'];
   return '<span class="' . ($permission[0] ? 'ok' : 'error') . '" title="' . $permission[2] . '">' . $permission[1] . '</span>';
 }
