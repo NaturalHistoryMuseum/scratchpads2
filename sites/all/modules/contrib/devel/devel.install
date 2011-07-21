@@ -1,5 +1,4 @@
 <?php
-// $Id: devel.install,v 1.46 2010/10/27 07:54:03 salvis Exp $
 
 /**
  * Implements hook_enable().
@@ -16,12 +15,16 @@ function devel_enable() {
     ->condition('name', 'devel')
     ->execute();
 
-  $menu = array(
-    'menu_name' => 'devel',
-    'title' => $t('Development'),
-    'description' => $t('Development link'),
-  );
-  menu_save($menu);
+  // Create a custom menu, if Menu module is enabled.
+  // @see devel_modules_installed()
+  if (module_exists('menu')) {
+    $menu = array(
+      'menu_name' => 'devel',
+      'title' => $t('Development'),
+      'description' => $t('Development link'),
+    );
+    menu_save($menu);
+  }
 }
 
 /**
@@ -41,8 +44,11 @@ function devel_uninstall() {
   variable_del('devel_switch_user_show_form');
 
   // Delete the development menu.
-  $devel_menu = menu_load('devel');
-  menu_delete($devel_menu);
+  if (module_exists('menu')) {
+    if ($devel_menu = menu_load('devel')) {
+      menu_delete($devel_menu);
+    }
+  }
 }
 
 /**

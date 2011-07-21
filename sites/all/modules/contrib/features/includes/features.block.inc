@@ -1,5 +1,4 @@
 <?php
-// $Id: features.block.inc,v 1.1.2.3 2009/05/31 02:44:04 yhahn Exp $
 
 /**
  * Implementation of hook_features_api().

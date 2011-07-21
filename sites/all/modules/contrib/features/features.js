@@ -1,4 +1,3 @@
-// $Id: features.js,v 1.1.2.8.2.2 2010/09/09 18:13:05 yhahn Exp $
 (function ($) {
   Drupal.behaviors.features = {
     attach: function(context, settings) {

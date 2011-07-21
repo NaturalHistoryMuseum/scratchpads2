@@ -1,5 +1,4 @@
 <?php
-// $Id: features.context.inc,v 1.1.2.12.2.4 2010/09/14 21:36:26 yhahn Exp $
 
 /**
  * Implementation of hook_features_export().

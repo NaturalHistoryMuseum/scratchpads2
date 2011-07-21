@@ -1,5 +1,4 @@
 <?php
-//$Id: devel.pages.inc,v 1.14 2011/01/04 19:58:48 weitzman Exp $
 
 // Menu callback that shows menu item.
 function devel_menu_item() {
@@ -172,13 +171,10 @@ function devel_variable_form() {
   $query->fields('v', array('name', 'value'));
   switch (db_driver()) {
     case 'mssql':
-      $query->addExpression("COL_LENGTH('{variable}', 'value')", 'length');
-      break;
-    case 'pgsql':
-      $query->addExpression("CONVERT(LENGTH(v.value), INTEGER)", 'length');
+      $query->addExpression("LEN(v.value)", 'length');
       break;
     default:
-      $query->addExpression("CONVERT(LENGTH(v.value), UNSIGNED INTEGER)", 'length');
+      $query->addExpression("LENGTH(v.value)", 'length');
       break;
   }
   $result = $query
