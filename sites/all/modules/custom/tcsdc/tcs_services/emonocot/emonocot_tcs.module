@@ -1,12 +1,12 @@
 <?php
-define('EMONOCOT_QUERY_URL', 'http://services.eol.org/lifedesk/service.php?function=search&search=');
-define('EMONOCOT_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function=details_tcs&id=');
+define('EMONOCOT_QUERY_URL', 'http://129.67.24.160/latest/checklist/endpoint?function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?function=details_tcs&id=');
 
 /**
  * Implementation of hook_classification_import_form
  */
 function emonocot_tcs_tcsdc_form($form, $form_state){
-  $emonocot_tcs_service_status = @strlen(file_get_contents(EMONOCOT_REQUEST_URL, 0, stream_context_create(array(
+  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')), 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
@@ -26,13 +26,18 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
       'emonocot-name' => array(
         '#weight' => -5,
         '#type' => 'textfield',
-        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves')
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#ajax' => array(
+          'callback' => 'emonocot_tcs_classifications_js',
+          'keypress' => TRUE,
+          'wrapper' => 'emonocot-import-full'
+        )
       ),
       'emonocot-search' => array(
         '#weight' => 0,
         '#type' => 'button',
-        '#value' => 'Search',
-        '#title' => 'Search',
+        '#value' => 'Search emonocot',
+        '#title' => 'Search emonocot',
         '#disabled' => $emonocot_tcs_service_status ? FALSE : TRUE,
         '#ajax' => array(
           'callback' => 'emonocot_tcs_classifications_js',
@@ -44,7 +49,7 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
         '#weight' => 5,
         '#markup' => '<div id="emonocot-import-full" style="clear:both">&nbsp;</div>'
       ),
-      'submit' => array(
+      'submit-emonocot' => array(
         '#weight' => 10,
         '#disabled' => $emonocot_tcs_service_status ? FALSE : TRUE,
         '#type' => 'submit',

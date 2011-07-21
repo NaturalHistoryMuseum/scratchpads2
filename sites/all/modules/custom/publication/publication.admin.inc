@@ -64,8 +64,6 @@ class PublicationUIController extends EntityDefaultUIController{
       'title arguments' => array(
         1
       ),
-      // The page callback also invokes drupal_set_title() in case
-      // the menu router's title is overridden by a menu link.
       'page callback' => 'publication_page_view',
       'page arguments' => array(
         1
@@ -81,11 +79,11 @@ class PublicationUIController extends EntityDefaultUIController{
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     );
-    $items['publication/%publication/edit'] = array(
-      'title' => 'Edit',
+    $items['publication/%publication/settings'] = array(
+      'title' => 'Settings',
       'page callback' => 'publication_form_wrapper',
       'page arguments' => array(
-        'publication_edit_form',
+        'publication_settings_form',
         1
       ),
       'access callback' => 'publication_access',

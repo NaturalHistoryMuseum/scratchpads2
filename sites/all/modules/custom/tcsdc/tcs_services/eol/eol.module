@@ -27,13 +27,18 @@ function eol_tcsdc_form($form, $form_state){
       'eol-name' => array(
         '#weight' => -5,
         '#type' => 'textfield',
-        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves')
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#ajax' => array(
+          'callback' => 'eol_classifications_js',
+          'keypress' => TRUE,
+          'wrapper' => 'eol-import-full'
+        )
       ),
       'eol-search' => array(
         '#weight' => 0,
         '#type' => 'button',
-        '#value' => 'Search',
-        '#title' => 'Search',
+        '#value' => 'Search EOL',
+        '#title' => 'Search EOL',
         '#disabled' => $eol_service_status ? FALSE : TRUE,
         '#ajax' => array(
           'callback' => 'eol_classifications_js',
@@ -45,7 +50,7 @@ function eol_tcsdc_form($form, $form_state){
         '#weight' => 5,
         '#markup' => '<div id="eol-import-full" style="clear:both">&nbsp;</div>'
       ),
-      'submit' => array(
+      'submit-eol' => array(
         '#weight' => 10,
         '#disabled' => $eol_service_status ? FALSE : TRUE,
         '#type' => 'submit',
