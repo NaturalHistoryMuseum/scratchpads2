@@ -34,6 +34,14 @@ function formflow_schema(){
         'not null' => TRUE,
         'default' => ''
       ),
+      'menu' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Serialized configuration of menu settings.',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'object default' => array(),
+      ),
       'finish_path' => array(
         'description' => 'The path this flow should redirect to when completed.',
         'type' => 'varchar',
