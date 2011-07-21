@@ -1,5 +1,4 @@
 <?php
-// $Id: features.module,v 1.1.2.63.2.12 2010/09/29 17:48:25 yhahn Exp $
 
 /**
  * @file
@@ -330,7 +329,8 @@ function features_include_defaults($components = NULL, $reset = FALSE) {
       // Inclusion of defaults for Views.
       if ($component === 'views') {
         views_include('view');
-        views_include_default_views();
+        views_include_handlers();
+        views_module_include('views_default.inc');
       }
       // Inclusion of defaults for CTools.
       else if (isset($info['api'], $info['module'], $info['current_version'])) {
@@ -504,7 +504,7 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
     $cache->data = $data;
   }
   if (!empty($name)) {
-    return !empty($cache->data[$type][$name]) ? $cache->data[$type][$name] : array();
+    return !empty($cache->data[$type][$name]) ? clone $cache->data[$type][$name] : array();
   }
   return !empty($cache->data[$type]) ? $cache->data[$type] : array();
 }
@@ -685,7 +685,7 @@ function _features_restore($op, $items = array()) {
   }
 
   if (empty($items)) {
-    $states = features_get_component_states();
+    $states = features_get_component_states(array(), ($op == 'rebuild'));
     foreach ($states as $module_name => $components) {
       foreach ($components as $component => $state) {
         if (in_array($state, $restore_states)) {
