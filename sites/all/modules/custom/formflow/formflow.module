@@ -522,6 +522,8 @@ function formflow_menu_cache_clear(){
  * @param String $view_mode The mode for the build.
  */
 function formflow_attach_groups(&$form, &$form_state, $display_mode){
+  // If there are no ghroups defined, do nothing
+  if(!isset($form['#groups'])){return;}
   $form['#display_mode'] = $display_mode;
   ctools_add_css('wizard');
   // Attach the fieldgroup CSS
@@ -673,13 +675,13 @@ function formflow_field_group_pre_render(&$element, $group, &$form){
     // Loop through & identify which group is the last one with required fields
     // We can then use this to decide when to show the submit buttons
     foreach(element_children($element) as $key){
-      if($instance = field_info_instance($form['#entity_type'], $key, $form['#bundle'])){
+      if(is_array($instance = field_info_instance($form['#entity_type'], $key, $form['#bundle']))){
         if($instance['required']){
           $form['#last_required_group'] = $group->group_name;
           break;
         }
       }
-    }
+    }    
   }
 }
 
@@ -703,17 +705,21 @@ function formflow_field_group_build_pre_render_alter(&$form){
     // We'll want to show all buttons
     if(($form['#position'] + 1) == count($form['#groups'])){return;}
     if(!isset($form['changed']) || empty($form['changed']['#value'])){
-      // Loop through the groups - if we're not past the last required group in the flow, hide the buttons
-      foreach($form['#groups'] as $group_name => $group){
-        // If the current group is before the last required group, update the buttons
-        if($group_name == $form['#last_required_group']){
-          // Can the user end at this stage of the form?
-          $end_point = true;
-          break;
+      if(isset($form['#last_required_group'])){
+        // Loop through the groups - if we're not past the last required group in the flow, hide the buttons
+        foreach($form['#groups'] as $group_name => $group){
+          // If the current group is before the last required group, update the buttons
+          if($group_name == $form['#last_required_group']){
+            // Can the user end at this stage of the form?
+            $end_point = true;
+            break;
+          }
+          if($group_name == $form['#current_group']){
+            break;
+          }
         }
-        if($group_name == $form['#current_group']){
-          break;
-        }
+      }else{
+        $end_point = true;
       }
     }
     formflow_field_group_remove_elements($form, $end_point);
