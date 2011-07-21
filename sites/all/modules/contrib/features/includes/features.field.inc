@@ -1,5 +1,4 @@
 <?php
-// $Id: features.field.inc,v 1.1.2.7 2011/02/18 22:16:12 inadarei Exp $
 
 /**
  * Implements hook_features_api().

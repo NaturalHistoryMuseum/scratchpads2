@@ -295,6 +295,8 @@ function femail_node_insert($node){
       foreach($node->femail_files['und'] as $file){
         $files[] = file_load($file['fid']);
       }
+      // Aquire node access first, before trying to send.
+      node_access_acquire_grants($node);
       _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
     }
   }
