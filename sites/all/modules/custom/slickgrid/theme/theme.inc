@@ -306,9 +306,12 @@ function theme_slickgrid_controls($variables){
   $output = '';
   // Add controls defined by the slickgrid plugin (pager)
   if(isset($view->style_plugin->options['pager']) && $view->style_plugin->options['pager']){
-    drupal_add_js($library_path . '/js/slickgrid/controls/slick.pager.js');
-    drupal_add_css($library_path . '/js/slickgrid/controls/slick.pager.css');
+    drupal_add_js($library_path . '/controls/slick.pager.js');
+    drupal_add_css($library_path . '/controls/slick.pager.css');
     $output .= '<div class="slickgrid-control" id="slickgrid-pager"></div>';
+  }
+  if(isset($view->style_plugin->options['grouping_field']) && !empty($view->style_plugin->options['grouping_field'])){
+    drupal_add_js($library_path . '/slick.groupitemmetadataprovider.js');
   }
   $output .= '<div id="slickgrid-status"></div>';
   if($view->style_plugin->options['add']){
