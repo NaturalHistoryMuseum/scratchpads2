@@ -1,5 +1,4 @@
 <?php
-// $Id: features.test,v 1.1.2.3.2.2 2010/09/29 18:05:50 yhahn Exp $
 
 /**
  * User permission component tests for Features
@@ -10,7 +9,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
   /**
    * Test info.
    */
-  public function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => t('Component tests'),
       'description' => t('Run tests for components of Features.') ,
@@ -51,7 +50,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
       'image' => 'image',
       'node' => 'node',
       'user_permission' => 'user',
-      'views' => 'views',
+      'views_view' => 'views',
     ), 'module_exists');
 
     foreach (array_keys($components) as $component) {
@@ -79,6 +78,8 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
     drupal_flush_all_caches();
     foreach (array_keys($components) as $component) {
+      // Reload so things like Views can clear it's cache
+      $this->$callback('load');
       $states = features_get_component_states(array('features_test'), FALSE, TRUE);
       $this->assertTrue($states['features_test'][$component] === FEATURES_DEFAULT, t('@component reverted.', array('@component' => $component)));
     }
@@ -140,7 +141,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
   }
 
-  protected function _test_views($op = 'load') {
+  protected function _test_views_view($op = 'load') {
     switch ($op) {
       case 'load':
         return views_get_view('features_test', TRUE);
@@ -149,6 +150,8 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
         $view->set_display('default');
         $view->display_handler->override_option('title', 'Foo bar');
         $view->save();
+        // Clear the load cache from above
+        views_get_view('features_test', TRUE);
         break;
     }
   }

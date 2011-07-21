@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.1.2.3.2.3 2010/09/10 20:20:57 yhahn Exp $
 
 Current state of Features for Drupal 7
 --------------------------------------
@@ -77,14 +76,14 @@ You can build features in Drupal by using site building tools that are supported
 
 Once you've built and configured functionality on a site, you can export it into
 a feature module by using the feature create page at
-`admin/build/features/create`.
+`admin/structure/features/create`.
 
 
 ### Task 2: Manage features
 
 The features module also provides a way to manage features through a more
-targeted interface than `admin/build/modules`. The interface at
-`admin/build/features` shows you only feature modules, and will also inform you
+targeted interface than `admin/modules`. The interface at
+`admin/structure/features` shows you only feature modules, and will also inform you
 if any of their components have been overridden. If this is the case, you can
 also re-create features to bring the module code up to date with any changes
 that have occurred in the database.
@@ -141,6 +140,9 @@ Features provides several useful drush commands:
 - `drush features-export [feature name] [component list]`
 
   Write a new feature in code containing the components listed.
+  If called with no arguments, display a list of available components.
+  If called with one argument, take the argument as a component name and 
+  attempt to create a feature with the same name.
 
 - `drush features-update [feature name]`
 

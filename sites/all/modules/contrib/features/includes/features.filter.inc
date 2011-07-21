@@ -1,5 +1,4 @@
 <?php
-// $Id: features.filter.inc,v 1.1.2.9.2.6 2010/10/21 21:22:08 jmiccolis Exp $
 
 /**
  * Implementation of hook_features_api().
@@ -7,7 +6,7 @@
 function filter_features_api() {
   return array(
     'filter' => array(
-      'name' => t('Filter formats'),
+      'name' => t('Text formats'),
       'default_hook' => 'filter_default_formats',
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
       'feature_source' => TRUE
