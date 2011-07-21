@@ -1,5 +1,4 @@
 <?php
-// $Id: features.drush.inc,v 1.1.2.21.2.3 2011/02/12 19:35:45 inadarei Exp $
 
 /**
  * @file
@@ -25,7 +24,8 @@ function features_drush_command() {
   $items['features-export'] = array(
     'description' => "Export a feature from your site into a module.",
     'arguments' => array(
-      'feature' => 'Feature name to export.',
+      'feature' => 'Feature name to export or a single component.',
+      'components' => '(optional) List of components to include, like source:component [source2:component2]...'
     ),
     'drupal dependencies' => array('features'),
     'aliases' => array('fe'),
@@ -88,7 +88,7 @@ function features_drush_help($section) {
     case 'drush:features':
       return dt("List all the available features for your site.");
     case 'drush:features-export':
-      return dt("Export a feature from your site into a module.");
+      return dt("Export a feature from your site into a module. If called with no arguments, display a list of available components. If called with a single argument, attempt to create a feature including the given component with the same name.");
     case 'drush:features-update':
       return dt("Update a feature module on your site.");
     case 'drush:features-update-all':
@@ -144,7 +144,14 @@ function drush_features_export() {
     // "value" of the component.
     list($source, $component) = explode(':', $args[0]);
     $stub = array($source => array($component));
-    _drush_features_export($stub, $component);
+    $sources = features_get_components();
+    if (empty($component) || empty($sources[$source])) {
+      _features_drush_set_error($args[0], 'FEATURES_COMPONENT_NOT_FOUND');
+      exit;
+    }
+    else {
+      _drush_features_export($stub, $component);
+    }
   }
   elseif (count($args) > 1) {
     // Assume that the user intends to create a new module based on a list of 
@@ -438,6 +445,9 @@ function _features_drush_set_error($feature, $error = '') {
   switch ($error) {
     case 'FEATURES_FEATURE_NOT_ENABLED':
       $message = 'The feature !feature is not enabled.';
+      break;
+    case 'FEATURES_COMPONENT_NOT_FOUND':
+      $message = 'The given component !feature could not be found.';
       break;
     default:
       $error = 'FEATURES_FEATURE_NOT_FOUND';

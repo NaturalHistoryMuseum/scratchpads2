@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_generate_batch.inc,v 1.1 2010/01/28 21:06:42 weitzman Exp $
 
 /**
  * Devel Generate batch handling functions using the BatchAPI

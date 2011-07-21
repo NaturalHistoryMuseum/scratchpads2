@@ -1,5 +1,4 @@
 <?php
-// $Id: features.taxonomy.inc,v 1.1.4.4 2011/02/12 20:35:28 inadarei Exp $
 
 /**
  * Implementation of hook_features_api().
