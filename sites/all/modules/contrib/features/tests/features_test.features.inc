@@ -6,7 +6,7 @@
 function features_test_ctools_plugin_api() {
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
-    return array("version" => 1);
+    return array("version" => "1");
   }
 }
 
@@ -62,7 +62,8 @@ function features_test_node_info() {
  * Implementation of hook_views_api().
  */
 function features_test_views_api() {
-  return array(
-    'api' => '3.0-alpha1',
-  );
+  list($module, $api) = func_get_args();
+  if ($module == "views" && $api == "views_default") {
+    return array("version" => "3.0");
+  }
 }

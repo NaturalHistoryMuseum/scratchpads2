@@ -1,8 +1,7 @@
 <?php
-// $Id: devel_generate.module,v 1.13 2010/12/06 15:28:53 weitzman Exp $
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function devel_generate_menu() {
   $items = array();
@@ -48,6 +47,9 @@ function devel_generate_menu() {
   return $items;
 }
 
+/**
+ * Generates users using FormAPI.
+ */
 function devel_generate_users_form() {
   $form['num'] = array(
     '#type' => 'textfield',
@@ -88,12 +90,18 @@ function devel_generate_users_form() {
   return $form;
 }
 
+/**
+ * FormAPI submission to generate users.
+ */
 function devel_generate_users_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   $values = $form_state['values'];
   devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles']);
 }
 
+/**
+ * Generates nodes using FormAPI.
+ */
 function devel_generate_content_form() {
   $options = array();
 
@@ -198,7 +206,7 @@ function devel_generate_content_form() {
     '#disabled' => !module_exists('locale'),
     '#description' => t('Requires locale.module'),
     '#options' => $options,
-    '#default_value' => LANGUAGE_NONE,
+    '#default_value' => array(LANGUAGE_NONE),
   );
 
   $form['submit'] = array(
@@ -210,6 +218,9 @@ function devel_generate_content_form() {
   return $form;
 }
 
+/**
+ * FormAPI submission to generate nodes.
+ */
 function devel_generate_content_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate', 'devel_generate');
   $form_state['values']['node_types'] = array_filter($form_state['values']['node_types']);
@@ -223,6 +234,9 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
   }
 }
 
+/**
+ * Generates taxonomy terms using FormAPI.
+ */
 function devel_generate_term_form() {
   $options = array();
   foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
@@ -260,6 +274,9 @@ function devel_generate_term_form() {
   return $form;
 }
 
+/**
+ * Generates taxonomy vocabularies using FormAPI.
+ */
 function devel_generate_vocab_form() {
   $form['num_vocabs'] = array(
     '#type' => 'textfield',
@@ -285,17 +302,29 @@ function devel_generate_vocab_form() {
   return $form;
 }
 
+/**
+ * FormAPI submission to generate taxonomy terms.
+ */
 function devel_generate_term_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   $vocabs = taxonomy_vocabulary_load_multiple($form_state['values']['vids']);
   devel_generate_term_data($vocabs, $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 
+/**
+ * FormAPI submission to generate taxonomy vocabularies.
+ */
 function devel_generate_vocab_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   devel_generate_vocab_data($form_state['values']['num_vocabs'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 
+/**
+ * Inserts nodes properly based on generation options.
+ *
+ * @param $node
+ *  The base node created on submit. Inspects $node->devel_generate.
+ */
 function devel_generate_node_insert($node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
@@ -321,11 +350,25 @@ function devel_generate_node_insert($node) {
   }
 }
 
+/**
+ * Set a message for either drush or the web interface.
+ *
+ * @param $msg
+ *  The message to display.
+ * @param $type
+ *  The message type, as defined by drupal_set_message().
+ *
+ * @return
+ *  Context-appropriate message output.
+ */
 function devel_generate_set_message($msg, $type = 'status') {
   $function  = function_exists('drush_log') ? 'drush_log' : 'drupal_set_message';
   $function($msg, $type);
 }
 
+/**
+ * Generates menus using FormAPI.
+ */
 function devel_generate_menu_form() {
   $menu_enabled = module_exists('menu');
   if ($menu_enabled) {
@@ -407,6 +450,9 @@ function devel_generate_menu_form() {
   return $form;
 }
 
+/**
+ * FormAPI submission to generate menus.
+ */
 function devel_generate_menu_form_submit($form_id, &$form_state) {
   // If the create new menus checkbox is off, set the number of new menus to 0.
   if (!isset($form_state['values']['existing_menus']['__new-menu__']) || !$form_state['values']['existing_menus']['__new-menu__']) {
