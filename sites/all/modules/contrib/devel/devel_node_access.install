@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_node_access.install,v 1.6 2010/09/10 20:58:53 salvis Exp $
 
 /**
  * Implements hook_uninstall().

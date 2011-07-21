@@ -1,5 +1,4 @@
 <?php
-// $Id: devel_generate.drush.inc,v 1.11 2010/10/26 03:51:53 weitzman Exp $
 
 /**
  * @file
@@ -137,7 +136,7 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
     $add_language = explode(',', str_replace(' ', '', $add_language));
     // Intersect with the enabled languages to make sure the language args
     // passed are actually enabled.
-    $values['values']['add_language'] = array_flip(array_intersect($add_language, array_keys(locale_language_list())));
+    $values['values']['add_language'] = array_intersect($add_language, array_keys(locale_language_list()));
   }
 
   // Load user 1; is needed for creating *published* comments.
