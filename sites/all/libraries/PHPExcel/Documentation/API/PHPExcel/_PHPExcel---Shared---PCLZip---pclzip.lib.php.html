@@ -1,0 +1,1282 @@
+<html>
+<head>
+<title>Docs for page pclzip.lib.php</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      		  [ <a href="../classtrees_PHPExcel.html" class="menu">class tree: PHPExcel</a> ]
+		  [ <a href="../elementindex_PHPExcel.html" class="menu">index: PHPExcel</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---almohanad.php.html">		almohanad.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-chinese-simplified.php.html">		arialunicid0-chinese-simplified.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-chinese-traditional.php.html">		arialunicid0-chinese-traditional.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-japanese.php.html">		arialunicid0-japanese.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-korean.php.html">		arialunicid0-korean.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0.php.html">		arialunicid0.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Autoloader.php.html">		Autoloader.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---CachedObjectStorageFactory.php.html">		CachedObjectStorageFactory.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---chinese.php.html">		chinese.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Comment.php.html">		Comment.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---courier.php.html">		courier.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---credits.php.html">		credits.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusans.php.html">		dejavusans.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansb.php.html">		dejavusansb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansbi.php.html">		dejavusansbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensed.php.html">		dejavusanscondensed.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedb.php.html">		dejavusanscondensedb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedbi.php.html">		dejavusanscondensedbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedi.php.html">		dejavusanscondensedi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansi.php.html">		dejavusansi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmono.php.html">		dejavusansmono.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonob.php.html">		dejavusansmonob.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonobi.php.html">		dejavusansmonobi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonoi.php.html">		dejavusansmonoi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserif.php.html">		dejavuserif.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifb.php.html">		dejavuserifb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifbi.php.html">		dejavuserifbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensed.php.html">		dejavuserifcondensed.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedb.php.html">		dejavuserifcondensedb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedbi.php.html">		dejavuserifcondensedbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedi.php.html">		dejavuserifcondensedi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifi.php.html">		dejavuserifi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---docs.php.html">		docs.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---DocumentProperties.php.html">		DocumentProperties.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---DocumentSecurity.php.html">		DocumentSecurity.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---download.php.html">		download.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---example.php.html">		example.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---footer.php.html">		footer.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemono.php.html">		freemono.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonob.php.html">		freemonob.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonobi.php.html">		freemonobi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonoi.php.html">		freemonoi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesans.php.html">		freesans.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansb.php.html">		freesansb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansbi.php.html">		freesansbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansi.php.html">		freesansi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserif.php.html">		freeserif.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifb.php.html">		freeserifb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifbi.php.html">		freeserifbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifi.php.html">		freeserifi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---HashTable.php.html">		HashTable.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---header.php.html">		header.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helvetica.php.html">		helvetica.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticab.php.html">		helveticab.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticabi.php.html">		helveticabi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticai.php.html">		helveticai.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---hysmyeongjostdmedium.php.html">		hysmyeongjostdmedium.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---IComparable.php.html">		IComparable.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---index.php.html">		index.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---IOFactory.php.html">		IOFactory.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---kozgopromedium.php.html">		kozgopromedium.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---kozminproregular.php.html">		kozminproregular.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LagrangeInterpolation.php.html">		LagrangeInterpolation.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LagrangeInterpolation2.php.html">		LagrangeInterpolation2.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LevenbergMarquardt.php.html">		LevenbergMarquardt.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LMQuadTest.php.html">		LMQuadTest.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---msungstdlight.php.html">		msungstdlight.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---NamedRange.php.html">		NamedRange.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---navbar.php.html">		navbar.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---package.php.html">		package.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PCLZip---pclzip.lib.php.html">		pclzip.lib.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel.php.html">		PHPExcel.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html">		polyfit.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---ReferenceHelper.php.html">		ReferenceHelper.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---stsongstdlight.php.html">		stsongstdlight.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---symbol.php.html">		symbol.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---test.php.html">		test.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---tests---TestMatrix.php.html">		TestMatrix.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---tile.php.html">		tile.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---times.php.html">		times.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesb.php.html">		timesb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesbi.php.html">		timesbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesi.php.html">		timesi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---trend---trendClass.php.html">		trendClass.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ac15.php.html">		uni2cid_ac15.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ag15.php.html">		uni2cid_ag15.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_aj16.php.html">		uni2cid_aj16.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ak12.php.html">		uni2cid_ak12.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---WorksheetIterator.php.html">		WorksheetIterator.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---zapfdingbats.php.html">		zapfdingbats.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---zarbold.php.html">		zarbold.php
+		</a><br>
+	  </div><br />
+      
+            <b>Interfaces:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel/PHPExcel_IComparable.html">PHPExcel_IComparable</a><br />
+	  </div>
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel/LagrangeInterpolation.html">LagrangeInterpolation</a><br />
+	    		<a href="../PHPExcel/LevenbergMarquardt.html">LevenbergMarquardt</a><br />
+	    		<a href="../PHPExcel/LMQuadTest.html">LMQuadTest</a><br />
+	    		<a href="../PHPExcel/PclZip.html">PclZip</a><br />
+	    		<a href="../PHPExcel/PHPExcel.html">PHPExcel</a><br />
+	    		<a href="../PHPExcel/PHPExcel_Autoloader.html">PHPExcel_Autoloader</a><br />
+	    		<a href="../PHPExcel/PHPExcel_CachedObjectStorageFactory.html">PHPExcel_CachedObjectStorageFactory</a><br />
+	    		<a href="../PHPExcel/PHPExcel_Comment.html">PHPExcel_Comment</a><br />
+	    		<a href="../PHPExcel/PHPExcel_DocumentProperties.html">PHPExcel_DocumentProperties</a><br />
+	    		<a href="../PHPExcel/PHPExcel_DocumentSecurity.html">PHPExcel_DocumentSecurity</a><br />
+	    		<a href="../PHPExcel/PHPExcel_HashTable.html">PHPExcel_HashTable</a><br />
+	    		<a href="../PHPExcel/PHPExcel_IOFactory.html">PHPExcel_IOFactory</a><br />
+	    		<a href="../PHPExcel/PHPExcel_NamedRange.html">PHPExcel_NamedRange</a><br />
+	    		<a href="../PHPExcel/PHPExcel_ReferenceHelper.html">PHPExcel_ReferenceHelper</a><br />
+	    		<a href="../PHPExcel/PHPExcel_WorksheetIterator.html">PHPExcel_WorksheetIterator</a><br />
+	    		<a href="../PHPExcel/TestMatrix.html">TestMatrix</a><br />
+	    		<a href="../PHPExcel/trendClass.html">trendClass</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Procedural File: pclzip.lib.php</h1>
+Source Location: /PHPExcel/Shared/PCLZip/pclzip.lib.php<br /><br />
+
+<br>
+<br>
+
+<div class="contents">
+<h2>Classes:</h2>
+<dt><a href="../PHPExcel/PclZip.html">PclZip</a></dt>
+	<dd></dd>
+</div><br /><br />
+
+<h2>Page Details:</h2>
+<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>filesource:</b>&nbsp;&nbsp;</td><td><a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html">Source Code for this file</a></td>
+  </tr>
+</table>
+</div>
+<br /><br />
+<br /><br />
+<br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_COMMENT"></a>
+	<h3>PCLZIP_ATT_FILE_COMMENT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a162">162</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_COMMENT = 79006</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_CONTENT"></a>
+	<h3>PCLZIP_ATT_FILE_CONTENT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a161">161</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_CONTENT = 79005</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_MTIME"></a>
+	<h3>PCLZIP_ATT_FILE_MTIME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a160">160</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_MTIME = 79004</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_NAME"></a>
+	<h3>PCLZIP_ATT_FILE_NAME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a157">157</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_NAME = 79001</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_NEW_FULL_NAME"></a>
+	<h3>PCLZIP_ATT_FILE_NEW_FULL_NAME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a159">159</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_NEW_FULL_NAME = 79003</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ATT_FILE_NEW_SHORT_NAME"></a>
+	<h3>PCLZIP_ATT_FILE_NEW_SHORT_NAME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a158">158</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ATT_FILE_NEW_SHORT_NAME = 79002</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_CB_POST_ADD"></a>
+	<h3>PCLZIP_CB_POST_ADD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a168">168</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_CB_POST_ADD = 78004</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_CB_POST_EXTRACT"></a>
+	<h3>PCLZIP_CB_POST_EXTRACT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a166">166</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_CB_POST_EXTRACT = 78002</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_CB_PRE_ADD"></a>
+	<h3>PCLZIP_CB_PRE_ADD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a167">167</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_CB_PRE_ADD = 78003</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_CB_PRE_EXTRACT"></a>
+	<h3>PCLZIP_CB_PRE_EXTRACT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a165">165</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_CB_PRE_EXTRACT = 78001</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERROR_EXTERNAL"></a>
+	<h3>PCLZIP_ERROR_EXTERNAL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a53">53</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERROR_EXTERNAL = 0</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_ALREADY_A_DIRECTORY"></a>
+	<h3>PCLZIP_ERR_ALREADY_A_DIRECTORY <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a121">121</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_ALREADY_A_DIRECTORY = -17</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_BAD_CHECKSUM"></a>
+	<h3>PCLZIP_ERR_BAD_CHECKSUM <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a117">117</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_BAD_CHECKSUM = -13</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_BAD_EXTENSION"></a>
+	<h3>PCLZIP_ERR_BAD_EXTENSION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a113">113</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_BAD_EXTENSION = -9</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_BAD_EXTRACTED_FILE"></a>
+	<h3>PCLZIP_ERR_BAD_EXTRACTED_FILE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a111">111</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_BAD_EXTRACTED_FILE = -7</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_BAD_FORMAT"></a>
+	<h3>PCLZIP_ERR_BAD_FORMAT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a114">114</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_BAD_FORMAT = -10</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_DELETE_FILE_FAIL"></a>
+	<h3>PCLZIP_ERR_DELETE_FILE_FAIL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a115">115</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_DELETE_FILE_FAIL = -11</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_DIRECTORY_RESTRICTION"></a>
+	<h3>PCLZIP_ERR_DIRECTORY_RESTRICTION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a125">125</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_DIRECTORY_RESTRICTION = -21</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_DIR_CREATE_FAIL"></a>
+	<h3>PCLZIP_ERR_DIR_CREATE_FAIL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a112">112</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_DIR_CREATE_FAIL = -8</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_FILENAME_TOO_LONG"></a>
+	<h3>PCLZIP_ERR_FILENAME_TOO_LONG <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a109">109</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_FILENAME_TOO_LONG = -5</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_INVALID_ARCHIVE_ZIP"></a>
+	<h3>PCLZIP_ERR_INVALID_ARCHIVE_ZIP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a118">118</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_INVALID_ARCHIVE_ZIP = -14</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_INVALID_ATTRIBUTE_VALUE"></a>
+	<h3>PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a124">124</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_INVALID_ATTRIBUTE_VALUE = -20</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_INVALID_OPTION_VALUE"></a>
+	<h3>PCLZIP_ERR_INVALID_OPTION_VALUE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a120">120</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_INVALID_OPTION_VALUE = -16</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_INVALID_PARAMETER"></a>
+	<h3>PCLZIP_ERR_INVALID_PARAMETER <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a107">107</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_INVALID_PARAMETER = -3</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_INVALID_ZIP"></a>
+	<h3>PCLZIP_ERR_INVALID_ZIP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a110">110</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_INVALID_ZIP = -6</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_MISSING_FILE"></a>
+	<h3>PCLZIP_ERR_MISSING_FILE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a108">108</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_MISSING_FILE = -4</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_MISSING_OPTION_VALUE"></a>
+	<h3>PCLZIP_ERR_MISSING_OPTION_VALUE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a119">119</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_MISSING_OPTION_VALUE = -15</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_NO_ERROR"></a>
+	<h3>PCLZIP_ERR_NO_ERROR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a104">104</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_NO_ERROR = 0</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_READ_OPEN_FAIL"></a>
+	<h3>PCLZIP_ERR_READ_OPEN_FAIL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a106">106</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_READ_OPEN_FAIL = -2</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_RENAME_FILE_FAIL"></a>
+	<h3>PCLZIP_ERR_RENAME_FILE_FAIL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a116">116</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_RENAME_FILE_FAIL = -12</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_UNSUPPORTED_COMPRESSION"></a>
+	<h3>PCLZIP_ERR_UNSUPPORTED_COMPRESSION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a122">122</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_UNSUPPORTED_COMPRESSION = -18</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_UNSUPPORTED_ENCRYPTION"></a>
+	<h3>PCLZIP_ERR_UNSUPPORTED_ENCRYPTION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a123">123</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_UNSUPPORTED_ENCRYPTION = -19</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_USER_ABORTED"></a>
+	<h3>PCLZIP_ERR_USER_ABORTED <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a103">103</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_USER_ABORTED = 2</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_ERR_WRITE_OPEN_FAIL"></a>
+	<h3>PCLZIP_ERR_WRITE_OPEN_FAIL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a105">105</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_ERR_WRITE_OPEN_FAIL = -1</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_ADD_COMMENT"></a>
+	<h3>PCLZIP_OPT_ADD_COMMENT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a140">140</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_ADD_COMMENT = 77013</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_ADD_PATH"></a>
+	<h3>PCLZIP_OPT_ADD_PATH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a129">129</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_ADD_PATH = 77002</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_ADD_TEMP_FILE_OFF"></a>
+	<h3>PCLZIP_OPT_ADD_TEMP_FILE_OFF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a154">154</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_ADD_TEMP_FILE_OFF = 77022</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_ADD_TEMP_FILE_ON"></a>
+	<h3>PCLZIP_OPT_ADD_TEMP_FILE_ON <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a152">152</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_ADD_TEMP_FILE_ON = 77021</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_ADD_TEMP_FILE_THRESHOLD"></a>
+	<h3>PCLZIP_OPT_ADD_TEMP_FILE_THRESHOLD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a150">150</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_ADD_TEMP_FILE_THRESHOLD = 77020</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_BY_EREG"></a>
+	<h3>PCLZIP_OPT_BY_EREG <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a137">137</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_BY_EREG = 77010</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_BY_INDEX"></a>
+	<h3>PCLZIP_OPT_BY_INDEX <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a136">136</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_BY_INDEX = 77009</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_BY_NAME"></a>
+	<h3>PCLZIP_OPT_BY_NAME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a135">135</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_BY_NAME = 77008</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_BY_PREG"></a>
+	<h3>PCLZIP_OPT_BY_PREG <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a138">138</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_BY_PREG = 77011</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_COMMENT"></a>
+	<h3>PCLZIP_OPT_COMMENT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a139">139</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_COMMENT = 77012</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_EXTRACT_AS_STRING"></a>
+	<h3>PCLZIP_OPT_EXTRACT_AS_STRING <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a133">133</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_EXTRACT_AS_STRING = 77006</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_EXTRACT_DIR_RESTRICTION"></a>
+	<h3>PCLZIP_OPT_EXTRACT_DIR_RESTRICTION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a148">148</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_EXTRACT_DIR_RESTRICTION = 77019</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_EXTRACT_IN_OUTPUT"></a>
+	<h3>PCLZIP_OPT_EXTRACT_IN_OUTPUT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a142">142</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_EXTRACT_IN_OUTPUT = 77015</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_NO_COMPRESSION"></a>
+	<h3>PCLZIP_OPT_NO_COMPRESSION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a134">134</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_NO_COMPRESSION = 77007</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_PATH"></a>
+	<h3>PCLZIP_OPT_PATH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a128">128</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_PATH = 77001</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_PREPEND_COMMENT"></a>
+	<h3>PCLZIP_OPT_PREPEND_COMMENT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a141">141</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_PREPEND_COMMENT = 77014</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_REMOVE_ALL_PATH"></a>
+	<h3>PCLZIP_OPT_REMOVE_ALL_PATH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a131">131</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_REMOVE_ALL_PATH = 77004</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_REMOVE_PATH"></a>
+	<h3>PCLZIP_OPT_REMOVE_PATH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a130">130</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_REMOVE_PATH = 77003</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_REPLACE_NEWER"></a>
+	<h3>PCLZIP_OPT_REPLACE_NEWER <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a143">143</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_REPLACE_NEWER = 77016</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_SET_CHMOD"></a>
+	<h3>PCLZIP_OPT_SET_CHMOD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a132">132</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_SET_CHMOD = 77005</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_STOP_ON_ERROR"></a>
+	<h3>PCLZIP_OPT_STOP_ON_ERROR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a144">144</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_STOP_ON_ERROR = 77017</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_TEMP_FILE_OFF"></a>
+	<h3>PCLZIP_OPT_TEMP_FILE_OFF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a153">153</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_TEMP_FILE_OFF = 77022</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_TEMP_FILE_ON"></a>
+	<h3>PCLZIP_OPT_TEMP_FILE_ON <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a151">151</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_TEMP_FILE_ON = 77021</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_OPT_TEMP_FILE_THRESHOLD"></a>
+	<h3>PCLZIP_OPT_TEMP_FILE_THRESHOLD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a149">149</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_OPT_TEMP_FILE_THRESHOLD = 77020</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_READ_BLOCK_SIZE"></a>
+	<h3>PCLZIP_READ_BLOCK_SIZE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a30">30</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_READ_BLOCK_SIZE = 2048</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_SEPARATOR"></a>
+	<h3>PCLZIP_SEPARATOR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a44">44</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_SEPARATOR = ','</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_TEMPORARY_DIR"></a>
+	<h3>PCLZIP_TEMPORARY_DIR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a66">66</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_TEMPORARY_DIR = ''</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+  <hr />
+	<a name="definePCLZIP_TEMPORARY_FILE_RATIO"></a>
+	<h3>PCLZIP_TEMPORARY_FILE_RATIO <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a78">78</a>]</span></h3>
+	<div class="tags">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PCLZIP_TEMPORARY_FILE_RATIO = 0.47</code>
+    </td></tr></table>
+    </td></tr></table>
+
+        <br />
+		</div>
+	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+<br />
+  <hr />
+	<a name="functionPclZipUtilCopyBlock"></a>
+	<h3>PclZipUtilCopyBlock <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5554">5554</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilCopyBlock(
+ $p_src,  $p_dest,  $p_size, [ $p_mode = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_src</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_dest</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_size</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_mode</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+  <hr />
+	<a name="functionPclZipUtilOptionText"></a>
+	<h3>PclZipUtilOptionText <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5646">5646</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilOptionText(
+ $p_option)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_option</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+  <hr />
+	<a name="functionPclZipUtilPathInclusion"></a>
+	<h3>PclZipUtilPathInclusion <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5477">5477</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilPathInclusion(
+ $p_dir,  $p_path)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_dir</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+  <hr />
+	<a name="functionPclZipUtilPathReduction"></a>
+	<h3>PclZipUtilPathReduction <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5396">5396</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilPathReduction(
+ $p_dir)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_dir</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+  <hr />
+	<a name="functionPclZipUtilRename"></a>
+	<h3>PclZipUtilRename <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5616">5616</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilRename(
+ $p_src,  $p_dest)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_src</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_dest</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+  <hr />
+	<a name="functionPclZipUtilTranslateWinPath"></a>
+	<h3>PclZipUtilTranslateWinPath <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5677">5677</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void PclZipUtilTranslateWinPath(
+ $p_path, [ $p_remove_disk_letter = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+
+		    <br /><br />
+	
+    		<h4>Parameters</h4>
+    <table border="0" cellspacing="0" cellpadding="0">
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+		      <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_remove_disk_letter</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+				</table>
+    	<div class="top">[ <a href="#top">Top</a> ]</div><br /><br />
+	</div>
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:33:09 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

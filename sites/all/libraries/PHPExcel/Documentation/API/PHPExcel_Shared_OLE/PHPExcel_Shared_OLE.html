@@ -1,0 +1,948 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Shared_OLE</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Shared_OLE</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                          		  [ <a href="../classtrees_PHPExcel_Shared_OLE.html" class="menu">class tree: PHPExcel_Shared_OLE</a> ]
+		  [ <a href="../elementindex_PHPExcel_Shared_OLE.html" class="menu">index: PHPExcel_Shared_OLE</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Shared_OLE/_PHPExcel---Shared---OLE---ChainedBlockStream.php.html">		ChainedBlockStream.php
+		</a><br>
+			<a href="../PHPExcel_Shared_OLE/_PHPExcel---Shared---OLE---PPS---File.php.html">		File.php
+		</a><br>
+			<a href="../PHPExcel_Shared_OLE/_PHPExcel---Shared---OLE.php.html">		OLE.php
+		</a><br>
+			<a href="../PHPExcel_Shared_OLE/_PHPExcel---Shared---OLE---PPS.php.html">		PPS.php
+		</a><br>
+			<a href="../PHPExcel_Shared_OLE/_PHPExcel---Shared---OLE---PPS---Root.php.html">		Root.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+	    		<a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE_ChainedBlockStream.html">PHPExcel_Shared_OLE_ChainedBlockStream</a><br />
+	    		<a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE_PPS.html">PHPExcel_Shared_OLE_PPS</a><br />
+	    		<a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE_PPS_File.html">PHPExcel_Shared_OLE_PPS_File</a><br />
+	    		<a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE_PPS_Root.html">PHPExcel_Shared_OLE_PPS_Root</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Shared_OLE</h1>
+Source Location: /PHPExcel/Shared/OLE.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">OLE package base class.</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+          <li>Xavier Noguer &lt;<a href="mailto:xnoguer@php.net">xnoguer@php.net</a>&gt;</li>
+              <li>Christian Schmidt &lt;<a href="mailto:schmidt@php.net">schmidt@php.net</a>&gt;</li>
+      </ul>
+
+
+
+
+        
+
+        
+</td>
+
+<td valign="top">
+<h3><a href="#class_vars">Variables</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$bbat">$bbat</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$bigBlockSize">$bigBlockSize</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$root">$root</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$sbat">$sbat</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$smallBlockSize">$smallBlockSize</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$_file_handle">$_file_handle</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#var$_list">$_list</a></li>
+  </ul>
+</td>
+
+<td valign="top">
+<h3><a href="#class_consts">Constants</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_DATA_SIZE_SMALL">OLE_DATA_SIZE_SMALL</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_LONG_INT_SIZE">OLE_LONG_INT_SIZE</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_PPS_SIZE">OLE_PPS_SIZE</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_PPS_TYPE_DIR">OLE_PPS_TYPE_DIR</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_PPS_TYPE_FILE">OLE_PPS_TYPE_FILE</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#constOLE_PPS_TYPE_ROOT">OLE_PPS_TYPE_ROOT</a></li>
+  </ul>
+</td>
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodAsc2Ucs">Asc2Ucs</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodgetData">getData</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodgetDataLength">getDataLength</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodgetStream">getStream</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodisFile">isFile</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodisRoot">isRoot</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodLocalDate2OLE">LocalDate2OLE</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodOLE2LocalDate">OLE2LocalDate</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodppsTotal">ppsTotal</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#methodread">read</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#method_getBlockOffset">_getBlockOffset</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#method_ppsTreeComplete">_ppsTreeComplete</a></li>
+    <li><a href="../PHPExcel_Shared_OLE/PHPExcel_Shared_OLE.html#method_readPpsWks">_readPpsWks</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a38">38</a>]<br />
+OLE package base class.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>author:</b>&nbsp;&nbsp;</td><td>Xavier Noguer &lt;<a href="mailto:xnoguer@php.net">xnoguer@php.net</a>&gt;</td>
+  </tr>
+  <tr>
+    <td><b>author:</b>&nbsp;&nbsp;</td><td>Christian Schmidt &lt;<a href="mailto:schmidt@php.net">schmidt@php.net</a>&gt;</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+<hr />
+<a name="class_vars"></a>
+<h3>Class Variables</h3>
+<div class="tags">
+	<a name="var$bbat"></a>
+	<p></p>
+	<h4>$bbat = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a69">69</a>]</p>
+  Big Block Allocation Table<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>var:</b>&nbsp;&nbsp;</td><td>(blockId =&gt; nextBlockId)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$bigBlockSize"></a>
+	<p></p>
+	<h4>$bigBlockSize = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a81">81</a>]</p>
+  Size of big blocks. This is usually 512.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>var:</b>&nbsp;&nbsp;</td><td>number of octets per block.</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>int</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$root"></a>
+	<p></p>
+	<h4>$root = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a63">63</a>]</p>
+  Root directory of OLE container<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>OLE_PPS_Root</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$sbat"></a>
+	<p></p>
+	<h4>$sbat = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a75">75</a>]</p>
+  Short Block Allocation Table<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>var:</b>&nbsp;&nbsp;</td><td>(blockId =&gt; nextBlockId)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$smallBlockSize"></a>
+	<p></p>
+	<h4>$smallBlockSize = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a87">87</a>]</p>
+  Size of small blocks. This is usually 64.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>var:</b>&nbsp;&nbsp;</td><td>number of octets per block</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>int</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_file_handle"></a>
+	<p></p>
+	<h4>$_file_handle = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a51">51</a>]</p>
+  The file handle for reading an OLE container<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>resource</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_list"></a>
+	<p></p>
+	<h4>$_list = <span class="value">array()</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a57">57</a>]</p>
+  Array of PPS's found on the OLE container<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="methodAsc2Ucs"></a>
+	<h3>static method Asc2Ucs <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a446">446</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string Asc2Ucs(
+string
+$ascii)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Utility function to transform ASCII text to Unicode<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The string in Unicode</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$ascii</b>&nbsp;&nbsp;</td>
+        <td>The ASCII string to transform</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLocalDate2OLE"></a>
+	<h3>static method LocalDate2OLE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a464">464</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string LocalDate2OLE(
+[integer
+$date = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Utility function  Returns a string for the OLE container with the date given<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The string for the OLE container</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$date</b>&nbsp;&nbsp;</td>
+        <td>A timestamp</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodOLE2LocalDate"></a>
+	<h3>static method OLE2LocalDate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a509">509</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string OLE2LocalDate(
+integer
+$string)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Returns a timestamp from an OLE container's date<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The timestamp corresponding to the string</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$string</b>&nbsp;&nbsp;</td>
+        <td>A binary string with the encoded date</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+  <hr />
+	<a name="methodgetData"></a>
+	<h3>method getData <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a410">410</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getData(
+integer
+$index, integer
+$position, integer
+$length)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Gets data from a PPS  If there is no PPS for the index given, it will return an empty string.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The binary string containing the data requested</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>OLE_PPS_File::getStream()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$index</b>&nbsp;&nbsp;</td>
+        <td>The index for the PPS</td>
+      </tr>
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$position</b>&nbsp;&nbsp;</td>
+        <td>The position from which to start reading                           (relative to the PPS)</td>
+      </tr>
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$length</b>&nbsp;&nbsp;</td>
+        <td>The amount of bytes to read (at most)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetDataLength"></a>
+	<h3>method getDataLength <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a430">430</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>integer getDataLength(
+integer
+$index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Gets the data length from a PPS  If there is no PPS for the index given, it will return 0.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The amount of bytes in data the PPS has</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$index</b>&nbsp;&nbsp;</td>
+        <td>The index for the PPS</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetStream"></a>
+	<h3>method getStream <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a197">197</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>resource getStream(
+int|PPS
+$blockIdOrPps)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Returns a stream for use with fread() etc. External callers should  use PHPExcel_Shared_OLE_PPS_File::getStream().<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>read-only stream</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int|PPS&nbsp;&nbsp;</td>
+        <td><b>$blockIdOrPps</b>&nbsp;&nbsp;</td>
+        <td>block id or PPS</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisFile"></a>
+	<h3>method isFile <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a363">363</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>bool isFile(
+integer
+$index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Checks whether a PPS is a File PPS or not.<br /><br /><p>If there is no PPS for the index given, it will return false.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true if it's a File PPS, false otherwise</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$index</b>&nbsp;&nbsp;</td>
+        <td>The index for the PPS</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisRoot"></a>
+	<h3>method isRoot <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a379">379</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>bool isRoot(
+integer
+$index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Checks whether a PPS is a Root PPS or not.<br /><br /><p>If there is no PPS for the index given, it will return false.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true if it's a Root PPS, false otherwise</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$index</b>&nbsp;&nbsp;</td>
+        <td>The index for the PPS.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodppsTotal"></a>
+	<h3>method ppsTotal <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a393">393</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>integer ppsTotal(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Gives the total number of PPS's found in the OLE container.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The total number of PPS's found in the OLE container</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodread"></a>
+	<h3>method read <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a96">96</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed read(
+string
+$file)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Reads an OLE container from the contents of the file given.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, PEAR_Error on failure</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$file</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method_getBlockOffset"></a>
+	<h3>method _getBlockOffset <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a186">186</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void _getBlockOffset(
+int
+$blockId, int
+1)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>1</b>&nbsp;&nbsp;</td>
+        <td>byte offset from beginning of file</td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$blockId</b>&nbsp;&nbsp;</td>
+        <td>block id</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method_ppsTreeComplete"></a>
+	<h3>method _ppsTreeComplete <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a343">343</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean _ppsTreeComplete(
+integer
+$index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		It checks whether the PPS tree is complete (all PPS's read)  starting with the given PPS (not necessarily root)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Whether the PPS tree for the given PPS is complete</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$index</b>&nbsp;&nbsp;</td>
+        <td>The index of the PPS from which we are checking</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method_readPpsWks"></a>
+	<h3>method _readPpsWks <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a266">266</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed _readPpsWks(
+integer
+$blockId)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Gets information about all PPS's on the OLE container from the PPS WK's  creates an OLE_PPS object for each one.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, PEAR_Error on failure</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$blockId</b>&nbsp;&nbsp;</td>
+        <td>the block id of the first block</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+<hr />
+<a name="class_consts"></a>
+<h3>Class Constants</h3>
+<div class="tags">
+	<a name="constOLE_DATA_SIZE_SMALL"></a>
+	<p></p>
+	<h4>OLE_DATA_SIZE_SMALL = <span class="value">&nbsp;0x1000</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a43">43</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constOLE_LONG_INT_SIZE"></a>
+	<p></p>
+	<h4>OLE_LONG_INT_SIZE = <span class="value">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a44">44</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constOLE_PPS_SIZE"></a>
+	<p></p>
+	<h4>OLE_PPS_SIZE = <span class="value">&nbsp;&nbsp;&nbsp;0x80</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a45">45</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constOLE_PPS_TYPE_DIR"></a>
+	<p></p>
+	<h4>OLE_PPS_TYPE_DIR = <span class="value">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a41">41</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constOLE_PPS_TYPE_FILE"></a>
+	<p></p>
+	<h4>OLE_PPS_TYPE_FILE = <span class="value">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a42">42</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constOLE_PPS_TYPE_ROOT"></a>
+	<p></p>
+	<h4>OLE_PPS_TYPE_ROOT = <span class="value">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Shared_OLE__PHPExcelSharedOLE.php.html#a40">40</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:32:53 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,764 @@
+<html>
+<head>
+<title>phpDocumentor Parser Errors and Warnings</title>
+<link rel="stylesheet" type="text/css" href="media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Shared</td>
+  </tr>
+  <tr><td class="header_line"><img src="media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                      		  [ <a href="classtrees_PHPExcel_Shared.html" class="menu">class tree: PHPExcel_Shared</a> ]
+		  [ <a href="elementindex_PHPExcel_Shared.html" class="menu">index: PHPExcel_Shared</a> ]
+		  	    [ <a href="elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="li_PHPExcel.html">PHPExcel</a><br />
+              <a href="li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="li_JAMA.html">JAMA</a><br />
+              <a href="li_Math_Stats.html">Math_Stats</a><br />
+              <a href="li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<a href="#Post-parsing">Post-parsing</a><br>
+<a href="#APC.php">APC.php</a><br>
+<a href="#arialunicid0-chinese-simplified.php">arialunicid0-chinese-simplified.php</a><br>
+<a href="#arialunicid0-chinese-traditional.php">arialunicid0-chinese-traditional.php</a><br>
+<a href="#arialunicid0-japanese.php">arialunicid0-japanese.php</a><br>
+<a href="#arialunicid0-korean.php">arialunicid0-korean.php</a><br>
+<a href="#arialunicid0.php">arialunicid0.php</a><br>
+<a href="#Autoloader.php">Autoloader.php</a><br>
+<a href="#benchmark.php">benchmark.php</a><br>
+<a href="#CacheBase.php">CacheBase.php</a><br>
+<a href="#CachedObjectStorageFactory.php">CachedObjectStorageFactory.php</a><br>
+<a href="#Calculation.php">Calculation.php</a><br>
+<a href="#chinese.php">chinese.php</a><br>
+<a href="#CholeskyDecomposition.php">CholeskyDecomposition.php</a><br>
+<a href="#courier.php">courier.php</a><br>
+<a href="#credits.php">credits.php</a><br>
+<a href="#dejavusans.php">dejavusans.php</a><br>
+<a href="#dejavusansb.php">dejavusansb.php</a><br>
+<a href="#dejavusansbi.php">dejavusansbi.php</a><br>
+<a href="#dejavusanscondensed.php">dejavusanscondensed.php</a><br>
+<a href="#dejavusanscondensedb.php">dejavusanscondensedb.php</a><br>
+<a href="#dejavusanscondensedbi.php">dejavusanscondensedbi.php</a><br>
+<a href="#dejavusanscondensedi.php">dejavusanscondensedi.php</a><br>
+<a href="#dejavusansi.php">dejavusansi.php</a><br>
+<a href="#dejavusansmono.php">dejavusansmono.php</a><br>
+<a href="#dejavusansmonob.php">dejavusansmonob.php</a><br>
+<a href="#dejavusansmonobi.php">dejavusansmonobi.php</a><br>
+<a href="#dejavusansmonoi.php">dejavusansmonoi.php</a><br>
+<a href="#dejavuserif.php">dejavuserif.php</a><br>
+<a href="#dejavuserifb.php">dejavuserifb.php</a><br>
+<a href="#dejavuserifbi.php">dejavuserifbi.php</a><br>
+<a href="#dejavuserifcondensed.php">dejavuserifcondensed.php</a><br>
+<a href="#dejavuserifcondensedb.php">dejavuserifcondensedb.php</a><br>
+<a href="#dejavuserifcondensedbi.php">dejavuserifcondensedbi.php</a><br>
+<a href="#dejavuserifcondensedi.php">dejavuserifcondensedi.php</a><br>
+<a href="#dejavuserifi.php">dejavuserifi.php</a><br>
+<a href="#docs.php">docs.php</a><br>
+<a href="#download.php">download.php</a><br>
+<a href="#EigenvalueDecomposition.php">EigenvalueDecomposition.php</a><br>
+<a href="#Error.php">Error.php</a><br>
+<a href="#example.php">example.php</a><br>
+<a href="#Excel2003XML.php">Excel2003XML.php</a><br>
+<a href="#exponentialBestFitClass.php">exponentialBestFitClass.php</a><br>
+<a href="#footer.php">footer.php</a><br>
+<a href="#freemono.php">freemono.php</a><br>
+<a href="#freemonob.php">freemonob.php</a><br>
+<a href="#freemonobi.php">freemonobi.php</a><br>
+<a href="#freemonoi.php">freemonoi.php</a><br>
+<a href="#freesans.php">freesans.php</a><br>
+<a href="#freesansb.php">freesansb.php</a><br>
+<a href="#freesansbi.php">freesansbi.php</a><br>
+<a href="#freesansi.php">freesansi.php</a><br>
+<a href="#freeserif.php">freeserif.php</a><br>
+<a href="#freeserifb.php">freeserifb.php</a><br>
+<a href="#freeserifbi.php">freeserifbi.php</a><br>
+<a href="#freeserifi.php">freeserifi.php</a><br>
+<a href="#header.php">header.php</a><br>
+<a href="#helvetica.php">helvetica.php</a><br>
+<a href="#helveticab.php">helveticab.php</a><br>
+<a href="#helveticabi.php">helveticabi.php</a><br>
+<a href="#helveticai.php">helveticai.php</a><br>
+<a href="#hysmyeongjostdmedium.php">hysmyeongjostdmedium.php</a><br>
+<a href="#ICache.php">ICache.php</a><br>
+<a href="#index.php">index.php</a><br>
+<a href="#kozgopromedium.php">kozgopromedium.php</a><br>
+<a href="#kozminproregular.php">kozminproregular.php</a><br>
+<a href="#LagrangeInterpolation.php">LagrangeInterpolation.php</a><br>
+<a href="#LagrangeInterpolation2.php">LagrangeInterpolation2.php</a><br>
+<a href="#LevenbergMarquardt.php">LevenbergMarquardt.php</a><br>
+<a href="#linearBestFitClass.php">linearBestFitClass.php</a><br>
+<a href="#LMQuadTest.php">LMQuadTest.php</a><br>
+<a href="#logarithmicBestFitClass.php">logarithmicBestFitClass.php</a><br>
+<a href="#LUDecomposition.php">LUDecomposition.php</a><br>
+<a href="#MagicSquareExample.php">MagicSquareExample.php</a><br>
+<a href="#Maths.php">Maths.php</a><br>
+<a href="#Matrix.php">Matrix.php</a><br>
+<a href="#Memcache.php">Memcache.php</a><br>
+<a href="#msungstdlight.php">msungstdlight.php</a><br>
+<a href="#navbar.php">navbar.php</a><br>
+<a href="#OLE.php">OLE.php</a><br>
+<a href="#OLERead.php">OLERead.php</a><br>
+<a href="#package.php">package.php</a><br>
+<a href="#pclzip.lib.php">pclzip.lib.php</a><br>
+<a href="#polyfit.php">polyfit.php</a><br>
+<a href="#polynomialBestFitClass.php">polynomialBestFitClass.php</a><br>
+<a href="#powerBestFitClass.php">powerBestFitClass.php</a><br>
+<a href="#QRDecomposition.php">QRDecomposition.php</a><br>
+<a href="#Settings.php">Settings.php</a><br>
+<a href="#SingularValueDecomposition.php">SingularValueDecomposition.php</a><br>
+<a href="#Stats.php">Stats.php</a><br>
+<a href="#stsongstdlight.php">stsongstdlight.php</a><br>
+<a href="#symbol.php">symbol.php</a><br>
+<a href="#test.php">test.php</a><br>
+<a href="#TestMatrix.php">TestMatrix.php</a><br>
+<a href="#tile.php">tile.php</a><br>
+<a href="#times.php">times.php</a><br>
+<a href="#timesb.php">timesb.php</a><br>
+<a href="#timesbi.php">timesbi.php</a><br>
+<a href="#timesi.php">timesi.php</a><br>
+<a href="#trendClass.php">trendClass.php</a><br>
+<a href="#uni2cid_ac15.php">uni2cid_ac15.php</a><br>
+<a href="#uni2cid_ag15.php">uni2cid_ag15.php</a><br>
+<a href="#uni2cid_aj16.php">uni2cid_aj16.php</a><br>
+<a href="#uni2cid_ak12.php">uni2cid_ak12.php</a><br>
+<a href="#Wincache.php">Wincache.php</a><br>
+<a href="#Worksheet.php">Worksheet.php</a><br>
+<a href="#XMLWriter.php">XMLWriter.php</a><br>
+<a href="#zapfdingbats.php">zapfdingbats.php</a><br>
+<a href="#zarbold.php">zarbold.php</a><br>
+<a href="#ZipArchive.php">ZipArchive.php</a><br>
+<a name="Post-parsing"></a>
+<h1>Post-parsing</h1>
+<h2>Warnings:</h2><br>
+<b>Warning</b> - 
+duplicate define element "PDF_HEADER_LOGO_WIDTH" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_HEADER_LOGO" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_HEADER_STRING" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_HEADER_TITLE" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_UNIT" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_HEADER" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_LEFT" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_BOTTOM" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_TOP" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_FOOTER" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_AUTHOR" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_CREATOR" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_FONTS" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_URL" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_MAIN" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate class element "LagrangeInterpolation" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\LagrangeInterpolation2.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_CACHE" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_URL_CACHE" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_PAGE_FORMAT" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_BLANK_IMAGE" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_PATH_IMAGES" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_MARGIN_RIGHT" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_PAGE_ORIENTATION" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_TITLE_MAGNIFICATION" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "HEAD_MAGNIFICATION" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_SMALL_RATIO" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_THAI_TOPCHARS" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_TCPDF_CALLS_IN_HTML" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_IMAGE_SCALE_RATIO" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "K_CELL_HEIGHT_RATIO" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_FONT_MONOSPACED" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_FONT_NAME_MAIN" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_FONT_NAME_DATA" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_FONT_SIZE_MAIN" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning</b> - 
+duplicate define element "PDF_FONT_SIZE_DATA" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\config\tcpdf_config_alt.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<a name="almohanad.php"></a>
+<h1>almohanad.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 101</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\almohanad.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="arialunicid0-chinese-simplified.php"></a>
+<h1>arialunicid0-chinese-simplified.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1767</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\arialunicid0-chinese-simplified.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="arialunicid0-chinese-traditional.php"></a>
+<h1>arialunicid0-chinese-traditional.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1767</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\arialunicid0-chinese-traditional.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="arialunicid0-japanese.php"></a>
+<h1>arialunicid0-japanese.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1767</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\arialunicid0-japanese.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="arialunicid0-korean.php"></a>
+<h1>arialunicid0-korean.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1767</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\arialunicid0-korean.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="arialunicid0.php"></a>
+<h1>arialunicid0.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1768</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\arialunicid0.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="Autoloader.php"></a>
+<h1>Autoloader.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 37</b> - DocBlock would be page-level, but precedes class "PHPExcel_Autoloader", use another DocBlock to document the file<br>
+<a name="benchmark.php"></a>
+<h1>benchmark.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 8</b> - Page-level DocBlock precedes "require_once '../Matrix.php'", use another DocBlock to document the source element<br>
+<b>Warning on line 15</b> - no @package tag was used in a DocBlock for class Benchmark<br>
+<a name="CachedObjectStorageFactory.php"></a>
+<h1>CachedObjectStorageFactory.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 2</b> - no @package tag was used in a DocBlock for class PHPExcel_CachedObjectStorageFactory<br>
+<b>Warning on line 130</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\CachedObjectStorageFactory.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="Calculation.php"></a>
+<h1>Calculation.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 47</b> - 
+duplicate define element "CALCULATION_REGEXP_CELLREF" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Calculation.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning on line 49</b> - 
+duplicate define element "CALCULATION_REGEXP_NAMEDRANGE" in file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Calculation.php will be ignored.
+Use an @ignore tag on the original if you want this case to be documented.<br>
+<b>Warning on line 3782</b> - no @package tag was used in a DocBlock for class PHPExcel_Token_Stack<br>
+<a name="chinese.php"></a>
+<h1>chinese.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 14</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\chinese.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="CholeskyDecomposition.php"></a>
+<h1>CholeskyDecomposition.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 17</b> - DocBlock would be page-level, but precedes class "CholeskyDecomposition", use another DocBlock to document the file<br>
+<a name="courier.php"></a>
+<h1>courier.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\courier.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="credits.php"></a>
+<h1>credits.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 13</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\includes\credits.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusans.php"></a>
+<h1>dejavusans.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 516</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusans.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansb.php"></a>
+<h1>dejavusansb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 503</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansbi.php"></a>
+<h1>dejavusansbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 457</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusanscondensed.php"></a>
+<h1>dejavusanscondensed.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 516</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusanscondensed.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusanscondensedb.php"></a>
+<h1>dejavusanscondensedb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 503</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusanscondensedb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusanscondensedbi.php"></a>
+<h1>dejavusanscondensedbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 457</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusanscondensedbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusanscondensedi.php"></a>
+<h1>dejavusanscondensedi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 470</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusanscondensedi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansi.php"></a>
+<h1>dejavusansi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 470</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansmono.php"></a>
+<h1>dejavusansmono.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 319</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansmono.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansmonob.php"></a>
+<h1>dejavusansmonob.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 306</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansmonob.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansmonobi.php"></a>
+<h1>dejavusansmonobi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 249</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansmonobi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavusansmonoi.php"></a>
+<h1>dejavusansmonoi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 261</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavusansmonoi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserif.php"></a>
+<h1>dejavuserif.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 312</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserif.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifb.php"></a>
+<h1>dejavuserifb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 298</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifbi.php"></a>
+<h1>dejavuserifbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 298</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifcondensed.php"></a>
+<h1>dejavuserifcondensed.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 312</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifcondensed.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifcondensedb.php"></a>
+<h1>dejavuserifcondensedb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 298</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifcondensedb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifcondensedbi.php"></a>
+<h1>dejavuserifcondensedbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 298</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifcondensedbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifcondensedi.php"></a>
+<h1>dejavuserifcondensedi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 311</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifcondensedi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="dejavuserifi.php"></a>
+<h1>dejavuserifi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 311</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\dejavuserifi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="docs.php"></a>
+<h1>docs.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 5</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\docs.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="download.php"></a>
+<h1>download.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 15</b> - Unknown tag "@modified" used<br>
+<b>Warning on line 64</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\download.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="EigenvalueDecomposition.php"></a>
+<h1>EigenvalueDecomposition.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 23</b> - DocBlock would be page-level, but precedes class "EigenvalueDecomposition", use another DocBlock to document the file<br>
+<a name="Error.php"></a>
+<h1>Error.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 10</b> - Page-level DocBlock precedes "define JAMALANG", use another DocBlock to document the source element<br>
+<a name="example.php"></a>
+<h1>example.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 165</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\example.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="exponentialBestFitClass.php"></a>
+<h1>exponentialBestFitClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/trend/bestFitClass.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_Best_Fit"<br>
+<a name="footer.php"></a>
+<h1>footer.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\includes\footer.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freemono.php"></a>
+<h1>freemono.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 347</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freemono.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freemonob.php"></a>
+<h1>freemonob.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 203</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freemonob.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freemonobi.php"></a>
+<h1>freemonobi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 152</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freemonobi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freemonoi.php"></a>
+<h1>freemonoi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 220</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freemonoi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freesans.php"></a>
+<h1>freesans.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 310</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freesans.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freesansb.php"></a>
+<h1>freesansb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 235</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freesansb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freesansbi.php"></a>
+<h1>freesansbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 224</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freesansbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freesansi.php"></a>
+<h1>freesansi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 238</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freesansi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freeserif.php"></a>
+<h1>freeserif.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 503</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freeserif.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freeserifb.php"></a>
+<h1>freeserifb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 281</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freeserifb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freeserifbi.php"></a>
+<h1>freeserifbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 237</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freeserifbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="freeserifi.php"></a>
+<h1>freeserifi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 258</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\freeserifi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="header.php"></a>
+<h1>header.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 10</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\includes\header.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="helvetica.php"></a>
+<h1>helvetica.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\helvetica.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="helveticab.php"></a>
+<h1>helveticab.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\helveticab.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="helveticabi.php"></a>
+<h1>helveticabi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\helveticabi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="helveticai.php"></a>
+<h1>helveticai.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\helveticai.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="hysmyeongjostdmedium.php"></a>
+<h1>hysmyeongjostdmedium.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 47</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\hysmyeongjostdmedium.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="index.php"></a>
+<h1>index.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 29</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\index.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="kozgopromedium.php"></a>
+<h1>kozgopromedium.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 64</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\kozgopromedium.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="kozminproregular.php"></a>
+<h1>kozminproregular.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 62</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\kozminproregular.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="LagrangeInterpolation.php"></a>
+<h1>LagrangeInterpolation.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 20</b> - no @package tag was used in a DocBlock for class LagrangeInterpolation<br>
+<b>Warning on line 58</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\LagrangeInterpolation.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="LagrangeInterpolation2.php"></a>
+<h1>LagrangeInterpolation2.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 21</b> - no @package tag was used in a DocBlock for class LagrangeInterpolation<br>
+<b>Warning on line 58</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\LagrangeInterpolation2.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="LevenbergMarquardt.php"></a>
+<h1>LevenbergMarquardt.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 6</b> - no @package tag was used in a DocBlock for class LevenbergMarquardt<br>
+<b>Warning on line 184</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\LevenbergMarquardt.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="linearBestFitClass.php"></a>
+<h1>linearBestFitClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/trend/bestFitClass.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_Best_Fit"<br>
+<a name="LMQuadTest.php"></a>
+<h1>LMQuadTest.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 6</b> - no @package tag was used in a DocBlock for class LMQuadTest<br>
+<b>Warning on line 115</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\LMQuadTest.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="logarithmicBestFitClass.php"></a>
+<h1>logarithmicBestFitClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/trend/bestFitClass.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_Best_Fit"<br>
+<a name="LUDecomposition.php"></a>
+<h1>LUDecomposition.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 20</b> - DocBlock would be page-level, but precedes class "PHPExcel_Shared_JAMA_LUDecomposition", use another DocBlock to document the file<br>
+<a name="MagicSquareExample.php"></a>
+<h1>MagicSquareExample.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 5</b> - Page-level DocBlock precedes "require_once "../Matrix.php"", use another DocBlock to document the source element<br>
+<b>Warning on line 10</b> - no @package tag was used in a DocBlock for class MagicSquareExample<br>
+<a name="Maths.php"></a>
+<h1>Maths.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 24</b> - Page-level DocBlock precedes "function hypo", use another DocBlock to document the source element<br>
+<a name="Matrix.php"></a>
+<h1>Matrix.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 26</b> - no @package tag was used in a DocBlock for class PHPExcel_Shared_JAMA_Matrix<br>
+<a name="msungstdlight.php"></a>
+<h1>msungstdlight.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 37</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\msungstdlight.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="navbar.php"></a>
+<h1>navbar.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 4</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\includes\navbar.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="OLE.php"></a>
+<h1>OLE.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 37</b> - no @package tag was used in a DocBlock for file C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\OLE.php<br>
+<b>Warning on line 95</b> - Unknown tag "@acces" used<br>
+<a name="OLERead.php"></a>
+<h1>OLERead.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 27</b> - Page-level DocBlock precedes "define IDENTIFIER_OLE", use another DocBlock to document the source element<br>
+<b>Warning on line 29</b> - no @package tag was used in a DocBlock for class PHPExcel_Shared_OLERead<br>
+<h2>Errors:</h2><br>
+<b>Error on line 27</b> - IDENTIFIER_OLE define's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared"<br>
+<a name="package.php"></a>
+<h1>package.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 35</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\package.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="pclzip.lib.php"></a>
+<h1>pclzip.lib.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 190</b> - no @package tag was used in a DocBlock for class PclZip<br>
+<b>Warning on line 5693</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PCLZip\pclzip.lib.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="polyfit.php"></a>
+<h1>polyfit.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 72</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\polyfit.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="polynomialBestFitClass.php"></a>
+<h1>polynomialBestFitClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/trend/bestFitClass.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_Best_Fit"<br>
+<a name="powerBestFitClass.php"></a>
+<h1>powerBestFitClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/trend/bestFitClass.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_Best_Fit"<br>
+<a name="QRDecomposition.php"></a>
+<h1>QRDecomposition.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 18</b> - DocBlock would be page-level, but precedes class "PHPExcel_Shared_JAMA_QRDecomposition", use another DocBlock to document the file<br>
+<a name="Settings.php"></a>
+<h1>Settings.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 38</b> - no @package tag was used in a DocBlock for class PHPExcel_Settings<br>
+<a name="SingularValueDecomposition.php"></a>
+<h1>SingularValueDecomposition.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 19</b> - DocBlock would be page-level, but precedes class "SingularValueDecomposition", use another DocBlock to document the file<br>
+<a name="Stats.php"></a>
+<h1>Stats.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 1604</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\Stats.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="stsongstdlight.php"></a>
+<h1>stsongstdlight.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 38</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\stsongstdlight.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="symbol.php"></a>
+<h1>symbol.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 31</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\symbol.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="test.php"></a>
+<h1>test.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 27</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\docs\test.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="TestMatrix.php"></a>
+<h1>TestMatrix.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 4</b> - no @package tag was used in a DocBlock for class TestMatrix<br>
+<b>Warning on line 414</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\tests\TestMatrix.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="tile.php"></a>
+<h1>tile.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 77</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\JAMA\examples\tile.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="times.php"></a>
+<h1>times.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\times.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="timesb.php"></a>
+<h1>timesb.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\timesb.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="timesbi.php"></a>
+<h1>timesbi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\timesbi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="timesi.php"></a>
+<h1>timesi.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 32</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\timesi.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="trendClass.php"></a>
+<h1>trendClass.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 10</b> - no @package tag was used in a DocBlock for class trendClass<br>
+<b>Warning on line 107</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\trend\trendClass.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="uni2cid_ac15.php"></a>
+<h1>uni2cid_ac15.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 23612</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\uni2cid_ac15.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="uni2cid_ag15.php"></a>
+<h1>uni2cid_ag15.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 30221</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\uni2cid_ag15.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="uni2cid_aj16.php"></a>
+<h1>uni2cid_aj16.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 15704</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\uni2cid_aj16.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="uni2cid_ak12.php"></a>
+<h1>uni2cid_ak12.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 17529</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\uni2cid_ak12.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="Worksheet.php"></a>
+<h1>Worksheet.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 762</b> - method "PHPExcel_Writer_Excel5_Worksheet::_writeBlank()" is assumed to be @access private because its name starts with _, but has no @access tag<br>
+<a name="XMLWriter.php"></a>
+<h1>XMLWriter.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 28</b> - Page-level DocBlock precedes "define DATE_W3C", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 28</b> - DATE_W3C define's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared"<br>
+<a name="zapfdingbats.php"></a>
+<h1>zapfdingbats.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 31</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\zapfdingbats.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="zarbold.php"></a>
+<h1>zarbold.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 46</b> - File "C:\USB\_werk\PHPExcel\Working\Build\build\Classes\PHPExcel\Shared\PDF\fonts\zarbold.php" has no page-level DocBlock, use @package in the first DocBlock to create one<br>
+<a name="ZipArchive.php"></a>
+<h1>ZipArchive.php</h1>
+<h2>Warnings:</h2><br>
+<b>Warning on line 27</b> - Page-level DocBlock precedes "require_once PHPEXCEL_ROOT.'PHPExcel/Shared/PCLZip/pclzip.lib.php'", use another DocBlock to document the source element<br>
+<h2>Errors:</h2><br>
+<b>Error on line 27</b> - require_once include's DocBlock has @package tag, illegal. ignoring tag "@package PHPExcel_Shared_ZipArchive"<br>
+<a name="APC.php"></a>
+<h1>APC.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 81</b> - DocBlock has multiple @return tags, illegal. ignoring additional tag "@return boolean "<br>
+<a name="CacheBase.php"></a>
+<h1>CacheBase.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 83</b> - DocBlock has multiple @return tags, illegal. ignoring additional tag "@return boolean "<br>
+<a name="Excel2003XML.php"></a>
+<h1>Excel2003XML.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 262</b> - "@return" tag was used without any parameters, illegal<br>
+<b>Error on line 275</b> - "@return" tag was used without any parameters, illegal<br>
+<a name="ICache.php"></a>
+<h1>ICache.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 80</b> - DocBlock has multiple @return tags, illegal. ignoring additional tag "@return boolean "<br>
+<a name="Memcache.php"></a>
+<h1>Memcache.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 86</b> - DocBlock has multiple @return tags, illegal. ignoring additional tag "@return boolean "<br>
+<a name="Wincache.php"></a>
+<h1>Wincache.php</h1>
+<h2>Errors:</h2><br>
+<b>Error on line 90</b> - DocBlock has multiple @return tags, illegal. ignoring additional tag "@return boolean "<br>
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:37:34 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

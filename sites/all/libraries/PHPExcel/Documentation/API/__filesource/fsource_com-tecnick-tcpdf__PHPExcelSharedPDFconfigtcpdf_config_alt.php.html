@@ -1,0 +1,314 @@
+<html>
+<head>
+<title>File Source for tcpdf_config_alt.php</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">com-tecnick-tcpdf</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  		  [ <a href="../classtrees_com-tecnick-tcpdf.html" class="menu">class tree: com-tecnick-tcpdf</a> ]
+		  [ <a href="../elementindex_com-tecnick-tcpdf.html" class="menu">index: com-tecnick-tcpdf</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                  
+      
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1 align="center">Source for file tcpdf_config_alt.php</h1>
+<p>Documentation is available at <a href="../com-tecnick-tcpdf/_PHPExcel---Shared---PDF---config---tcpdf_config_alt.php.html">tcpdf_config_alt.php</a></p>
+<div class="src-code">
+<ol><li><div class="src-line"><a name="a1"></a><span class="src-php">&lt;?php</span></div></li>
+<li><div class="src-line"><a name="a2"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a3"></a><span class="src-comm">//&nbsp;File&nbsp;name&nbsp;&nbsp;&nbsp;:&nbsp;tcpdf_config.php</span></div></li>
+<li><div class="src-line"><a name="a4"></a><span class="src-comm">//&nbsp;Begin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;2004-06-11</span></div></li>
+<li><div class="src-line"><a name="a5"></a><span class="src-comm">//&nbsp;Last&nbsp;Update&nbsp;:&nbsp;2010-08-19</span></div></li>
+<li><div class="src-line"><a name="a6"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a7"></a><span class="src-comm">//&nbsp;Description&nbsp;:&nbsp;Alternative&nbsp;configuration&nbsp;file&nbsp;for&nbsp;TCPDF.</span></div></li>
+<li><div class="src-line"><a name="a8"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a9"></a><span class="src-comm">//&nbsp;Author:&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a10"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a11"></a><span class="src-comm">//&nbsp;(c)&nbsp;Copyright:</span></div></li>
+<li><div class="src-line"><a name="a12"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a13"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tecnick.com&nbsp;s.r.l.</span></div></li>
+<li><div class="src-line"><a name="a14"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Via&nbsp;Della&nbsp;Pace,&nbsp;11</span></div></li>
+<li><div class="src-line"><a name="a15"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;09044&nbsp;Quartucciu&nbsp;(CA)</span></div></li>
+<li><div class="src-line"><a name="a16"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ITALY</span></div></li>
+<li><div class="src-line"><a name="a17"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;www.tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a18"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;info@tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a19"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a20"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a21"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a22"></a><span class="src-doc">&nbsp;*&nbsp;Alternative&nbsp;configuration&nbsp;file&nbsp;for&nbsp;TCPDF.</span></div></li>
+<li><div class="src-line"><a name="a23"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@author</span><span class="src-doc">&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a24"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@copyright</span><span class="src-doc">&nbsp;2004-2010&nbsp;Nicola&nbsp;Asuni&nbsp;-&nbsp;Tecnick.com&nbsp;S.r.l&nbsp;(www.tecnick.com)&nbsp;Via&nbsp;Della&nbsp;Pace,&nbsp;11&nbsp;-&nbsp;09044&nbsp;-&nbsp;Quartucciu&nbsp;(CA)&nbsp;-&nbsp;ITALY&nbsp;-&nbsp;www.tecnick.com&nbsp;-&nbsp;info@tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a25"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@package</span><span class="src-doc">&nbsp;com.tecnick.tcpdf</span></div></li>
+<li><div class="src-line"><a name="a26"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@version</span><span class="src-doc">&nbsp;4.9.005</span></div></li>
+<li><div class="src-line"><a name="a27"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@link</span><span class="src-doc">&nbsp;http://tcpdf.sourceforge.net</span></div></li>
+<li><div class="src-line"><a name="a28"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@license</span><span class="src-doc">&nbsp;http://www.gnu.org/copyleft/lesser.html&nbsp;LGPL</span></div></li>
+<li><div class="src-line"><a name="a29"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@since</span><span class="src-doc">&nbsp;2004-10-27</span></div></li>
+<li><div class="src-line"><a name="a30"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a31"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a32"></a><span class="src-comm">//&nbsp;DOCUMENT_ROOT&nbsp;fix&nbsp;for&nbsp;IIS&nbsp;Webserver</span></div></li>
+<li><div class="src-line"><a name="a33"></a><span class="src-key">if&nbsp;</span><span class="src-sym">((</span><span class="src-sym">!</span>isset<span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-key">OR&nbsp;</span><span class="src-sym">(</span><span class="src-key">empty</span><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]</span><span class="src-sym">)))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a34"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'SCRIPT_FILENAME'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a35"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]&nbsp;</span>=&nbsp;<a href="http://www.php.net/str_replace">str_replace</a><span class="src-sym">(&nbsp;</span><span class="src-str">'\\'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'/'</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'SCRIPT_FILENAME'</span><span class="src-sym">]</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span>-<a href="http://www.php.net/strlen">strlen</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'PHP_SELF'</span><span class="src-sym">]</span><span class="src-sym">)))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a36"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}&nbsp;</span><span class="src-key">elseif</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'PATH_TRANSLATED'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a37"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]&nbsp;</span>=&nbsp;<a href="http://www.php.net/str_replace">str_replace</a><span class="src-sym">(&nbsp;</span><span class="src-str">'\\'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'/'</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><a href="http://www.php.net/str_replace">str_replace</a><span class="src-sym">(</span><span class="src-str">'\\\\'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'\\'</span><span class="src-sym">,&nbsp;</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'PATH_TRANSLATED'</span><span class="src-sym">]</span><span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span>-<a href="http://www.php.net/strlen">strlen</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'PHP_SELF'</span><span class="src-sym">]</span><span class="src-sym">)))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a38"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="src-key">else&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a39"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;define&nbsp;here&nbsp;your&nbsp;DOCUMENT_ROOT&nbsp;path&nbsp;if&nbsp;the&nbsp;previous&nbsp;fails</span></div></li>
+<li><div class="src-line"><a name="a40"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]&nbsp;</span>=&nbsp;<span class="src-str">'/var/www'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a41"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a42"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a43"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a44"></a><span class="src-comm">//&nbsp;Automatic&nbsp;calculation&nbsp;for&nbsp;the&nbsp;following&nbsp;K_PATH_MAIN&nbsp;constant</span></div></li>
+<li><div class="src-line"><a name="a45"></a><span class="src-var">$k_path_main&nbsp;</span>=&nbsp;<a href="http://www.php.net/str_replace">str_replace</a><span class="src-sym">(&nbsp;</span><span class="src-str">'\\'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'/'</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/realpath">realpath</a><span class="src-sym">(</span><a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><a href="http://www.php.net/dirname">dirname</a><span class="src-sym">(</span>__FILE__<span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span>-<a href="http://www.php.net/strlen">strlen</a><span class="src-sym">(</span><span class="src-str">'config'</span><span class="src-sym">))))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a46"></a><span class="src-key">if&nbsp;</span><span class="src-sym">(</span><a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><span class="src-var">$k_path_main</span><span class="src-sym">,&nbsp;</span>-<span class="src-num">1</span><span class="src-sym">)&nbsp;</span>!=&nbsp;<span class="src-str">'/'</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a47"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$k_path_main&nbsp;</span>.=&nbsp;<span class="src-str">'/'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a48"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a49"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a50"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a51"></a><span class="src-doc">&nbsp;*&nbsp;Installation&nbsp;path&nbsp;(/var/www/tcpdf/).</span></div></li>
+<li><div class="src-line"><a name="a52"></a><span class="src-doc">&nbsp;*&nbsp;By&nbsp;default&nbsp;it&nbsp;is&nbsp;automatically&nbsp;calculated&nbsp;but&nbsp;you&nbsp;can&nbsp;also&nbsp;set&nbsp;it&nbsp;as&nbsp;a&nbsp;fixed&nbsp;string&nbsp;to&nbsp;improve&nbsp;performances.</span></div></li>
+<li><div class="src-line"><a name="a53"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a54"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_MAIN'</span><span class="src-sym">,&nbsp;</span><span class="src-var">$k_path_main</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a55"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a56"></a><span class="src-comm">//&nbsp;Automatic&nbsp;calculation&nbsp;for&nbsp;the&nbsp;following&nbsp;K_PATH_URL&nbsp;constant</span></div></li>
+<li><div class="src-line"><a name="a57"></a><span class="src-key">if&nbsp;</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTP_HOST'</span><span class="src-sym">]</span><span class="src-sym">)&nbsp;</span><span class="src-key">AND&nbsp;</span><span class="src-sym">(</span><span class="src-sym">!</span><span class="src-key">empty</span><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTP_HOST'</span><span class="src-sym">]</span><span class="src-sym">)))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a58"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTPS'</span><span class="src-sym">]</span><span class="src-sym">)&nbsp;</span><span class="src-key">AND&nbsp;</span><span class="src-sym">(</span><span class="src-sym">!</span><span class="src-key">empty</span><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTPS'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-key">AND&nbsp;</span><a href="http://www.php.net/strtolower">strtolower</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTPS'</span><span class="src-sym">]</span><span class="src-sym">)</span>!=<span class="src-str">'off'</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a59"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$k_path_url&nbsp;</span>=&nbsp;<span class="src-str">'https://'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a60"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}&nbsp;</span><span class="src-key">else&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a61"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$k_path_url&nbsp;</span>=&nbsp;<span class="src-str">'http://'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a62"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a63"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$k_path_url&nbsp;</span>.=&nbsp;<span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'HTTP_HOST'</span><span class="src-sym">]</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a64"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$k_path_url&nbsp;</span>.=&nbsp;<a href="http://www.php.net/str_replace">str_replace</a><span class="src-sym">(&nbsp;</span><span class="src-str">'\\'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'/'</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><span class="src-id"><a href="../com-tecnick-tcpdf/_PHPExcel---Shared---PDF---config---tcpdf_config.php.html#defineK_PATH_MAIN">K_PATH_MAIN</a></span><span class="src-sym">,&nbsp;</span><span class="src-sym">(</span><a href="http://www.php.net/strlen">strlen</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'DOCUMENT_ROOT'</span><span class="src-sym">]</span><span class="src-sym">)&nbsp;</span>-&nbsp;<span class="src-num">1</span><span class="src-sym">)))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a65"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a66"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a67"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a68"></a><span class="src-doc">&nbsp;*&nbsp;URL&nbsp;path&nbsp;to&nbsp;tcpdf&nbsp;installation&nbsp;folder&nbsp;(http://localhost/tcpdf/).</span></div></li>
+<li><div class="src-line"><a name="a69"></a><span class="src-doc">&nbsp;*&nbsp;By&nbsp;default&nbsp;it&nbsp;is&nbsp;automatically&nbsp;calculated&nbsp;but&nbsp;you&nbsp;can&nbsp;also&nbsp;set&nbsp;it&nbsp;as&nbsp;a&nbsp;fixed&nbsp;string&nbsp;to&nbsp;improve&nbsp;performances..</span></div></li>
+<li><div class="src-line"><a name="a70"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a71"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_URL'</span><span class="src-sym">,&nbsp;</span><span class="src-var">$k_path_url</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a72"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a73"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a74"></a><span class="src-doc">&nbsp;*&nbsp;path&nbsp;for&nbsp;PDF&nbsp;fonts</span></div></li>
+<li><div class="src-line"><a name="a75"></a><span class="src-doc">&nbsp;*&nbsp;use&nbsp;K_PATH_MAIN.'fonts/old/'&nbsp;for&nbsp;old&nbsp;non-UTF8&nbsp;fonts</span></div></li>
+<li><div class="src-line"><a name="a76"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a77"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_FONTS'</span><span class="src-sym">,&nbsp;</span><span class="src-id">K_PATH_MAIN</span>.<span class="src-str">'fonts/'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a78"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a79"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a80"></a><span class="src-doc">&nbsp;*&nbsp;cache&nbsp;directory&nbsp;for&nbsp;temporary&nbsp;files&nbsp;(full&nbsp;path)</span></div></li>
+<li><div class="src-line"><a name="a81"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a82"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_CACHE'</span><span class="src-sym">,&nbsp;</span><span class="src-id">K_PATH_MAIN</span>.<span class="src-str">'cache/'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a83"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a84"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a85"></a><span class="src-doc">&nbsp;*&nbsp;cache&nbsp;directory&nbsp;for&nbsp;temporary&nbsp;files&nbsp;(url&nbsp;path)</span></div></li>
+<li><div class="src-line"><a name="a86"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a87"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_URL_CACHE'</span><span class="src-sym">,&nbsp;</span><span class="src-id">K_PATH_URL</span>.<span class="src-str">'cache/'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a88"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a89"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a90"></a><span class="src-doc">&nbsp;*images&nbsp;directory</span></div></li>
+<li><div class="src-line"><a name="a91"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a92"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_PATH_IMAGES'</span><span class="src-sym">,&nbsp;</span><span class="src-id">K_PATH_MAIN</span>.<span class="src-str">'images/'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a93"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a94"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a95"></a><span class="src-doc">&nbsp;*&nbsp;blank&nbsp;image</span></div></li>
+<li><div class="src-line"><a name="a96"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a97"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'K_BLANK_IMAGE'</span><span class="src-sym">,&nbsp;</span><span class="src-id">K_PATH_IMAGES</span>.<span class="src-str">'_blank.png'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a98"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a99"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a100"></a><span class="src-doc">&nbsp;*&nbsp;page&nbsp;format</span></div></li>
+<li><div class="src-line"><a name="a101"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a102"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_PAGE_FORMAT'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'A4'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a103"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a104"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a105"></a><span class="src-doc">&nbsp;*&nbsp;page&nbsp;orientation&nbsp;(P=portrait,&nbsp;L=landscape)</span></div></li>
+<li><div class="src-line"><a name="a106"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a107"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_PAGE_ORIENTATION'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'P'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a108"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a109"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a110"></a><span class="src-doc">&nbsp;*&nbsp;document&nbsp;creator</span></div></li>
+<li><div class="src-line"><a name="a111"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a112"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_CREATOR'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'TCPDF'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a113"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a114"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a115"></a><span class="src-doc">&nbsp;*&nbsp;document&nbsp;author</span></div></li>
+<li><div class="src-line"><a name="a116"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a117"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_AUTHOR'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'TCPDF'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a118"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a119"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a120"></a><span class="src-doc">&nbsp;*&nbsp;header&nbsp;title</span></div></li>
+<li><div class="src-line"><a name="a121"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a122"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_HEADER_TITLE'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'TCPDF&nbsp;Example'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a123"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a124"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a125"></a><span class="src-doc">&nbsp;*&nbsp;header&nbsp;description&nbsp;string</span></div></li>
+<li><div class="src-line"><a name="a126"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a127"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_HEADER_STRING'</span><span class="src-sym">,&nbsp;</span><span class="src-str">&quot;by&nbsp;Nicola&nbsp;Asuni&nbsp;-&nbsp;Tecnick.com\nwww.tcpdf.org&quot;</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a128"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a129"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a130"></a><span class="src-doc">&nbsp;*&nbsp;image&nbsp;logo</span></div></li>
+<li><div class="src-line"><a name="a131"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a132"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_HEADER_LOGO'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'tcpdf_logo.jpg'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a133"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a134"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a135"></a><span class="src-doc">&nbsp;*&nbsp;header&nbsp;logo&nbsp;image&nbsp;width&nbsp;[mm]</span></div></li>
+<li><div class="src-line"><a name="a136"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a137"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_HEADER_LOGO_WIDTH'</span><span class="src-sym">,&nbsp;</span><span class="src-num">30</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a138"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a139"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a140"></a><span class="src-doc">&nbsp;*&nbsp;&nbsp;document&nbsp;unit&nbsp;of&nbsp;measure&nbsp;[pt=point,&nbsp;mm=millimeter,&nbsp;cm=centimeter,&nbsp;in=inch]</span></div></li>
+<li><div class="src-line"><a name="a141"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a142"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_UNIT'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'mm'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a143"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a144"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a145"></a><span class="src-doc">&nbsp;*&nbsp;header&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a146"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a147"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_HEADER'</span><span class="src-sym">,&nbsp;</span><span class="src-num">5</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a148"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a149"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a150"></a><span class="src-doc">&nbsp;*&nbsp;footer&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a151"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a152"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_FOOTER'</span><span class="src-sym">,&nbsp;</span><span class="src-num">10</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a153"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a154"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a155"></a><span class="src-doc">&nbsp;*&nbsp;top&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a156"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a157"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_TOP'</span><span class="src-sym">,&nbsp;</span><span class="src-num">27</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a158"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a159"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a160"></a><span class="src-doc">&nbsp;*&nbsp;bottom&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a161"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a162"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_BOTTOM'</span><span class="src-sym">,&nbsp;</span><span class="src-num">25</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a163"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a164"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a165"></a><span class="src-doc">&nbsp;*&nbsp;left&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a166"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a167"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_LEFT'</span><span class="src-sym">,&nbsp;</span><span class="src-num">15</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a168"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a169"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a170"></a><span class="src-doc">&nbsp;*&nbsp;right&nbsp;margin</span></div></li>
+<li><div class="src-line"><a name="a171"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a172"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_MARGIN_RIGHT'</span><span class="src-sym">,&nbsp;</span><span class="src-num">15</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a173"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a174"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a175"></a><span class="src-doc">&nbsp;*&nbsp;default&nbsp;main&nbsp;font&nbsp;name</span></div></li>
+<li><div class="src-line"><a name="a176"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a177"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_FONT_NAME_MAIN'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'helvetica'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a178"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a179"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a180"></a><span class="src-doc">&nbsp;*&nbsp;default&nbsp;main&nbsp;font&nbsp;size</span></div></li>
+<li><div class="src-line"><a name="a181"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a182"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_FONT_SIZE_MAIN'</span><span class="src-sym">,&nbsp;</span><span class="src-num">10</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a183"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a184"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a185"></a><span class="src-doc">&nbsp;*&nbsp;default&nbsp;data&nbsp;font&nbsp;name</span></div></li>
+<li><div class="src-line"><a name="a186"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a187"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_FONT_NAME_DATA'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'helvetica'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a188"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a189"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a190"></a><span class="src-doc">&nbsp;*&nbsp;default&nbsp;data&nbsp;font&nbsp;size</span></div></li>
+<li><div class="src-line"><a name="a191"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a192"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_FONT_SIZE_DATA'</span><span class="src-sym">,&nbsp;</span><span class="src-num">8</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a193"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a194"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a195"></a><span class="src-doc">&nbsp;*&nbsp;default&nbsp;monospaced&nbsp;font&nbsp;name</span></div></li>
+<li><div class="src-line"><a name="a196"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a197"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_FONT_MONOSPACED'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'courier'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a198"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a199"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a200"></a><span class="src-doc">&nbsp;*&nbsp;ratio&nbsp;used&nbsp;to&nbsp;adjust&nbsp;the&nbsp;conversion&nbsp;of&nbsp;pixels&nbsp;to&nbsp;user&nbsp;units</span></div></li>
+<li><div class="src-line"><a name="a201"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a202"></a><a href="http://www.php.net/define">define</a>&nbsp;<span class="src-sym">(</span><span class="src-str">'PDF_IMAGE_SCALE_RATIO'</span><span class="src-sym">,&nbsp;</span><span class="src-num">1.25</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a203"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a204"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a205"></a><span class="src-doc">&nbsp;*&nbsp;magnification&nbsp;factor&nbsp;for&nbsp;titles</span></div></li>
+<li><div class="src-line"><a name="a206"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a207"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'HEAD_MAGNIFICATION'</span><span class="src-sym">,&nbsp;</span><span class="src-num">1.1</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a208"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a209"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a210"></a><span class="src-doc">&nbsp;*&nbsp;height&nbsp;of&nbsp;cell&nbsp;repect&nbsp;font&nbsp;height</span></div></li>
+<li><div class="src-line"><a name="a211"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a212"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'K_CELL_HEIGHT_RATIO'</span><span class="src-sym">,&nbsp;</span><span class="src-num">1.25</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a213"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a214"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a215"></a><span class="src-doc">&nbsp;*&nbsp;title&nbsp;magnification&nbsp;respect&nbsp;main&nbsp;font&nbsp;size</span></div></li>
+<li><div class="src-line"><a name="a216"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a217"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'K_TITLE_MAGNIFICATION'</span><span class="src-sym">,&nbsp;</span><span class="src-num">1.3</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a218"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a219"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a220"></a><span class="src-doc">&nbsp;*&nbsp;reduction&nbsp;factor&nbsp;for&nbsp;small&nbsp;font</span></div></li>
+<li><div class="src-line"><a name="a221"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a222"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'K_SMALL_RATIO'</span><span class="src-sym">,&nbsp;</span><span class="src-num">2</span>/<span class="src-num">3</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a223"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a224"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a225"></a><span class="src-doc">&nbsp;*&nbsp;set&nbsp;to&nbsp;true&nbsp;to&nbsp;enable&nbsp;the&nbsp;special&nbsp;procedure&nbsp;used&nbsp;to&nbsp;avoid&nbsp;the&nbsp;overlappind&nbsp;of&nbsp;symbols&nbsp;on&nbsp;Thai&nbsp;language</span></div></li>
+<li><div class="src-line"><a name="a226"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a227"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'K_THAI_TOPCHARS'</span><span class="src-sym">,&nbsp;</span><span class="src-id">true</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a228"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a229"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a230"></a><span class="src-doc">&nbsp;*&nbsp;if&nbsp;true&nbsp;allows&nbsp;to&nbsp;call&nbsp;TCPDF&nbsp;methods&nbsp;using&nbsp;HTML&nbsp;syntax</span></div></li>
+<li><div class="src-line"><a name="a231"></a><span class="src-doc">&nbsp;*&nbsp;IMPORTANT:&nbsp;For&nbsp;security&nbsp;reason,&nbsp;disable&nbsp;this&nbsp;feature&nbsp;if&nbsp;you&nbsp;are&nbsp;printing&nbsp;user&nbsp;HTML&nbsp;content.</span></div></li>
+<li><div class="src-line"><a name="a232"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a233"></a><a href="http://www.php.net/define">define</a><span class="src-sym">(</span><span class="src-str">'K_TCPDF_CALLS_IN_HTML'</span><span class="src-sym">,&nbsp;</span><span class="src-id">true</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a234"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a235"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a236"></a><span class="src-comm">//&nbsp;END&nbsp;OF&nbsp;FILE</span></div></li>
+<li><div class="src-line"><a name="a237"></a><span class="src-comm">//============================================================+</span></div></li>
+</ol>
+</div>
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:35:34 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

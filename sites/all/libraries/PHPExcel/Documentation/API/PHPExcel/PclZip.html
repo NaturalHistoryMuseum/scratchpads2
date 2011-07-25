@@ -1,0 +1,1968 @@
+<html>
+<head>
+<title>Docs For Class PclZip</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      		  [ <a href="../classtrees_PHPExcel.html" class="menu">class tree: PHPExcel</a> ]
+		  [ <a href="../elementindex_PHPExcel.html" class="menu">index: PHPExcel</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---almohanad.php.html">		almohanad.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-chinese-simplified.php.html">		arialunicid0-chinese-simplified.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-chinese-traditional.php.html">		arialunicid0-chinese-traditional.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-japanese.php.html">		arialunicid0-japanese.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0-korean.php.html">		arialunicid0-korean.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---arialunicid0.php.html">		arialunicid0.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Autoloader.php.html">		Autoloader.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---CachedObjectStorageFactory.php.html">		CachedObjectStorageFactory.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---chinese.php.html">		chinese.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Comment.php.html">		Comment.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---courier.php.html">		courier.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---credits.php.html">		credits.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusans.php.html">		dejavusans.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansb.php.html">		dejavusansb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansbi.php.html">		dejavusansbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensed.php.html">		dejavusanscondensed.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedb.php.html">		dejavusanscondensedb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedbi.php.html">		dejavusanscondensedbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusanscondensedi.php.html">		dejavusanscondensedi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansi.php.html">		dejavusansi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmono.php.html">		dejavusansmono.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonob.php.html">		dejavusansmonob.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonobi.php.html">		dejavusansmonobi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavusansmonoi.php.html">		dejavusansmonoi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserif.php.html">		dejavuserif.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifb.php.html">		dejavuserifb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifbi.php.html">		dejavuserifbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensed.php.html">		dejavuserifcondensed.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedb.php.html">		dejavuserifcondensedb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedbi.php.html">		dejavuserifcondensedbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifcondensedi.php.html">		dejavuserifcondensedi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---dejavuserifi.php.html">		dejavuserifi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---docs.php.html">		docs.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---DocumentProperties.php.html">		DocumentProperties.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---DocumentSecurity.php.html">		DocumentSecurity.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---download.php.html">		download.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---example.php.html">		example.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---footer.php.html">		footer.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemono.php.html">		freemono.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonob.php.html">		freemonob.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonobi.php.html">		freemonobi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freemonoi.php.html">		freemonoi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesans.php.html">		freesans.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansb.php.html">		freesansb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansbi.php.html">		freesansbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freesansi.php.html">		freesansi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserif.php.html">		freeserif.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifb.php.html">		freeserifb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifbi.php.html">		freeserifbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---freeserifi.php.html">		freeserifi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---HashTable.php.html">		HashTable.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---header.php.html">		header.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helvetica.php.html">		helvetica.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticab.php.html">		helveticab.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticabi.php.html">		helveticabi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---helveticai.php.html">		helveticai.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---hysmyeongjostdmedium.php.html">		hysmyeongjostdmedium.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---IComparable.php.html">		IComparable.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---index.php.html">		index.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---IOFactory.php.html">		IOFactory.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---kozgopromedium.php.html">		kozgopromedium.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---kozminproregular.php.html">		kozminproregular.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LagrangeInterpolation.php.html">		LagrangeInterpolation.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LagrangeInterpolation2.php.html">		LagrangeInterpolation2.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LevenbergMarquardt.php.html">		LevenbergMarquardt.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---LMQuadTest.php.html">		LMQuadTest.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---msungstdlight.php.html">		msungstdlight.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---NamedRange.php.html">		NamedRange.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---includes---navbar.php.html">		navbar.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---package.php.html">		package.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PCLZip---pclzip.lib.php.html">		pclzip.lib.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel.php.html">		PHPExcel.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html">		polyfit.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---ReferenceHelper.php.html">		ReferenceHelper.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---stsongstdlight.php.html">		stsongstdlight.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---symbol.php.html">		symbol.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---test.php.html">		test.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---tests---TestMatrix.php.html">		TestMatrix.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---tile.php.html">		tile.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---times.php.html">		times.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesb.php.html">		timesb.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesbi.php.html">		timesbi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---timesi.php.html">		timesi.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---trend---trendClass.php.html">		trendClass.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ac15.php.html">		uni2cid_ac15.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ag15.php.html">		uni2cid_ag15.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_aj16.php.html">		uni2cid_aj16.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---uni2cid_ak12.php.html">		uni2cid_ak12.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---WorksheetIterator.php.html">		WorksheetIterator.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---zapfdingbats.php.html">		zapfdingbats.php
+		</a><br>
+			<a href="../PHPExcel/_PHPExcel---Shared---PDF---fonts---zarbold.php.html">		zarbold.php
+		</a><br>
+	  </div><br />
+      
+            <b>Interfaces:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel/PHPExcel_IComparable.html">PHPExcel_IComparable</a><br />
+	  </div>
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel/LagrangeInterpolation.html">LagrangeInterpolation</a><br />
+	    		<a href="../PHPExcel/LevenbergMarquardt.html">LevenbergMarquardt</a><br />
+	    		<a href="../PHPExcel/LMQuadTest.html">LMQuadTest</a><br />
+	    		<a href="../PHPExcel/PclZip.html">PclZip</a><br />
+	    		<a href="../PHPExcel/PHPExcel.html">PHPExcel</a><br />
+	    		<a href="../PHPExcel/PHPExcel_Autoloader.html">PHPExcel_Autoloader</a><br />
+	    		<a href="../PHPExcel/PHPExcel_CachedObjectStorageFactory.html">PHPExcel_CachedObjectStorageFactory</a><br />
+	    		<a href="../PHPExcel/PHPExcel_Comment.html">PHPExcel_Comment</a><br />
+	    		<a href="../PHPExcel/PHPExcel_DocumentProperties.html">PHPExcel_DocumentProperties</a><br />
+	    		<a href="../PHPExcel/PHPExcel_DocumentSecurity.html">PHPExcel_DocumentSecurity</a><br />
+	    		<a href="../PHPExcel/PHPExcel_HashTable.html">PHPExcel_HashTable</a><br />
+	    		<a href="../PHPExcel/PHPExcel_IOFactory.html">PHPExcel_IOFactory</a><br />
+	    		<a href="../PHPExcel/PHPExcel_NamedRange.html">PHPExcel_NamedRange</a><br />
+	    		<a href="../PHPExcel/PHPExcel_ReferenceHelper.html">PHPExcel_ReferenceHelper</a><br />
+	    		<a href="../PHPExcel/PHPExcel_WorksheetIterator.html">PHPExcel_WorksheetIterator</a><br />
+	    		<a href="../PHPExcel/TestMatrix.html">TestMatrix</a><br />
+	    		<a href="../PHPExcel/trendClass.html">trendClass</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PclZip</h1>
+Source Location: /PHPExcel/Shared/PCLZip/pclzip.lib.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description"></div><br /><br />
+
+
+
+
+
+
+        
+</td>
+
+<td valign="top">
+<h3><a href="#class_vars">Variables</a></h3>
+<ul>
+    <li><a href="../PHPExcel/PclZip.html#var$error_code">$error_code</a></li>
+    <li><a href="../PHPExcel/PclZip.html#var$error_string">$error_string</a></li>
+    <li><a href="../PHPExcel/PclZip.html#var$magic_quotes_status">$magic_quotes_status</a></li>
+    <li><a href="../PHPExcel/PclZip.html#var$zipname">$zipname</a></li>
+    <li><a href="../PHPExcel/PclZip.html#var$zip_fd">$zip_fd</a></li>
+  </ul>
+</td>
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel/PclZip.html#methodPclZip">PclZip</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodadd">add</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodcreate">create</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methoddelete">delete</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methoddeleteByIndex">deleteByIndex</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodduplicate">duplicate</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methoderrorCode">errorCode</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methoderrorInfo">errorInfo</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methoderrorName">errorName</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodextract">extract</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodextractByIndex">extractByIndex</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodlistContent">listContent</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodmerge">merge</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivAdd">privAdd</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivAddFile">privAddFile</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivAddFileList">privAddFileList</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivAddFileUsingTempFile">privAddFileUsingTempFile</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivAddList">privAddList</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivCalculateStoredFilename">privCalculateStoredFilename</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivCheckFileHeaders">privCheckFileHeaders</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivCheckFormat">privCheckFormat</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivCloseFd">privCloseFd</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivConvertHeader2FileInfo">privConvertHeader2FileInfo</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivCreate">privCreate</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivDeleteByRule">privDeleteByRule</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivDirCheck">privDirCheck</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivDisableMagicQuotes">privDisableMagicQuotes</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivDuplicate">privDuplicate</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivErrorLog">privErrorLog</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivErrorReset">privErrorReset</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivExtractByRule">privExtractByRule</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivExtractFile">privExtractFile</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivExtractFileAsString">privExtractFileAsString</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivExtractFileInOutput">privExtractFileInOutput</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivExtractFileUsingTempFile">privExtractFileUsingTempFile</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivFileDescrExpand">privFileDescrExpand</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivFileDescrParseAtt">privFileDescrParseAtt</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivList">privList</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivMerge">privMerge</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivOpenFd">privOpenFd</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivOptionDefaultThreshold">privOptionDefaultThreshold</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivParseOptions">privParseOptions</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivReadCentralFileHeader">privReadCentralFileHeader</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivReadEndCentralDir">privReadEndCentralDir</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivReadFileHeader">privReadFileHeader</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivSwapBackMagicQuotes">privSwapBackMagicQuotes</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivWriteCentralFileHeader">privWriteCentralFileHeader</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivWriteCentralHeader">privWriteCentralHeader</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodprivWriteFileHeader">privWriteFileHeader</a></li>
+    <li><a href="../PHPExcel/PclZip.html#methodproperties">properties</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a190">190</a>]<br />
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+<hr />
+<a name="class_vars"></a>
+<h3>Class Variables</h3>
+<div class="tags">
+	<a name="var$error_code"></a>
+	<p></p>
+	<h4>$error_code = <span class="value">&nbsp;1</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a199">199</a>]</p>
+  
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>mixed</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$error_string"></a>
+	<p></p>
+	<h4>$error_string = <span class="value">&nbsp;''</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a200">200</a>]</p>
+  
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>mixed</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$magic_quotes_status"></a>
+	<p></p>
+	<h4>$magic_quotes_status = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a205">205</a>]</p>
+  
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>mixed</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$zipname"></a>
+	<p></p>
+	<h4>$zipname = <span class="value">&nbsp;''</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a193">193</a>]</p>
+  
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>mixed</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$zip_fd"></a>
+	<p></p>
+	<h4>$zip_fd = <span class="value">&nbsp;0</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a196">196</a>]</p>
+  
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>mixed</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+
+  <hr />
+	<a name="methodPclZip"></a>
+	<h3>constructor PclZip <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a215">215</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PclZip PclZip(
+
+$p_zipname)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_zipname</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodadd"></a>
+	<h3>method add <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a454">454</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void add(
+
+$p_filelist)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filelist</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcreate"></a>
+	<h3>method create <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a271">271</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void create(
+
+$p_filelist)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filelist</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoddelete"></a>
+	<h3>method delete <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1006">1006</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void delete(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoddeleteByIndex"></a>
+	<h3>method deleteByIndex <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1065">1065</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void deleteByIndex(
+
+$p_index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_index</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodduplicate"></a>
+	<h3>method duplicate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1162">1162</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void duplicate(
+
+$p_archive)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_archive</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoderrorCode"></a>
+	<h3>method errorCode <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1272">1272</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void errorCode(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoderrorInfo"></a>
+	<h3>method errorInfo <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1334">1334</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void errorInfo(
+[
+$p_full = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_full</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoderrorName"></a>
+	<h3>method errorName <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1288">1288</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void errorName(
+[
+$p_with_code = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_with_code</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodextract"></a>
+	<h3>method extract <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a700">700</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void extract(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodextractByIndex"></a>
+	<h3>method extractByIndex <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a857">857</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void extractByIndex(
+
+$p_index)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_index</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodlistContent"></a>
+	<h3>method listContent <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a643">643</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void listContent(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmerge"></a>
+	<h3>method merge <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1221">1221</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void merge(
+
+$p_archive_to_add)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_archive_to_add</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivAdd"></a>
+	<h3>method privAdd <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2159">2159</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privAdd(
+
+$p_filedescr_list, 
+&$p_result_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivAddFile"></a>
+	<h3>method privAddFile <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2525">2525</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privAddFile(
+
+$p_filedescr, 
+&$p_header, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivAddFileList"></a>
+	<h3>method privAddFileList <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2463">2463</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privAddFileList(
+
+$p_filedescr_list, 
+&$p_result_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivAddFileUsingTempFile"></a>
+	<h3>method privAddFileUsingTempFile <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2798">2798</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privAddFileUsingTempFile(
+
+$p_filedescr, 
+&$p_header, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivAddList"></a>
+	<h3>method privAddList <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2399">2399</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privAddList(
+
+$p_filedescr_list, 
+&$p_result_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivCalculateStoredFilename"></a>
+	<h3>method privCalculateStoredFilename <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2910">2910</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privCalculateStoredFilename(
+
+&$p_filedescr, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_filedescr</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivCheckFileHeaders"></a>
+	<h3>method privCheckFileHeaders <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4488">4488</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privCheckFileHeaders(
+
+&$p_local_header, 
+&$p_central_header)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_local_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_central_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivCheckFormat"></a>
+	<h3>method privCheckFormat <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1373">1373</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privCheckFormat(
+[
+$p_level = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_level</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivCloseFd"></a>
+	<h3>method privCloseFd <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2372">2372</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privCloseFd(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivConvertHeader2FileInfo"></a>
+	<h3>method privConvertHeader2FileInfo <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3236">3236</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privConvertHeader2FileInfo(
+
+$p_header, 
+&$p_info)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_info</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivCreate"></a>
+	<h3>method privCreate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2124">2124</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privCreate(
+
+$p_filedescr_list, 
+&$p_result_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_filedescr_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivDeleteByRule"></a>
+	<h3>method privDeleteByRule <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4682">4682</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privDeleteByRule(
+
+&$p_result_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivDirCheck"></a>
+	<h3>method privDirCheck <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4992">4992</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privDirCheck(
+
+$p_dir, [
+$p_is_dir = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_dir</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_is_dir</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivDisableMagicQuotes"></a>
+	<h3>method privDisableMagicQuotes <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5327">5327</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privDisableMagicQuotes(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivDuplicate"></a>
+	<h3>method privDuplicate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5232">5232</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privDuplicate(
+
+$p_archive_filename)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_archive_filename</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivErrorLog"></a>
+	<h3>method privErrorLog <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5292">5292</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privErrorLog(
+[
+$p_error_code = 0], [
+$p_error_string = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_error_code</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_error_string</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivErrorReset"></a>
+	<h3>method privErrorReset <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5309">5309</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privErrorReset(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivExtractByRule"></a>
+	<h3>method privExtractByRule <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3275">3275</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privExtractByRule(
+
+&$p_file_list, 
+$p_path, 
+$p_remove_path, 
+$p_remove_all_path, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_file_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_remove_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_remove_all_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivExtractFile"></a>
+	<h3>method privExtractFile <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3615">3615</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privExtractFile(
+
+&$p_entry, 
+$p_path, 
+$p_remove_path, 
+$p_remove_all_path, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_entry</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_remove_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_remove_all_path</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivExtractFileAsString"></a>
+	<h3>method privExtractFileAsString <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4154">4154</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privExtractFileAsString(
+
+&$p_entry, 
+&$p_string, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_entry</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_string</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivExtractFileInOutput"></a>
+	<h3>method privExtractFileInOutput <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4042">4042</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privExtractFileInOutput(
+
+&$p_entry, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_entry</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivExtractFileUsingTempFile"></a>
+	<h3>method privExtractFileUsingTempFile <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3966">3966</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privExtractFileUsingTempFile(
+
+&$p_entry, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_entry</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivFileDescrExpand"></a>
+	<h3>method privFileDescrExpand <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1999">1999</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privFileDescrExpand(
+
+&$p_filedescr_list, 
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_filedescr_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivFileDescrParseAtt"></a>
+	<h3>method privFileDescrParseAtt <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1870">1870</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privFileDescrParseAtt(
+
+&$p_file_list, 
+&$p_filedescr, 
+$v_options, [
+$v_requested_options = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_file_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_filedescr</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$v_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$v_requested_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivList"></a>
+	<h3>method privList <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3149">3149</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privList(
+
+&$p_list)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivMerge"></a>
+	<h3>method privMerge <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5047">5047</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privMerge(
+
+&$p_archive_to_add)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_archive_to_add</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivOpenFd"></a>
+	<h3>method privOpenFd <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a2338">2338</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privOpenFd(
+
+$p_mode)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_mode</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivOptionDefaultThreshold"></a>
+	<h3>method privOptionDefaultThreshold <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1826">1826</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privOptionDefaultThreshold(
+
+&$p_options)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivParseOptions"></a>
+	<h3>method privParseOptions <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1426">1426</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privParseOptions(
+
+&$p_options_list, 
+$p_size, 
+&$v_result_list, [
+$v_requested_options = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_options_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_size</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$v_result_list</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$v_requested_options</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivReadCentralFileHeader"></a>
+	<h3>method privReadCentralFileHeader <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4380">4380</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privReadCentralFileHeader(
+
+&$p_header)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivReadEndCentralDir"></a>
+	<h3>method privReadEndCentralDir <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4525">4525</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privReadEndCentralDir(
+
+&$p_central_dir)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_central_dir</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivReadFileHeader"></a>
+	<h3>method privReadFileHeader <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a4277">4277</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privReadFileHeader(
+
+&$p_header)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivSwapBackMagicQuotes"></a>
+	<h3>method privSwapBackMagicQuotes <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a5361">5361</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privSwapBackMagicQuotes(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivWriteCentralFileHeader"></a>
+	<h3>method privWriteCentralFileHeader <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3067">3067</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privWriteCentralFileHeader(
+
+&$p_header)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivWriteCentralHeader"></a>
+	<h3>method privWriteCentralHeader <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3120">3120</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privWriteCentralHeader(
+
+$p_nb_entries, 
+$p_size, 
+$p_offset, 
+$p_comment)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_nb_entries</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_size</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_offset</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$p_comment</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodprivWriteFileHeader"></a>
+	<h3>method privWriteFileHeader <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a3022">3022</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void privWriteFileHeader(
+
+&$p_header)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>&$p_header</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodproperties"></a>
+	<h3>method properties <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel__PHPExcelSharedPCLZippclzip.lib.php.html#a1089">1089</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void properties(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:33:19 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

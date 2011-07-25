@@ -1,0 +1,243 @@
+<html>
+<head>
+<title>File Source for example.php</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      		  [ <a href="../classtrees_PHPExcel.html" class="menu">class tree: PHPExcel</a> ]
+		  [ <a href="../elementindex_PHPExcel.html" class="menu">index: PHPExcel</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                  
+      
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1 align="center">Source for file example.php</h1>
+<p>Documentation is available at <a href="../PHPExcel/_PHPExcel---Shared---JAMA---docs---example.php.html">example.php</a></p>
+<div class="src-code">
+<ol><li><div class="src-line"><a name="a1"></a><span class="src-php">&lt;?php</span></div></li>
+<li><div class="src-line"><a name="a2"></a><span class="src-inc">include_once&nbsp;</span><span class="src-str">&quot;includes/header.php&quot;</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a3"></a><span class="src-inc">include_once&nbsp;</span><span class="src-str">&quot;includes/navbar.php&quot;</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a4"></a><span class="src-php">?&gt;</span></div></li>
+<li><div class="src-line"><a name="a5"></a>&lt;h2&gt;Magic&nbsp;Square&nbsp;Example&lt;/h2&gt;</div></li>
+<li><div class="src-line"><a name="a6"></a>&lt;p&gt;</div></li>
+<li><div class="src-line"><a name="a7"></a>The&nbsp;Jama&nbsp;distribution&nbsp;comes&nbsp;with&nbsp;a&nbsp;magic&nbsp;square&nbsp;example&nbsp;that&nbsp;is&nbsp;used&nbsp;to&nbsp;</div></li>
+<li><div class="src-line"><a name="a8"></a>test&nbsp;and&nbsp;benchmark&nbsp;the&nbsp;LU,&nbsp;QR,&nbsp;SVD&nbsp;and&nbsp;symmetric&nbsp;Eig&nbsp;decompositions.&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a9"></a>The&nbsp;example&nbsp;outputs&nbsp;a&nbsp;multi-column&nbsp;table&nbsp;with&nbsp;these&nbsp;column&nbsp;headings:</div></li>
+<li><div class="src-line"><a name="a10"></a>&lt;/p&gt;</div></li>
+<li><div class="src-line"><a name="a11"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a12"></a>&lt;table&nbsp;border='1'&nbsp;cellpadding='5'&nbsp;cellspacing='0'&nbsp;align='center'&gt;</div></li>
+<li><div class="src-line"><a name="a13"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a14"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;n&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a15"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Order&nbsp;of&nbsp;magic&nbsp;square.&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a16"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a17"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a18"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;trace&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a19"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Diagonal&nbsp;sum,&nbsp;should&nbsp;be&nbsp;the&nbsp;magic&nbsp;sum,&nbsp;(n^3&nbsp;+&nbsp;n)/2.&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a20"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a21"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a22"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;max_eig&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a23"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Maximum&nbsp;eigenvalue&nbsp;of&nbsp;(A&nbsp;+&nbsp;A')/2,&nbsp;should&nbsp;equal&nbsp;trace.&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a24"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a25"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a26"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;rank&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a27"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;Linear&nbsp;algebraic&nbsp;rank,&nbsp;should&nbsp;equal&nbsp;n&nbsp;if&nbsp;n&nbsp;is&nbsp;odd,&nbsp;be&nbsp;less&nbsp;than&nbsp;n&nbsp;if&nbsp;n&nbsp;is&nbsp;even.&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a28"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a29"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a30"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;cond&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a31"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;L_2&nbsp;condition&nbsp;number,&nbsp;ratio&nbsp;of&nbsp;singular&nbsp;values.&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a32"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a33"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a34"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;lu_res&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a35"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;test&nbsp;of&nbsp;LU&nbsp;factorization,&nbsp;norm1(L*U-A(p,:))/(n*eps).&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a36"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a37"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a38"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;&lt;b&gt;qr_res&lt;/b&gt;&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a39"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;test&nbsp;of&nbsp;QR&nbsp;factorization,&nbsp;norm1(Q*R-A)/(n*eps).&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a40"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a41"></a>&lt;/table&gt;</div></li>
+<li><div class="src-line"><a name="a42"></a>&lt;p&gt;</div></li>
+<li><div class="src-line"><a name="a43"></a>Running&nbsp;the&nbsp;Java-based&nbsp;version&nbsp;of&nbsp;the&nbsp;matix&nbsp;square&nbsp;example&nbsp;produces&nbsp;these&nbsp;results:</div></li>
+<li><div class="src-line"><a name="a44"></a>&lt;/p&gt;</div></li>
+<li><div class="src-line"><a name="a45"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a46"></a>&lt;table&nbsp;border='1'&nbsp;align='center'&gt;</div></li>
+<li><div class="src-line"><a name="a47"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a48"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;n&nbsp;&lt;/th&gt;</div></li>
+<li><div class="src-line"><a name="a49"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;trace&nbsp;&lt;/th&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a50"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;max_eig&nbsp;&lt;/th&gt;&nbsp;&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a51"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;rank&nbsp;&lt;/th&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a52"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;cond&nbsp;&lt;/th&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a53"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;lu_res&nbsp;&lt;/th&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a54"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;th&gt;&nbsp;qr_res&nbsp;&lt;/th&gt;</div></li>
+<li><div class="src-line"><a name="a55"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a56"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a57"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;15&lt;/td&gt;&lt;td&gt;15.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;4.330&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;11.333&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a58"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a59"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a60"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;34&lt;/td&gt;&lt;td&gt;34.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;13.500&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a61"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a62"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;65&lt;/td&gt;&lt;td&gt;65.000&lt;/td&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;5.462&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;14.400&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a63"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a64"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a65"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;6&lt;/td&gt;&lt;td&gt;111&lt;/td&gt;&lt;td&gt;111.000&lt;/td&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;5.333&lt;/td&gt;&lt;td&gt;16.000&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a66"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a67"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a68"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;7&lt;/td&gt;&lt;td&gt;175&lt;/td&gt;&lt;td&gt;175.000&lt;/td&gt;&lt;td&gt;7&lt;/td&gt;&lt;td&gt;7.111&lt;/td&gt;&lt;td&gt;2.286&lt;/td&gt;&lt;td&gt;37.714&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a69"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a70"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a71"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;8&lt;/td&gt;&lt;td&gt;260&lt;/td&gt;&lt;td&gt;260.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;59.000&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a72"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a73"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a74"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;9&lt;/td&gt;&lt;td&gt;369&lt;/td&gt;&lt;td&gt;369.000&lt;/td&gt;&lt;td&gt;9&lt;/td&gt;&lt;td&gt;9.102&lt;/td&gt;&lt;td&gt;7.111&lt;/td&gt;&lt;td&gt;53.333&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a75"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a76"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a77"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;10&lt;/td&gt;&lt;td&gt;505&lt;/td&gt;&lt;td&gt;505.000&lt;/td&gt;&lt;td&gt;7&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;3.200&lt;/td&gt;&lt;td&gt;159.200&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a78"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a79"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a80"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;11&lt;/td&gt;&lt;td&gt;671&lt;/td&gt;&lt;td&gt;671.000&lt;/td&gt;&lt;td&gt;11&lt;/td&gt;&lt;td&gt;11.102&lt;/td&gt;&lt;td&gt;2.909&lt;/td&gt;&lt;td&gt;215.273&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a81"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a82"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a83"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;870&lt;/td&gt;&lt;td&gt;870.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;185.333&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a84"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a85"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a86"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;13&lt;/td&gt;&lt;td&gt;1105&lt;/td&gt;&lt;td&gt;1105.000&lt;/td&gt;&lt;td&gt;13&lt;/td&gt;&lt;td&gt;13.060&lt;/td&gt;&lt;td&gt;4.923&lt;/td&gt;&lt;td&gt;313.846&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a87"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a88"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a89"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;14&lt;/td&gt;&lt;td&gt;1379&lt;/td&gt;&lt;td&gt;1379.000&lt;/td&gt;&lt;td&gt;9&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;4.571&lt;/td&gt;&lt;td&gt;540.571&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a90"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a91"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a92"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;15&lt;/td&gt;&lt;td&gt;1695&lt;/td&gt;&lt;td&gt;1695.000&lt;/td&gt;&lt;td&gt;15&lt;/td&gt;&lt;td&gt;15.062&lt;/td&gt;&lt;td&gt;4.267&lt;/td&gt;&lt;td&gt;242.133&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a93"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a94"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a95"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;16&lt;/td&gt;&lt;td&gt;2056&lt;/td&gt;&lt;td&gt;2056.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;488.500&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a96"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a97"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a98"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;17&lt;/td&gt;&lt;td&gt;2465&lt;/td&gt;&lt;td&gt;2465.000&lt;/td&gt;&lt;td&gt;17&lt;/td&gt;&lt;td&gt;17.042&lt;/td&gt;&lt;td&gt;7.529&lt;/td&gt;&lt;td&gt;267.294&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a99"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a100"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a101"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;18&lt;/td&gt;&lt;td&gt;2925&lt;/td&gt;&lt;td&gt;2925.000&lt;/td&gt;&lt;td&gt;11&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;7.111&lt;/td&gt;&lt;td&gt;520.889&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a102"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a103"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a104"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;19&lt;/td&gt;&lt;td&gt;3439&lt;/td&gt;&lt;td&gt;3439.000&lt;/td&gt;&lt;td&gt;19&lt;/td&gt;&lt;td&gt;19.048&lt;/td&gt;&lt;td&gt;16.842&lt;/td&gt;&lt;td&gt;387.368&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a105"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a106"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a107"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;20&lt;/td&gt;&lt;td&gt;4010&lt;/td&gt;&lt;td&gt;4010.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;14.400&lt;/td&gt;&lt;td&gt;584.800&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a108"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a109"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a110"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;21&lt;/td&gt;&lt;td&gt;4641&lt;/td&gt;&lt;td&gt;4641.000&lt;/td&gt;&lt;td&gt;21&lt;/td&gt;&lt;td&gt;21.035&lt;/td&gt;&lt;td&gt;6.095&lt;/td&gt;&lt;td&gt;1158.095&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a111"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a112"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a113"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;22&lt;/td&gt;&lt;td&gt;5335&lt;/td&gt;&lt;td&gt;5335.000&lt;/td&gt;&lt;td&gt;13&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;6.545&lt;/td&gt;&lt;td&gt;1132.364&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a114"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a115"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a116"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;23&lt;/td&gt;&lt;td&gt;6095&lt;/td&gt;&lt;td&gt;6095.000&lt;/td&gt;&lt;td&gt;23&lt;/td&gt;&lt;td&gt;23.037&lt;/td&gt;&lt;td&gt;11.130&lt;/td&gt;&lt;td&gt;1268.870&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a117"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a118"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a119"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;24&lt;/td&gt;&lt;td&gt;6924&lt;/td&gt;&lt;td&gt;6924.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;10.667&lt;/td&gt;&lt;td&gt;827.500&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a120"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a121"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a122"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;25&lt;/td&gt;&lt;td&gt;7825&lt;/td&gt;&lt;td&gt;7825.000&lt;/td&gt;&lt;td&gt;25&lt;/td&gt;&lt;td&gt;25.029&lt;/td&gt;&lt;td&gt;35.840&lt;/td&gt;&lt;td&gt;1190.400&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a123"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a124"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a125"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;26&lt;/td&gt;&lt;td&gt;8801&lt;/td&gt;&lt;td&gt;8801.000&lt;/td&gt;&lt;td&gt;15&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;4.923&lt;/td&gt;&lt;td&gt;1859.077&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a126"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a127"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a128"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;27&lt;/td&gt;&lt;td&gt;9855&lt;/td&gt;&lt;td&gt;9855.000&lt;/td&gt;&lt;td&gt;27&lt;/td&gt;&lt;td&gt;27.032&lt;/td&gt;&lt;td&gt;37.926&lt;/td&gt;&lt;td&gt;1365.333&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a129"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a130"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a131"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;28&lt;/td&gt;&lt;td&gt;10990&lt;/td&gt;&lt;td&gt;10990.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;34.286&lt;/td&gt;&lt;td&gt;1365.714&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a132"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a133"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a134"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;29&lt;/td&gt;&lt;td&gt;12209&lt;/td&gt;&lt;td&gt;12209.000&lt;/td&gt;&lt;td&gt;29&lt;/td&gt;&lt;td&gt;29.025&lt;/td&gt;&lt;td&gt;30.897&lt;/td&gt;&lt;td&gt;1647.448&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a135"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a136"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a137"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;30&lt;/td&gt;&lt;td&gt;13515&lt;/td&gt;&lt;td&gt;13515.000&lt;/td&gt;&lt;td&gt;17&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;8.533&lt;/td&gt;&lt;td&gt;2571.733&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a138"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a139"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a140"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;31&lt;/td&gt;&lt;td&gt;14911&lt;/td&gt;&lt;td&gt;14911.000&lt;/td&gt;&lt;td&gt;31&lt;/td&gt;&lt;td&gt;31.027&lt;/td&gt;&lt;td&gt;33.032&lt;/td&gt;&lt;td&gt;1426.581&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a141"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a142"></a>&nbsp;&nbsp;&lt;tr&gt;</div></li>
+<li><div class="src-line"><a name="a143"></a>&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;32&lt;/td&gt;&lt;td&gt;16400&lt;/td&gt;&lt;td&gt;16400.000&lt;/td&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&nbsp;Inf&lt;/td&gt;&lt;td&gt;0.000&lt;/td&gt;&lt;td&gt;1600.125&lt;/td&gt;</div></li>
+<li><div class="src-line"><a name="a144"></a>&nbsp;&nbsp;&lt;/tr&gt;</div></li>
+<li><div class="src-line"><a name="a145"></a>&lt;/table&gt;</div></li>
+<li><div class="src-line"><a name="a146"></a>&lt;center&gt;Elapsed&nbsp;Time&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.710&nbsp;seconds&lt;/center&gt;</div></li>
+<li><div class="src-line"><a name="a147"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a148"></a>&lt;p&gt;</div></li>
+<li><div class="src-line"><a name="a149"></a>The&nbsp;magic&nbsp;square&nbsp;example&nbsp;does&nbsp;not&nbsp;fare&nbsp;well&nbsp;when&nbsp;&lt;a&nbsp;href='../examples/MagicSquareExample.php'&gt;run&nbsp;as&nbsp;a&nbsp;PHP&nbsp;script&lt;/a&gt;.&nbsp;&nbsp;For&nbsp;a&nbsp;32x32&nbsp;matrix&nbsp;array&nbsp;</div></li>
+<li><div class="src-line"><a name="a150"></a>it&nbsp;takes&nbsp;around&nbsp;a&nbsp;second&nbsp;to&nbsp;complete&nbsp;just&nbsp;the&nbsp;last&nbsp;row&nbsp;of&nbsp;computations&nbsp;in&nbsp;the&nbsp;above&nbsp;table.&nbsp;&nbsp;</div></li>
+<li><div class="src-line"><a name="a151"></a>Hopefully&nbsp;this&nbsp;result&nbsp;will&nbsp;spur&nbsp;PHP&nbsp;developers&nbsp;to&nbsp;find&nbsp;optimizations&nbsp;and&nbsp;better&nbsp;attuned&nbsp;algorithms&nbsp;</div></li>
+<li><div class="src-line"><a name="a152"></a>to&nbsp;speed&nbsp;things&nbsp;up.&nbsp;Matrix&nbsp;algebra&nbsp;is&nbsp;a&nbsp;great&nbsp;testing&nbsp;ground&nbsp;for&nbsp;ideas&nbsp;about&nbsp;time&nbsp;and&nbsp;memory&nbsp;</div></li>
+<li><div class="src-line"><a name="a153"></a>performance&nbsp;optimation.&nbsp;&nbsp;Keep&nbsp;in&nbsp;perspective&nbsp;that&nbsp;PHP&nbsp;JAMA&nbsp;scripts&nbsp;are&nbsp;still&nbsp;plenty&nbsp;fast&nbsp;for&nbsp;use&nbsp;as&nbsp;</div></li>
+<li><div class="src-line"><a name="a154"></a>a&nbsp;tool&nbsp;for&nbsp;learning&nbsp;about&nbsp;matrix&nbsp;algebra&nbsp;and&nbsp;quickly&nbsp;extending&nbsp;your&nbsp;knowledge&nbsp;with&nbsp;new&nbsp;scripts&nbsp;</div></li>
+<li><div class="src-line"><a name="a155"></a>to&nbsp;apply&nbsp;knowledge.</div></li>
+<li><div class="src-line"><a name="a156"></a>&lt;/p&gt;&nbsp;</div></li>
+<li><div class="src-line"><a name="a157"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a158"></a>&lt;p&gt;</div></li>
+<li><div class="src-line"><a name="a159"></a>To&nbsp;learn&nbsp;more&nbsp;about&nbsp;the&nbsp;subject&nbsp;of&nbsp;magic&nbsp;squares&nbsp;you&nbsp;can&nbsp;visit&nbsp;the&nbsp;&lt;a&nbsp;href='http://mathforum.org/alejandre/magic.square.html'&gt;Drexel&nbsp;Math&nbsp;Forum&nbsp;on&nbsp;Magic&nbsp;Squares&lt;/a&gt;.</div></li>
+<li><div class="src-line"><a name="a160"></a>You&nbsp;can&nbsp;also&nbsp;learn&nbsp;more&nbsp;by&nbsp;carefully&nbsp;examining&nbsp;the&nbsp;&lt;code&gt;MagicSquareExample.php&lt;/code&gt;&nbsp;source&nbsp;code&nbsp;below.</div></li>
+<li><div class="src-line"><a name="a161"></a>&lt;/p&gt;</div></li>
+<li><div class="src-line"><a name="a162"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a163"></a><span class="src-php">&lt;?php</span></div></li>
+<li><div class="src-line"><a name="a164"></a><a href="http://www.php.net/highlight_file">highlight_file</a><span class="src-sym">(</span><span class="src-str">&quot;../examples/MagicSquareExample.php&quot;</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a165"></a><span class="src-inc">include_once&nbsp;</span><span class="src-str">&quot;includes/footer.php&quot;</span><span class="src-sym">;&nbsp;&nbsp;&nbsp;&nbsp;</span></div></li>
+<li><div class="src-line"><a name="a166"></a><span class="src-php">?&gt;</span></div></li>
+</ol>
+</div>
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:30:39 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

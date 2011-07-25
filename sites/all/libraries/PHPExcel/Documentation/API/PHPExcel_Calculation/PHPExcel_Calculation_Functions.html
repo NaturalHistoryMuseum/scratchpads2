@@ -1,0 +1,1502 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Calculation_Functions</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Calculation</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                  		  [ <a href="../classtrees_PHPExcel_Calculation.html" class="menu">class tree: PHPExcel_Calculation</a> ]
+		  [ <a href="../elementindex_PHPExcel_Calculation.html" class="menu">index: PHPExcel_Calculation</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation.php.html">		Calculation.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Database.php.html">		Database.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---DateTime.php.html">		DateTime.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Engineering.php.html">		Engineering.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Exception.php.html">		Exception.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---ExceptionHandler.php.html">		ExceptionHandler.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Financial.php.html">		Financial.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaParser.php.html">		FormulaParser.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaToken.php.html">		FormulaToken.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Function.php.html">		Function.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Functions.php.html">		Functions.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Logical.php.html">		Logical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---LookupRef.php.html">		LookupRef.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---MathTrig.php.html">		MathTrig.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Statistical.php.html">		Statistical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---TextData.php.html">		TextData.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Database.html">PHPExcel_Calculation_Database</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_DateTime.html">PHPExcel_Calculation_DateTime</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Engineering.html">PHPExcel_Calculation_Engineering</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Exception.html">PHPExcel_Calculation_Exception</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_ExceptionHandler.html">PHPExcel_Calculation_ExceptionHandler</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Financial.html">PHPExcel_Calculation_Financial</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaParser.html">PHPExcel_Calculation_FormulaParser</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaToken.html">PHPExcel_Calculation_FormulaToken</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Function.html">PHPExcel_Calculation_Function</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html">PHPExcel_Calculation_Functions</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Logical.html">PHPExcel_Calculation_Logical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html">PHPExcel_Calculation_LookupRef</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_MathTrig.html">PHPExcel_Calculation_MathTrig</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html">PHPExcel_Calculation_Statistical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_TextData.html">PHPExcel_Calculation_TextData</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Token_Stack.html">PHPExcel_Token_Stack</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Calculation_Functions</h1>
+Source Location: /PHPExcel/Calculation/Functions.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">PHPExcel_Calculation_Functions</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+        
+</td>
+
+<td valign="top">
+<h3><a href="#class_vars">Variables</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#var$compatibilityMode">$compatibilityMode</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#var$ReturnDateType">$ReturnDateType</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#var$_errorCodes">$_errorCodes</a></li>
+  </ul>
+</td>
+
+<td valign="top">
+<h3><a href="#class_consts">Constants</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constCOMPATIBILITY_EXCEL">COMPATIBILITY_EXCEL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constCOMPATIBILITY_GNUMERIC">COMPATIBILITY_GNUMERIC</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constCOMPATIBILITY_OPENOFFICE">COMPATIBILITY_OPENOFFICE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constRETURNDATE_EXCEL">RETURNDATE_EXCEL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constRETURNDATE_PHP_NUMERIC">RETURNDATE_PHP_NUMERIC</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#constRETURNDATE_PHP_OBJECT">RETURNDATE_PHP_OBJECT</a></li>
+  </ul>
+</td>
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodDIV0">DIV0</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodDUMMY">DUMMY</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodERROR_TYPE">ERROR_TYPE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodflattenArray">flattenArray</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodflattenArrayIndexed">flattenArrayIndexed</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodflattenSingleValue">flattenSingleValue</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodgetCompatibilityMode">getCompatibilityMode</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodgetReturnDateType">getReturnDateType</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodisCellValue">isCellValue</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodisMatrixValue">isMatrixValue</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodisValue">isValue</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_BLANK">IS_BLANK</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_ERR">IS_ERR</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_ERROR">IS_ERROR</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_EVEN">IS_EVEN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_LOGICAL">IS_LOGICAL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_NA">IS_NA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_NONTEXT">IS_NONTEXT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_NUMBER">IS_NUMBER</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_ODD">IS_ODD</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodIS_TEXT">IS_TEXT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodN">N</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodNA">NA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodNAME">NAME</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodNaN">NaN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodNULL">NULL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodREF">REF</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodsetCompatibilityMode">setCompatibilityMode</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodsetReturnDateType">setReturnDateType</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodTYPE">TYPE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodVALUE">VALUE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#methodVERSION">VERSION</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html#method_ifCondition">_ifCondition</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a59">59</a>]<br />
+PHPExcel_Calculation_Functions<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+<hr />
+<a name="class_vars"></a>
+<h3>Class Variables</h3>
+<div class="tags">
+	<a name="var$compatibilityMode"></a>
+	<p></p>
+	<h4>static $compatibilityMode = <span class="value">&nbsp;self::COMPATIBILITY_EXCEL</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a77">77</a>]</p>
+  Compatibility mode to use for error checking and responses<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>protected</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>string</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$ReturnDateType"></a>
+	<p></p>
+	<h4>static $ReturnDateType = <span class="value">&nbsp;self::RETURNDATE_EXCEL</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a85">85</a>]</p>
+  Data Type to use when returning date values<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>protected</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>string</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_errorCodes"></a>
+	<p></p>
+	<h4>static $_errorCodes = <span class="value">array(&nbsp;'null'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#NULL!',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'divisionbyzero'&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#DIV/0!',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'value'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#VALUE!',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'reference'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#REF!',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'name'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#NAME?',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'num'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#NUM!',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'na'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#N/A',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'gettingdata'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&gt;&nbsp;'#GETTING_DATA'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a93">93</a>]</p>
+  List of error codes<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>protected</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="methodDIV0"></a>
+	<h3>static method DIV0 <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a201">201</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string DIV0(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		DIV0<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#Not Yet Implemented</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodDUMMY"></a>
+	<h3>static method DUMMY <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a189">189</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string DUMMY(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		DUMMY<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#Not Yet Implemented</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodERROR_TYPE"></a>
+	<h3>static method ERROR_TYPE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a329">329</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean ERROR_TYPE(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		ERROR_TYPE<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodflattenArray"></a>
+	<h3>static method flattenArray <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a588">588</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array flattenArray(
+array
+$array)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Convert a multi-dimensional array to a simple 1-dimensional array<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Flattened array</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$array</b>&nbsp;&nbsp;</td>
+        <td>Array to be flattened</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodflattenArrayIndexed"></a>
+	<h3>static method flattenArrayIndexed <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a620">620</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array flattenArrayIndexed(
+array
+$array)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Convert a multi-dimensional array to a simple 1-dimensional array, but retain an element of indexing<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Flattened array</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$array</b>&nbsp;&nbsp;</td>
+        <td>Array to be flattened</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodflattenSingleValue"></a>
+	<h3>static method flattenSingleValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a652">652</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static mixed flattenSingleValue(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Convert an array to a single scalar value by extracting the first element<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Array or scalar value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetCompatibilityMode"></a>
+	<h3>static method getCompatibilityMode <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a138">138</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string getCompatibilityMode(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Return the current Compatibility Mode<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Compatibility Mode                             Possible Return values are:                                 PHPExcel_Calculation_Functions::COMPATIBILITY_EXCEL            'Excel'                                 PHPExcel_Calculation_Functions::COMPATIBILITY_GNUMERIC        'Gnumeric'                                 PHPExcel_Calculation_Functions::COMPATIBILITY_OPENOFFICE    'OpenOfficeCalc'</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetReturnDateType"></a>
+	<h3>static method getReturnDateType <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a177">177</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string getReturnDateType(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Return the current Return Date Format for functions that return a date/time (Excel, PHP Serialized Numeric or PHP Object)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Return Date Format                             Possible Return values are:                                 PHPExcel_Calculation_Functions::RETURNDATE_PHP_NUMERIC        'P'                                 PHPExcel_Calculation_Functions::RETURNDATE_PHP_OBJECT        'O'                                 PHPExcel_Calculation_Functions::RETURNDATE_EXCEL            'E'</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisCellValue"></a>
+	<h3>static method isCellValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a304">304</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void isCellValue(
+
+$idx)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$idx</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisMatrixValue"></a>
+	<h3>static method isMatrixValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a294">294</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void isMatrixValue(
+
+$idx)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$idx</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisValue"></a>
+	<h3>static method isValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a299">299</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void isValue(
+
+$idx)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$idx</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_BLANK"></a>
+	<h3>static method IS_BLANK <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a349">349</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_BLANK(
+[mixed
+$value = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_BLANK<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_ERR"></a>
+	<h3>static method IS_ERR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a364">364</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_ERR(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_ERR<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_ERROR"></a>
+	<h3>static method IS_ERROR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a377">377</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_ERROR(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_ERROR<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_EVEN"></a>
+	<h3>static method IS_EVEN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a403">403</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_EVEN(
+[mixed
+$value = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_EVEN<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_LOGICAL"></a>
+	<h3>static method IS_LOGICAL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a451">451</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_LOGICAL(
+[mixed
+$value = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_LOGICAL<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_NA"></a>
+	<h3>static method IS_NA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a390">390</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_NA(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_NA<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_NONTEXT"></a>
+	<h3>static method IS_NONTEXT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a477">477</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_NONTEXT(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_NONTEXT<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_NUMBER"></a>
+	<h3>static method IS_NUMBER <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a435">435</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_NUMBER(
+[mixed
+$value = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_NUMBER<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_ODD"></a>
+	<h3>static method IS_ODD <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a419">419</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_ODD(
+[mixed
+$value = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_ODD<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodIS_TEXT"></a>
+	<h3>static method IS_TEXT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a464">464</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean IS_TEXT(
+[mixed
+$value = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		IS_TEXT<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to check</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodN"></a>
+	<h3>static method N <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a507">507</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static number N(
+value
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		N<br /><br /><p>Returns a value converted to a number</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>N converts values listed in the following table         If value is or refers to N returns         A number            That number         A date                The serial number of that date         TRUE                1         FALSE                0         An error value        The error value         Anything else        0</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">value&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>The value you want converted</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNA"></a>
+	<h3>static method NA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a219">219</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string NA(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NA<br /><br /><p>Excel Function: 		=NA()</p><p>Returns the error value #N/A 		#N/A is the error value that means &quot;no value is available.&quot;</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#N/A!</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNAME"></a>
+	<h3>static method NAME <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a247">247</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string NAME(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NAME<br /><br /><p>Returns the error value #NAME?</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#NAME?</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNaN"></a>
+	<h3>static method NaN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a233">233</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string NaN(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NaN<br /><br /><p>Returns the error value #NUM!</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#NUM!</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNULL"></a>
+	<h3>static method NULL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a275">275</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string NULL(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NULL<br /><br /><p>Returns the error value #NULL!</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#REF!</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodREF"></a>
+	<h3>static method REF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a261">261</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string REF(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		REF<br /><br /><p>Returns the error value #REF!</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#REF!</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetCompatibilityMode"></a>
+	<h3>static method setCompatibilityMode <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a116">116</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean setCompatibilityMode(
+string
+$compatibilityMode)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set the Compatibility Mode<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>(Success or Failure)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$compatibilityMode</b>&nbsp;&nbsp;</td>
+        <td>Compatibility Mode                                                 Permitted values are:                                                     PHPExcel_Calculation_Functions::COMPATIBILITY_EXCEL            'Excel'                                                     PHPExcel_Calculation_Functions::COMPATIBILITY_GNUMERIC        'Gnumeric'                                                     PHPExcel_Calculation_Functions::COMPATIBILITY_OPENOFFICE    'OpenOfficeCalc'</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetReturnDateType"></a>
+	<h3>static method setReturnDateType <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a155">155</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static boolean setReturnDateType(
+string
+$returnDateType)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set the Return Date Format used by functions that return a date/time (Excel, PHP Serialized Numeric or PHP Object)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Success or failure</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$returnDateType</b>&nbsp;&nbsp;</td>
+        <td>Return Date Format                                                 Permitted values are:                                                     PHPExcel_Calculation_Functions::RETURNDATE_PHP_NUMERIC        'P'                                                     PHPExcel_Calculation_Functions::RETURNDATE_PHP_OBJECT        'O'                                                     PHPExcel_Calculation_Functions::RETURNDATE_EXCEL            'E'</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTYPE"></a>
+	<h3>static method TYPE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a546">546</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static number TYPE(
+value
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TYPE<br /><br /><p>Returns a number that identifies the type of a value</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>N converts values listed in the following table         If value is or refers to N returns         A number            1         Text                2         Logical Value        4         An error value        16         Array or Matrix        64</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">value&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>The value you want tested</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVALUE"></a>
+	<h3>static method VALUE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a289">289</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string VALUE(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VALUE<br /><br /><p>Returns the error value #VALUE!</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>#VALUE!</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVERSION"></a>
+	<h3>static method VERSION <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a487">487</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string VERSION(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VERSION<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Version information</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method_ifCondition"></a>
+	<h3>static method _ifCondition <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a309">309</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void _ifCondition(
+
+$condition)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$condition</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+</div><br />
+
+<hr />
+<a name="class_consts"></a>
+<h3>Class Constants</h3>
+<div class="tags">
+	<a name="constCOMPATIBILITY_EXCEL"></a>
+	<p></p>
+	<h4>COMPATIBILITY_EXCEL = <span class="value">&nbsp;'Excel'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a62">62</a>]</p>
+  constants<br /><br />
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constCOMPATIBILITY_GNUMERIC"></a>
+	<p></p>
+	<h4>COMPATIBILITY_GNUMERIC = <span class="value">&nbsp;'Gnumeric'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a63">63</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constCOMPATIBILITY_OPENOFFICE"></a>
+	<p></p>
+	<h4>COMPATIBILITY_OPENOFFICE = <span class="value">&nbsp;'OpenOfficeCalc'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a64">64</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constRETURNDATE_EXCEL"></a>
+	<p></p>
+	<h4>RETURNDATE_EXCEL = <span class="value">&nbsp;'E'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a68">68</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constRETURNDATE_PHP_NUMERIC"></a>
+	<p></p>
+	<h4>RETURNDATE_PHP_NUMERIC = <span class="value">&nbsp;'P'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a66">66</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constRETURNDATE_PHP_OBJECT"></a>
+	<p></p>
+	<h4>RETURNDATE_PHP_OBJECT = <span class="value">&nbsp;'O'</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationFunctions.php.html#a67">67</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:32:08 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

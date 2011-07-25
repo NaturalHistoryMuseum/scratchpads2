@@ -1,0 +1,851 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Calculation_LookupRef</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Calculation</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                  		  [ <a href="../classtrees_PHPExcel_Calculation.html" class="menu">class tree: PHPExcel_Calculation</a> ]
+		  [ <a href="../elementindex_PHPExcel_Calculation.html" class="menu">index: PHPExcel_Calculation</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation.php.html">		Calculation.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Database.php.html">		Database.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---DateTime.php.html">		DateTime.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Engineering.php.html">		Engineering.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Exception.php.html">		Exception.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---ExceptionHandler.php.html">		ExceptionHandler.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Financial.php.html">		Financial.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaParser.php.html">		FormulaParser.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaToken.php.html">		FormulaToken.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Function.php.html">		Function.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Functions.php.html">		Functions.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Logical.php.html">		Logical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---LookupRef.php.html">		LookupRef.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---MathTrig.php.html">		MathTrig.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Statistical.php.html">		Statistical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---TextData.php.html">		TextData.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Database.html">PHPExcel_Calculation_Database</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_DateTime.html">PHPExcel_Calculation_DateTime</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Engineering.html">PHPExcel_Calculation_Engineering</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Exception.html">PHPExcel_Calculation_Exception</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_ExceptionHandler.html">PHPExcel_Calculation_ExceptionHandler</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Financial.html">PHPExcel_Calculation_Financial</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaParser.html">PHPExcel_Calculation_FormulaParser</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaToken.html">PHPExcel_Calculation_FormulaToken</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Function.html">PHPExcel_Calculation_Function</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html">PHPExcel_Calculation_Functions</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Logical.html">PHPExcel_Calculation_Logical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html">PHPExcel_Calculation_LookupRef</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_MathTrig.html">PHPExcel_Calculation_MathTrig</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html">PHPExcel_Calculation_Statistical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_TextData.html">PHPExcel_Calculation_TextData</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Token_Stack.html">PHPExcel_Token_Stack</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Calculation_LookupRef</h1>
+Source Location: /PHPExcel/Calculation/LookupRef.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">PHPExcel_Calculation_LookupRef</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+        
+</td>
+
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodCELL_ADDRESS">CELL_ADDRESS</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodCHOOSE">CHOOSE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodCOLUMN">COLUMN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodCOLUMNS">COLUMNS</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodHYPERLINK">HYPERLINK</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodINDEX">INDEX</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodINDIRECT">INDIRECT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodLOOKUP">LOOKUP</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodMATCH">MATCH</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodOFFSET">OFFSET</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodROW">ROW</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodROWS">ROWS</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodTRANSPOSE">TRANSPOSE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html#methodVLOOKUP">VLOOKUP</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a46">46</a>]<br />
+PHPExcel_Calculation_LookupRef<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="methodCELL_ADDRESS"></a>
+	<h3>static method CELL_ADDRESS <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a67">67</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string CELL_ADDRESS(
+row
+$row, column
+$column, [relativity
+$relativity = 1], [referenceStyle
+$referenceStyle = True], [sheetText
+$sheetText = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CELL_ADDRESS<br /><br /><p>Creates a cell address as text, given specified row and column numbers.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">row&nbsp;&nbsp;</td>
+        <td><b>$row</b>&nbsp;&nbsp;</td>
+        <td>Row number to use in the cell reference</td>
+      </tr>
+          <tr>
+        <td class="type">column&nbsp;&nbsp;</td>
+        <td><b>$column</b>&nbsp;&nbsp;</td>
+        <td>Column number to use in the cell reference</td>
+      </tr>
+          <tr>
+        <td class="type">relativity&nbsp;&nbsp;</td>
+        <td><b>$relativity</b>&nbsp;&nbsp;</td>
+        <td>Flag indicating the type of reference to return <ol><li>or omitted    Absolute</li><li>Absolute row; relative column</li><li>Relative row; absolute column</li><li>Relative</li></ol></td>
+      </tr>
+          <tr>
+        <td class="type">referenceStyle&nbsp;&nbsp;</td>
+        <td><b>$referenceStyle</b>&nbsp;&nbsp;</td>
+        <td>A logical value that specifies the A1 or R1C1 reference style.                                 TRUE or omitted        CELL_ADDRESS returns an A1-style reference                                 FALSE                CELL_ADDRESS returns an R1C1-style reference</td>
+      </tr>
+          <tr>
+        <td class="type">sheetText&nbsp;&nbsp;</td>
+        <td><b>$sheetText</b>&nbsp;&nbsp;</td>
+        <td>Optional Name of worksheet to use</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCHOOSE"></a>
+	<h3>static method CHOOSE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a390">390</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void CHOOSE(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOLUMN"></a>
+	<h3>static method COLUMN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a106">106</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer COLUMN(
+[cellAddress
+$cellAddress = Null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COLUMN<br /><br /><p>Returns the column number of the given cell reference 	If the cell reference is a range of cells, COLUMN returns the column numbers of each column in the reference as a horizontal array. 	If cell reference is omitted, and the function is being called through the calculation engine, then it is assumed to be the 		reference of the cell in which the COLUMN function appears; otherwise this function returns 0.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>or array of integer</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>A reference to a range of cells for which you want the column numbers</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOLUMNS"></a>
+	<h3>static method COLUMNS <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a143">143</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer COLUMNS(
+[cellAddress
+$cellAddress = Null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COLUMNS<br /><br /><p>Returns the number of columns in an array or reference.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>An array or array formula, or a reference to a range of cells for which you want the number of columns</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodHYPERLINK"></a>
+	<h3>static method HYPERLINK <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a243">243</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static mixed HYPERLINK(
+[string
+$linkURL = ''], [string
+$displayName = null], [
+$pCell = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		HYPERLINK<br /><br /><p>Excel Function: 		=HYPERLINK(linkURL,displayName)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The value of errorpart or testValue determined by error condition</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$linkURL</b>&nbsp;&nbsp;</td>
+        <td>Value to check, is also the value returned when no error</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$displayName</b>&nbsp;&nbsp;</td>
+        <td>Value to return when testValue is an error condition</td>
+      </tr>
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>&nbsp;&nbsp;</td>
+        <td><b>$pCell</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodINDEX"></a>
+	<h3>static method INDEX <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a537">537</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void INDEX(
+range_array
+$arrayValues, [row_num
+$rowNum = 0], [column_num
+$columnNum = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		INDEX<br /><br /><p>Uses an index to choose a value from a reference or array  implemented: Return the value of a specified cell or array of cells	Array form  not implemented: Return a reference to specified cells	Reference form</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">range_array&nbsp;&nbsp;</td>
+        <td><b>$arrayValues</b>&nbsp;&nbsp;</td>
+        <td>a range of cells or an array constant</td>
+      </tr>
+          <tr>
+        <td class="type">row_num&nbsp;&nbsp;</td>
+        <td><b>$rowNum</b>&nbsp;&nbsp;</td>
+        <td>selects the row in array from which to return a value. If row_num is omitted, column_num is required.</td>
+      </tr>
+          <tr>
+        <td class="type">column_num&nbsp;&nbsp;</td>
+        <td><b>$columnNum</b>&nbsp;&nbsp;</td>
+        <td>selects the column in array from which to return a value. If column_num is omitted, row_num is required.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodINDIRECT"></a>
+	<h3>static method INDIRECT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a272">272</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer INDIRECT(
+[cellAddress
+$cellAddress = Null], [
+$pCell = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		INDIRECT<br /><br /><p>Returns the number of rows in an array or reference.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>An array or array formula, or a reference to a range of cells for which you want the number of rows</td>
+      </tr>
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>&nbsp;&nbsp;</td>
+        <td><b>$pCell</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLOOKUP"></a>
+	<h3>static method LOOKUP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a687">687</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static mixed LOOKUP(
+lookup_value
+$lookup_value, lookup_vector
+$lookup_vector, [result_vector
+$result_vector = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LOOKUP  The LOOKUP function searches for value either from a one-row or one-column range or from an array.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The value of the found cell</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">lookup_value&nbsp;&nbsp;</td>
+        <td><b>$lookup_value</b>&nbsp;&nbsp;</td>
+        <td>The value that you want to match in lookup_array</td>
+      </tr>
+          <tr>
+        <td class="type">lookup_vector&nbsp;&nbsp;</td>
+        <td><b>$lookup_vector</b>&nbsp;&nbsp;</td>
+        <td>The range of cells being searched</td>
+      </tr>
+          <tr>
+        <td class="type">result_vector&nbsp;&nbsp;</td>
+        <td><b>$result_vector</b>&nbsp;&nbsp;</td>
+        <td>The column from which the matching value must be returned</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMATCH"></a>
+	<h3>static method MATCH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a426">426</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer MATCH(
+lookup_value
+$lookup_value, lookup_array
+$lookup_array, [match_type
+$match_type = 1])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MATCH<br /><br /><p>The MATCH function searches for a specified item in a range of cells</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The relative position of the found item</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">lookup_value&nbsp;&nbsp;</td>
+        <td><b>$lookup_value</b>&nbsp;&nbsp;</td>
+        <td>The value that you want to match in lookup_array</td>
+      </tr>
+          <tr>
+        <td class="type">lookup_array&nbsp;&nbsp;</td>
+        <td><b>$lookup_array</b>&nbsp;&nbsp;</td>
+        <td>The range of cells being searched</td>
+      </tr>
+          <tr>
+        <td class="type">match_type&nbsp;&nbsp;</td>
+        <td><b>$match_type</b>&nbsp;&nbsp;</td>
+        <td>The number -1, 0, or 1. -1 means above, 0 means exact match, 1 means below. If match_type is 1 or -1, the list has to be ordered.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodOFFSET"></a>
+	<h3>static method OFFSET <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a322">322</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string OFFSET(
+[cellAddress
+$cellAddress = Null], [rows
+$rows = 0], [cols
+$columns = 0], [height
+$height = null], [width
+$width = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		OFFSET<br /><br /><p>Returns a reference to a range that is a specified number of rows and columns from a cell or range of cells. 	The reference that is returned can be a single cell or a range of cells. You can specify the number of rows and 	the number of columns to be returned.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>A reference to a cell or range of cells</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>The reference from which you want to base the offset. Reference must refer to a cell or                                 range of adjacent cells; otherwise, OFFSET returns the #VALUE! error value.</td>
+      </tr>
+          <tr>
+        <td class="type">rows&nbsp;&nbsp;</td>
+        <td><b>$rows</b>&nbsp;&nbsp;</td>
+        <td>The number of rows, up or down, that you want the upper-left cell to refer to.                                 Using 5 as the rows argument specifies that the upper-left cell in the reference is                                 five rows below reference. Rows can be positive (which means below the starting reference)                                 or negative (which means above the starting reference).</td>
+      </tr>
+          <tr>
+        <td class="type">cols&nbsp;&nbsp;</td>
+        <td><b>$columns</b>&nbsp;&nbsp;</td>
+        <td>The number of columns, to the left or right, that you want the upper-left cell of the result                                 to refer to. Using 5 as the cols argument specifies that the upper-left cell in the                                 reference is five columns to the right of reference. Cols can be positive (which means                                 to the right of the starting reference) or negative (which means to the left of the                                 starting reference).</td>
+      </tr>
+          <tr>
+        <td class="type">height&nbsp;&nbsp;</td>
+        <td><b>$height</b>&nbsp;&nbsp;</td>
+        <td>The height, in number of rows, that you want the returned reference to be. Height must be a positive number.</td>
+      </tr>
+          <tr>
+        <td class="type">width&nbsp;&nbsp;</td>
+        <td><b>$width</b>&nbsp;&nbsp;</td>
+        <td>The width, in number of columns, that you want the returned reference to be. Width must be a positive number.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodROW"></a>
+	<h3>static method ROW <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a174">174</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer ROW(
+[cellAddress
+$cellAddress = Null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		ROW<br /><br /><p>Returns the row number of the given cell reference 	If the cell reference is a range of cells, ROW returns the row numbers of each row in the reference as a vertical array. 	If cell reference is omitted, and the function is being called through the calculation engine, then it is assumed to be the 		reference of the cell in which the ROW function appears; otherwise this function returns 0.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>or array of integer</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>A reference to a range of cells for which you want the row numbers</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodROWS"></a>
+	<h3>static method ROWS <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a212">212</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static integer ROWS(
+[cellAddress
+$cellAddress = Null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		ROWS<br /><br /><p>Returns the number of rows in an array or reference.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">cellAddress&nbsp;&nbsp;</td>
+        <td><b>$cellAddress</b>&nbsp;&nbsp;</td>
+        <td>An array or array formula, or a reference to a range of cells for which you want the number of rows</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTRANSPOSE"></a>
+	<h3>static method TRANSPOSE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a591">591</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array TRANSPOSE(
+array
+$matrixData)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TRANSPOSE<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Unlike the Excel TRANSPOSE function, which will only work on a single row or column, this function will transpose a full matrix.</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$matrixData</b>&nbsp;&nbsp;</td>
+        <td>A matrix of values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVLOOKUP"></a>
+	<h3>static method VLOOKUP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationLookupRef.php.html#a627">627</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static mixed VLOOKUP(
+lookup_value
+$lookup_value, lookup_array
+$lookup_array, index_number
+$index_number, [not_exact_match
+$not_exact_match = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VLOOKUP  The VLOOKUP function searches for value in the left-most column of lookup_array and returns the value in the same row based on the index_number.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>The value of the found cell</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">lookup_value&nbsp;&nbsp;</td>
+        <td><b>$lookup_value</b>&nbsp;&nbsp;</td>
+        <td>The value that you want to match in lookup_array</td>
+      </tr>
+          <tr>
+        <td class="type">lookup_array&nbsp;&nbsp;</td>
+        <td><b>$lookup_array</b>&nbsp;&nbsp;</td>
+        <td>The range of cells being searched</td>
+      </tr>
+          <tr>
+        <td class="type">index_number&nbsp;&nbsp;</td>
+        <td><b>$index_number</b>&nbsp;&nbsp;</td>
+        <td>The column number in table_array from which the matching value must be returned. The first column is 1.</td>
+      </tr>
+          <tr>
+        <td class="type">not_exact_match&nbsp;&nbsp;</td>
+        <td><b>$not_exact_match</b>&nbsp;&nbsp;</td>
+        <td>Determines if you are looking for an exact match based on lookup_value.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:32:33 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

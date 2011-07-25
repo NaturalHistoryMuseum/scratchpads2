@@ -1,0 +1,639 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Writer_PDF</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Writer</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                      		  [ <a href="../classtrees_PHPExcel_Writer.html" class="menu">class tree: PHPExcel_Writer</a> ]
+		  [ <a href="../elementindex_PHPExcel_Writer.html" class="menu">index: PHPExcel_Writer</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Writer/_PHPExcel---Writer---CSV.php.html">		CSV.php
+		</a><br>
+			<a href="../PHPExcel_Writer/_PHPExcel---Writer---HTML.php.html">		HTML.php
+		</a><br>
+			<a href="../PHPExcel_Writer/_PHPExcel---Writer---IWriter.php.html">		IWriter.php
+		</a><br>
+			<a href="../PHPExcel_Writer/_PHPExcel---Writer---PDF.php.html">		PDF.php
+		</a><br>
+	  </div><br />
+      
+            <b>Interfaces:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Writer/PHPExcel_Writer_IWriter.html">PHPExcel_Writer_IWriter</a><br />
+	  </div>
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Writer/PHPExcel_Writer_CSV.html">PHPExcel_Writer_CSV</a><br />
+	    		<a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html">PHPExcel_Writer_HTML</a><br />
+	    		<a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html">PHPExcel_Writer_PDF</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Writer_PDF</h1>
+Source Location: /PHPExcel/Writer/PDF.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre><a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html">PHPExcel_Writer_HTML</a>
+   |
+   --PHPExcel_Writer_PDF</pre><br />
+<div class="description">PHPExcel_Writer_PDF</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+                <p class="implements">
+            Implements interfaces:
+            <ul>
+                <li><a href="../PHPExcel_Writer/PHPExcel_Writer_IWriter.html">PHPExcel_Writer_IWriter</a></li>            </ul>
+        </p>
+        
+</td>
+
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#method__construct">__construct</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodgetOrientation">getOrientation</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodgetPaperSize">getPaperSize</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodgetTempDir">getTempDir</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodsave">save</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodsetFont">setFont</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodsetOrientation">setOrientation</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodsetPaperSize">setPaperSize</a></li>
+    <li><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html#methodsetTempDir">setTempDir</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+<td valign="top">
+<h3>Inherited Variables</h3>
+<div class="tags">
+<h4>Class: <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html">PHPExcel_Writer_HTML</a></h4>
+<dl>
+<dt>
+  <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#var$_isPdf">PHPExcel_Writer_HTML::$_isPdf</a>
+  </dt>
+<dd>
+   
+</dd>
+<dt>
+  <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#var$_phpExcel">PHPExcel_Writer_HTML::$_phpExcel</a>
+  </dt>
+<dd>
+   
+</dd>
+</dl>
+</div>
+</td>
+
+<td valign="top">
+<h3>Inherited Methods</h3>
+<div class="tags">
+<h4>Class: <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html">PHPExcel_Writer_HTML</a></h4>
+<dl>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#method__construct">PHPExcel_Writer_HTML::__construct()</a>
+  </dt>
+  <dd>
+    Create a new PHPExcel_Writer_HTML
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodbuildCSS">PHPExcel_Writer_HTML::buildCSS()</a>
+  </dt>
+  <dd>
+    Build CSS styles
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodformatColor">PHPExcel_Writer_HTML::formatColor()</a>
+  </dt>
+  <dd>
+    Add color to formatted string as inline style
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgenerateHTMLFooter">PHPExcel_Writer_HTML::generateHTMLFooter()</a>
+  </dt>
+  <dd>
+    Generate HTML footer
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgenerateHTMLHeader">PHPExcel_Writer_HTML::generateHTMLHeader()</a>
+  </dt>
+  <dd>
+    Generate HTML header
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgenerateNavigation">PHPExcel_Writer_HTML::generateNavigation()</a>
+  </dt>
+  <dd>
+    Generate sheet tabs
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgenerateSheetData">PHPExcel_Writer_HTML::generateSheetData()</a>
+  </dt>
+  <dd>
+    Generate sheet data
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgenerateStyles">PHPExcel_Writer_HTML::generateStyles()</a>
+  </dt>
+  <dd>
+    Generate CSS styles
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgetGenerateSheetNavigationBlock">PHPExcel_Writer_HTML::getGenerateSheetNavigationBlock()</a>
+  </dt>
+  <dd>
+    Get sheet index
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgetImagesRoot">PHPExcel_Writer_HTML::getImagesRoot()</a>
+  </dt>
+  <dd>
+    Get images root
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgetPreCalculateFormulas">PHPExcel_Writer_HTML::getPreCalculateFormulas()</a>
+  </dt>
+  <dd>
+    Get Pre-Calculate Formulas
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgetSheetIndex">PHPExcel_Writer_HTML::getSheetIndex()</a>
+  </dt>
+  <dd>
+    Get sheet index
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodgetUseInlineCss">PHPExcel_Writer_HTML::getUseInlineCss()</a>
+  </dt>
+  <dd>
+    Get use inline CSS?
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsave">PHPExcel_Writer_HTML::save()</a>
+  </dt>
+  <dd>
+    Save PHPExcel to file
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsetGenerateSheetNavigationBlock">PHPExcel_Writer_HTML::setGenerateSheetNavigationBlock()</a>
+  </dt>
+  <dd>
+    Set sheet index
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsetImagesRoot">PHPExcel_Writer_HTML::setImagesRoot()</a>
+  </dt>
+  <dd>
+    Set images root
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsetPreCalculateFormulas">PHPExcel_Writer_HTML::setPreCalculateFormulas()</a>
+  </dt>
+  <dd>
+    Set Pre-Calculate Formulas
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsetSheetIndex">PHPExcel_Writer_HTML::setSheetIndex()</a>
+  </dt>
+  <dd>
+    Set sheet index
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsetUseInlineCss">PHPExcel_Writer_HTML::setUseInlineCss()</a>
+  </dt>
+  <dd>
+    Set use inline CSS?
+  </dd>
+    <dt>
+    <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodwriteAllSheets">PHPExcel_Writer_HTML::writeAllSheets()</a>
+  </dt>
+  <dd>
+    Write all sheets (resets sheetIndex to NULL)
+  </dd>
+  </dl>
+</div>
+</td>
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a40">40</a>]<br />
+PHPExcel_Writer_PDF<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+
+  <hr />
+	<a name="method__construct"></a>
+	<h3>constructor __construct <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a150">150</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PHPExcel_Writer_PDF __construct(
+
+$phpExcel)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Create a new PHPExcel_Writer_PDF<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	Overrides <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#method__construct">PHPExcel_Writer_HTML::__construct()</a> (Create a new PHPExcel_Writer_HTML)<br /><br />
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel/PHPExcel.html">PHPExcel</a>&nbsp;&nbsp;</td>
+        <td><b>$phpExcel</b>&nbsp;&nbsp;</td>
+        <td>PHPExcel object</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetOrientation"></a>
+	<h3>method getOrientation <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a195">195</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getOrientation(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get Orientation<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetPaperSize"></a>
+	<h3>method getPaperSize <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a175">175</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>int getPaperSize(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get Paper Size<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetTempDir"></a>
+	<h3>method getTempDir <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a309">309</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getTempDir(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get temporary storage directory<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsave"></a>
+	<h3>method save <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a216">216</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void save(
+[
+$pFilename = null], string
+$pFileName)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Save PHPExcel to file<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+			<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../PHPExcel_Writer/PHPExcel_Writer_IWriter.html#methodsave">PHPExcel_Writer_IWriter::save()</a></dt>
+						<dd>Save PHPExcel to file</dd>
+					</dl>
+		Overrides <a href="../PHPExcel_Writer/PHPExcel_Writer_HTML.html#methodsave">PHPExcel_Writer_HTML::save()</a> (Save PHPExcel to file)<br /><br />
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pFileName</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$pFilename</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetFont"></a>
+	<h3>method setFont <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a165">165</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void setFont(
+string
+$fontName)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set font. Examples:<br /><br /><p>'arialunicid0-chinese-simplified'    'arialunicid0-chinese-traditional'    'arialunicid0-korean'    'arialunicid0-japanese'</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$fontName</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetOrientation"></a>
+	<h3>method setOrientation <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a205">205</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html">PHPExcel_Writer_PDF</a> setOrientation(
+[string
+$pValue = PHPExcel_Worksheet_PageSetup::ORIENTATION_DEFAULT])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set Orientation<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetPaperSize"></a>
+	<h3>method setPaperSize <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a185">185</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html">PHPExcel_Writer_PDF</a> setPaperSize(
+[int
+$pValue = PHPExcel_Worksheet_PageSetup::PAPERSIZE_LETTER])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set Paper Size<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetTempDir"></a>
+	<h3>method setTempDir <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Writer__PHPExcelWriterPDF.php.html#a320">320</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Writer/PHPExcel_Writer_PDF.html">PHPExcel_Writer_PDF</a> setTempDir(
+[string
+$pValue = ''])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set temporary storage directory<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception    Exception when directory does not exist</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td>Temporary storage directory</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:33:21 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

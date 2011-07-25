@@ -1,0 +1,2034 @@
+<html>
+<head>
+<title>Docs For Class Base</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">Math_Stats</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                          		  [ <a href="../classtrees_Math_Stats.html" class="menu">class tree: Math_Stats</a> ]
+		  [ <a href="../elementindex_Math_Stats.html" class="menu">index: Math_Stats</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../Math_Stats/_PHPExcel---Shared---JAMA---examples---Stats.php.html">		Stats.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../Math_Stats/Base.html">Base</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: Base</h1>
+Source Location: /PHPExcel/Shared/JAMA/examples/Stats.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">A class to calculate descriptive statistics from a data set.</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+          <li>Jesus M. Castagnetto &lt;<a href="mailto:jmcastagnetto@php.net">jmcastagnetto@php.net</a>&gt;</li>
+                  </ul>
+
+
+
+
+        
+        
+<h4>Version:</h4>
+<ul>
+  <li>0.8</li>
+</ul>
+
+        
+</td>
+
+<td valign="top">
+<h3><a href="#class_vars">Variables</a></h3>
+<ul>
+    <li><a href="../Math_Stats/Base.html#var$_calculatedValues">$_calculatedValues</a></li>
+    <li><a href="../Math_Stats/Base.html#var$_data">$_data</a></li>
+    <li><a href="../Math_Stats/Base.html#var$_dataExpanded">$_dataExpanded</a></li>
+    <li><a href="../Math_Stats/Base.html#var$_dataOption">$_dataOption</a></li>
+    <li><a href="../Math_Stats/Base.html#var$_nullOption">$_nullOption</a></li>
+  </ul>
+</td>
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../Math_Stats/Base.html#methodabsDev">absDev</a></li>
+    <li><a href="../Math_Stats/Base.html#methodabsDevWithMean">absDevWithMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcalc">calc</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcalcBasic">calcBasic</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcalcFull">calcFull</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcenter">center</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcoeffOfVariation">coeffOfVariation</a></li>
+    <li><a href="../Math_Stats/Base.html#methodcount">count</a></li>
+    <li><a href="../Math_Stats/Base.html#methodfrequency">frequency</a></li>
+    <li><a href="../Math_Stats/Base.html#methodgeometricMean">geometricMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodgetData">getData</a></li>
+    <li><a href="../Math_Stats/Base.html#methodharmonicMean">harmonicMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodinterquartileMean">interquartileMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodinterquartileRange">interquartileRange</a></li>
+    <li><a href="../Math_Stats/Base.html#methodkurtosis">kurtosis</a></li>
+    <li><a href="../Math_Stats/Base.html#methodMath_Stats">Math_Stats</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmax">max</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmean">mean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmedian">median</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmidrange">midrange</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmin">min</a></li>
+    <li><a href="../Math_Stats/Base.html#methodmode">mode</a></li>
+    <li><a href="../Math_Stats/Base.html#methodpercentile">percentile</a></li>
+    <li><a href="../Math_Stats/Base.html#methodproduct">product</a></li>
+    <li><a href="../Math_Stats/Base.html#methodproductN">productN</a></li>
+    <li><a href="../Math_Stats/Base.html#methodquartileDeviation">quartileDeviation</a></li>
+    <li><a href="../Math_Stats/Base.html#methodquartiles">quartiles</a></li>
+    <li><a href="../Math_Stats/Base.html#methodquartileSkewnessCoefficient">quartileSkewnessCoefficient</a></li>
+    <li><a href="../Math_Stats/Base.html#methodquartileVariationCoefficient">quartileVariationCoefficient</a></li>
+    <li><a href="../Math_Stats/Base.html#methodrange">range</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsampleCentralMoment">sampleCentralMoment</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsampleRawMoment">sampleRawMoment</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsetData">setData</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsetNullOption">setNullOption</a></li>
+    <li><a href="../Math_Stats/Base.html#methodskewness">skewness</a></li>
+    <li><a href="../Math_Stats/Base.html#methodstdErrorOfMean">stdErrorOfMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodstDev">stDev</a></li>
+    <li><a href="../Math_Stats/Base.html#methodstDevWithMean">stDevWithMean</a></li>
+    <li><a href="../Math_Stats/Base.html#methodstudentize">studentize</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsum">sum</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsum2">sum2</a></li>
+    <li><a href="../Math_Stats/Base.html#methodsumN">sumN</a></li>
+    <li><a href="../Math_Stats/Base.html#methodvariance">variance</a></li>
+    <li><a href="../Math_Stats/Base.html#methodvarianceWithMean">varianceWithMean</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a119">119</a>]<br />
+A class to calculate descriptive statistics from a data set.<br /><br /><p>Data sets can be simple arrays of data, or a cummulative hash.  The second form is useful when passing large data set,  for example the data set:</p><p><pre> $data1 = array (1,2,1,1,1,1,3,3,4.1,3,2,2,4.1,1,1,2,3,3,2,2,1,1,2,2);</pre></p><p>can be epxressed more compactly as:</p><p><pre> $data2 = array('1'=>9, '2'=>8, '3'=>5, '4.1'=>2);</pre></p><p>Example of use:</p><p><pre> include_once 'Math/Stats.php';
+ $s = new Math_Stats();
+ $s->setData($data1);
+ // or
+ // $s->setData($data2, STATS_DATA_CUMMULATIVE);
+ $stats = $s->calcBasic();
+ echo 'Mean: '.$stats['mean'].' StDev: '.$stats['stdev'].' <br />\n';
+
+ // using data with nulls
+ // first ignoring them:
+ $data3 = array(1.2, 'foo', 2.4, 3.1, 4.2, 3.2, null, 5.1, 6.2);
+ $s->setNullOption(STATS_IGNORE_NULL);
+ $s->setData($data3);
+ $stats3 = $s->calcFull();
+
+ // and then assuming nulls == 0
+ $s->setNullOption(STATS_USE_NULL_AS_ZERO);
+ $s->setData($data3);
+ $stats3 = $s->calcFull();</pre></p><p>Originally this class was part of NumPHP (Numeric PHP package)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>author:</b>&nbsp;&nbsp;</td><td>Jesus M. Castagnetto &lt;<a href="mailto:jmcastagnetto@php.net">jmcastagnetto@php.net</a>&gt;</td>
+  </tr>
+  <tr>
+    <td><b>version:</b>&nbsp;&nbsp;</td><td>0.8</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+<hr />
+<a name="class_vars"></a>
+<h3>Class Variables</h3>
+<div class="tags">
+	<a name="var$_calculatedValues"></a>
+	<p></p>
+	<h4>$_calculatedValues = <span class="value">array()</span></h4>
+	<p>[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a165">165</a>]</p>
+  Array for caching result values, should be reset  when using setData()<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_data"></a>
+	<p></p>
+	<h4>$_data = <span class="value">&nbsp;null</span></h4>
+	<p>[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a129">129</a>]</p>
+  The simple or cummulative data set.<br /><br /><p>Null by default.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_dataExpanded"></a>
+	<p></p>
+	<h4>$_dataExpanded = <span class="value">&nbsp;null</span></h4>
+	<p>[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a138">138</a>]</p>
+  Expanded data set. Only set when cummulative data  is being used. Null by default.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>array</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_dataOption"></a>
+	<p></p>
+	<h4>$_dataOption = <span class="value">&nbsp;null</span></h4>
+	<p>[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a147">147</a>]</p>
+  Flag for data type, one of STATS_DATA_SIMPLE or  STATS_DATA_CUMMULATIVE. Null by default.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>int</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="var$_nullOption"></a>
+	<p></p>
+	<h4>$_nullOption = <span class="value"></span></h4>
+	<p>[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a156">156</a>]</p>
+  Flag for null handling options. One of STATS_REJECT_NULL,  STATS_IGNORE_NULL or STATS_USE_NULL_AS_ZERO<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+
+  <br />
+	<div class="tags">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td><b>Type:</b>&nbsp;&nbsp;</td>
+      <td>int</td>
+    </tr>
+      </table>
+	</div><br /><br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+
+  <hr />
+	<a name="methodabsDev"></a>
+	<h3>method absDev <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a750">750</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed absDev(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the absolute deviation of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the absolute deviation on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodabsDevWithMean">Base::absDevWithMean()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumabsdev()</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodabsDevWithMean"></a>
+	<h3>method absDevWithMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a773">773</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed absDevWithMean(
+numeric
+$mean)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the absolute deviation of the data points in the set  given a fixed mean (average) value. Not used in calcBasic(), calcFull()  or calc().<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the absolute deviation on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodabsDev">Base::absDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumabsdev()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>the fixed mean value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcalc"></a>
+	<h3>method calc <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a326">326</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed calc(
+int
+$mode, [boolean
+$returnErrorObject = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the basic or full statistics for the data set<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an associative array of statistics on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalcFull">Base::calcFull()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalcBasic">Base::calcBasic()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$mode</b>&nbsp;&nbsp;</td>
+        <td>one of STATS_BASIC or STATS_FULL</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$returnErrorObject</b>&nbsp;&nbsp;</td>
+        <td>whether the raw PEAR_Error (when true, default),                   or only the error message will be returned (when false), if an error happens.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcalcBasic"></a>
+	<h3>method calcBasic <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a349">349</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed calcBasic(
+[boolean
+$returnErrorObject = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates a basic set of statistics<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an associative array of statistics on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalcFull">Base::calcFull()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$returnErrorObject</b>&nbsp;&nbsp;</td>
+        <td>whether the raw PEAR_Error (when true, default),                   or only the error message will be returned (when false), if an error happens.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcalcFull"></a>
+	<h3>method calcFull <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a373">373</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed calcFull(
+[boolean
+$returnErrorObject = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates a full set of statistics<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an associative array of statistics on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalcBasic">Base::calcBasic()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$returnErrorObject</b>&nbsp;&nbsp;</td>
+        <td>whether the raw PEAR_Error (when true, default),                   or only the error message will be returned (when false), if an error happens.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcenter"></a>
+	<h3>method center <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a295">295</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed center(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Transforms the data by substracting each entry from the mean.<br /><br /><p>This will reset all pre-calculated values to their original (unset) defaults.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsetData">Base::setData()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmean">Base::mean()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcoeffOfVariation"></a>
+	<h3>method coeffOfVariation <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1109">1109</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed coeffOfVariation(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the coefficient of variation of a data set.<br /><br /><p>The coefficient of variation measures the spread of a set of data  as a proportion of its mean. It is often expressed as a percentage.  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the coefficient of variation on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmean">Base::mean()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcount"></a>
+	<h3>method count <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a599">599</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed count(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the number of data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the count on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodfrequency"></a>
+	<h3>method frequency <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1171">1171</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed frequency(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the value frequency table of a data set.<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an associative array of value=&gt;frequency items on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmax">Base::max()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmin">Base::min()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgeometricMean"></a>
+	<h3>method geometricMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a965">965</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed geometricMean(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the geometrical mean of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the geometrical mean value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodproduct">Base::product()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetData"></a>
+	<h3>method getData <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a217">217</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed getData(
+[boolean
+$expanded = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Returns the data which might have been modified  according to the current null handling options.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>array of data on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>_validate()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$expanded</b>&nbsp;&nbsp;</td>
+        <td>whether to return a expanded list, default is false</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodharmonicMean"></a>
+	<h3>method harmonicMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a995">995</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed harmonicMean(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the harmonic mean of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the harmonic mean value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodinterquartileMean"></a>
+	<h3>method interquartileMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1235">1235</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed interquartileMean(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The interquartile mean is defined as the mean of the values left  after discarding the lower 25% and top 25% ranked values, i.e.:<br /><br /><p>interquart mean = mean(&lt;P(25),P(75)&gt;)</p><p>where: P = percentile</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>need to double check the equation</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodinterquartileRange"></a>
+	<h3>method interquartileRange <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1273">1273</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed interquartileRange(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The interquartile range is the distance between the 75th and 25th  percentiles. Basically the range of the middle 50% of the data set,  and thus is not affected by outliers or extreme values.<br /><br /><p>interquart range = P(75) - P(25)</p><p>where: P = percentile</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodkurtosis"></a>
+	<h3>method kurtosis <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a832">832</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed kurtosis(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the kurtosis of the data distribution in the set  The kurtosis measures the degrees of peakedness of a distribution.<br /><br /><p>It is also called the &quot;excess&quot; or &quot;excess coefficient&quot;, and is  a normalized form of the fourth central moment of a distribution.  A normal distributions has kurtosis = 0  A narrow and peaked (leptokurtic) distribution has a  kurtosis &gt; 0  A flat and wide (platykurtic) distribution has a kurtosis &lt; 0  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the kurtosis value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumdiff()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMath_Stats"></a>
+	<h3>method Math_Stats <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a176">176</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>object Math_Stats Math_Stats(
+[optional
+$nullOption = STATS_REJECT_NULL])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Constructor for the class<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">optional&nbsp;&nbsp;</td>
+        <td><b>$nullOption</b>&nbsp;&nbsp;</td>
+        <td>int $nullOption how to handle null values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmax"></a>
+	<h3>method max <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a451">451</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed max(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the maximum of a data set.<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the maximum value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmin">Base::min()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmean"></a>
+	<h3>method mean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a624">624</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed mean(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the mean (average) of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the mean value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsum">Base::sum()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmedian"></a>
+	<h3>method median <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a864">864</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed median(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the median of a data set.<br /><br /><p>The median is the value such that half of the points are below it  in a sorted data set.  If the number of values is odd, it is the middle item.  If the number of values is even, is the average of the two middle items.  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the median value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmidrange"></a>
+	<h3>method midrange <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a940">940</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed midrange(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the midrange of a data set.<br /><br /><p>The midrange is the average of the minimum and maximum of the data set.  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the midrange value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmax">Base::max()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmin">Base::min()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmin"></a>
+	<h3>method min <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a427">427</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed min(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the minimum of a data set.<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the minimum value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmax">Base::max()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodmode"></a>
+	<h3>method mode <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a900">900</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed mode(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the mode of a data set.<br /><br /><p>The mode is the value with the highest frequency in the data set.  There can be more than one mode.  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an array of mode value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodfrequency">Base::frequency()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodpercentile"></a>
+	<h3>method percentile <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1389">1389</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed percentile(
+numeric
+$p)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The pth percentile is the value such that p% of the a sorted data set  is smaller than it, and (100 - p)% of the data is larger.<br /><br /><p>A quick algorithm to pick the appropriate value from a sorted data  set is as follows:</p><p><ul><li>Count the number of values: n</li><li>Calculate the position of the value in the data list: i = p * (n + 1)</li><li>if i is an integer, return the data at that position</li><li>if i &lt; 1, return the minimum of the data set</li><li>if i &gt; n, return the maximum of the data set</li><li>otherwise, average the entries at adjacent positions to i</li></ul>  The median is the 50th percentile value.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmedian">Base::median()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>need to double check generality of the algorithm</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$p</b>&nbsp;&nbsp;</td>
+        <td>the percentile to estimate, e.g. 25 for 25th percentile</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodproduct"></a>
+	<h3>method product <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a546">546</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed product(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates PROD { (xi) }, (the product of all observations)  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the product on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodproductN">Base::productN()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodproductN"></a>
+	<h3>method productN <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a567">567</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed productN(
+numeric
+$n)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates PROD { (xi)^n }, which is the product of all observations  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the product on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodproduct">Base::product()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$n</b>&nbsp;&nbsp;</td>
+        <td>the exponent</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodquartileDeviation"></a>
+	<h3>method quartileDeviation <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1298">1298</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed quartileDeviation(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The quartile deviation is half of the interquartile range value<br /><br /><p>quart dev = (P(75) - P(25)) / 2</p><p>where: P = percentile</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodinterquartileRange">Base::interquartileRange()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodquartiles"></a>
+	<h3>method quartiles <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1199">1199</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed quartiles(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The quartiles are defined as the values that divide a sorted  data set into four equal-sized subsets, and correspond to the  25th, 50th, and 75th percentiles.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>an associative array of quartiles on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodpercentile">Base::percentile()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodquartileSkewnessCoefficient"></a>
+	<h3>method quartileSkewnessCoefficient <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1349">1349</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed quartileSkewnessCoefficient(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The quartile skewness coefficient (also known as Bowley Skewness),  is defined as follows:<br /><br /><p>quart skewness coeff = (P(25) - 2*P(50) + P(75)) / (P(75) - P(25))</p><p>where: P = percentile</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>need to double check the equation</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodquartileVariationCoefficient"></a>
+	<h3>method quartileVariationCoefficient <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1321">1321</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed quartileVariationCoefficient(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		The quartile variation coefficient is defines as follows:<br /><br /><p>quart var coeff = 100 * (P(75) - P(25)) / (P(75) + P(25))</p><p>where: P = percentile</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>a numeric value on success, a PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodquartiles">Base::quartiles()</a></td>
+  </tr>
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>need to double check the equation</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodrange"></a>
+	<h3>method range <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a645">645</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed range(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the range of the data set = max - min<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the value of the range on success, a PEAR_Error object otherwise.</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsampleCentralMoment"></a>
+	<h3>method sampleCentralMoment <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1040">1040</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed sampleCentralMoment(
+integer
+$n)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the nth central moment (m{n}) of a data set.<br /><br /><p>The definition of a sample central moment is:</p><p>m{n} = 1/N * SUM { (xi - avg)^n }</p><p>where: N = sample size, avg = sample mean.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the numeric value of the moment on success, PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$n</b>&nbsp;&nbsp;</td>
+        <td>moment to calculate</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsampleRawMoment"></a>
+	<h3>method sampleRawMoment <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1076">1076</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed sampleRawMoment(
+integer
+$n)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the nth raw moment (m{n}) of a data set.<br /><br /><p>The definition of a sample central moment is:</p><p>m{n} = 1/N * SUM { xi^n }</p><p>where: N = sample size, avg = sample mean.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the numeric value of the moment on success, PEAR_Error otherwise</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">integer&nbsp;&nbsp;</td>
+        <td><b>$n</b>&nbsp;&nbsp;</td>
+        <td>moment to calculate</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetData"></a>
+	<h3>method setData <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a189">189</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed setData(
+array
+$arr, [optional
+$opt = STATS_DATA_SIMPLE])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Sets and verifies the data, checking for nulls and using  the current null handling option<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$arr</b>&nbsp;&nbsp;</td>
+        <td>the data set</td>
+      </tr>
+          <tr>
+        <td class="type">optional&nbsp;&nbsp;</td>
+        <td><b>$opt</b>&nbsp;&nbsp;</td>
+        <td>int $opt    data format: STATS_DATA_CUMMULATIVE or STATS_DATA_SIMPLE (default)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetNullOption"></a>
+	<h3>method setNullOption <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a236">236</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed setNullOption(
+
+$nullOption)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Sets the null handling option.<br /><br /><p>Must be called before assigning a new data set containing null values</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>_validate()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$nullOption</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodskewness"></a>
+	<h3>method skewness <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a795">795</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed skewness(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the skewness of the data distribution in the set  The skewness measures the degree of asymmetry of a distribution,  and is related to the third central moment of a distribution.<br /><br /><p>A normal distribution has a skewness = 0  A distribution with a tail off towards the high end of the scale  (positive skew) has a skewness &gt; 0  A distribution with a tail off towards the low end of the scale  (negative skew) has a skewness &lt; 0  Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the skewness value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumdiff()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodstdErrorOfMean"></a>
+	<h3>method stdErrorOfMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a1146">1146</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed stdErrorOfMean(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the standard error of the mean.<br /><br /><p>It is the standard deviation of the sampling distribution of  the mean. The formula is:</p><p>S.E. Mean = SD / (N)^(1/2)</p><p>This formula does not assume a normal distribution, and shows  that the size of the standard error of the mean is inversely  proportional to the square root of the sample size.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the standard error of the mean on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodstDev"></a>
+	<h3>method stDev <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a691">691</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed stDev(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the standard deviation (unbiased) of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the standard deviation on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodvariance">Base::variance()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodstDevWithMean"></a>
+	<h3>method stDevWithMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a731">731</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed stDevWithMean(
+numeric
+$mean)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the standard deviation (unbiased) of the data points in the set  given a fixed mean (average) value. Not used in calcBasic(), calcFull()  or calc().<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the standard deviation on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodvarianceWithMean">Base::varianceWithMean()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>the fixed mean value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodstudentize"></a>
+	<h3>method studentize <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a259">259</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed studentize(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Transforms the data by substracting each entry from the mean and  dividing by its standard deviation. This will reset all pre-calculated  values to their original (unset) defaults.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>true on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsetData">Base::setData()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodstDev">Base::stDev()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodmean">Base::mean()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsum"></a>
+	<h3>method sum <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a476">476</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed sum(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates SUM { xi }  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the sum on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsumN">Base::sumN()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsum2">Base::sum2()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsum2"></a>
+	<h3>method sum2 <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a498">498</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed sum2(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates SUM { (xi)^2 }  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the sum on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsumN">Base::sumN()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsum">Base::sum()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsumN"></a>
+	<h3>method sumN <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a521">521</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed sumN(
+numeric
+$n)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates SUM { (xi)^n }  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the sum on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsum2">Base::sum2()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodsum">Base::sum()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$n</b>&nbsp;&nbsp;</td>
+        <td>the exponent</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodvariance"></a>
+	<h3>method variance <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a671">671</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed variance(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the variance (unbiased) of the data points in the set  Handles cummulative data sets correctly<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the variance value on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumdiff()</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcalc">Base::calc()</a></td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodvarianceWithMean"></a>
+	<h3>method varianceWithMean <span class="smalllinenumber">[line <a href="../__filesource/fsource_Math_Stats__PHPExcelSharedJAMAexamplesStats.php.html#a715">715</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed varianceWithMean(
+numeric
+$mean)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculates the variance (unbiased) of the data points in the set  given a fixed mean (average) value. Not used in calcBasic(), calcFull()  or calc().<br /><br /><p>Handles cummulative data sets correctly</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>the variance on success, a PEAR_Error object otherwise</td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodvariance">Base::variance()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td><a href="../Math_Stats/Base.html#methodcount">Base::count()</a></td>
+  </tr>
+  <tr>
+    <td><b>see:</b>&nbsp;&nbsp;</td><td>__sumdiff()</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">numeric&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>the fixed mean value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:34:11 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

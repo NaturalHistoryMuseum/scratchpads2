@@ -1,0 +1,150 @@
+<html>
+<head>
+<title>File Source for polyfit.php</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      		  [ <a href="../classtrees_PHPExcel.html" class="menu">class tree: PHPExcel</a> ]
+		  [ <a href="../elementindex_PHPExcel.html" class="menu">index: PHPExcel</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                  
+      
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1 align="center">Source for file polyfit.php</h1>
+<p>Documentation is available at <a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html">polyfit.php</a></p>
+<div class="src-code">
+<ol><li><div class="src-line"><a name="a1"></a><span class="src-php">&lt;?php</span></div></li>
+<li><div class="src-line"><a name="a2"></a><span class="src-inc">require_once&nbsp;</span><span class="src-str">&quot;../Matrix.php&quot;</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a3"></a><span class="src-comm">/*</span></div></li>
+<li><div class="src-line"><a name="a4"></a><span class="src-comm">*&nbsp;@package&nbsp;JAMA</span></div></li>
+<li><div class="src-line"><a name="a5"></a><span class="src-comm">*&nbsp;@author&nbsp;Michael&nbsp;Bommarito</span></div></li>
+<li><div class="src-line"><a name="a6"></a><span class="src-comm">*&nbsp;@author&nbsp;Paul&nbsp;Meagher</span></div></li>
+<li><div class="src-line"><a name="a7"></a><span class="src-comm">*&nbsp;@version&nbsp;0.1</span></div></li>
+<li><div class="src-line"><a name="a8"></a><span class="src-comm">*</span></div></li>
+<li><div class="src-line"><a name="a9"></a><span class="src-comm">*&nbsp;Function&nbsp;to&nbsp;fit&nbsp;an&nbsp;order&nbsp;n&nbsp;polynomial&nbsp;function&nbsp;through</span></div></li>
+<li><div class="src-line"><a name="a10"></a><span class="src-comm">*&nbsp;a&nbsp;series&nbsp;of&nbsp;x-y&nbsp;data&nbsp;points&nbsp;using&nbsp;least&nbsp;squares.</span></div></li>
+<li><div class="src-line"><a name="a11"></a><span class="src-comm">*</span></div></li>
+<li><div class="src-line"><a name="a12"></a><span class="src-comm">*&nbsp;@param&nbsp;$X&nbsp;array&nbsp;x&nbsp;values</span></div></li>
+<li><div class="src-line"><a name="a13"></a><span class="src-comm">*&nbsp;@param&nbsp;$Y&nbsp;array&nbsp;y&nbsp;values</span></div></li>
+<li><div class="src-line"><a name="a14"></a><span class="src-comm">*&nbsp;@param&nbsp;$n&nbsp;int&nbsp;order&nbsp;of&nbsp;polynomial&nbsp;to&nbsp;be&nbsp;used&nbsp;for&nbsp;fitting</span></div></li>
+<li><div class="src-line"><a name="a15"></a><span class="src-comm">*&nbsp;@returns&nbsp;array&nbsp;$coeffs&nbsp;of&nbsp;polynomial&nbsp;coefficients</span></div></li>
+<li><div class="src-line"><a name="a16"></a><span class="src-comm">*&nbsp;Pre-Conditions:&nbsp;the&nbsp;system&nbsp;is&nbsp;not&nbsp;underdetermined:&nbsp;sizeof($X)&nbsp;&gt;&nbsp;$n+1</span></div></li>
+<li><div class="src-line"><a name="a17"></a><span class="src-comm">*/</span></div></li>
+<li><div class="src-line"><a name="a18"></a><span class="src-key">function&nbsp;</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionpolyfit">polyfit</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">,&nbsp;</span><span class="src-var">$n</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a19"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">for&nbsp;</span><span class="src-sym">(</span><span class="src-var">$i&nbsp;</span>=&nbsp;<span class="src-num">0</span><span class="src-sym">;&nbsp;</span><span class="src-var">$i&nbsp;</span>&lt;&nbsp;<a href="http://www.php.net/sizeof">sizeof</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">)</span><span class="src-sym">;&nbsp;</span>++<span class="src-var">$i</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a20"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">for&nbsp;</span><span class="src-sym">(</span><span class="src-var">$j&nbsp;</span>=&nbsp;<span class="src-num">0</span><span class="src-sym">;&nbsp;</span><span class="src-var">$j&nbsp;</span>&lt;=&nbsp;<span class="src-var">$n</span><span class="src-sym">;&nbsp;</span>++<span class="src-var">$j</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a21"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$A</span><span class="src-sym">[</span><span class="src-var">$i</span><span class="src-sym">]</span><span class="src-sym">[</span><span class="src-var">$j</span><span class="src-sym">]&nbsp;</span>=&nbsp;<a href="http://www.php.net/pow">pow</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">[</span><span class="src-var">$i</span><span class="src-sym">]</span><span class="src-sym">,&nbsp;</span><span class="src-var">$j</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a22"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">for&nbsp;</span><span class="src-sym">(</span><span class="src-var">$i</span>=<span class="src-num">0</span><span class="src-sym">;&nbsp;</span><span class="src-var">$i&nbsp;</span>&lt;&nbsp;<a href="http://www.php.net/sizeof">sizeof</a><span class="src-sym">(</span><span class="src-var">$Y</span><span class="src-sym">)</span><span class="src-sym">;&nbsp;</span>++<span class="src-var">$i</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a23"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$B</span><span class="src-sym">[</span><span class="src-var">$i</span><span class="src-sym">]&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-var">$Y</span><span class="src-sym">[</span><span class="src-var">$i</span><span class="src-sym">]</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a24"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$matrixA&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-var">$A</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a25"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$matrixB&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-var">$B</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a26"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$C&nbsp;</span>=&nbsp;<span class="src-var">$matrixA</span><span class="src-sym">-&gt;</span><span class="src-id">solve</span><span class="src-sym">(</span><span class="src-var">$matrixB</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a27"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">return&nbsp;</span><span class="src-var">$C</span><span class="src-sym">-&gt;</span><span class="src-id">getMatrix</span><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-var">$n</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-num">1</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a28"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a29"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a30"></a><span class="src-key">function&nbsp;</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionprintpoly">printpoly</a><span class="src-sym">(&nbsp;</span><span class="src-var">$C&nbsp;</span>=&nbsp;<span class="src-id">null&nbsp;</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a31"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">for</span><span class="src-sym">(</span><span class="src-var">$i&nbsp;</span>=&nbsp;<span class="src-var">$C</span><span class="src-sym">-&gt;</span><span class="src-id">m&nbsp;</span>-&nbsp;<span class="src-num">1</span><span class="src-sym">;&nbsp;</span><span class="src-var">$i&nbsp;</span>&gt;=&nbsp;<span class="src-num">0</span><span class="src-sym">;&nbsp;</span>--<span class="src-var">$i</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a32"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$r&nbsp;</span>=&nbsp;<span class="src-var">$C</span><span class="src-sym">-&gt;</span><span class="src-id">get</span><span class="src-sym">(</span><span class="src-var">$i</span><span class="src-sym">,&nbsp;</span><span class="src-num">0</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a33"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if&nbsp;</span><span class="src-sym">(&nbsp;</span><a href="http://www.php.net/abs">abs</a><span class="src-sym">(</span><span class="src-var">$r</span><span class="src-sym">)&nbsp;</span>&lt;=&nbsp;<a href="http://www.php.net/pow">pow</a><span class="src-sym">(</span><span class="src-num">10</span><span class="src-sym">,&nbsp;</span>-<span class="src-num">9</span><span class="src-sym">)&nbsp;)</span></div></li>
+<li><div class="src-line"><a name="a34"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$r&nbsp;</span>=&nbsp;<span class="src-num">0</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a35"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if&nbsp;</span><span class="src-sym">(</span><span class="src-var">$i&nbsp;</span>==&nbsp;<span class="src-var">$C</span><span class="src-sym">-&gt;</span><span class="src-id">m&nbsp;</span>-&nbsp;<span class="src-num">1</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a36"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;<span class="src-var">$r&nbsp;</span>.&nbsp;<span class="src-str">&quot;</span><span class="src-str">x&lt;sup&gt;<span class="src-var">$i</span>&lt;/sup&gt;</span><span class="src-str">&quot;</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a37"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">else&nbsp;</span><span class="src-key">if&nbsp;</span><span class="src-sym">(</span><span class="src-var">$i&nbsp;</span>&lt;&nbsp;<span class="src-var">$C</span><span class="src-sym">-&gt;</span><span class="src-id">m&nbsp;</span>-&nbsp;<span class="src-num">1</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a38"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;<span class="src-str">&quot;&nbsp;+&nbsp;&quot;&nbsp;</span>.&nbsp;<span class="src-var">$r&nbsp;</span>.&nbsp;<span class="src-str">&quot;</span><span class="src-str">x&lt;sup&gt;<span class="src-var">$i</span>&lt;/sup&gt;</span><span class="src-str">&quot;</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a39"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">else&nbsp;</span><span class="src-key">if&nbsp;</span><span class="src-sym">(</span><span class="src-var">$i&nbsp;</span>==&nbsp;<span class="src-num">0</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a40"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;<span class="src-str">&quot;&nbsp;+&nbsp;&quot;&nbsp;</span>.&nbsp;<span class="src-var">$r</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a41"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a42"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a43"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a44"></a><span class="src-var">$X&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,</span><span class="src-num">1</span><span class="src-sym">,</span><span class="src-num">2</span><span class="src-sym">,</span><span class="src-num">3</span><span class="src-sym">,</span><span class="src-num">4</span><span class="src-sym">,</span><span class="src-num">5</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a45"></a><span class="src-var">$Y&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">4</span><span class="src-sym">,</span><span class="src-num">3</span><span class="src-sym">,</span><span class="src-num">12</span><span class="src-sym">,</span><span class="src-num">67</span><span class="src-sym">,</span><span class="src-num">228</span><span class="src-sym">,&nbsp;</span><span class="src-num">579</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a46"></a><span class="src-var">$points&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-key">array</span><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a47"></a><span class="src-var">$points</span><span class="src-sym">-&gt;</span><span class="src-id">toHTML</span><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a48"></a><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionprintpoly">printpoly</a><span class="src-sym">(</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionpolyfit">polyfit</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">,&nbsp;</span><span class="src-num">4</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a49"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a50"></a>echo&nbsp;<span class="src-str">'&lt;hr&nbsp;/&gt;'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a51"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a52"></a><span class="src-var">$X&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,</span><span class="src-num">1</span><span class="src-sym">,</span><span class="src-num">2</span><span class="src-sym">,</span><span class="src-num">3</span><span class="src-sym">,</span><span class="src-num">4</span><span class="src-sym">,</span><span class="src-num">5</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a53"></a><span class="src-var">$Y&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">1</span><span class="src-sym">,</span><span class="src-num">2</span><span class="src-sym">,</span><span class="src-num">5</span><span class="src-sym">,</span><span class="src-num">10</span><span class="src-sym">,</span><span class="src-num">17</span><span class="src-sym">,&nbsp;</span><span class="src-num">26</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a54"></a><span class="src-var">$points&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-key">array</span><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a55"></a><span class="src-var">$points</span><span class="src-sym">-&gt;</span><span class="src-id">toHTML</span><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a56"></a><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionprintpoly">printpoly</a><span class="src-sym">(</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionpolyfit">polyfit</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">,&nbsp;</span><span class="src-num">2</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a57"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a58"></a>echo&nbsp;<span class="src-str">'&lt;hr&nbsp;/&gt;'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a59"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a60"></a><span class="src-var">$X&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,</span><span class="src-num">1</span><span class="src-sym">,</span><span class="src-num">2</span><span class="src-sym">,</span><span class="src-num">3</span><span class="src-sym">,</span><span class="src-num">4</span><span class="src-sym">,</span><span class="src-num">5</span><span class="src-sym">,</span><span class="src-num">6</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a61"></a><span class="src-var">$Y&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span>-<span class="src-num">90</span><span class="src-sym">,</span>-<span class="src-num">104</span><span class="src-sym">,</span>-<span class="src-num">178</span><span class="src-sym">,</span>-<span class="src-num">252</span><span class="src-sym">,</span>-<span class="src-num">26</span><span class="src-sym">,&nbsp;</span><span class="src-num">1160</span><span class="src-sym">,&nbsp;</span><span class="src-num">4446</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a62"></a><span class="src-var">$points&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-key">array</span><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a63"></a><span class="src-var">$points</span><span class="src-sym">-&gt;</span><span class="src-id">toHTML</span><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a64"></a><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionprintpoly">printpoly</a><span class="src-sym">(</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionpolyfit">polyfit</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">,&nbsp;</span><span class="src-num">5</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a65"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a66"></a>echo&nbsp;<span class="src-str">'&lt;hr&nbsp;/&gt;'</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a67"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a68"></a><span class="src-var">$X&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,</span><span class="src-num">1</span><span class="src-sym">,</span><span class="src-num">2</span><span class="src-sym">,</span><span class="src-num">3</span><span class="src-sym">,</span><span class="src-num">4</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a69"></a><span class="src-var">$Y&nbsp;</span>=&nbsp;<span class="src-key">array</span><span class="src-sym">(</span><a href="http://www.php.net/mt_rand">mt_rand</a><span class="src-sym">(</span><span class="src-num">0</span><span class="src-sym">,&nbsp;</span><span class="src-num">10</span><span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/mt_rand">mt_rand</a><span class="src-sym">(</span><span class="src-num">40</span><span class="src-sym">,&nbsp;</span><span class="src-num">80</span><span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/mt_rand">mt_rand</a><span class="src-sym">(</span><span class="src-num">240</span><span class="src-sym">,&nbsp;</span><span class="src-num">400</span><span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/mt_rand">mt_rand</a><span class="src-sym">(</span><span class="src-num">1800</span><span class="src-sym">,&nbsp;</span><span class="src-num">2215</span><span class="src-sym">)</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/mt_rand">mt_rand</a><span class="src-sym">(</span><span class="src-num">8000</span><span class="src-sym">,&nbsp;</span><span class="src-num">9000</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a70"></a><span class="src-var">$points&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id">Matrix</span><span class="src-sym">(</span><span class="src-key">array</span><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a71"></a><span class="src-var">$points</span><span class="src-sym">-&gt;</span><span class="src-id">toHTML</span><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a72"></a><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionprintpoly">printpoly</a><span class="src-sym">(</span><a href="../PHPExcel/_PHPExcel---Shared---JAMA---examples---polyfit.php.html#functionpolyfit">polyfit</a><span class="src-sym">(</span><span class="src-var">$X</span><span class="src-sym">,&nbsp;</span><span class="src-var">$Y</span><span class="src-sym">,&nbsp;</span><span class="src-num">3</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a73"></a><span class="src-php">?&gt;</span></div></li>
+</ol>
+</div>
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:33:27 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

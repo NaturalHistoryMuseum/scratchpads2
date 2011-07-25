@@ -1,0 +1,3590 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Calculation_Statistical</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Calculation</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                  		  [ <a href="../classtrees_PHPExcel_Calculation.html" class="menu">class tree: PHPExcel_Calculation</a> ]
+		  [ <a href="../elementindex_PHPExcel_Calculation.html" class="menu">index: PHPExcel_Calculation</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation.php.html">		Calculation.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Database.php.html">		Database.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---DateTime.php.html">		DateTime.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Engineering.php.html">		Engineering.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Exception.php.html">		Exception.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---ExceptionHandler.php.html">		ExceptionHandler.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Financial.php.html">		Financial.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaParser.php.html">		FormulaParser.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---FormulaToken.php.html">		FormulaToken.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Function.php.html">		Function.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Functions.php.html">		Functions.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Logical.php.html">		Logical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---LookupRef.php.html">		LookupRef.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---MathTrig.php.html">		MathTrig.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---Statistical.php.html">		Statistical.php
+		</a><br>
+			<a href="../PHPExcel_Calculation/_PHPExcel---Calculation---TextData.php.html">		TextData.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Database.html">PHPExcel_Calculation_Database</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_DateTime.html">PHPExcel_Calculation_DateTime</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Engineering.html">PHPExcel_Calculation_Engineering</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Exception.html">PHPExcel_Calculation_Exception</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_ExceptionHandler.html">PHPExcel_Calculation_ExceptionHandler</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Financial.html">PHPExcel_Calculation_Financial</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaParser.html">PHPExcel_Calculation_FormulaParser</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_FormulaToken.html">PHPExcel_Calculation_FormulaToken</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Function.html">PHPExcel_Calculation_Function</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Functions.html">PHPExcel_Calculation_Functions</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Logical.html">PHPExcel_Calculation_Logical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_LookupRef.html">PHPExcel_Calculation_LookupRef</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_MathTrig.html">PHPExcel_Calculation_MathTrig</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html">PHPExcel_Calculation_Statistical</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Calculation_TextData.html">PHPExcel_Calculation_TextData</a><br />
+	    		<a href="../PHPExcel_Calculation/PHPExcel_Token_Stack.html">PHPExcel_Token_Stack</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Calculation_Statistical</h1>
+Source Location: /PHPExcel/Calculation/Statistical.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">PHPExcel_Calculation_Statistical</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+        
+</td>
+
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodAVEDEV">AVEDEV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodAVERAGE">AVERAGE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodAVERAGEA">AVERAGEA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodAVERAGEIF">AVERAGEIF</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodBETADIST">BETADIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodBETAINV">BETAINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodBINOMDIST">BINOMDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCHIDIST">CHIDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCHIINV">CHIINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCONFIDENCE">CONFIDENCE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCORREL">CORREL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCOUNT">COUNT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCOUNTA">COUNTA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCOUNTBLANK">COUNTBLANK</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCOUNTIF">COUNTIF</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCOVAR">COVAR</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodCRITBINOM">CRITBINOM</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodDEVSQ">DEVSQ</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodEXPONDIST">EXPONDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodFISHER">FISHER</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodFISHERINV">FISHERINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodFORECAST">FORECAST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodGAMMADIST">GAMMADIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodGAMMAINV">GAMMAINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodGAMMALN">GAMMALN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodGEOMEAN">GEOMEAN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodGROWTH">GROWTH</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodHARMEAN">HARMEAN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodHYPGEOMDIST">HYPGEOMDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodINTERCEPT">INTERCEPT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodKURT">KURT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodLARGE">LARGE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodLINEST">LINEST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodLOGEST">LOGEST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodLOGINV">LOGINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodLOGNORMDIST">LOGNORMDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMAX">MAX</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMAXA">MAXA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMAXIF">MAXIF</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMEDIAN">MEDIAN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMIN">MIN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMINA">MINA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMINIF">MINIF</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodMODE">MODE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodNEGBINOMDIST">NEGBINOMDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodNORMDIST">NORMDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodNORMINV">NORMINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodNORMSDIST">NORMSDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodNORMSINV">NORMSINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodPERCENTILE">PERCENTILE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodPERCENTRANK">PERCENTRANK</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodPERMUT">PERMUT</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodPOISSON">POISSON</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodQUARTILE">QUARTILE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodRANK">RANK</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodRSQ">RSQ</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSKEW">SKEW</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSLOPE">SLOPE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSMALL">SMALL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTANDARDIZE">STANDARDIZE</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTDEV">STDEV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTDEVA">STDEVA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTDEVP">STDEVP</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTDEVPA">STDEVPA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodSTEYX">STEYX</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodTDIST">TDIST</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodTINV">TINV</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodTREND">TREND</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodTRIMMEAN">TRIMMEAN</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodVARA">VARA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodVARFunc">VARFunc</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodVARP">VARP</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodVARPA">VARPA</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodWEIBULL">WEIBULL</a></li>
+    <li><a href="../PHPExcel_Calculation/PHPExcel_Calculation_Statistical.html#methodZTEST">ZTEST</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a62">62</a>]<br />
+PHPExcel_Calculation_Statistical<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="methodAVEDEV"></a>
+	<h3>static method AVEDEV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a699">699</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float AVEDEV(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		AVEDEV<br /><br /><p>Returns the average of the absolute deviations of data points from their mean. 	AVEDEV is a measure of the variability in a data set.</p><p>Excel Function: 		AVEDEV(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodAVERAGE"></a>
+	<h3>static method AVERAGE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a747">747</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float AVERAGE(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		AVERAGE<br /><br /><p>Returns the average (arithmetic mean) of the arguments</p><p>Excel Function: 		AVERAGE(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodAVERAGEA"></a>
+	<h3>static method AVERAGEA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a789">789</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float AVERAGEA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		AVERAGEA<br /><br /><p>Returns the average of its arguments, including numbers, text, and logical values</p><p>Excel Function: 		AVERAGEA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodAVERAGEIF"></a>
+	<h3>static method AVERAGEIF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a838">838</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float AVERAGEIF(
+
+$aArgs, string
+$condition, [
+$averageArgs = array()], mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		AVERAGEIF<br /><br /><p>Returns the average value from a range of cells that contain numbers within the list of arguments</p><p>Excel Function: 		AVERAGEIF(value1[,value2[, ...]],condition)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$condition</b>&nbsp;&nbsp;</td>
+        <td>The criteria that defines which cells will be checked.</td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$aArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$averageArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodBETADIST"></a>
+	<h3>static method BETADIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a882">882</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float BETADIST(
+float
+$value, float
+$alpha, float
+$beta, [
+$rMin = 0], [
+$rMax = 1], boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		BETADIST<br /><br /><p>Returns the beta distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value at which you want to evaluate the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$beta</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$rMin</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$rMax</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodBETAINV"></a>
+	<h3>static method BETAINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a918">918</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float BETAINV(
+float
+$probability, float
+$alpha, float
+$beta, [
+$rMin = 0], [
+$rMax = 1], boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		BETAINV<br /><br /><p>Returns the inverse of the beta distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability at which you want to evaluate the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$beta</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$rMin</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$rMax</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodBINOMDIST"></a>
+	<h3>static method BINOMDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a976">976</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float BINOMDIST(
+float
+$value, float
+$trials, float
+$probability, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		BINOMDIST<br /><br /><p>Returns the individual term binomial distribution probability. Use BINOMDIST in problems with 	a fixed number of tests or trials, when the outcomes of any trial are only success or failure, 	when trials are independent, and when the probability of success is constant throughout the 	experiment. For example, BINOMDIST can calculate the probability that two of the next three 	babies born are male.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>Cumulative distribution function</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Number of successes in trials</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$trials</b>&nbsp;&nbsp;</td>
+        <td>Number of trials</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability of success on each trial</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCHIDIST"></a>
+	<h3>static method CHIDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1013">1013</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float CHIDIST(
+float
+$value, float
+$degrees)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CHIDIST<br /><br /><p>Returns the one-tailed probability of the chi-squared distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value for the function</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$degrees</b>&nbsp;&nbsp;</td>
+        <td>degrees of freedom</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCHIINV"></a>
+	<h3>static method CHIINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1042">1042</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float CHIINV(
+float
+$probability, float
+$degrees)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CHIINV<br /><br /><p>Returns the one-tailed probability of the chi-squared distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability for the function</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$degrees</b>&nbsp;&nbsp;</td>
+        <td>degrees of freedom</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCONFIDENCE"></a>
+	<h3>static method CONFIDENCE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1100">1100</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float CONFIDENCE(
+float
+$alpha, float
+$stdDev, float
+$size)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CONFIDENCE<br /><br /><p>Returns the confidence interval for a population mean</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td>Standard Deviation</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$size</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCORREL"></a>
+	<h3>static method CORREL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1127">1127</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float CORREL(
+array
+$yValues, [array
+$xValues = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CORREL<br /><br /><p>Returns covariance, the average of the products of deviations for each data point pair.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOUNT"></a>
+	<h3>static method COUNT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1161">1161</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int COUNT(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COUNT<br /><br /><p>Counts the number of cells that contain numbers within the list of arguments</p><p>Excel Function: 		COUNT(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOUNTA"></a>
+	<h3>static method COUNTA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1196">1196</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int COUNTA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COUNTA<br /><br /><p>Counts the number of cells that are not empty within the list of arguments</p><p>Excel Function: 		COUNTA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOUNTBLANK"></a>
+	<h3>static method COUNTBLANK <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1227">1227</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int COUNTBLANK(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COUNTBLANK<br /><br /><p>Counts the number of empty cells within the list of arguments</p><p>Excel Function: 		COUNTBLANK(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOUNTIF"></a>
+	<h3>static method COUNTIF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1259">1259</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int COUNTIF(
+
+$aArgs, string
+$condition, mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COUNTIF<br /><br /><p>Counts the number of cells that contain numbers within the list of arguments</p><p>Excel Function: 		COUNTIF(value1[,value2[, ...]],condition)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$condition</b>&nbsp;&nbsp;</td>
+        <td>The criteria that defines which cells will be counted.</td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$aArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCOVAR"></a>
+	<h3>static method COVAR <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1289">1289</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float COVAR(
+array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		COVAR<br /><br /><p>Returns covariance, the average of the products of deviations for each data point pair.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodCRITBINOM"></a>
+	<h3>static method CRITBINOM <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1326">1326</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int CRITBINOM(
+float
+$trials, float
+$probability, float
+$alpha)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		CRITBINOM<br /><br /><p>Returns the smallest value for which the cumulative binomial distribution is greater 	than or equal to a criterion value</p><p>See http://support.microsoft.com/kb/828117/ for details of the algorithm used</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>Warning. This implementation differs from the algorithm detailed on the MS             web site in that $CumPGuessMinus1 = $CumPGuess - 1 rather than $CumPGuess - $PGuess             This eliminates a potential endless loop error, but may have an adverse affect on the             accuracy of the function (although all my tests have so far returned correct results).</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$trials</b>&nbsp;&nbsp;</td>
+        <td>number of Bernoulli trials</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>probability of a success on each trial</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>criterion value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodDEVSQ"></a>
+	<h3>static method DEVSQ <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1430">1430</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float DEVSQ(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		DEVSQ<br /><br /><p>Returns the sum of squares of deviations of data points from their sample mean.</p><p>Excel Function: 		DEVSQ(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodEXPONDIST"></a>
+	<h3>static method EXPONDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1478">1478</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float EXPONDIST(
+float
+$value, float
+$lambda, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		EXPONDIST<br /><br /><p>Returns the exponential distribution. Use EXPONDIST to model the time between events, 	such as how long an automated bank teller takes to deliver cash. For example, you can 	use EXPONDIST to determine the probability that the process takes at most 1 minute.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value of the function</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$lambda</b>&nbsp;&nbsp;</td>
+        <td>The parameter value</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodFISHER"></a>
+	<h3>static method FISHER <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1509">1509</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float FISHER(
+float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		FISHER<br /><br /><p>Returns the Fisher transformation at x. This transformation produces a function that 	is normally distributed rather than skewed. Use this function to perform hypothesis 	testing on the correlation coefficient.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodFISHERINV"></a>
+	<h3>static method FISHERINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1532">1532</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float FISHERINV(
+float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		FISHERINV<br /><br /><p>Returns the inverse of the Fisher transformation. Use this transformation when 	analyzing correlations between ranges or arrays of data. If y = FISHER(x), then 	FISHERINV(y) = x.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodFORECAST"></a>
+	<h3>static method FORECAST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1552">1552</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float FORECAST(
+float
+$xValue, array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		FORECAST<br /><br /><p>Calculates, or predicts, a future value by using existing values. The predicted value is a y-value for a given x-value.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$xValue</b>&nbsp;&nbsp;</td>
+        <td>Value of X for which we want to find Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodGAMMADIST"></a>
+	<h3>static method GAMMADIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1587">1587</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float GAMMADIST(
+float
+$value, float
+$a, float
+$b, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		GAMMADIST<br /><br /><p>Returns the gamma distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value at which you want to evaluate the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$a</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$b</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodGAMMAINV"></a>
+	<h3>static method GAMMAINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1619">1619</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float GAMMAINV(
+float
+$probability, float
+$alpha, float
+$beta)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		GAMMAINV<br /><br /><p>Returns the inverse of the beta distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability at which you want to evaluate the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$beta</b>&nbsp;&nbsp;</td>
+        <td>Parameter to the distribution</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodGAMMALN"></a>
+	<h3>static method GAMMALN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1677">1677</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float GAMMALN(
+float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		GAMMALN<br /><br /><p>Returns the natural logarithm of the gamma function.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodGEOMEAN"></a>
+	<h3>static method GEOMEAN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1705">1705</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float GEOMEAN(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		GEOMEAN<br /><br /><p>Returns the geometric mean of an array or range of positive data. For example, you 		can use GEOMEAN to calculate average growth rate given compound interest with 		variable rates.</p><p>Excel Function: 		GEOMEAN(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodGROWTH"></a>
+	<h3>static method GROWTH <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1730">1730</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array GROWTH(
+array
+$yValues, [array
+$xValues = array()], [array
+$newValues = array()], [boolean
+$const = True])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		GROWTH<br /><br /><p>Returns values along a predicted emponential trend</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>of float</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$newValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Values of X for which we want to find Y</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$const</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to force the intersect to equal 0.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodHARMEAN"></a>
+	<h3>static method HARMEAN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1764">1764</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float HARMEAN(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		HARMEAN<br /><br /><p>Returns the harmonic mean of a data set. The harmonic mean is the reciprocal of the 		arithmetic mean of reciprocals.</p><p>Excel Function: 		HARMEAN(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodHYPGEOMDIST"></a>
+	<h3>static method HYPGEOMDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1811">1811</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float HYPGEOMDIST(
+float
+$sampleSuccesses, float
+$sampleNumber, float
+$populationSuccesses, float
+$populationNumber)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		HYPGEOMDIST<br /><br /><p>Returns the hypergeometric distribution. HYPGEOMDIST returns the probability of a given number of  sample successes, given the sample size, population successes, and population size.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$sampleSuccesses</b>&nbsp;&nbsp;</td>
+        <td>Number of successes in the sample</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$sampleNumber</b>&nbsp;&nbsp;</td>
+        <td>Size of the sample</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$populationSuccesses</b>&nbsp;&nbsp;</td>
+        <td>Number of successes in the population</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$populationNumber</b>&nbsp;&nbsp;</td>
+        <td>Population size</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodINTERCEPT"></a>
+	<h3>static method INTERCEPT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1844">1844</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float INTERCEPT(
+array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		INTERCEPT<br /><br /><p>Calculates the point at which a line will intersect the y-axis by using existing x-values and y-values.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodKURT"></a>
+	<h3>static method KURT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1873">1873</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float KURT(
+array
+0)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		KURT<br /><br /><p>Returns the kurtosis of a data set. Kurtosis characterizes the relative peakedness  or flatness of a distribution compared with the normal distribution. Positive  kurtosis indicates a relatively peaked distribution. Negative kurtosis indicates a  relatively flat distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>0</b>&nbsp;&nbsp;</td>
+        <td>Data Series</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLARGE"></a>
+	<h3>static method LARGE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1918">1918</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float LARGE(
+mixed
+$arg,..., int
+$entry)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LARGE<br /><br /><p>Returns the nth largest value in a data set. You can use this function to 		select a value based on its relative standing.</p><p>Excel Function: 		LARGE(value1[,value2[, ...]],entry)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$entry</b>&nbsp;&nbsp;</td>
+        <td>Position (ordered from the largest) in the array or range of data to return</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLINEST"></a>
+	<h3>static method LINEST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a1956">1956</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array LINEST(
+array
+$yValues, [array
+$xValues = null], [boolean
+$const = True], [boolean
+$stats = False])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LINEST<br /><br /><p>Calculates the statistics for a line by using the &quot;least squares&quot; method to calculate a straight line that best fits your data, 		and then returns an array that describes the line.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$const</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to force the intersect to equal 0.</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$stats</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to return additional regression statistics.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLOGEST"></a>
+	<h3>static method LOGEST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2009">2009</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array LOGEST(
+array
+$yValues, [array
+$xValues = null], [boolean
+$const = True], [boolean
+$stats = False])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LOGEST<br /><br /><p>Calculates an exponential curve that best fits the X and Y data series, 		and then returns an array that describes the line.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$const</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to force the intersect to equal 0.</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$stats</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to return additional regression statistics.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLOGINV"></a>
+	<h3>static method LOGINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2068">2068</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float LOGINV(
+
+$probability, 
+$mean, 
+$stdDev, float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LOGINV<br /><br /><p>Returns the inverse of the normal cumulative distribution</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>todo:</b>&nbsp;&nbsp;</td><td>Try implementing P J Acklam's refinement algorithm for greater             accuracy if I can get my head round the mathematics             (as described at) http://home.online.no/~pjacklam/notes/invnorm/</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodLOGNORMDIST"></a>
+	<h3>static method LOGNORMDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2092">2092</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float LOGNORMDIST(
+float
+$value, 
+$mean, 
+$stdDev)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		LOGNORMDIST<br /><br /><p>Returns the cumulative lognormal distribution of x, where ln(x) is normally distributed  with parameters mean and standard_dev.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMAX"></a>
+	<h3>static method MAX <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2121">2121</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MAX(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MAX<br /><br /><p>MAX returns the value of the element of the values passed that has the highest value, 		with negative numbers considered smaller than positive numbers.</p><p>Excel Function: 		MAX(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMAXA"></a>
+	<h3>static method MAXA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2157">2157</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MAXA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MAXA<br /><br /><p>Returns the greatest value in a list of arguments, including numbers, text, and logical values</p><p>Excel Function: 		MAXA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMAXIF"></a>
+	<h3>static method MAXIF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2199">2199</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MAXIF(
+
+$aArgs, string
+$condition, [
+$sumArgs = array()], mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MAXIF<br /><br /><p>Counts the maximum value within a range of cells that contain numbers within the list of arguments</p><p>Excel Function: 		MAXIF(value1[,value2[, ...]],condition)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$condition</b>&nbsp;&nbsp;</td>
+        <td>The criteria that defines which cells will be checked.</td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$aArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$sumArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMEDIAN"></a>
+	<h3>static method MEDIAN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2238">2238</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MEDIAN(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MEDIAN<br /><br /><p>Returns the median of the given numbers. The median is the number in the middle of a set of numbers.</p><p>Excel Function: 		MEDIAN(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMIN"></a>
+	<h3>static method MIN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2283">2283</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MIN(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MIN<br /><br /><p>MIN returns the value of the element of the values passed that has the smallest value, 		with negative numbers considered smaller than positive numbers.</p><p>Excel Function: 		MIN(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMINA"></a>
+	<h3>static method MINA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2319">2319</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MINA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MINA<br /><br /><p>Returns the smallest value in a list of arguments, including numbers, text, and logical values</p><p>Excel Function: 		MINA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMINIF"></a>
+	<h3>static method MINIF <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2361">2361</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MINIF(
+
+$aArgs, string
+$condition, [
+$sumArgs = array()], mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MINIF<br /><br /><p>Returns the minimum value within a range of cells that contain numbers within the list of arguments</p><p>Excel Function: 		MINIF(value1[,value2[, ...]],condition)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$condition</b>&nbsp;&nbsp;</td>
+        <td>The criteria that defines which cells will be checked.</td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$aArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$sumArgs</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodMODE"></a>
+	<h3>static method MODE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2434">2434</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float MODE(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		MODE<br /><br /><p>Returns the most frequently occurring, or repetitive, value in an array or range of data</p><p>Excel Function: 		MODE(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNEGBINOMDIST"></a>
+	<h3>static method NEGBINOMDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2473">2473</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float NEGBINOMDIST(
+float
+$failures, float
+$successes, float
+$probability)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NEGBINOMDIST<br /><br /><p>Returns the negative binomial distribution. NEGBINOMDIST returns the probability that 	there will be number_f failures before the number_s-th success, when the constant 	probability of a success is probability_s. This function is similar to the binomial 	distribution, except that the number of successes is fixed, and the number of trials is 	variable. Like the binomial, trials are assumed to be independent.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$failures</b>&nbsp;&nbsp;</td>
+        <td>Number of Failures</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$successes</b>&nbsp;&nbsp;</td>
+        <td>Threshold number of Successes</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability of success on each trial</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNORMDIST"></a>
+	<h3>static method NORMDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2510">2510</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float NORMDIST(
+float
+$value, float
+$mean, float
+$stdDev, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NORMDIST<br /><br /><p>Returns the normal distribution for the specified mean and standard deviation. This  function has a very wide range of applications in statistics, including hypothesis  testing.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>Mean Value</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td>Standard Deviation</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNORMINV"></a>
+	<h3>static method NORMINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2542">2542</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float NORMINV(
+
+$probability, float
+$mean, float
+$stdDev, float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NORMINV<br /><br /><p>Returns the inverse of the normal cumulative distribution for the specified mean and standard deviation.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>Mean Value</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td>Standard Deviation</td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNORMSDIST"></a>
+	<h3>static method NORMSDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2570">2570</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float NORMSDIST(
+float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NORMSDIST<br /><br /><p>Returns the standard normal cumulative distribution function. The distribution has  a mean of 0 (zero) and a standard deviation of one. Use this function in place of a  table of standard normal curve areas.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodNORMSINV"></a>
+	<h3>static method NORMSINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2585">2585</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float NORMSINV(
+float
+$value)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		NORMSINV<br /><br /><p>Returns the inverse of the standard normal cumulative distribution</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodPERCENTILE"></a>
+	<h3>static method PERCENTILE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2604">2604</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float PERCENTILE(
+mixed
+$arg,..., float
+$entry)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		PERCENTILE<br /><br /><p>Returns the nth percentile of values in a range..</p><p>Excel Function: 		PERCENTILE(value1[,value2[, ...]],entry)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$entry</b>&nbsp;&nbsp;</td>
+        <td>Percentile value in the range 0..1, inclusive.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodPERCENTRANK"></a>
+	<h3>static method PERCENTRANK <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2650">2650</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float PERCENTRANK(
+array
+$valueSet, number
+$value, [number
+$significance = 3])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		PERCENTRANK<br /><br /><p>Returns the rank of a value in a data set as a percentage of the data set.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$valueSet</b>&nbsp;&nbsp;</td>
+        <td>of number        An array of, or a reference to, a list of numbers.</td>
+      </tr>
+          <tr>
+        <td class="type">number&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>The number whose rank you want to find.</td>
+      </tr>
+          <tr>
+        <td class="type">number&nbsp;&nbsp;</td>
+        <td><b>$significance</b>&nbsp;&nbsp;</td>
+        <td>The number of significant digits for the returned percentage value.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodPERMUT"></a>
+	<h3>static method PERMUT <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2699">2699</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int PERMUT(
+int
+$numObjs, int
+$numInSet)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		PERMUT<br /><br /><p>Returns the number of permutations for a given number of objects that can be 	selected from number objects. A permutation is any set or subset of objects or 	events where internal order is significant. Permutations are different from 	combinations, for which the internal order is not significant. Use this function 	for lottery-style probability calculations.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Number of permutations</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$numObjs</b>&nbsp;&nbsp;</td>
+        <td>Number of different objects</td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$numInSet</b>&nbsp;&nbsp;</td>
+        <td>Number of objects in each permutation</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodPOISSON"></a>
+	<h3>static method POISSON <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2727">2727</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float POISSON(
+float
+$value, float
+$mean, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		POISSON<br /><br /><p>Returns the Poisson distribution. A common application of the Poisson distribution  is predicting the number of events over a specific time, such as the number of  cars arriving at a toll plaza in 1 minute.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>Mean Value</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodQUARTILE"></a>
+	<h3>static method QUARTILE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2765">2765</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float QUARTILE(
+mixed
+$arg,..., int
+$entry)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		QUARTILE<br /><br /><p>Returns the quartile of a data set.</p><p>Excel Function: 		QUARTILE(value1[,value2[, ...]],entry)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$entry</b>&nbsp;&nbsp;</td>
+        <td>Quartile value in the range 1..3, inclusive.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodRANK"></a>
+	<h3>static method RANK <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2792">2792</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float RANK(
+number
+$value, array
+$valueSet, [mixed
+$order = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		RANK<br /><br /><p>Returns the rank of a number in a list of numbers.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">number&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>The number whose rank you want to find.</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$valueSet</b>&nbsp;&nbsp;</td>
+        <td>of number        An array of, or a reference to, a list of numbers.</td>
+      </tr>
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$order</b>&nbsp;&nbsp;</td>
+        <td>Order to sort the values in the value set</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodRSQ"></a>
+	<h3>static method RSQ <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2826">2826</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float RSQ(
+array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		RSQ<br /><br /><p>Returns the square of the Pearson product moment correlation coefficient through data points in known_y's and known_x's.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSKEW"></a>
+	<h3>static method SKEW <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2855">2855</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float SKEW(
+array
+0)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		SKEW<br /><br /><p>Returns the skewness of a distribution. Skewness characterizes the degree of asymmetry  of a distribution around its mean. Positive skewness indicates a distribution with an  asymmetric tail extending toward more positive values. Negative skewness indicates a  distribution with an asymmetric tail extending toward more negative values.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>0</b>&nbsp;&nbsp;</td>
+        <td>Data Series</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSLOPE"></a>
+	<h3>static method SLOPE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2891">2891</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float SLOPE(
+array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		SLOPE<br /><br /><p>Returns the slope of the linear regression line through data points in known_y's and known_x's.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSMALL"></a>
+	<h3>static method SMALL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2924">2924</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float SMALL(
+mixed
+$arg,..., int
+$entry)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		SMALL<br /><br /><p>Returns the nth smallest value in a data set. You can use this function to 		select a value based on its relative standing.</p><p>Excel Function: 		SMALL(value1[,value2[, ...]],entry)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$entry</b>&nbsp;&nbsp;</td>
+        <td>Position (ordered from the smallest) in the array or range of data to return</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTANDARDIZE"></a>
+	<h3>static method STANDARDIZE <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2960">2960</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STANDARDIZE(
+float
+$value, float
+$mean, float
+$stdDev)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STANDARDIZE<br /><br /><p>Returns a normalized value from a distribution characterized by mean and standard_dev.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Standardized value</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value to normalize</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$mean</b>&nbsp;&nbsp;</td>
+        <td>Mean Value</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$stdDev</b>&nbsp;&nbsp;</td>
+        <td>Standard Deviation</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTDEV"></a>
+	<h3>static method STDEV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a2989">2989</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STDEV(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STDEV<br /><br /><p>Estimates standard deviation based on a sample. The standard deviation is a measure of how 	widely values are dispersed from the average value (the mean).</p><p>Excel Function: 		STDEV(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTDEVA"></a>
+	<h3>static method STDEVA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3036">3036</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STDEVA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STDEVA<br /><br /><p>Estimates standard deviation based on a sample, including numbers, text, and logical values</p><p>Excel Function: 		STDEVA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTDEVP"></a>
+	<h3>static method STDEVP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3088">3088</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STDEVP(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STDEVP<br /><br /><p>Calculates standard deviation based on the entire population</p><p>Excel Function: 		STDEVP(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTDEVPA"></a>
+	<h3>static method STDEVPA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3135">3135</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STDEVPA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STDEVPA<br /><br /><p>Calculates standard deviation based on the entire population, including numbers, text, and logical values</p><p>Excel Function: 		STDEVPA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodSTEYX"></a>
+	<h3>static method STEYX <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3183">3183</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float STEYX(
+array
+$yValues, array
+$xValues)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		STEYX<br /><br /><p>Returns the standard error of the predicted y-value for each x in the regression.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTDIST"></a>
+	<h3>static method TDIST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3211">3211</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float TDIST(
+float
+$value, float
+$degrees, float
+$tails)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TDIST<br /><br /><p>Returns the probability of Student's T distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>Value for the function</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$degrees</b>&nbsp;&nbsp;</td>
+        <td>degrees of freedom</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$tails</b>&nbsp;&nbsp;</td>
+        <td>number of tails (1 or 2)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTINV"></a>
+	<h3>static method TINV <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3271">3271</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float TINV(
+float
+$probability, float
+$degrees)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TINV<br /><br /><p>Returns the one-tailed probability of the chi-squared distribution.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$probability</b>&nbsp;&nbsp;</td>
+        <td>Probability for the function</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$degrees</b>&nbsp;&nbsp;</td>
+        <td>degrees of freedom</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTREND"></a>
+	<h3>static method TREND <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3328">3328</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array TREND(
+array
+$yValues, [array
+$xValues = array()], [array
+$newValues = array()], [boolean
+$const = True])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TREND<br /><br /><p>Returns values along a linear trend</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>of float</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$yValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series Y</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$xValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Data Series X</td>
+      </tr>
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$newValues</b>&nbsp;&nbsp;</td>
+        <td>of mixed        Values of X for which we want to find Y</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$const</b>&nbsp;&nbsp;</td>
+        <td>A logical value specifying whether to force the intersect to equal 0.</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodTRIMMEAN"></a>
+	<h3>static method TRIMMEAN <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3364">3364</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float TRIMMEAN(
+mixed
+$arg,..., float
+$discard)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		TRIMMEAN<br /><br /><p>Returns the mean of the interior of a data set. TRIMMEAN calculates the mean 	taken by excluding a percentage of data points from the top and bottom tails 	of a data set.</p><p>Excel Function: 		TRIMEAN(value1[,value2[, ...]],$discard)</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$discard</b>&nbsp;&nbsp;</td>
+        <td>Percentage to discard</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVARA"></a>
+	<h3>static method VARA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3448">3448</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float VARA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VARA<br /><br /><p>Estimates variance based on a sample, including numbers, text, and logical values</p><p>Excel Function: 		VARA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVARFunc"></a>
+	<h3>static method VARFunc <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3406">3406</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float VARFunc(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VARFunc<br /><br /><p>Estimates variance based on a sample.</p><p>Excel Function: 		VAR(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVARP"></a>
+	<h3>static method VARP <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3501">3501</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float VARP(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VARP<br /><br /><p>Calculates variance based on the entire population</p><p>Excel Function: 		VARP(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodVARPA"></a>
+	<h3>static method VARPA <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3543">3543</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float VARPA(
+mixed
+$arg,...)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		VARPA<br /><br /><p>Calculates variance based on the entire population, including numbers, text, and logical values</p><p>Excel Function: 		VARPA(value1[,value2[, ...]])</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$arg,...</b>&nbsp;&nbsp;</td>
+        <td>Data values</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodWEIBULL"></a>
+	<h3>static method WEIBULL <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3596">3596</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float WEIBULL(
+float
+$value, float
+$alpha, float
+$beta, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		WEIBULL<br /><br /><p>Returns the Weibull distribution. Use this distribution in reliability  analysis, such as calculating a device's mean time to failure.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>Alpha Parameter</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$beta</b>&nbsp;&nbsp;</td>
+        <td>Beta Parameter</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodZTEST"></a>
+	<h3>static method ZTEST <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Calculation__PHPExcelCalculationStatistical.php.html#a3630">3630</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static float ZTEST(
+
+$dataSet, 
+$m0, [
+$sigma = null], float
+$value, float
+$alpha, float
+$beta, boolean
+$cumulative)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		ZTEST<br /><br /><p>Returns the Weibull distribution. Use this distribution in reliability  analysis, such as calculating a device's mean time to failure.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$alpha</b>&nbsp;&nbsp;</td>
+        <td>Alpha Parameter</td>
+      </tr>
+          <tr>
+        <td class="type">float&nbsp;&nbsp;</td>
+        <td><b>$beta</b>&nbsp;&nbsp;</td>
+        <td>Beta Parameter</td>
+      </tr>
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$cumulative</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$dataSet</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$m0</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$sigma</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:34:05 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<html>
+<head>
+<title>File Source for makeallttffonts.php</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">com-tecnick-tcpdf</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                  		  [ <a href="../classtrees_com-tecnick-tcpdf.html" class="menu">class tree: com-tecnick-tcpdf</a> ]
+		  [ <a href="../elementindex_com-tecnick-tcpdf.html" class="menu">index: com-tecnick-tcpdf</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                  
+      
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1 align="center">Source for file makeallttffonts.php</h1>
+<p>Documentation is available at <a href="../com-tecnick-tcpdf/_PHPExcel---Shared---PDF---fonts---utils---makeallttffonts.php.html">makeallttffonts.php</a></p>
+<div class="src-code">
+<ol><li><div class="src-line"><a name="a1"></a><span class="src-php">&lt;?php</span></div></li>
+<li><div class="src-line"><a name="a2"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a3"></a><span class="src-comm">//&nbsp;File&nbsp;name&nbsp;&nbsp;&nbsp;:&nbsp;makeallttffonts.php</span></div></li>
+<li><div class="src-line"><a name="a4"></a><span class="src-comm">//&nbsp;Begin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;2008-12-07</span></div></li>
+<li><div class="src-line"><a name="a5"></a><span class="src-comm">//&nbsp;Last&nbsp;Update&nbsp;:&nbsp;2010-08-08</span></div></li>
+<li><div class="src-line"><a name="a6"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a7"></a><span class="src-comm">//&nbsp;Description&nbsp;:&nbsp;Process&nbsp;all&nbsp;TTF&nbsp;files&nbsp;on&nbsp;current&nbsp;directory&nbsp;to&nbsp;</span></div></li>
+<li><div class="src-line"><a name="a8"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;build&nbsp;TCPDF&nbsp;compatible&nbsp;font&nbsp;files.</span></div></li>
+<li><div class="src-line"><a name="a9"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a10"></a><span class="src-comm">//&nbsp;Author:&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a11"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a12"></a><span class="src-comm">//&nbsp;(c)&nbsp;Copyright:</span></div></li>
+<li><div class="src-line"><a name="a13"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a14"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tecnick.com&nbsp;S.r.l.</span></div></li>
+<li><div class="src-line"><a name="a15"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Via&nbsp;della&nbsp;Pace,&nbsp;11</span></div></li>
+<li><div class="src-line"><a name="a16"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;09044&nbsp;Quartucciu&nbsp;(CA)</span></div></li>
+<li><div class="src-line"><a name="a17"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ITALY</span></div></li>
+<li><div class="src-line"><a name="a18"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;www.tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a19"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;info@tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a20"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a21"></a><span class="src-comm">//&nbsp;License:&nbsp;</span></div></li>
+<li><div class="src-line"><a name="a22"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;Copyright&nbsp;(C)&nbsp;2004-2010&nbsp;&nbsp;Nicola&nbsp;Asuni&nbsp;-&nbsp;Tecnick.com&nbsp;S.r.l.</span></div></li>
+<li><div class="src-line"><a name="a23"></a><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;</span></div></li>
+<li><div class="src-line"><a name="a24"></a><span class="src-comm">//&nbsp;This&nbsp;file&nbsp;is&nbsp;part&nbsp;of&nbsp;TCPDF&nbsp;software&nbsp;library.</span></div></li>
+<li><div class="src-line"><a name="a25"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a26"></a><span class="src-comm">//&nbsp;TCPDF&nbsp;is&nbsp;free&nbsp;software:&nbsp;you&nbsp;can&nbsp;redistribute&nbsp;it&nbsp;and/or&nbsp;modify&nbsp;it</span></div></li>
+<li><div class="src-line"><a name="a27"></a><span class="src-comm">//&nbsp;under&nbsp;the&nbsp;terms&nbsp;of&nbsp;the&nbsp;GNU&nbsp;Lesser&nbsp;General&nbsp;Public&nbsp;License&nbsp;as</span></div></li>
+<li><div class="src-line"><a name="a28"></a><span class="src-comm">//&nbsp;published&nbsp;by&nbsp;the&nbsp;Free&nbsp;Software&nbsp;Foundation,&nbsp;either&nbsp;version&nbsp;3&nbsp;of&nbsp;the</span></div></li>
+<li><div class="src-line"><a name="a29"></a><span class="src-comm">//&nbsp;License,&nbsp;or&nbsp;(at&nbsp;your&nbsp;option)&nbsp;any&nbsp;later&nbsp;version.</span></div></li>
+<li><div class="src-line"><a name="a30"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a31"></a><span class="src-comm">//&nbsp;TCPDF&nbsp;is&nbsp;distributed&nbsp;in&nbsp;the&nbsp;hope&nbsp;that&nbsp;it&nbsp;will&nbsp;be&nbsp;useful,&nbsp;but</span></div></li>
+<li><div class="src-line"><a name="a32"></a><span class="src-comm">//&nbsp;WITHOUT&nbsp;ANY&nbsp;WARRANTY;&nbsp;without&nbsp;even&nbsp;the&nbsp;implied&nbsp;warranty&nbsp;of</span></div></li>
+<li><div class="src-line"><a name="a33"></a><span class="src-comm">//&nbsp;MERCHANTABILITY&nbsp;or&nbsp;FITNESS&nbsp;FOR&nbsp;A&nbsp;PARTICULAR&nbsp;PURPOSE.</span></div></li>
+<li><div class="src-line"><a name="a34"></a><span class="src-comm">//&nbsp;See&nbsp;the&nbsp;GNU&nbsp;Lesser&nbsp;General&nbsp;Public&nbsp;License&nbsp;for&nbsp;more&nbsp;details.</span></div></li>
+<li><div class="src-line"><a name="a35"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a36"></a><span class="src-comm">//&nbsp;You&nbsp;should&nbsp;have&nbsp;received&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;GNU&nbsp;Lesser&nbsp;General&nbsp;Public&nbsp;License</span></div></li>
+<li><div class="src-line"><a name="a37"></a><span class="src-comm">//&nbsp;along&nbsp;with&nbsp;TCPDF.&nbsp;&nbsp;If&nbsp;not,&nbsp;see&nbsp;&lt;http://www.gnu.org/licenses/&gt;.</span></div></li>
+<li><div class="src-line"><a name="a38"></a><span class="src-comm">//</span></div></li>
+<li><div class="src-line"><a name="a39"></a><span class="src-comm">//&nbsp;See&nbsp;LICENSE.TXT&nbsp;file&nbsp;for&nbsp;more&nbsp;information.</span></div></li>
+<li><div class="src-line"><a name="a40"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a41"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a42"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a43"></a><span class="src-doc">&nbsp;*&nbsp;Process&nbsp;all&nbsp;TTF&nbsp;files&nbsp;on&nbsp;current&nbsp;directory&nbsp;to&nbsp;build&nbsp;TCPDF&nbsp;compatible&nbsp;font&nbsp;files.</span></div></li>
+<li><div class="src-line"><a name="a44"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@package</span><span class="src-doc">&nbsp;com.tecnick.tcpdf</span></div></li>
+<li><div class="src-line"><a name="a45"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@author</span><span class="src-doc">&nbsp;Nicola&nbsp;Asuni</span></div></li>
+<li><div class="src-line"><a name="a46"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@copyright</span><span class="src-doc">&nbsp;Copyright&nbsp;&amp;copy;&nbsp;2004-2009,&nbsp;Nicola&nbsp;Asuni&nbsp;-&nbsp;Tecnick.com&nbsp;S.r.l.&nbsp;-&nbsp;ITALY&nbsp;-&nbsp;www.tecnick.com&nbsp;-&nbsp;info@tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a47"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@license</span><span class="src-doc">&nbsp;http://www.gnu.org/copyleft/lesser.html&nbsp;GNU&nbsp;Lesser&nbsp;General&nbsp;Public&nbsp;License</span></div></li>
+<li><div class="src-line"><a name="a48"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@link</span><span class="src-doc">&nbsp;www.tecnick.com</span></div></li>
+<li><div class="src-line"><a name="a49"></a><span class="src-doc">&nbsp;*&nbsp;</span><span class="src-doc-coretag">@since</span><span class="src-doc">&nbsp;2008-12-07</span></div></li>
+<li><div class="src-line"><a name="a50"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a51"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a52"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a53"></a><span class="src-doc">&nbsp;*/</span></div></li>
+<li><div class="src-line"><a name="a54"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a55"></a><span class="src-comm">//&nbsp;read&nbsp;directory&nbsp;for&nbsp;files&nbsp;(only&nbsp;graphics&nbsp;files).</span></div></li>
+<li><div class="src-line"><a name="a56"></a><span class="src-var">$handle&nbsp;</span>=&nbsp;<a href="http://www.php.net/opendir">opendir</a><span class="src-sym">(</span><span class="src-str">'.'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a57"></a><span class="src-key">while</span><span class="src-sym">(</span><span class="src-var">$file&nbsp;</span>=&nbsp;<a href="http://www.php.net/readdir">readdir</a><span class="src-sym">(</span><span class="src-var">$handle</span><span class="src-sym">))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a58"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$path_parts&nbsp;</span>=&nbsp;<a href="http://www.php.net/pathinfo">pathinfo</a><span class="src-sym">(</span><span class="src-var">$file</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a59"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$file_ext&nbsp;</span>=&nbsp;<a href="http://www.php.net/strtolower">strtolower</a><span class="src-sym">(</span><span class="src-var">$path_parts</span><span class="src-sym">[</span><span class="src-str">'extension'</span><span class="src-sym">]</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a60"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if&nbsp;</span><span class="src-sym">(</span><span class="src-var">$file_ext&nbsp;</span>==&nbsp;<span class="src-str">'ttf'</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a61"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.php.net/exec">exec</a><span class="src-sym">(</span><span class="src-str">'./ttf2ufm&nbsp;-a&nbsp;-F&nbsp;'</span>.<span class="src-var">$path_parts</span><span class="src-sym">[</span><span class="src-str">'basename'</span><span class="src-sym">]</span>.<span class="src-str">''</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a62"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.php.net/exec">exec</a><span class="src-sym">(</span><span class="src-str">'php&nbsp;-q&nbsp;makefont.php&nbsp;'</span>.<span class="src-var">$path_parts</span><span class="src-sym">[</span><span class="src-str">'basename'</span><span class="src-sym">]</span>.<span class="src-str">'&nbsp;'</span>.<span class="src-var">$path_parts</span><span class="src-sym">[</span><span class="src-str">'filename'</span><span class="src-sym">]</span>.<span class="src-str">'.ufm'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a63"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a64"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a65"></a><a href="http://www.php.net/closedir">closedir</a><span class="src-sym">(</span><span class="src-var">$handle</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a66"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a67"></a><span class="src-comm">//============================================================+</span></div></li>
+<li><div class="src-line"><a name="a68"></a><span class="src-comm">//&nbsp;END&nbsp;OF&nbsp;FILE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div></li>
+<li><div class="src-line"><a name="a69"></a><span class="src-comm">//============================================================+</span></div></li>
+</ol>
+</div>
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:32:34 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

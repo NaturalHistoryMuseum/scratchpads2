@@ -1,0 +1,1707 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Cell</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Cell</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                              		  [ <a href="../classtrees_PHPExcel_Cell.html" class="menu">class tree: PHPExcel_Cell</a> ]
+		  [ <a href="../elementindex_PHPExcel_Cell.html" class="menu">index: PHPExcel_Cell</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---AdvancedValueBinder.php.html">		AdvancedValueBinder.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell.php.html">		Cell.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---DataType.php.html">		DataType.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---DataValidation.php.html">		DataValidation.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---DefaultValueBinder.php.html">		DefaultValueBinder.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---Hyperlink.php.html">		Hyperlink.php
+		</a><br>
+			<a href="../PHPExcel_Cell/_PHPExcel---Cell---IValueBinder.php.html">		IValueBinder.php
+		</a><br>
+	  </div><br />
+      
+            <b>Interfaces:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Cell/PHPExcel_Cell_IValueBinder.html">PHPExcel_Cell_IValueBinder</a><br />
+	  </div>
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+	    		<a href="../PHPExcel_Cell/PHPExcel_Cell_AdvancedValueBinder.html">PHPExcel_Cell_AdvancedValueBinder</a><br />
+	    		<a href="../PHPExcel_Cell/PHPExcel_Cell_DataType.html">PHPExcel_Cell_DataType</a><br />
+	    		<a href="../PHPExcel_Cell/PHPExcel_Cell_DataValidation.html">PHPExcel_Cell_DataValidation</a><br />
+	    		<a href="../PHPExcel_Cell/PHPExcel_Cell_DefaultValueBinder.html">PHPExcel_Cell_DefaultValueBinder</a><br />
+	    		<a href="../PHPExcel_Cell/PHPExcel_Cell_Hyperlink.html">PHPExcel_Cell_Hyperlink</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Cell</h1>
+Source Location: /PHPExcel/Cell.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">PHPExcel_Cell</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+        
+</td>
+
+
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#method__construct">__construct</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodabsoluteCoordinate">absoluteCoordinate</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodabsoluteReference">absoluteReference</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodattach">attach</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodbuildRange">buildRange</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodcolumnIndexFromString">columnIndexFromString</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodcompareCells">compareCells</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodcoordinateFromString">coordinateFromString</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methoddetach">detach</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodextractAllCellReferencesInRange">extractAllCellReferencesInRange</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetCalculatedValue">getCalculatedValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetColumn">getColumn</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetCoordinate">getCoordinate</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetDataType">getDataType</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetDataValidation">getDataValidation</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetFormattedValue">getFormattedValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetFormulaAttributes">getFormulaAttributes</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetHyperlink">getHyperlink</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetOldCalculatedValue">getOldCalculatedValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetParent">getParent</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetRangeBoundaries">getRangeBoundaries</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetRow">getRow</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetValue">getValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetValueBinder">getValueBinder</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodgetXfIndex">getXfIndex</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodhasDataValidation">hasDataValidation</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodhasHyperlink">hasHyperlink</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodisInRange">isInRange</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodnotifyCacheController">notifyCacheController</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodrangeBoundaries">rangeBoundaries</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodrangeDimension">rangeDimension</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodrebindParent">rebindParent</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetCalculatedValue">setCalculatedValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetDataType">setDataType</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetDataValidation">setDataValidation</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetFormulaAttributes">setFormulaAttributes</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetHyperlink">setHyperlink</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetValue">setValue</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetValueBinder">setValueBinder</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetValueExplicit">setValueExplicit</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsetXfIndex">setXfIndex</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodsplitRange">splitRange</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#methodstringFromColumnIndex">stringFromColumnIndex</a></li>
+    <li><a href="../PHPExcel_Cell/PHPExcel_Cell.html#method__clone">__clone</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a36">36</a>]<br />
+PHPExcel_Cell<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="methodabsoluteCoordinate"></a>
+	<h3>static method absoluteCoordinate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a541">541</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string absoluteCoordinate(
+[string
+$pCoordinateString = 'A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Make string coordinate absolute<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Absolute coordinate        e.g. '$A$1'</td>
+  </tr>
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pCoordinateString</b>&nbsp;&nbsp;</td>
+        <td>e.g. 'A1'</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodabsoluteReference"></a>
+	<h3>static method absoluteReference <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a519">519</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string absoluteReference(
+[string
+$pCoordinateString = 'A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Make string row, column or cell coordinate absolute<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Absolute coordinate        e.g. '$A' or '$1' or '$A$1'</td>
+  </tr>
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pCoordinateString</b>&nbsp;&nbsp;</td>
+        <td>e.g. 'A' or '1' or 'A1'</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodbuildRange"></a>
+	<h3>static method buildRange <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a577">577</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string buildRange(
+array
+$pRange)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Build range from coordinate strings<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>String representation of $pRange</td>
+  </tr>
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">array&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Array containg one or more arrays containing one or two coordinate strings</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcolumnIndexFromString"></a>
+	<h3>static method columnIndexFromString <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a666">666</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int columnIndexFromString(
+[string
+$pString = 'A'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Column index from string<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Column index (base 1 !!!)</td>
+  </tr>
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pString</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcompareCells"></a>
+	<h3>static method compareCells <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a770">770</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int compareCells(
+<a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>
+$a, <a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>
+$b)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Compare 2 cells<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Result of comparison (always -1 or 1, never zero!)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>&nbsp;&nbsp;</td>
+        <td><b>$a</b>&nbsp;&nbsp;</td>
+        <td>Cell b</td>
+      </tr>
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a>&nbsp;&nbsp;</td>
+        <td><b>$b</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodcoordinateFromString"></a>
+	<h3>static method coordinateFromString <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a499">499</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array coordinateFromString(
+[string
+$pCoordinateString = 'A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Coordinate from string<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Array containing column and row (indexes 0 and 1)</td>
+  </tr>
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pCoordinateString</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodextractAllCellReferencesInRange"></a>
+	<h3>static method extractAllCellReferencesInRange <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a715">715</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array extractAllCellReferencesInRange(
+[string
+$pRange = 'A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Extract all cell references in range<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Array containing single cell references</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Range (e.g. A1 or A1:A10 or A1:A10 A100:A1000)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetRangeBoundaries"></a>
+	<h3>static method getRangeBoundaries <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a644">644</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array getRangeBoundaries(
+[string
+$pRange = 'A1:A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculate range boundaries<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Range boundaries (staring Column, starting Row, Final Column, Final Row)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Cell range (e.g. A1:A1)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetValueBinder"></a>
+	<h3>static method getValueBinder <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a788">788</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static <a href="../PHPExcel_Cell/PHPExcel_Cell_IValueBinder.html">PHPExcel_Cell_IValueBinder</a> getValueBinder(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get value binder to use<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodrangeBoundaries"></a>
+	<h3>static method rangeBoundaries <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a601">601</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array rangeBoundaries(
+[string
+$pRange = 'A1:A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculate range boundaries<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Range coordinates (Start Cell, End Cell) where Start Cell and End Cell are arrays (Column Number, Row Number)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Cell range (e.g. A1:A1)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodrangeDimension"></a>
+	<h3>static method rangeDimension <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a630">630</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array rangeDimension(
+[string
+$pRange = 'A1:A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Calculate range dimension<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Range dimension (width, height)</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Cell range (e.g. A1:A1)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetValueBinder"></a>
+	<h3>static method setValueBinder <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a802">802</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static void setValueBinder(
+[<a href="../PHPExcel_Cell/PHPExcel_Cell_IValueBinder.html">PHPExcel_Cell_IValueBinder</a>
+$binder = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set value binder to use<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell_IValueBinder.html">PHPExcel_Cell_IValueBinder</a>&nbsp;&nbsp;</td>
+        <td><b>$binder</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsplitRange"></a>
+	<h3>static method splitRange <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a560">560</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static array splitRange(
+[string
+$pRange = 'A1:A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Split range into coordinate strings<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>return:</b>&nbsp;&nbsp;</td><td>Array containg one or more arrays containing one or two coordinate strings</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodstringFromColumnIndex"></a>
+	<h3>static method stringFromColumnIndex <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a698">698</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static string stringFromColumnIndex(
+[int
+$pColumnIndex = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		String from columnindex<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pColumnIndex</b>&nbsp;&nbsp;</td>
+        <td>Column index (base 0 !!!)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+  <hr />
+	<a name="method__construct"></a>
+	<h3>constructor __construct <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a130">130</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PHPExcel_Cell __construct(
+[string
+$pColumn = 'A'], [int
+$pRow = 1], [mixed
+$pValue = null], [string
+$pDataType = null], [
+$pSheet = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Create a new Cell<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pColumn</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pRow</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pDataType</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type"><a href="../PHPExcel_Worksheet/PHPExcel_Worksheet.html">PHPExcel_Worksheet</a>&nbsp;&nbsp;</td>
+        <td><b>$pSheet</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodattach"></a>
+	<h3>method attach <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a115">115</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void attach(
+
+$parent)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$parent</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methoddetach"></a>
+	<h3>method detach <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a111">111</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void detach(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetCalculatedValue"></a>
+	<h3>method getCalculatedValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a277">277</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed getCalculatedValue(
+[
+$resetLog = true])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get calculated cell value<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$resetLog</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetColumn"></a>
+	<h3>method getColumn <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a162">162</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getColumn(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell coordinate column<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetCoordinate"></a>
+	<h3>method getCoordinate <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a182">182</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getCoordinate(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell coordinate<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetDataType"></a>
+	<h3>method getDataType <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a337">337</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getDataType(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell data type<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetDataValidation"></a>
+	<h3>method getDataValidation <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a377">377</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell_DataValidation.html">PHPExcel_Cell_DataValidation</a> getDataValidation(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get Data validation<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetFormattedValue"></a>
+	<h3>method getFormattedValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a202">202</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>string getFormattedValue(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell value with formatting<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetFormulaAttributes"></a>
+	<h3>method getFormulaAttributes <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a854">854</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void getFormulaAttributes(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetHyperlink"></a>
+	<h3>method getHyperlink <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a424">424</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell_Hyperlink.html">PHPExcel_Cell_Hyperlink</a> getHyperlink(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get Hyperlink<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetOldCalculatedValue"></a>
+	<h3>method getOldCalculatedValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a327">327</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed getOldCalculatedValue(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get old calculated value (cached)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetParent"></a>
+	<h3>method getParent <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a456">456</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Worksheet/PHPExcel_Worksheet.html">PHPExcel_Worksheet</a> getParent(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get parent<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetRow"></a>
+	<h3>method getRow <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a172">172</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>int getRow(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell coordinate row<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetValue"></a>
+	<h3>method getValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a192">192</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed getValue(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get cell value<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetXfIndex"></a>
+	<h3>method getXfIndex <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a829">829</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>int getXfIndex(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get index to cellXf<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodhasDataValidation"></a>
+	<h3>method hasDataValidation <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a363">363</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean hasDataValidation(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Has Data validation?<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodhasHyperlink"></a>
+	<h3>method hasHyperlink <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a409">409</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean hasHyperlink(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Has Hyperlink<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodisInRange"></a>
+	<h3>method isInRange <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a478">478</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean isInRange(
+[string
+$pRange = 'A1:A1'])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Is cell in a specific range?<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pRange</b>&nbsp;&nbsp;</td>
+        <td>Cell range (e.g. A1:A1)</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodnotifyCacheController"></a>
+	<h3>method notifyCacheController <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a106">106</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void notifyCacheController(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Send notification to the cache controller<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodrebindParent"></a>
+	<h3>method rebindParent <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a466">466</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> rebindParent(
+
+$parent)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Re-bind parent<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Worksheet/PHPExcel_Worksheet.html">PHPExcel_Worksheet</a>&nbsp;&nbsp;</td>
+        <td><b>$parent</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetCalculatedValue"></a>
+	<h3>method setCalculatedValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a313">313</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setCalculatedValue(
+[mixed
+$pValue = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set calculated value (used for caching)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td>Value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetDataType"></a>
+	<h3>method setDataType <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a348">348</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setDataType(
+[string
+$pDataType = PHPExcel_Cell_DataType::TYPE_STRING])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set cell data type<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pDataType</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetDataValidation"></a>
+	<h3>method setDataValidation <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a393">393</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setDataValidation(
+[<a href="../PHPExcel_Cell/PHPExcel_Cell_DataValidation.html">PHPExcel_Cell_DataValidation</a>
+$pDataValidation = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set Data validation<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell_DataValidation.html">PHPExcel_Cell_DataValidation</a>&nbsp;&nbsp;</td>
+        <td><b>$pDataValidation</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetFormulaAttributes"></a>
+	<h3>method setFormulaAttributes <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a848">848</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void setFormulaAttributes(
+
+$pAttributes)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		<br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$pAttributes</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetHyperlink"></a>
+	<h3>method setHyperlink <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a440">440</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setHyperlink(
+[<a href="../PHPExcel_Cell/PHPExcel_Cell_Hyperlink.html">PHPExcel_Cell_Hyperlink</a>
+$pHyperlink = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set Hyperlink<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Cell/PHPExcel_Cell_Hyperlink.html">PHPExcel_Cell_Hyperlink</a>&nbsp;&nbsp;</td>
+        <td><b>$pHyperlink</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetValue"></a>
+	<h3>method setValue <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a217">217</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setValue(
+[mixed
+$pValue = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set cell value<br /><br /><p>This clears the cell formula.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td>Value</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetValueExplicit"></a>
+	<h3>method setValueExplicit <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a233">233</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setValueExplicit(
+[mixed
+$pValue = null], [string
+$pDataType = PHPExcel_Cell_DataType::TYPE_STRING])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set cell value (with explicit data type given)<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td>Value</td>
+      </tr>
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pDataType</b>&nbsp;&nbsp;</td>
+        <td>Explicit data type</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetXfIndex"></a>
+	<h3>method setXfIndex <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a840">840</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Cell/PHPExcel_Cell.html">PHPExcel_Cell</a> setXfIndex(
+[int
+$pValue = 0])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set index to cellXf<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method__clone"></a>
+	<h3>method __clone <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Cell__PHPExcelCell.php.html#a813">813</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void __clone(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Implement PHP __clone to create a deep clone, not just a shallow copy.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:28:58 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

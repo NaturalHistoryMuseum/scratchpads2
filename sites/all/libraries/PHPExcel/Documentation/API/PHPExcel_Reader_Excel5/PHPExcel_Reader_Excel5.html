@@ -1,0 +1,1238 @@
+<html>
+<head>
+<title>Docs For Class PHPExcel_Reader_Excel5</title>
+<link rel="stylesheet" type="text/css" href="../media/style.css">
+</head>
+<body>
+
+<table border="0" cellspacing="0" cellpadding="0" height="48" width="100%">
+  <tr>
+    <td class="header_top">PHPExcel_Reader_Excel5</td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+  <tr>
+    <td class="header_menu">
+        
+                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                      		  [ <a href="../classtrees_PHPExcel_Reader_Excel5.html" class="menu">class tree: PHPExcel_Reader_Excel5</a> ]
+		  [ <a href="../elementindex_PHPExcel_Reader_Excel5.html" class="menu">index: PHPExcel_Reader_Excel5</a> ]
+		  	    [ <a href="../elementindex.html" class="menu">all elements</a> ]
+    </td>
+  </tr>
+  <tr><td class="header_line"><img src="../media/empty.png" width="1" height="1" border="0" alt=""  /></td></tr>
+</table>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="200" class="menu">
+	<div id="todolist">
+			<p><a href="../todolist.html">Todo List</a></p>
+	</div>
+      <b>Packages:</b><br />
+              <a href="../li_PHPExcel.html">PHPExcel</a><br />
+              <a href="../li_com-tecnick-tcpdf.html">com-tecnick-tcpdf</a><br />
+              <a href="../li_JAMA.html">JAMA</a><br />
+              <a href="../li_Math_Stats.html">Math_Stats</a><br />
+              <a href="../li_PHPExcel_CachedObjectStorage.html">PHPExcel_CachedObjectStorage</a><br />
+              <a href="../li_PHPExcel_Calculation.html">PHPExcel_Calculation</a><br />
+              <a href="../li_PHPExcel_Cell.html">PHPExcel_Cell</a><br />
+              <a href="../li_PHPExcel_Reader.html">PHPExcel_Reader</a><br />
+              <a href="../li_PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+              <a href="../li_PHPExcel_Reader_Excel2007.html">PHPExcel_Reader_Excel2007</a><br />
+              <a href="../li_PHPExcel_RichText.html">PHPExcel_RichText</a><br />
+              <a href="../li_PHPExcel_Settings.html">PHPExcel_Settings</a><br />
+              <a href="../li_PHPExcel_Shared.html">PHPExcel_Shared</a><br />
+              <a href="../li_PHPExcel_Shared_Best_Fit.html">PHPExcel_Shared_Best_Fit</a><br />
+              <a href="../li_PHPExcel_Shared_Escher.html">PHPExcel_Shared_Escher</a><br />
+              <a href="../li_PHPExcel_Shared_OLE.html">PHPExcel_Shared_OLE</a><br />
+              <a href="../li_PHPExcel_Shared_ZipArchive.html">PHPExcel_Shared_ZipArchive</a><br />
+              <a href="../li_PHPExcel_Style.html">PHPExcel_Style</a><br />
+              <a href="../li_PHPExcel_Worksheet.html">PHPExcel_Worksheet</a><br />
+              <a href="../li_PHPExcel_Worksheet_Drawing.html">PHPExcel_Worksheet_Drawing</a><br />
+              <a href="../li_PHPExcel_Writer.html">PHPExcel_Writer</a><br />
+              <a href="../li_PHPExcel_Writer_Excel5.html">PHPExcel_Writer_Excel5</a><br />
+              <a href="../li_PHPExcel_Writer_Excel2007.html">PHPExcel_Writer_Excel2007</a><br />
+            <br /><br />
+                        <b>Files:</b><br />
+      	  <div class="package">
+			<a href="../PHPExcel_Reader_Excel5/_PHPExcel---Reader---Excel5---Escher.php.html">		Escher.php
+		</a><br>
+			<a href="../PHPExcel_Reader_Excel5/_PHPExcel---Reader---Excel5.php.html">		Excel5.php
+		</a><br>
+	  </div><br />
+      
+      
+            <b>Classes:</b><br />
+        <div class="package">
+		    		<a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a><br />
+	    		<a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5_Escher.html">PHPExcel_Reader_Excel5_Escher</a><br />
+	  </div>
+                </td>
+    <td>
+      <table cellpadding="10" cellspacing="0" width="100%" border="0"><tr><td valign="top">
+
+<h1>Class: PHPExcel_Reader_Excel5</h1>
+Source Location: /PHPExcel/Reader/Excel5.php<br /><br />
+
+
+<table width="100%" border="0">
+<tr><td valign="top">
+
+<h3><a href="#class_details">Class Overview</a></h3>
+<pre></pre><br />
+<div class="description">PHPExcel_Reader_Excel5</div><br /><br />
+<h4>Author(s):</h4>
+<ul>
+        </ul>
+
+
+
+
+      
+  
+
+<h4>Copyright:</h4>
+<ul>
+  <li>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</li>
+</ul>
+                <p class="implements">
+            Implements interfaces:
+            <ul>
+                <li><a href="../PHPExcel_Reader/PHPExcel_Reader_IReader.html">PHPExcel_Reader_IReader</a></li>            </ul>
+        </p>
+        
+</td>
+
+
+<td valign="top">
+<h3><a href="#class_consts">Constants</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_BIFF7">XLS_BIFF7</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_BIFF8">XLS_BIFF8</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_ARRAY">XLS_Type_ARRAY</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_BLANK">XLS_Type_BLANK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_BOF">XLS_Type_BOF</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_BOOLERR">XLS_Type_BOOLERR</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_BOTTOMMARGIN">XLS_Type_BOTTOMMARGIN</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_CODEPAGE">XLS_Type_CODEPAGE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_COLINFO">XLS_Type_COLINFO</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_CONTINUE">XLS_Type_CONTINUE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DATAVALIDATION">XLS_Type_DATAVALIDATION</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DATAVALIDATIONS">XLS_Type_DATAVALIDATIONS</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DATEMODE">XLS_Type_DATEMODE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DBCELL">XLS_Type_DBCELL</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DEFAULTROWHEIGHT">XLS_Type_DEFAULTROWHEIGHT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DEFCOLWIDTH">XLS_Type_DEFCOLWIDTH</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DEFINEDNAME">XLS_Type_DEFINEDNAME</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_DIMENSION">XLS_Type_DIMENSION</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_EOF">XLS_Type_EOF</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_EXTERNALBOOK">XLS_Type_EXTERNALBOOK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_EXTERNNAME">XLS_Type_EXTERNNAME</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_EXTERNSHEET">XLS_Type_EXTERNSHEET</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_EXTSST">XLS_Type_EXTSST</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_FILEPASS">XLS_Type_FILEPASS</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_FONT">XLS_Type_FONT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_FOOTER">XLS_Type_FOOTER</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_FORMAT">XLS_Type_FORMAT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_FORMULA">XLS_Type_FORMULA</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_HCENTER">XLS_Type_HCENTER</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_HEADER">XLS_Type_HEADER</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_HORIZONTALPAGEBREAKS">XLS_Type_HORIZONTALPAGEBREAKS</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_HYPERLINK">XLS_Type_HYPERLINK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_IMDATA">XLS_Type_IMDATA</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_INDEX">XLS_Type_INDEX</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_LABEL">XLS_Type_LABEL</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_LABELSST">XLS_Type_LABELSST</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_LEFTMARGIN">XLS_Type_LEFTMARGIN</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_MERGEDCELLS">XLS_Type_MERGEDCELLS</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_MSODRAWING">XLS_Type_MSODRAWING</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_MSODRAWINGGROUP">XLS_Type_MSODRAWINGGROUP</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_MULBLANK">XLS_Type_MULBLANK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_MULRK">XLS_Type_MULRK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_NOTE">XLS_Type_NOTE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_NUMBER">XLS_Type_NUMBER</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_OBJ">XLS_Type_OBJ</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_OBJECTPROTECT">XLS_Type_OBJECTPROTECT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PAGESETUP">XLS_Type_PAGESETUP</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PALETTE">XLS_Type_PALETTE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PANE">XLS_Type_PANE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PASSWORD">XLS_Type_PASSWORD</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PRINTGRIDLINES">XLS_Type_PRINTGRIDLINES</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_PROTECT">XLS_Type_PROTECT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_RANGEPROTECTION">XLS_Type_RANGEPROTECTION</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_RIGHTMARGIN">XLS_Type_RIGHTMARGIN</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_RK">XLS_Type_RK</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_ROW">XLS_Type_ROW</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SCENPROTECT">XLS_Type_SCENPROTECT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SCL">XLS_Type_SCL</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SELECTION">XLS_Type_SELECTION</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SHAREDFMLA">XLS_Type_SHAREDFMLA</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SHEET">XLS_Type_SHEET</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SHEETLAYOUT">XLS_Type_SHEETLAYOUT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SHEETPR">XLS_Type_SHEETPR</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SHEETPROTECTION">XLS_Type_SHEETPROTECTION</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_SST">XLS_Type_SST</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_STRING">XLS_Type_STRING</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_STYLE">XLS_Type_STYLE</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_TOPMARGIN">XLS_Type_TOPMARGIN</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_TXO">XLS_Type_TXO</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_UNKNOWN">XLS_Type_UNKNOWN</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_VCENTER">XLS_Type_VCENTER</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_VERTICALPAGEBREAKS">XLS_Type_VERTICALPAGEBREAKS</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_WINDOW2">XLS_Type_WINDOW2</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_XF">XLS_Type_XF</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Type_XFEXT">XLS_Type_XFEXT</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_WorkbookGlobals">XLS_WorkbookGlobals</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#constXLS_Worksheet">XLS_Worksheet</a></li>
+  </ul>
+</td>
+
+<td valign="top">
+<h3><a href="#class_methods">Methods</a></h3>
+<ul>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodcanRead">canRead</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodgetLoadSheetsOnly">getLoadSheetsOnly</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodgetReadDataOnly">getReadDataOnly</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodgetReadFilter">getReadFilter</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodlistWorksheetNames">listWorksheetNames</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodload">load</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodsetLoadAllSheets">setLoadAllSheets</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodsetLoadSheetsOnly">setLoadSheetsOnly</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodsetReadDataOnly">setReadDataOnly</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#methodsetReadFilter">setReadFilter</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#method__construct">__construct</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#method_GetInt2d">_GetInt2d</a></li>
+    <li><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html#method_GetInt4d">_GetInt4d</a></li>
+  </ul>
+</td>
+
+</tr></table>
+<hr />
+
+<table width="100%" border="0"><tr>
+
+
+
+
+
+
+</tr></table>
+<hr />
+
+<a name="class_details"></a>
+<h3>Class Details</h3>
+<div class="tags">
+[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a78">78</a>]<br />
+PHPExcel_Reader_Excel5<br /><br /><p>This class uses <a href="http://sourceforge.net/projects/phpexcelreader/parseXL">http://sourceforge.net/projects/phpexcelreader/parseXL</a></p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>copyright:</b>&nbsp;&nbsp;</td><td>Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)</td>
+  </tr>
+</table>
+</div>
+</div><br /><br />
+<div class="top">[ <a href="#top">Top</a> ]</div><br />
+
+
+<hr />
+<a name="class_methods"></a>
+<h3>Class Methods</h3>
+<div class="tags">
+  <hr />
+	<a name="method_GetInt2d"></a>
+	<h3>static method _GetInt2d <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a6361">6361</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int _GetInt2d(
+string
+$data, int
+$pos)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Read 16-bit unsigned integer<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$data</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pos</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method_GetInt4d"></a>
+	<h3>static method _GetInt4d <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a6373">6373</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>static int _GetInt4d(
+string
+$data, int
+$pos)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Read 32-bit signed integer<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$data</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">int&nbsp;&nbsp;</td>
+        <td><b>$pos</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+
+  <hr />
+	<a name="methodcanRead"></a>
+	<h3>method canRead <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a505">505</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean canRead(
+
+$pFilename, string
+$pFileName)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Can the current PHPExcel_Reader_IReader read the file?<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pFileName</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+          <tr>
+        <td class="type">&nbsp;&nbsp;</td>
+        <td><b>$pFilename</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetLoadSheetsOnly"></a>
+	<h3>method getLoadSheetsOnly <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a439">439</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>mixed getLoadSheetsOnly(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Get which sheets to load 		Returns either an array of worksheet names (the list of worksheets that should be loaded), or a null 			indicating that all worksheets in the workbook should be loaded.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetReadDataOnly"></a>
+	<h3>method getReadDataOnly <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a412">412</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>boolean getReadDataOnly(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Read data only? 		If this is true, then the Reader will only read data values for cells, it will not read any formatting information.<br /><br /><p>If false (the default) it will read data and formatting.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodgetReadFilter"></a>
+	<h3>method getReadFilter <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a477">477</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Reader/PHPExcel_Reader_IReadFilter.html">PHPExcel_Reader_IReadFilter</a> getReadFilter(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Read filter<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodlistWorksheetNames"></a>
+	<h3>method listWorksheetNames <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a531">531</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>void listWorksheetNames(
+string
+$pFilename)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Reads names of the worksheets from a file, without parsing the whole file to a PHPExcel object<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pFilename</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodload"></a>
+	<h3>method load <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a581">581</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel/PHPExcel.html">PHPExcel</a> load(
+string
+$pFilename)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Loads PHPExcel from file<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>throws:</b>&nbsp;&nbsp;</td><td>Exception</td>
+  </tr>
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">string&nbsp;&nbsp;</td>
+        <td><b>$pFilename</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetLoadAllSheets"></a>
+	<h3>method setLoadAllSheets <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a466">466</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a> setLoadAllSheets(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set all sheets to load 		Tells the Reader to load all worksheets from the workbook.<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetLoadSheetsOnly"></a>
+	<h3>method setLoadSheetsOnly <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a453">453</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a> setLoadSheetsOnly(
+[mixed
+$value = null])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set which sheets to load<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">mixed&nbsp;&nbsp;</td>
+        <td><b>$value</b>&nbsp;&nbsp;</td>
+        <td>This should be either an array of worksheet names to be loaded, or a string containing a single worksheet name.         If NULL, then it tells the Reader to read all worksheets in the workbook</td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetReadDataOnly"></a>
+	<h3>method setReadDataOnly <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a426">426</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a> setReadDataOnly(
+[boolean
+$pValue = false])</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set read data only 		Set to true, to advise the Reader only to read data values for cells, and to ignore any formatting information.<br /><br /><p>Set to false (the default) to advise the Reader to read both data and formatting for cells.</p><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type">boolean&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="methodsetReadFilter"></a>
+	<h3>method setReadFilter <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a487">487</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code><a href="../PHPExcel_Reader_Excel5/PHPExcel_Reader_Excel5.html">PHPExcel_Reader_Excel5</a> setReadFilter(
+
+$pValue)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Set read filter<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <h4>Parameters:</h4>
+    <div class="tags">
+    <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+        <td class="type"><a href="../PHPExcel_Reader/PHPExcel_Reader_IReadFilter.html">PHPExcel_Reader_IReadFilter</a>&nbsp;&nbsp;</td>
+        <td><b>$pValue</b>&nbsp;&nbsp;</td>
+        <td></td>
+      </tr>
+        </table>
+    </div><br />
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+  <hr />
+	<a name="method__construct"></a>
+	<h3>constructor __construct <span class="smalllinenumber">[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a495">495</a>]</span></h3>
+	<div class="function">
+    <table width="90%" border="0" cellspacing="0" cellpadding="1"><tr><td class="code_border">
+    <table width="100%" border="0" cellspacing="0" cellpadding="2"><tr><td class="code">
+		<code>PHPExcel_Reader_Excel5 __construct(
+)</code>
+    </td></tr></table>
+    </td></tr></table><br />
+	
+		Create a new PHPExcel_Reader_Excel5 instance<br /><br /><br /><br />
+<h4>Tags:</h4>
+<div class="tags">
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><b>access:</b>&nbsp;&nbsp;</td><td>public</td>
+  </tr>
+</table>
+</div>
+<br /><br />
+
+	
+        <div class="top">[ <a href="#top">Top</a> ]</div>
+  </div>
+</div><br />
+
+<hr />
+<a name="class_consts"></a>
+<h3>Class Constants</h3>
+<div class="tags">
+	<a name="constXLS_BIFF7"></a>
+	<p></p>
+	<h4>XLS_BIFF7 = <span class="value">&nbsp;0x0500</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a82">82</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_BIFF8"></a>
+	<p></p>
+	<h4>XLS_BIFF8 = <span class="value">&nbsp;0x0600</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a81">81</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_ARRAY"></a>
+	<p></p>
+	<h4>XLS_Type_ARRAY = <span class="value">&nbsp;0x0221</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a147">147</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_BLANK"></a>
+	<p></p>
+	<h4>XLS_Type_BLANK = <span class="value">&nbsp;0x0201</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a140">140</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_BOF"></a>
+	<p></p>
+	<h4>XLS_Type_BOF = <span class="value">&nbsp;0x0809</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a154">154</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_BOOLERR"></a>
+	<p></p>
+	<h4>XLS_Type_BOOLERR = <span class="value">&nbsp;0x0205</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a143">143</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_BOTTOMMARGIN"></a>
+	<p></p>
+	<h4>XLS_Type_BOTTOMMARGIN = <span class="value">&nbsp;0x0029</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a106">106</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_CODEPAGE"></a>
+	<p></p>
+	<h4>XLS_Type_CODEPAGE = <span class="value">&nbsp;0x0042</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a112">112</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_COLINFO"></a>
+	<p></p>
+	<h4>XLS_Type_COLINFO = <span class="value">&nbsp;0x007d</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a115">115</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_CONTINUE"></a>
+	<p></p>
+	<h4>XLS_Type_CONTINUE = <span class="value">&nbsp;0x003c</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a110">110</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DATAVALIDATION"></a>
+	<p></p>
+	<h4>XLS_Type_DATAVALIDATION = <span class="value">&nbsp;0x01be</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a138">138</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DATAVALIDATIONS"></a>
+	<p></p>
+	<h4>XLS_Type_DATAVALIDATIONS = <span class="value">&nbsp;0x01b2</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a135">135</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DATEMODE"></a>
+	<p></p>
+	<h4>XLS_Type_DATEMODE = <span class="value">&nbsp;0x0022</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a101">101</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DBCELL"></a>
+	<p></p>
+	<h4>XLS_Type_DBCELL = <span class="value">&nbsp;0x00d7</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a126">126</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DEFAULTROWHEIGHT"></a>
+	<p></p>
+	<h4>XLS_Type_DEFAULTROWHEIGHT = <span class="value">&nbsp;0x0225</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a148">148</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DEFCOLWIDTH"></a>
+	<p></p>
+	<h4>XLS_Type_DEFCOLWIDTH = <span class="value">&nbsp;0x0055</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a113">113</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DEFINEDNAME"></a>
+	<p></p>
+	<h4>XLS_Type_DEFINEDNAME = <span class="value">&nbsp;0x0018</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a96">96</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_DIMENSION"></a>
+	<p></p>
+	<h4>XLS_Type_DIMENSION = <span class="value">&nbsp;0x0200</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a139">139</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_EOF"></a>
+	<p></p>
+	<h4>XLS_Type_EOF = <span class="value">&nbsp;0x000a</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a88">88</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_EXTERNALBOOK"></a>
+	<p></p>
+	<h4>XLS_Type_EXTERNALBOOK = <span class="value">&nbsp;0x01ae</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a134">134</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_EXTERNNAME"></a>
+	<p></p>
+	<h4>XLS_Type_EXTERNNAME = <span class="value">&nbsp;0x0023</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a102">102</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_EXTERNSHEET"></a>
+	<p></p>
+	<h4>XLS_Type_EXTERNSHEET = <span class="value">&nbsp;0x0017</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a95">95</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_EXTSST"></a>
+	<p></p>
+	<h4>XLS_Type_EXTSST = <span class="value">&nbsp;0x00ff</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a133">133</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_FILEPASS"></a>
+	<p></p>
+	<h4>XLS_Type_FILEPASS = <span class="value">&nbsp;0x002f</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a108">108</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_FONT"></a>
+	<p></p>
+	<h4>XLS_Type_FONT = <span class="value">&nbsp;0x0031</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a109">109</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_FOOTER"></a>
+	<p></p>
+	<h4>XLS_Type_FOOTER = <span class="value">&nbsp;0x0015</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a94">94</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_FORMAT"></a>
+	<p></p>
+	<h4>XLS_Type_FORMAT = <span class="value">&nbsp;0x041e</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a152">152</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_FORMULA"></a>
+	<p></p>
+	<h4>XLS_Type_FORMULA = <span class="value">&nbsp;0x0006</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a87">87</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_HCENTER"></a>
+	<p></p>
+	<h4>XLS_Type_HCENTER = <span class="value">&nbsp;0x0083</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a118">118</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_HEADER"></a>
+	<p></p>
+	<h4>XLS_Type_HEADER = <span class="value">&nbsp;0x0014</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a93">93</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_HORIZONTALPAGEBREAKS"></a>
+	<p></p>
+	<h4>XLS_Type_HORIZONTALPAGEBREAKS = <span class="value">&nbsp;0x001b</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a98">98</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_HYPERLINK"></a>
+	<p></p>
+	<h4>XLS_Type_HYPERLINK = <span class="value">&nbsp;0x01b8</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a137">137</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_IMDATA"></a>
+	<p></p>
+	<h4>XLS_Type_IMDATA = <span class="value">&nbsp;0x007f</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a116">116</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_INDEX"></a>
+	<p></p>
+	<h4>XLS_Type_INDEX = <span class="value">&nbsp;0x020b</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a146">146</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_LABEL"></a>
+	<p></p>
+	<h4>XLS_Type_LABEL = <span class="value">&nbsp;0x0204</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a142">142</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_LABELSST"></a>
+	<p></p>
+	<h4>XLS_Type_LABELSST = <span class="value">&nbsp;0x00fd</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a132">132</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_LEFTMARGIN"></a>
+	<p></p>
+	<h4>XLS_Type_LEFTMARGIN = <span class="value">&nbsp;0x0026</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a103">103</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_MERGEDCELLS"></a>
+	<p></p>
+	<h4>XLS_Type_MERGEDCELLS = <span class="value">&nbsp;0x00e5</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a128">128</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_MSODRAWING"></a>
+	<p></p>
+	<h4>XLS_Type_MSODRAWING = <span class="value">&nbsp;0x00ec</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a130">130</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_MSODRAWINGGROUP"></a>
+	<p></p>
+	<h4>XLS_Type_MSODRAWINGGROUP = <span class="value">&nbsp;0x00eb</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a129">129</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_MULBLANK"></a>
+	<p></p>
+	<h4>XLS_Type_MULBLANK = <span class="value">&nbsp;0x00be</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a125">125</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_MULRK"></a>
+	<p></p>
+	<h4>XLS_Type_MULRK = <span class="value">&nbsp;0x00bd</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a124">124</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_NOTE"></a>
+	<p></p>
+	<h4>XLS_Type_NOTE = <span class="value">&nbsp;0x001c</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a99">99</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_NUMBER"></a>
+	<p></p>
+	<h4>XLS_Type_NUMBER = <span class="value">&nbsp;0x0203</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a141">141</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_OBJ"></a>
+	<p></p>
+	<h4>XLS_Type_OBJ = <span class="value">&nbsp;0x005d</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a114">114</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_OBJECTPROTECT"></a>
+	<p></p>
+	<h4>XLS_Type_OBJECTPROTECT = <span class="value">&nbsp;0x0063</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a90">90</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PAGESETUP"></a>
+	<p></p>
+	<h4>XLS_Type_PAGESETUP = <span class="value">&nbsp;0x00a1</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a123">123</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PALETTE"></a>
+	<p></p>
+	<h4>XLS_Type_PALETTE = <span class="value">&nbsp;0x0092</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a121">121</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PANE"></a>
+	<p></p>
+	<h4>XLS_Type_PANE = <span class="value">&nbsp;0x0041</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a111">111</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PASSWORD"></a>
+	<p></p>
+	<h4>XLS_Type_PASSWORD = <span class="value">&nbsp;0x0013</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a92">92</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PRINTGRIDLINES"></a>
+	<p></p>
+	<h4>XLS_Type_PRINTGRIDLINES = <span class="value">&nbsp;0x002b</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a107">107</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_PROTECT"></a>
+	<p></p>
+	<h4>XLS_Type_PROTECT = <span class="value">&nbsp;0x0012</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a89">89</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_RANGEPROTECTION"></a>
+	<p></p>
+	<h4>XLS_Type_RANGEPROTECTION = <span class="value">&nbsp;0x0868</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a156">156</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_RIGHTMARGIN"></a>
+	<p></p>
+	<h4>XLS_Type_RIGHTMARGIN = <span class="value">&nbsp;0x0027</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a104">104</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_RK"></a>
+	<p></p>
+	<h4>XLS_Type_RK = <span class="value">&nbsp;0x027e</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a150">150</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_ROW"></a>
+	<p></p>
+	<h4>XLS_Type_ROW = <span class="value">&nbsp;0x0208</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a145">145</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SCENPROTECT"></a>
+	<p></p>
+	<h4>XLS_Type_SCENPROTECT = <span class="value">&nbsp;0x00dd</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a91">91</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SCL"></a>
+	<p></p>
+	<h4>XLS_Type_SCL = <span class="value">&nbsp;0x00a0</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a122">122</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SELECTION"></a>
+	<p></p>
+	<h4>XLS_Type_SELECTION = <span class="value">&nbsp;0x001d</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a100">100</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SHAREDFMLA"></a>
+	<p></p>
+	<h4>XLS_Type_SHAREDFMLA = <span class="value">&nbsp;0x04bc</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a153">153</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SHEET"></a>
+	<p></p>
+	<h4>XLS_Type_SHEET = <span class="value">&nbsp;0x0085</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a120">120</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SHEETLAYOUT"></a>
+	<p></p>
+	<h4>XLS_Type_SHEETLAYOUT = <span class="value">&nbsp;0x0862</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a157">157</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SHEETPR"></a>
+	<p></p>
+	<h4>XLS_Type_SHEETPR = <span class="value">&nbsp;0x0081</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a117">117</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SHEETPROTECTION"></a>
+	<p></p>
+	<h4>XLS_Type_SHEETPROTECTION = <span class="value">&nbsp;0x0867</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a155">155</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_SST"></a>
+	<p></p>
+	<h4>XLS_Type_SST = <span class="value">&nbsp;0x00fc</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a131">131</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_STRING"></a>
+	<p></p>
+	<h4>XLS_Type_STRING = <span class="value">&nbsp;0x0207</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a144">144</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_STYLE"></a>
+	<p></p>
+	<h4>XLS_Type_STYLE = <span class="value">&nbsp;0x0293</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a151">151</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_TOPMARGIN"></a>
+	<p></p>
+	<h4>XLS_Type_TOPMARGIN = <span class="value">&nbsp;0x0028</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a105">105</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_TXO"></a>
+	<p></p>
+	<h4>XLS_Type_TXO = <span class="value">&nbsp;0x01b6</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a136">136</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_UNKNOWN"></a>
+	<p></p>
+	<h4>XLS_Type_UNKNOWN = <span class="value">&nbsp;0xffff</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a159">159</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_VCENTER"></a>
+	<p></p>
+	<h4>XLS_Type_VCENTER = <span class="value">&nbsp;0x0084</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a119">119</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_VERTICALPAGEBREAKS"></a>
+	<p></p>
+	<h4>XLS_Type_VERTICALPAGEBREAKS = <span class="value">&nbsp;0x001a</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a97">97</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_WINDOW2"></a>
+	<p></p>
+	<h4>XLS_Type_WINDOW2 = <span class="value">&nbsp;0x023e</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a149">149</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_XF"></a>
+	<p></p>
+	<h4>XLS_Type_XF = <span class="value">&nbsp;0x00e0</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a127">127</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Type_XFEXT"></a>
+	<p></p>
+	<h4>XLS_Type_XFEXT = <span class="value">&nbsp;0x087d</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a158">158</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_WorkbookGlobals"></a>
+	<p></p>
+	<h4>XLS_WorkbookGlobals = <span class="value">&nbsp;0x0005</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a83">83</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+	<a name="constXLS_Worksheet"></a>
+	<p></p>
+	<h4>XLS_Worksheet = <span class="value">&nbsp;0x0010</span></h4>
+	<p>[line <a href="../__filesource/fsource_PHPExcel_Reader_Excel5__PHPExcelReaderExcel5.php.html#a84">84</a>]</p>
+  
+  <br />
+	<div class="top">[ <a href="#top">Top</a> ]</div><br />
+</div><br />
+
+        <div class="credit">
+		    <hr />
+		    Documentation generated on Sun, 27 Feb 2011 16:31:11 -0800 by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+	      </div>
+      </td></tr></table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
