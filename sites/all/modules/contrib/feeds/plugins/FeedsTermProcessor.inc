@@ -104,67 +104,6 @@ class FeedsTermProcessor extends FeedsProcessor {
       form_set_error('vocabulary', t('Choose a vocabulary'));
     }
   }
-  
-  /**
-  * Override setTargetElement to operate on a target item that is a term.
-  */
-  public function setTargetElement(FeedsSource $source, $target_node, $target_element, $value) {
-    switch ($target_element) {
-      case 'parent':      
-        if (!empty($value)) {
-          $terms = taxonomy_get_term_by_name($value);
-          $parent_tid = '';
-          foreach ($terms as $term) {
-            if ($term->vid == $target_node->vid) {
-              $parent_tid = $term->tid;
-            }
-          }
-
-          if (!empty($parent_tid)) {
-            $target_node->parent = $parent_tid;
-          }
-          else {
-            $term = new stdClass();
-            $term->vid = $target_node->vid;
-            $term->name = $value;
-            $status = taxonomy_term_save($term);
-            $tid = $term->tid;
-            $target_node->parent = $tid;
-            //$target_node->parent = 0;
-          }
-        }
-        else {
-          $target_node->parent = 0;
-        }
-        break;
-      case 'parentguid':      
-        $value = intval($value);
-        $query = db_select('feeds_item')
-          ->fields('feeds_item', array('entity_id'))
-          ->condition('entity_type', $this->entityType());
-        $parent_tid = $query->condition('guid', $value)->execute()->fetchField();
-
-        if (!empty($parent_tid)) {
-          $target_node->parent = $parent_tid;
-        }
-        else {
-          $target_node->parent = 0;
-        }
-        break;
-      case 'weight':
-        if (!empty($value)) {
-          $weight = intval($value);
-        }
-        else {
-          $weight = 0;
-        }
-        $target_node->weight = $weight;
-        break;
-      default:
-        parent::setTargetElement($source, $target_node, $target_element, $value);
-        break;
-    }
-  }
 
   /**
    * Return available mapping targets.
@@ -177,21 +116,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         'description' => t('Name of the taxonomy term.'),
         'optional_unique' => TRUE,
        ),
-      'parent' => array(
-        'name' => t('Parent Term Name'),
-        'description' => t('Name of the Parent Term.'),
-        'optional_unique' => TRUE,
-      ),
-      'parentguid' => array(
-        'name' => t('Parent GUID'),
-        'description' => t('The globally unique identifier of the item\'s parent term.'),
-        'optional_unique' => TRUE,
-      ),
-      'weight' => array(
-        'name' => t('Term Weight'),
-        'description' => t('Weight of the Term.'),
-        'optional_unique' => TRUE,
-      ),
       'description' => array(
         'name' => t('Term description'),
         'description' => t('Description of the taxonomy term.'),
