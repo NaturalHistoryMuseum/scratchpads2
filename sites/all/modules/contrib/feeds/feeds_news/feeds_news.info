@@ -16,3 +16,10 @@ files[] = "feeds_news.test"
 name = "Feeds News"
 package = "Feeds"
 php = "5.2.4"
+
+; Information added by drupal.org packaging script on 2011-06-29
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "feeds"
+datestamp = "1309306989"
+

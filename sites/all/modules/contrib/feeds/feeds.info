@@ -44,3 +44,10 @@ files[] = views/feeds_views_handler_field_log_message.inc
 files[] = views/feeds_views_handler_field_severity.inc
 files[] = views/feeds_views_handler_field_source.inc
 files[] = views/feeds_views_handler_filter_severity.inc
+
+; Information added by drupal.org packaging script on 2011-06-29
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "feeds"
+datestamp = "1309306989"
+
