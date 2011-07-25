@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * @file
+ * 
+ * This module defines one new hook - hook_silver_info().  The hook allows other
+ * modules to include their import forms on the silver import page.
+ */
+/**
+ * Implementation of hook_menu().
+ */
+function silver_menu(){
+  return array(
+    'i' => array(
+      'title' => 'Import',
+      'description' => 'Import data into your web site',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'silver_import_form'
+      ),
+      'access callback' => 'silver_access_callback'
+    )
+  );
+}
+
+function silver_access_callback(){
+  return TRUE;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function silver_theme(){
+  return array(
+    'silver_import_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+/**
+ * Form
+ */
+function silver_import_form(){
+  // Get the info from the other modules that support "silver".
+  $modules = module_implements('silver');
+  $infos = array();
+  $form = array();
+  $options = array(
+    0 => t('- Select import -')
+  );
+  $i = 1;
+  foreach($modules as $module){
+    $info = call_user_func($module . '_silver');
+    if(!isset($options[$info['type']])){
+      $options[$info['type']] = array();
+    }
+    $options[$info['type']][$i] = $info['name'];
+    if(isset($info['file'])){
+      $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "/" . $info['file'];
+      if(is_file($file)){
+        require_once $file;
+      }
+    }
+    $form[$module] = array(
+      '#type' => 'fieldset',
+      '#title' => $info['name'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name="silver_import_select"]' => array(
+            'value' => "$i"
+          )
+        )
+      ),
+      'subform' => drupal_get_form($info['form_id'])
+    );
+    $i++;
+  }
+  $form['silver_import_select'] = array(
+    '#weight' => -100,
+    '#type' => 'select',
+    '#title' => '',
+    '#options' => $options
+  );
+  return $form;
+}
+
+/**
+ * Theme function for the above form.
+ */
+function theme_silver_import_form($variables){
+  $children = element_children($variables['form'], TRUE);
+  $output = '';
+  foreach($children as $child){
+    $output = drupal_render($child);
+  }
+  return $output;
+}
