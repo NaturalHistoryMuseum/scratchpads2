@@ -1,0 +1,4 @@
+name = Scratchpad Import Verification
+description = "Checks the format of import files to ensure that they match the templates provided, and also converts XLS/XLSX to a format that PHP can handle."
+package = "Scratchpads"
+core = 7.x
