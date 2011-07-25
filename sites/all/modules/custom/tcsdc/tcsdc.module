@@ -28,6 +28,17 @@ function tcsdc_menu(){
 }
 
 /**
+ * Implementation of hook_silver().
+ */
+function tcsdc_silver(){
+  return array(
+    'type' => 'Taxonomy',
+    'name' => 'Taxon Concept Schema Import',
+    'form_id' => 'tcsdc_primary_form'
+  );
+}
+
+/**
  * Form definition, as used by the form flow.
  */
 function tcsdc_primary_form($form, &$form_state){
@@ -227,7 +238,9 @@ function tcsdc_generate_tab_file_recurse($id, $file_resource, &$batch){
   foreach($results as $result){
     $data = unserialize($result->data);
     fwrite($file_resource, "{$result->id}\t{$result->name}\t{$result->parent}\t{$data['rank']}\n");
-    $results2 = db_select('tcsdc_data', 't')->fields('t', array('id'))->condition('parent', $result->id)->execute();
+    $results2 = db_select('tcsdc_data', 't')->fields('t', array(
+      'id'
+    ))->condition('parent', $result->id)->execute();
     foreach($results2 as $result2){
       tcsdc_generate_tab_file_recurse($result2->id, $file_resource, $batch);
     }
