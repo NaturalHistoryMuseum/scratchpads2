@@ -23,7 +23,7 @@ function tcsdc_menu(){
       'access arguments' => array(
         'administer taxonomy'
       )
-    ) // 'file' => 'tcsdc.form.inc'
+    )
   );
 }
 
@@ -34,6 +34,8 @@ function tcsdc_silver(){
   return array(
     'type' => 'Taxonomy',
     'name' => 'Taxon Concept Schema Import',
+    //'access callback' => 'user_access',
+    'access arguments' => array('administer taxonomy'),
     'form_id' => 'tcsdc_primary_form'
   );
 }
