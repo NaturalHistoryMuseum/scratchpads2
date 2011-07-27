@@ -23,8 +23,18 @@ function silver_menu(){
   );
 }
 
+/**
+ * If one import method that supports silver allows access to this user, then
+ * we allow the user to view the form.
+ */
 function silver_access_callback(){
-  return TRUE;
+  $modules = module_implements('silver');
+  foreach($modules as $module){
+    $info = call_user_func($module . '_silver');
+    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+    if(call_user_func_array($callback, $info['access arguments'])){return TRUE;}
+  }
+  return FALSE;
 }
 
 /**
@@ -52,6 +62,8 @@ function silver_import_form(){
   $i = 1;
   foreach($modules as $module){
     $info = call_user_func($module . '_silver');
+    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+    if(!call_user_func_array($callback, $info['access arguments'])){continue;}
     if(!isset($options[$info['type']])){
       $options[$info['type']] = array();
     }
@@ -62,6 +74,14 @@ function silver_import_form(){
         require_once $file;
       }
     }
+    $subform_state = array(
+      'build_info' => array(
+        'args' => array()
+      ),
+      'method' => 'get'
+    );
+    $subform = drupal_retrieve_form($info['form_id'], $subform_state);
+    drupal_prepare_form($info['form_id'], $subform, $subform_state);
     $form[$module] = array(
       '#type' => 'fieldset',
       '#title' => $info['name'],
@@ -72,7 +92,7 @@ function silver_import_form(){
           )
         )
       ),
-      'subform' => drupal_get_form($info['form_id'])
+      'subform' => $subform
     );
     $i++;
   }
