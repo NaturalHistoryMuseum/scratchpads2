@@ -5,13 +5,13 @@
  */
 function feeds_excel_feeds_plugins(){
   $info = array();
-  $info['ExcelParser'] = array(
+  $info['FeedsExcelParser'] = array(
     'name' => 'Excel parser',
     'description' => 'Parses an excel file.',
     'handler' => array(
       'parent' => 'FeedsParser',
       'class' => 'FeedsExcelParser',
-      'file' => 'ExcelParser.inc',
+      'file' => 'FeedsExcelParser.inc',
       'path' => drupal_get_path('module', 'feeds_excel')
     )
   );
