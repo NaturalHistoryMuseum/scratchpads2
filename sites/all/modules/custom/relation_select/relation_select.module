@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * A field storing arbitrary relations between entities.
+ */
+/**
+ * Implements hook_field_info().
+ */
+function relation_select_field_info(){
+  return array(
+    'relation' => array(
+      'label' => t('Relation'),
+      'description' => t('Stores relationships between entities.'),
+      'settings' => array(),
+      'default_widget' => 'relation_default',
+      'default_formatter' => 'relation_default'
+    )
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function relation_select_field_widget_info(){
+  return array(
+    'relation_select' => array(
+      'label' => t('Relation select'),
+      'field types' => array(
+        'relation'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  // Get all relation types that can be used for this entity / bundle
+  $relation_types = relation_select_get_relation_types($instance['entity_type'], $instance['bundle']);
+  
+  // Loop thru &
+  foreach(array_keys($relation_types) as $relation_name){
+  	$relation = relation_type_load($relation_name);
+  	dd($relation);
+  }
+  
+}
+
+/**
+ * 
+ * Get all relation types available for an entity type
+ * @param string $entity_type
+ */
+function relation_select_get_relation_types($entity_type, $bundle){
+  $query = db_select('relation_bundles', 'rb');
+  $query->fields('rb', array(
+    'relation_type'
+  ));
+  $query->condition('entity_type', $entity_type);
+  $query->where('bundle = :bundle OR bundle = :asterisk', array(':bundle' => $bundle, ':asterisk' => '*'));
+  $results = $query->execute();
+  $relation_types = array();
+  foreach($results as $relation_type){
+    $relation_types[$relation_type->relation_type] = $relation_type;
+  }
+  _relation_get_types_bundles($relation_types);
+  return $relation_types;
+}
