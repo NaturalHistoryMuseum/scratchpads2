@@ -7,9 +7,9 @@ tags[] = developer
 files[] = devel.test
 files[] = devel.mail.inc
 
-; Information added by drupal.org packaging script on 2011-07-20
-version = "7.x-1.1"
+; Information added by drupal.org packaging script on 2011-07-22
+version = "7.x-1.2"
 core = "7.x"
 project = "devel"
-datestamp = "1311192116"
+datestamp = "1311355316"
 
