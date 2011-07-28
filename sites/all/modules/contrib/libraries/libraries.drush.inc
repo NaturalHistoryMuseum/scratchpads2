@@ -43,7 +43,10 @@ See libraries-list for a list of registered libraries.');
  * Lists registered library information.
  */
 function libraries_drush_list() {
-  $libraries = libraries_detect(libraries_info());
+  $libraries = array();
+  foreach (libraries_info() as $name => $info) {
+    $libraries[$name] = libraries_detect($name);
+  }
   ksort($libraries);
 
   if (empty($libraries)) {

@@ -102,6 +102,46 @@
  *     names and whose values are sets of files to load for the module, using
  *     the same notion as the top-level 'files' property. Each specified file
  *     should contain the path to the file relative to the module it belongs to.
+ *   - callbacks: An associative array whose keys are callback groups and whose
+ *     values are arrays of callbacks to apply to the library in that group.
+ *     Each callback receives the following arguments:
+ *     - $library: An array of library information belonging to the top-level
+ *       library, a specific version, a specific variant or a specific variant
+ *       of a specific version. Because library information such as the 'files'
+ *       property (see above) can be declared in all these different locations
+ *       of the library array, but a callback may have to act on all these
+ *       different parts of the library, it is called recursively for each
+ *       library with a certain part of the libraries array passed as $library
+ *       each time.
+ *     - $version: If the $library array belongs to a certain version (see
+ *       above), a string containing the version. This argument may be empty, so
+ *       NULL should be specified as the default value.
+ *     - $variant: If the $library array belongs to a certain variant (see
+ *       above), a string containing the variant name. This argument may be
+ *       empty, so NULL should be specified as the default value.
+ *     Valid callback groups are:
+ *     - info: Callbacks registered in this group are applied after the library
+ *       information has been retrieved via hook_libraries_info() or info files.
+ *     - pre-detect: Callbacks registered in this group are applied after the
+ *       library path has been determined and before the version callback is
+ *       invoked. At this point the following additional information is available:
+ *       - $library['library path']: The path on the file system to the library.
+ *     - post-detect: Callbacks registered in this group are applied after the
+ *       library has been successfully detected. At this point the library
+ *       contains the version-specific information, if specified, and following
+ *       additional information is available:
+ *       - $library['installed']: A boolean indicating whether the library is
+ *         installed or not.
+ *       - $library['version']: If it could be detected, a string containing the
+ *         version of the library.
+ *       - $library['variants'][$variant]['installed']: For each specified
+ *         variant, a boolean indicating whether the variant is installed or
+ *         not.
+ *       Note that in this group the 'versions' property is no longer available.
+ *     - load: Callbacks registered in this group are applied directly
+ *       before this library is loaded. At this point the library contains
+ *       variant-specific information, if specified. Note that in this group the
+ *       'variants' property is no longer available.
  *   Additional top-level properties can be registered as needed.
  *
  * @see hook_library()
@@ -211,6 +251,14 @@ function hook_libraries_info() {
     'integration files' => array(
       'mymodule' => array(
         'js' => array('ex_lib.inc'),
+      ),
+    ),
+    // Optionally register callbacks to apply to the library during different
+    // stages of its lifetime ('callback groups'). Here, a callback is
+    // registered in the 'detect' group.
+    'callbacks' => array(
+      'detect' => array(
+        'mymodule_example_detect_callback',
       ),
     ),
   );
