@@ -1,0 +1,6 @@
+name = Relation select
+description = A form element to create and edit relations
+dependencies[] = relation
+dependencies[] = views
+package = "Relation"
+core = 7.x
