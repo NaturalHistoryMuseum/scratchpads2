@@ -3,9 +3,3 @@ description = Support module for update module testing.
 package = Testing
 core = 7.x
 hidden = TRUE
-
-; Information added by drupal.org packaging script on 2011-06-30
-version = "7.4"
-project = "drupal"
-datestamp = "1309397516"
-

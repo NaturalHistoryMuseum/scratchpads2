@@ -47,9 +47,3 @@ files[] = tests/upgrade/upgrade.node.test
 files[] = tests/upgrade/upgrade.taxonomy.test
 files[] = tests/upgrade/upgrade.upload.test
 files[] = tests/upgrade/upgrade.user.test
-
-; Information added by drupal.org packaging script on 2011-06-30
-version = "7.4"
-project = "drupal"
-datestamp = "1309397516"
-
