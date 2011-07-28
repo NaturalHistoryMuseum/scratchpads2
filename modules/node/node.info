@@ -8,9 +8,3 @@ files[] = node.test
 required = TRUE
 configure = admin/structure/types
 stylesheets[all][] = node.css
-
-; Information added by drupal.org packaging script on 2011-06-30
-version = "7.4"
-project = "drupal"
-datestamp = "1309397516"
-
