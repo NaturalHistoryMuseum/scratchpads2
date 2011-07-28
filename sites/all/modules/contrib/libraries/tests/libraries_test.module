@@ -200,9 +200,50 @@ function libraries_test_libraries_info() {
     ),
   );
 
-  // This library is used together with libraries_info() to be populated with
-  // the defaults.
-  $libraries['example_empty'] = array();
+  // Test the applying of callbacks.
+  $libraries['example_callback'] = array(
+    'name' => 'Example callback',
+    'library path' => drupal_get_path('module', 'libraries') . '/tests/example',
+    'version' => '1',
+    'versions' => array(
+      '1' => array(
+        'variants' => array(
+          'example_variant' => array(
+            // These keys are for testing purposes only.
+            'info callback' => 'not applied',
+            'pre-detect callback' => 'not applied',
+            'post-detect callback' => 'not applied',
+            'load callback' => 'not applied',
+          ),
+        ),
+        // These keys are for testing purposes only.
+        'info callback' => 'not applied',
+        'pre-detect callback' => 'not applied',
+        'post-detect callback' => 'not applied',
+        'load callback' => 'not applied',
+      ),
+    ),
+    'variants' => array(
+      'example_variant' => array(
+        // These keys are for testing purposes only.
+        'info callback' => 'not applied',
+        'pre-detect callback' => 'not applied',
+        'post-detect callback' => 'not applied',
+        'load callback' => 'not applied',
+      ),
+    ),
+    'callbacks' => array(
+      'info' => array('_libraries_test_info_callback'),
+      'pre-detect' => array('_libraries_test_pre_detect_callback'),
+      'post-detect' => array('_libraries_test_post_detect_callback'),
+      'load' => array('_libraries_test_load_callback'),
+    ),
+    // These keys are for testing purposes only.
+    'info callback' => 'not applied',
+    'pre-detect callback' => 'not applied',
+    'post-detect callback' => 'not applied',
+    'load callback' => 'not applied',
+  );
 
   return $libraries;
 }
@@ -283,6 +324,88 @@ function _libraries_test_get_version($library, $file, $pattern, $lines = 20, $co
  */
 function _libraries_test_return_installed($library, $name, $installed) {
   return $installed;
+}
+
+/**
+ * Sets the 'info callback' key.
+ *
+ * This function is used as a test callback for the 'info' callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_info_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'info');
+}
+
+/**
+ * Sets the 'pre-detect callback' key.
+ *
+ * This function is used as a test callback for the 'pre-detect' callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_pre_detect_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'pre-detect');
+}
+
+/**
+ * Sets the 'post-detect callback' key.
+ *
+ * This function is used as a test callback for the 'post-detect callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_post_detect_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'post-detect');
+}
+
+/**
+ * Sets the 'load callback' key.
+ *
+ * This function is used as a test callback for the 'load' callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_load_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'load');
+}
+
+/**
+ * Sets the '[group] callback' key, where [group] is prepare, detect, or load.
+ *
+ * This function is used as a test callback for the all callback groups.
+ *
+ * It sets the '[group] callback' (see above) key to 'applied ([part])' where
+ * [part] is either 'top-level', 'version x.y' (where x.y is the passed-in
+ * version string), 'variant example' (where example is the passed-in variant
+ * name), or 'version x.y, variant example' (see above), depending on the part
+ * of the library the passed-in library information belongs to.
+ *
+ * @param $library
+ *   An array of library information, which may be version- or variant-specific.
+ *   Passed by reference.
+ * @param $version
+ *   The version the library information passed in $library belongs to, or NULL
+ *   if the passed library information is not version-specific.
+ * @param $variant
+ *   The variant the library information passed in $library belongs to, or NULL
+ *   if the passed library information is not variant-specific.
+ */
+function _libraries_test_callback(&$library, $version, $variant, $group) {
+  $string = 'applied';
+  if (isset($version) && isset($variant)) {
+    $string .= " (version $version, variant $variant)";
+  }
+  elseif (isset($version)) {
+    $string .= " (version $version)";
+  }
+  elseif (isset($variant)) {
+    $string .= " (variant $variant)";
+  }
+  else {
+    $string .= ' (top-level)';
+  }
+  $library["$group callback"] = $string;
 }
 
 /**
