@@ -1,6 +1,16 @@
 
 Libraries 7.x-2.x, xxxx-xx-xx
 -----------------------------
+#1023258 by tstoeckler: Make 'files' consistently keyed by filename.
+#958162 by sun, tstoeckler: Add pre-detect callback group.
+#958162 by sun, tstoeckler: Make tests debuggable and provide libraries_info_defaults().
+#961476 by tstoeckler: Changed libraries_get_path() to return FALSE by default.
+#958162 by tstoeckler, sun, good_man: Allow to apply callbacks to libraries.
+#1125904 by tstoeckler, boombatower: Fix drush libraries-list.
+#1050076 by tstoeckler: Re-utilize libraries_detect() and remove libraries_detect_library().
+#466090 by tstoeckler: Add update function.
+#466090 by tstoeckler: Allow cache to be flushed.
+#466090 by tstoeckler, sun: Cache library information.
 #1064008 by tstoeckler, bfroehle: Fix outdated API examples in libraries.api.php.
 #1028744 by tstoeckler: Code clean-up.
 #1023322 by tstoeckler, sun: Fixed libraries shouldn't be loaded multiple times.
