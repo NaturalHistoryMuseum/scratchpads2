@@ -10,9 +10,3 @@ configure = admin/config/people/profile
 ; are upgrading a site that uses the Profile module to extend user profiles.
 ; See user_system_info_alter().
 hidden = TRUE
-
-; Information added by drupal.org packaging script on 2011-06-30
-version = "7.4"
-project = "drupal"
-datestamp = "1309397516"
-
