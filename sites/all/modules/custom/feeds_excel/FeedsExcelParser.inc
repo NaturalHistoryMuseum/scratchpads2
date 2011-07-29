@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Parses a given file as a Excel file.
+ * Parses a given file as a Excel file.  This is heavily inspired by Feeds
+ * very own CSV parser.
  */
 class FeedsExcelParser extends FeedsParser{
 
@@ -11,9 +12,13 @@ class FeedsExcelParser extends FeedsParser{
 
   private $PHPExcel_ws;
 
-  private $start;
+  private $current_worksheet;
+
+  private $current_ws_row;
 
   private $limit;
+
+  private $row_counts;
 
   /**
    * Parse content fetched by fetcher.
@@ -23,7 +28,7 @@ class FeedsExcelParser extends FeedsParser{
    * works nicely with batch.
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result){
-    $this->start = 1;
+    // Get config and current state
     $source_config = $source->getConfigFor($this);
     $state = $source->state(FEEDS_PARSE);
     // Load the PHPExcel shenanigans
@@ -33,21 +38,66 @@ class FeedsExcelParser extends FeedsParser{
     $PHPExcel_ws = array();
     foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
       $this->PHPExcel_ws[] = $worksheet;
+      if(!$source_config['all_worksheets']){
+        break;
+      }
     }
+    // Get the number of rows per sheet.  Note, sheets with only one row are
+    // considered empty.
+    $this->row_counts = array();
+    $this->current_worksheet = 0;
+    foreach($this->PHPExcel_ws as $sheet){
+      $number_of_rows = $sheet->getHighestRow();
+      if($number_of_rows > 1){
+        $this->row_counts[] = $number_of_rows;
+        // Work out if we're currently "on" this sheet.
+        if($state->pointer >= array_sum($this->row_counts)){
+          $this->current_worksheet++;
+          // Check that this worksheet exists, if it doesn't we should return
+          if(!isset($this->PHPExcel_ws[$this->current_worksheet])){return new FeedsParserResult(array(), $source->feed_nid);}
+        }
+      }else{
+        // We stop at the first empty sheet, to make things simpler.
+        break;
+      }
+    }
+    // We stop if we don't have any sheets with data in.
+    if(!count($this->row_counts)){
+      drupal_set_message(t('The Excel file you uploaded appears to be empty. Ensure the first sheet has data in it.'), 'error');
+      return new FeedsParserResult(array(), $source->feed_nid);
+    }
+    // We get the headers of the sheet we are working on, if required.
     if(empty($source_config['no_headers'])){
-      // Get first line and use it for column names, convert them to lower case.
       $header = $this->parseHeader();
       if(!$header){return;}
       $this->setColumnNames($header);
+      $this->current_ws_row = 2;
+    }else{
+      $this->current_ws_row = 1;
     }
-    // Determine section to parse, parse.
-    //$start = $state->pointer ? $state->pointer : $parser->lastLinePos();
+    if($state->pointer){
+      $this->current_ws_row += $state->pointer;
+      // We need to reduce the current_ws_row by the number of rows on the
+      // previous sheets.
+      for($i = 0; $i < $this->current_worksheet; $i++){
+        $this->current_ws_row -= $this->PHPExcel_ws[$i]->getHighestRow();
+      }
+    }
+    // Set the limit
     $this->limit = $source->importer->getLimit();
+    // Determine section to parse, parse.
     $rows = $this->parseItems();
     // Report progress.
-    $state->total = $this->PHPExcel_ws[0]->getHighestRow();
-    $state->pointer = $this->start;
+    $state->total = array_sum($this->row_counts);
+    $state->pointer = $this->current_ws_row;
+    // Add on to the pointer the values of the previous worksheets
+    for($i = 0; $i < $this->current_worksheet; $i++){
+      $state->pointer += $this->PHPExcel_ws[$i]->getHighestRow();
+    }
     $state->progress($state->total, $state->pointer);
+    // Unset the PHPExcel object
+    unset($this->PHPExcel_object);
+    unset($this->PHPExcel_ws);
     // Create a result object and return it.
     return new FeedsParserResult($rows, $source->feed_nid);
   }
@@ -61,7 +111,7 @@ class FeedsExcelParser extends FeedsParser{
    */
   protected function parseHeader(){
     $headers = array();
-    foreach($this->PHPExcel_ws[0]->getRowIterator() as $row){
+    foreach($this->PHPExcel_ws[$this->current_worksheet]->getRowIterator() as $row){
       $row_index = $row->getRowIndex();
       $cellIterator = $row->getCellIterator();
       $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
@@ -72,7 +122,6 @@ class FeedsExcelParser extends FeedsParser{
       }
       break;
     }
-    $this->start = 2;
     return $headers;
   }
 
@@ -84,18 +133,18 @@ class FeedsExcelParser extends FeedsParser{
   }
 
   /**
-   * Parse all of the items from the CSV.
+   * Parse all of the items from the Excel file.
    *
    * @param ParserExcel $parser
    * @param ParserExcelIterator $iterator
    * @return
-   * An array of rows of the CSV keyed by the column names previously set
+   * An array of rows of the Excel file keyed by the column names previously set
    */
   protected function parseItems(){
     $rows = array();
-    foreach($this->PHPExcel_ws[0]->getRowIterator() as $row){
+    foreach($this->PHPExcel_ws[$this->current_worksheet]->getRowIterator() as $row){
       $row_index = $row->getRowIndex();
-      if($row_index >= $this->start){
+      if($row_index >= $this->current_ws_row){
         $cellIterator = $row->getCellIterator();
         $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
         $column = 0;
@@ -110,7 +159,7 @@ class FeedsExcelParser extends FeedsParser{
         if(count($rows) >= $this->limit){
           break;
         }
-        $this->start = $row_index;
+        $this->current_ws_row = $row_index;
       }
     }
     return $rows;
@@ -124,8 +173,14 @@ class FeedsExcelParser extends FeedsParser{
       'no_headers' => array(
         '#type' => 'checkbox',
         '#title' => t('No headers'),
-        '#description' => t('Check if the imported CSV file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
+        '#description' => t('Check if the imported Excel file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
         '#default_value' => $this->config['no_headers']
+      ),
+      'all_worksheets' => array(
+        '#type' => 'checkbox',
+        '#title' => t('All worksheets'),
+        '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
+        '#default_value' => $this->config['all_worksheets']
       )
     );
   }
@@ -135,7 +190,8 @@ class FeedsExcelParser extends FeedsParser{
    */
   public function configDefaults(){
     return array(
-      'no_headers' => 0
+      'no_headers' => 0,
+      'all_worksheets' => 0
     );
   }
 
@@ -144,7 +200,8 @@ class FeedsExcelParser extends FeedsParser{
    */
   public function sourceDefaults(){
     return array(
-      'no_headers' => $this->config['no_headers']
+      'no_headers' => $this->config['no_headers'],
+      'all_worksheets' => $this->config['all_worksheets']
     );
   }
 
@@ -188,8 +245,14 @@ class FeedsExcelParser extends FeedsParser{
     $form['no_headers'] = array(
       '#type' => 'checkbox',
       '#title' => t('No Headers'),
-      '#description' => t('Check if the imported CSV file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
+      '#description' => t('Check if the imported Excel file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
       '#default_value' => isset($source_config['no_headers']) ? $source_config['no_headers'] : 0
+    );
+    $form['all_worksheets'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('All worksheets'),
+      '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
+      '#default_value' => $this->config['all_worksheets']
     );
     return $form;
   }
