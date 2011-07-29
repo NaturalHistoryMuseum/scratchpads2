@@ -19,6 +19,8 @@ class FeedsExcelParser extends FeedsParser{
   private $limit;
 
   private $row_counts;
+  
+  private $state;
 
   /**
    * Parse content fetched by fetcher.
@@ -30,40 +32,47 @@ class FeedsExcelParser extends FeedsParser{
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result){
     // Get config and current state
     $source_config = $source->getConfigFor($this);
-    $state = $source->state(FEEDS_PARSE);
+    $this->state = $source->state(FEEDS_PARSE);
     // Load the PHPExcel shenanigans
-    $path = libraries_get_path('PHPExcel');
-    require_once "$path/PHPExcel/IOFactory.php";
-    $this->PHPExcel_object = PHPExcel_IOFactory::load($fetcher_result->getFilePath());
-    $PHPExcel_ws = array();
-    foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
-      $this->PHPExcel_ws[] = $worksheet;
-      if(!$source_config['all_worksheets']){
-        break;
+    if(is_null($this->PHPExcel_object)){
+      $path = libraries_get_path('PHPExcel');
+      require_once "$path/PHPExcel/IOFactory.php";
+      $this->PHPExcel_object = PHPExcel_IOFactory::load($fetcher_result->getFilePath());
+      $PHPExcel_ws = array();
+      foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
+        $this->PHPExcel_ws[] = $worksheet;
+        if(!$source_config['all_worksheets']){
+          break;
+        }
+      }
+      // Get the number of rows per sheet.  Note, sheets with only one row are
+      // considered empty.
+      $this->row_counts = array();
+      $this->current_worksheet = 0;
+      foreach($this->PHPExcel_ws as $sheet){
+        $number_of_rows = $sheet->getHighestRow();
+        if($number_of_rows > 1){
+          $this->row_counts[] = $number_of_rows;
+        }else{
+          // We stop at the first empty sheet, to make things simpler.
+          break;
+        }
       }
     }
-    // Get the number of rows per sheet.  Note, sheets with only one row are
-    // considered empty.
-    $this->row_counts = array();
-    $this->current_worksheet = 0;
-    foreach($this->PHPExcel_ws as $sheet){
-      $number_of_rows = $sheet->getHighestRow();
-      if($number_of_rows > 1){
-        $this->row_counts[] = $number_of_rows;
-        // Work out if we're currently "on" this sheet.
-        if($state->pointer >= array_sum($this->row_counts)){
-          $this->current_worksheet++;
-          // Check that this worksheet exists, if it doesn't we should return
-          if(!isset($this->PHPExcel_ws[$this->current_worksheet])){return new FeedsParserResult(array(), $source->feed_nid);}
-        }
-      }else{
-        // We stop at the first empty sheet, to make things simpler.
-        break;
+    // Work out what sheet we are on.
+    $total = 0;
+    foreach($this->row_counts as $count){
+      $total += $count;
+      if($this->state->pointer >= $total){
+        $this->current_worksheet++;
+        // Check that this worksheet exists, if it doesn't we should return
+        if(!isset($this->PHPExcel_ws[$this->current_worksheet])){return new FeedsParserResult(array(), $source->feed_nid);}
       }
     }
     // We stop if we don't have any sheets with data in.
     if(!count($this->row_counts)){
       drupal_set_message(t('The Excel file you uploaded appears to be empty. Ensure the first sheet has data in it.'), 'error');
+      //dpm($this->PHPExcel_ws);
       return new FeedsParserResult(array(), $source->feed_nid);
     }
     // We get the headers of the sheet we are working on, if required.
@@ -71,12 +80,15 @@ class FeedsExcelParser extends FeedsParser{
       $header = $this->parseHeader();
       if(!$header){return;}
       $this->setColumnNames($header);
-      $this->current_ws_row = 2;
-    }else{
+      //$this->current_ws_row = 2;
+    }
+    /*
+    else{
       $this->current_ws_row = 1;
     }
-    if($state->pointer){
-      $this->current_ws_row += $state->pointer;
+    */
+    if($this->state->pointer){
+      //$this->current_ws_row += $this->state->pointer;
       // We need to reduce the current_ws_row by the number of rows on the
       // previous sheets.
       for($i = 0; $i < $this->current_worksheet; $i++){
@@ -88,16 +100,16 @@ class FeedsExcelParser extends FeedsParser{
     // Determine section to parse, parse.
     $rows = $this->parseItems();
     // Report progress.
-    $state->total = array_sum($this->row_counts);
-    $state->pointer = $this->current_ws_row;
+    $this->state->total = array_sum($this->row_counts);
+    //$this->state->pointer = $this->current_ws_row;
     // Add on to the pointer the values of the previous worksheets
     for($i = 0; $i < $this->current_worksheet; $i++){
-      $state->pointer += $this->PHPExcel_ws[$i]->getHighestRow();
+      $this->state->pointer += $this->PHPExcel_ws[$i]->getHighestRow();
     }
-    $state->progress($state->total, $state->pointer);
+    $this->state->progress($this->state->total, $this->state->pointer);
     // Unset the PHPExcel object
-    unset($this->PHPExcel_object);
-    unset($this->PHPExcel_ws);
+    //unset($this->PHPExcel_object);
+    //unset($this->PHPExcel_ws);
     // Create a result object and return it.
     return new FeedsParserResult($rows, $source->feed_nid);
   }
@@ -163,6 +175,13 @@ class FeedsExcelParser extends FeedsParser{
       }
     }
     return $rows;
+  }
+  
+  /**
+   * Calculate what row to start from.  Used by parseItems function
+   */
+  protected function getRowPosition(){
+    
   }
 
   /**
