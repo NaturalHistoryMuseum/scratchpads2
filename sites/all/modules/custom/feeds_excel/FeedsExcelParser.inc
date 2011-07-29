@@ -74,7 +74,9 @@ class FeedsExcelParser extends FeedsParser{
       return new FeedsParserResult(array(), $source->feed_nid);
     }
     // Set the limit
-    $this->limit = $source->importer->getLimit();
+    // FIXME - I've increased the limit by four (200) as it appears to be much
+    // quicker.  This may cause memory issues, so should be looked at.
+    $this->limit = $source->importer->getLimit() * 4;
     // P A R S E !
     $rows = $this->parseItems($source_config);
     // Report progress.
