@@ -8,18 +8,14 @@ class FeedsExcelParser extends FeedsParser{
 
   private $PHPExcel_object;
 
-  private $columnNames;
-
   private $PHPExcel_ws;
 
   private $current_worksheet;
 
-  private $current_ws_row;
-
   private $limit;
 
   private $row_counts;
-  
+
   private $state;
 
   /**
@@ -48,9 +44,11 @@ class FeedsExcelParser extends FeedsParser{
       // Get the number of rows per sheet.  Note, sheets with only one row are
       // considered empty.
       $this->row_counts = array();
-      $this->current_worksheet = 0;
       foreach($this->PHPExcel_ws as $sheet){
         $number_of_rows = $sheet->getHighestRow();
+        if(empty($source_config['no_headers'])){
+          $number_of_rows--;
+        }
         if($number_of_rows > 1){
           $this->row_counts[] = $number_of_rows;
         }else{
@@ -61,6 +59,7 @@ class FeedsExcelParser extends FeedsParser{
     }
     // Work out what sheet we are on.
     $total = 0;
+    $this->current_worksheet = 0;
     foreach($this->row_counts as $count){
       $total += $count;
       if($this->state->pointer >= $total){
@@ -75,47 +74,15 @@ class FeedsExcelParser extends FeedsParser{
       //dpm($this->PHPExcel_ws);
       return new FeedsParserResult(array(), $source->feed_nid);
     }
-    // We get the headers of the sheet we are working on, if required.
-    if(empty($source_config['no_headers'])){
-      $header = $this->parseHeader();
-      if(!$header){return;}
-      $this->setColumnNames($header);
-      //$this->current_ws_row = 2;
-    }
-    /*
-    else{
-      $this->current_ws_row = 1;
-    }
-    */
-    if($this->state->pointer){
-      //$this->current_ws_row += $this->state->pointer;
-      // We need to reduce the current_ws_row by the number of rows on the
-      // previous sheets.
-      for($i = 0; $i < $this->current_worksheet; $i++){
-        $this->current_ws_row -= $this->PHPExcel_ws[$i]->getHighestRow();
-      }
-    }
     // Set the limit
     $this->limit = $source->importer->getLimit();
-    // Determine section to parse, parse.
-    $rows = $this->parseItems();
+    // P A R S E !
+    $rows = $this->parseItems($source_config);
     // Report progress.
     $this->state->total = array_sum($this->row_counts);
-    //$this->state->pointer = $this->current_ws_row;
-    // Add on to the pointer the values of the previous worksheets
-    for($i = 0; $i < $this->current_worksheet; $i++){
-      $this->state->pointer += $this->PHPExcel_ws[$i]->getHighestRow();
-    }
+    $this->state->pointer += count($rows);
     $this->state->progress($this->state->total, $this->state->pointer);
-    // Unset the PHPExcel object
-    //unset($this->PHPExcel_object);
-    //unset($this->PHPExcel_ws);
-    // Create a result object and return it.
     return new FeedsParserResult($rows, $source->feed_nid);
-  }
-
-  protected function setColumnNames($columnNames){
-    $this->columnNames = $columnNames;
   }
 
   /**
@@ -152,18 +119,23 @@ class FeedsExcelParser extends FeedsParser{
    * @return
    * An array of rows of the Excel file keyed by the column names previously set
    */
-  protected function parseItems(){
+  protected function parseItems($source_config){
+    // We get the headers of the sheet we are working on, if required.
+    if(empty($source_config['no_headers'])){
+      $column_names = $this->parseHeader();
+    }
     $rows = array();
     foreach($this->PHPExcel_ws[$this->current_worksheet]->getRowIterator() as $row){
       $row_index = $row->getRowIndex();
-      if($row_index >= $this->current_ws_row){
+      $start_row = $this->getRowPosition($source_config);
+      if($row_index >= $start_row){
         $cellIterator = $row->getCellIterator();
         $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
         $column = 0;
         $row_values = array();
         foreach($cellIterator as $cell){
           if(!is_null($cell)){
-            $row_values[count($this->columnNames) ? $this->columnNames[$column] : $column] = $cell->getCalculatedValue();
+            $row_values[count($column_names) ? $column_names[$column] : $column] = $cell->getCalculatedValue();
           }
           $column++;
         }
@@ -171,17 +143,28 @@ class FeedsExcelParser extends FeedsParser{
         if(count($rows) >= $this->limit){
           break;
         }
-        $this->current_ws_row = $row_index;
       }
     }
     return $rows;
   }
-  
+
   /**
    * Calculate what row to start from.  Used by parseItems function
    */
-  protected function getRowPosition(){
-    
+  protected function getRowPosition($source_config){
+    // Total imported - Total of previous worksheets
+    // Note, we add one due to the fact that Excel sheets are numbered from 1
+    // and not 0.
+    $start_row = $this->state->pointer ? $this->state->pointer + 1: 1;
+    if($this->current_worksheet){
+      for($i = 0; $i < $this->current_worksheet; $i++){
+        $start_row -= $this->row_counts[$i];
+      }
+    }
+    if(empty($source_config['no_headers'])){
+      $start_row++;
+    }
+    return $start_row;
   }
 
   /**
