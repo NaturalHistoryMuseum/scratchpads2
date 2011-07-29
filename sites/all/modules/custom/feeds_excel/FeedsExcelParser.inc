@@ -71,7 +71,6 @@ class FeedsExcelParser extends FeedsParser{
     // We stop if we don't have any sheets with data in.
     if(!count($this->row_counts)){
       drupal_set_message(t('The Excel file you uploaded appears to be empty. Ensure the first sheet has data in it.'), 'error');
-      //dpm($this->PHPExcel_ws);
       return new FeedsParserResult(array(), $source->feed_nid);
     }
     // Set the limit
@@ -155,7 +154,7 @@ class FeedsExcelParser extends FeedsParser{
     // Total imported - Total of previous worksheets
     // Note, we add one due to the fact that Excel sheets are numbered from 1
     // and not 0.
-    $start_row = $this->state->pointer ? $this->state->pointer + 1: 1;
+    $start_row = $this->state->pointer ? $this->state->pointer + 1 : 1;
     if($this->current_worksheet){
       for($i = 0; $i < $this->current_worksheet; $i++){
         $start_row -= $this->row_counts[$i];
