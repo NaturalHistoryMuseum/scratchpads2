@@ -31,8 +31,13 @@ class FeedsExcelParser extends FeedsParser{
     $this->state = $source->state(FEEDS_PARSE);
     // Load the PHPExcel shenanigans
     if(is_null($this->PHPExcel_object)){
-      $path = libraries_get_path('PHPExcel');
-      require_once "$path/PHPExcel/IOFactory.php";
+      if(function_exists('libraries_get_path')){
+        $path = libraries_get_path('PHPExcel');
+        $path = "$path/PHPExcel/IOFactory.php";
+      } else {
+        $path = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel/IOFactory.php';
+      }
+      require_once $path;
       $this->PHPExcel_object = PHPExcel_IOFactory::load($fetcher_result->getFilePath());
       $PHPExcel_ws = array();
       foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
