@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Schema definitions install/update/uninstall hooks.
+ */
+
+/**
  * Implements hook_schema().
  */
 function feeds_tamper_schema() {
@@ -56,7 +61,6 @@ function feeds_tamper_schema() {
       'weight' => array(
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 0,
         'unsigned' => TRUE,
         'description' => 'The weight of a plugin instance. Plugins are executed in order.',
       ),
@@ -69,12 +73,15 @@ function feeds_tamper_schema() {
       ),
     ),
     'primary key' => array('id'),
+    'indexes' => array(
+      'importer' => array('importer'),
+    ),
   );
   return $schema;
 }
 
 /**
- *  Implements hook_uninstall().
+ * Implements hook_uninstall().
  */
 function feeds_tamper_uninstall() {
   variable_del('default_feeds_tamper');
@@ -106,4 +113,27 @@ function feeds_tamper_update_7002(&$sandbox) {
     'description' => 'Description of this plugin.',
   );
   db_add_field('feeds_tamper', 'description', $spec);
+}
+
+/**
+ * Add index on importer.
+ */
+function feeds_tamper_update_7003(&$sandbox) {
+  db_add_index('feeds_tamper', 'importer', array('importer'));
+}
+
+/**
+ * Verify that description length is 255.
+ *
+ * See #1182204.
+ */
+function feeds_tamper_update_7004(&$sandbox) {
+  $spec = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'Description of this plugin.',
+  );
+  db_change_field('feeds_tamper', 'description', 'description', $spec);
 }

@@ -1,36 +1,71 @@
 <?php
 
 /**
- * Feeds related api hooks.
+ * @file
+ * Feeds Tamper - basic API functions and hook implementations.
  */
 
 /**
-* Implements hook_feeds_after_parse().
-*
-* This is the meat of the whole deal.  After every Feeds run, before going into
-* processing, this gets called and modifies the data based on the configuration.
-*/
+ * Load version agnostic code.
+ */
+include_once('feeds_tamper.inc');
+
+/**
+ * Implements hook_feeds_after_parse().
+ *
+ * This is the meat of the whole deal.  After every Feeds run, before going into
+ * processing, this gets called and modifies the data based on the configuration.
+ */
 function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $result) {
-  $importer_instances = feeds_tamper_load_by_importer($source->importer->id, FALSE, TRUE);
+  $importer_instances = feeds_tamper_load_by_importer($source->importer->id, FALSE);
+
   if (empty($importer_instances)) {
     return;
   }
-  foreach ($result->items as $item_key => &$item) {
-    foreach ($importer_instances as $element_key => $instances) {
-      foreach ($instances as $instance) {
-        $plugin = feeds_tamper_get_plugin($instance->plugin_id);
-        $is_array = is_array($item[$element_key]);
 
-        if ($is_array && $plugin['multi'] == 'loop') {
-          foreach ($item[$element_key] as &$i) {
-            $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings);
+  $csv = FALSE;
+  if (get_class($source->importer->parser) == 'FeedsCSVParser') {
+    $csv = TRUE;
+  }
+
+  // Look for any "Blank source" mappings as those will be treated specially.
+  $mappings = $source->importer->processor->config['mappings'];
+  $blank_mappings = array();
+
+  foreach ($importer_instances as $element_key => $instance) {
+    if (strpos($element_key, 'Blank source ') === 0) {
+      $blank_mappings[] = $element_key;
+    }
+    // Special case for FeedsCSVParser.
+    elseif ($csv) {
+      unset($importer_instances[$element_key]);
+      $importer_instances[drupal_strtolower($element_key)] = $instance;
+    }
+  }
+
+  $plugins = feeds_tamper_get_plugins();
+  foreach ($result->items as $item_key => &$item) {
+    // Add the blank sources to the item.
+    foreach ($blank_mappings as $blank) {
+      $item[$blank] = '';
+    }
+    foreach ($importer_instances as $element_key => $instances) {
+      if (isset($item[$element_key])) {
+        foreach ($instances as $instance) {
+          $plugin = $plugins[$instance->plugin_id];
+          $is_array = is_array($item[$element_key]);
+
+          if ($is_array && $plugin['multi'] == 'loop') {
+            foreach ($item[$element_key] as &$i) {
+              $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings);
+            }
           }
-        }
-        else if ($is_array && $plugin['multi'] == 'direct') {
-          $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
-        }
-        else if (!$is_array && $plugin['single'] != 'skip') {
-          $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
+          elseif ($is_array && $plugin['multi'] == 'direct') {
+            $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
+          }
+          elseif (!$is_array && $plugin['single'] != 'skip') {
+            $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
+          }
         }
       }
     }
@@ -38,125 +73,45 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
 }
 
 /**
- * Implements hook_feeds_node_processor_targets_alter().
- *
- * @see FeedsNodeProcessor::getMappingTargets().
+ * Implements hook_feeds_parser_sources_alter().
  */
-function feeds_tamper_feeds_node_processor_targets_alter(&$targets, $content_type) {
-  $targets['feeds_tamper_store'] = array(
-    'name' => 'Rewrite Store',
+function feeds_tamper_feeds_parser_sources_alter(&$sources, $content_type) {
+  $sources['Blank source 1'] = array(
+    'description' => t("A source provided by Feeds Tamper with no value of it's own."),
+  );
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function feeds_tamper_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $targets['Temporary target 1'] = array(
     'description' => t('A field that stores the source data temporarily so that it can be used with the Feeds Tamper rewrite plugin.'),
   );
 }
 
 /**
- * Feeds Tamper api functions.
+ * Core hooks.
  */
 
 /**
- * Load all modifiers.
+ * Implements hook_permission().
  */
-function feeds_tamper_load_all_instances($load_disabled = FALSE) {
-  $instances = array();
-  if (function_exists('ctools_include')) {
-    ctools_include('export');
-    $configs = ctools_export_load_object('feeds_tamper', 'all');
-    foreach ($configs as $instance_id => $config) {
-      if (!empty($config->id) && ($load_disabled || empty($config->disabled))) {
-        $instances[$instance_id] = $config;
-      }
-    }
+function feeds_tamper_permission() {
+  $perms = array(
+    'administer feeds_tamper' => array(
+      'title' => t('Administer Feeds Tamper'),
+      'description' => t('Create, edit and delete plugins for any importer.'),
+    ),
+  );
+  foreach (feeds_importer_load_all() as $importer) {
+    $name = array('%name' => $importer->config['name']);
+    $perms['tamper ' . $importer->id] = array(
+      'title' => t('Tamper %name feeds', $name),
+      'description' => t('Create, edit and delete plugins for %name feeds.', $name),
+    );
   }
-  return $instances;
-}
-
-/**
- * Load a plugin instance by id.
- */
-function feeds_tamper_load_instance($id) {
-  ctools_include('export');
-  return ctools_export_crud_load('feeds_tamper', $id);
-}
-
-function feeds_tamper_load_by_importer($importer_id, $disabled = FALSE, $lower = FALSE) {
-  $mappings = feeds_importer($importer_id)->processor->config['mappings'];
-  $sources = array();
-  foreach ($mappings as $mapping) {
-    $sources[] = $mapping['source'];
-  }
-  ctools_include('export');
-  $t = ctools_export_load_object('feeds_tamper', 'conditions', array('importer' => $importer_id));
-  $instances = array();
-  foreach ($t as $i) {
-    if (($disabled || empty($i->disabled)) && in_array($i->source, $sources)) {
-      if ($lower) {
-        $instances[drupal_strtolower($i->source)][] = $i;
-      }
-      else {
-        $instances[$i->source][] = $i;
-      }
-    }
-  }
-  foreach ($instances as &$instance_list) {
-    usort($instance_list, '_feeds_tamper_cmp');
-  }
-  return $instances;
-}
-
-function _feeds_tamper_cmp($a, $b) {
-  if ($a->weight == $b->weight) {
-    return 0;
-  }
-  return ($a->weight < $b->weight) ? -1 : 1;
-}
-
-/**
- * Gets all available plugins.
- *
- * @return
- *   An array where the keys are the plugin keys and the values
- *   are the plugin info arrays as defined in a plugin include file.
- */
-function feeds_tamper_get_plugins() {
-  ctools_include('plugins');
-  return ctools_get_plugins('feeds_tamper', 'plugins');
-}
-
-/**
- * Gets a single plugin.
- *
- *  @param $id
- *    The id of a plugin.
- *
- * @return
- *   An array where the keys are the plugin keys and the values
- *   are the plugin info arrays as defined in a plugin include file.
- */
-function feeds_tamper_get_plugin($id) {
-  ctools_include('plugins');
-  return ctools_get_plugins('feeds_tamper', 'plugins', $id);
-}
-
-/**
- * CTools stuff.
- */
-
-/**
- * Implements hook_ctools_plugin_api().
- */
-function feeds_tamper_ctools_plugin_api($owner, $api) {
-  if ($owner == 'feeds_tamper' && $api == 'plugins') {
-    return array('version' => 2);
-  }
-}
-
-/**
-* Implements hook_ctools_plugin_directory().
-*/
-function feeds_tamper_ctools_plugin_directory($module, $plugin) {
-  if ($module == 'feeds_tamper') {
-    return 'plugins/';
-  }
+  return $perms;
 }
 
 /**
@@ -165,32 +120,14 @@ function feeds_tamper_ctools_plugin_directory($module, $plugin) {
 function feeds_tamper_ctools_plugin_type() {
   return array(
     'plugins' => array(
-      'cache' => FALSE,
-      'use hook' => FALSE,
+      'use hooks' => FALSE,
       'defaults' => array(
         'validate' => FALSE,
         'multi' => FALSE,
-        'description' => FALSE,
-        'machine_name' => FALSE,
         'category' => 'Other',
         'single' => FALSE,
+        'default description' => '',
       ),
-    ),
-  );
-}
-
-function feeds_tamper_make_machine($string) {
-  return substr(preg_replace('/[^a-z0-9-]/', '_', strtolower($string)), 0, 127);
-}
-
-/**
- * Implements hook_permission().
- */
-function feeds_tamper_permission() {
-  return array(
-    'administer feeds_tamper' => array(
-      'title' => t('Administer Feeds Tamper'),
-      'description' => t('Create, edit and delete plugins for feeds tamper.'),
     ),
   );
 }

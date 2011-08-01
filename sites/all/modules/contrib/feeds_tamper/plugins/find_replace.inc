@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Find/replace text.
+ */
+
 $plugin = array(
   'form' => 'feeds_tamper_find_replace_form',
   'callback' => 'feeds_tamper_find_replace_callback',
@@ -37,7 +42,7 @@ function feeds_tamper_find_replace_form($importer, $element_key, $settings) {
     '#type' => 'checkbox',
     '#title' => t('Match whole word/phrase'),
     '#default_value' => isset($settings['whole']) ? $settings['whole'] : FALSE,
-    '#description' => t('If checked, then the whole word or phrase will be matched, e.g. "book" will match not match "book" in "the book".<br>If this option is selected then "Respect word boundaries" above will be ignored.')
+    '#description' => t('If checked, then the whole word or phrase will be matched, e.g. "book" will match not match "book" in "the book".<br />If this option is selected then "Respect word boundaries" above will be ignored.')
   );
   return $form;
 }
@@ -45,12 +50,10 @@ function feeds_tamper_find_replace_form($importer, $element_key, $settings) {
 function feeds_tamper_find_replace_validate(&$settings) {
   $settings['regex'] = FALSE;
 
-  if (!$settings['word_boundaries'] && !$settings['whole'] &&
-      $settings['case_sensitive']) {
+  if (!$settings['word_boundaries'] && !$settings['whole'] && $settings['case_sensitive']) {
     $settings['func'] = 'str_replace';
   }
-  else if (!$settings['word_boundaries'] && !$settings['whole'] &&
-           !$settings['case_sensitive']) {
+  elseif (!$settings['word_boundaries'] && !$settings['whole'] && !$settings['case_sensitive']) {
     $settings['func'] = 'str_ireplace';
   }
   else {

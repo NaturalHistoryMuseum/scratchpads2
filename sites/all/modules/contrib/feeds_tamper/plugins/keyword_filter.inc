@@ -1,10 +1,14 @@
 <?php
 
+/**
+ * @file
+ * Filter based on a list of words/phrases.
+ */
+
 $plugin = array(
   'form' => 'feeds_tamper_keyword_filter_form',
   'callback' => 'feeds_tamper_keyword_filter_callback',
   'validate' => 'feeds_tamper_keyword_filter_validate',
-  'description' => 'feeds_tamper_keyword_filter_description',
   'name' => 'Keyword filter',
   'multi' => 'skip',
   'category' => 'Filter',
@@ -21,7 +25,7 @@ function feeds_tamper_keyword_filter_form($importer, $element_key, $settings) {
   $form['word_boundaries'] = array(
     '#type' => 'checkbox',
     '#title' => t('Respect word boundaries'),
-    '#default_value' => isset($settings['word_boundaries']) ? $settings['word_boundaries'] : TRUE,
+    '#default_value' => isset($settings['word_boundaries']) ? $settings['word_boundaries'] : FALSE,
     '#description' => t('If checked, then "book" will match "book" but not "bookcase".'),
   );
   $form['case_sensitive'] = array(
@@ -30,44 +34,54 @@ function feeds_tamper_keyword_filter_form($importer, $element_key, $settings) {
     '#default_value' => isset($settings['case_sensitive']) ? $settings['case_sensitive'] : FALSE,
     '#description' => t('If checked, then "book" will match "book" but not "Book" or "BOOK".')
   );
+  $form['invert'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Invert filter'),
+    '#default_value' => isset($settings['invert']) ? $settings['invert'] : FALSE,
+    '#description' => t('Inverting the filter will %remove items with the specified text.', array('%remove' => 'remove')),
+  );
   return $form;
 }
 
 function feeds_tamper_keyword_filter_validate(&$settings) {
+  global $multibyte;
+  $is_multibyte = ($multibyte == UNICODE_MULTIBYTE) ? TRUE : FALSE;
   $settings['words'] = str_replace("\r", '', $settings['words']);
   $settings['word_list'] = explode("\n", $settings['words']);
   $settings['word_list'] = array_map('trim', $settings['word_list']);
   $settings['regex'] = FALSE;
 
   if (!$settings['word_boundaries'] && $settings['case_sensitive']) {
-    $settings['func'] = 'strpos';
+    $settings['func'] = $is_multibyte ? 'mb_strpos' : 'strpos';
   }
-  else if (!$settings['word_boundaries'] && !$settings['case_sensitive']) {
-    $settings['func'] = 'stripos';
+  elseif (!$settings['word_boundaries'] && !$settings['case_sensitive']) {
+    $settings['func'] = $is_multibyte ? 'mb_stripos' : 'stripos';
   }
   else {
     foreach ($settings['word_list'] as &$word) {
-      $word = '/\b' . $word . '\b/';
-
+      if (!preg_match('/^\w.*\w$/', $word)) {
+        form_set_error('settings][words', t('Seach text must begin and end with a letter, number, or underscore to use the %option option.<br />%word', array('%option' => 'Respect word boundaries', '%word' => $word)));
+      }
+      $word = '/\b\Q' . $word . '\E\b/';
       if (!$settings['case_sensitive']) {
         $word .= 'i';
+      }
+      if ($is_multibyte) {
+        $word .= 'u';
       }
     }
     $settings['regex'] = TRUE;
   }
 }
 
-function feeds_tamper_keyword_filter_description($settings) {
-  $words = explode("\n", $settings['words']);
-  $words = implode(', ', $words);
-  $words = substr($words, 0, 15);
-  return 'Filter items that do not contain one of "' . $words . '".';
-}
-
 function feeds_tamper_keyword_filter_callback($result, $item_key, $element_key, &$field, $settings) {
   if ($settings['regex']) {
     foreach ($settings['word_list'] as $word) {
       if (preg_match($word, $field) > 0) {
+        if (!$settings['invert']) {
+          return;
+        }
+        unset($result->items[$item_key]);
         return;
       }
     }
@@ -75,9 +89,15 @@ function feeds_tamper_keyword_filter_callback($result, $item_key, $element_key, 
   else {
     foreach ($settings['word_list'] as $word) {
       if ($settings['func']($field, $word) !== FALSE) {
+        if (!$settings['invert']) {
+          return;
+        }
+        unset($result->items[$item_key]);
         return;
       }
     }
   }
-  unset($result->items[$item_key]);
+  if (!$settings['invert']) {
+    unset($result->items[$item_key]);
+  }
 }

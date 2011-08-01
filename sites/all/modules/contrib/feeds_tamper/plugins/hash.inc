@@ -1,30 +1,28 @@
 <?php
+
+/**
+ * @file
+ * Calculate a hash of a feed item.
+ */
+
 $plugin = array(
   'form' => 'feeds_tamper_hash_form',
   'callback' => 'feeds_tamper_hash_callback',
-  'name' => 'Hash',
-  'multi' => 'loop',
+  'name' => 'Calculate hash',
+  'multi' => 'direct',
   'category' => 'Other',
-  'description' => 'feeds_tamper_hash_description',
-  'machine_name' => 'feeds_tamper_hash_machine_name'
 );
 
-function feeds_tamper_hash_form($importer, $element_key, $settings){
+function feeds_tamper_hash_form($importer, $element_key, $settings) {
   return array(
-    'random' => array(
-      '#markup' => t('Makes the element a hash of the values being imported.  This makes it easy to import new content without setting a GUID for it.')
-    )
+    'help' => array(
+      '#markup' => t('Makes the value a hash of the values being imported. This allows for importing content that does not have a unique ID.')
+    ),
   );
 }
 
-function feeds_tamper_hash_machine_name($settings){
-  return 'make_hash';
-}
-
-function feeds_tamper_hash_description($settings){
-  return 'Make the value a hash.';
-}
-
-function feeds_tamper_hash_callback($result, $item_key, $element_key, &$field, $settings){
-  $field = $field ? $field : md5(serialize($result->items[$item_key]));
+function feeds_tamper_hash_callback($result, $item_key, $element_key, &$field, $settings) {
+  // Set to null so that the initial value of this field won't affect the hash.
+  $field = NULL;
+  $field = md5(serialize($result->items[$item_key]));
 }

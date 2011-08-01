@@ -1,58 +1,31 @@
 <?php
 
+/**
+ * @file
+ * Make URLs absolute.
+ */
+
 $plugin = array(
   'form' => 'feeds_tamper_absolute_url_form',
   'callback' => 'feeds_tamper_absolute_url_callback',
   'name' => 'Make URLs absolute',
   'category' => 'HTML',
-  'description' => 'feeds_tamper_absolute_url_description',
-  'machine_name' => 'feeds_tamper_absolute_url_machine_name',
 );
 
 function feeds_tamper_absolute_url_form($importer, $element_key, $settings) {
   $form = array();
   $links = htmlentities('<a href="/stuff/things"> to <a href="http://example.com/stuff/things">');
   $form['info'] = array(
-    '#markup' => t('Make URLs in markup absolute. (i.e. ' . $links . ').'),
+    '#markup' => t('Make URLs in markup absolute. (i.e. !links).', array('!links' => $links)),
   );
   return $form;
 }
 
-function feeds_tamper_absolute_url_description($settings) {
-  return 'Make URLs absolute.';
-}
-
-function feeds_tamper_absolute_url_machine_name($settings) {
-  return 'make_urls_absolute';
-}
-
 function feeds_tamper_absolute_url_callback($result, $item_key, $element_key, &$field, $settings) {
-  static $b;
   static $dom;
 
-  if ($b === FALSE) {
-    return;
-  }
-
-  if (!isset($b)) {
-    // parse_url doesn't properly handle urls without a scheme.
-    $pos = strpos($result->link, '://');
-    // This allows for ftp, ftps, http, https. Not sure if that's necessary but
-    // hey.
-    if ($pos !== 3 && $pos !== 4 && $pos !== 5) {
-      // Assume http if scheme isn't set.
-      $b = parse_url('http://' . $result->link);
-    }
-    else {
-      $b = parse_url($result->link);
-    }
-    // If the host isn't set for the base url then there's nothing we could do.
-    // We set $b to false so the next call will know it's pointless.
-    if ($b === FALSE || empty($b['host'])) {
-      $b = FALSE;
-      return;
-    }
-    // Save the DOMDocument for reuse between calls.
+  $b = parse_url($result->link);
+  if (!isset($dom)) {
     $dom = new DOMDocument();
   }
 
@@ -110,12 +83,11 @@ function _feeds_tamper_absolute_url($r_url, &$urls, $b) {
   }
 
   // If relative URL path doesn't start with /, merge with base path
-  if ($r['path'][0] != '/') {
-    $base = mb_strrchr($b['path'], '/', TRUE, 'UTF-8');
-    if ($base === FALSE) {
-      $base = '';
+  if (strpos($r['path'], '/') !== 0) {
+    if (empty($b['path'])) {
+      $b['path'] = '';
     }
-    $r['path'] = $base . '/' . $r['path'];
+    $r['path'] = $b['path'] . '/' . $r['path'];
   }
   $urls[$r_url] = _feeds_tamper_join_url($r);
 }
