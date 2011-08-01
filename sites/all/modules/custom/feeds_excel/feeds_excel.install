@@ -7,7 +7,8 @@ function feeds_excel_requirements($phase){
   $requirements = array(
     'phpexcel' => array(
       'title' => t('PHPExcel Library'),
-      'severity' => REQUIREMENT_OK
+      'severity' => REQUIREMENT_OK,
+      'value' => t('Not found')
     ) 
   );
   $file = '';
@@ -16,8 +17,8 @@ function feeds_excel_requirements($phase){
     $path = libraries_get_path('PHPExcel');
     $file = $path . '/PHPExcel.php';
     if(!file_exists($file)){
-      $requirements['phpexcel']['severity'] = REQUIREMENT_WARNING;
-      $requirements['phpexcel']['description'] = t('Please download and install "Classes" folder from the !phpexcel_library into a location that the Libraries module can find.  Note, you must rename the folder "PHPExcel".', array(
+      $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
+      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into a location that the Libraries module can find.  Note, you must rename the folder "PHPExcel".', array(
         '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
       ));
     }
@@ -26,8 +27,8 @@ function feeds_excel_requirements($phase){
     // library in the feeds_excel module folder.
     $file = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel.php';
     if(!file_exists($file)){
-      $requirements['phpexcel']['severity'] = REQUIREMENT_WARNING;
-      $requirements['phpexcel']['description'] = t('Please download and install "Classes" folder from the !phpexcel_library into the feeds_excel module folder.  Note, you must rename the folder "PHPExcel".', array(
+      $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
+      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into the feeds_excel module folder.  Note, you must rename the folder "PHPExcel".', array(
         '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
       ));
     }
