@@ -34,7 +34,7 @@ class FeedsExcelParser extends FeedsParser{
       if(function_exists('libraries_get_path')){
         $path = libraries_get_path('PHPExcel');
         $path = "$path/PHPExcel/IOFactory.php";
-      } else {
+      }else{
         $path = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel/IOFactory.php';
       }
       require_once $path;

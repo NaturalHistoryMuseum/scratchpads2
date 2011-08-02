@@ -9,7 +9,7 @@ function feeds_excel_requirements($phase){
       'title' => t('PHPExcel Library'),
       'severity' => REQUIREMENT_OK,
       'value' => t('Not found')
-    ) 
+    )
   );
   $file = '';
   if(function_exists('libraries_get_path')){
@@ -41,7 +41,7 @@ function feeds_excel_requirements($phase){
     if(count($matches)){
       $matches = explode('version', $matches[0]);
       $requirements['phpexcel']['value'] = trim($matches[1]);
-    } else {
+    }else{
       $requirements['phpexcel']['value'] = 'Unknown version';
     }
   }
