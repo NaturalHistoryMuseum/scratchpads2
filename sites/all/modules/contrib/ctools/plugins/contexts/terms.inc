@@ -17,7 +17,6 @@ $plugin = array(
   'keyword' => 'terms',
   // This context is deprecated and should not be usable in the UI.
   'no ui' => TRUE,
-  'no required context ui' => TRUE,
   'context name' => 'terms',
   'convert list' => array(
     'tid' => t('Term ID of first term'),
@@ -39,7 +38,7 @@ function ctools_context_create_terms($empty, $data = NULL, $conf = FALSE) {
   // The input is expected to be an object as created by ctools_break_phrase
   // which contains a group of terms.
 
-  $context = new ctools_context(array('terms', 'term'));
+  $context = new ctools_context(array('terms', 'entity:taxonomy_term'));
   $context->plugin = 'terms';
 
   if ($empty) {

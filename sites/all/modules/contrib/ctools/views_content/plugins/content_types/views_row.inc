@@ -163,7 +163,11 @@ function views_content_views_row_edit_submit(&$form, &$form_state) {
 }
 
 function views_content_views_row_content_type_admin_info($subtype, $conf, $contexts) {
-  $context = $contexts[$conf['context']];
+  // Go through this route to make sure we catch changes in configuration
+  // that can happen.
+  $plugin = ctools_get_content_type('views_row');
+  $context = ctools_content_select_context($plugin, $subtype, $conf, $contexts);
+
   $block->title = t('Row information');
 
   if (!empty($conf['use_fields'])) {

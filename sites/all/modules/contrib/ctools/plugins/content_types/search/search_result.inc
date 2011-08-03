@@ -65,20 +65,17 @@ function ctools_search_result_content_type_render($subtype, $conf, $panel_args, 
 
   $results = '';
 
-    // Only search if there are keywords or non-empty conditions.
-    if ($keys || !empty($conditions)) {
+  // Only search if there are keywords or non-empty conditions.
+  if ($keys || !empty($conditions)) {
 
-      // Collect the search results.
-      $results = search_data($keys, $info['module'], $conditions);
-    }
+    // Collect the search results.
+    $results = search_data($keys, $info['module'], $conditions);
+  }
 
   if (!empty($conf['log'])) {
     // Log the search keys:
     watchdog('search', 'Searched %type for %keys.', array('%keys' => $keys, '%type' => $info['title']), WATCHDOG_NOTICE, l(t('results'), $_GET['q']));
   }
-
-  // Collect the search results:
-  $results = search_data($keys, $conf['type'], $conditions);
 
   if (!empty($results['#results'])) {
     $output = "<ol class=\"search-results $conf[type]-results\">\n";

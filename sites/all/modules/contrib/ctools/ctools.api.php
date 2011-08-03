@@ -117,6 +117,21 @@ function hook_ctools_plugin_post_alter(&$plugin, &$info) {
   }
 }
 
+
+/**
+ * Alter the available functions to be used in ctools math expression api.
+ *
+ * One usecase would be to create your own function in your module and 
+ * allow to use it in the math expression api.
+ *
+ * @param $functions
+ *    An array which has the functions as value.
+ */
+function hook_ctools_math_expression_functions_alter(&$functions) {
+  // Allow to convert from degrees to radiant.
+  $functions[] = 'deg2rad';
+}
+
 /**
  * @} End of "addtogroup hooks".
  */

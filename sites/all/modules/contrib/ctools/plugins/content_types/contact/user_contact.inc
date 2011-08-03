@@ -41,7 +41,7 @@ function ctools_user_contact_content_type_render($subtype, $conf, $panel_args, $
 /**
  * Returns an edit form for custom type settings.
  */
-function ctools_user_contact_content_type_edit_form(&$form, &$form_state) {
+function ctools_user_contact_content_type_edit_form($form, &$form_state) {
   // Empty so that we can have title override.
   return $form;
 }
