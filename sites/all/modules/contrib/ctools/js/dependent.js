@@ -54,6 +54,8 @@
 
     // Iterate through all relationships
     for (id in Drupal.settings.CTools.dependent) {
+      // Test to make sure the id even exists; this helps clean up multiple
+      // AJAX calls with multiple forms.
 
       // Drupal.CTools.dependent.activeBindings[id] is a boolean,
       // whether the binding is active or not.  Defaults to no.
@@ -87,6 +89,10 @@
         }
 
         var getValue = function(item, trigger) {
+          if ($(trigger).size() == 0) {
+            return null;
+          }
+
           if (item.substring(0, 6) == 'radio:') {
             var val = $(trigger + ':checked').val();
           }
@@ -115,9 +121,12 @@
           var changeTrigger = function() {
             var val = getValue(bind_id, trigger_id);
 
+            if (val == null) {
+              return;
+            }
+
             for (i in Drupal.CTools.dependent.bindings[bind_id]) {
               var id = Drupal.CTools.dependent.bindings[bind_id][i];
-
               // Fix numerous errors
               if (typeof id != 'string') {
                 continue;
@@ -143,6 +152,16 @@
 
               var object = $('#' + id + '-wrapper');
               if (!object.size()) {
+                // Some elements can't use the parent() method or they can
+                // damage things. They are guaranteed to have wrappers but
+                // only if dependent.inc provided them. This check prevents
+                // problems when multiple AJAX calls cause settings to build
+                // up.
+                var $original = $('#' + id);
+                if ($original.is('fieldset') || $original.is('textarea')) {
+                  continue;
+                }
+
                 object = $('#' + id).parent();
               }
 
