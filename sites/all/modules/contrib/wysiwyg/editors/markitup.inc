@@ -1,5 +1,4 @@
 <?php
-// $Id: markitup.inc,v 1.12 2010/12/19 19:19:56 sun Exp $
 
 /**
  * @file
