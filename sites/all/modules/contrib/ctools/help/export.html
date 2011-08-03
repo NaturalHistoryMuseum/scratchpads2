@@ -117,6 +117,12 @@ function mymodule_schema() {
 <dt>object factory</dt>
 <dd>Function used to create the object. The function receives the schema and the loaded data as a parameters: your_factory_function($schema, $data). If this is set,  'object' has no effect since you can use your function to create whatever class you wish.</dd>
 
+<dt>admin_title</dt>
+<dd>A convenience field that may contain the field which represents the human readable administrative title for use in export UI. If a field "admin_title" exists, it will automatically be used.</dd>
+
+<dt>admin_description</dt>
+<dd>A convenience field that may contain the field which represents the human readable administrative title for use in export UI. If a field "admin_title" exists, it will automatically be used.</dd>
+
 <dt>can disable</dt>
 <dd>Control whether or not the exportable objects can be disabled. All this does is cause the 'disabled' field on the object to always be set appropriately, and a variable is kept to record the state. Changes made to this state must be handled by the owner of the object. Defaults to TRUE.</dd>
 
@@ -146,7 +152,7 @@ function mymodule_schema() {
 
 <dt>to hook code callback</dt>
 <dd>Function used to generate an export for the bulk export process. This is only necessary if the export is more complicated than simply listing the fields. Defaults to $module . '_' . $table . '_to_hook_code'.</dt>
-</dl>
+
 
 <dt>create callback</dt>
 <dd>CRUD callback to use to create a new exportable item in memory. If not provided, the default function will be used. The single argument is a boolean used to determine if defaults should be set on the object. This object will not be written to the database by this callback.</dd>
@@ -172,6 +178,25 @@ function mymodule_schema() {
 <dt>status callback</dt>
 <dd>CRUD callback to use for updating the status of an object. If the status is TRUE the object will be disabled. If the status is FALSE the object will be enabled.</dd>
 
+<dt>api</dt>
+<dd>The 'api' key can optionally contain some information for the plugin API definition. This means that the imports can be tied to an API name which is used to have automatic inclusion of files, and can be used to prevent dangerous objects from older versions from being loaded, causing a loss of functionality rather than site crashes or security loopholes. 
+
+If not present, no additional files will be loaded and the default hook will always be a simple hook that must be either part of the .module file or loaded during normal operations.
+
+api supports these subkeys:
+<dl>
+<dt>owner</dt>
+<dd>The module that owns the API. Typically this is the name of the module that owns the schema. This will be one of the two keys used by hook_ctools_plugin_api() to determine version compatibility. Note that the name of this hook can be tailored via the use of hook_ctools_plugin_api_hook_name(). See ctools_plugin_api_get_hook() for details.</dd>
+<dt>api</dt>
+<dd>This is the name of the API, and will be the second parameter to the above mentioned hook. It will also be used as part of the name of the file that the hook containing default objects will be in, which comes in the form of MODULENAME.API.inc.</dd>
+<dt>minimum_version</dt>
+<dd>The minimum version supported. Any module reporting an API less than this will not have its default objects used. This should be updated only when API changes can cause older objects to crash or otherwise break badly.</dd>
+<dt>current_version</dt>
+<dd>The current version of the API. Any module reporting a required API higher than this will not have its default objects used.</dd>
+</dl>
+</dd>
+
+</dl>
 In addition, each field can contain the following:
 <dl>
 <dt>no export</dt>

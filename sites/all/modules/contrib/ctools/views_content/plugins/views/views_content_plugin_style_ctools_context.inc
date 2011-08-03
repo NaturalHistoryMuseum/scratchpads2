@@ -14,17 +14,6 @@ class views_content_plugin_style_ctools_context extends views_plugin_style {
   var $rows = array();
 
   /**
-   * Set default options
-   */
-  function options(&$options) {
-    parent::options($options);
-  }
-
-  function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
-  }
-
-  /**
    * Render the display in this style.
    */
   function render() {

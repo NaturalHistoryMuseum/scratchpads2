@@ -13,8 +13,10 @@ $plugin = array(
   'title' => t('Entity'),
   'description' => t('Creates an entity context from a foreign key on a field.'),
   'context' => 'ctools_entity_from_field_context',
+  'edit form' => 'ctools_entity_from_field_edit_form',
   'get child' => 'ctools_entity_from_field_get_child',
   'get children' => 'ctools_entity_from_field_get_children',
+  'defaults' => array('delta' => 0),
 );
 
 function ctools_entity_from_field_get_child($plugin, $parent, $child) {
@@ -59,6 +61,12 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
               if (isset($info['table'])) {
                 foreach ($entities as $to_entity => $to_entity_info) {
                   $from_entity_info = $entities[$from_entity];
+                  // If somehow the bundle doesn't exist on the to-entity,
+                  // skip.
+                  if (!isset($from_entity_info['bundles'][$bundle])) {
+                    continue;
+                  }
+
                   if (isset($to_entity_info['base table']) && $to_entity_info['base table'] == $info['table'] && isset($info['columns'][$to_entity_info['entity keys']['id']])) {
                     $name = $field_name . '-' . $from_entity . '-' . $to_entity;
                     $plugin_id = $parent . ':' . $name;
@@ -153,6 +161,7 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
  * Return a new context based on an existing context.
  */
 function ctools_entity_from_field_context($context, $conf) {
+  $delta = !empty($conf['delta']) ? intval($conf['delta']) : 0;
   $plugin = $conf['name'];
   list($plugin, $plugin_name) = explode(':', $plugin);
   list($field_name, $from_entity, $to_entity_info) = explode('-', $plugin_name);
@@ -167,13 +176,45 @@ function ctools_entity_from_field_context($context, $conf) {
     $id = $context->data->{$entity_info['entity keys']['id']};
     $entity = entity_load($from_entity, array($id));
     $entity = $entity[$id];
-    if (isset($entity->$field_name)) {
-      $language = field_language($from_entity, $entity, $field_name);
+    if ($items = field_get_items($from_entity, $entity, $field_name)) {
       $to_entity_info_info = entity_get_info($to_entity_info);
-      $to_entity_info_id = $entity->{$field_name}[$language][0][$to_entity_info_info['entity keys']['id']];
+      if (isset($items[$delta])) {
+        $to_entity_info_id = $items[$delta][$to_entity_info_info['entity keys']['id']];
 
-      // Send it to ctools.
-      return ctools_context_create('entity:' . $to_entity_info, $to_entity_info_id);
+        // Send it to ctools.
+        return ctools_context_create('entity:' . $to_entity_info, $to_entity_info_id);
+      }
+      else {
+        // In case that delta was empty.
+        return ctools_context_create_empty('entity:' . $to_entity_info, NULL);
+      }
     }
   }
+}
+
+function ctools_entity_from_field_edit_form($form, &$form_state) {
+  $field = field_info_field($form_state['plugin']['field name']);
+  $conf = $form_state['conf'];
+
+  if ($field && $field['cardinality'] != 1) {
+    if ($field['cardinality'] == -1) {
+      $form['delta'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Delta'),
+        '#description' => t('The relationship can only create one context, but multiple items can be related. Please select which one. Since this can have unlimited items, type in the number you want. The first one will be 0.'),
+        '#default_value' => !empty($conf['delta']) ? $conf['delta'] : 0,
+      );
+    }
+    else {
+      $form['delta'] = array(
+        '#type' => 'select',
+        '#title' => t('Delta'),
+        '#description' => t('The relationship can only create one context, but multiple items can be related. Please select which one.'),
+        '#options' => range(1, $field['cardinality']),
+        '#default_value' => !empty($conf['delta']) ? $conf['delta'] : 0,
+      );
+    }
+  }
+
+  return $form;
 }
