@@ -109,6 +109,7 @@ function silver_import_form(){
  * Theme function for the above form.
  */
 function theme_silver_import_form($variables){
+  drupal_add_css(drupal_get_path('module', 'silver').'/css/silver.css');
   $children = element_children($variables['form'], TRUE);
   $output = '';
   foreach($children as $child){

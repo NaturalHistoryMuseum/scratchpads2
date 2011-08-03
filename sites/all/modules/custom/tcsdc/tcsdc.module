@@ -35,7 +35,9 @@ function tcsdc_silver(){
     'type' => 'Taxonomy',
     'name' => 'Taxon Concept Schema Import',
     //'access callback' => 'user_access',
-    'access arguments' => array('administer taxonomy'),
+    'access arguments' => array(
+      'administer taxonomy'
+    ),
     'form_id' => 'tcsdc_primary_form'
   );
 }
@@ -47,11 +49,35 @@ function tcsdc_primary_form($form, &$form_state){
   // First, we need to get the TCS form definitions from the respective modules.
   // We do this by getting the tcsdc defintions and looping through each.
   $form = module_invoke_all('tcsdc_form', $form, $form_state);
-  return array_merge($form, array(
-    '#submit' => array(
-      'tcsdc_primary_form_submit'
-    )
-  ));
+  if(count($form)){
+    if(count($form) == 1){
+      foreach($form as $key => $value){
+        if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'fieldset'){
+          $form[$key]['#collapsed'] = FALSE;
+        }
+      }
+      return array_merge($form, array(
+        '#submit' => array(
+          'tcsdc_primary_form_submit'
+        )
+      ));
+    }
+    return array_merge($form, array(
+      '#submit' => array(
+        'tcsdc_primary_form_submit'
+      ),
+      'information' => array(
+        '#markup' => '<p>' . t('Please select from one of the classification sources below.') . '</p>',
+        '#weight' => -100
+      )
+    ));
+  }else{
+    return array(
+      'information' => array(
+        '#markup' => '<div class="messages error"><h2 class="element-invisible">Status message</h2>No TCS import modules have been installed.  Please install at least one.</div>'
+      )
+    );
+  }
 }
 
 /**

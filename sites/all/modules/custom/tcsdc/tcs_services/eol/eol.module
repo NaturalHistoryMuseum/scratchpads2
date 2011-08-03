@@ -16,13 +16,12 @@ function eol_tcsdc_form($form, $form_state){
       '#type' => 'fieldset',
       '#title' => 'EOL',
       '#description' => 'Import a classification directly from EOL' . theme('advanced_help_topic', 'eol', 'overview'),
-      '#collapsed' => FALSE,
+      '#collapsed' => TRUE,
       '#collapsible' => TRUE,
       'eol-status' => array(
         '#weight' => -10,
         '#type' => 'markup',
-  
-        '#markup' => $eol_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The EOL classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The EOL classification service (<a href="'.EOL_REQUEST_URL.'">'.(strpos(EOL_REQUEST_URL, '?') ? substr(EOL_REQUEST_URL, 0, strpos(EOL_REQUEST_URL, '?')):EOL_REQUEST_URL).'</a>) does not appear to be running.  Please try again later.</div>'
+        '#markup' => $eol_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The EOL classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The EOL classification service (<a href="' . EOL_REQUEST_URL . '">' . (strpos(EOL_REQUEST_URL, '?') ? substr(EOL_REQUEST_URL, 0, strpos(EOL_REQUEST_URL, '?')) : EOL_REQUEST_URL) . '</a>) does not appear to be running.  Please try again later.</div>'
       ),
       'eol-name' => array(
         '#weight' => -5,
@@ -46,7 +45,7 @@ function eol_tcsdc_form($form, $form_state){
       ),
       'import-full' => array(
         '#weight' => 5,
-        '#markup' => '<div id="eol-import-full" style="clear:both">&nbsp;</div>'
+        '#markup' => '<div id="eol-import-full" style="clear:both"><input name="eol-import-id" style="display:none"/></div>'
       ),
       'submit-eol' => array(
         '#weight' => 10,
@@ -59,6 +58,13 @@ function eol_tcsdc_form($form, $form_state){
         ),
         '#validate' => array(
           'eol_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="eol-import-id"]' => array(
+              'value' => ''
+            )
+          )
         )
       )
     )

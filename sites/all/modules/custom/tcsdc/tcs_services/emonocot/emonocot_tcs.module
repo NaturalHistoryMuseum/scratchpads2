@@ -1,12 +1,12 @@
 <?php
-define('EMONOCOT_QUERY_URL', 'http://129.67.24.160/latest/checklist/endpoint?function=search&search=');
-define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?function=details_tcs&id=');
+define('EMONOCOT_QUERY_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=details_tcs&id=');
 
 /**
  * Implementation of hook_classification_import_form
  */
 function emonocot_tcs_tcsdc_form($form, $form_state){
-  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')), 0, stream_context_create(array(
+  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')).'?scratchpad=scratchpad', 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
@@ -16,7 +16,7 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
       '#type' => 'fieldset',
       '#title' => 'emonocot',
       '#description' => 'Import a classification directly from emonocot' . theme('advanced_help_topic', 'emonocot', 'overview'),
-      '#collapsed' => FALSE,
+      '#collapsed' => TRUE,
       '#collapsible' => TRUE,
       'emonocot-status' => array(
         '#weight' => -10,
@@ -45,7 +45,7 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
       ),
       'import-full' => array(
         '#weight' => 5,
-        '#markup' => '<div id="emonocot-import-full" style="clear:both">&nbsp;</div>'
+        '#markup' => '<div id="emonocot-import-full" style="clear:both"><input name="emonocot-import-id" style="display:none"/></div>'
       ),
       'submit-emonocot' => array(
         '#weight' => 10,
@@ -58,6 +58,13 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
         ),
         '#validate' => array(
           'emonocot_tcs_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="emonocot-import-id"]' => array(
+              'value' => ''
+            )
+          )
         )
       )
     )
