@@ -1,0 +1,21 @@
+
+.media-youtube-preview-wrapper {
+  max-width: 100%;
+  min-height: 50px;
+  position: relative;
+}
+
+.media-youtube-preview-wrapper object,
+.media-youtube-preview-wrapper iframe {
+  max-width: 100%;
+  position: relative;
+}
+
+.media-youtube-preview-wrapper .js-fallback {
+  left: 0;
+  margin-top: -0.5em;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 50%;
+}
