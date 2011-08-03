@@ -32,13 +32,15 @@ function tcsdc_menu(){
  */
 function tcsdc_silver(){
   return array(
-    'type' => 'Taxonomy',
-    'name' => 'Taxon Concept Schema Import',
-    //'access callback' => 'user_access',
-    'access arguments' => array(
-      'administer taxonomy'
-    ),
-    'form_id' => 'tcsdc_primary_form'
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'Taxon Concept Schema Import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'form_id' => 'tcsdc_primary_form'
+    )
   );
 }
 
