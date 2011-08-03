@@ -24,15 +24,33 @@ function silver_menu(){
 }
 
 /**
+ * Implementation of hook_silver().
+ */
+function silver_silver(){
+  // Here we tell ourselves about the Feeds module forms, and suck like.
+  return array(
+    'type' => 'Taxonomy',
+    'name' => 'Taxon Concept Schema Import',
+    //'access callback' => 'user_access',
+    'access arguments' => array(
+      'administer taxonomy'
+    ),
+    'form_id' => 'tcsdc_primary_form'
+  );
+}
+
+/**
  * If one import method that supports silver allows access to this user, then
  * we allow the user to view the form.
  */
 function silver_access_callback(){
   $modules = module_implements('silver');
   foreach($modules as $module){
-    $info = call_user_func($module . '_silver');
-    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
-    if(call_user_func_array($callback, $info['access arguments'])){return TRUE;}
+    $silvers = call_user_func($module . '_silver');
+    foreach($silvers as $info){
+      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+      if(call_user_func_array($callback, $info['access arguments'])){return TRUE;}
+    }
   }
   return FALSE;
 }
@@ -61,40 +79,44 @@ function silver_import_form(){
   );
   $i = 1;
   foreach($modules as $module){
-    $info = call_user_func($module . '_silver');
-    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
-    if(!call_user_func_array($callback, $info['access arguments'])){continue;}
-    if(!isset($options[$info['type']])){
-      $options[$info['type']] = array();
-    }
-    $options[$info['type']][$i] = $info['name'];
-    if(isset($info['file'])){
-      $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "/" . $info['file'];
-      if(is_file($file)){
-        require_once $file;
+    $silvers = call_user_func($module . '_silver');
+    foreach($silvers as $info){
+      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+      if(!call_user_func_array($callback, $info['access arguments'])){
+        continue;
       }
-    }
-    $subform_state = array(
-      'build_info' => array(
-        'args' => array()
-      ),
-      'method' => 'get'
-    );
-    $subform = drupal_retrieve_form($info['form_id'], $subform_state);
-    drupal_prepare_form($info['form_id'], $subform, $subform_state);
-    $form[$module] = array(
-      '#type' => 'fieldset',
-      '#title' => $info['name'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name="silver_import_select"]' => array(
-            'value' => "$i"
+      if(!isset($options[$info['type']])){
+        $options[$info['type']] = array();
+      }
+      $options[$info['type']][$i] = $info['name'];
+      if(isset($info['file'])){
+        $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "/" . $info['file'];
+        if(is_file($file)){
+          require_once $file;
+        }
+      }
+      $subform_state = array(
+        'build_info' => array(
+          'args' => array()
+        ),
+        'method' => 'get'
+      );
+      $subform = drupal_retrieve_form($info['form_id'], $subform_state);
+      drupal_prepare_form($info['form_id'], $subform, $subform_state);
+      $form[$module] = array(
+        '#type' => 'fieldset',
+        '#title' => $info['name'],
+        '#states' => array(
+          'visible' => array(
+            ':input[name="silver_import_select"]' => array(
+              'value' => "$i"
+            )
           )
-        )
-      ),
-      'subform' => $subform
-    );
-    $i++;
+        ),
+        'subform' => $subform
+      );
+      $i++;
+    }
   }
   $form['silver_import_select'] = array(
     '#weight' => -100,
@@ -109,7 +131,7 @@ function silver_import_form(){
  * Theme function for the above form.
  */
 function theme_silver_import_form($variables){
-  drupal_add_css(drupal_get_path('module', 'silver').'/css/silver.css');
+  drupal_add_css(drupal_get_path('module', 'silver') . '/css/silver.css');
   $children = element_children($variables['form'], TRUE);
   $output = '';
   foreach($children as $child){
