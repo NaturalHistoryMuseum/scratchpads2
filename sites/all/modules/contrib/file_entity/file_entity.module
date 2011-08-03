@@ -464,7 +464,7 @@ function template_preprocess_file_entity(&$variables) {
   field_attach_preprocess('file', $file, $variables['content'], $variables);
 
   // Display post information only on certain file types.
-  if (variable_get('file_submitted_' . $file->type, TRUE)) {
+  if (variable_get('file_submitted_' . $file->type, FALSE)) {
     $variables['display_submitted'] = TRUE;
     $variables['submitted'] = t('Uploaded by !username on !datetime', array('!username' => $variables['name'], '!datetime' => $variables['date']));
     $variables['user_picture'] = theme_get_setting('toggle_file_user_picture') ? theme('user_picture', array('account' => $account)) : '';

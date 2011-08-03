@@ -6,9 +6,9 @@ dependencies[] = field
 dependencies[] = ctools
 files[] = views/views_plugin_row_file_view.inc
 
-; Information added by drupal.org packaging script on 2011-08-02
+; Information added by drupal.org packaging script on 2011-08-03
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "file_entity"
-datestamp = "1312244232"
+datestamp = "1312330459"
 
