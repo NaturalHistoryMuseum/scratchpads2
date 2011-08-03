@@ -384,6 +384,11 @@ class views_content_plugin_display_panel_pane extends views_plugin_display {
     return $this->view->override_path;
   }
 
+  function uses_exposed_form_in_block() {
+    // We'll always allow the exposed form in a block, regardless of path.
+    return TRUE;
+  }
+
   /**
    * Determine if this display should display the exposed
    * filters widgets, so the view will know whether or not

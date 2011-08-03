@@ -79,8 +79,7 @@ function ctools_context_create_entity($empty, $data = NULL, $conf = FALSE, $plug
 
   if (is_array($data)) {
     $data = entity_load($entity_type, array($id));
-    $data = $data[$id];
-    //$language = field_language($entity_type, $data);
+    $data = !empty($data[$id]) ? $data[$id] : FALSE;
   }
 
   if (!empty($data)) {
@@ -262,10 +261,8 @@ function ctools_context_entity_convert($context, $type) {
 
   $tokens = token_info();
 
-  if (isset($tokens['tokens'][$token][$type])) {
-    $values = token_generate($token, array($type => $type), array($token => $context->data));
-    if (isset($values[$type])) {
-      return $values[$type];
-    }
+  $values = token_generate($token, array($type => $type), array($token => $context->data));
+  if (isset($values[$type])) {
+    return $values[$type];
   }
 }

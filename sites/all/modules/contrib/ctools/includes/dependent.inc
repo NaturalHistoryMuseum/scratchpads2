@@ -174,7 +174,7 @@ function ctools_dependent_pre_render($element) {
  * because you don't have to add #process.
  */
 function ctools_dependent_element_info_alter(&$type) {
-  $form_elements = array('checkbox', 'checkboxes', 'fieldset', 'item', 'markup', 'radio', 'radios', 'select', 'textarea', 'textfield', 'text_format');
+  $form_elements = array('checkbox', 'checkboxes', 'date', 'fieldset', 'item', 'machine_name', 'markup', 'radio', 'radios', 'select', 'textarea', 'textfield', 'text_format');
   foreach ($form_elements as $element) {
     $type[$element]['#pre_render'][] = 'ctools_dependent_pre_render';
   }

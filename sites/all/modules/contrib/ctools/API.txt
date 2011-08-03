@@ -9,7 +9,8 @@ API Version 2.0.1
     ctools_export_crud_set_status() and requisite changes.
   Introduce 'object factory' to export schema, allowing modules to control
     how the exportable objects are instantiated.
-  
+  Introduce 'hook_ctools_math_expression_functions_alter'.
+
 API Version 2.0 
   Remove the deprecated callback-based behavior of the 'defaults' property on
     plugin types; array addition is now the only option. If you need more
