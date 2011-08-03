@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Provides the installation and uninstallation features of the Flowplayer Drupal module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function flowplayer_uninstall() {
+  // Remove any saved variables.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'flowplayer_%'");
+  cache_clear_all('variables', 'cache');
+}
