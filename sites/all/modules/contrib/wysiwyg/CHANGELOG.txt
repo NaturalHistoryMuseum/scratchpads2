@@ -1,7 +1,22 @@
-// $Id: CHANGELOG.txt,v 1.243 2011/01/06 02:08:10 sun Exp $
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+
+
+Wysiwyg 7.x-2.1, 2011-06-19
+---------------------------
+#679056 by TwoD: Fixed patch for pressing enter in autocomplete, new jQuery API.
+#524126 by sun: Re-added #wysiwyg property to enforce no editor via code.
+#1153458 by Deciphered: Fixed TinyMCE 'Verify HTML' setting being ignored.
+#1079694 by TwoD: Fixed Whizzywig not restoring textarea styles when detached.
+#1132142 by tacituseu, TwoD, sun: Fixed nicEdit not removing its submit handler.
+#1143104 by EugenMayer: Fixed CKEditor 3.5.4 version detection.
+#1009880 by AndyF: Fixed another CKEditor selection handling issue.
+#1048556 by cousin_itt, TwoD: Fixed TinyMCE insertdatetime plugin setting.
+#1036900 by mattyoung: Minor code clean-up in wysiwyg_tinymce_version().
+#1026088 by sun: Fixed installation instructions in README.txt.
+by sun: Merged in module baseline to facilitate testing.
+#1034476 by quartsize, sun: Changed Wysiwyg profiles into entities.
 
 
 Wysiwyg 7.x-2.0, 2010-01-06
@@ -21,8 +36,10 @@ Wysiwyg 7.x-2.0, 2010-01-06
 #585932 by sun: Ported to Drupal 7.
 
 
-Wysiwyg 6.x-2.x, xxxx-xx-xx
+Wysiwyg 6.x-2.3, 2011-01-30
 ---------------------------
+#1025296 by TwoD: Updated CKEditor to support iFrame button.
+#737318 by TwoD: Fixed CKEditor default skin array not being reindexed.
 by sun: Fixed coding style in wysiwyg_schema().
 #964978 by sun, TwoD: Added hook_wysiwyg_editor_settings_alter() documentation.
 #775972 by TwoD, Agileware, sun: Fixed broken user default status preferences.

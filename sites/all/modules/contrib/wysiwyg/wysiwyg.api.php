@@ -1,9 +1,8 @@
 <?php
-// $Id: wysiwyg.api.php,v 1.7 2011/01/06 00:19:01 sun Exp $
 
 /**
  * @file
- * Wysiwyg API documentation.
+ * API documentation for Wysiwyg module.
  *
  * To implement a "Drupal plugin" button, you need to write a Wysiwyg plugin:
  * - Implement hook_wysiwyg_include_directory() to register the directory

@@ -1,5 +1,4 @@
 <?php
-// $Id: ckeditor.inc,v 1.11 2010/12/25 19:12:56 sun Exp $
 
 /**
  * @file
@@ -65,7 +64,7 @@ function wysiwyg_ckeditor_version($editor) {
   }
   $library = fopen($library, 'r');
   $max_lines = 8;
-  while ($max_lines && $line = fgets($library, 140)) {
+  while ($max_lines && $line = fgets($library, 500)) {
     // version:'CKEditor 3.0 SVN',revision:'3665'
     // version:'3.0 RC',revision:'3753'
     // version:'3.0.1',revision:'4391'
@@ -104,6 +103,7 @@ function wysiwyg_ckeditor_themes($editor, $profile) {
     }
     closedir($dir_handle);
     natcasesort($themes);
+    $themes = array_values($themes);
     return !empty($themes) ? $themes : array('default');
   }
   else {
@@ -313,6 +313,7 @@ function wysiwyg_ckeditor_plugins($editor) {
         'SelectAll' => t('Select all'), 'Find' => t('Search'), 'Replace' => t('Replace'),
         'Flash' => t('Flash'), 'Smiley' => t('Smiley'),
         'CreateDiv' => t('Div container'),
+        'Iframe' => t('iFrame'),
         'Maximize' => t('Maximize'),
         'SpellChecker' => t('Check spelling'), 'Scayt' => t('Check spelling as you type'),
         'About' => t('About'),
@@ -323,6 +324,9 @@ function wysiwyg_ckeditor_plugins($editor) {
 
   if (version_compare($editor['installed version'], '3.1.0.4885', '<')) {
     unset($plugins['default']['buttons']['CreateDiv']);
+  }
+  if (version_compare($editor['installed version'], '3.5.0.6260', '<')) {
+    unset($plugins['default']['buttons']['Iframe']);
   }
   return $plugins;
 }

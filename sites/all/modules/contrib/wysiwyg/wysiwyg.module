@@ -1,10 +1,46 @@
 <?php
-// $Id: wysiwyg.module,v 1.51 2011/01/06 01:43:26 sun Exp $
 
 /**
  * @file
- * Integrate client-side editors with Drupal.
+ * Integrates client-side editors with Drupal.
  */
+
+/**
+ * Implements hook_entity_info().
+ */
+function wysiwyg_entity_info() {
+  $types['wysiwyg_profile'] = array(
+    'label' => t('Wysiwyg profile'),
+    'base table' => 'wysiwyg',
+    'controller class' => 'WysiwygProfileController',
+    'fieldable' => FALSE,
+    // When loading all entities, DrupalDefaultEntityController::load() ignores
+    // its static cache. Therefore, wysiwyg_profile_load_all() implements a
+    // custom static cache.
+    'static cache' => FALSE,
+    'entity keys' => array(
+      'id' => 'format',
+    ),
+  );
+  return $types;
+}
+
+/**
+ * Controller class for Wysiwyg profiles.
+ */
+class WysiwygProfileController extends DrupalDefaultEntityController {
+  /**
+   * Overrides DrupalDefaultEntityController::attachLoad().
+   */
+  function attachLoad(&$queried_entities, $revision_id = FALSE) {
+    // Unserialize the profile settings.
+    foreach ($queried_entities as $key => $record) {
+      $queried_entities[$key]->settings = unserialize($record->settings);
+    }
+    // Call the default attachLoad() method.
+    parent::attachLoad($queried_entities, $revision_id);
+  }
+}
 
 /**
  * Implementation of hook_menu().
@@ -113,6 +149,11 @@ function wysiwyg_pre_render_text_format($element) {
   // element. Skip this text format widget, if it contains no 'format' or when
   // the current user does not have access to edit the value.
   if (!isset($element['format']) || !empty($element['value']['#disabled'])) {
+    return $element;
+  }
+  // Allow modules to programmatically enforce no client-side editor by setting
+  // the #wysiwyg property to FALSE.
+  if (isset($element['#wysiwyg']) && !$element['#wysiwyg']) {
     return $element;
   }
 
@@ -587,42 +628,56 @@ function wysiwyg_get_css() {
 }
 
 /**
- * Load profile for a given input format.
+ * Loads a profile for a given text format.
+ *
+ * Since there are commonly not many text formats, and each text format-enabled
+ * form element will possibly have to load every single profile, all existing
+ * profiles are loaded and cached once to reduce the amount of database queries.
  */
 function wysiwyg_profile_load($format) {
-  static $profiles;
-
-  if ($cached = cache_get('wysiwyg_profiles')) {
-    $profiles = $cached->data;
-  }
-  else {
-    $result = db_query('SELECT format, editor, settings FROM {wysiwyg}');
-    foreach ($result as $profile) {
-      $profile->settings = unserialize($profile->settings);
-      $profiles[$profile->format] = $profile;
-    }
-    cache_set('wysiwyg_profiles', $profiles);
-  }
-
+  $profiles = wysiwyg_profile_load_all();
   return (isset($profiles[$format]) ? $profiles[$format] : FALSE);
 }
 
 /**
- * Load all profiles.
+ * Loads all profiles.
  */
 function wysiwyg_profile_load_all() {
-  static $profiles;
+  // entity_load(..., FALSE) does not re-use its own static cache upon
+  // repetitive calls, so a custom static cache is required.
+  // @see wysiwyg_entity_info()
+  $profiles = &drupal_static(__FUNCTION__);
 
   if (!isset($profiles)) {
-    $profiles = array();
-    $result = db_query('SELECT format, editor, settings FROM {wysiwyg}');
-    foreach ($result as $profile) {
-      $profile->settings = unserialize($profile->settings);
-      $profiles[$profile->format] = $profile;
+    // Additional database cache to support alternative caches like memcache.
+    if ($cached = cache_get('wysiwyg_profiles')) {
+      $profiles = $cached->data;
+    }
+    else {
+      $profiles = entity_load('wysiwyg_profile', FALSE);
+      cache_set('wysiwyg_profiles', $profiles);
     }
   }
 
   return $profiles;
+}
+
+/**
+ * Deletes a profile from the database.
+ */
+function wysiwyg_profile_delete($format) {
+  db_delete('wysiwyg')
+    ->condition('format', $format)
+    ->execute();
+}
+
+/**
+ * Clear all Wysiwyg profile caches.
+ */
+function wysiwyg_profile_cache_clear() {
+  entity_get_controller('wysiwyg_profile')->resetCache();
+  drupal_static_reset('wysiwyg_profile_load_all');
+  cache_clear_all('wysiwyg_profiles', 'cache');
 }
 
 /**
