@@ -1,5 +1,4 @@
 <?php
-// $Id: yui.inc,v 1.11 2010/11/13 18:31:21 sun Exp $
 
 /**
  * @file

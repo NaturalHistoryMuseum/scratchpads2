@@ -1,4 +1,3 @@
-// $Id: yui.js,v 1.3 2010/02/06 22:34:16 sun Exp $
 (function($) {
 
 /**

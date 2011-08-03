@@ -1,5 +1,4 @@
 <?php
-// $Id: wysiwyg.admin.inc,v 1.29 2011/01/06 00:03:13 sun Exp $
 
 /**
  * @file
@@ -333,8 +332,14 @@ function wysiwyg_profile_form_submit($form, &$form_state) {
   unset($values['submit'], $values['form_id'], $values['op'], $values['form_token'], $values['form_build_id']);
 
   // Insert new profile data.
-  db_query("UPDATE {wysiwyg} SET settings = :settings WHERE format = :format", array(':settings' => serialize($values), ':format' => $format));
-  cache_clear_all('wysiwyg_profiles', 'cache');
+  db_merge('wysiwyg')
+    ->key(array('format' => $format))
+    ->fields(array(
+      'editor' => $editor,
+      'settings' => serialize($values),
+    ))
+    ->execute();
+  wysiwyg_profile_cache_clear();
 
   drupal_set_message(t('Wysiwyg profile for %format has been saved.', array('%format' => $input_format)));
 
@@ -518,7 +523,7 @@ function wysiwyg_profile_overview_submit($form, &$form_state) {
       ))
       ->execute();
   }
-  cache_clear_all('wysiwyg_profiles', 'cache');
+  wysiwyg_profile_cache_clear();
 }
 
 /**
@@ -544,18 +549,9 @@ function wysiwyg_profile_delete_confirm($form, &$form_state, $profile) {
 function wysiwyg_profile_delete_confirm_submit($form, &$form_state) {
   $format = $form_state['values']['format'];
   wysiwyg_profile_delete($format->format);
-  cache_clear_all('wysiwyg_profiles', 'cache');
+  wysiwyg_profile_cache_clear();
 
   drupal_set_message(t('Wysiwyg profile for %name has been deleted.', array('%name' => $format->name)));
   $form_state['redirect'] = 'admin/config/content/wysiwyg';
-}
-
-/**
- * Remove a profile from the database.
- */
-function wysiwyg_profile_delete($format) {
-  db_delete('wysiwyg')
-    ->condition('format', $format)
-    ->execute();
 }
 

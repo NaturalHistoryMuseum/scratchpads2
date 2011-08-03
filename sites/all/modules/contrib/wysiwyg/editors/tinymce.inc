@@ -1,5 +1,4 @@
 <?php
-// $Id: tinymce.inc,v 1.46 2010/12/19 23:26:56 sun Exp $
 
 /**
  * @file
@@ -88,13 +87,12 @@ function wysiwyg_tinymce_version($editor) {
   $script = fopen($script, 'r');
   // Version is contained in the first 200 chars.
   $line = fgets($script, 200);
+  fclose($script);
   // 2.x: this.majorVersion="2";this.minorVersion="1.3"
   // 3.x: majorVersion:'3',minorVersion:'2.0.1'
   if (preg_match('@majorVersion[=:]["\'](\d).+?minorVersion[=:]["\']([\d\.]+)@', $line, $version)) {
-    fclose($script);
     return $version[1] . '.' . $version[2];
   }
-  fclose($script);
 }
 
 /**
@@ -180,7 +178,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
     $settings['remove_linebreaks'] = $config['remove_linebreaks'];
   }
   if (isset($config['verify_html'])) {
-    $settings['verify_html'] = $config['verify_html'];
+    $settings['verify_html'] = (bool) $config['verify_html'];
   }
 
   if (!empty($config['css_classes'])) {
@@ -477,8 +475,8 @@ function wysiwyg_tinymce_plugins($editor) {
       'path' => $editor['library path'] . '/plugins/insertdatetime',
       'buttons' => array('insertdate' => t('Insert date'), 'inserttime' => t('Insert time')),
       'options' => array(
-        'plugin_insertdate_dateFormat' => array('%Y-%m-%d'),
-        'plugin_insertdate_timeFormat' => array('%H:%M:%S'),
+        'plugin_insertdate_dateFormat' => '%Y-%m-%d',
+        'plugin_insertdate_timeFormat' => '%H:%M:%S',
       ),
       'url' => 'http://wiki.moxiecode.com/index.php/TinyMCE:Plugins/insertdatetime',
       'internal' => TRUE,
