@@ -1,4 +1,3 @@
-// $Id: fckeditor.config.js,v 1.7 2009/09/29 01:48:23 sun Exp $
 
 Drupal = window.parent.Drupal;
 

@@ -1,4 +1,3 @@
-// $Id: whizzywig-60.js,v 1.1 2010/10/18 19:37:44 sun Exp $
 
 var buttonPath = null;
 
@@ -24,9 +23,7 @@ Drupal.wysiwyg.editor.attach.whizzywig = function(context, params, settings) {
   // Whizzywig needs to have the width set 'inline'.
   $field = $('#' + params.field);
   var originalValues = Drupal.wysiwyg.instances[params.field];
-  originalValues.originalWidth = $field.css('width');
-  originalValues.originalColor = $field.css('color');
-  originalValues.originalZindex = $field.css('zIndex');
+  originalValues.originalStyle = $field.attr('style');
   $field.css('width', $field.width() + 'px');
 
   // Attach editor.
@@ -66,10 +63,9 @@ Drupal.wysiwyg.editor.detach.whizzywig = function(context, params) {
 
     // Restore original textarea styling.
     var originalValues = Drupal.wysiwyg.instances[id];
-    $field.css('width', originalValues.originalWidth);
-    $field.css('color', originalValues.originalColor);
-    $field.css('zIndex', originalValues.originalZindex);
-  };
+    $field.removeAttr('style');
+    $field.attr('style', originalValues.originalStyle);
+  }
 
   if (typeof params != 'undefined') {
     for (var i = 0; i < whizzies.length; i++) {
