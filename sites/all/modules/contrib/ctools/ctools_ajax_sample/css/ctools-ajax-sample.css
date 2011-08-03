@@ -47,6 +47,7 @@ div.ctools-sample-modal-content .popups-box tr {
 div.ctools-sample-modal-content td.popups-border {
   background: url(../images/popups-border.png);
   background-color:transparent;
+  border: none;
 }
 div.ctools-sample-modal-content td.popups-tl,
 div.ctools-sample-modal-content td.popups-tr,
@@ -61,9 +62,8 @@ div.ctools-sample-modal-content td.popups-t,
 div.ctools-sample-modal-content td.popups-b {
   background-position: 0px -40px;
   background-repeat: repeat-x;
-  height:10px;
 }
-div.ctools-sample-modal-content td.popups-tr { background-position: 0px -10px; }
+div.ctools-sample-modal-content td.popups-tr { background-position: 0px -10px; width: 10px; }
 div.ctools-sample-modal-content td.popups-cl,
 div.ctools-sample-modal-content td.popups-cr {
   background-position: -10px 0;
@@ -72,10 +72,10 @@ div.ctools-sample-modal-content td.popups-cr {
 }
 div.ctools-sample-modal-content td.popups-cl,
 div.ctools-sample-modal-content td.popups-cr,
-div.ctools-sample-modal-content td.popups-c { padding:0; }
+div.ctools-sample-modal-content td.popups-c { padding:0; border: none; }
 div.ctools-sample-modal-content td.popups-c { background:#fff; }
 div.ctools-sample-modal-content td.popups-bl { background-position: 0px -20px; }
-div.ctools-sample-modal-content td.popups-br { background-position: 0px -30px; }
+div.ctools-sample-modal-content td.popups-br { background-position: 0px -30px; width: 10px; }
 
 div.ctools-sample-modal-content .popups-box,
 div.ctools-sample-modal-content #popups-loading {

@@ -156,7 +156,7 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
         require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
       }
       else if (file_exists(DRUPAL_ROOT . "/$file")) {
-        require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
+        require_once DRUPAL_ROOT . "/$file";
       }
       $already_done[$owner][$api][$module] = TRUE;
     }
