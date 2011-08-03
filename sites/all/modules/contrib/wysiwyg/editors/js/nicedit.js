@@ -1,13 +1,25 @@
-// $Id: nicedit.js,v 1.5 2010/02/07 14:36:00 sun Exp $
 (function($) {
 
 /**
  * Attach this editor to a target element.
  */
 Drupal.wysiwyg.editor.attach.nicedit = function(context, params, settings) {
+  // Intercept and ignore submit handlers or they will revert changes made
+  // since the instance was removed. The handlers are anonymous and hidden out
+  // of scope in a closure so we can't unbind them. The same operations are
+  // performed when the instance is detached anyway.
+  var oldAddEvent = bkLib.addEvent;
+  bkLib.addEvent = function(obj, type, fn) {
+    if (type != 'submit') {
+      oldAddEvent(obj, type, fn);
+    }
+  }
   // Attach editor.
   var editor = new nicEditor(settings);
   editor.panelInstance(params.field);
+  // The old addEvent() must be restored after creating a new instance, as
+  // plugins with dialogs use it to bind submit handlers to their forms.
+  bkLib.addEvent = oldAddEvent;
   editor.addEvent('focus', function () {
     Drupal.wysiwyg.activeId = params.field;
   });
