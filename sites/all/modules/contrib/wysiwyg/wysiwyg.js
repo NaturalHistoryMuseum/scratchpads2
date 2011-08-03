@@ -1,4 +1,3 @@
-// $Id: wysiwyg.js,v 1.22 2011/01/06 00:11:48 sun Exp $
 (function($) {
 
 /**
@@ -74,7 +73,7 @@ Drupal.behaviors.attachWysiwyg = {
       // Detach any editor when the containing form is submitted.
       $('#' + params.field).parents('form').submit(function (event) {
         // Do not detach if the event was cancelled.
-        if (event.originalEvent.returnValue === false) {
+        if (event.isDefaultPrevented()) {
           return;
         }
         Drupal.wysiwygDetach(context, params[format]);
