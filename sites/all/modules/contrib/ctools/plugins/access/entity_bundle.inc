@@ -121,6 +121,6 @@ function ctools_entity_bundle_ctools_access_summary($conf, $context) {
     return t('@identifier is any bundle', array('@identifier' => $context->identifier));
   }
 
-  return format_plural(count($names), '@identifier is type "@types"', '@identifier type is one of "@types"', array('@types' => implode(', ', $names), '@identifier' => $context->identifier));
+  return format_plural(count($names), '@identifier is bundle "@types"', '@identifier bundle is one of "@types"', array('@types' => implode(', ', $names), '@identifier' => $context->identifier));
 }
 

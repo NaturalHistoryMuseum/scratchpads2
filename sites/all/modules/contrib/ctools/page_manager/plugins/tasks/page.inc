@@ -290,7 +290,6 @@ function page_manager_page_execute($subtask_id) {
         $argument['keyword'] = $name;
         if (isset($args[$count])) {
           // Hack: use a special argument config variable to learn if we need
-          $plugin = ctools_get_argument($argument['name']);
           // to use menu_tail style behavior:
           if (empty($argument['settings']['use_tail'])) {
             $value = $args[$count];
