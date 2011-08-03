@@ -15,8 +15,8 @@ $plugin = array(
   'description' => t('Extract a node context from a view context of the base type node.'),
   'required context' => new ctools_context_required(t('View'), 'view', array('base' => 'node')),
   'context' => 'views_content_node_from_view_context',
-  'settings form' => 'views_content_node_from_view_settings_form',
-  'settings form validate' => 'views_content_node_from_view_settings_form_validate',
+  'edit form' => 'views_content_node_from_view_settings_form',
+  'edit form validate' => 'views_content_node_from_view_settings_form_validate',
   'defaults' => array('row' => 1),
 );
 
