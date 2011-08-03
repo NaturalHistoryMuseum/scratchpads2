@@ -269,6 +269,9 @@
    * AJAX responder command to place HTML within the modal.
    */
   Drupal.CTools.Modal.modal_display = function(ajax, response, status) {
+    if ($('#modalContent').length == 0) {
+      Drupal.CTools.Modal.show(Drupal.CTools.Modal.getSettings(ajax.element));
+    }
     $('#modal-title').html(response.title);
     $('#modal-content').html(response.output);
     Drupal.attachBehaviors();

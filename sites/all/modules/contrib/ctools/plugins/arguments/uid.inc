@@ -44,7 +44,7 @@ function ctools_argument_uid_context($arg = NULL, $conf = NULL, $empty = FALSE) 
     return NULL;
   }
 
-  $account = user_load(array('uid' => $arg));
+  $account = user_load($arg);
   if (!$account) {
     return NULL;
   }

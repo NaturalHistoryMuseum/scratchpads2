@@ -141,6 +141,7 @@ function ctools_term_breadcrumb($conf, $context) {
   }
 
   $breadcrumb = array();
+  $current = new stdClass();
   $current->tid = $context->data->tid;
   while ($parents = taxonomy_get_parents($current->tid)) {
     $current = array_shift($parents);

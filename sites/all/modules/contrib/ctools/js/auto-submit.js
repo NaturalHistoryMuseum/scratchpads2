@@ -31,7 +31,7 @@ Drupal.behaviors.CToolsAutoSubmit = {
     var timeoutID = 0;
 
     // Bind to any select widgets that will be auto submitted.
-    $('select.ctools-auto-submit:not(.ctools-auto-submit-processed),.ctools-auto-submit-full-form select:not(.ctools-auto-submit-processed)')
+    $('select.ctools-auto-submit:not(.ctools-auto-submit-processed),.ctools-auto-submit-full-form *[type!=input]:not(.ctools-auto-submit-processed)')
       .addClass('.ctools-auto-submit-processed')
       .change(function() {
         $(this.form).find('.ctools-auto-submit-click').click();
