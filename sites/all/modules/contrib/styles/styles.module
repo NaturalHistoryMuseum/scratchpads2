@@ -1,0 +1,736 @@
+<?php
+
+/**
+ *  @file
+ *  Bundles similar display formatters together.
+ */
+
+// A registry of variable_get defaults.
+include_once('includes/styles.variables.inc');
+
+// Include get_called_class() for PHP < 5.3.
+if(!function_exists('get_called_class')) {
+  include_once('includes/php/get_called_class.inc');
+}
+
+/**
+ *  Implements hook_field_formatter_info().
+ */
+function styles_field_formatter_info() {
+  $info = array();
+  foreach (styles_default_styles() as $field_type => $styles) {
+    foreach ($styles['styles'] as $style) {
+      $style_name = $style['name'];
+      $info['styles_' . $field_type . '_' . $style_name] = array(
+        'label' => t('@field style: @style', array('@field' => ucfirst($field_type), '@style' => $style_name)),
+        'field types' => array($field_type),
+        'behaviors' => array(
+          'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        ),
+        'theme' => array('function' => 'theme_styles_field_formatter')
+      );
+    }
+  }
+  return $info;
+}
+
+/**
+ *  Implements hook_field_formatter_view().
+ */
+function styles_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array('#formatter' => $display['type']);
+  foreach ($items as $delta => $item) {
+    // @todo The variable name 'object' is misleading, but retained for
+    //   backwards compatibility until a broader refactoring of the Styles
+    //   module. For now, it's the $item array cast to an object. For File and
+    //   Image fields, this is a fully loaded file object, because
+    //   file_field_load() loads the referenced file and merges its properties
+    //   into $item, but for other field types, it may simply be raw field data.
+    $element[$delta] = array('#markup' => theme('styles_field_formatter', array('element' => $element, 'object' => (object) $item, 'delta' => $delta, 'entity' => $entity)));
+  }
+  return $element;
+}
+
+
+/**
+ *  Implements hook_theme().
+ */
+function styles_theme($existing, $type, $theme, $path) {
+  return array(
+    'styles' => array(
+      'variables' => array('field_type' => NULL, 'style_name' => NULL, 'object' => NULL, 'instance' => NULL),
+      'template' => 'styles',
+      'path' => $path . '/themes',
+      'file' => 'styles.theme.inc',
+    ),
+    'styles_field_formatter' => array(
+      'variables' => array('render element' => 'element', 'element' => NULL, 'object' => NULL),
+      'path' => $path . '/themes',
+      'file' => 'styles.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Return all available containers for a specific field type.
+ *
+ * Modules implementing this hook should supply an array for each field type
+ * that it supports, with at least two keys: 'containers', containing an
+ * associated array described below, and 'filter callback' => A function to call
+ * with the field object to determine which container to implement.
+ *
+ * Each container under a field type should be an associative array with the
+ * following keys:
+ *    'class' => The class to instantiate when filtering to this container.
+ *    'filter match' => (Optional) A value to pass to the filter callback
+ *        to match the field object against this container.
+ *
+ * Example implementation of hook_styles_default_containers():
+ *  array(
+ *    'emvideo' => array(
+ *      'filter callback' => 'my_styles_emvideo_filter',
+ *      'containers' => array(
+ *        'brightcove' => array(
+ *          'class' => 'BrightcoveStyles',
+ *          'filter match' => array('brightcove'),
+ *        ),
+ *        'vimeo' => array(
+ *          'class' => 'VimeoStyles',
+ *          'filter match' => array('vimeo'),
+ *        ),
+ *        'youtube' => array(
+ *          'class' => 'YouTubeStyles',
+ *          'filter match' => array('youtube', 'my_youtube'),
+ *        ),
+ *      ),
+ *    ),
+ *  );
+ *
+ * @param string $return_type
+ *  (Optional) The field type, such as file or nodereference.
+ * @param boolean $reset
+ *  (Optional) If TRUE, then we reset the cache.
+ */
+function styles_default_containers($return_type = NULL, $reset = FALSE) {
+  $styles = &drupal_static(__FUNCTION__);
+
+  // Grab from cache or build the array.
+  if (!isset($styles) || $reset) {
+    if (($cache = cache_get('styles_default_containers', 'cache_styles')) && !$reset) {
+      $styles = $cache->data;
+    }
+    else {
+      $styles = array();
+      styles_module_load_all_includes();
+      foreach (module_implements('styles_default_containers') as $module) {
+        $module_styles = module_invoke($module, 'styles_default_containers');
+        foreach ($module_styles as $field_type => $container) {
+          $styles[$field_type] = isset($styles[$field_type]) ? $styles[$field_type] : array();
+          // Pull out existing containers before the merge.
+          $containers = isset($styles[$field_type]['containers']) ? $styles[$field_type]['containers'] : array();
+          // Merge in the module defined containers.
+          $styles[$field_type] = array_merge($styles[$field_type], $container);
+          $styles[$field_type]['containers'] = isset($styles[$field_type]['containers']) ? $styles[$field_type]['containers'] : array();
+          $styles[$field_type]['containers'] = array_merge($containers, $styles[$field_type]['containers']);
+          foreach ($container['containers'] as $style_name => $style) {
+            $style['name'] = $style_name;
+            $style['module'] = $module;
+            $style['storage'] = STYLES_STORAGE_DEFAULT;
+            $styles[$field_type]['containers'][$style_name] = $style;
+          }
+        }
+      }
+      drupal_alter('styles_default_containers', $styles);
+      cache_set('styles_default_containers', $styles, 'cache_styles');
+    }
+  }
+  if (isset($return_type)) {
+     return $styles[$return_type];
+  }
+  return $styles;
+}
+
+/**
+ * Return all available styles for a specific field type.
+ *
+ * Each style under a field type should be an associative array with the
+ * following optional keys:
+ *    'description' => An untranslated human readable description for the style.
+ *    'default theme' => The theme to call for display if there is no preset
+ *      returned when filtering the field.
+ *    'default theme arguments' => Any arguments to pass after the first (of
+ *      the field's object itself).
+ *
+ * Example implementation of hook_styles_default_styles():
+ *  array(
+ *    'nodereference' => array(
+ *      'styles' => array(
+ *        'thumbnail' => array(
+ *          'description' => 'Representative thumbnails linking to the content page.',
+ *          'default theme' => 'my_styles_default_thumbnail',
+ *        ),
+ *        'small' => array(
+ *          'description' => 'Small images linking to the content page.',
+ *          'default theme' => 'my_styles_default_thumbnail',
+ *        ),
+ *        'teaser' => array(
+ *          'description' => 'A short summary of the content.',
+ *          'default theme' => 'node_view',
+ *          'default theme arguments' => array(TRUE),
+ *        ),
+ *      ),
+ *    ),
+ *  );
+ *
+ * This will create those styles, allowing
+ *
+ * @param string $field_type
+ *  (Optional) The field type, such as filefield or nodereference.
+ * @param boolean $reset
+ *  (Optional) If TRUE, then we reset the cache.
+ */
+function styles_default_styles($return_type = NULL, $reset = FALSE) {
+  $styles = &drupal_static(__FUNCTION__);
+
+  // Grab from cache or build the array.
+  if (!isset($styles) || $reset) {
+    if (($cache = cache_get('styles_default_styles', 'cache_styles')) && !$reset) {
+      $styles = $cache->data;
+    }
+    else {
+      $styles = array();
+      styles_module_load_all_includes();
+      foreach (module_implements('styles_default_styles') as $module) {
+        $module_styles = module_invoke($module, 'styles_default_styles');
+        foreach ($module_styles as $field_type => $container) {
+          $styles[$field_type] = isset($styles[$field_type]) ? $styles[$field_type] : array();
+          $containers = isset($styles[$field_type]['styles']) ? $styles[$field_type]['styles'] : array();
+          $styles[$field_type] = array_merge($styles[$field_type], $container);
+          $styles[$field_type]['styles'] = isset($styles[$field_type]['styles']) ? $styles[$field_type]['styles'] : array();
+          $styles[$field_type]['styles'] = array_merge($containers, $styles[$field_type]['styles']);
+          foreach ($container['styles'] as $style_name => $style) {
+            $style['name'] = $style_name;
+            $style['module'] = $module;
+            $style['storage'] = STYLES_STORAGE_DEFAULT;
+            $style['field_type'] = $field_type;
+            $style['description'] = isset($style['description']) ? $style['description'] : '';
+            $styles[$field_type]['styles'][$style_name] = $style;
+          }
+        }
+      }
+
+      // Add user defined & overridden styles next.
+      $user_styles = db_select('styles', NULL, array('fetch' => PDO::FETCH_ASSOC))
+        ->fields('styles')
+        ->orderBy('name')
+        ->execute()
+        ->fetchAllAssoc('name', PDO::FETCH_ASSOC);
+
+      foreach ($user_styles as $style_name => $style) {
+        $field_type = $style['field_type'];
+        $style['module'] = NULL;
+        $style['storage'] = STYLES_STORAGE_NORMAL;
+        if (isset($styles[$field_type]['styles'][$style_name]['module'])) {
+          $style['module'] = $styles[$field_type]['styles'][$style_name]['module'];
+          $style['storage'] = STYLES_STORAGE_OVERRIDE;
+        }
+        $styles[$field_type]['styles'][$style_name] = $style;
+      }
+
+      drupal_alter('styles_default_styles', $styles);
+      cache_set('styles_default_styles', $styles, 'cache_styles');
+    }
+  }
+
+  if (isset($return_type)) {
+     return $styles[$return_type];
+  }
+  return $styles;
+}
+
+/**
+ * Return all available presets for field type containers.
+ *
+ * Each container under a field type should be an associative array with the
+ * following keys:
+ *    'default preset' => The preset to select by default, which may be
+ *      overridden later.
+ *    'presets' => An associative array keyed by the preset name, each with
+ *      an array of effects to be passed to the implementing class on display.
+ *
+ * Example implementation of hook_styles_default_presets():
+ *  array(
+ *    'filefield' => array(
+ *      'containers' => array(
+ *        'imagefield' => array(
+ *          'default preset' => 'imagecache_thumbnail_linked',
+ *          'presets' => array(
+ *            'imagecache_thumbnail_linked' => array(
+ *              'title' => '[node-title]',
+ *              'alt' => '[file-description]',
+ *              'imagecache_preset' => 'thumbnail',
+ *              'link' => '[node-path]',
+ *            ),
+ *            'link_to_file' => array(
+ *              'title' => '[file-title-raw]',
+ *              'link' => '[file-path]',
+ *            ),
+ *          ),
+ *        ),
+ *      ),
+ *    );
+ *
+ * @param string $field_type
+ *  (Optional) The field type, such as filefield or nodereference.
+ * @param boolean $reset
+ *  (Optional) If TRUE, then we reset the cache.
+ */
+function styles_default_presets($return_type = NULL, $reset = FALSE) {
+  $styles = &drupal_static(__FUNCTION__);
+
+  // Grab from cache or build the array.
+  if (!isset($styles) || $reset) {
+    if (($cache = cache_get('styles_default_presets', 'cache_styles')) && !$reset) {
+      $styles = $cache->data;
+    }
+    else {
+      $styles = array();
+      styles_module_load_all_includes();
+      foreach (module_implements('styles_default_presets') as $module) {
+        $module_styles = module_invoke($module, 'styles_default_presets');
+        foreach ($module_styles as $field_type => $container) {
+          $all_styles = styles_default_styles($field_type);
+          $styles[$field_type] = isset($styles[$field_type]) ? $styles[$field_type] : array();
+          $containers = isset($styles[$field_type]['containers']) ? $styles[$field_type]['containers'] : array();
+          $styles[$field_type] = array_merge($styles[$field_type], $container);
+          $styles[$field_type]['containers'] = isset($styles[$field_type]['containers']) ? $styles[$field_type]['containers'] : array();
+          $styles[$field_type]['containers'] = array_merge($containers, $styles[$field_type]['containers']);
+          foreach ($container['containers'] as $style_name => $style) {
+            $style['name'] = $style_name;
+            $style['module'] = $module;
+            $style['storage'] = STYLES_STORAGE_DEFAULT;
+            $style['styles'] = isset($style['styles']) ? $style['styles'] : array();
+            $default_preset = isset($style['default preset']) ? $style['default preset'] : '';
+            foreach ($all_styles['styles'] as $container_style_name => $container_style) {
+              if (!isset($style['styles'][$container_style_name])) {
+                $style['styles'][$container_style_name] = array(
+                  'default preset' => $default_preset,
+                );
+              }
+            }
+            $styles[$field_type]['containers'][$style_name] = $style;
+          }
+        }
+      }
+
+      // Add user-defined and overridden presets.
+      $query = db_select('styles_preset_instances', 'spi');
+      $query->join('styles', 's', 's.sid = spi.sid');
+      $query->join('styles_presets', 'p', 'p.pid = spi.pid');
+      $query->addField('spi', 'sid');
+      $query->addField('spi', 'pid');
+      $query->addField('s', 'name', 'style_name');
+      $query->addField('p', 'name', 'preset_name');
+      $query->addField('p', 'field_type', 'field_type');
+      $query->addField('p', 'container_name', 'container_name');
+      $user_styles = $query->execute();
+      foreach ($user_styles as $style) {
+        if (isset($styles[$style->field_type]) && isset($styles[$style->field_type]['containers'][$style->container_name]) && isset($styles[$style->field_type]['containers'][$style->container_name]['presets'][$style->preset_name]) && isset($styles[$style->field_type]['containers'][$style->container_name]['styles'][$style->style_name])) {
+          $styles[$style->field_type]['containers'][$style->container_name]['styles'][$style->style_name]['preset'] = $style->preset_name;
+        }
+      }
+
+      drupal_alter('styles_default_presets', $styles);
+      cache_set('styles_default_presets', $styles, 'cache_styles');
+    }
+  }
+
+  if (isset($return_type)) {
+     return $styles[$return_type];
+  }
+  return $styles;
+}
+
+/**
+ * Load all registered module/styles.inc and modules/includes/styles.inc files.
+ */
+function styles_module_load_all_includes() {
+  foreach (styles_get_registered_classes() as $class) {
+    module_load_include('inc', $class['module'], 'styles');
+    module_load_include('inc', $class['module'], $class['module'] .'/styles');
+    module_load_include('inc', $class['module'], 'includes/'. $class['module'] .'.styles');
+    module_load_include('inc', $class['module'], 'includes/styles/'. $class['module'] .'.styles');
+  }
+}
+
+/**
+ * Builds a registry of Style classes.
+ *
+ * Each module supporting a Style will need to implement
+ * hook_styles_register, which will need to return an associated array keyed by
+ * the style class name, with an array containing the following key => value
+ * pairs:
+ *  'field_types' => An array of field types to apply this style to.
+ * The following key => value pairs are optional, which will otherwise be
+ * automatically derived:
+ *  'name' => The human-readable name of the style.
+ *  'description' => A description of the style.
+ *  'path' => The path where the class file resides.
+ *  'file' => The file containing the class definition.
+ *  'module' => The module defining the class.
+ * The following key => value pair will be automatically set to the association
+ * and cannot be overridden:
+ *   'class_name' => The actual name of the class.
+ *
+ * @param string $style
+ *  (Optional) The style of the specific class registration to return.
+ * @param boolean $reset
+ *  (Optional) If TRUE, then reset the registration.
+ * @return array
+ *  If $style is specified, then return only the specified class definition, or
+ *  NULL if there is no such registered class. Otherwise, return the entire
+ *  class definition registry.
+ */
+function styles_get_registered_classes($return_style = NULL, $reset = FALSE) {
+  $registered_classes = &drupal_static(__FUNCTION__);
+
+  if ($reset || !isset($registered_classes)) {
+    $registered_classes = array();
+
+    // Build our media object class registry.
+    foreach (module_implements('styles_register') as $module) {
+      foreach (module_invoke($module, 'styles_register') as $style => $class) {
+        $registered_classes[$style] = is_array($class) ? $class : array();
+        $registered_classes[$style]['class_name'] = $style;
+        if (!isset($registered_classes[$style]['name'])) {
+          $registered_classes[$style]['name'] = t($style);
+        }
+        if (!isset($registered_classes[$style]['description'])) {
+          $registered_classes[$style]['description'] = t('Class definition for @style.', array('@style' => $style));
+        }
+        if (!isset($registered_classes[$style]['path'])) {
+          $registered_classes[$style]['path'] = drupal_get_path('module', $module);
+        }
+        if (!isset($registered_classes[$style]['file'])) {
+          $registered_classes[$style]['file'] = $style .'.inc';
+        }
+        if (!isset($registered_classes[$style]['module'])) {
+          $registered_classes[$style]['module'] = $module;
+        }
+      }
+    }
+  }
+  if (isset($return_style)) {
+    return $registered_classes[$style];
+  }
+  return $registered_classes;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function styles_init() {
+  // Load all registered class definitions.
+  styles_get_registered_classes();
+}
+
+/**
+ * Return the registered Styles class definition specified by name.
+ *
+ * @param string $class_name
+ *  (Optional) The name of the class definition to return. If NULL, then return
+ *  all class definitions.
+ * @param boolean $reset
+ *  (Optional) If TRUE, then reset the static array of class definitions.
+ * @return mixed
+ *  Either the specified Styles class definition, or all defined definitions
+ *  if $class_name is NULL.
+ */
+function styles_get_styles_class_by_class_name($class_name = NULL, $reset = FALSE) {
+  $classes = &drupal_static(__FUNCTION__);
+
+  if (!isset($classes) || $reset) {
+    $classes = array();
+    $registered_classes = styles_get_registered_classes();
+    foreach ($registered_classes as $scheme => $class) {
+      $classes[$class['class_name']] = $class;
+    }
+  }
+  if (isset($class_name) && isset($classes[$class_name])) {
+    return $classes[$class_name];
+  }
+  else if (!isset($class_name)) {
+    return $classes;
+  }
+}
+
+function styles_instance($variables) {
+  static $id = 0;
+
+  $variables['id'] = $id++;
+  $field_type = $variables['field_type'];
+  $style_name = $variables['style_name'];
+  $object = $variables['object'];
+
+  // Grab the containers for this field type.
+  $containers = styles_default_containers($field_type);
+  $variables['containers'] = $containers['containers'];
+  $callback = $containers['filter callback'];
+
+  // Find the correct container for this field type's styles.
+  if (function_exists($callback)) {
+    $container = call_user_func_array($callback, array($variables['object'], $variables));
+    $variables['container'] = $container && isset($variables['containers'][$container]) ? $variables['containers'][$container] : array();
+  }
+  else {
+    $variables['container'] = array();
+  }
+
+  // Grab the styles.
+  $styles = styles_default_styles($field_type);
+  $variables['styles'] = $styles['styles'];
+  $variables['style'] = $style_name && isset($variables['styles'][$style_name]) ? $variables['styles'][$style_name] : array();
+
+  // Grab the presets.
+  $presets = styles_default_presets($field_type);
+  $variables['presets'] = $container && isset($presets['containers'][$container]) ? $presets['containers'][$container] : array();
+  $variables['preset_style'] = isset($variables['presets']['styles'][$style_name]) ? $variables['presets']['styles'][$style_name] : array();
+  $variables['default preset'] = (isset($variables['preset_style']['default preset']) ? $variables['preset_style']['default preset'] : (isset($variables['presets']['default preset']) ? $variables['presets']['default preset'] : ''));
+  $variables['preset'] = isset($variables['preset_style']['selected preset']) ? $variables['preset_style']['selected preset'] : (isset($variables['preset_style']['preset']) ? $variables['preset_style']['preset'] : $variables['default preset']);
+  $variables['effects'] = ($variables['preset'] !== '') && isset($variables['presets']['presets'][$variables['preset']]) ? $variables['presets']['presets'][$variables['preset']] : array();
+
+  // Instantiate the class and render the output.
+  if ($class = $variables['container']['class']) {
+    return new $variables['container']['class']($variables['object'], $variables['effects'], $variables);
+  }
+}
+
+/**
+ * Load a style by style name or ID. May be used as a loader for menu items.
+ *
+ * @param $field_type
+ *   The field type for this style.
+ * @param $name
+ *   The name of the style.
+ * @param $sid
+ *   Optional. The numeric id of a style if the name is not known.
+ * @param $include
+ *   If set, this loader will restrict to a specific type of style, may be
+ *   one of the defined style storage constants.
+ * @return
+ *   A style array containing the following keys:
+ *   - "sid": The unique style ID.
+ *   - "name": The unique style name.
+ *   If the style name or ID is not valid, an empty array is returned.
+ */
+function styles_style_load($field_type, $name = NULL, $sid = NULL, $include = NULL) {
+  $styles = styles_default_styles($field_type);
+
+  // If retrieving by name.
+  if (isset($name) && isset($styles['styles'][$name])) {
+    $style = $styles['styles'][$name];
+  }
+
+  // If retrieving by style id.
+  if (!isset($name) && isset($sid)) {
+    foreach ($styles['styles'] as $name => $database_style) {
+      if (isset($database_style['sid']) && $database_style['sid'] == $sid) {
+        $style = $database_style;
+        break;
+      }
+    }
+  }
+
+  // Restrict to the specific type of flag. This bitwise operation basically
+  // states "if the storage is X, then allow".
+  if (isset($style) && (!isset($include) || ($style['storage'] & (int) $include))) {
+    return $style;
+  }
+
+  // Otherwise the style was not found.
+  return array();
+}
+
+/**
+ * Save a style/preset instance.
+ *
+ * @param string $field_type
+ *  The field type of the style/preset to save.
+ * @param string $container_name
+ *  The container.
+ * @param string $style_name
+ *  The name of the style to save to.
+ * @param string $preset_name
+ *  The name of the preset.
+ * @param boolean $delete_only
+ *  If TRUE, then we delete only, rather than saving.
+ *
+ * @return boolean
+ *  Return TRUE, or FALSE if the save was not successful.
+ *
+ * @TODO: Throw an error instead?
+ */
+function styles_style_save_preset($field_type, $container_name, $style_name, $preset_name, $delete_only = FALSE) {
+  $query = db_select('styles_presets', 'p');
+  $query->addField('p', 'pid');
+  $query->condition('p.name', $preset_name);
+  $query->condition('p.field_type', $field_type);
+  $query->condition('p.container_name', $container_name);
+  $result = $query->execute();
+
+  foreach ($result as $preset) {
+    $preset = (array)$preset;
+  }
+  if (empty($preset)) {
+    $preset = array(
+      'name' => $preset_name,
+      'field_type' => $field_type,
+      'container_name' => $container_name
+    );
+    drupal_write_record('styles_presets', $preset);
+  }
+
+  $styles = styles_default_styles($field_type);
+  if (!isset($styles['styles'][$style_name])) {
+    return FALSE;
+  }
+  else {
+    $style = $styles['styles'][$style_name];
+  }
+
+  if (!isset($style['sid'])) {
+    return FALSE;
+  }
+
+  // Delete old style/preset instances for this container.
+  // Unfortunately, we can't use joins with DeleteQuery. See following comment.
+  db_query("DELETE FROM {styles_preset_instances} WHERE {styles_preset_instances}.sid = :sid AND EXISTS (SELECT * FROM {styles} s, {styles_presets} p WHERE s.sid = {styles_preset_instances}.sid AND p.pid = {styles_preset_instances}.pid AND s.field_type = p.field_type AND p.container_name = :container_name);", array(':sid' => $style['sid'], ':container_name' => $container_name));
+
+  // @TODO: See if there's a way to implement something like the following:
+//   db_delete('styles_preset_instances')
+//     ->join('styles', 's')
+//     ->join('styles_presets', 'p')
+//     ->condition('s.sid', 'styles_preset_instances.sid')
+//     ->condition('styles_preset_instances.pid', 'p.pid')
+//     ->condition('s.field_type', 'p.field_type')
+//     ->condition('styles_preset_instances.sid', $style['sid'])
+//     ->condition('p.container_name', $container_name)
+//     ->execute();
+
+  // Write the revised style for an update, unless we're only deleting the old.
+  if (!$delete_only) {
+    $record = array(
+      'sid' => $style['sid'],
+      'pid' => $preset['pid'],
+    );
+
+    drupal_write_record('styles_preset_instances', $record);
+  }
+
+  // Let other modules update as necessary on save.
+  module_invoke_all('styles_preset_save', $field_type, $container_name, $style_name, $preset_name, $delete_only);
+
+  // Clear all caches and flush.
+  styles_style_flush($style);
+
+  return TRUE;
+}
+
+function styles_style_delete($field_type, $style_name) {
+  // Let other modules update as necessary on deletion.
+  module_invoke_all('styles_delete', $field_type, $style_name);
+
+  $sid = db_select('styles', 's')
+    ->fields('s', array('sid'))
+    ->condition('name', $style_name)
+    ->condition('field_type', $field_type)
+    ->execute()
+    ->fetchField();
+  if ($sid) {
+    db_delete('styles_preset_instances')
+      ->condition('sid', $sid)
+      ->execute();
+    db_delete('styles')
+      ->condition('sid', $sid)
+      ->execute();
+  }
+  // Clear all caches and flush.
+  styles_style_flush();
+}
+
+function styles_style_save(&$style) {
+  if (isset($style['sid']) && is_numeric($style['sid'])) {
+    // Load the existing style to make sure we account for renamed styles.
+    $old_style = styles_style_load($style['field_type'], NULL, $style['sid']);
+    styles_style_flush($old_style);
+    drupal_write_record('styles', $style, 'sid');
+    if ($old_style['name'] != $style['name']) {
+      $style['old_name'] = $old_style['name'];
+    }
+  }
+  else if (isset($style['name'])) {
+    // Load the existing style to make sure we account for renamed styles.
+    $old_style = styles_style_load($style['field_type'], $style['name']);
+    styles_style_flush($old_style);
+    if (isset($old_style['sid'])) {
+      $style['sid'] = $old_style['sid'];
+      drupal_write_record('styles', $style, 'sid');
+    }
+    else {
+      drupal_write_record('styles', $style);
+      $style['is_new'] = TRUE;
+    }
+    if (isset($old_style['name'])) {
+      $style['old_name'] = $old_style['name'];
+    }
+  }
+  else {
+    drupal_write_record('styles', $style);
+    $style['is_new'] = TRUE;
+  }
+
+  // Let other modules update as necessary on save.
+  module_invoke_all('styles_style_save', $style);
+
+  // Clear all caches and flush.
+  styles_style_flush($style);
+
+  return $style;
+}
+
+/**
+ * Flush cached defaults for a style.
+ *
+ * @param $style
+ *   A style array.
+ */
+function styles_style_flush($style = NULL) {
+  // Clear style and preset caches.
+  cache_clear_all('styles_default_styles', 'cache_styles');
+  cache_clear_all('styles_default_presets', 'cache_styles');
+  cache_clear_all('styles_default_containers', 'cache_styles');
+  drupal_static_reset('styles_default_styles');
+  drupal_static_reset('styles_default_presets');
+  drupal_static_reset('styles_default_containers');
+  drupal_static_reset('styles_get_registered_classes');
+
+  // Let other modules update as necessary on flush.
+  module_invoke_all('styles_style_flush', $style);
+
+  // Clear field caches so that formatters may be added for this style.
+  field_info_cache_clear();
+  drupal_theme_rebuild();
+
+  // Clear page caches when flushing.
+  if (module_exists('block')) {
+    cache_clear_all('*', 'cache_block', TRUE);
+  }
+  cache_clear_all('*', 'cache_page', TRUE);
+}
+
+/**
+ * Implementation of hook_flush_caches().
+ */
+function styles_flush_caches() {
+  return array('cache_styles');
+}
