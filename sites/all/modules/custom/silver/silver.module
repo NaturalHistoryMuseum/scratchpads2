@@ -25,17 +25,36 @@ function silver_menu(){
 
 /**
  * Implementation of hook_silver().
+ * 
+ * * type
+ * * name
+ * * access arguments
+ * * file
+ * * form_id
  */
 function silver_silver(){
   // Here we tell ourselves about the Feeds module forms, and suck like.
   return array(
-    'type' => 'Taxonomy',
-    'name' => 'Taxon Concept Schema Import',
-    //'access callback' => 'user_access',
-    'access arguments' => array(
-      'administer taxonomy'
+    array(
+      'type' => 'Pages',
+      'name' => 'Excel file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer taxonomy' // FIXME
+      ),
+      'file' => 'silver_pages_excel.inc',
+      'form_id' => 'silver_pages_excel_form'
     ),
-    'form_id' => 'tcsdc_primary_form'
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'Excel file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'file' => 'silver_taxonomy_excel.inc',
+      'form_id' => 'silver_taxonomy_excel_form'
+    )
   );
 }
 
@@ -48,11 +67,48 @@ function silver_access_callback(){
   foreach($modules as $module){
     $silvers = call_user_func($module . '_silver');
     foreach($silvers as $info){
+      // Include the file
+      if(isset($info['file'])){
+        require_once (drupal_get_path('module', $module) . '/' . $info['file']);
+      }
       $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
       if(call_user_func_array($callback, $info['access arguments'])){return TRUE;}
     }
   }
   return FALSE;
+}
+
+/**
+ * Get an array of the silvers we can access
+ */
+function silver_get_silvers(){
+  $silvers_we_can_access = array();
+  $modules = module_implements('silver');
+  foreach($modules as $module){
+    $silvers = call_user_func($module . '_silver');
+    foreach($silvers as $info){
+      // Include the file
+      if(isset($info['file'])){
+        require_once (drupal_get_path('module', $module) . '/' . $info['file']);
+      }
+      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+      if(call_user_func_array($callback, $info['access arguments'])){
+        $info['module'] = $module;
+        $silvers_we_can_access[] = $info;
+      }
+    }
+  }
+  usort($silvers_we_can_access, 'silvers_array_sort');
+  return $silvers_we_can_access;
+}
+
+/**
+ * Usort callback.
+ */
+function silvers_array_sort($a, $b){
+  $type_diff = strcmp($a['type'], $b['type']);
+  if($type_diff !== 0){return $type_diff;}
+  return strcmp($a['name'], $b['name']);
 }
 
 /**
@@ -66,6 +122,15 @@ function silver_theme(){
   );
 }
 
+
+/**
+ * Submit for the above.
+ */
+function silver_taxonomy_excel_form_submit(&$form, &$form_state){
+  print_r($form_state);
+  print_r($form);
+  exit;
+}
 /**
  * Form
  */
@@ -78,46 +143,45 @@ function silver_import_form(){
     0 => t('- Select import -')
   );
   $i = 1;
-  foreach($modules as $module){
-    $silvers = call_user_func($module . '_silver');
-    foreach($silvers as $info){
-      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
-      if(!call_user_func_array($callback, $info['access arguments'])){
-        continue;
-      }
-      if(!isset($options[$info['type']])){
-        $options[$info['type']] = array();
-      }
-      $options[$info['type']][$i] = $info['name'];
-      if(isset($info['file'])){
-        $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "/" . $info['file'];
-        if(is_file($file)){
-          require_once $file;
-        }
-      }
-      $subform_state = array(
-        'build_info' => array(
-          'args' => array()
-        ),
-        'method' => 'get'
-      );
-      $subform = drupal_retrieve_form($info['form_id'], $subform_state);
-      drupal_prepare_form($info['form_id'], $subform, $subform_state);
-      $form[$module] = array(
-        '#type' => 'fieldset',
-        '#title' => $info['name'],
-        '#states' => array(
-          'visible' => array(
-            ':input[name="silver_import_select"]' => array(
-              'value' => "$i"
-            )
-          )
-        ),
-        'subform' => $subform
-      );
-      $i++;
+  $silvers = silver_get_silvers();
+  foreach($silvers as $info){
+    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+    if(!call_user_func_array($callback, $info['access arguments'])){
+      continue;
     }
+    if(!isset($options[$info['type']])){
+      $options[$info['type']] = array();
+    }
+    $options[$info['type']][$i] = $info['name'];
+    if(isset($info['file'])){
+      $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $info['module']) . "/" . $info['file'];
+      if(is_file($file)){
+        require_once $file;
+      }
+    }
+    $subform_state = array(
+      'build_info' => array(
+        'args' => array()
+      ),
+      'method' => 'get'
+    );
+    $subform = drupal_retrieve_form($info['form_id'], $subform_state);
+    drupal_prepare_form($info['form_id'], $subform, $subform_state);
+    $form[$info['module'] . '_' . $i] = array(
+      '#type' => 'fieldset',
+      '#title' => $info['type'] . ' :: ' . $info['name'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name="silver_import_select"]' => array(
+            'value' => "$i"
+          )
+        )
+      ),
+      'subform' => $subform
+    );
+    $i++;
   }
+  $form['#method'] = 'post';
   $form['silver_import_select'] = array(
     '#weight' => -100,
     '#type' => 'select',
