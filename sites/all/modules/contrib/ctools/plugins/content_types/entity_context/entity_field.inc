@@ -110,7 +110,7 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     'type' => $conf['formatter'],
   );
 
-  // Get the field output, and the title.\
+  // Get the field output, and the title.
   if (!empty($conf['formatter_settings'])) {
     $field_settings['settings'] = $conf['formatter_settings'];
   }

@@ -93,7 +93,7 @@ function ctools_cache_set($mechanism, $key, $object) {
  *   The key used to identify the cache.
  */
 function ctools_cache_clear($mechanism, $key) {
-  return ctools_cache_operation($mechanism, $key, 'clear', $object);
+  return ctools_cache_operation($mechanism, $key, 'clear');
 
 }
 

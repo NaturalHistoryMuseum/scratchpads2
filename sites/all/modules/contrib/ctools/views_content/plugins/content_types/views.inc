@@ -427,6 +427,8 @@ function views_content_views_content_type_admin_info($subtype, $conf, $contexts)
   }
 
   $display = empty($conf['display']) ? $view->current_display : $conf['display'];
+  $block = new stdClass();
+
   $block->title = t('View information');
 
   $block->content = '<ul>';

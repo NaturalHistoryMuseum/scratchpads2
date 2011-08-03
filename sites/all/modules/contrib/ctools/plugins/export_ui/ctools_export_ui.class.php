@@ -121,7 +121,7 @@ class ctools_export_ui {
 
     switch ($op) {
       case 'import':
-        return user_access('use PHP for block visibility');
+        return user_access('use PHP for settings');
       case 'revert':
         return ($item->export_type & EXPORT_IN_DATABASE) && ($item->export_type & EXPORT_IN_CODE);
       case 'delete':
@@ -1311,6 +1311,10 @@ function ctools_export_ui_list_form_submit(&$form, &$form_state) {
  * This simply loads the object defined in the plugin and hands it off.
  */
 function ctools_export_ui_edit_item_form($form, &$form_state) {
+  // When called using #ajax via ajax_form_callback(), 'export' may
+  // not be included so include it here.
+  ctools_include('export');
+
   $form = array();
   $form_state['object']->edit_form($form, $form_state);
   return $form;
@@ -1401,6 +1405,10 @@ function ctools_export_ui_delete_confirm_form($form, &$form_state) {
  * This simply loads the object defined in the plugin and hands it off.
  */
 function ctools_export_ui_edit_item_wizard_form($form, &$form_state) {
+  // When called using #ajax via ajax_form_callback(), 'export' may
+  // not be included so include it here.
+  ctools_include('export');
+
   $method = 'edit_form_' . $form_state['step'];
   if (!method_exists($form_state['object'], $method)) {
     $method = 'edit_form';
