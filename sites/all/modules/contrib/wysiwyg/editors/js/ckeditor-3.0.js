@@ -1,4 +1,3 @@
-// $Id: ckeditor-3.0.js,v 1.11 2010/12/29 20:02:10 twod Exp $
 (function($) {
 
 Drupal.wysiwyg.editor.init.ckeditor = function(settings) {
@@ -111,8 +110,9 @@ Drupal.wysiwyg.editor.attach.ckeditor = function(context, params, settings) {
     },
 
     selectionChange: function (event) {
-      if (Drupal.settings.wysiwyg.plugins[params.format]) {
-        $.each(Drupal.settings.wysiwyg.plugins[params.format].drupal, function (name) {
+      var pluginSettings = Drupal.settings.wysiwyg.plugins[params.format];
+      if (pluginSettings && pluginSettings.drupal) {
+        $.each(pluginSettings.drupal, function (name) {
           var plugin = Drupal.wysiwyg.plugins[name];
           if ($.isFunction(plugin.isNode)) {
             var node = event.data.selection.getSelectedElement();
