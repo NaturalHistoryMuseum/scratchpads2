@@ -63,19 +63,9 @@ function silver_silver(){
  * we allow the user to view the form.
  */
 function silver_access_callback(){
-  $modules = module_implements('silver');
-  foreach($modules as $module){
-    $silvers = call_user_func($module . '_silver');
-    foreach($silvers as $info){
-      // Include the file
-      if(isset($info['file'])){
-        require_once (drupal_get_path('module', $module) . '/' . $info['file']);
-      }
-      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
-      if(call_user_func_array($callback, $info['access arguments'])){return TRUE;}
-    }
-  }
-  return FALSE;
+  // Note, this function conveniently loads all the required files for us,
+  // which means the submit functions should work as expected.
+  return count(silver_get_silvers());
 }
 
 /**
@@ -123,13 +113,6 @@ function silver_theme(){
 }
 
 /**
- * Implementation of hook_form_alter().
- */
-function silver_form_silver_import_form_alter(&$form, &$form_state){
-  $form_state['no_cache'] = TRUE;
-}
-
-/**
  * Form
  */
 function silver_import_form(){
@@ -152,12 +135,6 @@ function silver_import_form(){
       $options[$info['type']] = array();
     }
     $options[$info['type']][$i] = $info['name'];
-    if(isset($info['file'])){
-      $file = DRUPAL_ROOT . '/' . drupal_get_path('module', $info['module']) . "/" . $info['file'];
-      if(is_file($file)){
-        require_once $file;
-      }
-    }
     $subform_state = array(
       'build_info' => array(
         'args' => array()
@@ -171,7 +148,7 @@ function silver_import_form(){
     // ensure that other modules have the opportunity to alter the individual
     // forms.
     foreach(element_properties($subform) as $key){
-      //unset($subform[$key]);
+      unset($subform[$key]);
     }
     $form[$info['module'] . '_' . $i] = array(
       '#type' => 'fieldset',
