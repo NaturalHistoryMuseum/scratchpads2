@@ -112,7 +112,9 @@ function eol_classifications_js($form, $form_state){
   foreach($children as $key){
     $form_to_return[$key]['#name'] = 'eol-import-id';
   }
-  return drupal_render($form_to_return);
+  $output = drupal_render($form_to_return);
+  drupal_get_messages();
+  return $output;
 }
 
 /**

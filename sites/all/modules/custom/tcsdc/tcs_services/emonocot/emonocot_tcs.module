@@ -6,7 +6,7 @@ define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?s
  * Implementation of hook_classification_import_form
  */
 function emonocot_tcs_tcsdc_form($form, $form_state){
-  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')).'?scratchpad=scratchpad', 0, stream_context_create(array(
+  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')) . '?scratchpad=scratchpad', 0, stream_context_create(array(
     'http' => array(
       'timeout' => 3
     )
@@ -21,7 +21,7 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
       'emonocot-status' => array(
         '#weight' => -10,
         '#type' => 'markup',
-        '#markup' => $emonocot_tcs_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The emonocot classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The emonocot classification service (<a href="'.EMONOCOT_REQUEST_URL.'">'.(strpos(EMONOCOT_REQUEST_URL, '?') ? substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')):EMONOCOT_REQUEST_URL).'</a>) does not appear to be running.  Please try again later.</div>'
+        '#markup' => $emonocot_tcs_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The emonocot classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The emonocot classification service (<a href="' . EMONOCOT_REQUEST_URL . '">' . (strpos(EMONOCOT_REQUEST_URL, '?') ? substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')) : EMONOCOT_REQUEST_URL) . '</a>) does not appear to be running.  Please try again later.</div>'
       ),
       'emonocot-name' => array(
         '#weight' => -5,
@@ -112,7 +112,9 @@ function emonocot_tcs_classifications_js($form, $form_state){
   foreach($children as $key){
     $form_to_return[$key]['#name'] = 'emonocot-import-id';
   }
-  return drupal_render($form_to_return);
+  $output = drupal_render($form_to_return);
+  drupal_get_messages();
+  return $output;
 }
 
 /**
