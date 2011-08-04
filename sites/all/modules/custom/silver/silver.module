@@ -122,15 +122,13 @@ function silver_theme(){
   );
 }
 
-
 /**
- * Submit for the above.
+ * Implementation of hook_form_alter().
  */
-function silver_taxonomy_excel_form_submit(&$form, &$form_state){
-  print_r($form_state);
-  print_r($form);
-  exit;
+function silver_form_silver_import_form_alter(&$form, &$form_state){
+  $form_state['no_cache'] = TRUE;
 }
+
 /**
  * Form
  */
@@ -144,6 +142,7 @@ function silver_import_form(){
   );
   $i = 1;
   $silvers = silver_get_silvers();
+  $submit_function_names = array();
   foreach($silvers as $info){
     $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
     if(!call_user_func_array($callback, $info['access arguments'])){
@@ -163,10 +162,17 @@ function silver_import_form(){
       'build_info' => array(
         'args' => array()
       ),
-      'method' => 'get'
+      'method' => 'post'
     );
     $subform = drupal_retrieve_form($info['form_id'], $subform_state);
     drupal_prepare_form($info['form_id'], $subform, $subform_state);
+    // We need to remove additional crap from the subform, to ensure that it
+    // doesn't actually get rendered as a form.  Note, we're doing this to
+    // ensure that other modules have the opportunity to alter the individual
+    // forms.
+    foreach(element_properties($subform) as $key){
+      //unset($subform[$key]);
+    }
     $form[$info['module'] . '_' . $i] = array(
       '#type' => 'fieldset',
       '#title' => $info['type'] . ' :: ' . $info['name'],

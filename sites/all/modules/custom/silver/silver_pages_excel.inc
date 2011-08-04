@@ -9,17 +9,30 @@ function silver_pages_excel_form(){
       '#type' => 'file',
       '#title' => t('Excel file')
     ),
-    'submit' => array(
+    'submit_silver_pages_excel_form' => array(
       '#type' => 'submit',
-      '#title' => t('Import'),
       '#value' => t('Import'),
+      '#op' => 'silver_pages',
       '#states' => array(
         'invisible' => array(
           '#edit-pages-excel-import-file' => array(
             'value' => ''
           )
         )
+      ),
+      '#submit' => array(
+        'silver_pages_excel_form_submit'
       )
     )
   );
+}
+
+/**
+ * Submit for the above form.
+ */
+function silver_pages_excel_form_submit($form, &$form_state){
+  echo "PAGES:\n";
+  print_r($form_state);
+  print_r($form);
+  exit();
 }
