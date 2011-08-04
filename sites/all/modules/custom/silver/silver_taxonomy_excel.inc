@@ -4,7 +4,19 @@
  * silver_taxonomy_excel_form
  */
 function silver_taxonomy_excel_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  $taxonomies = array(
+    '- SELECT VOCABULARY -'
+  );
+  foreach($vocabularies as $vid => $vocabulary){
+    $taxonomies[$vid] = $vocabulary->name;
+  }
   return array(
+    'taxonomy_vid' => array(
+      '#type' => 'select',
+      '#title' => t('Taxonomy'),
+      '#options' => $taxonomies
+    ),
     'taxonomy_excel_import_file' => array(
       '#type' => 'file',
       '#title' => t('Excel file'),
@@ -25,6 +37,9 @@ function silver_taxonomy_excel_form(){
       ),
       '#submit' => array(
         'silver_taxonomy_excel_form_submit'
+      ),
+      '#validate' => array(
+        'silver_taxonomy_excel_form_validate'      
       )
     )
   );
@@ -34,8 +49,14 @@ function silver_taxonomy_excel_form(){
  * Submit for the above.
  */
 function silver_taxonomy_excel_form_submit($form, &$form_state){
-  echo "TAXONOMY:\n";
-  print_r($form_state);
-  print_r($form);
-  exit();
+  // Here we check the file, and ensure that it looks like it is roughly correct
+  // FIXME - No we don't.
+  
+}
+
+/**
+ * Validate function for the above form.
+ */
+function silver_taxonomy_excel_form_validate($form, &$form_state){
+  echo "HERE";exit;  
 }

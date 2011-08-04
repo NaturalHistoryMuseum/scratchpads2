@@ -64,13 +64,26 @@ function tcsdc_primary_form($form, &$form_state){
         )
       ));
     }
+    $vocabularies = taxonomy_get_vocabularies();
+    $taxonomies = array(
+      '- SELECT VOCABULARY -'
+    );
+    foreach($vocabularies as $vid => $vocabulary){
+      $taxonomies[$vid] = $vocabulary->name;
+    }
     return array_merge($form, array(
       '#submit' => array(
         'tcsdc_primary_form_submit'
       ),
       'information' => array(
         '#markup' => '<p>' . t('Please select from one of the classification sources below.') . '</p>',
-        '#weight' => -100
+        '#weight' => -50
+      ),
+      'taxonomy_vid' => array(
+        '#type' => 'select',
+        '#title' => t('Taxonomy'),
+        '#options' => $taxonomies,
+        '#weight' => -90
       )
     ));
   }else{

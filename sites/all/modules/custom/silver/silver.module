@@ -40,7 +40,7 @@ function silver_silver(){
       'name' => 'Excel file import',
       //'access callback' => 'user_access',
       'access arguments' => array(
-        'administer taxonomy' // FIXME
+        'create page content' // FIXME
       ),
       'file' => 'silver_pages_excel.inc',
       'form_id' => 'silver_pages_excel_form'
@@ -121,7 +121,7 @@ function silver_import_form(){
   $infos = array();
   $form = array();
   $options = array(
-    0 => t('- Select import -')
+    0 => t('- SELECT IMPORT -')
   );
   $i = 1;
   $silvers = silver_get_silvers();

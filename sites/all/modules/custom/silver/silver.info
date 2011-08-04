@@ -3,3 +3,4 @@ description = "Checks the format of import files to ensure that they match the t
 package = "Scratchpads"
 core = 7.x
 dependencies[] = feeds
+dependencies[] = feeds_excel
