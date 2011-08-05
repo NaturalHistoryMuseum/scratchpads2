@@ -116,6 +116,7 @@ class FeedsTermProcessor extends FeedsProcessor {
            ($this->config['update_existing'] != FEEDS_SKIP_EXISTING)) {
         try {
           // Assemble node, map item to it, save.
+          $hash = $this->hash($item);
           if (empty($entity_id)) {
             $entity = $this->newEntity($source);
             $this->newItemInfo($entity, $source->feed_nid, $hash);
