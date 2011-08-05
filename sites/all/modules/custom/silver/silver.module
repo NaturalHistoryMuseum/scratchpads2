@@ -7,6 +7,16 @@
  * modules to include their import forms on the silver import page.
  */
 /**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function silver_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "feeds" && $api == "feeds_importer_default"){return array(
+      "version" => "1"
+    );}
+}
+
+/**
  * Implementation of hook_menu().
  */
 function silver_menu(){
