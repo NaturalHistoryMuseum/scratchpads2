@@ -10,7 +10,7 @@ function silver_feeds_importer_default(){
   $vocabularies = taxonomy_get_vocabularies();
   foreach($vocabularies as $vocabulary){
     $feeds_importer = new stdClass();
-    $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
+    $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
     $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->vid;
     $feeds_importer->config = array(
@@ -62,14 +62,13 @@ function silver_feeds_importer_default(){
               'target' => 'parentguid',
               'unique' => 0
             )
-          )// FIXME: NEED TO ADD ADDITIONAL FIELDS HERE
-          ,
+          ), // FIXME: NEED TO ADD ADDITIONAL FIELDS HERE
           'update_existing' => '2',
           'input_format' => 'plain_text'
         )
       ),
       'content_type' => '',
-      'update' => 0,
+      'update' => 1,
       'import_period' => '-1',
       'expire_period' => 3600,
       'import_on_create' => 1,

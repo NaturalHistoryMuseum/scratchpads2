@@ -21,6 +21,17 @@ function silver_ctools_plugin_api(){
 }
 
 /**
+ * hook_form_alter().
+ */
+function silver_form_alter($form, $form_state, $form_id){
+  /*if($form_id == 'feeds_import_form'){
+    dpm($form_id);
+    dpm($form_state);
+    dpm($form);
+  }*/
+}
+
+/**
  * Implementation of hook_menu().
  */
 function silver_menu(){
@@ -150,6 +161,7 @@ function silver_import_form(){
     }
     $options[$info['type']][$i] = $info['name'];
     $form[$info['module'] . '_' . $i] = array(
+      '#tree' => TRUE,
       '#type' => 'fieldset',
       '#title' => $info['type'] . ' :: ' . $info['name'],
       '#states' => array(
@@ -160,9 +172,16 @@ function silver_import_form(){
         )
       ),
       'subform' => array(
-        '#type' => 'subform', 
+        '#type' => 'subform',
         '#subform_id' => $info['form_id'],
-        '#subform_file' => drupal_get_path('module', $info['module']) . '/' . $info['file']
+        '#subform_file' => $info['file'] ? drupal_get_path('module', $info['module']) . '/' . $info['file'] : array(),
+        '#subform_arguments' => array(),
+        '#required' => FALSE,
+        '#subform_default_triggering_element' => array(
+          'actions',
+          'submit'
+        ),
+        '#limit_validation_errors' => TRUE
       )
     );
     $i++;
@@ -176,6 +195,11 @@ function silver_import_form(){
   );
   return $form;
 }
+
+/**
+ * Submit function for above.
+ */
+function silver_import_form_submit($form, $form_state){}
 
 /**
  * Theme function for the above form.
