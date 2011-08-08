@@ -149,21 +149,6 @@ function silver_import_form(){
       $options[$info['type']] = array();
     }
     $options[$info['type']][$i] = $info['name'];
-    $subform_state = array(
-      'build_info' => array(
-        'args' => array()
-      ),
-      'method' => 'post'
-    );
-    $subform = drupal_retrieve_form($info['form_id'], $subform_state);
-    drupal_prepare_form($info['form_id'], $subform, $subform_state);
-    // We need to remove additional crap from the subform, to ensure that it
-    // doesn't actually get rendered as a form.  Note, we're doing this to
-    // ensure that other modules have the opportunity to alter the individual
-    // forms.
-    foreach(element_properties($subform) as $key){
-      unset($subform[$key]);
-    }
     $form[$info['module'] . '_' . $i] = array(
       '#type' => 'fieldset',
       '#title' => $info['type'] . ' :: ' . $info['name'],
@@ -174,7 +159,11 @@ function silver_import_form(){
           )
         )
       ),
-      'subform' => $subform
+      'subform' => array(
+        '#type' => 'subform', 
+        '#subform_id' => $info['form_id'],
+        '#subform_file' => drupal_get_path('module', $info['module']) . '/' . $info['file']
+      )
     );
     $i++;
   }

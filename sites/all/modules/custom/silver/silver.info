@@ -6,3 +6,4 @@ dependencies[] = libraries
 dependencies[] = feeds
 dependencies[] = feeds_tamper
 dependencies[] = feeds_excel
+dependencies[] = subform
