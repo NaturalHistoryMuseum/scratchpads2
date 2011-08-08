@@ -102,19 +102,12 @@ class FeedsExcelParser extends FeedsParser{
       $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
       foreach($cellIterator as $cell){
         if(!is_null($cell)){
-          $headers[] = trim(drupal_strtolower($cell->getCalculatedValue()));
+          $headers[] = trim($cell->getCalculatedValue());
         }
       }
       break;
     }
     return $headers;
-  }
-
-  /**
-   * Override parent::getSourceElement() to use only lower keys.
-   */
-  public function getSourceElement(FeedsSource $source, FeedsParserResult $result, $element_key){
-    return parent::getSourceElement($source, $result, drupal_strtolower($element_key));
   }
 
   /**

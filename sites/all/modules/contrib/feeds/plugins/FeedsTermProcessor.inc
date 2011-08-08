@@ -209,25 +209,27 @@ class FeedsTermProcessor extends FeedsProcessor {
   */
   public function setTargetElement(FeedsSource $source, $target_node, $target_element, $value) {
     switch ($target_element) {
-      case 'parent':      
-        if (!empty($value)) {
-          $terms = taxonomy_get_term_by_name($value);
-          $parent_tid = '';
-          foreach ($terms as $term) {
-            if ($term->vid == $target_node->vid) {
-              $parent_tid = $term->tid;
+      case 'parent':
+        if(!isset($target_node->parent) || !$target_node->parent){
+          if (!empty($value)) {
+            $terms = taxonomy_get_term_by_name($value);
+            $parent_tid = '';
+            foreach ($terms as $term) {
+              if ($term->vid == $target_node->vid) {
+                $parent_tid = $term->tid;
+              }
             }
-          }
-
-          if (!empty($parent_tid)) {
-            $target_node->parent = $parent_tid;
+  
+            if (!empty($parent_tid)) {
+              $target_node->parent = $parent_tid;
+            }
+            else {
+              $target_node->parent = 0;
+            }
           }
           else {
             $target_node->parent = 0;
           }
-        }
-        else {
-          $target_node->parent = 0;
         }
         break;
       case 'parentguid':
@@ -240,7 +242,9 @@ class FeedsTermProcessor extends FeedsProcessor {
           $target_node->parent = $parent_tid;
         }
         else {
-          $target_node->parent = 0;
+          if(!isset($target_node->parent) || !$target_node->parent){
+            $target_node->parent = 0;
+          }
         }
         break;
       case 'weight':
