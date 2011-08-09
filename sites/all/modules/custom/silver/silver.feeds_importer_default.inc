@@ -87,10 +87,10 @@ function silver_feeds_importer_default(){
   // Get a list of the content types.
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
-    $feeds_importer = new stdClass;
+    $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'node_importer_'.$node_type;
+    $feeds_importer->id = 'node_importer_' . $node_type;
     $feeds_importer->config = array(
       'name' => t('Import into: !node_type_name', array(
         '!node_type_name' => $node_type_info['label']
@@ -100,15 +100,15 @@ function silver_feeds_importer_default(){
         'plugin_key' => 'FeedsFileFetcher',
         'config' => array(
           'allowed_extensions' => 'xls xlsx',
-          'direct' => 0,
-        ),
+          'direct' => 0
+        )
       ),
       'parser' => array(
         'plugin_key' => 'FeedsExcelParser',
         'config' => array(
           'no_headers' => 0,
-          'all_worksheets' => 1,
-        ),
+          'all_worksheets' => 1
+        )
       ),
       'processor' => array(
         'plugin_key' => 'FeedsNodeProcessor',
@@ -120,24 +120,24 @@ function silver_feeds_importer_default(){
             array(
               'source' => 'Title',
               'target' => 'title',
-              'unique' => FALSE,
+              'unique' => FALSE
             ),
             array(
               'source' => 'GUID',
               'target' => 'guid',
-              'unique' => TRUE,
+              'unique' => TRUE
             )
           ),
           'update_existing' => '2',
-          'input_format' => 'full_html',
-        ),
+          'input_format' => 'full_html'
+        )
       ),
       'content_type' => '',
       'update' => 0,
       'import_period' => 1800,
       'expire_period' => 3600,
       'import_on_create' => TRUE,
-      'process_in_background' => FALSE,
+      'process_in_background' => FALSE
     );
     $field_info = field_info_instances('node', $node_type);
     foreach($field_info as $key => $field){
@@ -147,7 +147,7 @@ function silver_feeds_importer_default(){
         'unique' => 0
       );
     }
-    $export['node_importer_'.$node_type] = $feeds_importer;
+    $export['node_importer_' . $node_type] = $feeds_importer;
   }
   return $export;
 }
