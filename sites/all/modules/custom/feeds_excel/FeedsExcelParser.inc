@@ -134,7 +134,7 @@ class FeedsExcelParser extends FeedsParser{
         $row_values = array();
         foreach($cellIterator as $cell){
           if(!is_null($cell)){
-            $row_values[count($column_names) ? $column_names[$column] : $column] = $cell->getCalculatedValue();
+            $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
           }
           $column++;
         }
