@@ -21,7 +21,7 @@ function feeds_tamper_hash_form($importer, $element_key, $settings) {
     'overwrite' => array(
       '#type' => 'checkbox',
       '#title' => t('Override set value'),
-      '#description' => t('Check the box if you would ALWAYS like a hash to be calculated and to override an already set value.'),
+      '#description' => t('Check the box to override any value set.'),
       '#default_value' => isset($settings['overwrite']) ? $settings['overwrite'] : 0
     )
   );
