@@ -14,7 +14,7 @@ function silver_feeds_importer_default(){
     $feeds_importer->api_version = 1;
     $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->vid;
     $feeds_importer->config = array(
-      'name' => t('Import into "!vocabulary_name"', array(
+      'name' => t('Import into: !vocabulary_name', array(
         '!vocabulary_name' => $vocabulary->name
       )),
       'description' => t('Import a classification into a specific vocabulary.'),
@@ -37,32 +37,32 @@ function silver_feeds_importer_default(){
         'config' => array(
           'vocabulary' => $vocabulary->machine_name,
           'mappings' => array(
-            0 => array(
+            array(
               'source' => 'Term name',
               'target' => 'name',
               'unique' => 0
             ),
-            1 => array(
+            array(
               'source' => 'Parent Term Name',
               'target' => 'parent',
               'unique' => 0
             ),
-            2 => array(
+            array(
               'source' => 'Term description',
               'target' => 'description',
               'unique' => FALSE
             ),
-            3 => array(
+            array(
               'source' => 'GUID',
               'target' => 'guid',
               'unique' => 1
             ),
-            4 => array(
+            array(
               'source' => 'Parent GUID',
               'target' => 'parentguid',
               'unique' => 0
             )
-          ), // FIXME: NEED TO ADD ADDITIONAL FIELDS HERE
+          ),
           'update_existing' => '2',
           'input_format' => 'plain_text'
         )
@@ -74,6 +74,14 @@ function silver_feeds_importer_default(){
       'import_on_create' => 1,
       'process_in_background' => 0
     );
+    $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
+    foreach($field_info as $key => $field){
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => $field['label'],
+        'target' => $key,
+        'unique' => 0
+      );
+    }
     $export['taxonomy_importer_' . $vocabulary->vid] = $feeds_importer;
   }
   return $export;
