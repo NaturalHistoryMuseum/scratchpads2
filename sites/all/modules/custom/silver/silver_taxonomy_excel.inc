@@ -38,11 +38,6 @@ function silver_taxonomy_excel_form(){
         '#subform_arguments' => array(
           'taxonomy_importer_' . $vocabulary->vid
         ),
-        '#required' => FALSE,
-        '#subform_default_triggering_element' => array(
-          'actions',
-          'submit'
-        ),
         '#limit_validation_errors' => TRUE
       )
     );
