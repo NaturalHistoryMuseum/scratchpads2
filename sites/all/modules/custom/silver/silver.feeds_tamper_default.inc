@@ -16,7 +16,9 @@ function silver_feeds_tamper_default(){
     $feeds_tamper->importer = 'taxonomy_importer_' . $vocabulary->vid;
     $feeds_tamper->source = 'GUID';
     $feeds_tamper->plugin_id = 'hash';
-    $feeds_tamper->settings = '';
+    $feeds_tamper->settings = array(
+      'overwrite' => 0
+    );
     $feeds_tamper->weight = 0;
     $feeds_tamper->description = 'Calculate hash';
     $export['taxonomy_importer_' . $vocabulary->vid . '-guid-calculate_hash'] = $feeds_tamper;
@@ -27,14 +29,16 @@ function silver_feeds_tamper_default(){
     $feeds_tamper = new stdClass();
     $feeds_tamper->disabled = FALSE; /* Edit this to true to make a default feeds_tamper disabled initially */
     $feeds_tamper->api_version = 2;
-    $feeds_tamper->id = 'node_importer_'.$node_type.'-guid-calculate_hash';
-    $feeds_tamper->importer = 'node_importer_'.$node_type;
+    $feeds_tamper->id = 'node_importer_' . $node_type . '-guid-calculate_hash';
+    $feeds_tamper->importer = 'node_importer_' . $node_type;
     $feeds_tamper->source = 'GUID';
     $feeds_tamper->plugin_id = 'hash';
-    $feeds_tamper->settings = '';
+    $feeds_tamper->settings = array(
+      'overwrite' => 0
+    );
     $feeds_tamper->weight = 0;
     $feeds_tamper->description = 'Calculate hash';
-    $export['node_importer_'.$node_type.'-guid-calculate_hash'] = $feeds_tamper;
+    $export['node_importer_' . $node_type . '-guid-calculate_hash'] = $feeds_tamper;
   }
   return $export;
 }
