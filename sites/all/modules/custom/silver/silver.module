@@ -10,7 +10,9 @@ function silver_form_alter($form, &$form_state, $form_id){}
  * Hook batch alter().
  */
 function silver_batch_alter(&$batch){
-  $batch['redirect'] = 'i';
+  if(arg(0) == 'import'){
+    $batch['redirect'] = 'i';
+  }
 }
 
 /**
@@ -153,17 +155,17 @@ function silver_ajax_callback($form, &$form_state){
     foreach($silvers as $info){
       if($i == $form_state['values']['silver_import_select']){
         if($info['file']){
-          require_once(drupal_get_path('module', $info['module']).'/'.$info['file']);
+          require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
         }
         return '<div id="silver_import_subform">' . drupal_render(drupal_get_form($info['form_id'])) . '</div>';
       }
       $i++;
     }
-  } else if(isset($form_state['values']['silver_import_subform_feeds'])){
+  }else if(isset($form_state['values']['silver_import_subform_feeds'])){
     module_load_include('pages.inc', 'feeds');
     $form_state['programmed'] = TRUE;
-    $form = drupal_get_form('feeds_import_form',$form_state['values']['silver_import_subform_feeds']);
-    $form['#action'] = 'import/'.$form_state['values']['silver_import_subform_feeds'];
+    $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
+    $form['#action'] = 'import/' . $form_state['values']['silver_import_subform_feeds'];
     return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
   }
 }
@@ -184,7 +186,6 @@ function silver_theme(){
  */
 function theme_silver_import_form($variables){
   drupal_add_css(drupal_get_path('module', 'silver') . '/css/silver.css');
-  //return drupal_render($variables['form']);
   $children = element_children($variables['form'], TRUE);
   $output = '';
   foreach($children as $child){
@@ -202,7 +203,7 @@ function silver_taxonomy_excel_form(){
     '- SELECT VOCABULARY -'
   );
   foreach($vocabularies as $vocabulary){
-    $taxonomies['taxonomy_importer_'.$vocabulary->machine_name] = $vocabulary->name;
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name] = $vocabulary->name;
   }
   return array(
     'silver_import_subform_feeds' => array(

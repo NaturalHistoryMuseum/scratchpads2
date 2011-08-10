@@ -1,3 +1,6 @@
-fieldset{
- margin-bottom: 20px !Important;
+#silver-import-form select, #silver-import-form input{
+ width:100%;
+}
+#silver_import_subform select, #silver_import_subform input{
+ width:100%;
 }
