@@ -12,8 +12,8 @@ function silver_feeds_tamper_default(){
     $feeds_tamper = new stdClass();
     $feeds_tamper->disabled = FALSE;
     $feeds_tamper->api_version = 2;
-    $feeds_tamper->id = 'taxonomy_importer_' . $vocabulary->vid . '-guid-calculate_hash';
-    $feeds_tamper->importer = 'taxonomy_importer_' . $vocabulary->vid;
+    $feeds_tamper->id = 'taxonomy_importer_' . $vocabulary->machine_name . '-guid-calculate_hash';
+    $feeds_tamper->importer = 'taxonomy_importer_' . $vocabulary->machine_name;
     $feeds_tamper->source = 'GUID';
     $feeds_tamper->plugin_id = 'hash';
     $feeds_tamper->settings = array(
@@ -21,7 +21,7 @@ function silver_feeds_tamper_default(){
     );
     $feeds_tamper->weight = 0;
     $feeds_tamper->description = 'Calculate hash';
-    $export['taxonomy_importer_' . $vocabulary->vid . '-guid-calculate_hash'] = $feeds_tamper;
+    $export['taxonomy_importer_' . $vocabulary->machine_name . '-guid-calculate_hash'] = $feeds_tamper;
   }
   // Get the node types
   $entity_info = entity_get_info('node');

@@ -12,7 +12,7 @@ function silver_feeds_importer_default(){
     $feeds_importer = new stdClass();
     $feeds_importer->disabled = FALSE;
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->vid;
+    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name;
     $feeds_importer->config = array(
       'name' => t('Import into: !vocabulary_name', array(
         '!vocabulary_name' => $vocabulary->name
@@ -82,7 +82,7 @@ function silver_feeds_importer_default(){
         'unique' => 0
       );
     }
-    $export['taxonomy_importer_' . $vocabulary->vid] = $feeds_importer;
+    $export['taxonomy_importer_' . $vocabulary->machine_name] = $feeds_importer;
   }
   // Get a list of the content types.
   $entity_info = entity_get_info('node');

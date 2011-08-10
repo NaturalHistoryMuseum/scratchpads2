@@ -6,6 +6,4 @@ dependencies[] = libraries
 dependencies[] = feeds
 dependencies[] = feeds_tamper
 dependencies[] = feeds_excel
-dependencies[] = subform
-
 features[ctools][] = "feeds:feeds_importer_default:1"
