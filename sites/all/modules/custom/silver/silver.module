@@ -4,7 +4,19 @@ include_once ('silver.features.inc');
 /**
  * hook_form_alter().
  */
-function silver_form_alter($form, &$form_state, $form_id){}
+function silver_form_alter($form, &$form_state, $form_id){
+  //dpm($form_id);
+}
+
+/**
+ * hook_form_FORM_ID_alter().
+ */
+function silver_form_feeds_import_form_alter(&$form, &$form_state){
+  // Alter the form a little, if we're viewing it on the slashEye page.
+  $form['source_status']['#weight'] = 10;
+  $form['feeds']['#weight'] = -10;
+  $form['submit']['#weight'] = 0;
+}
 
 /**
  * Hook batch alter().
@@ -162,11 +174,15 @@ function silver_ajax_callback($form, &$form_state){
       $i++;
     }
   }else if(isset($form_state['values']['silver_import_subform_feeds'])){
-    module_load_include('pages.inc', 'feeds');
-    $form_state['programmed'] = TRUE;
-    $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
-    $form['#action'] = 'import/' . $form_state['values']['silver_import_subform_feeds'];
-    return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
+    if($form_state['values']['silver_import_subform_feeds']){
+      module_load_include('pages.inc', 'feeds');
+      $form_state['programmed'] = TRUE;
+      $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
+      $form['#action'] = 'import/' . $form_state['values']['silver_import_subform_feeds'];
+      return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
+    }else{
+      return '<div id="silver_import_subform_feeds"></div>';
+    }
   }
 }
 
