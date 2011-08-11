@@ -57,9 +57,8 @@ function feeds_excel_download_template_helper($feeds_importer){
     // Set the column width
     $objPHPExcel->getActiveSheet()->getColumnDimension($column)->setAutoSize(TRUE);
     // Validation
-    if(isset($feeds_importer->processor->config['content_type']) && $header['target'] == 'field_drop_down'){
+    if(isset($feeds_importer->processor->config['content_type'])){
       $field = field_info_field($header['target']);
-      //print_r($field);exit;
       if($field && isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values']) && count($field['settings']['allowed_values'])){
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column.'2:'.$column.'65536');
         $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
