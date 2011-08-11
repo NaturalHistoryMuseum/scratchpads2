@@ -17,3 +17,23 @@ function feeds_excel_feeds_plugins(){
   );
   return $info;
 }
+
+/**
+ * Implementation of hook_menu().
+ */
+function feeds_excel_menu(){
+  return array(
+    'import/%feeds_importer/template' => array(
+      'title' => 'Excel template',
+      'page callback' => 'feeds_excel_download_template',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_excel.template.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
