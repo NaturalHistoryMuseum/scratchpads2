@@ -56,6 +56,25 @@ function feeds_excel_download_template_helper($feeds_importer){
     $objPHPExcel->getActiveSheet()->setCellValue($cell, $header['source']);
     // Set the column width
     $objPHPExcel->getActiveSheet()->getColumnDimension($column)->setAutoSize(TRUE);
+    // Validation
+    if(isset($feeds_importer->processor->config['content_type']) && $header['target'] == 'field_drop_down'){
+      $field = field_info_field($header['target']);
+      //print_r($field);exit;
+      if($field && $field['module'] == 'list'){
+        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column.'2:'.$column.'65536');
+        $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
+        $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
+        $objValidation->setAllowBlank(FALSE);
+        $objValidation->setShowInputMessage(TRUE);
+        $objValidation->setShowErrorMessage(TRUE);
+        $objValidation->setShowDropDown(TRUE);
+        $objValidation->setErrorTitle('Input error');
+        $objValidation->setError("Your input did not match one of the allowed values.");
+        $objValidation->setPromptTitle('Allowed input');
+        $objValidation->setPrompt("Only one of the following values is permitted:\n\n" . implode(", ", $field['settings']['allowed_values']));
+        $objValidation->setFormula1('"' . implode(',', $field['settings']['allowed_values']) . '"');
+      }
+    }
   }
   // setAutoSize for the row
   $objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(30);
