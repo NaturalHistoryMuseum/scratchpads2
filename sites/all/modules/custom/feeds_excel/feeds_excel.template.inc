@@ -60,7 +60,7 @@ function feeds_excel_download_template_helper($feeds_importer){
     if(isset($feeds_importer->processor->config['content_type']) && $header['target'] == 'field_drop_down'){
       $field = field_info_field($header['target']);
       //print_r($field);exit;
-      if($field && $field['module'] == 'list'){
+      if($field && isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values']) && count($field['settings']['allowed_values'])){
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column.'2:'.$column.'65536');
         $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
         $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
