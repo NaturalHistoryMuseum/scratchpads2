@@ -13,12 +13,12 @@ function feeds_excel_download_template($feeds_importer){
     if(!$feeds_importer->parser->config['no_headers']){
       feeds_excel_download_template_helper($feeds_importer);
     }else{
-      drupal_set_message('The current configuration for this importer is set to use no headers.', 'error');
+      drupal_set_message(t('The current configuration for this importer is set to use no headers.'), 'error');
       drupal_goto(arg(0) . '/' . arg(1));
     }
   }else{
     // This isn't an Excel importer.  Give an error message.
-    drupal_set_message('The requested Feeds importer does not appear to be using the Excel parser.', 'error');
+    drupal_set_message(t('The requested Feeds importer does not appear to be using the Excel parser.'), 'error');
     drupal_goto(arg(0) . '/' . arg(1));
   }
 }
@@ -60,7 +60,7 @@ function feeds_excel_download_template_helper($feeds_importer){
     if(isset($feeds_importer->processor->config['content_type'])){
       $field = field_info_field($header['target']);
       if($field && isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values']) && count($field['settings']['allowed_values'])){
-        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column.'2:'.$column.'65536');
+        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
         $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
         $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
         $objValidation->setAllowBlank(FALSE);
@@ -68,10 +68,30 @@ function feeds_excel_download_template_helper($feeds_importer){
         $objValidation->setShowErrorMessage(TRUE);
         $objValidation->setShowDropDown(TRUE);
         $objValidation->setErrorTitle('Input error');
-        $objValidation->setError("Your input did not match one of the allowed values.");
-        $objValidation->setPromptTitle('Allowed input');
-        $objValidation->setPrompt("Only one of the following values is permitted:\n\n" . implode(", ", $field['settings']['allowed_values']));
-        $objValidation->setFormula1('"' . implode(',', $field['settings']['allowed_values']) . '"');
+        $objValidation->setError(t('Your input did not match one of the allowed values.'));
+        $objValidation->setPromptTitle(t('Allowed input'));
+        if(isset($field['settings']['allowed_values'][0]['vocabulary'])){
+          $num_sheets = count($objPHPExcel->getAllSheets());
+          if($num_sheets == 1){
+            $objPHPExcel->createSheet();
+            $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
+          }
+          // Get the vocabulary so we can get the vid.
+          $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+          $results = db_select('taxonomy_term_data', 't')->fields('t')->condition('vid', $vocabulary->vid)->execute();
+          $row = 0;
+          foreach($results as $term){
+            $row++;
+            $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+          }
+          $objValidation->setPrompt(t("Only values from colum '!column' in the 'PermittedValues' worksheet are allowed.", array(
+            '!column' => $column
+          )));
+          $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
+        }else{
+          $objValidation->setPrompt(t('Only one of the following values is permitted:') . "\n\n" . implode(", ", $field['settings']['allowed_values']));
+          $objValidation->setFormula1('"' . implode(',', $field['settings']['allowed_values']) . '"');
+        }
       }
     }
   }
