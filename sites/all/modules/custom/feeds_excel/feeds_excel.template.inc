@@ -59,39 +59,53 @@ function feeds_excel_download_template_helper($feeds_importer){
     // Validation
     if(isset($feeds_importer->processor->config['content_type'])){
       $field = field_info_field($header['target']);
-      if($field && isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values']) && count($field['settings']['allowed_values'])){
+      if($field){
+        // Get the field instance, so that we can check if this field is required.
+        $class = get_class($feeds_importer->processor);
+        $field_instance = field_info_instance(strtolower(substr($class, 5, strlen($class) - 14)), $field['field_name'], $feeds_importer->processor->config['content_type']);
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
-        $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
-        $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
-        $objValidation->setAllowBlank(FALSE);
+        $objValidation->setAllowBlank($field_instance['required'] ? FALSE : TRUE);
+        if($field_instance['required']){
+          $objValidation->setPromptTitle(t('Required'));
+          $objValidation->setPrompt(t('This cell may not be left blank'));
+        }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
-        $objValidation->setShowDropDown(TRUE);
-        $objValidation->setErrorTitle('Input error');
-        $objValidation->setError(t('Your input did not match one of the allowed values.'));
-        $objValidation->setPromptTitle(t('Allowed input'));
-        if(isset($field['settings']['allowed_values'][0]['vocabulary'])){
-          $num_sheets = count($objPHPExcel->getAllSheets());
-          if($num_sheets == 1){
-            $objPHPExcel->createSheet();
-            $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
+        if(isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values']) && count($field['settings']['allowed_values'])){
+          $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
+          $objValidation->setErrorStyle(PHPExcel_Cell_DataValidation::STYLE_STOP);
+          $objValidation->setShowDropDown(TRUE);
+          $objValidation->setErrorTitle('Input error');
+          $objValidation->setError(t('Your input did not match one of the allowed values.'));
+          $objValidation->setPromptTitle(t('Allowed input'));
+          if(isset($field['settings']['allowed_values'][0]['vocabulary'])){
+            $num_sheets = count($objPHPExcel->getAllSheets());
+            if($num_sheets == 1){
+              $objPHPExcel->createSheet();
+              $objPHPExcel->getSheet(1)->setTitle('PermittedValues');
+            }
+            // Get the vocabulary so we can get the vid.
+            $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+            $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+              'name'
+            ))->condition('vid', $vocabulary->vid)->distinct()->execute();
+            $row = 0;
+            foreach($results as $term){
+              $row++;
+              $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+            }
+            $objValidation->setPrompt(t("Only values from colum '!column' in the 'PermittedValues' worksheet are allowed.", array(
+              '!column' => $column
+            )) . "\n\n" . ($field_instance['required'] ? t('This cell may not be left blank.') : t('This cell may be left blank.')));
+            $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
+          }else{
+            $objValidation->setPrompt(t('Only one of the following values is permitted:') . "\n\n" . implode(", ", $field['settings']['allowed_values']) . "\n\n" . ($field_instance['required'] ? t('This cell may not be left blank.') : t('This cell may be left blank.')));
+            $objValidation->setFormula1('"' . implode(',', $field['settings']['allowed_values']) . '"');
           }
-          // Get the vocabulary so we can get the vid.
-          $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
-          $results = db_select('taxonomy_term_data', 't')->fields('t')->condition('vid', $vocabulary->vid)->execute();
-          $row = 0;
-          foreach($results as $term){
-            $row++;
-            $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
-          }
-          $objValidation->setPrompt(t("Only values from colum '!column' in the 'PermittedValues' worksheet are allowed.", array(
-            '!column' => $column
-          )));
-          $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
-        }else{
-          $objValidation->setPrompt(t('Only one of the following values is permitted:') . "\n\n" . implode(", ", $field['settings']['allowed_values']));
-          $objValidation->setFormula1('"' . implode(',', $field['settings']['allowed_values']) . '"');
         }
+      }else{
+        // Here we should set the title to be required, and also other random
+      // fields that aren't standard "fields".
       }
     }
   }
