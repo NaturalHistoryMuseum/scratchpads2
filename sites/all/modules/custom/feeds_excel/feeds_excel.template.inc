@@ -105,7 +105,15 @@ function feeds_excel_download_template_helper($feeds_importer){
         }
       }else{
         // Here we should set the title to be required, and also other random
-      // fields that aren't standard "fields".
+        // fields that aren't standard "fields".
+        // Set title to required.
+        if($header['target'] == 'title' && strtolower(substr(get_class($feeds_importer->processor), 5, strlen(get_class($feeds_importer->processor)) - 14)) == 'node'){
+          $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
+          $objValidation->setAllowBlank(FALSE);
+          $objValidation->setPromptTitle(t('Required'));
+          $objValidation->setPrompt(t('This cell may not be left blank'));
+          $objValidation->setShowInputMessage(TRUE);
+        }
       }
     }
   }
