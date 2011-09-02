@@ -37,10 +37,3 @@ function feeds_excel_menu(){
     )
   );
 }
-
-/**
- * Implementation of hook_menu_alter().
- */
-function feeds_excel_menu_alter(&$items){
-  $items['import']['type'] = MENU_SUGGESTED_ITEM;
-}

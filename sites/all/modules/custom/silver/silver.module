@@ -197,6 +197,14 @@ function silver_theme(){
   );
 }
 
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function silver_menu_alter(&$items){
+  $items['import']['type'] = MENU_SUGGESTED_ITEM;
+}
+
 /**
  * Theme function for the above form.
  */
