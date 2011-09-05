@@ -1,0 +1,270 @@
+<?php
+include_once ('silver.features.inc');
+
+/**
+ * hook_form_alter().
+ */
+function silver_form_alter($form, &$form_state, $form_id){
+  //dpm($form_id);
+}
+
+/**
+ * hook_form_FORM_ID_alter().
+ */
+function silver_form_feeds_import_form_alter(&$form, &$form_state){
+  // Alter the form a little, if we're viewing it on the slashEye page.
+  $form['source_status']['#weight'] = 10;
+  $form['feeds']['#weight'] = -10;
+  $form['submit']['#weight'] = 0;
+}
+
+/**
+ * Hook batch alter().
+ */
+function silver_batch_alter(&$batch){
+  if(arg(0) == 'import'){
+    $batch['redirect'] = 'i';
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function silver_menu(){
+  return array(
+    'i' => array(
+      'title' => 'Import',
+      'description' => 'Import data into your web site',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'silver_import_form'
+      ),
+      'access callback' => 'silver_access_callback'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_silver().
+ * 
+ * * type
+ * * name
+ * * access arguments
+ * * file
+ * * form_id
+ */
+function silver_silver(){
+  // Here we tell ourselves about the Feeds module forms, and suck like.
+  return array(
+    array(
+      'type' => 'Nodes',
+      'name' => 'Excel file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'create page content' // FIXME
+      ),
+      'form_id' => 'silver_pages_excel_form'
+    ),
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'Excel file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'form_id' => 'silver_taxonomy_excel_form'
+    )
+  );
+}
+
+/**
+ * If one import method that supports silver allows access to this user, then
+ * we allow the user to view the form.
+ */
+function silver_access_callback(){
+  // Note, this function conveniently loads all the required files for us,
+  // which means the submit functions should work as expected.
+  return count(silver_get_silvers());
+}
+
+/**
+ * Get an array of the silvers we can access
+ */
+function silver_get_silvers(){
+  $silvers_we_can_access = array();
+  $modules = module_implements('silver');
+  foreach($modules as $module){
+    $silvers = call_user_func($module . '_silver');
+    foreach($silvers as $info){
+      // Include the file
+      if(isset($info['file'])){
+        require_once (drupal_get_path('module', $module) . '/' . $info['file']);
+      }
+      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+      if(call_user_func_array($callback, $info['access arguments'])){
+        $info['module'] = $module;
+        $silvers_we_can_access[] = $info;
+      }
+    }
+  }
+  usort($silvers_we_can_access, 'silvers_array_sort');
+  return $silvers_we_can_access;
+}
+
+/**
+ * Usort callback.
+ */
+function silvers_array_sort($a, $b){
+  $type_diff = strcmp($a['type'], $b['type']);
+  if($type_diff !== 0){return $type_diff;}
+  return strcmp($a['name'], $b['name']);
+}
+
+/**
+ * Form
+ */
+function silver_import_form(){
+  // Get the info from the other modules that support "silver".
+  $options = array(
+    0 => t('- SELECT IMPORT -')
+  );
+  $i = 1;
+  $silvers = silver_get_silvers();
+  foreach($silvers as $info){
+    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+    if(!call_user_func_array($callback, $info['access arguments'])){
+      continue;
+    }
+    if(!isset($options[$info['type']])){
+      $options[$info['type']] = array();
+    }
+    $options[$info['type']][$i] = $info['name'];
+    $i++;
+  }
+  return array(
+    'silver_import_select' => array(
+      '#weight' => -100,
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $options,
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform"></div>'
+  );
+}
+
+/**
+ * AJAX callback
+ */
+function silver_ajax_callback($form, &$form_state){
+  if(isset($form_state['values']['silver_import_select'])){
+    $i = 1;
+    $silvers = silver_get_silvers();
+    $subforms_output = '';
+    foreach($silvers as $info){
+      if($i == $form_state['values']['silver_import_select']){
+        if($info['file']){
+          require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
+        }
+        return '<div id="silver_import_subform">' . drupal_render(drupal_get_form($info['form_id'])) . '</div>';
+      }
+      $i++;
+    }
+  }else if(isset($form_state['values']['silver_import_subform_feeds'])){
+    if($form_state['values']['silver_import_subform_feeds']){
+      module_load_include('pages.inc', 'feeds');
+      $form_state['programmed'] = TRUE;
+      $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
+      $form['#action'] = 'import/' . $form_state['values']['silver_import_subform_feeds'];
+      return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
+    }else{
+      return '<div id="silver_import_subform_feeds"></div>';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function silver_theme(){
+  return array(
+    'silver_import_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function silver_menu_alter(&$items){
+  $items['import']['type'] = MENU_SUGGESTED_ITEM;
+}
+
+/**
+ * Theme function for the above form.
+ */
+function theme_silver_import_form($variables){
+  drupal_add_css(drupal_get_path('module', 'silver') . '/css/silver.css');
+  $children = element_children($variables['form'], TRUE);
+  $output = '';
+  foreach($children as $child){
+    $output = drupal_render($child);
+  }
+  return $output;
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_excel_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  $taxonomies = array(
+    '- SELECT VOCABULARY -'
+  );
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name] = $vocabulary->name;
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_pages_excel_form
+ */
+function silver_pages_excel_form(){
+  $content_types = array(
+    '- SELECT CONTENT TYPE -'
+  );
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $node_type => $node_type_info){
+    $content_types['node_importer_' . $node_type] = $node_type_info['label'];
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#weight' => -100,
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $content_types,
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}

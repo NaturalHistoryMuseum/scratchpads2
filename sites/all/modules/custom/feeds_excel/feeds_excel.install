@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ */
+function feeds_excel_requirements($phase){
+  $requirements = array(
+    'phpexcel' => array(
+      'title' => t('PHPExcel Library'),
+      'severity' => REQUIREMENT_OK,
+      'value' => t('Not found')
+    )
+  );
+  $file = '';
+  if(function_exists('libraries_get_path')){
+    // We have libraries.  Lets get the path to the library.
+    $path = libraries_get_path('PHPExcel');
+    $file = $path . '/PHPExcel.php';
+    if(!file_exists($file)){
+      $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
+      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into a location that the Libraries module can find.  Note, you must rename the folder "PHPExcel".', array(
+        '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
+      ));
+    }
+  }else{
+    // We don't have libraries installed, so we simply check for the PHPExcel
+    // library in the feeds_excel module folder.
+    $file = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel.php';
+    if(!file_exists($file)){
+      $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
+      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into the feeds_excel module folder.  Note, you must rename the folder "PHPExcel".', array(
+        '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
+      ));
+    }
+  }
+  if($requirements['phpexcel']['severity'] == REQUIREMENT_OK && $phase != 'install'){
+    // Get the version from the file
+    $phpexcel_file_contents = file_get_contents($file);
+    $matches = array();
+    preg_match('/\*\ \@version\ *.*/', strtolower($phpexcel_file_contents), $matches);
+    if(count($matches)){
+      $matches = explode('version', $matches[0]);
+      $requirements['phpexcel']['value'] = trim($matches[1]);
+    }else{
+      $requirements['phpexcel']['value'] = 'Unknown version';
+    }
+  }
+  return $requirements;
+}
