@@ -43,6 +43,7 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   }
   $query->orderBy('l.lft');
   $result = $query->execute();
+  $terms = array();
   foreach($result as $term){
     $parents[$vid][$term->tid][] = $term->parent;
     $terms[$vid][$term->tid] = $term;
@@ -52,7 +53,9 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   }
   // Load full entities, if necessary.
   if($load_entities){
-    $term_entities = taxonomy_term_load_multiple(array_keys($terms[$vid]));
+    if(isset($terms[$vid])){
+      $term_entities = taxonomy_term_load_multiple(array_keys($terms[$vid]));
+    }
   }
   $tree = array();
   if(isset($terms[$vid])){

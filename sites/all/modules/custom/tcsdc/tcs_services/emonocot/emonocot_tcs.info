@@ -1,0 +1,5 @@
+name = emonocot TCS Provider
+description = "Allows the import of a classification from the emonocot service."
+package = "Scratchpads"
+dependencies[] = tcsdc
+core = 7.x
