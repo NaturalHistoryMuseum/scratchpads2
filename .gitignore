@@ -1,4 +1,5 @@
 *.sql
+*.dump
 .buildpath
 .cache
 .project
