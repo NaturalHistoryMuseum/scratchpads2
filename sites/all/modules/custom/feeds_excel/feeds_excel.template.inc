@@ -45,8 +45,8 @@ function feeds_excel_download_template_helper($feeds_importer){
   // Add some data
   // Add the Column headers.
   foreach($feeds_importer->processor->config['mappings'] as $key => $header){
-    $first_letter = floor(($key + 1) / 26);
-    $second_letter = ($key + 1) % 26;
+    $first_letter = floor(($key) / 26);
+    $second_letter = ($key % 26)+1;
     $cell = chr(64 + $second_letter);
     if($first_letter){
       $cell = chr(64 + $first_letter) . $cell;
