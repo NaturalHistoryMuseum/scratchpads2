@@ -1,0 +1,159 @@
+<?php
+define('EOL_QUERY_URL', 'http://services.eol.org/lifedesk/service.php?function=search&search=');
+define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function=details_tcs&id=');
+
+/**
+ * Implementation of hook_classification_import_form
+ */
+function eol_tcsdc_form($form, $form_state){
+  $eol_service_status = @strlen(file_get_contents(EOL_REQUEST_URL, 0, stream_context_create(array(
+    'http' => array(
+      'timeout' => 3
+    )
+  ))));
+  return array(
+    'eol' => array(
+      '#type' => 'fieldset',
+      '#title' => 'EOL',
+      '#description' => 'Import a classification directly from EOL' . theme('advanced_help_topic', 'eol', 'overview'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'eol-status' => array(
+        '#weight' => -10,
+        '#type' => 'markup',
+        '#markup' => $eol_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The EOL classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The EOL classification service (<a href="' . EOL_REQUEST_URL . '">' . (strpos(EOL_REQUEST_URL, '?') ? substr(EOL_REQUEST_URL, 0, strpos(EOL_REQUEST_URL, '?')) : EOL_REQUEST_URL) . '</a>) does not appear to be running.  Please try again later.</div>'
+      ),
+      'eol-name' => array(
+        '#weight' => -5,
+        '#type' => 'textfield',
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#attributes' => array(
+          'onkeypress' => 'if(event.keyCode == 13){return false;}else{return true}'
+        )
+      ),
+      'eol-search' => array(
+        '#weight' => 0,
+        '#type' => 'button',
+        '#value' => 'Search EOL',
+        '#title' => 'Search EOL',
+        '#disabled' => $eol_service_status ? FALSE : TRUE,
+        '#ajax' => array(
+          'callback' => 'eol_classifications_js',
+          'event' => 'click',
+          'wrapper' => 'eol-import-full'
+        )
+      ),
+      'import-full' => array(
+        '#weight' => 5,
+        '#markup' => '<div id="eol-import-full" style="clear:both"><input name="eol-import-id" style="display:none"/></div>'
+      ),
+      'submit-eol' => array(
+        '#weight' => 10,
+        '#disabled' => $eol_service_status ? FALSE : TRUE,
+        '#type' => 'submit',
+        '#title' => t('Import from EOL'),
+        '#value' => t('Import from EOL'),
+        '#submit' => array(
+          'eol_submit'
+        ),
+        '#validate' => array(
+          'eol_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="eol-import-id"]' => array(
+              'value' => ''
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Callback for the ajax
+ */
+function eol_classifications_js($form, $form_state){
+  // We rebuild the form here, and output only the bit that we need (the eol 
+  // options).
+  //sleep(30);
+  $url = EOL_QUERY_URL . urlencode($_POST['eol-name']);
+  $eol_xml = file_get_contents($url);
+  if($eol_xml){
+    $eol_xml = new SimpleXMLElement($eol_xml);
+    $num_results = count($eol_xml->value);
+    $options = array();
+    for($i = 0; $i < $num_results; $i++){
+      $options[check_plain($eol_xml->value[$i]->id) . '|' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms)] = check_plain($eol_xml->value[$i]->ancestry . '|' . $eol_xml->value[$i]->name) . " <br/>(" . l($eol_xml->value[$i]->metadata->title, $eol_xml->value[$i]->metadata->url, array(
+        'abosulte' => 1
+      )) . ') [approx. ' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms) . ' taxa]';
+    }
+  }
+  $form['eol']['eol-import-id'] = array(
+    '#weight' => 5,
+    '#name' => 'eol-import-id',
+    '#type' => 'radios',
+    '#title' => t('Import from Classification'),
+    '#default_value' => '',
+    '#options' => $options,
+    '#parents' => array(
+      'eol-import-id'
+    ),
+    '#prefix' => '<div id="eol-import-full" style="clear:both">',
+    '#suffix' => '</div>'
+  );
+  form_set_cache($form['#build_id'], $form, $form_state);
+  // The following few lines of code are clearly not right.  I shouldn't have
+  // to manually set the '#name' for each 'radio' element within the radios
+  // element.  Ah well, it works!
+  $form_to_return = form_process_radios($form['eol']['eol-import-id']);
+  $children = element_children($form_to_return);
+  foreach($children as $key){
+    $form_to_return[$key]['#name'] = 'eol-import-id';
+  }
+  $output = drupal_render($form_to_return);
+  drupal_get_messages();
+  return $output;
+}
+
+/**
+ * Validate the form
+ */
+function eol_validate($form, &$form_state){
+  // Lets just check that the eol-import-id is set in #post, and that it is
+  // numeric (is this likely to change Patrick?).
+  if(!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2)){
+    form_set_error('eol-import-id', t('Please ensure you select a classification to import.'));
+  }
+}
+
+/**
+ * Callback function when pressing "Import from EOL"
+ */
+function eol_submit($form, $form_state){
+  // Added for D7 to prevent errors on submission/testing.
+  $parts = explode("|", $form_state['values']['eol-import-id']);
+  $batch = array(
+    'operations' => array(
+      array(
+        'tcsdc_batch_downloader',
+        array(
+          array(
+            EOL_REQUEST_URL . $parts[0]
+          ),
+          $parts[1]
+        )
+      ),
+      array(
+        'tcsdc_generate_tab_file',
+        array()
+      )
+    ),
+    'title' => t('Importing'),
+    // We use a single multi-pass operation, so the default
+    // 'Remaining x of y operations' message will be confusing here.
+    'error_message' => t('The import has encountered an error.')
+  );
+  batch_set($batch);
+}

@@ -190,6 +190,7 @@ Drupal.jsAC.prototype.populatePopup = function () {
   this.selected = false;
   this.popup = $('<div id="autocomplete"></div>')[0];
   this.popup.owner = this;
+  $($input).parent().css('position', 'relative');
   $(this.popup).css({
     top: parseInt(position.top + this.input.offsetHeight, 10) + 'px',
     left: parseInt(position.left, 10) + 'px',
