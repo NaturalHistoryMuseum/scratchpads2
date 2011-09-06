@@ -52,8 +52,9 @@
     } else {
       name_no_array = name;
     }
-    if(Drupal['settings']['term_reference_tree'][name_no_array]) {
+    if(Drupal['settings']['term_reference_tree'][name_no_array] && Drupal['settings']['term_reference_tree'][name_no_array]['max']>0) {
       var checked_count = $('input[name="' + item.attr('name') + '"]:checked').length;
+      console.log(Drupal['settings']['term_reference_tree']);
       if(checked_count >= Drupal['settings']['term_reference_tree'][name_no_array]['max']) {
         $('input[name="' + item.attr('name') + '"]:not(:checked)').attr(
             'disabled', 'disabled');

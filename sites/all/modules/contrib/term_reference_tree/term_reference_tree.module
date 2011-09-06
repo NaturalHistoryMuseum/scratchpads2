@@ -325,8 +325,8 @@ function term_reference_tree_field_widget_form(&$form, &$form_state, $field, $in
     '#tid' => 0,
     '#value_callback' => '_term_reference_tree_widget_set_values',
     '#default_value' => $default_value,
-    '#leaves_only' => $instance['widget']['settings']['leaves_only'],
-    '#link_terms' => $instance['widget']['settings']['link_terms'],
+    '#leaves_only' => isset($instance['widget']['settings']['leaves_only']) ? $instance['widget']['settings']['leaves_only'] : 0,
+    '#link_terms' => isset($instance['widget']['settings']['link_terms']) ? $instance['widget']['settings']['link_terms'] : 1,
     '#element_validate' => array(
       '_term_reference_tree_widget_validate'
     )
@@ -377,7 +377,7 @@ function _term_reference_tree_widget_validate(&$element, &$form_state){
     }
   }
   // Check the count is allowed
-  if($element['#multiple'] && count($element['#value']) > $element['#multiple']){
+  if($element['#multiple'] > 0 && count($element['#value']) > $element['#multiple']){
     form_set_error($element['#field_name'], t('You have selected too many terms, only !number allowed', array(
       '!number' => format_plural($element['#multiple'], 'one is', '!number are', array(
         '!number' => $element['#multiple']
