@@ -8,21 +8,6 @@
  */
 
 /**
- * Implements of hook_schema().
- */
-function taxonomy_manager_schema() {
-  $schema['taxonomy_manager_merge'] = array( 
-    'fields' => array( 
-      'main_tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'merged_tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-    ),
-    'primary key' => array('merged_tid'),
-  );
-  return $schema;
-}
-
-
-/**
  * Implements hook_update_N().
  * Resets 'taxonomy_override_selector' variable.
  */
@@ -30,4 +15,11 @@ function taxonomy_manager_update_7001() {
   // remove parent selector in core taxonomy term edit pages
   variable_set('taxonomy_override_selector', FALSE);
   return t('Successfully updated Taxonomy Manager settings.');
+}
+
+/**
+ * Remove merge_redirect variable.
+ */
+function taxonomy_manager_update_7002() {
+  variable_del('taxonomy_manager_disable_merge_redirect');
 }
