@@ -1,0 +1,9 @@
+.tui-has-children.tui-closed{
+ color:red;
+}
+.tui-has-children.tui-open{
+ color:blue;
+}
+.tui-no-children{
+ color:green;
+}
