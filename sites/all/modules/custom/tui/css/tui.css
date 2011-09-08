@@ -1,3 +1,39 @@
+/* AJAX */
+.progress-disabled,.ajax-progress,.throbber,.edit-term-link{
+ float:right !important;
+ border:none !important;
+}
+
+/* MAIN TUI ELEMENT */
+#tui{
+ position:relative;
+ font-size:90%;
+ line-height:150%;
+}
+#help{
+ /* HIDE HELP */	
+ display:none;
+}
+
+#tui-tree-container, #tui-form-container{
+ padding:15px;
+ border:solid 1px #eee;
+ margin:5px;
+ text-align:justify;
+ color:black;
+ background-color:white;
+ position:relative;
+ top:20px;
+}
+#tui-name-editing{
+ position:absolute;
+ top:-10px;
+ right:0;
+ text-align:right;
+}
+
+/* TREE */
+
 .tui-has-children.tui-closed>div>span{
  background-image:url('images/plus.gif');
 }
@@ -10,17 +46,61 @@
 .tui-has-children.tui-load>div>span{
  background-image:url('images/load.gif');	
 }
-.tui span{
+#tui-tree span{
  background-repeat:no-repeat;
- background-position:0 50%;
+ background-position:50% 50%;
  padding-left:20px;
  width:16px;
  height:16px;
+ cursor:pointer;
 }
-.tui li{
+#tui-tree a.edit-term-link{
+ background:none;
+ display:none;
+ margin-right:2px;
+}
+#tui-tree li div  {
+ background-color:#f5f5ff;
+ padding:0;
  margin:0;
- width:300px;
+ cursor:move;
+ border:solid 1px #f3f3f3;
 }
-.tui{
-	background-color:#ddffdd;
+.placeholder {
+ background-color: #cfcfcf;
+}
+.ui-nestedSortable-error {
+ background:#fbe3e4;
+ color:#8a1f11;
+}
+#tui-tree ol{
+ margin: 0 0 0 25px;
+ padding: 0;
+ list-style-type: none;
+}
+#tui-tree-container>ol{
+ margin:0;
+}
+#tui-tree li {
+ margin: 3px 0 0 0;
+ padding: 0;
+}
+#tui-tree, #tui-form{
+ margin:0;
+ padding:0;
+ width:49%;
+}
+#tui-form{
+ float:right;
+}
+#tui-tree{
+ float:left;
+}
+
+/* FORM */
+
+.ui-tabs-panel > fieldset, #tui-tree-container, #tui-form-container, #tui-link-box{
+ -moz-box-shadow: 2px 2px 2px #999;
+ -webkit-box-shadow: 2px 2px 2px #999;
+ box-shadow: 2px 2px 2px #999;
 }

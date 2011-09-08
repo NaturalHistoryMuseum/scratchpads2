@@ -20,17 +20,28 @@ function theme_tui_page($variables){
   drupal_add_js(drupal_get_path('module', 'tui') . '/js/tui.js');
   drupal_add_js(array(
     'tui' => array(
-      'callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/callback')
+      'callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/callback'),
+      'form_callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback')
     )
   ), 'setting');
   drupal_add_library('tui', 'ui.nestedSortable');
-  // We're unable to use the same functions as the Tinytax module, due to the
-  // fact that the Tinytax module uses Nested lists, which simply would not
-  // work with this module.  We instead need to use a flat list to allow the
-  // terms to be sorted easily.
-  return '<div class="tui">' . theme('tui_branch', array(
+  drupal_add_library('system', 'drupal.ajax');
+  return '
+<div id="tui">
+	<div id="tui-tree">
+		<div id="tui-tree-container">' . theme('tui_branch', array(
     'vid' => $variables['vocabulary']->vid
-  )) . '</div>';
+  )) . '
+  	</div>
+  </div>
+  <div id="tui-form">
+  	<div id="tui-form-container">
+      <div id="tui-form-noform">' . tui_help('admin/content/taxonomy/edit/tui', array()) . '</div>
+  	</div>
+  	<h2 id="tui-name-editing">Name being edited</h2>
+  </div>
+  <div style="clear:both;">&nbsp;</div>
+</div>';
 }
 
 /**
@@ -41,6 +52,17 @@ function tui_hierarchy_page_callback($vocabulary, $term){
     'vid' => $vocabulary->vid,
     'tid' => $term->tid
   )));
+  exit();
+}
+
+/**
+ * JSON Callback to get a term form
+ */
+function tui_form_callback($vocabulary, $term){
+  module_load_include('admin.inc', 'taxonomy');
+  print ajax_render(array(
+    ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
+  ));
   exit();
 }
 
@@ -71,11 +93,17 @@ function theme_tui_term($variables){
   foreach($parents as $parent){
     $data .= ' data-tui-child-of="' . $parent->tid . '"';
   }
-  $data .= ' data-tui-this-term="' . $variables['term']->tid . '" data-tui-depth="'.$variables['depth'].'"';
+  $data .= ' data-tui-this-term="' . $variables['term']->tid . '" data-tui-depth="' . $variables['depth'] . '"';
   // Calculate class based on children
   $class = 'tui-no-children';
   if(count(taxonomy_get_children($variables['term']->tid, $variables['term']->vid))){
     $class = 'tui-has-children tui-closed tui-never-opened';
   }
-  return '<li'.$data.' class="'.$class.'"><div><span>&nbsp;</span>' . check_plain($variables['term']->name) . '</div></li>';
+  $vocabulary = taxonomy_vocabulary_load($variables['term']->vid);
+  return '<li' . $data . ' class="' . $class . '"><div><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/hierarchy/form_callback/' . $variables['term']->tid, array(
+    'attributes' => array(
+      'class' => 'edit-term-link use-ajax',
+      'data-tui-this-term' => $variables['term']->tid
+    )
+  )) . '</li>';
 }
