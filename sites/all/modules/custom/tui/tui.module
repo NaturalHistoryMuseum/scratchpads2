@@ -31,6 +31,15 @@ function tui_menu(){
       ),
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
+    ),
+    'tui/ajax' => array(
+      'title' => 'AHAH callback',
+      'page callback' => 'tui_ajax_form_callback',
+      'delivery callback' => 'ajax_deliver',
+      'access callback' => TRUE,
+      'theme callback' => 'ajax_base_page_theme',
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.ajax.inc'
     )
   );
 }
@@ -40,17 +49,10 @@ function tui_menu(){
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   $form['actions']['submit']['#ajax'] = array(
-    'callback' => 'tui_term_submit'
+    'path' => 'tui/ajax',
+    'callback' => 'tui_ajax_form_callback_callback',
+    'wrapper' => 'taxonomy-form-term'
   );
-}
-
-/**
- * Callback function for submitting the term form
- */
-function tui_term_submit($form, &$form_state){
-  module_load_include('admin.inc', 'taxonomy');
-  taxonomy_form_term_submit($form, $form_state);
-  return 'Shit yeah';
 }
 
 /**
@@ -111,21 +113,27 @@ function tui_theme(){
   return array(
     'tui_page' => array(
       'variables' => array(
-        'vocabulary' => NULL
+        'vocabulary' => NULL,
+        'tids' => array(),
+        'highlight_tids' => array()
       ),
       'file' => 'tui.admin.inc'
     ),
     'tui_branch' => array(
       'variables' => array(
         'vocabulary' => NULL,
-        'tid' => NULL,
-        'tid' => 0
+        'tid' => 0,
+        'tids' => array(),
+        'highlight_tids' => array()
       ),
       'file' => 'tui.admin.inc'
     ),
     'tui_term' => array(
       'variables' => array(
-        'term' => NULL
+        'vocabulary' => NULL,
+        'term' => NULL,
+        'tids' => array(),
+        'highlight_tids' => array()
       ),
       'file' => 'tui.admin.inc'
     )

@@ -66,6 +66,9 @@
  cursor:move;
  border:solid 1px #f3f3f3;
 }
+#tui-tree li div.tui-highlight{
+ background-color:#ffff83;
+}
 .placeholder {
  background-color: #cfcfcf;
 }
