@@ -48,37 +48,30 @@ function _tui_get_tids_from_string($vocabulary, $string, $parents = TRUE){
 }
 
 /**
- * Theme for the TUI page
+ * Autocomplete callback
  */
-function theme_tui_page($variables){
-  drupal_add_css(drupal_get_path('module', 'tui') . '/css/tui.css');
-  drupal_add_js(drupal_get_path('module', 'tui') . '/js/tui.js');
-  drupal_add_js(array(
-    'tui' => array(
-      'callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/callback'),
-      'form_callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback')
-    )
-  ), 'setting');
-  drupal_add_library('tui', 'ui.nestedSortable');
-  drupal_add_library('system', 'drupal.ajax');
-  return '
-<div id="tui">
-	<div id="tui-tree">
-		<div id="tui-tree-container">' . theme('tui_branch', array(
-    'vocabulary' => $variables['vocabulary'],
-    'tids' => $variables['tids'],
-    'highlight_tids' => $variables['highlight_tids']
-  )) . '
-  	</div>
-  </div>
-  <div id="tui-form">
-  	<div id="tui-form-container">
-      <div id="tui-form-noform">' . tui_help('admin/content/taxonomy/edit/tui', array()) . '</div>
-  	</div>
-  	<h2 id="tui-name-editing">Name being edited</h2>
-  </div>
-  <div style="clear:both;">&nbsp;</div>
-</div>';
+/**
+ * Helper function for autocompletion
+ */
+function tui_autocomplete($vid, $search = ''){
+  $query = db_select('taxonomy_term_data', 't');
+  $query->addTag('translatable');
+  $query->addTag('term_access');
+  // Select rows that match by term name.
+  $tags_return = $query->fields('t', array(
+    'tid',
+    'name'
+  ))->condition('t.vid', $vid)->condition('t.name', db_like($search) . '%', 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+  $term_matches = array();
+  foreach($tags_return as $tid => $name){
+    $n = $name;
+    // Term names containing commas or quotes must be wrapped in quotes.
+    if(strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE){
+      $n = '"' . str_replace('"', '""', $name) . '"';
+    }
+    $term_matches[$n] = check_plain($name);
+  }
+  drupal_json_output($term_matches);
 }
 
 /**
@@ -95,63 +88,148 @@ function tui_hierarchy_page_callback($vocabulary, $term){
 /**
  * AJAX Callback to get a term form
  */
-function tui_form_callback($vocabulary, $term){
-  module_load_include('admin.inc', 'taxonomy');
-  print ajax_render(array(
-    ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
-  ));
-  exit();
+function tui_form_callback($vocabulary, $action, $tids){
+  switch($action){
+    case 'edit-form':
+      // We can only show one form
+      $tids = explode(',', $tids);
+      $term = taxonomy_term_load($tids[0]);
+      module_load_include('admin.inc', 'taxonomy');
+      print ajax_render(array(
+        ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
+      ));
+      exit();
+    case 'delete-form':
+      print ajax_render(array(
+        ajax_command_html('#tui-tree-form', drupal_render(drupal_get_form('tui_taxonomy_form_term_delete', $tids))),
+        ajax_command_invoke('#tui-tree-form', 'show')
+      ));
+      exit();
+    case 'search-form':
+      print ajax_render(array(
+        ajax_command_html('#tui-tree-form', drupal_render(drupal_get_form('tui_search_form', $tids))),
+        ajax_command_invoke('#tui-tree-form', 'show')
+      ));
+      exit();
+  }
 }
 
 /**
- * tinytax_branch theme function
+ * TUI autocomplete search form
  */
-function theme_tui_branch($variables){
-  // Get the terms to render
-  $terms = taxonomy_get_tree($variables['vocabulary']->vid, $variables['tid'], 1, TRUE);
-  // Get the depth
-  $depth = count(taxonomy_get_parents_all($variables['tid']));
-  $output = '<ol>';
-  foreach($terms as $term){
-    $output .= theme('tui_term', array(
-      'vocabulary' => $variables['vocabulary'],
-      'term' => $term,
-      'tids' => $variables['tids'],
-      'highlight_tids' => $variables['highlight_tids']
-    ));
-  }
-  return $output . '</ol>';
-}
-
-/**
- * Theme a single term, depending on its depth within the taxonomy
- */
-function theme_tui_term($variables){
-  $parents = taxonomy_get_parents($variables['term']->tid);
-  $data = '';
-  foreach($parents as $parent){
-    $data .= ' data-tui-child-of="' . $parent->tid . '"';
-  }
-  $data .= ' data-tui-this-term="' . $variables['term']->tid . '"';
-  // Calculate class based on children
-  $class = 'tui-no-children';
-  if(count(taxonomy_get_children($variables['term']->tid, $variables['term']->vid))){
-    if(in_array($variables['term']->tid, $variables['tids'])){
-      $class = 'tui-has-children tui-open';
-    } else {
-      $class = 'tui-has-children tui-closed tui-never-opened';
-    }
-  }
-  $vocabulary = taxonomy_vocabulary_load($variables['term']->vid);
-  return '<li' . $data . ' class="' . $class . '"><div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/hierarchy/form_callback/' . $variables['term']->tid, array(
-    'attributes' => array(
-      'class' => 'edit-term-link use-ajax',
-      'data-tui-this-term' => $variables['term']->tid
+function tui_search_form($form, &$form_state, $vid){
+  $ajax = array(
+    'path' => 'tui/ajax',
+    'callback' => 'tui_ajax_blank',
+    'wrapper' => 'tui-tree-form',
+    'effect' => 'slide'
+  );
+  return array(
+    'tui-search-input' => array(
+      '#autocomplete_path' => 'tui/autocomplete/' . $vid,
+      '#size' => FALSE,
+      '#type' => 'textfield',
+      '#title' => ''
+    ),
+    'tui-vid' => array(
+      '#value' => $vid,
+      '#type' => 'value'
+    ),
+    'tui-search-input-button' => array(
+      '#type' => 'submit',
+      '#value' => 'Search',
+      '#ajax' => $ajax
+    ),
+    'tui-cancel-input-button' => array(
+      '#type' => 'button',
+      '#value' => 'Cancel',
+      '#ajax' => $ajax
     )
-  )) . '</div>' . (in_array($variables['term']->tid, $variables['tids']) ? theme('tui_branch', array(
-    'vocabulary' => $variables['vocabulary'],
-    'tids' => $variables['tids'],
-    'tid' => $variables['term']->tid,
-    'highlight_tids' => $variables['highlight_tids']
-  )) : '') . '</li>';
+  );
+}
+
+/**
+ * search submit
+ */
+function tui_search_form_submit(&$form, &$form_state){
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('t.name', db_like($form_state['values']['tui-search-input']), 'LIKE')->execute();
+  $highlight_tids = array();
+  $open_tids = array();
+  foreach($results as $row){
+    $parents = taxonomy_get_parents_all($row->tid);
+    array_shift($parents);
+    foreach($parents as $parent){
+      $open_tids[] = $parent->tid;
+    }
+    $highlight_tids[] = $row->tid;
+  }
+  $html = theme('tui_branch', array(
+    'vocabulary' => taxonomy_vocabulary_load($form_state['values']['tui-vid']),
+    'tids' => $open_tids,
+    'highlight_tids' => $highlight_tids
+  ));
+  //$('#tui-tree-subcontainer').animate({scrollTop:$(element).position().top+$('#tui-tree-subcontainer').scrollTop()-50}, 500);
+  $form_state['tui-ajax'] = array(
+    ajax_command_html('#tui-tree-subcontainer', $html),
+    ajax_command_invoke('#tui-tree', 'resize')
+  );
+}
+
+/**
+ * tui_taxonomy_form_term_delete
+ */
+function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
+  $tids = explode(",", $tids);
+  $terms = taxonomy_term_load_multiple($tids);
+  $term_names = array();
+  $tids = array();
+  foreach($terms as $term){
+    $term_names[] = $term->name;
+    $tids[] = $term->tid;
+  }
+  $ajax = array(
+    'path' => 'tui/ajax',
+    'callback' => 'tui_ajax_blank',
+    'wrapper' => 'tui-tree-form',
+    'effect' => 'slide'
+  );
+  return array(
+    '#ajax' => $ajax,
+    'you_sure' => array(
+      '#markup' => t('Are you sure you would like to delete the highlighted terms and their children?') . theme('item_list', array(
+        'items' => $term_names
+      ))
+    ),
+    'tids' => array(
+      '#type' => 'value',
+      '#value' => $tids
+    ),
+    'cancel' => array(
+      '#type' => 'button',
+      '#title' => t('Cancel'),
+      '#value' => t('Cancel'),
+      '#ajax' => $ajax
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#title' => t('Delete'),
+      '#value' => t('Delete'),
+      '#ajax' => $ajax
+    )
+  );
+}
+
+/**
+ * tui_taxonomy_form_term_delete_submit()
+ */
+function tui_taxonomy_form_term_delete_submit(&$form, &$form_state){
+  // We have passed validation, lets delete the terms.
+  foreach($form_state['values']['tids'] as $tid){
+    taxonomy_term_delete($tid);
+  }
+  $form_state['tui-ajax'] = array(
+    ajax_command_remove('.tui-highlight')
+  );
 }

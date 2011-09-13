@@ -5,6 +5,7 @@
  */
 function tui_menu(){
   return array(
+    // Callback to get a branch.
     'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/callback/%taxonomy_term' => array(
       'title' => 'TUI callback',
       'page callback' => 'tui_hierarchy_page_callback',
@@ -18,20 +19,24 @@ function tui_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
     ),
-    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/%taxonomy_term' => array(
+    // Callback to get all forms.
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/%/%' => array(
       'title' => 'TUI form callback',
       'page callback' => 'tui_form_callback',
       'page arguments' => array(
         3,
-        6
+        6,
+        7
       ),
-      'access callback' => 'taxonomy_term_edit_access',
+      'access callback' => 'tui_taxonomy_term_edit_access',
       'access arguments' => array(
-        6
+        7
       ),
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
     ),
+    // Callback for submitting forms (Drupal's own Ajax submit doesn't allow us
+    // to include additional files for the submission).
     'tui/ajax' => array(
       'title' => 'AHAH callback',
       'page callback' => 'tui_ajax_form_callback',
@@ -40,19 +45,55 @@ function tui_menu(){
       'theme callback' => 'ajax_base_page_theme',
       'type' => MENU_CALLBACK,
       'file' => 'tui.ajax.inc'
+    ),
+    // Autocomplete callback for the search form
+    'tui/autocomplete' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'tui_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.admin.inc'
     )
   );
+}
+
+/**
+ * Multiple term edit access callback.
+ */
+function tui_taxonomy_term_edit_access($form, $args){
+  switch($form){
+    case 'search-form':
+      break;
+    default:
+      // We load all terms to ensure that they're in the same vocabulary.
+      $tids = explode(",", $args);
+      $terms = taxonomy_term_load_multiple($tids);
+      foreach($terms as $term){
+        if(!is_object($term) || !taxonomy_term_edit_access($term)){return FALSE;}
+      }
+      return TRUE;
+  }
 }
 
 /**
  * Implementation of hook_form_FORM_ID_alter().
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
-  $form['actions']['submit']['#ajax'] = array(
-    'path' => 'tui/ajax',
-    'callback' => 'tui_ajax_form_callback_callback',
-    'wrapper' => 'taxonomy-form-term'
-  );
+  if(arg(5) == 'form_callback'){
+    $form['actions']['submit']['#ajax'] = array(
+      'path' => 'tui/ajax',
+      'callback' => 'tui_ajax_form_callback_callback',
+      'wrapper' => 'taxonomy-form-term'
+    );
+  }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
+    if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
+      //drupal_goto('admin/structure/taxonomy/'.$form['#vocabulary']->machine_name.'//'.$form['#term']['tid']);exit;
+    }
+  }else if(arg(0) == 'admin' && arg(1) == 'structure' && arg(2) == 'taxonomy' && arg(4) == 'add'){
+    // FIXME - Add redirect to add a new name.
+  }
 }
 
 /**
@@ -117,7 +158,7 @@ function tui_theme(){
         'tids' => array(),
         'highlight_tids' => array()
       ),
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.theme.inc'
     ),
     'tui_branch' => array(
       'variables' => array(
@@ -126,7 +167,7 @@ function tui_theme(){
         'tids' => array(),
         'highlight_tids' => array()
       ),
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.theme.inc'
     ),
     'tui_term' => array(
       'variables' => array(
@@ -135,7 +176,7 @@ function tui_theme(){
         'tids' => array(),
         'highlight_tids' => array()
       ),
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.theme.inc'
     )
   );
 }
