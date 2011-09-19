@@ -163,7 +163,7 @@
 #tui-tree-links{
  text-align:right;
  border-bottom:solid 1px #eee;
- padding-top:3px;
+ padding:3px 3px 0 0;
 }
 #tui-tree-links p{
  margin:0;

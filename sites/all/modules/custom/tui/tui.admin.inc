@@ -17,6 +17,30 @@ function tui_hierarchy_page($vocabulary, $tids = FALSE, $highlight_tids = FALSE)
 }
 
 /**
+ * Sort stuff
+ */
+function tui_sort_callback(){
+  $post=$_POST;
+  if(isset($_POST['parent_change'])){
+    $term = taxonomy_term_load($_POST['parent_change']['tid']);
+    $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
+    taxonomy_term_save($term); 
+  }
+  if(isset($_POST['sort_change'])){
+    $tids = explode(",", $_POST['sort_change']['tids']);
+    $weight = 0;
+    foreach($tids as $tid){
+      $term = taxonomy_term_load($tid);
+      $term->weight = $weight;
+      taxonomy_term_save($term);
+      $weight ++;
+    }
+  }
+  print ajax_render(array());
+  exit();
+}
+
+/**
  * Get array of tids from comma delimited string
  */
 function _tui_get_tids_from_string($vocabulary, $string, $parents = TRUE){

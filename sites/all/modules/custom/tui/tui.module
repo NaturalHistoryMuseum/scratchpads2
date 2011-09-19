@@ -35,6 +35,14 @@ function tui_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
     ),
+    // Callback for after a sort.
+    'tui/sort' => array(
+      'title' => 'TUI sort callback',
+      'page callback' => 'tui_sort_callback',
+      'access callback' => 'tui_sort_access',
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.admin.inc'    
+    ),
     // Callback for submitting forms (Drupal's own Ajax submit doesn't allow us
     // to include additional files for the submission).
     'tui/ajax' => array(
@@ -75,6 +83,15 @@ function tui_taxonomy_term_edit_access($form, $args){
       }
       return TRUE;
   }
+}
+
+/**
+ * Sort form access callback
+ */
+function tui_sort_access(){
+  // FIXME - Check we have access to edit ALL the terms we have been sent.
+  $post = $_POST;
+  return TRUE;
 }
 
 /**

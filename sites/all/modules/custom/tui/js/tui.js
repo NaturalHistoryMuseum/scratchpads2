@@ -213,6 +213,32 @@
                 ui.item.parent().parent().addClass('tui-has-children');
                 Drupal.attachBehaviors(ui.item.parent().parent().parent());
               }
+              var tids_sorted = '';
+              $(ui.item).parent().children('li').each(function(){
+                if(tids_sorted != '') {
+                  tids_sorted += ',';
+                }
+                tids_sorted += $(this).data('tui-this-term');
+              });
+              var ajax_data = {
+                parent_change:{
+                  tid:ui.item.data('tui-this-term'),
+                  parent:ui.item.data('tui-child-of')
+                },
+                sort_change:{
+                  tids:tids_sorted
+                }
+              };
+              var original_nested_sortable = $(this);
+              $.ajax({
+                data:ajax_data,
+                type:'POST',
+                url:Drupal.settings.tui.sort_callback,
+                error: function(data, textStatus, jqXHR){
+                  original_nested_sortable.nestedSortable('cancel');
+                  $('#tui-tree-form').html('<div class="messages error"><h2 class="element-invisible">Error message</h2>'+Drupal.t('There has been an error.  Please reload this page.')+'</div>').slideDown();
+                }                
+              });
             }
           });
     }
