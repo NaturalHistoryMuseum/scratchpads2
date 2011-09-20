@@ -39,7 +39,6 @@ function theme_tui_page($variables){
         </p>
       </div>
       <div id="tui-tree-form">
-      	<p>Stuff</p>
       </div>
 			<div id="tui-tree-subcontainer">' . theme('tui_branch', array(
     'vocabulary' => $variables['vocabulary'],

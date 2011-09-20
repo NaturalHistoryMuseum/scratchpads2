@@ -29,6 +29,9 @@
  position:relative;
  top:20px;
 }
+#tui-form-container input{
+ max-width:98%;
+}
 #tui-name-editing{
  position:absolute;
  top:-10px;
@@ -153,8 +156,8 @@
 #tui-tree-form input.form-autocomplete{
  padding:2px;
 }
-#tui-tree-form .ajax-progress-throbber{
- display:none;
+#tui-tree-form .progress-disabled{
+ float:none !important;
 }
 
 
