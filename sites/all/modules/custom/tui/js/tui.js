@@ -103,6 +103,7 @@
               $.getJSON(Drupal.settings.tui.callback + "/"
                   + $(this).parent().parent().data('tui-this-term'), function(
                 data){
+                clicked_term.parent().parent().children('ol').remove();
                 clicked_term.parent().parent().append(data);
                 Drupal.tui.resize_frame();
                 clicked_term.parent().parent().removeClass('tui-load');
@@ -234,11 +235,36 @@
                 data:ajax_data,
                 type:'POST',
                 url:Drupal.settings.tui.sort_callback,
+                success:function(data, textStatus, jqXHR){
+                  if (typeof data == 'string') {
+                    data = $.parseJSON(data);
+                  }
+                  for (var i in data) {
+                    if (data[i]['command']) {
+                      if(data[i]['command'] == 'settings'){
+                        if (data.merge) {
+                          $.extend(true, Drupal.settings, data.settings);
+                        }
+                      } else if (data[i]['command'] == 'insert'){
+                        console.log(data[i]);
+                      }
+                    }
+                  }
+                },
                 error: function(data, textStatus, jqXHR){
                   original_nested_sortable.nestedSortable('cancel');
                   $('#tui-tree-form').html('<div class="messages error"><h2 class="element-invisible">Error message</h2>'+Drupal.t('There has been an error.  Please reload this page.')+'</div>').slideDown();
                 }                
               });
+              /*var element_settings = {};
+              // Clicked links look better with the throbber than the progress bar.
+              element_settings.progress = { 'type': 'none' };
+              element_settings.url = Drupal.settings.tui.sort_callback;
+              element_settings.event = 'click';
+              var base = 'tui-sorted-item';
+              Drupal.ajax[base] = new Drupal.ajax(base, ui.item, element_settings);
+              ui.item.click();
+              ui.item.unbind('click');*/
             }
           });
     }

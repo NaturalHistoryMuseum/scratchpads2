@@ -26,14 +26,14 @@ function theme_tui_page($variables){
         <p>
           <img id="tui-add" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/add.png" alt="' . t('Add term') . '" title="' . t('Add term') . '"/>
           <img id="tui-delete" data-url="' . $form_url . 'delete-form/" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/delete.png" alt="' . t('Delete term') . '" title="' . t('Delete term') . '"/>
-          <img id="tui-undo" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/undo.png" alt="' . t('Undo move') . '" title="' . t('Undo move') . '"/>
+          <!-- <img id="tui-undo" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/undo.png" alt="' . t('Undo move') . '" title="' . t('Undo move') . '"/> -->
           ' . (module_exists('silver-FIXME') ? l('<img id="tui-import" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/import.png" alt="' . t('Import') . '" title="' . t('Import') . '"/>', 'i', array(
     'html' => TRUE,
     'attributes' => array(
       'target' => '_blank'
     )
   )) : '') . '
-          <img id="tui-link" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/link.png" alt="' . t('Link to this page') . '" title="' . t('Link to this page') . '"/>
+          <!-- <img id="tui-link" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/link.png" alt="' . t('Link to this page') . '" title="' . t('Link to this page') . '"/> -->
           <img id="tui-search" data-url="' . $form_url . 'search-form/' . $variables['vocabulary']->vid . '" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/search.png" alt="' . t('Search') . '" title="' . t('Search') . '"/>
           <a id="tui-click"></a>
         </p>
@@ -51,7 +51,6 @@ function theme_tui_page($variables){
   	<div id="tui-form-container">
       <div id="tui-form-noform">' . tui_help('admin/content/taxonomy/edit/tui', array()) . '</div>
   	</div>
-  	<h2 id="tui-name-editing">Name being edited</h2>
   </div>
   <div style="clear:both;">&nbsp;</div>
 </div>';

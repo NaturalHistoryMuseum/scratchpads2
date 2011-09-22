@@ -20,23 +20,33 @@ function tui_hierarchy_page($vocabulary, $tids = FALSE, $highlight_tids = FALSE)
  * Sort stuff
  */
 function tui_sort_callback(){
-  $post=$_POST;
+  $results = array();
   if(isset($_POST['parent_change'])){
     $term = taxonomy_term_load($_POST['parent_change']['tid']);
-    $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
-    taxonomy_term_save($term); 
+    if($term){
+      $term->parent = isset($_POST['parent_change']['parent']) ? $_POST['parent_change']['parent'] : 0;
+      taxonomy_term_save($term);
+    } else {
+      $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>'.t('There has been an error.  Please reload this page.').'</div>');
+      watchdog('femail', 'Attempted to move a nonexistent term');
+    }
   }
   if(isset($_POST['sort_change'])){
     $tids = explode(",", $_POST['sort_change']['tids']);
     $weight = 0;
     foreach($tids as $tid){
       $term = taxonomy_term_load($tid);
-      $term->weight = $weight;
-      taxonomy_term_save($term);
-      $weight ++;
+      if($term){
+        $term->weight = $weight;
+        taxonomy_term_save($term);
+        $weight++;
+      } else {
+        $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>'.t('One of the terms being sorted appears to have been deleted.  Please reload the page.').'</div>');
+        watchdog('femail', 'Attempted to move a nonexistent term');        
+      }
     }
   }
-  print ajax_render(array());
+  print ajax_render($results);
   exit();
 }
 
@@ -113,15 +123,23 @@ function tui_hierarchy_page_callback($vocabulary, $term){
  * AJAX Callback to get a term form
  */
 function tui_form_callback($vocabulary, $action, $tids){
+  //sleep(100);
   switch($action){
     case 'edit-form':
       // We can only show one form
       $tids = explode(',', $tids);
       $term = taxonomy_term_load($tids[0]);
-      module_load_include('admin.inc', 'taxonomy');
-      print ajax_render(array(
-        ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
-      ));
+      if($term){
+        module_load_include('admin.inc', 'taxonomy');
+        print ajax_render(array(
+          ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
+        ));
+      }else{
+        print ajax_render(array(
+          ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>'.t('You are trying to edit a term that has been deleted.  Please reload this page.').'</div>'),
+          ajax_command_invoke('#tui-tree-form', 'slideDown')
+        ));
+      }
       exit();
     case 'delete-form':
       print ajax_render(array(

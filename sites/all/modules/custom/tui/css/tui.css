@@ -1,7 +1,12 @@
 /* AJAX */
 .progress-disabled,.ajax-progress,.throbber,.edit-term-link{
  float:right;
- border:none !important;
+}
+#tui-tree-form .progress-disabled{
+ float:none !important;
+}
+#tui-tree-links .throbber, #tui-tree-links .ajax-progress{
+ float:left !important;
 }
 
 /* MAIN TUI ELEMENT */
@@ -155,9 +160,6 @@
 }
 #tui-tree-form input.form-autocomplete{
  padding:2px;
-}
-#tui-tree-form .progress-disabled{
- float:none !important;
 }
 
 
