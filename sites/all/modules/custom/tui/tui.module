@@ -19,6 +19,20 @@ function tui_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
     ),
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/add-form' => array(
+      'title' => 'TUI form callback',
+      'page callback' => 'tui_form_callback',
+      'page arguments' => array(
+        3,
+        6,
+        7
+      ),
+      'access arguments' => array(
+        'administer taxonomy'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.admin.inc'
+    ),
     // Callback to get all forms.
     'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/%/%' => array(
       'title' => 'TUI form callback',
@@ -30,6 +44,7 @@ function tui_menu(){
       ),
       'access callback' => 'tui_taxonomy_term_edit_access',
       'access arguments' => array(
+        6,
         7
       ),
       'type' => MENU_CALLBACK,
@@ -41,7 +56,7 @@ function tui_menu(){
       'page callback' => 'tui_sort_callback',
       'access callback' => 'tui_sort_access',
       'type' => MENU_CALLBACK,
-      'file' => 'tui.admin.inc'    
+      'file' => 'tui.admin.inc'
     ),
     // Callback for submitting forms (Drupal's own Ajax submit doesn't allow us
     // to include additional files for the submission).
@@ -104,9 +119,19 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
       'callback' => 'tui_ajax_form_callback_callback',
       'wrapper' => 'taxonomy-form-term'
     );
+    if(isset($_POST['tid']) && isset($form['relations']['parent']['#options'][$_POST['tid']])){
+      $parent_term = taxonomy_term_load($_POST['tid']);
+      $form['relations']['parent']['#default_value'] = $_POST['tid'];
+      $form['parent_message'] = array(
+        '#weight' => -1000,
+        '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>'.t('This term will be added as a child of "@term_name"', array('@term_name' => $parent_term->name)).'</div>'
+      );
+    }
+    //print_r($form);exit;
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
     if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
-      //drupal_goto('admin/structure/taxonomy/'.$form['#vocabulary']->machine_name.'//'.$form['#term']['tid']);exit;
+      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid']);
+      exit();
     }
   }else if(arg(0) == 'admin' && arg(1) == 'structure' && arg(2) == 'taxonomy' && arg(4) == 'add'){
     // FIXME - Add redirect to add a new name.

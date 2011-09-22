@@ -24,7 +24,13 @@ function theme_tui_page($variables){
 	  <div id="tui-tree-container">
       <div id="tui-tree-links">
         <p>
-          <img id="tui-add" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/add.png" alt="' . t('Add term') . '" title="' . t('Add term') . '"/>
+          ' . l('<img id="tui-add" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/add.png" alt="' . t('Add term') . '" title="' . t('Add term') . '"/>', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/add-form/', array(
+    'html' => TRUE,
+    'attributes' => array(
+      'class' => 'use-ajax',
+      'id' => 'tui-add-link'
+    )
+  )) . '
           <img id="tui-delete" data-url="' . $form_url . 'delete-form/" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/delete.png" alt="' . t('Delete term') . '" title="' . t('Delete term') . '"/>
           <!-- <img id="tui-undo" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/undo.png" alt="' . t('Undo move') . '" title="' . t('Undo move') . '"/> -->
           ' . (module_exists('silver-FIXME') ? l('<img id="tui-import" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/import.png" alt="' . t('Import') . '" title="' . t('Import') . '"/>', 'i', array(

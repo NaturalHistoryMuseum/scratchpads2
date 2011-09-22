@@ -122,7 +122,7 @@ function tui_hierarchy_page_callback($vocabulary, $term){
 /**
  * AJAX Callback to get a term form
  */
-function tui_form_callback($vocabulary, $action, $tids){
+function tui_form_callback($vocabulary, $action, $tids = ''){
   //sleep(100);
   switch($action){
     case 'edit-form':
@@ -153,6 +153,13 @@ function tui_form_callback($vocabulary, $action, $tids){
         ajax_command_invoke('#tui-tree-form', 'show')
       ));
       exit();
+    case 'add-form':
+      module_load_include('admin.inc', 'taxonomy');
+      print ajax_render(array(
+        ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', array(), $vocabulary))),
+      ));
+      exit();
+      
   }
 }
 
