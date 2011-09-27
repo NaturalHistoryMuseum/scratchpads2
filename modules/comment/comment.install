@@ -83,14 +83,16 @@ function comment_modules_enabled($modules) {
  * Implements hook_update_dependencies().
  */
 function comment_update_dependencies() {
-  // Comment update 7005 creates the comment body field and therefore must run
-  // after text module has been enabled and entities have been updated.
+  // comment_update_7005() creates the comment body field and therefore must
+  // run after all Field modules have been enabled, which happens in
+  // system_update_7027().
   $dependencies['comment'][7005] = array(
-    'system' => 7021,
+    'system' => 7027,
   );
 
-  // Comment update 7006 needs to query the list of existing text formats and
-  // therefore must run after filter_update_7000().
+  // comment_update_7006() needs to query the {filter_format} table to get a
+  // list of existing text formats, so it must run after filter_update_7000(),
+  // which creates that table.
   $dependencies['comment'][7006] = array(
     'filter' => 7000,
   );
@@ -369,6 +371,27 @@ function comment_update_7008() {
  */
 
 /**
+ * @addtogroup updates-7.x-extra
+ * @{
+ */
+
+/**
+ * Change the last_comment_timestamp column description.
+ */
+function comment_update_7009() {
+  db_change_field('node_comment_statistics', 'last_comment_timestamp', 'last_comment_timestamp', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The Unix timestamp of the last comment that was posted within this node, from {comment}.changed.',
+  ));
+}
+
+/**
+ * @} End of "addtogroup updates-7.x-extra"
+ */
+
+/**
  * Implements hook_schema().
  */
 function comment_schema() {
@@ -504,7 +527,7 @@ function comment_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-        'description' => 'The Unix timestamp of the last comment that was posted within this node, from {comment}.timestamp.',
+        'description' => 'The Unix timestamp of the last comment that was posted within this node, from {comment}.changed.',
       ),
       'last_comment_name' => array(
         'type' => 'varchar',
