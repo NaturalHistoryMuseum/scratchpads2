@@ -1,5 +1,5 @@
 (function($){
-  Drupal.behaviors.term_reference_tree = {
+  Drupal.behaviors.tree_widget = {
     attach: function(context, settings){
       $('.options_tree_plus', context)
           .click(
@@ -19,7 +19,7 @@
                     }
                     $
                         .getJSON(
-                            Drupal['settings']['term_reference_tree'][name_no_array]['callback']
+                            Drupal['settings']['tree_widget'][name_no_array]['callback']
                                 + '/'
                                 + $(this).siblings('label').first().children(
                                     'input').first().val() + '/' + name,
@@ -52,9 +52,10 @@
     } else {
       name_no_array = name;
     }
-    if(Drupal['settings']['term_reference_tree'][name_no_array]) {
+    if(Drupal['settings']['tree_widget'][name_no_array] && Drupal['settings']['tree_widget'][name_no_array]['max']>0) {
       var checked_count = $('input[name="' + item.attr('name') + '"]:checked').length;
-      if(checked_count >= Drupal['settings']['term_reference_tree'][name_no_array]['max']) {
+      console.log(Drupal['settings']['tree_widget']);
+      if(checked_count >= Drupal['settings']['tree_widget'][name_no_array]['max']) {
         $('input[name="' + item.attr('name') + '"]:not(:checked)').attr(
             'disabled', 'disabled');
       } else {

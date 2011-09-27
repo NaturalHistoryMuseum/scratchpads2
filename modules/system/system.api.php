@@ -672,8 +672,8 @@ function hook_element_info_alter(&$type) {
  * page logging and specialized cleanup. This hook MUST NOT print anything.
  *
  * Only use this hook if your code must run even for cached page views.
- * If you have code which must run once on all non cached pages, use
- * hook_init instead. Thats the usual case. If you implement this hook
+ * If you have code which must run once on all non-cached pages, use
+ * hook_init() instead. That is the usual case. If you implement this hook
  * and see an error like 'Call to undefined function', it is likely that
  * you are depending on the presence of a module which has not been loaded yet.
  * It is not loaded because Drupal is still in bootstrap mode.
@@ -1016,8 +1016,33 @@ function hook_menu_get_item_alter(&$router_item, $path, $original_map) {
  *     return db_query("SELECT * FROM {mymodule_abc} WHERE abc_id = :abc_id", array(':abc_id' => $abc_id))->fetchObject();
  *   }
  * @endcode
- * This 'abc' object will then be passed into the page callback function
- * mymodule_abc_edit() to replace the integer 1 in the page arguments.
+ * This 'abc' object will then be passed into the callback functions defined
+ * for the menu item, such as the page callback function mymodule_abc_edit()
+ * to replace the integer 1 in the argument array.
+ *
+ * You can also define a %wildcard_to_arg() function (for the example menu
+ * entry above this would be 'mymodule_abc_to_arg()'). The _to_arg() function
+ * is invoked to retrieve a value that is used in the path in place of the
+ * wildcard. A good example is user.module, which defines
+ * user_uid_optional_to_arg() (corresponding to the menu entry
+ * 'user/%user_uid_optional'). This function returns the user ID of the
+ * current user.
+ *
+ * The _to_arg() function will get called with three arguments:
+ * - $arg: A string representing whatever argument may have been supplied by
+ *   the caller (this is particularly useful if you want the _to_arg()
+ *   function only supply a (default) value if no other value is specified,
+ *   as in the case of user_uid_optional_to_arg().
+ * - $map: An array of all path fragments (e.g. array('node','123','edit') for
+ *   'node/123/edit').
+ * - $index: An integer indicating which element of $map corresponds to $arg.
+ *
+ * _load() and _to_arg() functions may seem similar at first glance, but they
+ * have different purposes and are called at different times. _load()
+ * functions are called when the menu system is collecting arguments to pass
+ * to the callback functions defined for the menu item. _to_arg() functions
+ * are called when the menu system is generating links to related paths, such
+ * as the tabs for a set of MENU_LOCAL_TASK items.
  *
  * You can also make groups of menu items to be rendered (by default) as tabs
  * on a page. To do that, first create one menu item of type MENU_NORMAL_ITEM,
@@ -1028,24 +1053,24 @@ function hook_menu_get_item_alter(&$router_item, $path, $original_map) {
  * MENU_LOCAL_TASK. Example:
  * @code
  * // Make "Foo settings" appear on the admin Config page
- * $items['admin/config/foo'] = array(
+ * $items['admin/config/system/foo'] = array(
  *   'title' => 'Foo settings',
  *   'type' => MENU_NORMAL_ITEM,
  *   // Page callback, etc. need to be added here.
  * );
- * // Make "Global settings" the main tab on the "Foo settings" page
- * $items['admin/config/foo/global'] = array(
- *   'title' => 'Global settings',
+ * // Make "Tab 1" the main tab on the "Foo settings" page
+ * $items['admin/config/system/foo/tab1'] = array(
+ *   'title' => 'Tab 1',
  *   'type' => MENU_DEFAULT_LOCAL_TASK,
  *   // Access callback, page callback, and theme callback will be inherited
- *   // from 'admin/config/foo', if not specified here to override.
+ *   // from 'admin/config/system/foo', if not specified here to override.
  * );
- * // Make an additional tab called "Node settings" on "Foo settings"
- * $items['admin/config/foo/node'] = array(
- *   'title' => 'Node settings',
+ * // Make an additional tab called "Tab 2" on "Foo settings"
+ * $items['admin/config/system/foo/tab2'] = array(
+ *   'title' => 'Tab 2',
  *   'type' => MENU_LOCAL_TASK,
  *   // Page callback and theme callback will be inherited from
- *   // 'admin/config/foo', if not specified here to override.
+ *   // 'admin/config/system/foo', if not specified here to override.
  *   // Need to add access callback or access arguments.
  * );
  * @endcode
@@ -1719,32 +1744,36 @@ function hook_forms($form_id, $args) {
 }
 
 /**
- * Perform setup tasks. See also, hook_init.
+ * Perform setup tasks for all page requests.
  *
  * This hook is run at the beginning of the page request. It is typically
- * used to set up global parameters which are needed later in the request.
+ * used to set up global parameters that are needed later in the request.
  *
- * Only use this hook if your code must run even for cached page views.This hook
- * is called before modules or most include files are loaded into memory.
+ * Only use this hook if your code must run even for cached page views. This
+ * hook is called before modules or most include files are loaded into memory.
  * It happens while Drupal is still in bootstrap mode.
+ *
+ * @see hook_init()
  */
 function hook_boot() {
-  // we need user_access() in the shutdown function. make sure it gets loaded
+  // We need user_access() in the shutdown function. Make sure it gets loaded.
   drupal_load('module', 'user');
   drupal_register_shutdown_function('devel_shutdown');
 }
 
 /**
- * Perform setup tasks. See also, hook_boot.
+ * Perform setup tasks for non-cached page requests.
  *
  * This hook is run at the beginning of the page request. It is typically
- * used to set up global parameters which are needed later in the request.
- * when this hook is called, all modules are already loaded in memory.
+ * used to set up global parameters that are needed later in the request.
+ * When this hook is called, all modules are already loaded in memory.
  *
  * This hook is not run on cached pages.
  *
  * To add CSS or JS that should be present on all pages, modules should not
  * implement this hook, but declare these files in their .info file.
+ *
+ * @see hook_boot()
  */
 function hook_init() {
   // Since this file should only be loaded on the front page, it cannot be
@@ -2602,17 +2631,21 @@ function hook_file_presave($file) {
 /**
  * Respond to a file being added.
  *
- * This hook is called before a file has been added to the database. The hook
+ * This hook is called after a file has been added to the database. The hook
  * doesn't distinguish between files created as a result of a copy or those
  * created by an upload.
  *
  * @param $file
- *   The file that is about to be saved.
+ *   The file that has been added.
  *
  * @see file_save()
  */
 function hook_file_insert($file) {
-
+  // Add a message to the log, if the file is a jpg
+  $validate = file_validate_extensions($file, 'jpg');
+  if (empty($validate)) {
+    watchdog('file', 'A jpg has been added.');
+  }
 }
 
 /**
@@ -2859,7 +2892,7 @@ function hook_requirements($phase) {
       );
     }
 
-    $requirements['cron']['description'] .= ' ' . t('You can <a href="@cron">run cron manually</a>.', array('@cron' => url('admin/logs/status/run-cron')));
+    $requirements['cron']['description'] .= ' ' . $t('You can <a href="@cron">run cron manually</a>.', array('@cron' => url('admin/logs/status/run-cron')));
 
     $requirements['cron']['title'] = $t('Cron maintenance tasks');
   }

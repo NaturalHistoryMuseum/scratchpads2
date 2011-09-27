@@ -167,10 +167,10 @@
   text-decoration: none;
 }
 
-.highlightActiveTerm{
+div.highlightActiveTerm div.form-item {
   background-color:#dddddd;
 }
-.highlightActiveTerm a{
+.highlightActiveTerm a {
   font-weight: bold;
 }
 
@@ -321,7 +321,8 @@ input#edit-weight-down {
  * fixing position of autocomplete in seven theme
  */
 fieldset#edit-search,
-fieldset#edit-move {
+fieldset#edit-move,
+fieldset#edit-term-merge {
   position: static;
 }
 
