@@ -605,7 +605,8 @@ function file_save(stdClass $file) {
  *
  * @return
  *   A nested array with usage data. The first level is keyed by module name,
- *   the second by object type, the third has 'id' and 'count' keys.
+ *   the second by object type and the third by the object id. The value
+ *   of the third level contains the usage count.
  *
  * @see file_usage_add()
  * @see file_usage_delete()
@@ -618,7 +619,7 @@ function file_usage_list(stdClass $file) {
     ->execute();
   $references = array();
   foreach ($result as $usage) {
-    $references[$usage->module][$usage->type] = array('id' => $usage->id, 'count' => $usage->count);
+    $references[$usage->module][$usage->type][$usage->id] = $usage->count;
   }
   return $references;
 }
@@ -906,7 +907,7 @@ function file_unmanaged_copy($source, $destination = NULL, $replace = FILE_EXIST
   file_ensure_htaccess();
   // Perform the copy operation.
   if (!@copy($source, $destination)) {
-    watchdog('file', 'The specified file %file could not be copied to %destination.', array('%file' => $source, '%destination' => $destination), WATCHDOG_ERR);
+    watchdog('file', 'The specified file %file could not be copied to %destination.', array('%file' => $source, '%destination' => $destination), WATCHDOG_ERROR);
     return FALSE;
   }
 
@@ -1538,7 +1539,7 @@ function file_save_upload($source, $validators = array(), $destination = FALSE, 
   // directory. This overcomes open_basedir restrictions for future file
   // operations.
   $file->uri = $file->destination;
-  if (!move_uploaded_file($_FILES['files']['tmp_name'][$source], $file->uri)) {
+  if (!drupal_move_uploaded_file($_FILES['files']['tmp_name'][$source], $file->uri)) {
     form_set_error($source, t('File upload error. Could not move uploaded file.'));
     watchdog('file', 'Upload error. Could not move uploaded file %file to destination %destination.', array('%file' => $file->filename, '%destination' => $file->uri));
     return FALSE;
@@ -1565,6 +1566,42 @@ function file_save_upload($source, $validators = array(), $destination = FALSE, 
   return FALSE;
 }
 
+/**
+ * Moves an uploaded file to a new location.
+ *
+ * PHP's move_uploaded_file() does not properly support streams if safe_mode
+ * or open_basedir are enabled, so this function fills that gap.
+ *
+ * Compatibility: normal paths and stream wrappers.
+ * @see http://drupal.org/node/515192
+ *
+ * @param $filename
+ *   The filename of the uploaded file.
+ * @param $uri
+ *   A string containing the destination URI of the file.
+ *
+ * @return
+ *   TRUE on success, or FALSE on failure.
+ *
+ * @see move_uploaded_file()
+ * @ingroup php_wrappers
+ */
+function drupal_move_uploaded_file($filename, $uri) {
+  $result = @move_uploaded_file($filename, $uri);
+  // PHP's move_uploaded_file() does not properly support streams if safe_mode
+  // or open_basedir are enabled so if the move failed, try finding a real path
+  // and retry the move operation.
+  if (!$result) {
+    if ($realpath = drupal_realpath($uri)) {
+      $result = move_uploaded_file($filename, $realpath);
+    }
+    else {
+      $result = move_uploaded_file($filename, $uri);
+    }
+  }
+
+  return $result;
+}
 
 /**
  * Check that a file meets the criteria specified by the validators.
@@ -1902,10 +1939,11 @@ function file_transfer($uri, $headers) {
  * Menu handler for private file transfers.
  *
  * Call modules that implement hook_file_download() to find out if a file is
- * accessible and what headers it should be transferred with. If a module
- * returns -1 drupal_access_denied() will be returned. If one or more modules
- * returned headers the download will start with the returned headers. If no
- * modules respond drupal_not_found() will be returned.
+ * accessible and what headers it should be transferred with. If one or more
+ * modules returned headers the download will start with the returned headers.
+ * If a module returns -1 drupal_access_denied() will be returned. If the file
+ * exists but no modules responded drupal_access_denied() will be returned.
+ * If the file does not exist drupal_not_found() will be returned.
  *
  * @see hook_file_download()
  */
@@ -1934,6 +1972,7 @@ function file_download() {
     if (count($headers)) {
       file_transfer($uri, $headers);
     }
+    return drupal_access_denied();
   }
   return drupal_not_found();
 }
@@ -2153,27 +2192,32 @@ function drupal_unlink($uri, $context = NULL) {
 }
 
 /**
- * Returns the absolute path of a file or directory
+ * Returns the absolute local filesystem path of a stream URI.
  *
- * PHP's realpath() does not properly support streams, so this function
- * fills that gap. If a stream wrapped URI is provided, it will be passed
- * to the registered wrapper for handling. If the URI does not contain a
- * scheme or the wrapper implementation does not implement realpath, then
- * FALSE will be returned.
+ * This function was originally written to ease the conversion of 6.x code to
+ * use 7.x stream wrappers. However, it assumes that every URI may be resolved
+ * to an absolute local filesystem path, and this assumption fails when stream
+ * wrappers are used to support remote file storage. Remote stream wrappers
+ * may implement the realpath method by always returning FALSE. The use of
+ * drupal_realpath() is discouraged, and is slowly being removed from core
+ * functions where possible.
  *
- * @see http://php.net/manual/en/function.realpath.php
- *
- * Compatibility: normal paths and stream wrappers.
- * @see http://drupal.org/node/515192
+ * Only use this function if you know that the stream wrapper in the URI uses
+ * the local file system, and you need to pass an absolute path to a function
+ * that is incompatible with stream URIs.
  *
  * @param $uri
- *   A string containing the URI to verify.
+ *   A stream wrapper URI or a filesystem path, possibly including one or more
+ *   symbolic links.
  *
  * @return
- *   The absolute pathname, or FALSE on failure.
+ *   The absolute local filesystem path (with no symbolic links), or FALSE on
+ *   failure.
  *
- * @see realpath()
+ * @see DrupalStreamWrapperInterface::realpath()
+ * @see http://php.net/manual/function.realpath.php
  * @ingroup php_wrappers
+ * @todo: This function is deprecated, and should be removed wherever possible.
  */
 function drupal_realpath($uri) {
   // If this URI is a stream, pass it off to the appropriate stream wrapper.
