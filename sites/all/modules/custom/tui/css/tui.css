@@ -67,18 +67,22 @@
  cursor:pointer;
 }
 #tui-tree a.edit-term-link{
- background:none;
+ /*background:none;*/
  display:none;
  margin-right:2px;
 }
-#tui-tree li div  {
+#tui-tree-subcontainer li {
+ margin: 3px 0 0 0;
+ padding: 0;
+}
+#tui-tree-subcontainer li div  {
  background-color:#f5f5ff;
  padding:0;
  margin:0;
  cursor:move;
  border:solid 1px #f3f3f3;
 }
-#tui-tree li div.tui-highlight{
+#tui-tree-subcontainer li div.tui-highlight{
  background-color:#ffff83;
 }
 .placeholder {
@@ -95,10 +99,6 @@
 }
 #tui-tree-subcontainer>ol{
  margin:5px;
-}
-#tui-tree li {
- margin: 3px 0 0 0;
- padding: 0;
 }
 #tui-tree, #tui-form{
  margin:0;

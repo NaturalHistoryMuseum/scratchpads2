@@ -55,7 +55,9 @@ function theme_tui_page($variables){
   </div>
   <div id="tui-form">
   	<div id="tui-form-container">
-      <div id="tui-form-noform">' . tui_help('admin/content/taxonomy/edit/tui', array()) . '</div>
+      <div id="tui-form-noform">' . tui_help('admin/structure/taxonomy/%', array(
+    3 => $variables['vocabulary']->machine_name
+  )) . '</div>
   	</div>
   </div>
   <div style="clear:both;">&nbsp;</div>
@@ -82,17 +84,28 @@ function theme_tui_term($variables){
     }
   }
   $vocabulary = taxonomy_vocabulary_load($variables['term']->vid);
-  return '<li' . $data . ' class="' . $class . '"><div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
-    'attributes' => array(
-      'class' => 'edit-term-link use-ajax',
-      'data-tui-this-term' => $variables['term']->tid
-    )
-  )) . '</div>' . (in_array($variables['term']->tid, $variables['tids']) ? theme('tui_branch', array(
+  return '<li' . $data . ' class="' . $class . '">' . theme('tui_term_name', array(
+    'term' => $variables['term'],
+    'highlight_tids' => $variables['highlight_tids'],
+    'vocabulary' => $vocabulary
+  )) . (in_array($variables['term']->tid, $variables['tids']) ? theme('tui_branch', array(
     'vocabulary' => $variables['vocabulary'],
     'tids' => $variables['tids'],
     'tid' => $variables['term']->tid,
     'highlight_tids' => $variables['highlight_tids']
   )) : '') . '</li>';
+}
+
+/**
+ * Theme just the name (required for updating the tree).
+ */
+function theme_tui_term_name($variables){
+  return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
+    'attributes' => array(
+      'class' => 'edit-term-link use-ajax',
+      'data-tui-this-term' => $variables['term']->tid
+    )
+  )) . '</div>';
 }
 
 /**

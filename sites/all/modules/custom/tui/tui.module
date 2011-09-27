@@ -31,7 +31,7 @@ function tui_menu(){
         'administer taxonomy'
       ),
       'type' => MENU_CALLBACK,
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.ajax.inc'
     ),
     // Callback to get all forms.
     'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/%/%' => array(
@@ -48,7 +48,7 @@ function tui_menu(){
         7
       ),
       'type' => MENU_CALLBACK,
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.ajax.inc'
     ),
     // Callback for after a sort.
     'tui/sort' => array(
@@ -56,7 +56,7 @@ function tui_menu(){
       'page callback' => 'tui_sort_callback',
       'access callback' => 'tui_sort_access',
       'type' => MENU_CALLBACK,
-      'file' => 'tui.admin.inc'
+      'file' => 'tui.ajax.inc'
     ),
     // Callback for submitting forms (Drupal's own Ajax submit doesn't allow us
     // to include additional files for the submission).
@@ -88,6 +88,7 @@ function tui_menu(){
 function tui_taxonomy_term_edit_access($form, $args){
   switch($form){
     case 'search-form':
+      return TRUE;
       break;
     default:
       // We load all terms to ensure that they're in the same vocabulary.
@@ -105,8 +106,7 @@ function tui_taxonomy_term_edit_access($form, $args){
  */
 function tui_sort_access(){
   // FIXME - Check we have access to edit ALL the terms we have been sent.
-  $post = $_POST;
-  return TRUE;
+  return tui_taxonomy_term_edit_access('sort-access', $_POST['sort_change']['tids']);
 }
 
 /**
@@ -124,17 +124,16 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
       $form['relations']['parent']['#default_value'] = $_POST['tid'];
       $form['parent_message'] = array(
         '#weight' => -1000,
-        '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>'.t('This term will be added as a child of "@term_name"', array('@term_name' => $parent_term->name)).'</div>'
+        '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>' . t('This term will be added as a child of "@term_name"', array(
+          '@term_name' => $parent_term->name
+        )) . '</div>'
       );
     }
-    //print_r($form);exit;
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
     if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
       drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid']);
       exit();
     }
-  }else if(arg(0) == 'admin' && arg(1) == 'structure' && arg(2) == 'taxonomy' && arg(4) == 'add'){
-    // FIXME - Add redirect to add a new name.
   }
 }
 
@@ -143,9 +142,7 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
  */
 function tui_menu_alter(&$items){
   // Change the add term page so that the link does not appear on the list terms
-  // or TUI page.
-  // TODO - Should we also hide the "Add Term" tab and instead link to the
-  // taxonomy editor.
+  // or TUI page (As a sub tab thingy, not the tab).
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['type'] = 132;
   // Change the "list terms" page to use the taxonomy editor instead.
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['page callback'] = 'tui_hierarchy_page';
@@ -163,7 +160,7 @@ function tui_help($path, $arg){
   switch($path){
     case 'admin/structure/taxonomy/%':
       $vocabulary = taxonomy_vocabulary_machine_name_load($arg[3]);
-      return '<h1>' . t('Taxonomy User Interface') . '</h1>' . '<p>' . t('Clicking on a term from the taxonomy browser on the left, will bring up a form here.  This form will be identical to the standard term edit form, but with the addition of tabs.') . '</p>' . '<p>' . t('Terms can be moved in the tree by simply dragging and dropping.  Click the mouse on a term, ensuring you hold down the button, and then move it to where you would like the term.') . ' ' . t('When moving a name, if you drag the term being moved over another term, then the term being moved will become a child of the other term.  If you move the mouse to the left whilst over a term, then term will become a sibling of the other term.') . '</p>' . '<p>' . t('This editor interface is still under development.  Please provide any feedback in the usual way.') . '</p>';
+      return '<h1>' . t('Taxonomy User Interface') . '</h1>' . '<p>' . t('Clicking on a term from the taxonomy browser on the left, will bring up a form here.  This form will be identical to the standard term edit form<!--, but with the addition of tabs-->.') . '</p>' . '<p>' . t('Terms can be moved in the tree by simply dragging and dropping.  Click the mouse on a term, ensuring you hold down the button, and then move it to where you would like the term.') . ' ' . t('When moving a name, if you drag the term being moved over another term, then the term being moved will become a child of the other term.  If you move the mouse to the left whilst over a term, then term will become a sibling of the other term.') . '</p>' . '<p>' . t('This editor interface is still under development.  Please provide any feedback in the usual way.') . '</p>';
   }
 }
 
@@ -217,6 +214,14 @@ function tui_theme(){
         'term' => NULL,
         'tids' => array(),
         'highlight_tids' => array()
+      ),
+      'file' => 'tui.theme.inc'
+    ),
+    'tui_term_name' => array(
+      'variables' => array(
+        'term' => NULL,
+        'highlight_tids' => array(),
+        'vocabulary' => NULL
       ),
       'file' => 'tui.theme.inc'
     )

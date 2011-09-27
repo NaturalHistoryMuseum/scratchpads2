@@ -42,6 +42,16 @@
     $('#tui', context).change(function(){
       Drupal.tui.resize_frame();
     });
+    // ALTER THE AJAX FOR THE SUBMIT OF THE TERM FORM.  WE'LL UPDATE THE TREE
+    // AFTER IT!
+    /*
+    $('#tui-form-container .form-submit').each(function(){
+      console.log('Adding to: '+$(this).attr('id'));
+      Drupal.ajax[$(this).attr('id')].commands.tui = function(ajax, response, status){
+        console.log('Special shit here');
+      }
+    });
+    */
     // ADD A TERM LINKS
     Drupal.ajax['tui-add-link'].beforeSend = function(xmlhttprequest, options){
       if($('.tui-highlight').length) {
@@ -50,9 +60,10 @@
         }
       }
     }
-    Drupal.ajax['tui-add-link'].commands.insert = function(ajax, response, status){
-      // THIS IS A DIRECT COPY FROM ajax.js, with the resize_frame function
-      // added.
+    // THIS IS A DIRECT COPY FROM ajax.js, with the resize_frame function
+    // added.
+    console.log(Drupal.ajax["tui-add-link"]);
+    Drupal.ajax["tui-add-link"].commands.insert = function(ajax, response, status){
       var wrapper = response.selector ? $(response.selector) : $(ajax.wrapper);
       var method = response.method || ajax.method;
       var effect = ajax.getEffect(response);
@@ -120,10 +131,6 @@
           element_settings.event = 'click';
           Drupal.ajax['tui-click'] = new Drupal.ajax('tui-click', $('#tui-click'), element_settings);
           $('#tui-click').click();
-          break;
-        case 'tui-add':
-          break;
-        case 'tui-link':
           break;
       }
     });
@@ -235,8 +242,6 @@
               if(data.merge) {
                 $.extend(true, Drupal.settings, data.settings);
               }
-            } else if(data[i]['command'] == 'insert') {
-              console.log(data[i]);
             }
           }
         }
