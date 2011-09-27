@@ -1,4 +1,5 @@
-name = Taxonomy User Interface
-description = Adds an enhanced User Interface to improve a user's interaction with the taxonomy module.
+name = Taxonomy :: Hierarchy editor
+description = Adds an enhanced User Interface for editing a taxonomy.
 core = "7.x"
 dependencies[] = taxonomy
+dependencies[] = tinytax

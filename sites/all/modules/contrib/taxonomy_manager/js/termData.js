@@ -1,4 +1,3 @@
-// $Id: termData.js,v 1.1.2.3.2.8.2.13.2.7 2010/11/10 14:38:13 mh86 Exp $
 
 /**
  * @file js support for term editing form for ajax saving and tree updating
@@ -36,7 +35,7 @@ Drupal.attachTermDataLinks = function(ul) {
   $(ul).find('a.term-data-link').click(function() {
     Drupal.activeTermSwapHighlight(this);
     var li = $(this).parents("li:first");
-    new Drupal.TermData(Drupal.getTermId(li)).load();
+    Drupal.loadTermDataForm(Drupal.getTermId(li), false);
     return false;
   });
 }
@@ -48,7 +47,7 @@ Drupal.attachTermDataToSiblings = function(all, currentIndex) {
   var nextSiblings = $(all).slice(currentIndex);
   $(nextSiblings).find('a.term-data-link').click(function() {
     var li = $(this).parents("li:first");
-    new Drupal.TermData(Drupal.getTermId(li)).load();
+    Drupal.loadTermDataForm(Drupal.getTermId(li), false);
     return false;
   });
 }
@@ -57,32 +56,34 @@ Drupal.attachTermDataToSiblings = function(all, currentIndex) {
  * adds click events to term data form, which is already open, when page gets loaded
  */
 Drupal.attachTermDataForm = function() {
+  active_term = $('div.highlightActiveTerm').find('a');
   var tid = $('#taxonomy-term-data').find('input:hidden[name="tid"]').val();
   if (tid) {
-    var termLink = $('input[class="term-id"][value="'+ tid +'"]').parent().find("a.term-data-link");
-    Drupal.activeTermSwapHighlight(termLink);
     new Drupal.TermData(tid).form();
-  }  
+  }
+}
+
+/**
+ * loads term data form
+ */
+Drupal.loadTermDataForm = function(tid, refreshTree) {
+  // Triggers an AJAX button
+  $('#edit-load-tid').val(tid);
+  if (refreshTree) {
+    $('#edit-load-tid-refresh-tree').attr("checked", "checked");
+  }
+  else {
+    $('#edit-load-tid-refresh-tree').attr("checked", "");
+  }
+  $('#edit-load-tid-submit').click();
 }
 
 /**
  * TermData Object
  */
 Drupal.TermData = function(tid) {
-  this.tid = tid; 
+  this.tid = tid;
   this.div = $('#taxonomy-term-data');
-  this.tidField = $('#edit-load-tid');
-  this.tidFieldSubmit = $('#edit-load-tid-submit');
-}
-
-
-/**
- * loads term data form and displays it on the right side
- */
-Drupal.TermData.prototype.load = function() {
-  // Triggers an AJAX button
-  $(this.tidField).val(this.tid);
-  $(this.tidFieldSubmit).click();
 }
 
 /**
@@ -97,7 +98,7 @@ Drupal.TermData.prototype.form = function() {
   
   $(this.div).find('a.taxonomy-term-data-name-link').click(function() {
     var tid = this.href.split("/").pop();
-    new Drupal.TermData(tid).load();
+    Drupal.loadTermDataForm(tid, true);
     return false;
   });
   
@@ -135,10 +136,10 @@ Drupal.TermData.prototype.form = function() {
 */
 Drupal.activeTermSwapHighlight = function(link) {
   try {
-    $(active_term).parent().removeClass('highlightActiveTerm');
+    $(active_term).parents('div.term-line').removeClass('highlightActiveTerm');
   } catch(e) {}
   active_term = link;
-  $(active_term).parent().addClass('highlightActiveTerm');
+  $(active_term).parents('div.term-line:first').addClass('highlightActiveTerm');
 }
 
 })(jQuery);

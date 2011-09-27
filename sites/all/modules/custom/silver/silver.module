@@ -166,7 +166,7 @@ function silver_ajax_callback($form, &$form_state){
     $subforms_output = '';
     foreach($silvers as $info){
       if($i == $form_state['values']['silver_import_select']){
-        if($info['file']){
+        if(isset($info['file']) && $info['file']){
           require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
         }
         return '<div id="silver_import_subform">' . drupal_render(drupal_get_form($info['form_id'])) . '</div>';
@@ -178,7 +178,7 @@ function silver_ajax_callback($form, &$form_state){
       module_load_include('pages.inc', 'feeds');
       $form_state['programmed'] = TRUE;
       $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
-      $form['#action'] = 'import/' . $form_state['values']['silver_import_subform_feeds'];
+      $form['#action'] = url('import/' . $form_state['values']['silver_import_subform_feeds']);
       return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
     }else{
       return '<div id="silver_import_subform_feeds"></div>';
@@ -196,7 +196,6 @@ function silver_theme(){
     )
   );
 }
-
 
 /**
  * Implementation of hook_menu_alter().

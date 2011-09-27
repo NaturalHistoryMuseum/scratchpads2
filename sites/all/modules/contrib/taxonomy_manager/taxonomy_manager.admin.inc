@@ -1,5 +1,4 @@
 <?php
-// $Id: taxonomy_manager.admin.inc,v 1.1.2.17.2.33.2.36 2011/01/19 18:08:28 mh86 Exp $
 
 /**
  * 
@@ -46,9 +45,12 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
   if (isset($form_state['confirm_delete'])) {
     return taxonomy_manager_term_confirm_delete($form, $form_state, $voc->vid);
   }
-  // Use tid from term data form, if not submitted through load-tid helper.
-  if (isset($form_state['values']['tid']) && !(isset($form_state['triggering_element']['#value']) && $form_state['triggering_element']['#value'] == "load term")) {
+  // By default use tid from term data form, except it is submitted from the load-tid helper and the tree needs to be refreshed.
+  if (isset($form_state['values']['tid']) && !(isset($form_state['triggering_element']['#value']) && $form_state['triggering_element']['#value'] == "load term" && $form_state['values']['load-tid-refresh-tree'])) {
     $tid = $form_state['values']['tid'];
+  }
+  else if (isset($form_state['triggering_element']['#value']) && $form_state['triggering_element']['#value'] == "load term" && $form_state['values']['load-tid-refresh-tree']) {
+    $tid = $form_state['values']['load-tid'];
   }
 	   
   $module_path = drupal_get_path('module', 'taxonomy_manager') .'/';
@@ -74,6 +76,9 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
   $form['load-tid'] = array(
     '#type' => 'textfield',
     '#prefix' => '<div class="taxonomy-manager-term-load-helper">',
+  );
+  $form['load-tid-refresh-tree'] = array(
+    '#type' => 'checkbox',
   );
   $form['load-tid-submit'] = array(
     '#type' => 'submit',
@@ -137,6 +142,9 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
   if (isset($form_state['values']['double_tree_values']['left_tree_expand_terms']) && count($form_state['values']['double_tree_values']['left_tree_expand_terms'])) {
     $tids_to_expand = $form_state['values']['double_tree_values']['left_tree_expand_terms'];
   }
+  else if (isset($form_state['values']['searched_terms']) && count($form_state['values']['searched_terms'])) {
+    $tids_to_expand = $form_state['values']['searched_terms'];
+  }
   else {
     $tids_to_expand = $tid;
   }
@@ -148,6 +156,7 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
     '#search_string' => ($tid) ? NULL : $filter,
     '#language' => isset($language) ? $language : '',
     '#terms_to_expand' => $tids_to_expand,
+    '#terms_to_highlight' => $tids_to_expand,
   );
   
   $form['toolbar'] = array( 
@@ -182,9 +191,7 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
   
   taxonomy_manager_confirm_delete($form, $voc);
   
-  // hide merge button until merge operation is implemented
-  // @todo implement merge
-  //taxonomy_manager_merge_form($form, $voc);
+  taxonomy_manager_term_merge_form($form, $voc);
   
   taxonomy_manager_move_form($form, $voc);
   
@@ -209,9 +216,8 @@ function taxonomy_manager_form($form, &$form_state, $voc, $tid = 0, $filter = NU
 function taxonomy_manager_double_tree_form($form, &$form_state, $voc1, $voc2, $tid = 0, $filter = NULL) {
   // Check for confirmation forms.
   if (isset($form_state['confirm_delete'])) {
-    return taxonomy_manager_term_confirm_delete($form_state, $voc1->vid, $voc2->vid);
+    return taxonomy_manager_term_confirm_delete($form, $form_state, $voc1->vid, $voc2->vid);
   }
-
   $module_path = drupal_get_path('module', 'taxonomy_manager') .'/';
   
   $form = taxonomy_manager_form($form, $form_state, $voc1, $tid, $filter);
@@ -275,6 +281,7 @@ function taxonomy_manager_double_tree_form($form, &$form_state, $voc1, $voc2, $t
     '#search_string' => ($tid) ? NULL : $filter,
     '#language' => isset($language) ? $language : '',
     '#terms_to_expand' => $tids_to_expand, //@todo check if term coming through ajax
+    '#terms_to_highlight' => $tids_to_expand,
   );
   
   $form['double-tree']['operations'] = array(
@@ -377,10 +384,10 @@ function taxonomy_manager_search_form(&$form, $voc) {
   $search_description = t("You can search directly for exisiting terms. 
       If your input doesn't match an existing term, it will be used for filtering root level terms (useful for non-hierarchical vocabularies).");
   
-  $form['search'] = array(  
+  $form['search'] = array(
     '#type' => 'fieldset',
     '#title' => t('Search'),
-    '#attributes' => array('style' => 'display:none;'),
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-search'),
     '#description' => $search_description, 
     '#collapsed' => TRUE,
     '#tree' => TRUE, 
@@ -444,7 +451,7 @@ function taxonomy_manager_confirm_delete(&$form, $voc) {
   
   $form['delete'] = array(
     '#type' => 'fieldset',
-    '#attributes' => array('style' => 'display:none;'),
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-delete'),
     '#tree' => TRUE,
     '#title' => t('Confirmation'),
   );
@@ -492,7 +499,7 @@ function taxonomy_manager_add_form(&$form, $voc, $hide_form = TRUE) {
 	      'hide_button' => 'edit-add-cancel', 	 
 	      'div' => 'edit-add'))), 
       'type' => 'setting');
-    $attributes = array('style' => 'display:none;');
+    $attributes = array('style' => 'display:none;', 'id' => 'edit-add');
     $form['toolbar']['add_show'] = array( 
       //'#type' => 'button',
       '#attributes' => array('class' => 'taxonomy-manager-buttons add'), 
@@ -546,64 +553,61 @@ function taxonomy_manager_add_form(&$form, $voc, $hide_form = TRUE) {
 
 
 /**
- * form for merging terms
+ * Form for the Term merge module
  */
-function taxonomy_manager_merge_form(&$form, $voc) {  
+function taxonomy_manager_term_merge_form(&$form, $voc) {
+  if (!module_exists('term_merge') || !user_access('merge terms')) {
+    return;
+  }
 	$form['#attached']['js'][] = array(
     'data' => array('hideForm' => array(array(
-      'show_button' => 'edit-merge-show', 	 
-	    'hide_button' => 'edit-merge-cancel', 	 
-	    'div' => 'edit-merge'))), 
+      'show_button' => 'edit-term-merge-show',
+	    'hide_button' => 'edit-term-merge-cancel',
+	    'div' => 'edit-term-merge'))),
     'type' => 'setting');
       
-  $description = t("The selected terms get merged into one term. This resulting merged term can either be an exisiting term or a completely new term. The selected terms will automatically get synomyms of the merged term and will be deleted afterwards.");
+  $description = t("This operation is based on the Term merge module. Selected terms get merged into the given one. Optionally the selected terms can be retained, otherwise they will be deleted.");
 
-  $form['toolbar']['merge_show'] = array( 
+  $form['toolbar']['term_merge_show'] = array(
     //'#type' => 'button', 
     '#attributes' => array('class' => array('taxonomy-manager-buttons merge')),
-    '#value' => t('Merge'), 
+    '#value' => t('Term merge'),
     '#theme' => 'no_submit_button', 
   );
 
-  $form['merge'] = array( 
+  $form['term_merge'] = array(
     '#type' => 'fieldset',
     '#tree' => TRUE,
-    '#attributes' => array('style' => 'display:none;'),
-    '#title' => t('Merging of terms'), 
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-term-merge'),
+    '#title' => t('Merging of terms'),
     '#description' => $description,
   );
   
-  $form['merge']['main_term'] = array(
+  $form['term_merge']['dest_term'] = array(
     '#type' => 'textfield',
-    '#title' => t('Resulting merged term'),
+    '#title' => t('Destination term'),
     '#description' => t("Enter a unique term name or a term id with 'term-id:[tid]'"),
     '#required' => FALSE,
     '#autocomplete_path' => 'taxonomy_manager/autocomplete/'. $voc->vid,
   );
-  
-  $options = array();
-  
-  $options['collect_parents'] = t('Collect all parents of selected terms an add it to the merged term'); 
-  $options['collect_children'] = t('Collect all children of selected terms an add it to the merged term');
-  $options['collect_relations'] = t('Collect all relations of selected terms an add it to the merged term');
-  
-  if (count($options) > 0) {
-    $form['merge']['options'] = array( 
-      '#type' => 'checkboxes', 
-      '#title' => t('Options'), 
-      '#options' => $options, 
-    );
-  }
+
+  $form['term_merge']['options'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Options'),
+    '#options' => array(
+      'keep_merged' => t('Keep merged terms'),
+    ),
+  );
    
-  $form['merge']['submit'] = array( 
+  $form['term_merge']['submit'] = array(
     '#type' => 'submit', 
     '#value' => t('Merge'),
     '#attributes' => array('class' => array('taxonomy-manager-buttons', 'merge')), 
-    '#validate' => array('taxonomy_manager_form_merge_validate'), 
-    '#submit' => array('taxonomy_manager_form_merge_submit'),
+    '#validate' => array('taxonomy_manager_form_term_merge_validate'),
+    '#submit' => array('taxonomy_manager_form_term_merge_submit'),
   );
    
-  $form['merge']['cancel'] = array( 
+  $form['term_merge']['cancel'] = array(
     //'#type' => 'button', 
     '#value' => t('Cancel'),
     '#attributes' => array('class' =>  array('taxonomy-manager-buttons', 'cancel')), 
@@ -634,7 +638,7 @@ function taxonomy_manager_move_form(&$form, $voc) {
   $form['move'] = array( 
     '#type' => 'fieldset',
     '#tree' => TRUE,
-    '#attributes' => array('style' => 'display:none;'),
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-move'),
     '#title' => t('Moving of terms'),
     '#description' => $description,
   );
@@ -695,7 +699,7 @@ function taxonomy_manager_export_form(&$form, $voc) {
   $form['export'] = array( 
     '#type' => 'fieldset',
     '#tree' => TRUE,
-    '#attributes' => array('style' => 'display:none;'),
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-export'),
     '#title' => t('CSV Export'),
   );
 
@@ -764,7 +768,7 @@ function taxonomy_manager_double_tree_settings_form(&$form, $voc) {
   $form['double-tree-settings'] = array( 
     '#type' => 'fieldset',
     '#tree' => TRUE,
-    '#attributes' => array('style' => 'display:none;'),
+    '#attributes' => array('style' => 'display:none;', 'id' => 'edit-double-tree-settings'),
     '#title' => t('Double Tree Settings'),
     '#description' => t('Specify settings for second tree. Choose the same vocabulary if you want to move terms in the hierarchy or if you want to add new translations within a multilingual vocabulary. Choose a different vocabulary if you want to switch terms among these vocabularies.'),
   );
@@ -1003,6 +1007,9 @@ function _taxonomy_manager_form_term_data_translations($term, $translations, $he
 function taxonomy_manager_load_tid_submit($form, &$form_state) {
   // Unset input, so that the term data form has fresh values.
   unset($form_state['input']);
+  if ($form_state['values']['load-tid-refresh-tree']) {
+    form_set_value(array('#parents' => array('tree-update')), array('update' => TRUE), $form_state);
+  }
   $form_state['rebuild'] = TRUE;
 }
 
@@ -1067,6 +1074,7 @@ function taxonomy_manager_form_submit($form, &$form_state) {
       $parent_text = count($parents) ? implode(' | ', $parents) ." › " : "";
       $matched_text_list[] = $parent_text ."". l($matched_term->name, $url_prefix .'/'. $matched_term->tid, array('attributes' => array('title' => taxonomy_manager_tree_term_extra_info($matched_term)))) ." (". $matched_term->tid . (!empty($matched_term->language) ? '-'. check_plain($matched_term->language) : '') . ")";
     }
+    form_set_value($form, array('searched_terms' => $terms), $form_state);
     drupal_set_message(t("Your search string matches !count terms:", array('!count' => count($terms))) ."". theme('item_list', array('items' => $matched_text_list)));
     $form_state['rebuild'] = TRUE;
   }
@@ -1176,6 +1184,7 @@ function taxonomy_manager_term_confirm_delete($form, &$form_state, $vid, $vid2 =
   else {
     $url = 'admin/structure/taxonomy_manager/voc/'. $voc->machine_name;
   }
+
   $selected = $form_state['values']['taxonomy']['manager']['tree']['selected_terms'];
   $form['selected_terms'] = array('#prefix' => '<ul>', '#suffix' => '</ul>', '#tree' => TRUE);
   foreach ($selected as $tid) {
@@ -1364,82 +1373,58 @@ function taxonomy_manager_form_move_submit($form, $form_state) {
 /**
  * Validation handler for validating terms
  */
-function taxonomy_manager_form_merge_validate($form, &$form_state) {
-  /*$selected_tids = array();
+function taxonomy_manager_form_term_merge_validate($form, &$form_state) {
+  $selected_tids = array();
   $selected_tids = $form_state['values']['taxonomy']['manager']['tree']['selected_terms'];
-  
-  $main_terms = array();
+  $dest_terms = array();
   $regexp = '%(?:^|,\ *)("(?>[^"]*)(?>""[^"]* )*"|(?: [^",]*))%x';
-  preg_match_all($regexp, $form_state['values']['merge']['main_term'], $matches);
-  $main_terms = $matches[1];
+  preg_match_all($regexp, $form_state['values']['term_merge']['dest_term'], $matches);
+  $dest_terms = $matches[1];
   $error_msg = "";
-  $typed_terms = taxonomy_manager_autocomplete_tags_get_tids($form_state['values']['merge']['main_term'], $form_state['values']['vid'], FALSE);
+  $typed_terms = taxonomy_manager_autocomplete_tags_get_tids($form_state['values']['term_merge']['dest_term'], $form_state['values']['voc']->vid, FALSE);
   
-  if (!is_array($main_terms) || count($main_terms) == 0 || empty ($main_terms[0])) {
-    form_set_error('merge][main_term', t('Please enter a name into "Resulting merged term"'));
+  if (!is_array($dest_terms) || count($dest_terms) == 0 || empty($dest_terms[0])) {
+    form_set_error('term_merge][dest_term', t('Please enter a name into "Destination term"'));
     $form_state['rebuild'] = TRUE;
   }
-  else if (count($main_terms) > 1) {
-    form_set_error('merge][main_term', t('Please only enter single names into "Resulting merged term"'));
+  else if (count($dest_terms) > 1) {
+    form_set_error('term_merge][dest_term', t('Please only enter single names into "Destination term"'));
     $form_state['rebuild'] = TRUE;
   }
       
   if (count($selected_tids) < 1) {
-    form_set_error('merge', t("Please selected terms you want to merge"));
+    form_set_error('term_merge', t("Please selecte terms you want to merge"));
     $form_state['rebuild'] = TRUE;
   }
-  else if (count($selected_tids) > 50) {
-    form_set_error('merge', t("Please select less than 50 terms to merge. Merging of too many terms in one step can cause timeouts and inconsistent database states"));
+  else if (_taxonomy_manager_check_duplicates($form_state['values']['voc']->vid, $form_state['values']['term_merge']['dest_term'], $error_msg)) {
+    form_set_error('term_merge', t("Warning: Your input matches with multiple terms, because of duplicated term names. Please enter a unique term name or the term id with 'term-id:[tid]'") ." (". $error_msg .").");
     $form_state['rebuild'] = TRUE;
   }
-  else if (_taxonomy_manager_check_duplicates($form_state['values']['vid'], $form_state['values']['merge']['main_term'], $error_msg)) {
-    form_set_error('merge', t("Warning: Your input matches with multiple terms, because of duplicated term names. Please enter a unique term name or the term id with 'term-id:[tid]'") ." (". $error_msg .").");
-        $form_state['rebuild'] = TRUE;
-  }
-  else if ($form_state['values']['merge']['options']['collect_parents']) {
-    $main_terms = array();
-    foreach ($typed_terms as $term_info) {
-      $main_terms[$term_info['tid']] = $term_info['tid'];
-    }
-    if (count($main_terms) == 1) {
-      if (!taxonomy_manager_check_circular_hierarchy($main_terms, $selected_tids)) {
-        form_set_error('merge', t('Invalid selection. The resulting hierarchy would contain circles, which is not allowed. A term cannot be a parent of itself. Unselect "Collect all parents of selected terms an add it to the merged term" or specify a different resulting term.')); 
-        $form_state['rebuild'] = TRUE;
-      }
-    }
-  }
-  else if (!taxonomy_manager_check_language($form_state['values']['vid'], $selected_tids, $typed_terms)) {
-    form_set_error('merge', t('Terms must be of the same language')); 
-    $form_state['rebuild'] = TRUE;
-  }*/
 }
 
 /**
- * Submit handler for merging terms
+ * Submit handler for term merge
  */
-function taxonomy_manager_form_merge_submit($form, $form_state) {
-  //TODO needs work
-  drupal_set_message('Merge operation not yet implemented.', 'error');
-  /*$selected_tids = array();
+function taxonomy_manager_form_term_merge_submit($form, $form_state) {
+  $selected_tids = array();
   $selected_tids = $form_state['values']['taxonomy']['manager']['tree']['selected_terms'];
-  $main_terms = taxonomy_manager_autocomplete_tags_get_tids($form_state['values']['merge']['main_term'], $form_state['values']['vid'], TRUE, $form_state['values']['taxonomy']['manager']['top']['language']);
-  $main_term = array_shift($main_terms);
-  
-  $new_inserted = FALSE;
-  if ($main_term['new']) {
-    $new_inserted = TRUE;
-  }
-  $main_term_tid = $main_term['tid'];
-  taxonomy_manager_merge($main_term_tid, $selected_tids, $form_state['values']['merge']['options'], $new_inserted);
-  
+  $dest_term_ids = taxonomy_manager_autocomplete_tags_get_tids($form_state['values']['term_merge']['dest_term'], $form_state['values']['voc']->vid, TRUE);
+  $dest_term_id = array_shift($dest_term_ids);
+  $dest_term = taxonomy_term_load($dest_term_id['tid']);
+
   $term_names_array = array();
   foreach ($selected_tids as $selected_tid) {
     $term = taxonomy_term_load($selected_tid);
     $term_names_array[] = $term->name; 
   }
   $term_names = implode($term_names_array, ', ');
-
-  drupal_set_message(t("Terms %term_names merged into %main_term", array('%term_names' => $term_names, '%main_term' => $form_state['values']['merge']['main_term'])));*/
+  if (module_exists('term_merge')) {
+    term_merge($selected_tids, $dest_term, $form_state['values']['term_merge']['options']['keep_merged']);
+    drupal_set_message(t("Terms %term_names merged into %dest_term", array('%term_names' => $term_names, '%dest_term' => $dest_term->name)));
+  }
+  else {
+    drupal_set_message(t('Term merge module not found'));
+  }
 }
 
 /**
@@ -1482,12 +1467,6 @@ function taxonomy_manager_settings($form) {
     '#default_value' => variable_get('taxonomy_manager_disable_mouseover', 0),
     '#description' => t('Disabeling this feature speeds up the Taxonomy Manager'),
   );
-  $form['taxonomy_manager_disable_merge_redirect'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Disable redirect of the taxonomy term page to merged terms '),
-    '#default_value' => variable_get('taxonomy_manager_disable_merge_redirect', TRUE),
-    '#description' => t('When using the merging feature, the selected terms get merged into one term. All selected terms will be deleted afterwards. Normally the Taxonomy Manager redirects calls to taxonomy/term/$tid of the deleted terms (through merging) to the resulting merged term. This feature might conflict with other modules (e.g. Taxonomy Breadcrumb, Panels), which implement hook_menu_alter to change the taxonomy_manager_term_page callback. Disable this feature if it conflicts with other modules or if you do not need it. Changing this setting requires a (menu) cache flush to become active.'),
-  );
   $form['taxonomy_manager_pager_tree_page_size'] = array(
     '#type' => 'select',
     '#title' => t('Pager count'),
@@ -1503,6 +1482,7 @@ function taxonomy_manager_term_data_form_ajax_callback($form, $form_state) {
   $commands = array();
   $commands[] = ajax_command_insert(NULL, drupal_render($form['term_data']));
   $commands[] = ajax_command_after('#term-data-close', theme('status_messages'));
+
   // Update tree if necessary.
   if (isset($form_state['values']['tree-update'])) {
     if (isset($form_state['values']['tree-update']['update']) && $form_state['values']['tree-update']['update']) {
@@ -2031,14 +2011,14 @@ function taxonomy_manager_delete_terms($tids, $options = array()) {
           $parents = taxonomy_get_parents($child->tid);
           if ($options['delete_orphans']) {
             if (count($parents) == 1) {
-              $orphans[] = $child->tid;
+              $orphans[$child->tid] = $child->tid;
             }
             else {
-              $remaining_child_terms[] = $child;
+              $remaining_child_terms[$child->tid] = $child;
             }
           }
           else {
-            $remaining_child_terms[] = $child;
+            $remaining_child_terms[$child->tid] = $child;
             db_delete('taxonomy_term_hierarchy')
               ->condition('tid', $child->tid)
               ->condition('parent', $tid)
@@ -2070,11 +2050,11 @@ function taxonomy_manager_delete_terms($tids, $options = array()) {
       field_attach_delete('taxonomy_term', $term);
       module_invoke_all('taxonomy_term_delete', $term);
 
-      $tids = $orphans;
+      // Reset cache after each deletion as it might affect parents/children information that is used later on.
+      taxonomy_terms_static_reset();
     }
+    $tids = $orphans;
   } 
-  cache_clear_all();
-  taxonomy_terms_static_reset();
   return array('deleted_terms' => $deleted_terms, 'remaining_child_terms' => $remaining_child_terms);
 }
 
@@ -2115,123 +2095,7 @@ function taxonomy_manager_move($parents, $children, $options = array()) {
   taxonomy_terms_static_reset();
 }
 
-/**
- * merges terms into another term (main term), all merged term get added
- * to the main term as synonyms. 
- * term_node relations are updated automatically (node with one of merging terms gets main term assigned)
- * after all opterions are done (adding of hierarchies, relations is optional) merging
- * terms get deleted
- *
- * @param $main_term
- *   id of term where other terms get merged into
- * @param $merging_terms
- *   array of term ids, which get merged into main term and afterwards deleted
- * @param $options
- *   array with additional options, possible values:
- *   'collect_parents': if true, all parents of merging terms get added to main term (only possible with multi hierarchies)
- *   'collect_children': if true, all children of merging terms get added to main term
- *   'collect_relations': if true, all relations of merging terms are transfered to main term
- */
-function taxonomy_manager_merge($main_term, $merging_terms, $options = array(), $new_inserted = TRUE) {
-  /*$vid = db_result(db_query("SELECT vid FROM {term_data} WHERE tid = %d", $main_term));
-  $voc = taxonomy_vocabulary_load($vid);
-  $merging_terms_parents = array();
-  
-  foreach ($merging_terms as $merge_term) {
-    if ($merge_term != $main_term) {
-      
-      //hook, to inform other modules about the changes
-      module_invoke_all('taxonomy_manager_term', 'merge', $main_term, $merge_term);
-      
-      //update node-relations
-      $sql = db_query("SELECT * FROM {term_node} WHERE tid = %d", $merge_term);
-      while ($obj = db_fetch_object($sql)) {
-        db_query("DELETE FROM {term_node} WHERE tid = %d AND vid = %d", $obj->tid, $obj->vid);
-        if (!db_result(db_query("SELECT COUNT(*) FROM {term_node} WHERE tid = %d AND vid = %d", $main_term, $obj->vid))) {
-          $obj->tid = $main_term;
-          drupal_write_record('term_node', $obj);
-        }
-      }
-    
-      if ($options['collect_parents']) {
-        $parents = taxonomy_get_parents($merge_term);
-        foreach ($parents as $parent_tid => $parent_term) {
-           $merging_terms_parents[$parent_tid] = $parent_tid;
-          if (!db_result(db_query("SELECT COUNT(*) FROM {term_hierarchy} WHERE tid = %d AND parent = %d", $main_term, $parent_tid))) {
-             db_query("INSERT INTO {term_hierarchy} (tid, parent) VALUES (%d, %d)", $main_term, $parent_tid);
-          }
-        }
-      }
-    
-      if ($options['collect_children']) {
-        $children = taxonomy_get_children($merge_term);
-        foreach ($children as $child_tid => $child_term) {
-          if (!db_result(db_query("SELECT COUNT(*) FROM {term_hierarchy} WHERE tid = %d AND parent = %d", $child_tid, $main_term))) {
-            db_query("INSERT INTO {term_hierarchy} (tid, parent) VALUES (%d, %d)", $child_tid, $main_term);
-          }
-        }
-      }
-    
-      if ($options['collect_relations']) {
-        $relations = taxonomy_get_related($merge_term);
-        foreach ($relations as $related_tid => $relation) {
-          if ($relation->tid1 == $merge_term) {
-            if (!db_result(db_query("SELECT COUNT(*) FROM {term_relation} WHERE tid1 = %d AND tid2 = %d", $main_term, $related_tid))) {
-              db_query("INSERT INTO {term_relation} (tid1, tid2) VALUES (%d, %d)", $main_term, $related_tid);
-            }
-          }
-          else if ($relation->tid2 == $merge_term) {
-            if (!db_result(db_query("SELECT COUNT(*) FROM {term_relation} WHERE tid2 = %d AND tid1 = %d", $main_term, $related_tid))) {
-              db_query("INSERT INTO {term_relation} (tid2, tid1) VALUES (%d, %d)", $main_term, $related_tid);
-            }
-          }
-        }
-      }
-    
-      //save merged term (and synonomys of merged term) as synonym
-      $term = taxonomy_term_load($merge_term);
-      $merge_term_synonyms = taxonomy_get_synonyms($merge_term);
-      $merge_term_synonyms[] = $term->name;
-      foreach ($merge_term_synonyms as $syn) {
-        if (!db_result(db_query("SELECT COUNT(*) FROM {term_synonym} WHERE tid = %d AND name = '%s'", $main_term, $syn))) {
-          db_query("INSERT INTO {term_synonym} (tid, name) VALUES (%d, '%s')", $main_term, $syn);
-        }
-      }
-    
-      taxonomy_manager_delete_terms(array($merge_term));
-    }
-  }
-  taxonomy_manager_update_voc($vid, $merging_terms_parents);
-  if ($options['collect_parents'] && (db_result(db_query("SELECT COUNT(*) FROM {term_hierarchy} WHERE tid = %d", $main_term)) > 1)) {
-    db_query("DELETE FROM {term_hierarchy} WHERE parent = 0 AND tid = %d", $main_term);
-  }
-  taxonomy_manager_merge_history_update($main_term, $merging_terms);*/
-}
 
-/**
- * inserts merging information (main_tid - merged_tid ) into taxonomy_manager_merge
- * and updates cache, which is used to reconstructs taxonomy/term pages
- *
- * @param $main_tid term if of main term
- * @param $merged_tids array of merged term ids
- */
-function taxonomy_manager_merge_history_update($main_tid, $merged_tids) {
-  /*if (!is_array($merged_tids)) (array) $merged_tids;
-  
-  foreach ($merged_tids as $merged_tid) {
-    if ($merged_tid != $main_tid) {
-      //check if merged term has been a main term once before
-      $check_merged = db_result(db_query("SELECT COUNT(*) FROM {taxonomy_manager_merge} WHERE main_tid = %d", $merged_tid));
-  
-      if ($check_merged) {
-        db_query("UPDATE {taxonomy_manager_merge} SET main_tid = %d WHERE main_tid = %d", $main_tid, $merged_tid);
-      }
-      //insert into merging history
-      db_query("INSERT INTO {taxonomy_manager_merge} (main_tid, merged_tid) VALUES (%d, %d)", $main_tid, $merged_tid);
-    }
-  }
-  taxonomy_manager_merge_history_update_cache();*/
-}
 
 
 /**

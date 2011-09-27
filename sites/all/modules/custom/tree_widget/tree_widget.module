@@ -6,12 +6,12 @@
  * A single menu item, used by the AHAH/AJAX callback when clicking on the plus
  * icon on a page.
  */
-function term_reference_tree_menu(){
+function tree_widget_menu(){
   return array(
     'term-reference-tree/%/%/%/%taxonomy_term/%' => array(
-      'title' => 'term_reference_tree callback',
+      'title' => 'tree_widget callback',
       'title callback' => FALSE,
-      'page callback' => 'term_reference_tree_page_callback',
+      'page callback' => 'tree_widget_page_callback',
       'page arguments' => array(
         1,
         2,
@@ -20,7 +20,7 @@ function term_reference_tree_menu(){
         5
       ),
       'delivery callback' => 'ajax_deliver',
-      'access callback' => 'term_reference_tree_access_callback',
+      'access callback' => 'tree_widget_access_callback',
       'access arguments' => array(
         1,
         2,
@@ -34,9 +34,9 @@ function term_reference_tree_menu(){
 /**
  * Implements hook_field_widget_settings_form().
  */
-function term_reference_tree_field_widget_settings_form($field, $instance){
+function tree_widget_field_widget_settings_form($field, $instance){
   $form = array();
-  if($instance['widget']['type'] == 'term_reference_tree'){
+  if($instance['widget']['type'] == 'tree_widget'){
     $form['leaves_only'] = array(
       '#type' => 'checkbox',
       '#title' => t('Leaves only'),
@@ -44,47 +44,6 @@ function term_reference_tree_field_widget_settings_form($field, $instance){
       '#default_value' => isset($instance['widget']['settings']['leaves_only']) ? $instance['widget']['settings']['leaves_only'] : 0,
       '#return_value' => 1
     );
-    $form['link_terms'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Link terms'),
-      '#description' => t("Add the term names as links to their term page."),
-      '#default_value' => isset($instance['widget']['settings']['link_terms']) ? $instance['widget']['settings']['link_terms'] : 0,
-      '#return_value' => 1
-    );
-    if(module_exists('views')){
-      $views = array();
-      /**
-       * 
-       // FIXME - The following line has been removed as Zend Studio 8.0.1 does
-       // not appear to agree with it.  Hopefully this bug will be fixed soon - 
-       // although that seems highly unlikely.  This line must be "uncommented"
-       // before committing.
-       * 
-       */
-      //$views = views_get_all_views();
-      $options = array(
-        '' => 'none'
-      );
-      foreach($views as $name => $view){
-        if($view->base_table == 'taxonomy_term_data'){
-          foreach($view->display as $display){
-            $options["$name:{$display->id}"] = "{$view->human_name}: {$display->display_title}";
-          }
-        }
-      }
-      $form['filter_view'] = array(
-        '#type' => 'select',
-        '#title' => 'Filter by view',
-        '#description' => t("Filter the available options based on whether they appear in the selected view."),
-        '#default_value' => isset($instance['widget']['settings']['filter_view']) ? $instance['widget']['settings']['filter_view'] : '',
-        '#options' => $options
-      );
-    }else{
-      $form['filter_view'] = array(
-        '#type' => 'hidden',
-        '#value' => isset($instance['widget']['settings']['filter_view']) ? $instance['widget']['settings']['filter_view'] : ''
-      );
-    }
   }
   return $form;
 }
@@ -92,7 +51,7 @@ function term_reference_tree_field_widget_settings_form($field, $instance){
 /**
  * Callback used to return the additional HTML for a branch in a tree
  */
-function term_reference_tree_page_callback($entity, $field_name, $bundle, $term, $element_id){
+function tree_widget_page_callback($entity, $field_name, $bundle, $term, $element_id){
   // Note, we do not need to worry about default values here, as all boxes that
   // were default checked will already be on the web page, therefore all 
   // checkboxes being asked for will not be checked.
@@ -104,7 +63,6 @@ function term_reference_tree_page_callback($entity, $field_name, $bundle, $term,
     'tid' => $term->tid,
     'element' => array(
       '#name' => $element_id,
-      '#link_terms' => $field_instance['widget']['settings']['link_terms'],
       '#multiple' => $field['cardinality'],
       '#leaves_only' => $field_instance['widget']['settings']['leaves_only']
     )
@@ -115,7 +73,7 @@ function term_reference_tree_page_callback($entity, $field_name, $bundle, $term,
 /**
  * Access callback.  Checks that the user has editing privileges for this form.
  */
-function term_reference_tree_access_callback($field_name, $term){
+function tree_widget_access_callback($field_name, $term){
   // For now, we simply return TRUE.
   return TRUE;
 }
@@ -123,10 +81,10 @@ function term_reference_tree_access_callback($field_name, $term){
 /**
  * Implements hook_field_widget_info().
  */
-function term_reference_tree_field_widget_info(){
+function tree_widget_field_widget_info(){
   return array(
-    'term_reference_tree' => array(
-      'label' => 'Term reference tree',
+    'tree_widget' => array(
+      'label' => 'Tree widget',
       'field types' => array(
         'taxonomy_term_reference'
       ),
@@ -141,7 +99,7 @@ function term_reference_tree_field_widget_info(){
 /**
  * Implements hook_element_info().
  */
-function term_reference_tree_element_info(){
+function tree_widget_element_info(){
   $types = array(
     'options_tree' => array(
       '#input' => true,
@@ -159,7 +117,7 @@ function term_reference_tree_element_info(){
 /**
  * Implements hook_theme().
  */
-function term_reference_tree_theme(){
+function tree_widget_theme(){
   return array(
     'options_tree' => array(
       'render element' => 'element'
@@ -195,11 +153,11 @@ function theme_options_tree_expand_button($variables){
   }else{
     $output .= 'leaf';
   }
-  return $output . '"><img src="' . base_path() . drupal_get_path('module', 'term_reference_tree') . '/images/blank.gif" width="16px" height="16px"/></span>';
+  return $output . '"><img src="' . base_path() . drupal_get_path('module', 'tree_widget') . '/images/blank.gif" width="16px" height="16px"/></span>';
 }
 
 /**
- * Returns HTML for a options_tree form element.
+ * Returns HTML for an options_tree form element.
  *
  * @param $variables
  * An associative array containing:
@@ -215,7 +173,7 @@ function theme_options_tree($variables){
   $root_terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1);
   $output = "<ul>";
   // Get the terms that need to be displayed
-  $variables['ancestors'] = _term_reference_tree_get_ancestors_and_siblings($variables['element']['#default_value']);
+  $variables['ancestors'] = _tree_widget_get_ancestors_and_siblings($variables['element']['#default_value']);
   foreach($root_terms as $term){
     $variables['term'] = $term;
     $output .= theme('options_tree_term', $variables);
@@ -233,14 +191,6 @@ function theme_options_tree_term($variables){
   );
   $variables['tid'] = $variables['term']->tid;
   $display_text = check_plain($variables['term']->name);
-  if(isset($variables['element']['#link_terms']) && $variables['element']['#link_terms']){
-    $uri = taxonomy_term_uri($variables['term']);
-    $display_text = l($display_text, $uri['path'], array(
-      'attributes' => array(
-        'target' => '_blank'
-      )
-    ));
-  }
   // If we're only showing leaves, then we need only return a basic <li> element  
   // Does this term have children, if so, return the basic element
   $children = taxonomy_get_children($variables['term']->tid, $variables['term']->vid);
@@ -275,7 +225,7 @@ function theme_options_tree_term($variables){
 /**
  * Returns all the ancestors of the default terms
  */
-function _term_reference_tree_get_ancestors_and_siblings($tids){
+function _tree_widget_get_ancestors_and_siblings($tids){
   $ancestors = array();
   foreach($tids as $tid){
     $parents = taxonomy_get_parents_all($tid);
@@ -291,8 +241,8 @@ function _term_reference_tree_get_ancestors_and_siblings($tids){
 /**
  * Implements hook_widget_field_form().
  */
-function term_reference_tree_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  // TODO - Add default values
+function tree_widget_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  // TODO - Add default values ? Is this still a TODO?
   $default_value = array();
   foreach($items as $item){
     $default_value[] = $item['tid'];
@@ -301,15 +251,15 @@ function term_reference_tree_field_widget_form(&$form, &$form_state, $field, $in
     '#type' => 'options_tree',
     '#attached' => array(
       'css' => array(
-        drupal_get_path('module', 'term_reference_tree') . '/term_reference_tree.css'
+        drupal_get_path('module', 'tree_widget') . '/css/tree_widget.css'
       ),
       'js' => array(
-        drupal_get_path('module', 'term_reference_tree') . '/term_reference_tree.js' => array(
+        drupal_get_path('module', 'tree_widget') . '/js/tree_widget.js' => array(
           'type' => 'file'
         ),
         array(
           'data' => array(
-            'term_reference_tree' => array(
+            'tree_widget' => array(
               $instance['field_name'] => array(
                 'callback' => url("term-reference-tree/{$instance['entity_type']}/{$instance['field_name']}/{$instance['bundle']}"),
                 'max' => $field['cardinality']
@@ -323,12 +273,11 @@ function term_reference_tree_field_widget_form(&$form, &$form_state, $field, $in
     '#multiple' => $field['cardinality'],
     '#vocabulary' => $field['settings']['allowed_values'][0]['vocabulary'],
     '#tid' => 0,
-    '#value_callback' => '_term_reference_tree_widget_set_values',
+    '#value_callback' => '_tree_widget_widget_set_values',
     '#default_value' => $default_value,
-    '#leaves_only' => $instance['widget']['settings']['leaves_only'],
-    '#link_terms' => $instance['widget']['settings']['link_terms'],
+    '#leaves_only' => isset($instance['widget']['settings']['leaves_only']) ? $instance['widget']['settings']['leaves_only'] : 0,
     '#element_validate' => array(
-      '_term_reference_tree_widget_validate'
+      '_tree_widget_widget_validate'
     )
   );
   if($field['cardinality'] > 1){
@@ -342,7 +291,7 @@ function term_reference_tree_field_widget_form(&$form, &$form_state, $field, $in
 /**
  * Set the values based on the user input
  */
-function _term_reference_tree_widget_set_values($element, $input = FALSE, $form_state = array()){
+function _tree_widget_widget_set_values($element, $input = FALSE, $form_state = array()){
   // First, we need to flatten stuff, due to the silly "[und]".
   $parts = preg_split('/[\[\]]/', $element['#name'], -1, PREG_SPLIT_NO_EMPTY);
   if(isset($form_state['input'][$parts[0]])){
@@ -367,7 +316,7 @@ function _term_reference_tree_widget_set_values($element, $input = FALSE, $form_
 /**
  * Validates the terms selected are all leaves.
  */
-function _term_reference_tree_widget_validate(&$element, &$form_state){
+function _tree_widget_widget_validate(&$element, &$form_state){
   // Check we've set only leaves (if required).
   if($element['#leaves_only']){
     foreach($element['#value'] as $tid){
@@ -377,7 +326,7 @@ function _term_reference_tree_widget_validate(&$element, &$form_state){
     }
   }
   // Check the count is allowed
-  if($element['#multiple'] && count($element['#value']) > $element['#multiple']){
+  if($element['#multiple'] > 0 && count($element['#value']) > $element['#multiple']){
     form_set_error($element['#field_name'], t('You have selected too many terms, only !number allowed', array(
       '!number' => format_plural($element['#multiple'], 'one is', '!number are', array(
         '!number' => $element['#multiple']
