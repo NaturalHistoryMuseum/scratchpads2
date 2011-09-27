@@ -613,6 +613,8 @@ class EntityFieldQuery {
    *     literals of the same type as the column.
    *   - 'BETWEEN': This operator expects $value to be an array of two literals
    *     of the same type as the column.
+   *   The operator can be omitted, and will default to 'IN' if the value is an
+   *   array, or to '=' otherwise.
    *
    * @return EntityFieldQuery
    *   The called object.
@@ -628,8 +630,6 @@ class EntityFieldQuery {
   /**
    * Adds a condition on field values.
    *
-   * @param $type
-   *   The condition array the given conditions should be added to.
    * @param $field
    *   Either a field name or a field array.
    * @param $column
@@ -731,6 +731,8 @@ class EntityFieldQuery {
    *     literals of the same type as the column.
    *   - 'BETWEEN': This operator expects $value to be an array of two literals
    *     of the same type as the column.
+   *   The operator can be omitted, and will default to 'IN' if the value is an
+   *   array, or to '=' otherwise.
    * @param $delta_group
    *   An arbitrary identifier: conditions in the same group must have the same
    *   $delta_group. For example, let's presume a multivalue field which has
@@ -1327,3 +1329,8 @@ class EntityFieldQuery {
   }
 
 }
+
+/**
+ * Exception thrown when a malformed entity is passed.
+ */
+class EntityMalformedException extends Exception { }
