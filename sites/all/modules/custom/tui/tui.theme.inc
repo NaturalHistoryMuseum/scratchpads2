@@ -125,12 +125,14 @@ function theme_tui_term($variables){
  * Theme just the name (required for updating the tree).
  */
 function theme_tui_term_name($variables){
-  return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
-    'attributes' => array(
-      'class' => 'edit-term-link use-ajax',
-      'data-tui-this-term' => $variables['term']->tid
-    )
-  )) . '</div>';
+  if(is_object($variables['term'])){
+    return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
+      'attributes' => array(
+        'class' => 'edit-term-link use-ajax',
+        'data-tui-this-term' => $variables['term']->tid
+      )
+    )) . '</div>';
+  }
 }
 
 /**
