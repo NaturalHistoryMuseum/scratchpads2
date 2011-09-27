@@ -4,64 +4,89 @@
  * Theme for the TUI page
  */
 function theme_tui_page($variables){
-  drupal_add_css(drupal_get_path('module', 'tui') . '/css/tui.css');
-  drupal_add_js(drupal_get_path('module', 'tui') . '/js/tui.js');
-  drupal_add_js(array(
-    'tui' => array(
-      'callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/callback'),
-      'form_callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback'),
-      'sort_callback' => url('tui/sort')
-    )
-  ), 'setting');
-  drupal_add_library('tui', 'ui.nestedSortable');
-  drupal_add_library('system', 'drupal.ajax');
-  drupal_add_library('system', 'ui.resizable');
-  drupal_add_library('system', 'ui.dialog');
-  $form_url = url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/');
-  return '
-<div id="tui">
+  return array(
+    '#attached' => array(
+      'js' => array(
+        array(
+          'data' => array(
+            'tui' => array(
+              'callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/callback'),
+              'form_callback' => url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback'),
+              'sort_callback' => url('tui/sort')
+            )
+          ),
+          'type' => 'setting'
+        ),
+        array(
+          'data' => drupal_get_path('module', 'tui') . '/js/tui.js'
+        )
+      ),
+      'css' => array(
+        drupal_get_path('module', 'tui') . '/css/tui.css'
+      ),
+      'library' => array(
+        array(
+          'tui',
+          'ui.nestedSortable'
+        ),
+        array(
+          'system',
+          'drupal.ajax'
+        ),
+        array(
+          'system',
+          'ui.resizable'
+        ),
+        array(
+          'system',
+          'ui.dialog'
+        )
+      )
+    ),
+    '#markup' => '<div id="tui">
 	<div id="tui-tree">
 	  <div id="tui-tree-container">
       <div id="tui-tree-links">
         <p>
           ' . l('<img id="tui-add" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/add.png" alt="' . t('Add term') . '" title="' . t('Add term') . '"/>', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/add-form/', array(
-    'html' => TRUE,
-    'attributes' => array(
-      'class' => 'use-ajax',
-      'id' => 'tui-add-link'
-    )
-  )) . '
-          <img id="tui-delete" data-url="' . $form_url . 'delete-form/" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/delete.png" alt="' . t('Delete term') . '" title="' . t('Delete term') . '"/>
+      'html' => TRUE,
+      'attributes' => array(
+        'class' => 'use-ajax',
+        'id' => 'tui-add-link'
+      )
+    )) . '
+          <img id="tui-delete" data-url="' . url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/') . 'delete-form/" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/delete.png" alt="' . t('Delete term') . '" title="' . t('Delete term') . '"/>
           <!-- <img id="tui-undo" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/undo.png" alt="' . t('Undo move') . '" title="' . t('Undo move') . '"/> -->
           ' . (module_exists('silver-FIXME') ? l('<img id="tui-import" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/import.png" alt="' . t('Import') . '" title="' . t('Import') . '"/>', 'i', array(
-    'html' => TRUE,
-    'attributes' => array(
-      'target' => '_blank'
-    )
-  )) : '') . '
+      'html' => TRUE,
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )) : '') . '
           <!-- <img id="tui-link" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/link.png" alt="' . t('Link to this page') . '" title="' . t('Link to this page') . '"/> -->
-          <img id="tui-search" data-url="' . $form_url . 'search-form/' . $variables['vocabulary']->vid . '" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/search.png" alt="' . t('Search') . '" title="' . t('Search') . '"/>
+          <img id="tui-search" data-url="' . url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/') . 'search-form/' . $variables['vocabulary']->vid . '" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/search.png" alt="' . t('Search') . '" title="' . t('Search') . '"/>
           <a id="tui-click"></a>
         </p>
       </div>
       <div id="tui-tree-form">
       </div>
 			<div id="tui-tree-subcontainer">' . theme('tui_branch', array(
-    'vocabulary' => $variables['vocabulary'],
-    'tids' => $variables['tids'],
-    'highlight_tids' => $variables['highlight_tids']
-  )) . '
+      'vocabulary' => $variables['vocabulary'],
+      'tids' => $variables['tids'],
+      'highlight_tids' => $variables['highlight_tids']
+    )) . '
   	</div></div>
   </div>
   <div id="tui-form">
   	<div id="tui-form-container">
       <div id="tui-form-noform">' . tui_help('admin/structure/taxonomy/%', array(
-    3 => $variables['vocabulary']->machine_name
-  )) . '</div>
+      3 => $variables['vocabulary']->machine_name
+    )) . '</div>
   	</div>
   </div>
   <div style="clear:both;">&nbsp;</div>
-</div>';
+</div>'
+  );
 }
 
 /**
