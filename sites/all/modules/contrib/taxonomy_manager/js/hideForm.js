@@ -1,4 +1,3 @@
-// $Id: hideForm.js,v 1.2.2.1.2.6.2.2.2.4 2011/01/13 11:17:29 mh86 Exp $
 
 /**
  * @file shows / hides form elements

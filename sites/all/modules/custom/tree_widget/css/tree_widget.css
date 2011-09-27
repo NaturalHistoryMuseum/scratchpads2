@@ -22,11 +22,11 @@
  cursor:pointer;
 }
 .options_tree_plus.plus{
- background-image:url('images/plus.png');
+ background-image:url('../images/plus.gif');
 }
 .options_tree_plus.minus{
- background-image:url('images/minus.png');
+ background-image:url('../images/minus.gif');
 }
 .options_tree_plus.leaf{
- background-image:url('images/leaf.png');
+ background-image:url('../images/leaf.gif');
 }
