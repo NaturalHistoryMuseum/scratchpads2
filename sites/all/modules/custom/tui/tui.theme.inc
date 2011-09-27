@@ -4,6 +4,9 @@
  * Theme for the TUI page
  */
 function theme_tui_page($variables){
+  if(is_null($variables['vocabulary'])){return array(
+      '#markup' => ''
+    );}
   return array(
     '#attached' => array(
       'js' => array(
@@ -90,13 +93,49 @@ function theme_tui_page($variables){
 }
 
 /**
+ * tinytax_branch theme function
+ */
+function theme_tui_branch($variables){
+  if(is_null($variables['vocabulary'])){
+    if(!$variables['tid']){
+      return '';
+    }else{
+      $term = taxonomy_term_load($variables['tid']);
+      if($term){
+        $variables['vocabulary'] = taxonomy_vocabulary_load($term->vid);
+      }else{
+        return '';
+      }
+    }
+  }
+  // Get the terms to render
+  $terms = taxonomy_get_tree($variables['vocabulary']->vid, $variables['tid'], 1, TRUE);
+  // Get the depth
+  $depth = count(taxonomy_get_parents_all($variables['tid']));
+  $output = '<ol>';
+  foreach($terms as $term){
+    $output .= theme('tui_term', array(
+      'vocabulary' => $variables['vocabulary'],
+      'term' => $term,
+      'tids' => $variables['tids'],
+      'highlight_tids' => $variables['highlight_tids']
+    ));
+  }
+  return $output . '</ol>';
+}
+
+/**
  * Theme a single term, depending on its depth within the taxonomy
  */
 function theme_tui_term($variables){
+  if(is_null($variables['term'])){return '';}
   $parents = taxonomy_get_parents($variables['term']->tid);
   $data = '';
   foreach($parents as $parent){
     $data .= ' data-tui-child-of="' . $parent->tid . '"';
+  }
+  if(!is_array($variables['tids'])){
+    $variables['tids'] = array();
   }
   $data .= ' data-tui-this-term="' . $variables['term']->tid . '"';
   // Calculate class based on children
@@ -125,32 +164,13 @@ function theme_tui_term($variables){
  * Theme just the name (required for updating the tree).
  */
 function theme_tui_term_name($variables){
-  if(is_object($variables['term'])){
-    return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
+  if(!is_array($variables['highlight_tids'])){
+    $variables['highlight_tids'] = array();
+  }
+  if(is_object($variables['term'])){return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
       'attributes' => array(
         'class' => 'edit-term-link use-ajax',
         'data-tui-this-term' => $variables['term']->tid
       )
-    )) . '</div>';
-  }
-}
-
-/**
- * tinytax_branch theme function
- */
-function theme_tui_branch($variables){
-  // Get the terms to render
-  $terms = taxonomy_get_tree($variables['vocabulary']->vid, $variables['tid'], 1, TRUE);
-  // Get the depth
-  $depth = count(taxonomy_get_parents_all($variables['tid']));
-  $output = '<ol>';
-  foreach($terms as $term){
-    $output .= theme('tui_term', array(
-      'vocabulary' => $variables['vocabulary'],
-      'term' => $term,
-      'tids' => $variables['tids'],
-      'highlight_tids' => $variables['highlight_tids']
-    ));
-  }
-  return $output . '</ol>';
+    )) . '</div>';}
 }
