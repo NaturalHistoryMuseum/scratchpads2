@@ -83,7 +83,7 @@ class BlockTestCase extends DrupalWebTestCase {
     $this->assertTrue(array_key_exists('subject', $data) && empty($data['subject']), t('block_block_view() provides an empty block subject, since custom blocks do not have default titles.'));
     $this->assertEqual(check_markup($custom_block['body[value]'], $format), $data['content'], t('block_block_view() provides correct block content.'));
 
-    // Check if the block can be moved to all availble regions.
+    // Check whether the block can be moved to all available regions.
     $custom_block['module'] = 'block';
     $custom_block['delta'] = $bid;
     foreach ($this->regions as $region) {
@@ -193,6 +193,49 @@ class BlockTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Test block visibility when using "pages" restriction but leaving 
+   * "pages" textarea empty
+   */
+  function testBlockVisibilityListedEmpty() {
+    $block = array();
+
+    // Create a random title for the block
+    $title = $this->randomName(8);
+
+    // Create the custom block
+    $custom_block = array();
+    $custom_block['info'] = $this->randomName(8);
+    $custom_block['title'] = $title;
+    $custom_block['body[value]'] = $this->randomName(32);
+    $this->drupalPost('admin/structure/block/add', $custom_block, t('Save block'));
+
+    $bid = db_query("SELECT bid FROM {block_custom} WHERE info = :info", array(':info' => $custom_block['info']))->fetchField();
+    $block['module'] = 'block';
+    $block['delta'] = $bid;
+    $block['title'] = $title;
+
+    // Move block to the first sidebar.
+    $this->moveBlockToRegion($block, $this->regions[1]);
+
+    // Set the block to be hidden on any user path, and to be shown only to
+    // authenticated users.
+    $edit = array();
+    $edit['visibility'] = BLOCK_VISIBILITY_LISTED;
+    $this->drupalPost('admin/structure/block/manage/' . $block['module'] . '/' . $block['delta'] . '/configure', $edit, t('Save block'));
+
+    $this->drupalGet('');
+    $this->assertNoText($title, t('Block was not displayed according to block visibility rules.'));
+
+    $this->drupalGet('user');
+    $this->assertNoText($title, t('Block was not displayed according to block visibility rules regardless of path case.'));
+
+    // Confirm that the block is not displayed to anonymous users.
+    $this->drupalLogout();
+    $this->drupalGet('');
+    $this->assertNoText($title, t('Block was not displayed to anonymous users.'));
+  }
+
+  /**
    * Test user customization of block visibility.
    */
   function testBlockVisibilityPerUser() {
@@ -264,7 +307,7 @@ class BlockTestCase extends DrupalWebTestCase {
     // Check to see if the block was created by checking that it's in the database.
     $this->assertNotNull($bid, t('Block found in database'));
 
-    // Check if the block can be moved to all availble regions.
+    // Check whether the block can be moved to all available regions.
     foreach ($this->regions as $region) {
       $this->moveBlockToRegion($block, $region);
     }
@@ -278,7 +321,7 @@ class BlockTestCase extends DrupalWebTestCase {
     $this->assertText(t('The block settings have been updated.'), t('Block successfully move to disabled region.'));
     $this->assertNoText(t($block['title']), t('Block no longer appears on page.'));
 
-    // Confirm that the regions xpath is not availble
+    // Confirm that the region's xpath is not available.
     $xpath = $this->buildXPathQuery('//div[@id=:id]/*', array(':id' => 'block-block-' . $bid));
     $this->assertNoFieldByXPath($xpath, FALSE, t('Custom block found in no regions.'));
 

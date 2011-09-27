@@ -1820,6 +1820,7 @@ function theme_item_list($variables) {
     foreach ($items as $i => $item) {
       $attributes = array();
       $children = array();
+      $data = '';
       if (is_array($item)) {
         foreach ($item as $key => $value) {
           if ($key == 'data') {
@@ -1901,11 +1902,12 @@ function theme_feed_icon($variables) {
  */
 function theme_html_tag($variables) {
   $element = $variables['element'];
+  $attributes = isset($element['#attributes']) ? drupal_attributes($element['#attributes']) : '';
   if (!isset($element['#value'])) {
-    return '<' . $element['#tag'] . drupal_attributes($element['#attributes']) . " />\n";
+    return '<' . $element['#tag'] . $attributes . " />\n";
   }
   else {
-    $output = '<' . $element['#tag'] . drupal_attributes($element['#attributes']) . '>';
+    $output = '<' . $element['#tag'] . $attributes . '>';
     if (isset($element['#value_prefix'])) {
       $output .= $element['#value_prefix'];
     }
@@ -2482,7 +2484,6 @@ function template_preprocess_maintenance_page(&$variables) {
   $variables['site_slogan']       = (theme_get_setting('toggle_slogan') ? variable_get('site_slogan', '') : '');
   $variables['tabs']              = '';
   $variables['title']             = drupal_get_title();
-  $variables['closure']           = '';
 
   // Compile a list of classes that are going to be applied to the body element.
   $variables['classes_array'][] = 'in-maintenance';

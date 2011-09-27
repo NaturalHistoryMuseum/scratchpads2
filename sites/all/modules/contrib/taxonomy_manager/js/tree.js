@@ -1,4 +1,3 @@
-// $Id: tree.js,v 1.4.2.4.2.9.2.13.2.14 2011/01/05 14:12:02 mh86 Exp $
 
 /**
  * @files js for collapsible tree view with some helper functions for updating tree structure
@@ -12,7 +11,7 @@ Drupal.behaviors.TaxonomyManagerTree = {
     if (treeSettings instanceof Array) {
       for (var i=0; i<treeSettings.length; i++) {
         if (!$('#'+ treeSettings[i].id +'.tm-processed').length) {
-          new Drupal.TaxonomyManagerTree(treeSettings[i].id, treeSettings[i].vid); 
+          new Drupal.TaxonomyManagerTree(treeSettings[i].id, treeSettings[i].vid, treeSettings[i].parents);
         }
       }
     }  
@@ -29,7 +28,7 @@ Drupal.behaviors.TaxonomyManagerTree = {
 }
 
 
-Drupal.TaxonomyManagerTree = function(id, vid) {
+Drupal.TaxonomyManagerTree = function(id, vid, parents) {
   this.div = $("#"+ id);
   this.ul = $(this.div).children();
   
@@ -40,6 +39,7 @@ Drupal.TaxonomyManagerTree = function(id, vid) {
   this.language = this.getLanguage();
   this.treeId = id;
   this.vocId = vid;
+  this.formParents = parents;
   this.childFormUrl = Drupal.settings.childForm['url'];
   this.siblingsFormUrl = Drupal.settings.siblingsForm['url'];
 
@@ -113,6 +113,7 @@ Drupal.TaxonomyManagerTree.prototype.loadChildForm = function(li, update, callba
     param['form_build_id'] = this.form_build_id;
     param['form_id'] = this.form_id;
     param['tree_id'] = this.treeId;
+    param['form_parents'] = this.formParents;
     param['language'] = this.language;
     
     $.ajax({
@@ -155,6 +156,7 @@ Drupal.TaxonomyManagerTree.prototype.loadRootForm = function(tids) {
   param['form_build_id'] = this.form_build_id;
   param['form_id'] = this.form_id;
   param['tree_id'] = this.treeId;
+  param['form_parents'] = this.formParents;
   param['language'] = this.language;
   param['terms_to_expand'] = tids; // can either be a single term id or concatinated ids
     
@@ -214,6 +216,7 @@ Drupal.TaxonomyManagerTree.prototype.attachSiblingsForm = function(ul) {
     param['form_build_id'] = tree.form_build_id;
     param['form_id'] = tree.form_id;
     param['tree_id'] = tree.treeId;
+    param['form_parents'] = tree.formParents;
     param['language'] = tree.language;
     
     $.ajax({

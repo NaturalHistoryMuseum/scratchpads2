@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.3.2.3 2007/08/20 14:41:10 mh86 Exp $
 
 README - TAXONOMY MANAGER 
 **************************
@@ -14,7 +13,7 @@ Features:
   * mass deleting
   * mass adding of new terms
   * moving of terms in hierarchies
-  * merging of terms
+  * merging of terms (Term merge module)
   * fast weight changing with up and down arrows (and AJAX saving)
   * AJAX powered term editing form
   * simple search interface
@@ -34,6 +33,13 @@ INSTALLATION
 2. Enable the taxonomy manager module by navigating to:
 
      administer > site building > modules
+
+
+UPGRAGE to 7.x
+---------------
+The table 'taxonomy_manager_merge' is deprecated and won't be used by now. This table stores
+which terms were merged into which destination term. If you do not need this information, you
+can manually remove this table.
 
 
 USING THE TAXONOMY MANAGER
