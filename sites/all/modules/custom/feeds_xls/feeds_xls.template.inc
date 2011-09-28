@@ -8,10 +8,10 @@ define('FEEDS_EXCEL_CREATOR', 'Drupal - Excel parser');
 /**
  * Callback function to provide the template.
  */
-function feeds_excel_download_template($feeds_importer){
+function feeds_xls_download_template($feeds_importer){
   if(get_class($feeds_importer->parser) == 'FeedsExcelParser'){
     if(!$feeds_importer->parser->config['no_headers']){
-      feeds_excel_download_template_helper($feeds_importer);
+      feeds_xls_download_template_helper($feeds_importer);
     }else{
       drupal_set_message(t('The current configuration for this importer is set to use no headers.'), 'error');
       drupal_goto(arg(0) . '/' . arg(1));
@@ -23,13 +23,13 @@ function feeds_excel_download_template($feeds_importer){
   }
 }
 
-function feeds_excel_download_template_helper($feeds_importer){
+function feeds_xls_download_template_helper($feeds_importer){
   // Load the library.
   if(function_exists('libraries_get_path')){
     $path = libraries_get_path('PHPExcel');
     $path = "$path/PHPExcel/IOFactory.php";
   }else{
-    $path = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel/IOFactory.php';
+    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
   }
   require_once $path;
   date_default_timezone_set(drupal_get_user_timezone());
