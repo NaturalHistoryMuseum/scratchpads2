@@ -23,7 +23,7 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
  */
 function silver_batch_alter(&$batch){
   if(arg(0) == 'import'){
-    $batch['redirect'] = 'i';
+    $batch['redirect'] = 'admin/import';
   }
 }
 
@@ -32,13 +32,14 @@ function silver_batch_alter(&$batch){
  */
 function silver_menu(){
   return array(
-    'i' => array(
+    'admin/import' => array(
       'title' => 'Import',
       'description' => 'Import data into your web site',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'silver_import_form'
       ),
+      'position' => 'left',
       'access callback' => 'silver_access_callback'
     )
   );
