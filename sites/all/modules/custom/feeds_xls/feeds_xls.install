@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_requirements().
  */
-function feeds_excel_requirements($phase){
+function feeds_xls_requirements($phase){
   $requirements = array(
     'phpexcel' => array(
       'title' => t('PHPExcel Library'),
@@ -24,11 +24,11 @@ function feeds_excel_requirements($phase){
     }
   }else{
     // We don't have libraries installed, so we simply check for the PHPExcel
-    // library in the feeds_excel module folder.
-    $file = drupal_get_path('module', 'feeds_excel') . '/PHPExcel/PHPExcel.php';
+    // library in the feeds_xls module folder.
+    $file = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel.php';
     if(!file_exists($file)){
       $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
-      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into the feeds_excel module folder.  Note, you must rename the folder "PHPExcel".', array(
+      $requirements['phpexcel']['description'] = t('Please download and install the "Classes" folder from the !phpexcel_library into the feeds_xls module folder.  Note, you must rename the folder "PHPExcel".', array(
         '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
       ));
     }

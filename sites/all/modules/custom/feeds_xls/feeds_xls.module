@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_feeds_plugins().
  */
-function feeds_excel_feeds_plugins(){
+function feeds_xls_feeds_plugins(){
   $info = array();
   $info['FeedsExcelParser'] = array(
     'name' => 'Excel parser',
@@ -12,7 +12,7 @@ function feeds_excel_feeds_plugins(){
       'parent' => 'FeedsParser',
       'class' => 'FeedsExcelParser',
       'file' => 'FeedsExcelParser.inc',
-      'path' => drupal_get_path('module', 'feeds_excel')
+      'path' => drupal_get_path('module', 'feeds_xls')
     )
   );
   return $info;
@@ -21,18 +21,18 @@ function feeds_excel_feeds_plugins(){
 /**
  * Implementation of hook_menu().
  */
-function feeds_excel_menu(){
+function feeds_xls_menu(){
   return array(
     'import/%feeds_importer/template' => array(
       'title' => 'Excel template',
-      'page callback' => 'feeds_excel_download_template',
+      'page callback' => 'feeds_xls_download_template',
       'page arguments' => array(
         1
       ),
       'access arguments' => array(
         'access content'
       ),
-      'file' => 'feeds_excel.template.inc',
+      'file' => 'feeds_xls.template.inc',
       'type' => MENU_CALLBACK
     )
   );

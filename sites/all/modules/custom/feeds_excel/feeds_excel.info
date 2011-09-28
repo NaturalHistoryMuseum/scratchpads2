@@ -1,6 +1,0 @@
-name = Feeds Excel Parser
-description = Excel file parser for importing excel data via feeds.module
-package = Feeds
-dependencies[] = feeds
-files[] = FeedsExcelParser.inc
-core = 7.x
