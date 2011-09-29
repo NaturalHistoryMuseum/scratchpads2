@@ -105,7 +105,7 @@ function tui_taxonomy_term_edit_access($form, $args){
  * Sort form access callback
  */
 function tui_sort_access(){
-  // FIXME - Check we have access to edit ALL the terms we have been sent.
+  // Check we have access to edit ALL the terms we have been sent.
   return tui_taxonomy_term_edit_access('sort-access', $_POST['sort_change']['tids']);
 }
 
@@ -138,9 +138,29 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
 }
 
 /**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
+  // Tweak the links on the overview vocabulary page a little.
+  $children = element_children($form);
+  foreach($children as $child){
+    if(is_numeric($child) && isset($form[$child]['edit']) && isset($form[$child]['list'])){
+      $form[$child]['edit']['#title'] = t('settings');
+      $form[$child]['list']['#title'] = t('edit terms');
+    }
+  }
+}
+
+/**
  * Implementation of hook_menu_alter()
  */
 function tui_menu_alter(&$items){
+  dpm($items);
+  // Change the tab text, to reflect what we have done in the form alter above.
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['title'] = 'Edit terms';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['weight'] = -10;
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/edit']['title'] = 'Settings';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/edit']['weight'] = -20;
   // Change the add term page so that the link does not appear on the list terms
   // or TUI page (As a sub tab thingy, not the tab).
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['type'] = 132;
