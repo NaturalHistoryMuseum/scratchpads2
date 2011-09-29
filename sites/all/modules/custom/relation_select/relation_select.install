@@ -1,0 +1,7 @@
+<?php
+
+function relation_select_install(){
+  db_update('system')->fields(array(
+    'weight' => 10
+  ))->condition('name', 'relation_select')->execute();
+}
