@@ -2,5 +2,15 @@ name = Relation select
 description = A form element to create and edit relations
 dependencies[] = relation
 dependencies[] = views
+dependencies[] = subform
+dependencies[] = efq_views
 package = "Relation"
 core = 7.x
+
+; Views
+files[] = includes/relation_select.views.inc
+files[] = includes/relation_select.views_default.inc
+files[] = includes/relation_select_plugin_style.inc
+
+; Theme
+files[] = theme/theme.inc
