@@ -18,7 +18,7 @@ function silver_batch_alter(&$batch){
   if(arg(0) == 'import'){
     $batch['redirect'] = 'admin/import';
     $batch['css'] = array(
-      drupal_get_path('module', 'silver').'/css/silver-overlay-close.css'
+      drupal_get_path('module', 'silver') . '/css/silver-overlay-close.css'
     );
   }
 }
