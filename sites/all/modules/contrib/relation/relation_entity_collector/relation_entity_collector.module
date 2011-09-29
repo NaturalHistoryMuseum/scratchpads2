@@ -1,0 +1,258 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function relation_entity_collector_block_info() {
+  return array(
+    'block' => array(
+      'info' => t('Relation Entity Collector'),
+      'status' => 1,
+      'region' => 'sidebar_first',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function relation_entity_collector_block_view() {
+  $block['subject'] = t('Entity Collector');
+  $block['content']['#pre_render'] = array('relation_entity_collector_pre_render');
+  return $block;
+}
+
+/**
+ * Pre render callback for the entity_collector block.
+ */
+function relation_entity_collector_pre_render($element) {
+  $element['form'] = drupal_get_form('relation_entity_collector');
+  return $element;
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function relation_entity_collector_entity_load($entities, $type) {
+  $entities_store = &drupal_static('relation_entities', array());
+  $enabled = &drupal_static(__FUNCTION__);
+  // Recursion protection.
+  if ($enabled === -1) {
+    return;
+  }
+  if (!isset($enabled)) {
+    $enabled = -1;
+    // This can fire entity_load() so we need to protect from recursion: will
+    // try to get the theme from the menu which will, in turn, load the objects
+    // in the router path.
+    drupal_theme_initialize();
+    $block_info = _block_load_blocks();
+    $enabled = FALSE;
+    foreach ($block_info as $region => $blocks) {
+      if (isset($blocks['relation_entity_collector_block'])) {
+        $enabled = TRUE;
+        break;
+      }
+    }
+  }
+  if ($enabled) {
+    $entities_store += array($type => array());
+    $entities_store[$type] += $entities;
+  }
+}
+
+/**
+ * The entity_collector form.
+ */
+function relation_entity_collector($form, &$form_state) {
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'relation_entity_collector') . '/relation_entity_collector.css',
+  );
+  $types = relation_get_types();
+  if (empty($types)) {
+    $form['explanation']['#markup'] = t('Before you can create relations, you need to create one or more !link. Once you\'ve done that, visit any page that loads one or more entities, and use this block to add entities to a new relation. Picked entities stay in the entity_collector until cleared or a relation is created so it is possible to collect the entities from several pages.', array('!link' => l('relation types', 'admin/structure/relation')));
+    return $form;
+  }
+  if ($relation_entities = drupal_static('relation_entities', array())) {
+    foreach ($relation_entities as $entity_type => $entities) {
+      foreach ($entities as $entity_id => $entity) {
+        list( , , $entity_bundle) = entity_extract_ids($entity_type, $entity);
+        $options["$entity_type:$entity_id"] = "$entity_bundle: " . entity_label($entity_type, $entity);
+      }
+    }
+    $form_state['relation_entities_options'] = $options;
+  }
+  if (empty($form_state['relation_entities_options'])) {
+    $form['explanation']['#markup'] = t('This block shows all loaded entities on a page and allows adding them to a relation. Please navigate to a page where entities are loaded. Entities picked stay in the entity_collector until cleared or a relation is created so it is possible to collect the entities from several pages.');
+    return $form;
+  }
+  $relation_types = array();
+  foreach ($types as $type) {
+    $relation_types[$type->relation_type] = $type->label;
+  }
+  $form['relation_type'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Relation type'),
+    '#default_value' => isset($_SESSION['relation_type']) ? $_SESSION['relation_type'] : '',
+    '#options'       => $relation_types,
+    '#empty_value'   => '',
+    '#empty_option'  => t('Select a relation type'),
+  );
+  $form['entity_key'] = array(
+    '#type'           => 'select',
+    '#title'          => t('Entity'),
+    '#options'        => $form_state['relation_entities_options'],
+    '#default_value'  => '',
+    '#empty_value'    => '',
+    '#empty_option'   => t('Select an entity'),
+    '#description'     => t('Selector shows all entities loaded on this page.'),
+  );
+  $form['pick'] = array(
+    '#type' => 'submit',
+    '#value' => t('Pick'),
+    '#submit' => array('relation_entity_collector_pick'),
+    '#ajax' => array(
+      'wrapper' => 'relation_entity_collector_reload',
+      'callback' => '_relation_entity_collector_ajax',
+    ),
+  );
+  $form['reload'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Picked entities'),
+  );
+  $form['reload']['#prefix'] = '<span id="relation_entity_collector_reload">';
+  $form['reload']['#suffix'] = '</span>';
+  if (!empty($_SESSION['relation_entity_keys'])) {
+    $form['reload']['stored'] = _relation_stored_entity_keys_list();
+    if (count($form['reload']['stored']['#items']) > 1) {
+      $form['reload']['save'] = array(
+        '#type' => 'submit',
+        '#value' => t('Create relation'),
+        '#submit' => array('relation_entity_collector_save'),
+      );
+    }
+    if (isset($_SESSION['relation_entity_keys'])) {
+      $form['reload']['clear'] = array(
+        '#type' => 'submit',
+        '#value' => t('Clear'),
+        '#submit' => array('relation_entity_collector_clear'),
+        '#ajax' => array(
+          'wrapper' => 'relation_entity_collector_reload',
+          'callback' => '_relation_entity_collector_ajax',
+        ),
+      );
+    }
+  }
+  $form['explanation'] = array(
+    '#prefix' => '<div id=\'relation-entity-collector-explanation\'>',
+    '#markup' => t('Picked entities stay in the Entity Collector until cleared or a relation is created so it is possible to collect the entities from several pages.'),
+    '#suffix' => '</div>',
+  );
+  return $form;
+}
+
+/**
+ * Trivial AJAX helper.
+ */
+function _relation_entity_collector_ajax($form) {
+  return $form['reload'];
+}
+
+/**
+ * Helper to get a item_list render structure out of the entities in session.
+ */
+function _relation_stored_entity_keys_list() {
+  $list = array();
+  foreach ($_SESSION['relation_entity_keys'] as $entity_key) {
+    // The structure is (entity_type, entity_id, entity label).
+    $list[] = $entity_key['entity_key'];
+  }
+  return array(
+    '#theme' => 'item_list',
+    '#items' => $list,
+  );
+}
+
+/**
+ * Submit handler for the pick button.
+ */
+function relation_entity_collector_pick($form, &$form_state) {
+  $_SESSION['relation_entity_keys'][] = $form_state['pick'];
+  $_SESSION['relation_type'] = $form_state['values']['relation_type'];
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Validate form submission for the entity_collector.
+ */
+function relation_entity_collector_validate($form, &$form_state) {
+  if ($form_state['clicked_button']['#value'] == t('Pick')) {
+    // Require values.
+    $relation_type = $form_state['values']['relation_type'];
+    $entity_key = $form_state['values']['entity_key'];
+    $errors = FALSE;
+    if (empty($relation_type)) {
+      form_set_error('relation_type', t('Please select a relation type.'));
+      $errors = TRUE;
+    }
+    if (empty($entity_key)) {
+      form_set_error('entity_key', t('Please select an entity.'));
+      $errors = TRUE;
+    }
+    // If either of these are not selected we can not continue.
+    if ($errors) {
+      return;
+    }
+    // Here we get (entity_type, entity_id).
+    $break = explode(':', $entity_key);
+    // Add the label for later display. #options is check_plain'd but we need
+    // to do that ourselves.
+    $entity_key = check_plain($form['entity_key']['#options'][$entity_key]);
+    $entity_key_array = explode(':', $entity_key, 2);
+    // Indexes are added in ascending order, starting from 0.
+    $_SESSION += array('relation_entity_keys' => array());
+    $next_index = count($_SESSION['relation_entity_keys']);
+    // If validation succeeds we will add this in the submit handler.
+    $form_state['pick'] = array(
+      'entity_type' => $break[0],
+      'entity_id' => $break[1],
+      'entity_bundle' => $entity_key_array[0],
+      'r_index' => $next_index,
+      'entity_key' => $entity_key,
+    );
+    $endpoints = $_SESSION['relation_entity_keys'];
+    $endpoints[] = $form_state['pick'];
+    $relation = relation_create($form_state['values']['relation_type'], $endpoints);
+    $relation->in_progress = TRUE;
+    field_attach_form_validate('relation', $relation, $form, $form_state);
+  }
+}
+
+/**
+ * Submit handler for the save button.
+ */
+function relation_entity_collector_save($form, $form_state) {
+  if (isset($_SESSION['relation_type'])) {
+    $relation = relation_create($_SESSION['relation_type'], $_SESSION['relation_entity_keys']);
+    $rid = relation_save($relation);
+    if ($rid) {
+      $link = l($_SESSION['relation_type'], "relation/$rid");
+      $list = _relation_stored_entity_keys_list();
+      $rendered_list = drupal_render($list);
+      $message = t('Created new !link from !list', array('!link' => $link, '!list' => $rendered_list));
+      drupal_set_message($message);
+      relation_entity_collector_clear($form, $form_state);
+    }
+    else {
+      drupal_set_message('Relation not created.', 'error');
+    }
+  }
+}
+
+/**
+ * Submit handler for the clear button.
+ */
+function relation_entity_collector_clear($form, &$form_state) {
+  unset($_SESSION['relation_type'], $_SESSION['relation_entity_keys']);
+  $form_state['rebuild'] = TRUE;
+}
