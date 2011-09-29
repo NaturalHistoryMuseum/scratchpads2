@@ -2,13 +2,6 @@
 include_once ('silver.features.inc');
 
 /**
- * hook_form_alter().
- */
-function silver_form_alter($form, &$form_state, $form_id){
-  //dpm($form_id);
-}
-
-/**
  * hook_form_FORM_ID_alter().
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){
@@ -24,7 +17,29 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
 function silver_batch_alter(&$batch){
   if(arg(0) == 'import'){
     $batch['redirect'] = 'admin/import';
+    $batch['css'] = array(
+      drupal_get_path('module', 'silver') . '/css/silver-overlay-close.css'
+    );
   }
+}
+
+/**
+ * Implementation of hook_admin_paths().
+ */
+function silver_admin_paths(){
+  // Don't actually need to do this (as it is a child of admin), but hey, lets
+  // be complete.
+  return array(
+    'admin/import' => TRUE
+  );
+}
+
+/**
+ * Implementation of hook_admin_paths_alter().
+ */
+function silver_admin_paths_alter(&$paths){
+  $paths['import'] = TRUE;
+  $paths['import/*'] = TRUE;
 }
 
 /**
@@ -175,11 +190,16 @@ function silver_ajax_callback($form, &$form_state){
       $i++;
     }
   }else if(isset($form_state['values']['silver_import_subform_feeds'])){
+    $q = $_GET['q'];
     if($form_state['values']['silver_import_subform_feeds']){
       module_load_include('pages.inc', 'feeds');
       $form_state['programmed'] = TRUE;
       $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
-      $form['#action'] = url('import/' . $form_state['values']['silver_import_subform_feeds']);
+      $form['#action'] = url('import/' . $form_state['values']['silver_import_subform_feeds'], array(
+        'query' => array(
+          'render' => 'overlay'
+        )
+      ));
       return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
     }else{
       return '<div id="silver_import_subform_feeds"></div>';

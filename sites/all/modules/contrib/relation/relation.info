@@ -1,0 +1,18 @@
+name = Relation
+description = Describes relationships between entities.
+core = 7.x
+package = Relation
+files[] = relation.database.inc
+files[] = tests/relation.test
+files[] = tests/relation.rules.test
+files[] = tests/relation.views.test
+files[] = views/relation_handler_relationship.inc
+configure = admin/structure/relation
+dependencies[] = relation_endpoints
+
+; Information added by drupal.org packaging script on 2011-09-27
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "relation"
+datestamp = "1317126061"
+
