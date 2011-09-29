@@ -102,6 +102,69 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
 }
 
 /**
+ * TUI autocomplete search form
+ */
+function tui_search_form($form, &$form_state, $vid){
+  $ajax = array(
+    'path' => 'tui/ajax',
+    'callback' => 'tui_ajax_blank',
+    'wrapper' => 'tui-tree-form',
+    'effect' => 'slide'
+  );
+  return array(
+    'tui-search-input' => array(
+      '#autocomplete_path' => 'tui/autocomplete/' . $vid,
+      '#size' => FALSE,
+      '#type' => 'textfield',
+      '#title' => ''
+    ),
+    'tui-vid' => array(
+      '#value' => $vid,
+      '#type' => 'value'
+    ),
+    'tui-search-input-button' => array(
+      '#type' => 'submit',
+      '#value' => 'Search',
+      '#ajax' => $ajax
+    ),
+    'tui-cancel-input-button' => array(
+      '#type' => 'button',
+      '#value' => 'Cancel',
+      '#ajax' => $ajax
+    )
+  );
+}
+
+/**
+ * search submit
+ */
+function tui_search_form_submit(&$form, &$form_state){
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('t.name', db_like($form_state['values']['tui-search-input']), 'LIKE')->execute();
+  $highlight_tids = array();
+  $open_tids = array();
+  foreach($results as $row){
+    $parents = taxonomy_get_parents_all($row->tid);
+    array_shift($parents);
+    foreach($parents as $parent){
+      $open_tids[] = $parent->tid;
+    }
+    $highlight_tids[] = $row->tid;
+  }
+  $html = theme('tui_branch', array(
+    'vocabulary' => taxonomy_vocabulary_load($form_state['values']['tui-vid']),
+    'tids' => $open_tids,
+    'highlight_tids' => $highlight_tids
+  ));
+  //$('#tui-tree-subcontainer').animate({scrollTop:$(element).position().top+$('#tui-tree-subcontainer').scrollTop()-50}, 500);
+  $form_state['tui-ajax'] = array(
+    ajax_command_html('#tui-tree-subcontainer', $html),
+    ajax_command_invoke('#tui-tree', 'resize')
+  );
+}
+
+/**
  * Sort stuff
  */
 function tui_sort_callback(){
