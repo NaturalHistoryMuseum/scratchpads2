@@ -1,0 +1,26 @@
+Relation 7.x-1.x-beta1
+----------------------------
+
+
+
+Relation 7.x-1.x-alpha1
+----------------------------
+#1113654 by chx, naught101:
+ - return to original awesomerelationships-style schema (remove field storage)
+ - add relation types (bundles) with settings for arity, directionality, transitivity.
+ - CRUD and validation functions for relations and relation types.
+ - relation dropzone UI for creating relations. You load 'em, we relate 'em.
+ - relation dummy field for displaying relations inline on enities they relate.
+ - relation query builder.
+ - full doxygen.
+
+
+Relation 7.x-1.x, xxxx-xx-xx
+----------------------------
+by sun: Removed stale field settings.
+#981364 by sun, naught101, chx: Fixed field schema column and variable names,
+  and hook_field_is_empty() implementation.
+#981364 by naught101, sun, chx: Re-use field storage for relation data.
+#957742 by naught101, sun: Added missing files[] entry for relation.field.inc.
+#977016 by sun: Moved Awesomerelationship into Relation project.
+by sun: Added initial baseline of module files.

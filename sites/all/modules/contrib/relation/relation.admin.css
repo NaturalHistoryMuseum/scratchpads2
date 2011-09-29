@@ -1,0 +1,9 @@
+/**
+ * @file relation types form css
+ */
+
+.relation-type-form-float :first-child.form-item {
+  float: left;
+  margin-right: 20px;
+  width: 50%;
+}
