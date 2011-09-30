@@ -15,7 +15,11 @@
  *
  * This is a placeholder for describing further keys for hook_entity_info(),
  * which are introduced the entity API for providing a new entity type with the
- * entity CRUD API.
+ * entity CRUD API. For that the entity API provides two controllers:
+ *  - EntityAPIController: A regular CRUD controller.
+ *  - EntityAPIControllerExportable: Extends the regular controller to
+ *    additionally support exportable entities and/or entities making use of a
+ *    name key.
  * See entity_metadata_hook_entity_info() for the documentation of additional
  * keys for hook_entity_info() as introduced by the entity API and supported for
  * any entity type.
@@ -34,19 +38,30 @@
  *   If enabled, a name key should be specified and db columns for the module
  *   and status key as defined by entity_exportable_schema_fields() have to
  *   exist in the entity's base table. Also see 'entity keys' below.
+ *   This option requires the EntityAPIControllerExportable to work.
  * - entity keys: An array of keys as defined by Drupal core. The following
  *   additional keys are used by the entity CRUD API:
  *   - name: (optional) The key of the entity property containing the unique,
  *     machine readable name of the entity. If specified, this is used as
- *     uniform identifier of the entity, while the usual 'id' key is still
- *     required. If a name key is given, the name is used as identifier for all
- *     API functions like entity_load(), but the numeric id as specified by the
- *     'id' key is still used to refer to the entity internally, i.e. in the
- *     database.
- *     For exportable entities, it's strongly recommended to use a machine name
- *     here as those are more portable across systems.
+ *     identifier of the entity, while the usual 'id' key is still required and
+ *     may be used when modules deal with entities generically, or to refer to
+ *     the entity internally, i.e. in the database.
+ *     If a name key is given, the name is used as entity identifier for most
+ *     API functions and hooks. However note that for consistency all generic
+ *     entity hooks like hook_entity_load() are invoked with the entities keyed
+ *     by numeric id, while entity-type specific hooks like
+ *     hook_{entity_type}_load() are invoked with the entities keyed by name.
+ *     Also, just as entity_load_single() entity_load() may be called
+ *     with names passed as the $ids parameter, while the results of
+ *     entity_load() are always keyed by numeric id. Thus, it is suggested to
+ *     make use of entity_load_multiple_by_name() to implement entity-type
+ *     specific loading functions like {entity_type}_load_multiple(), as this
+ *     function returns the entities keyed by name.
+ *     For exportable entities, it is strongly recommended to make use of a
+ *     machine name as names are portable across systems.
+ *     This option requires the EntityAPIControllerExportable to work.
  *   - module: (optional) A key for the module property used by the entity CRUD
- *     API to save the source module name for exportable entities, which are
+ *     API to save the source module name for exportable entities that have been
  *     provided in code. Defaults to 'module'.
  *   - status: (optional) The name of the entity property used by the entity
  *     CRUD API to save the exportable entity status using defined bit flags.
@@ -60,8 +75,7 @@
  * - admin ui: (optional) An array of optional information used for providing an
  *   administrative user interface. To enable the UI at least the path must be
  *   given. Apart from that, the 'access callback' (see below) is required for
- *   the entity, and at least a loader function ENTITY_TYPE_load() has to
- *   be defined, as well as the 'ENTITY_TYPE_form' for editing, adding and
+ *   the entity, as well as the 'ENTITY_TYPE_form' for editing, adding and
  *   cloning. The form gets the entity and the operation ('edit', 'add' or
  *   'clone') passed. See entity_ui_get_form() for more details.
  *   Known keys are:
@@ -76,8 +90,7 @@
  *     not set, it defaults to entity module's path, thus the entity types
  *     'module' key is required.
  *   - menu wildcard: The wildcard to use in paths of the hook_menu() items.
- *     Defaults to %ENTITY_TYPE, for which a respective loader function
- *     ENTITY_TYPE_load() has to be defined by the implementing module.
+ *     Defaults to %entity_object which is the loader provided by Entity API.
  * - rules controller class: (optional) A controller class for providing Rules
  *   integration. The given class has to inherit from the default class being
  *   EntityDefaultRulesController. Set it to FALSE to disable this feature.
@@ -107,6 +120,9 @@
  *   entity_metadata_no_hook_node_access() for an example.
  *   This is optional, but suggested for the Rules integration, and required for
  *   the admin ui (see above).
+ * - form callback: (optional) Specfiy a callback that returns a fully built
+ *   edit form for your entity type. See entity_form().
+ *   In case the 'admin ui' is used, no callback needs to be specified.
  *
  * @see hook_entity_info()
  * @see entity_metadata_hook_entity_info()
@@ -147,6 +163,9 @@ function entity_crud_hook_entity_info() {
  * entity types with the entity CRUD API.
  *
  * Additional keys are:
+ * - plural label: (optional) The human-readable, plural name of the entity
+ *   type. As 'label' it should start capitalized.
+ * - description: (optional) A human-readable description of the entity type.
  * - access callback: (optional) Specify a callback that returns access
  *   permissions for the operations 'create', 'update', 'delete' and 'view'.
  *   The callback gets optionally the entity and the user account to check for
@@ -160,8 +179,15 @@ function entity_crud_hook_entity_info() {
  *   entity of this type.
  * - view callback: (optional) A callback to render a list of entities.
  *   See entity_metadata_view_node() as example.
+ * - form callback: (optional) A callback that returns a fully built edit form
+ *   for the entity type.
  * - token type: (optional) A type name to use for token replacements. Set it
  *   to FALSE if there aren't any token replacements for this entity type.
+ * - configuration: (optional) A boolean value that specifies whether the entity
+ *   type should be considered as configuration. Modules working with entities
+ *   may use this value to decide whether they should deal with a certain entity
+ *   type. Defaults to TRUE to for entity types that are exportable, else to
+ *   FALSE.
  *
  * @see hook_entity_info()
  * @see entity_crud_hook_entity_info()
@@ -169,6 +195,8 @@ function entity_crud_hook_entity_info() {
  * @see entity_create()
  * @see entity_save()
  * @see entity_delete()
+ * @see entity_view()
+ * @see entity_form()
  */
 function entity_metadata_hook_entity_info() {
   return array(
@@ -214,7 +242,10 @@ function entity_metadata_hook_entity_info() {
  *        - uri: An absolute URI or URL.
  *        - entities - You may use the type of each entity known by
  *          hook_entity_info(), e.g. 'node' or 'user'. Internally entities are
- *          represented by their identifieres.
+ *          represented by their identifieres. In case of single-valued
+ *          properties getter callbacks may return full entity objects as well,
+ *          while a value of FALSE is interpreted like a NULL value as "property
+ *          is not set".
  *        - entity: A special type to be used generically for entities where the
  *          entity type is not known beforehand. The entity has to be
  *          represented using an EntityMetadataWrapper.
