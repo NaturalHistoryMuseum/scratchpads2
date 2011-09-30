@@ -5,6 +5,7 @@
 
 
 (function($) {
+  
 /**
  * Geofield Behavior
  */
@@ -15,118 +16,259 @@ Drupal.behaviors.openlayers_behavior_geofield = {
     /*
      * Helper method called on addFeature
      */
-    function setBounds(box) {
-      bounding_box = box.geometry.getBounds().transform(
-        box.layer.map.projection,
-        new OpenLayers.Projection('EPSG:4326')).toArray();
-      for (var j = 0; j < 4; j++) {
-        box.layer.map.bounds_form[j].val(bounding_box[j]);
-      }
-      for(i = 0; i < selections_layer.features.length; i++) {
-        if(selections_layer.features[i] != box) {
-          selections_layer.features[i].destroy();
+    function setItem(feature) {
+      geom = feature.clone().geometry.transform(
+        feature.layer.map.projection,
+        new OpenLayers.Projection('EPSG:4326'));
+        
+      centroid = geom.getCentroid();
+      bounds = geom.getBounds();
+      type = typeLookup(feature);
+        
+      feature.layer.map.data_form.wkt.val(geom.toString());
+      feature.layer.map.data_form.type.val(type);
+      feature.layer.map.data_form.lat.val(centroid.y);
+      feature.layer.map.data_form.lon.val(centroid.x);
+      feature.layer.map.data_form.left.val(bounds.left);
+      feature.layer.map.data_form.top.val(bounds.top);
+      feature.layer.map.data_form.bottom.val(bounds.bottom);
+      feature.layer.map.data_form.right.val(bounds.right);
+        
+      for (var i = 0; i < selection_layer.features.length; i++) {
+        if (selection_layer.features[i] != feature) {
+          selection_layer.features[i].destroy();
         }
       }
     }
-
-    /*
-     * Helper method called on addFeature
-     */
-    function setPoint(point) {
-      p = point.clone().geometry.transform(
-        point.layer.map.projection,
-        new OpenLayers.Projection('EPSG:4326'));
-
-        point.layer.map.centerpoint_form[0].val(p.x);
-        point.layer.map.centerpoint_form[1].val(p.y);
-
-        for (var i = 0; i < point_selections_layer.features.length; i++) {
-          if (point_selections_layer.features[i] != point) {
-            point_selections_layer.features[i].destroy();
-          }
-        }
-      }
-
+    
+    function typeLookup(feature) {
+      lookup = {
+        'OpenLayers.Geometry.Point':'point',
+        'OpenLayers.Geometry.LineString':'line',
+        'OpenLayers.Geometry.Polygon':'polygon',
+      };
+      
+      return lookup[feature.geometry.__proto__.CLASS_NAME];
+    }
+    
     if (data && data.map.behaviors['openlayers_behavior_geofield']) {
+      
+      data.openlayers.data_form = {
+        'wkt':$(data.map.behaviors['openlayers_behavior_geofield']['wkt']),
+        'type':$(data.map.behaviors['openlayers_behavior_geofield']['type']),
+        'lat':$(data.map.behaviors['openlayers_behavior_geofield']['lat']),
+        'lon':$(data.map.behaviors['openlayers_behavior_geofield']['lon']),
+        'left':$(data.map.behaviors['openlayers_behavior_geofield']['left']),
+        'top':$(data.map.behaviors['openlayers_behavior_geofield']['top']),
+        'right':$(data.map.behaviors['openlayers_behavior_geofield']['right']),
+        'bottom':$(data.map.behaviors['openlayers_behavior_geofield']['bottom'])
+      };
 
-      centerpoint_form =
-        [$(data.map.behaviors['openlayers_behavior_geofield'].centerpoint['lon']),
-         $(data.map.behaviors['openlayers_behavior_geofield'].centerpoint['lat'])];
-
-      bounds_form =
-        [$(data.map.behaviors['openlayers_behavior_geofield'].bounds[0]),
-         $(data.map.behaviors['openlayers_behavior_geofield'].bounds[1]),
-         $(data.map.behaviors['openlayers_behavior_geofield'].bounds[2]),
-         $(data.map.behaviors['openlayers_behavior_geofield'].bounds[3])];
-
-      data.openlayers.centerpoint_form = centerpoint_form;
-      data.openlayers.bounds_form = bounds_form;
-
-      center_point = centerpoint_form[0].val() + ', ' + centerpoint_form[1].val();
-
+      selection_layer = new OpenLayers.Layer.Vector('Selection Layer');      
+      
       /*
        * Point Drawing
        */
-
-      point_selections_layer = new OpenLayers.Layer.Vector('Temporary Point Layer');
+      
       point_control = new OpenLayers.Control.DrawFeature(
-        point_selections_layer,
+        selection_layer,
         OpenLayers.Handler.Point,
         {
-          featureAdded: setPoint
+          featureAdded: setItem
         }
       );
-      data.openlayers.addLayer(point_selections_layer);
+      data.openlayers.addLayer(selection_layer);
       data.openlayers.addControl(point_control);
       point_control.activate();
-
+      
+      /*
+       * Line Drawing
+       */
+      
+      line_control = new OpenLayers.Control.DrawFeature(
+        selection_layer,
+        OpenLayers.Handler.Path,
+        {
+          featureAdded: setItem
+        }
+      );
+      data.openlayers.addLayer(selection_layer);
+      data.openlayers.addControl(line_control);
+      
+      /*
+       * Polygon Drawing
+       */
+       
+      polygon_control = new OpenLayers.Control.DrawFeature(
+        selection_layer,
+        OpenLayers.Handler.Polygon,
+        {
+          featureAdded: setItem
+        }
+      );
+      data.openlayers.addLayer(selection_layer);
+      data.openlayers.addControl(polygon_control);
+      
       /*
        * Bounds drawing
        */
-      selections_layer = new OpenLayers.Layer.Vector('Temporary Box Layer');
 
-      control = new OpenLayers.Control.DrawFeature(
-        selections_layer,
+      bounds_control = new OpenLayers.Control.DrawFeature(
+        selection_layer,
         OpenLayers.Handler.RegularPolygon,
         {
-          featureAdded: setBounds
+          featureAdded: setItem
         }
       );
 
-      control.handler.setOptions({
-          'keyMask': OpenLayers.Handler.MOD_SHIFT,
+      bounds_control.handler.setOptions({
           'sides': 4,
           'irregular': true});
 
-      data.openlayers.addLayer(selections_layer);
-      data.openlayers.addControl(control);
-      control.activate();
+      data.openlayers.addControl(bounds_control);
 
+      // Add buttons to control_panel for each control type
+      point_button = new OpenLayers.Control.Button({
+        displayClass: "openlayers_behavior_geofield_button", 
+        title: Drupal.t('Set a point'),
+        trigger: buttonTriggerPoint
+      });
+
+      line_button = new OpenLayers.Control.Button({
+        displayClass: "openlayers_behavior_geofield_button", 
+        title: Drupal.t('Add a line'),
+        trigger: buttonTriggerLine
+      });
+
+      polygon_button = new OpenLayers.Control.Button({
+        displayClass: "openlayers_behavior_geofield_button", 
+        title: Drupal.t('Add a polygon'),
+        trigger: buttonTriggerPolygon
+      });
+
+      bounds_button = new OpenLayers.Control.Button({
+        displayClass: "openlayers_behavior_geofield_button", 
+        title: Drupal.t('Set bounds'),
+        trigger: buttonTriggerBounds
+      });
+
+      // Create a panel to hold control buttons
+      button_panel = new OpenLayers.Control.Panel({
+        displayClass: 'openlayers_behavior_geofield_button_panel'
+      });
+
+      button_panel.addControls([point_button, line_button, polygon_button, bounds_button]);
+
+      data.openlayers.addControl(button_panel);
+      
+      buttonToggle('none');
+
+      // Hold down control key for polygons
+      // Hold down alt key for lines
+      // Hold down shift for bounds
+      // Eventually, we should make a really nice editing bar for this
+      $(document).keydown(function(event) {
+        // Shift  -> Boundary
+        if (event.keyCode == 16) {
+          point_control.deactivate();
+          line_control.deactivate();
+          polygon_control.deactivate();
+          bounds_control.activate();
+        }
+        // Control  -> Lines
+        if (event.keyCode == 17) {
+          point_control.deactivate();
+          polygon_control.deactivate();
+          bounds_control.deactivate();
+          line_control.activate();
+        }
+        // Alt  -> Polygons
+        if (event.keyCode == 18) {
+          point_control.deactivate();
+          line_control.deactivate();
+          bounds_control.deactivate();
+          polygon_control.activate();
+        }
+      });
+
+      $(document).keyup(function(event) {
+        // On keyup, go back to points
+        if (event.keyCode == 16 || event.keyCode == 17 || event.keyCode == 18) {
+          bounds_control.deactivate();
+          line_control.deactivate();
+          polygon_control.deactivate();
+          point_control.activate();
+        }
+      });
+      
       /*
-       * Draw box if the form has values
+       * Draw features if the form has values
        */
-      if (centerpoint_form[0].val()) {
-        geometry = new OpenLayers.Geometry.Point(
-          centerpoint_form[0].val(),
-          centerpoint_form[1].val()).transform(
+      if (data.openlayers.data_form.wkt.val()) {
+        geometry = new OpenLayers.Geometry.fromWKT(data.openlayers.data_form.wkt.val());
+        geometry.transform(
             new OpenLayers.Projection('EPSG:4326'),
             data.openlayers.projection);
+        
         feature = new OpenLayers.Feature.Vector(geometry);
-        point_selections_layer.addFeatures([feature]);
+        selection_layer.addFeatures([feature]);
       }
-
-      /*
-       * Draw box if the form has values
-       */
-      bbox = $.map(bounds_form, function(a){ return a.val(); }).join(',');
-      if (bbox != ',,,,') {
-        geometry = new OpenLayers.Bounds.fromString(bbox).toGeometry().transform(
-            new OpenLayers.Projection('EPSG:4326'),
-            data.openlayers.projection);
-        feature = new OpenLayers.Feature.Vector(geometry);
-        selections_layer.addFeatures([feature]);
-      }
+      
     }
   }
 };
+
+function buttonTriggerPoint() {
+  buttonToggle('point');
+}
+
+function buttonTriggerLine() {
+  buttonToggle('line');
+}
+
+function buttonTriggerPolygon() {
+  buttonToggle('polygon');
+}
+
+function buttonTriggerBounds() {
+  buttonToggle('bounds');
+}
+
+// Function when buttons are clicked
+function buttonToggle(which) {
+  if (which == 'bounds') {
+    point_control.deactivate();
+    line_control.deactivate();
+    polygon_control.deactivate();
+    
+    bounds_control.activate();
+  }
+  else if (which == 'line') {
+    point_control.deactivate();
+    polygon_control.deactivate();
+    bounds_control.deactivate();
+    
+    line_control.activate();
+  }
+  else if (which == 'polygon') {
+    point_control.deactivate();
+    bounds_control.deactivate();
+    line_control.deactivate();
+    
+    polygon_control.activate();
+  }
+  else if (which == 'point') {
+    bounds_control.deactivate();
+    line_control.deactivate();
+    polygon_control.deactivate();
+    
+    point_control.activate();
+  }
+  else {
+    point_control.deactivate();
+    bounds_control.deactivate();
+    line_control.deactivate();
+    polygon_control.deactivate();
+  }
+}
 })(jQuery);
