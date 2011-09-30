@@ -1,5 +1,4 @@
 <?php
-// $Id $
 
 // Guernsey
 // See http://www.statoids.com/ugg.html

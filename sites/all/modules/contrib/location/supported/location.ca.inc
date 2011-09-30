@@ -329,7 +329,7 @@ function location_geocode_ca_geocoder_settings() {
     '#size' => 64,
     '#maxlength' => 128,
     '#default_value' => variable_get('location_geocode_ca_geocoder_apikey', ''),
-    '#description' => t('In order to use the Geocoder.ca API geocoding web-service, you for a commercial entity or without attribution you will need a Geocoder API Key.  You can obtain one at the !sign_up_link for the !geocoder_api.', array('!sign_up_link' => '<a href="http://geocoder.ca/?register=1">sign-up page</a>', '!geocoder_api' => '<a href="http://geocoder.ca/?premium_api=1">Geocoder API</a>'))
+    '#description' => t('In order to use the Geocoder.ca API geocoding web-service, if you are a commercial entity or wish to use the service without attribution, you will need a Geocoder API Key.  You can obtain one at the !sign_up_link for the !geocoder_api.', array('!sign_up_link' => '<a href="http://geocoder.ca/?register=1">sign-up page</a>', '!geocoder_api' => '<a href="http://geocoder.ca/?premium_api=1">Geocoder API</a>'))
   );
 
   return $form;

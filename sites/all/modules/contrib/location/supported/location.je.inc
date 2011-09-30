@@ -1,5 +1,4 @@
 <?php
-// $Id $
 
 // Jersey
 // See http://www.statoids.com/uje.html

@@ -925,8 +925,11 @@ function location_load_location($lid) {
     if (variable_get('location_jit_geocoding', FALSE)) {
       _location_geo_logic($location, array('street' => 1), array());
       db_update('location')
-        ->fields(array('latitude', 'longitude', 'source'))
-        ->values($location)
+        ->fields(array(
+          'latitude' => $location['latitude'],
+          'longitude' => $location['longitude'],
+          'source' => $location['source'],
+        ))
         ->condition('lid', $location['lid'])
         ->execute();
     }
@@ -1727,6 +1730,8 @@ function location_form($settings, $locations) {
     }
     $form[$i] = array(
       '#type' => 'location_element',
+      '#has_garbage_value' => TRUE,
+      '#value' => '',
       '#title' => t('Location #%number', array('%number' => $i + 1)),
       '#default_value' => isset($locations[$i]) ? $locations[$i] : NULL,
       '#location_settings' => $settings,

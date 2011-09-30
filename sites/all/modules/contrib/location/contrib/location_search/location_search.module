@@ -298,7 +298,9 @@ function location_search_form_alter(&$form, &$form_state, $form_id) {
       if (variable_get('location_search_map_address', 1)) {
         $map_fields['address'] = 'locpick_address';
       }
-      $form['advanced']['proximity']['map']['#value'] = gmap_set_location(variable_get('location_search_map_macro', '[gmap |behavior=+collapsehack]'), $form['advanced']['proximity'], $map_fields);
+      if (module_exists('gmap')) {
+        $form['advanced']['proximity']['map']['#value'] = gmap_set_location(variable_get('location_search_map_macro', '[gmap |behavior=+collapsehack]'), $form['advanced']['proximity'], $map_fields);
+      }
     }
 
     $form['advanced']['submit'] = array(

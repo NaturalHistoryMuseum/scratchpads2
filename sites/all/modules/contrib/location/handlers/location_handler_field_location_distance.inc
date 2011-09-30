@@ -49,6 +49,7 @@ class location_handler_field_location_distance extends views_handler_field {
         'php' => t('Use PHP code to determine latitude/longitude'),
         'nid_arg' => t("Node's Latitude / Longitude from views nid argument"),
         'uid_arg' => t("User's Latitude / Longitude from views uid argument"),
+        'distance_arg' => t("Latitude / Longitude from views argument"),
       ),
       '#description' => t("This will be the way the latitude/longitude of origin is determined. When using the user's latitude / longitude, if a user has multiple locations the first will be used."),
       '#default_value' => $this->options['origin'],

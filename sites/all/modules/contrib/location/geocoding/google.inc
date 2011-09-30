@@ -55,7 +55,7 @@ function google_geocode_country_list() {
     $pos = strpos($region->content, 'geocoding:') + 11;
     $geocoding = substr($region->content, $pos, strpos($region->content, ',', $pos) - $pos);
     if (strpos($geocoding, "Yes") !== FALSE) {
-     $regionclean[] = htmlentities($region->title);
+     $regionclean[] = t(htmlentities($region->title));
     }
   }
 
@@ -73,11 +73,11 @@ function google_geocode_country_list() {
   $regex = "#[ (].*[)]#e";
   $cntryclean = preg_replace($regex, "", $countries);
   $countriesfixes = array_merge($cntryclean, array(
-    "hk" => "China",
-    "mo" => "China",
-    "pn" => "Pitcairn Islands",
-    "wf" => "Wallis Futuna",
-    "st" => "S&Atilde;&pound;o Tom&Atilde;&copy; and Pr&Atilde;&shy;ncipe",
+    "hk" => t("China"),
+    "mo" => t("China"),
+    "pn" => t("Pitcairn Islands"),
+    "wf" => t("Wallis Futuna"),
+    "st" => t("S&Atilde;&pound;o Tom&Atilde;&copy; and Pr&Atilde;&shy;ncipe"),
   ));
 
   // Compare new google data found to fixed country name values and return
@@ -189,7 +189,7 @@ function google_geocode_settings() {
     );
   }
 
-  $country = arg(4);
+  $country = arg(5);
   if ($country) {
     $form['location_geocode_' . $country . '_google_accuracy_code'] = array(
       '#type' => 'select',
@@ -214,7 +214,7 @@ function _google_geocode_flatten($location = array()) {
   }
 
   if (!empty($location['city'])) {
-    if (!empty($location['street'])) {
+    if (!empty($address)) {
       $address .= ', ';
     }
 
@@ -222,12 +222,12 @@ function _google_geocode_flatten($location = array()) {
   }
 
   if (!empty($location['province'])) {
-    if (!empty($location['street']) || !empty($location['city'])) {
+    if (!empty($address)) {
       $address .= ', ';
     }
 
     // @@@ Fix this!
-    if (substr($location['province'], 0, 3) == $location['country'] .'-') {
+    if (substr($location['province'], 0, 3) == $location['country'] . '-') {
       $address .= substr($location['province'], 3);
       watchdog('Location', 'BUG: Country found in province attribute.');
     }
@@ -241,6 +241,13 @@ function _google_geocode_flatten($location = array()) {
       $address .= ' ';
     }
     $address .= $location['postal_code'];
+  }
+
+  if (!empty($location['country'])) {
+    if (!empty($address)) {
+      $address .= ', ';
+    }
+    $address .= $location['country'];
   }
 
   return $address;

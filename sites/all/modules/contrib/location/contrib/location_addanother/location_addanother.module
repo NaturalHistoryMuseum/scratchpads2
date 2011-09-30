@@ -9,7 +9,7 @@
 /**
  * Implements hook_node_view().
  */
-function location_addanother_node_view($node, $view_mode, $langcode) {
+function location_addanother_node_view($node, $view_mode) {
   if (variable_get('location_addanother_' . $node->type, 0) && count($node->locations) < variable_get('location_maxnum_' . $node->type, 0) && $view_mode == 'full' && node_access('update', $node)) {
     $addanother_form = drupal_get_form('location_addanother_form', $node);
     $node->content['location_addanother'] = array(

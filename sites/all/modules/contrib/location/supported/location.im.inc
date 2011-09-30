@@ -1,5 +1,4 @@
 <?php
-// $Id $
 
 // Isle of Man
 // See http://www.statoids.com/uim.html

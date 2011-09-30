@@ -83,7 +83,7 @@ function location_node_node_update($node) {
 /**
  * Implements hook_node_view().
  */
-function location_node_node_view($node, $view_mode, $langcode) {
+function location_node_node_view($node, $view_mode) {
   $settings = variable_get('location_settings_node_' . $node->type, array());
 
   if ($view_mode == 'rss') {

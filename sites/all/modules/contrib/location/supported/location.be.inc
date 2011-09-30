@@ -33,3 +33,35 @@ function location_bounds_be() {
     'maxlat' => 51.528667,
   );
 }
+
+function location_map_link_be_providers() {
+  return array(
+    'google' => array(
+      'name' => 'Google Maps',
+      'url' => 'http://maps.google.be/',
+      'tos' => 'http://maps.google.be/help/terms_maps.html',
+    ),
+  );
+}
+
+function location_map_link_be_default_providers() {
+  return array('google');
+}
+
+function location_map_link_be_google($location = array()) {
+  $query_params = array();
+
+  foreach (array('street', 'city', 'postal_code', 'country') as $field) {
+    if (isset($location[$field])) {
+      $query_params[] = $location[$field];
+    }
+  }
+
+  if (count($query_params)) {
+    return ('http://maps.google.co.be?q='. urlencode(implode(', ', $query_params)));
+  }
+  else {
+    return NULL;
+  }
+}
+

@@ -472,6 +472,7 @@ function location_views_proximity_get_reference_location($view, $options) {
       }
       break;
     case 'static':
+    case 'latlon_gmap':
       $coordinates['latitude'] = (float) $options['latitude'];
       $coordinates['longitude'] = (float) $options['longitude'];
       break;
@@ -522,10 +523,12 @@ function location_views_proximity_get_reference_location($view, $options) {
             $coordinates['longitude'] = (float) $tempnode->location['longitude'];
           }
           else {
-            $cck_location = $tempnode->$field_name;
-            if (isset($cck_location[0]['longitude']) && isset($cck_location[0]['latitude'])) {
-              $coordinates['latitude'] = (float) $cck_location[0]['latitude'];
-              $coordinates['longitude'] = (float) $cck_location[0]['longitude'];
+            if (isset($tempnode->$field_name)) {
+              $cck_location = $tempnode->$field_name;
+              if (isset($cck_location[0]['longitude']) && isset($cck_location[0]['latitude'])) {
+                $coordinates['latitude'] = (float) $cck_location[0]['latitude'];
+                $coordinates['longitude'] = (float) $cck_location[0]['longitude'];
+              }
             }
           }
         }
@@ -540,6 +543,18 @@ function location_views_proximity_get_reference_location($view, $options) {
         }
       }
       break;
+    case 'distance_arg':
+      foreach ($view->argument as $argument) {
+        if ($argument->field == 'distance') {
+          list($coords, $search_distance) = explode('_', $view->args[$argument->position]);
+          list($lat, $lon) = explode(',', $coords);
+          break;
+        }
+      }
+      $coordinates['latitude'] = (float) $lat;
+      $coordinates['longitude'] = (float) $lon;
+      break;
+
   }
 
   return $coordinates;

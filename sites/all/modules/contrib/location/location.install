@@ -1247,3 +1247,42 @@ function location_update_6309() {
   }
 }
 
+/**
+ * Updates the ISO code for United Kingdom from 'uk' to 'gb' in the location
+ * table, the zipcodes table, and for any variable names and variable values
+ * where it is used.
+ */
+function location_update_7301() {
+
+  db_update('location')
+    ->fields(array(
+      'country' => 'gb',
+    ))
+    ->condition('country', 'uk')
+    ->execute();
+
+  db_update('zipcodes')
+    ->fields(array(
+      'country' => 'gb',
+    ))
+    ->condition('country', 'uk')
+    ->execute();
+
+  $uk = variable_get('location_geocode_uk', '');
+  $gb = variable_get('location_geocode_gb', '');
+  
+  if ($uk) {
+    variable_set('location_geocode_gb', $uk);
+  }
+  
+  $uk = variable_get('location_map_link_uk', '');
+  $gb = variable_get('location_map_link_gb', '');
+  
+  if ($uk) {
+    variable_set('location_map_link_gb', $uk);
+  }
+  
+  cache_clear_all('*', 'cache_location', TRUE);
+  return;
+}
+

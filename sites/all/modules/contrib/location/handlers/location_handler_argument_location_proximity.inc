@@ -103,7 +103,7 @@ class location_handler_argument_location_proximity extends views_handler_argumen
    *
    * The argument sent may be found at $this->argument.
    */
-  function query() {
+  function query($group_by = FALSE) {
     // Get and process argument.
     if ($this->options['type'] == 'postal') {
       foreach ($this->view->argument as $argument) {
@@ -138,7 +138,7 @@ class location_handler_argument_location_proximity extends views_handler_argumen
       if (!empty($this->value['search_distance'])) {
         // Hmm, distance set but unable to resolve coordinates.
         // Force nothing to match.
-        $this->query->add_where($this->options['group'], "1 = 0");
+        $this->query->add_where(0, "1 = 0");
       }
       return;
     }
@@ -177,11 +177,11 @@ class location_handler_argument_location_proximity extends views_handler_argumen
     else {
       $where = "$this->table_alias.latitude > :minlat AND $this->table_alias.latitude < :maxlat AND $this->table_alias.longitude > :minlon AND $this->table_alias.longitude < :maxlon";
     }
-    $this->query->add_where_expression($this->options['group'], $where, array(':minlat' => $latrange[0], ':maxlat' => $latrange[1], ':minlon' => $lonrange[0], ':maxlon' => $lonrange[1]));
+    $this->query->add_where_expression(0, $where, array(':minlat' => $latrange[0], ':maxlat' => $latrange[1], ':minlon' => $lonrange[0], ':maxlon' => $lonrange[1]));
 
     if ($this->options['search_method'] == 'dist') {
       // Add radius check.
-      $this->query->add_where_expression($this->options['group'], earth_distance_sql($lon, $lat, $this->table_alias) . ' < :distance', array(':distance' => $distance_meters));
+      $this->query->add_where_expression(0, earth_distance_sql($lon, $lat, $this->table_alias) . ' < :distance', array(':distance' => $distance_meters));
     }
   }
 }

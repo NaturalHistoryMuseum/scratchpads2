@@ -4,9 +4,8 @@
  * General proximity filter for location latitude/longitude.
  */
 class location_views_handler_filter_proximity extends views_handler_filter {
-  // This is always single, because of the distance field's possible dependency
-  // on it.
-  var $no_single = TRUE;
+  // This is always multiple, because we can have distance, units etc.
+  var $always_multiple = TRUE;
 
   function option_definition() {
     $options = parent::option_definition();
@@ -228,15 +227,15 @@ class location_views_handler_filter_proximity extends views_handler_filter {
 
     if ($origin == 'latlon_gmap' && module_exists('gmap')) {
       // Bad things happen if we try to show a gmap in the views live preview.
-      if ($form_state['post']['live_preview']) {
+      if (!empty($form_state['view']->live_preview)) {
         $form[$key]['proximity_map'] = array(
-          '#value' => t('Gmap location selection is not available during live preview.'),
+          '#markup' => t('Gmap location selection is not available during live preview.'),
           '#weight' => 0,
         );
       }
       else {
         $form[$key]['proximity_map'] = array(
-          '#value' => gmap_set_location($this->options['expose']['gmap_macro'], $form[$key], array('latitude' => 'latitude', 'longitude' => 'longitude')),
+          '#markup' => gmap_set_location($this->options['expose']['gmap_macro'], $form[$key], array('latitude' => 'latitude', 'longitude' => 'longitude')),
           '#weight' => 0,
         );
       }
