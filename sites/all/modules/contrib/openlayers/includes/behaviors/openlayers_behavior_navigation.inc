@@ -15,7 +15,8 @@ class openlayers_behavior_navigation extends openlayers_behavior {
   function options_init() {
     return array(
       'navigation' => '',
-      'zoomWheelEnabled' => TRUE
+      'zoomWheelEnabled' => TRUE,
+      'documentDrag' => FALSE,
     );
   }
 
@@ -31,7 +32,13 @@ class openlayers_behavior_navigation extends openlayers_behavior {
         '#description' => t('Enable zooming via the mouse scroll wheel. This can 
           interfere with page scrolling.'),
         '#default_value' => isset($defaults['zoomWheelEnabled']) ? $defaults['zoomWheelEnabled'] : TRUE 
-      )
+      ),
+      'documentDrag' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Document Drag'),
+        '#description' => t('Allow panning of the map by dragging outside map viewport.'),
+        '#default_value' => isset($defaults['documentDrag']) ? $defaults['documentDrag'] : FALSE
+      ),
     );
   }
 

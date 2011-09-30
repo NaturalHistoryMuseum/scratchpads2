@@ -341,3 +341,23 @@ class OpenLayersMapAlters extends DrupalWebTestCase {
       t('Map alter fired correctly.'));
   }
 }
+
+/**
+ * OpenLayers Unit Tests
+ */
+class OpenLayersUnitTests extends DrupalUnitTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'OpenLayers Unit Tests',
+      'description' => 'Tests functions for OpenLayers.',
+      'group' => 'OpenLayers',
+    );
+  }
+
+  function testOpenLayersStylePath() {
+    module_load_include('inc', 'openlayers', 'includes/openlayers.render');
+    $path = 'http://example.org/site/all/modules/openlayers/example/${path}.jpg';
+    $styled_path = openlayers_style_path($path);
+    $this->assertTrue($styled_path, $path);
+  }
+}

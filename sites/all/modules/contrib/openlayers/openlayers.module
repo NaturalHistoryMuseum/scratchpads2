@@ -123,16 +123,16 @@ function openlayers_build_map($map = array()) {
 
   // styles and layer styles are not required parameters
   $map['styles'] = isset($map['styles']) ? 
-    $map['styles'] : array();
+  $map['styles'] : array();
   $map['layer_styles'] = isset($map['layer_styles']) ? 
-    $map['layer_styles'] : array();
+  $map['layer_styles'] : array();
 
   $map['layers'] = _openlayers_layers_process($map['layers'], $map);
   $map['behaviors'] = _openlayers_behaviors_render($map['behaviors'], $map);
   $map['styles'] = _openlayers_styles_process(
-    $map['styles'], 
-    $map['layer_styles'], 
-    $map);
+  $map['styles'], 
+  $map['layer_styles'], 
+  $map);
 
   // Hook to alter map one last time.  Final modification to existing 
   // styles, behaviors, layers can happen here, but adding new styles,
@@ -848,10 +848,10 @@ class openlayers_behavior {
   }
 
   /*
-   * @param $defaults default values for the form
+   * @param $defaults default values for the form as an array
    * @return a FormAPI form
    */
-  function options_form($defaults = array()) {
+  function options_form($defaults) {
     return array();
   }
 

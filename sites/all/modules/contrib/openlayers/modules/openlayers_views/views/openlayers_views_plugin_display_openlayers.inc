@@ -31,6 +31,8 @@ class openlayers_views_plugin_display_openlayers extends views_plugin_display {
     $options['title']['translatable'] = 0;
     $options['displays'] = array('default' => array());
     $options['style_plugin']['default'] = 'openlayers_data';
+    $options['row_plugin']['default'] = 'fields';
+    $options['defaults']['default']['row_plugin'] = FALSE;
     return $options;
   }
 

@@ -18,18 +18,44 @@
  */
 function _openlayers_layers_process($layers = array(), &$map = array()) {
   $layer_data = array();
-
-  $weight = 0;
-  foreach ($layers as $layer) {
+  
+  // Load Layers and assign weights
+  foreach ($layers as $key => $layer){
     if ($layer_object = openlayers_layer_load($layer)) {
-      $layer_object->render($map);
-      $layer_object->data['title'] = $layer_object->title;
-      $layer_object->data['weight'] = ++$weight;
-      $layer_data[$layer_object->name] = $layer_object->data;
+      $layers[$key] = $layer_object;
+      if (!empty($map['layer_weight'][$key])) {
+        $layers[$key]->weight = $map['layer_weight'][$key];
+      }
+      else $layers[$key]->weight = 0;
     }
+  }
+  
+  // Sort layers
+  usort($layers, '_openlayers_layers_process_sort');
+  
+  // Process into array-based layer data for the map
+  foreach ($layers as $layer_object) {
+    $layer_object->render($map);
+    $layer_object->data['title'] = $layer_object->title;
+    $layer_object->data['weight'] = $layer_object->weight;
+    $layer_data[$layer_object->name] = $layer_object->data;
   }
 
   return $layer_data;
+}
+
+/**
+ * Callback function for sorting
+ *
+ * @param $a
+ *   Layer $a
+ * @param $b
+ *   Layer $b
+ * @return $a_greater_b
+ *   Return the weight different - allowing usort to sort
+ */
+function _openlayers_layers_process_sort($a, $b) {
+  return intval($a->weight - $b->weight);
 }
 
 /**
@@ -105,7 +131,7 @@ function _openlayers_styles_process($styles = array(),
       if (!valid_url($style['externalGraphic'], TRUE) 
         && strpos($style['externalGraphic'], '/') !== 0) {
         // Make full URL from Drupal path
-        $processed[$k]['externalGraphic'] = url($style['externalGraphic'], array('absolute' => TRUE));
+        $processed[$k]['externalGraphic'] = openlayers_style_path($style['externalGraphic']);
       }
     }
   }
@@ -133,4 +159,25 @@ function _openlayers_styles_process($styles = array(),
  */
 function _openlayers_create_map_id() {
   return 'openlayers-map-' . substr(md5(uniqid(mt_rand())), 0, 8);
+}
+
+/**
+ * URL Style
+ *
+ * Takes in a path and makes full URL for style.  Overall, this
+ * can be handled by url(), but we have to avoid some encoding
+ * for variable replacement.  Note that this is not perfect as
+ * it will decode values that maybe not specifically part of the
+ * attribute replacement.
+ *
+ * @param $path
+ *   Path to process.
+ * @return
+ *   Processed path.
+ */
+function openlayers_style_path($path) {
+    $path = url($path, array('absolute' => TRUE));
+    $path = str_replace('%24%7B', '${', $path);
+    $path = str_replace('%7D', '}', $path);
+    return $path;
 }

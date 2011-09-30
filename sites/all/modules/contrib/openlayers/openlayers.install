@@ -169,6 +169,65 @@ function openlayers_schema() {
 }
 
 /**
+ * Implements hook_requirements().
+ */
+function openlayers_requirements($phase) {
+  $req = array();
+  $t = get_t();
+
+  // There are some backwards compability for the shift from
+  // preset to maps.  We want to communicate to administrators
+  // that this will not be there forever.
+  if ($phase == 'runtime') {
+    // Check preset hook
+    $presets = module_invoke_all('openlayers_presets');
+    $found_presets = (count($presets) > 0) ? TRUE : FALSE;
+    
+    // Check features
+    $feature_names = array();
+    $found_features = FALSE;
+    if (module_exists('features')) {
+      $features = features_get_features();
+      foreach ($features as $feature) {
+        // Only utilize enabled features and look for presets
+        if ($feature->status > 0 && !empty($feature->info['features']['openlayers_map_presets'])) {
+          $feature_names[] = $feature->name;
+          $found_features = TRUE;
+        }
+      }
+    }
+    
+    // Create requirement entries
+    if ($found_presets) {
+      $req['openlayers_old_presets'] = array(
+        'title' => $t('OpenLayers Presets'), 
+        'value' => $t('Found old presets.'),
+        'description' => $t('With the 7.x-2.x version of the OpenLayers module, map presets were renamed to just maps.  This has some implications on APIs and hooks.  One or more of of the modules installed on this site is utilizing the deprecated %hook.  Please <a href="@url">read the upgrade page</a>, then contact the module owner or fix the custom module yourself.',
+          array(
+            '%hook' => 'hook_openlayers_presets()',
+            '@url' => url('http://drupal.org/node/1136810'),
+          )), 
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+    if ($found_features) {
+      $req['openlayers_old_features'] = array(
+        'title' => $t('OpenLayers Presets'), 
+        'value' => $t('Found Features with presets.'),
+        'description' => $t('With the 7.x-2.x version of the OpenLayers module, map presets were renamed to just maps.  This has some implications on APIs and hooks.  There are Features on this site that contain the old map presets.  Please <a href="@url">read the upgrade page</a>, and rebuild the following Features: %features',
+          array(
+            '@url' => url('http://drupal.org/node/1136810'),
+            '%features' => implode(',', $feature_names),
+          )), 
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  
+  return $req;
+}
+
+/**
  * Implements hook_update_N().
  *
  * Rename of presets to maps.

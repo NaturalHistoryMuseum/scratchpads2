@@ -16,6 +16,8 @@
  *   Array of maps
  */
 function _openlayers_openlayers_maps() {
+  $items = array();
+
   // Create full map array
   $default = new stdClass();
   $default->api_version = 1;
@@ -46,5 +48,40 @@ function _openlayers_openlayers_maps() {
       'osm_mapnik' => 'osm_mapnik',
     )
   );
-  return array('default' => $default);
+  $items['default'] = $default;
+  
+  // Backwards compatibilty for features presets.  Since features
+  // no longers cares about the preset hooks, we need to manually include
+  // the preset file that stores the old hooks.
+  $found_features = FALSE;
+  if (module_exists('features')) {
+    $features = features_get_features();
+    
+    foreach ($features as $feature) {
+      // Only utilize enabled features and look for presets
+      if ($feature->status > 0 && !empty($feature->info['features']['openlayers_map_presets'])) {
+        $found_features = TRUE;
+        // Include the file we need.
+        $presets = $feature->info['features']['openlayers_map_presets'];
+        $module = $feature->name;
+        $inc = module_load_include('inc', $module, $module . '.openlayers_presets');
+      }
+    }
+  }
+  
+  // If features found, we have to explicilty reset the implement
+  // cache.  This could be a significant performance hit on a site
+  // that has a high number of modules installed.
+  if ($found_features) {
+    module_implements('openlayers_presets', FALSE, TRUE);
+  }
+
+  // Backwards compatibilty for normal presets
+  $data = module_invoke_all('openlayers_presets');
+  if (count($data) > 0) {
+    $items = $items + $data;
+  }
+
+  
+  return $items;
 }

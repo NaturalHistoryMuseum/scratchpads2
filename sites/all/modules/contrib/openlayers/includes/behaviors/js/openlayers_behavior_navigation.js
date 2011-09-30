@@ -14,7 +14,8 @@ Drupal.behaviors.openlayers_behavior_navigation = {
     if (data && data.map.behaviors['openlayers_behavior_navigation']) {
       // Add control
       var options = {
-        'zoomWheelEnabled': data.map.behaviors['openlayers_behavior_navigation'].zoomWheelEnabled
+        'zoomWheelEnabled': data.map.behaviors['openlayers_behavior_navigation'].zoomWheelEnabled,
+        'documentDrag': Boolean(data.map.behaviors['openlayers_behavior_navigation'].documentDrag),
       };
       var control = new OpenLayers.Control.Navigation(options);
       data.openlayers.addControl(control);

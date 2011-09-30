@@ -49,7 +49,7 @@ function openlayers_views_views_plugins() {
         'theme path' => drupal_get_path('module', 'openlayers_views') . '/views',
         'path' => drupal_get_path('module', 'openlayers_views') . '/views',
         'uses fields' => TRUE,
-        'uses row plugin' => FALSE,
+        'uses row plugin' => TRUE,
         'uses options' => TRUE,
         'uses grouping' => TRUE,
         'type' => 'openlayers',

@@ -1,4 +1,31 @@
 <?php
+/**
+ * @file
+ * Main Drupal module file for the OpenLayers UI module
+ *
+ * @ingroup openlayers
+ */
+
+/**
+ * Implements hook_init
+ */
+function openlayers_init() {
+  // For backwards compability for the change from maps to presets
+  // in the 7.x-2.x version, we want to make it really obvious that
+  // administrators and developers should be updating their maps
+  if (strpos($_GET['q'], 'admin/structure/openlayers') === 0) {
+    include_once DRUPAL_ROOT . '/includes/install.inc';
+    drupal_load_updates();
+    module_load_include('install', 'openlayers', 'openlayers');
+    $reqs = openlayers_requirements('runtime');
+    foreach ($reqs as $r) {
+      drupal_set_message(t('<strong>!title</strong> !message', array(
+        '!title' => $r['value'],
+        '!message' => $r['description'],
+        )), 'error');
+    }
+  }
+}
 
 /**
  * Implements hook_help
@@ -354,74 +381,81 @@ function openlayers_ui_object_list($type) {
 
   switch ($type) {
     case 'styles':
+      $header = array(t('Icon'), t('Title'), t('Description'), t('Actions'));
       $objects = openlayers_styles(TRUE);
       break;
     case 'layers':
+      $header = array(t('Title'), t('Type'), t('Description'), t('Actions'));
+      $layer_types = openlayers_layer_types();
       $objects = openlayers_layers_load(TRUE);
       break;
     case 'maps':
+      $header = array(t('Title'), t('Layers'), t('Description'), t('Actions'));
+      $layers = openlayers_layers_load();
       $objects = openlayers_maps(TRUE);
       break;
-  }
-
-  // Make table of maps and actions
-  if ($type == 'layers') {
-    $header = array(t('Title'), t('Type'), t('Description'), t('Actions'));
-    $layer_types = openlayers_layer_types();
-  }
-  elseif ($type == 'maps') {
-    $header = array(t('Title'), t('Layers'), t('Description'), t('Actions'));
-    $layers = openlayers_layers_load();
-  }
-  else {
-    $header = array(t('Title'), t('Description'), t('Actions'));
   }
 
   // Create table rows
   foreach ($objects as $object) {
     $row = array();
     $links = array();
+    
+    // Any pre-title cells.
+    switch ($type) {
+      case 'styles':
+      	// Add the icon as an image in the row if it exists.
+      	$row[] = isset($object->data['externalGraphic']) ? theme('image',array('path'=>$object->data['externalGraphic'])) : NULL;
+        break;
+      
+      default:
+      	break;
+    }
+    
+    // Check map type and create links accordingly.
+    $links[] = l(t('Export'), "admin/structure/openlayers/{$type}/{$object->name}/export");
+    $links[] = l(t('Clone'), "admin/structure/openlayers/{$type}/clone/{$object->name}");
+    
     switch ($object->export_type) {
       case (EXPORT_IN_DATABASE | EXPORT_IN_CODE):
         $row[] = $object->title .' <em><small>(' . t('Overridden') . ')</small></em>';
+        $links[] = l(t('Edit'), "admin/structure/openlayers/{$type}/{$object->name}/edit");
+        $links[] = l(t('Revert'), "admin/structure/openlayers/{$type}/{$object->name}/delete");
         break;
+
       case EXPORT_IN_DATABASE:
-        $row[] = $object->title .' <em><small>(' . t('Normal') . ')</small></em>';
+        $links[] = l(t('Edit'), "admin/structure/openlayers/{$type}/{$object->name}/edit");
+        $links[] = l(t('Delete'), "admin/structure/openlayers/{$type}/{$object->name}/delete");
+      	$row[] = $object->title .' <em><small>(' . t('Normal') . ')</small></em>';
         break;
+
       case EXPORT_IN_CODE:
         $row[] = $object->title .' <em><small>(' . t('Default') . ')</small></em>';
         break;
     }
 
-    if ($type == 'layers') {
-      $row[] = $layer_types[$object->data['layer_type']]['title'];
-    }
-    elseif ($type == 'maps') {
-      if (!empty($object->data['layers'])) {
-        $layer_names = array();
-        foreach ($object->data['layers'] as $layer) {
-          $layer_names[] = empty($layers[$layer]->title) ? $layer : $layers[$layer]->title;
+    // Post title rows.
+    switch ($type) {
+      case 'layers':
+        $row[] = $layer_types[$object->data['layer_type']]['title'];
+      	break;
+
+      case 'maps':
+        if (!empty($object->data['layers'])) {
+          $layer_names = array();
+          foreach ($object->data['layers'] as $layer) {
+            $layer_names[] = empty($layers[$layer]->title) ? $layer : $layers[$layer]->title;
+          }
+          $row[] = '<small>' . implode(', ', $layer_names) . '</small>';
         }
-        $row[] = '<small>' . implode(', ', $layer_names) . '</small>';
-      }
-      else {
-        $row[] = '';
-      }
+        break;
+      
+      default:
+      	break;
     }
 
+    // Add description and links.
     $row[] = $object->description;
-
-    // Check map type and create links accordingly.
-    if ($object->export_type == (EXPORT_IN_CODE | EXPORT_IN_DATABASE)) {
-      $links[] = l(t('Edit'), "admin/structure/openlayers/{$type}/{$object->name}/edit");
-      $links[] = l(t('Revert'), "admin/structure/openlayers/{$type}/{$object->name}/delete");
-    }
-    elseif ($object->export_type == EXPORT_IN_DATABASE) {
-      $links[] = l(t('Edit'), "admin/structure/openlayers/{$type}/{$object->name}/edit");
-      $links[] = l(t('Delete'), "admin/structure/openlayers/{$type}/{$object->name}/delete");
-    }
-    $links[] = l(t('Export'), "admin/structure/openlayers/{$type}/{$object->name}/export");
-    $links[] = l(t('Clone'), "admin/structure/openlayers/{$type}/clone/{$object->name}");
     $row[] = implode(' | ', $links);
     $rows[] = $row;
   }

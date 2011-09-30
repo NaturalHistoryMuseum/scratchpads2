@@ -16,7 +16,7 @@ class openlayers_simple extends boxes_box {
   /**
    * Implementation of boxes_content::options_form().
    */
-  public function options_form() {
+  public function options_form(&$form_state) {
     $form = array();
     // Map objects
     $form['map'] = array(
