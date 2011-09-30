@@ -155,7 +155,6 @@ function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
  * Implementation of hook_menu_alter()
  */
 function tui_menu_alter(&$items){
-  dpm($items);
   // Change the tab text, to reflect what we have done in the form alter above.
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['title'] = 'Edit terms';
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['weight'] = -10;
