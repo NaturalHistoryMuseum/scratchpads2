@@ -17,6 +17,13 @@
  * hook_entity_info(). That way modules are able to override your defaults
  * by altering the hook_entity_info() callbacks, while $entity->label() and
  * $entity->uri() reflect this changes as well.
+ *
+ * Defaults for entity properties can be easily defined by adding class
+ * properties, e.g.:
+ * @code
+ *   public $name = '';
+ *   public $count = 0;
+ * @endcode
  */
 class Entity {
 
@@ -34,11 +41,7 @@ class Entity {
       throw new Exception('Cannot created an instance of Entity without a specified entity type.');
     }
     $this->entityType = $entityType;
-    $this->entityInfo = entity_get_info($entityType);
-    $this->idKey = $this->entityInfo['entity keys']['id'];
-    $this->nameKey = isset($this->entityInfo['entity keys']['name']) ? $this->entityInfo['entity keys']['name'] : $this->idKey;
-    $this->statusKey = empty($info['entity keys']['status']) ? 'status' : $info['entity keys']['status'];
-
+    $this->setUp();
     // Set initial values.
     foreach ($values as $key => $value) {
       $this->$key = $value;
@@ -46,23 +49,33 @@ class Entity {
   }
 
   /**
+   * Set up the object instance on construction or unserializiation.
+   */
+  protected function setUp() {
+    $this->entityInfo = entity_get_info($this->entityType);
+    $this->idKey = $this->entityInfo['entity keys']['id'];
+    $this->nameKey = isset($this->entityInfo['entity keys']['name']) ? $this->entityInfo['entity keys']['name'] : $this->idKey;
+    $this->statusKey = empty($info['entity keys']['status']) ? 'status' : $info['entity keys']['status'];
+  }
+
+  /**
    * Returns the internal, numeric identifier.
    *
-   * For exportable entities, this differs to the uniform identifier returned
-   * by Entity::identifier(). The internal identifier is supposed to be only
-   * used internally to refer to an entity, i.e. in the database. If unsure, use
-   * Entity:identifier().
+   * Returns the numeric identifier, even if the entity type has specified a
+   * name key. In the latter case, the numeric identifier is supposed to be used
+   * when dealing generically with entities or internally to refer to an entity,
+   * i.e. in a relational database. If unsure, use Entity:identifier().
    */
   public function internalIdentifier() {
     return isset($this->{$this->idKey}) ? $this->{$this->idKey} : NULL;
   }
 
   /**
-   * Returns the unified identifer.
+   * Returns the entity identifier, i.e. the entities name or numeric id.
    *
    * @return
-   *   The identifier of the entity. For exportable entities, this is their
-   *   machine readable name.
+   *   The identifier of the entity. If the entity type makes use of a name key,
+   *   the name is returned, else the numeric id.
    *
    * @see entity_id()
    */
@@ -98,7 +111,7 @@ class Entity {
     if (isset($this->entityInfo['label callback']) && $this->entityInfo['label callback'] == 'entity_class_label') {
       return $this->defaultLabel();
     }
-    return entity_label($entity_type, $entity);
+    return entity_label($this->entityType, $this);
   }
 
   /**
@@ -187,8 +200,8 @@ class Entity {
    *
    * @see entity_view()
    */
-  public function view($view_mode = 'full', $langcode = NULL) {
-    return entity_get_controller($this->entityType)->view(array($this->identifier() => $this), $view_mode, $langcode);
+  public function view($view_mode = 'full', $langcode = NULL, $page = NULL) {
+    return entity_get_controller($this->entityType)->view(array($this), $view_mode, $langcode, $page);
   }
 
   /**
@@ -198,6 +211,24 @@ class Entity {
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode);
+  }
+
+  /**
+   * Magic method to only serialize what's necessary.
+   */
+  public function __sleep() {
+    $vars = get_object_vars($this);
+    unset($vars['entityInfo'], $vars['idKey'], $vars['nameKey'], $vars['statusKey']);
+    // Also key the returned array with the variable names so the method may
+    // be easily overridden and customized.
+    return drupal_map_assoc(array_keys($vars));
+  }
+
+  /**
+   * Magic method to invoke setUp() on unserialization.
+   */
+  public function __wakeup() {
+    $this->setUp();
   }
 }
 
