@@ -12,6 +12,8 @@ function entity_test_entity_info() {
   $return = array(
     'entity_test' => array(
       'label' => t('Test Entity'),
+      'plural label' => t('Test Entities'),
+      'description' => t('An entity type used by the entity API tests.'),
       'entity class' => 'EntityClass',
       'controller class' => 'EntityAPIController',
       'base table' => 'entity_test',
@@ -31,7 +33,7 @@ function entity_test_entity_info() {
     'entity_test_type' => array(
       'label' => t('Test entity type'),
       'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
+      'controller class' => 'EntityAPIControllerExportable',
       'base table' => 'entity_test_type',
       'fieldable' => FALSE,
       'bundle of' => 'entity_test',
@@ -66,11 +68,8 @@ function entity_test_entity_info_alter(&$entity_info) {
  *   If set, the type with the given name is returned.
  */
 function entity_test_get_types($name = NULL) {
-  $types = entity_load('entity_test_type', isset($name) ? array($name) : FALSE);
-  if (isset($name)) {
-    return isset($types[$name]) ? $types[$name] : FALSE;
-  }
-  return $types;
+  $types = entity_load_multiple_by_name('entity_test_type', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
 }
 
 /**

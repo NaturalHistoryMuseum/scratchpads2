@@ -62,5 +62,5 @@ class efq_views_handler_filter_property_string extends views_handler_filter_stri
   /**
    * NULL comparisons are not supported
    */
-  function op_empty() {}
+  function op_empty($fields) {}
 }
