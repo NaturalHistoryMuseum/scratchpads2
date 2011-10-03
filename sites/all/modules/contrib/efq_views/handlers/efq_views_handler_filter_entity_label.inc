@@ -66,5 +66,5 @@ class efq_views_handler_filter_entity_label extends views_handler_filter_string 
   /**
    * NULL comparisons are not supported
    */
-  function op_empty() {}
+  function op_empty($field) {}
 }
