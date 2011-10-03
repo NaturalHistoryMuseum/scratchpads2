@@ -1,0 +1,37 @@
+diff --git a/handlers/efq_views_handler_filter_entity_numeric.inc b/handlers/efq_views_handler_filter_entity_numeric.inc
+index f79f104..0aab1bb 100644
+--- a/handlers/efq_views_handler_filter_entity_numeric.inc
++++ b/handlers/efq_views_handler_filter_entity_numeric.inc
+@@ -76,5 +76,5 @@ class efq_views_handler_filter_entity_numeric extends views_handler_filter_numer
+   /**
+    * NULL comparisons are not supported
+    */
+-  function op_empty() {}
+-}
+\ No newline at end of file
++  function op_empty($field) {}
++}
+diff --git a/handlers/efq_views_handler_filter_field_numeric.inc b/handlers/efq_views_handler_filter_field_numeric.inc
+index e20aeca..bea35b0 100644
+--- a/handlers/efq_views_handler_filter_field_numeric.inc
++++ b/handlers/efq_views_handler_filter_field_numeric.inc
+@@ -96,5 +96,5 @@ class efq_views_handler_filter_field_numeric extends views_handler_filter_numeri
+   /**
+    * NULL comparisons are not supported
+    */
+-  function op_empty() {}
+-}
+\ No newline at end of file
++  function op_empty($field) {}
++}
+diff --git a/handlers/efq_views_handler_filter_field_string.inc b/handlers/efq_views_handler_filter_field_string.inc
+index 3c0d1cb..2970565 100644
+--- a/handlers/efq_views_handler_filter_field_string.inc
++++ b/handlers/efq_views_handler_filter_field_string.inc
+@@ -82,5 +82,5 @@ class efq_views_handler_filter_field_string extends views_handler_filter_string
+   /**
+    * NULL comparisons are not supported
+    */
+-  function op_empty() {}
++  function op_empty($field) {}
+ }

@@ -58,7 +58,7 @@ class EntityDefaultFeaturesController {
    */
   public function export_options() {
     $options = array();
-    foreach (entity_load($this->type, FALSE) as $name => $entity) {
+    foreach (entity_load_multiple_by_name($this->type, FALSE) as $name => $entity) {
       $options[$name] = entity_label($this->type, $entity);
     }
     return $options;
@@ -69,7 +69,7 @@ class EntityDefaultFeaturesController {
    */
   public function export($data, &$export, $module_name = '') {
     $pipe = array();
-    foreach (entity_load($this->type, $data) as $name => $entity) {
+    foreach (entity_load_multiple_by_name($this->type, $data) as $name => $entity) {
       // If this entity is provided by a different module, add it as dependency.
       if (($entity->{$this->statusKey} & ENTITY_IN_CODE) && $entity->{$this->moduleKey} != $module_name) {
         $module = $entity->{$this->moduleKey};
@@ -105,7 +105,7 @@ class EntityDefaultFeaturesController {
   function export_render($module, $data, $export = NULL) {
     $output = array();
     $output[] = '  $items = array();';
-    foreach (entity_load($this->type, $data) as $name => $entity) {
+    foreach (entity_load_multiple_by_name($this->type, $data) as $name => $entity) {
       $export  = "  \$items['$name'] = entity_import('{$this->type}', '";
       // Make sure to escape the characters \ and '.
       $export .= addcslashes(entity_export($this->type, $entity, '  '), '\\\'');
