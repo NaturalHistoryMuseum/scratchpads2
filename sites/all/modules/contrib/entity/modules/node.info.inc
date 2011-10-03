@@ -153,6 +153,7 @@ function entity_metadata_node_entity_property_info_alter(&$info) {
     'getter callback' => 'entity_metadata_field_verbatim_get',
     'setter callback' => 'entity_metadata_field_verbatim_set',
     'property info' => entity_property_text_formatted_info(),
+    'auto creation' => 'entity_property_create_array',
     'field' => TRUE,
   );
 }
