@@ -112,7 +112,22 @@ function entity_test_schema() {
         'description' => 'A serialized array of additional data related to this entity_test type.',
         'merge' => TRUE,
       ),
-    ) + entity_exportable_schema_fields(),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
     'primary key' => array('id'),
     'unique keys' => array(
       'name' => array('name'),

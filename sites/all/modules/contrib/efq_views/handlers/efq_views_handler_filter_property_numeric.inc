@@ -76,5 +76,5 @@ class efq_views_handler_filter_property_numeric extends views_handler_filter_num
   /**
    * NULL comparisons are not supported
    */
-  function op_empty() {}
+  function op_empty($fields) {}
 }
