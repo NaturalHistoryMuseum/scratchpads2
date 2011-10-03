@@ -47,8 +47,9 @@ you may stop reading now.
    "Entity" class is provided. In particular, it is useful to extend this class
    in order to easily customize the entity type, e.g. saving.
    
- * The controller supports fieldable entities as well as exportable entities,
-   however it does not yet support revisions.
+ * The controller supports fieldable entities, however it does not yet support
+   revisions. There is also a controller which supports implementing exportable
+   entities.
 
  * The Entity CRUD API helps with providing additional module integration too,
    e.g. exportable entities are automatically integrate with the Features
@@ -75,7 +76,8 @@ you may stop reading now.
     the "entity_test.module". 
   
   * Implement hook_entity_info() for your entity. At least specifiy the
-    controller class of this API, your db table and your entity's keys.
+    controller class (EntityAPIController, EntityAPIControllerExportable or your
+    own), your db table and your entity's keys.
     Again just look at "entity_test.module"'s hook_entity_info() for guidance.
 
   * If you want your entity to be fieldable just set 'fieldable' in
@@ -87,7 +89,7 @@ you may stop reading now.
     and set the 'bundle of' property for it.
     Again just look at "entity_test.module"'s hook_entity_info() for guidance.
 
-  * Schema fields marked as 'serialzed' are automatically unserialized upon
+  * Schema fields marked as 'serialized' are automatically unserialized upon
     loading as well as serialized on saving. If the 'merge' attribute is also
     set to TRUE the unserialized data is automatically "merged" into the entity.
 
