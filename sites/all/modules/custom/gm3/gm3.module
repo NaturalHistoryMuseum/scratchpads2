@@ -3,6 +3,8 @@
 /**
  * Simple Google Maps v3 API module file.
  * 
+ * Includes code from http://www.mistechko.sumy.ua/jscript/google/map/
+ * 
  */
 /**
  * Implementation of hook_library().
@@ -31,22 +33,46 @@ function gm3_library(){
         )
       )
     ),
+    // Enable drawing of Polygons.
     'gm3.polygon' => array(
       'title' => t('Google Maps Javascript API V3: Polygon drawing'),
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
       'version' => '3',
       'js' => array(
         array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.lib.js'
+        ),
+        array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.js'
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'ghostvertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertex.png'),
+                  'ghostvertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertexOver.png'),
+                  'vertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png'),
+                  'vertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertexOver.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
         )
       ),
       'dependencies' => array(
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.geometry'
         )
       )
     ),
+    // Enable the drawing of Lines.
     'gm3.polyline' => array(
       'title' => t('Google Maps Javascript API V3: Polygon drawing'),
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
@@ -54,15 +80,35 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.js'
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'ghostvertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertex.png'),
+                  'ghostvertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertexOver.png'),
+                  'vertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png'),
+                  'vertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertexOver.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
         )
       ),
       'dependencies' => array(
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.geometry'
         )
       )
     ),
+    // Google geometry library
     'gm3.geometry' => array(
       'title' => t('Google Maps Javascript API V3: Geometry library'),
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
@@ -90,11 +136,42 @@ function gm3_theme(){
   return array(
     'gm3_map' => array(
       'variables' => array(
-        'id' => 'gm3-map'
+        'map' => array(
+          'id' => 'gm3-map'
+        )
       ),
       'file' => 'gm3.theme.inc'
     )
   );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function gm3_menu(){
+  return array(
+    'gm3_test' => array(
+      'title' => 'GM3 Test',
+      'page callback' => 'gm3_test',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Callback for testing.
+ */
+function gm3_test(){
+  return theme('gm3_map', array(
+    'map' => array(
+      'libraries' => array(
+        'polygon'
+      )
+    )
+  ));
 }
 
 /**
@@ -182,45 +259,5 @@ function gm3_settings(){
  * TESTING.
  */
 function gm3_gm3_map_alter($map){
-  $map['polygon'] = array(
-    'imgs' => array(
-      'square' => file_create_url(drupal_get_path('module', 'gm3').'/images/square.png'),
-      'square_over' => file_create_url(drupal_get_path('module', 'gm3').'/images/square_over.png'),
-      'square_transparent' => file_create_url(drupal_get_path('module', 'gm3').'/images/square_transparent.png'),
-      'square_transparent_over' => file_create_url(drupal_get_path('module', 'gm3').'/images/square_transparent_over.png')
-    )
-  );//'click' => 'mapLeftClick'
-
   return $map;
-}
-
-/**
- * Callback to add a Google map to a specific element ID on the page.
- */
-function gm3_add($id, $settings = array()){
-  $map = array(
-    'id' => $id,
-    'settings' => array_merge($settings, gm3_settings())
-  );
-  foreach(module_implements('gm3_map_alter') as $module){
-    $map = call_user_func($module . '_gm3_map_alter', $map);
-  }
-  drupal_add_library('gm3', 'gm3');
-  drupal_add_js(array(
-    'gm3' => array(
-      'maps' => array(
-        $id => $map
-      )
-    )
-  ), 'setting');
-}
-
-/**
- * Implementation of hook_init().
- * 
- * FIXME - This is purely for testing, and nothing else.
- */
-function gm3_init(){
-  drupal_add_library('gm3', 'gm3.polygon');
-  gm3_add('first-time');
 }
