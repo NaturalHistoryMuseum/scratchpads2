@@ -25,6 +25,8 @@ function gm3_add($map = array()){
       if(is_array($settings)){
         $module = isset($settings['module']) ? $settings['module'] : $module;
       }else{
+        $map['libraries'][$settings] = $settings;
+        unset($map['libraries'][$library]);
         $library = $settings;
       }
       $library = ($module == 'gm3') ? "gm3.$library" : $library;

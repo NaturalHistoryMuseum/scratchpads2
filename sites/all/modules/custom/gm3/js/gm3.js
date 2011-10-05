@@ -45,6 +45,7 @@
           }          
           // Create the map
           map['google_map'] = new google.maps.Map(document.getElementById(map_id), map['settings']);
+          map['initialized'] = true;
           // Add listeners if we need to
           for(event in map['events']){
             google.maps.event.addListener(map['google_map'], event, eval(map['events'][event]));

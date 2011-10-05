@@ -66,10 +66,14 @@ function gm3_library(){
           'gm3',
           'gm3'
         ),
-        array(
+        // FIXME - Adding the Google geometry class currently breaks this,
+        // mainly as a result of straight lines being rendered as straight lines
+        // on the screen (and not as curves).  For now, we'll stick with straight
+        // lines on screen that are actually curved!
+        /*array(
           'gm3',
           'gm3.geometry'
-        )
+        )*/
       )
     ),
     // Enable the drawing of Lines.

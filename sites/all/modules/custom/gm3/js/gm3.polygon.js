@@ -3,28 +3,65 @@
   Drupal.gm3 = Drupal.gm3 || {};
   Drupal.behaviors.gm3_polygon = {attach: function(context, settings){
     for(map_id in Drupal.settings.gm3.maps) {
-      var map = Drupal.settings.gm3.maps[map_id]['google_map'];
-      mapPolygon = new google.maps.Polygon({
-        map: map,
-        strokeColor: '#ff0000',
-        strokeOpacity: 0.6,
-        strokeWeight: 4,
-        path: [new google.maps.LatLng(50.91607609098315, 34.80485954492187), new google.maps.LatLng(50.91753710953153, 34.80485954492187), new google.maps.LatLng(50.91759122044873, 34.815159227539056), new google.maps.LatLng(50.9159678655622, 34.815159227539056), new google.maps.LatLng(50.91044803534999, 34.81258430688476), new google.maps.LatLng(50.91044803534999, 34.81584587304687), new google.maps.LatLng(50.90931151845126, 34.81533088891601), new google.maps.LatLng(50.90931151845126, 34.811897661376946), new google.maps.LatLng(50.90395327929007, 34.8094944020996), new google.maps.LatLng(50.9040074060014, 34.80700531213378), new google.maps.LatLng(50.90914915662899, 34.809666063476556), new google.maps.LatLng(50.90920327729935, 34.8065761586914),
-            new google.maps.LatLng(50.91033979684091, 34.80700531213378), new google.maps.LatLng(50.910285677492006, 34.81035270898437), new google.maps.LatLng(50.91607609098315, 34.81301346032714)]});
-      mapPolygon.runEdit(true);
-      google.maps.event.addListener(mapPolygon, 'click', Drupal.gm3.polygon_click);
+      if(Drupal.settings.gm3.maps[map_id]['initialized'] && Drupal.settings.gm3.maps[map_id]['libraries']['polygon'] && !Drupal.settings.gm3.maps[map_id]['polygon']) {
+        Drupal.gm3.initialize(map_id);
+      }
     }
   }};
 })(jQuery);
 
-Drupal.gm3.polygon_add_click = function(){
+Drupal.gm3.initialize = function(map_id){
+  Drupal.settings.gm3.maps[map_id]['polygon'] = Drupal.settings.gm3.maps[map_id]['polygon'] || {};
+  Drupal.settings.gm3.maps[map_id]['polygon']['followline1'] = new google.maps.Polyline({clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
+  Drupal.settings.gm3.maps[map_id]['polygon']['followline2'] = new google.maps.Polyline({clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
+  Drupal.settings.gm3.maps[map_id]['polygon']['polygon'] = new google.maps.Polygon({
+    map: Drupal.settings.gm3.maps[map_id]['google_map'],
+    strokeColor: '#ff0000',
+    strokeOpacity: 0.6,
+    strokeWeight: 4,
+    path: []});
+  Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].runEdit(true);
+  document.getElementById("block-menu-devel").onclick = function(){
+    Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].stopEdit();
+    Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].setMap(null);
+    Drupal.settings.gm3.maps[map_id]['polygon']['polygon'] = null;
+    // Add some text about right clicking to end.
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+    Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'crosshair'});
+    Drupal.settings.gm3.maps[map_id]['polygon']['polygon'] = new google.maps.Polygon({map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: '#ff0000', strokeOpacity: 0.6, strokeWeight: 4, path: []});
+    Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setPath([]);
+    Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath([]);
+    Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
+    Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
+    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'click', function(point){
+      Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].stopEdit();
+      Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].getPath().push(point.latLng);
+      Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].runEdit(true);
+    });
+    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
+      Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(null);
+      Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(null);
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+      Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
+    });
+    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['polygon']['polygon'], 'click', function(){
+      alert('Clicked on shape');
+    })
+    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'mousemove', function(point){
+      var pathLength = Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].getPath().getLength();
+      if(pathLength >= 1) {
+        var startingPoint1 = Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].getPath().getAt(pathLength - 1);
+        var followCoordinates1 = [startingPoint1, point.latLng];
+        Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setPath(followCoordinates1);
 
-}
-
-Drupal.gm3.polygon_click = function(){
-  document.getElementById("info").innerHTML = 'path:[';
-  mapPolygon.getPath().forEach(function(vertex, inex){
-    document.getElementById("info").innerHTML += 'new google.maps.LatLng(' + vertex.lat() + ',' + vertex.lng() + ')' + ((inex < mapPolygon.getPath().getLength() - 1) ? ',' : '');
-  });
-  document.getElementById("info").innerHTML += ']';
+        var startingPoint2 = Drupal.settings.gm3.maps[map_id]['polygon']['polygon'].getPath().getAt(0);
+        var followCoordinates2 = [startingPoint2, point.latLng];
+        Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath(followCoordinates2);
+      }
+    });
+  }
 }
