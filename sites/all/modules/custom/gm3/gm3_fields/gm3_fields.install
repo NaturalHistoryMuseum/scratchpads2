@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Implementation of hook_field_schema($field).
+ */
+function gm3_fields_field_schema($field){
+  switch($field['type']){
+    case 'gm3_point':
+      return array(
+        'columns' => array(
+          'latitude' => array(
+            'type' => 'float',
+            'size' => 'big',
+            'not null' => TRUE
+          ),
+          'longitude' => array(
+            'type' => 'float',
+            'size' => 'big',
+            'not null' => TRUE
+          ),
+          'indexes' => array(
+            'latitude' => array(
+              'latitude'
+            ),
+            'longitude' => array(
+              'longitude'
+            )
+          )
+        )
+      );
+    case 'gm3_polygon':
+      return array(
+        'columns' => array(
+          'latitude' => array(
+            'type' => 'float',
+            'size' => 'big',
+            'not null' => TRUE
+          ),
+          'indexes' => array(
+            'latitude' => array(
+              'latitude'
+            )
+          )
+        )
+      );
+  }
+}

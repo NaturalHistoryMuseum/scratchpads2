@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * Provides the following fields:
+ * 
+ * - Google maps point
+ * - Google maps polygon
+ * - Google maps line
+ * - Google maps countries (click on a country to select)
+ * - Google maps combination (combination of the above).
+ */
+/**
+ * Implementation of hook_field_info().
+ */
+function gm3_fields_field_info(){
+  return array(
+    'gm3_point' => array(
+      'label' => t('Latitude/Longitude'),
+      'description' => t('This field stores latitude/longitude pairs.'),
+      'default_widget' => '', // FIXME
+      'default_formatter' => '' // FIXME
+    ),
+    'gm3_polygon' => array(
+      'label' => t('Geographical polygon'),
+      'description' => t('This field stores geographical polygons/areas.'),
+      'default_widget' => '', // FIXME
+      'default_formatter' => '' // FIXME
+    ),
+    'gm3_line' => array(
+      'label' => t('Geographical line'),
+      'description' => t('This field stores geographical lines.'),
+      'default_widget' => '', // FIXME
+      'default_formatter' => '' // FIXME
+    ),
+    'gm3_countries' => array(
+      'label' => t('Countries'),
+      'description' => t('This field stores a list of countries.'),
+      'default_widget' => '', // FIXME
+      'default_formatter' => '' // FIXME    
+    ),
+    'gm3_combination' => array(
+      'label' => t('Geographical super-combo'),
+      'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of countries, and addresses'),
+      'settings' => array(
+        'field_types' => array(
+          'gm3_point',
+          'gm3_polygon',
+          'gm3_line',
+          'gm3_countries'
+        )
+      ),
+      'default_widget' => '', // FIXME
+      'default_formatter' => '' // FIXME
+    )
+  );
+}
