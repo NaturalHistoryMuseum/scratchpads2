@@ -47,6 +47,22 @@ function gm3_library(){
         )
       )
     ),
+    'gm3.polyline' => array(
+      'title' => t('Google Maps Javascript API V3: Polygon drawing'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.js'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    ),
     'gm3.geometry' => array(
       'title' => t('Google Maps Javascript API V3: Geometry library'),
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
@@ -166,7 +182,7 @@ function gm3_settings(){
  * TESTING.
  */
 function gm3_gm3_map_alter($map){
-  $map['polyline'] = array(
+  $map['polygon'] = array(
     'imgs' => array(
       'square' => file_create_url(drupal_get_path('module', 'gm3').'/images/square.png'),
       'square_over' => file_create_url(drupal_get_path('module', 'gm3').'/images/square_over.png'),
