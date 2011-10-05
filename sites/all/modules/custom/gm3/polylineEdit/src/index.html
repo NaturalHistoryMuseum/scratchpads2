@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<link rel="stylesheet" type="text/css" href="http://code.google.com/css/codesite.css"></link>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?libraries=geometry&sensor=false"></script>
+<script type="text/javascript" src="polylineEdit.js"></script>
+<script type="text/javascript">
+  function initialize()
+  {
+    var map = new google.maps.Map(document.getElementById("map"),{zoom: 14,
+                                                                  center: new google.maps.LatLng(50.909528, 34.811726),
+                                                                  mapTypeId: google.maps.MapTypeId.ROADMAP
+                                                                 });
+    mapLine = new google.maps.Polyline({map : map,
+                                        strokeColor   : '#ff0000',
+                                        strokeOpacity : 0.6,
+                                        strokeWeight  : 4,
+                                        path:[new google.maps.LatLng(50.908066730007576,34.80872192590331),new google.maps.LatLng(50.91055627360734,34.8040012380371),new google.maps.LatLng(50.91261275267446,34.801941301513665),new google.maps.LatLng(50.91429033935295,34.80176964013671),new google.maps.LatLng(50.915589074606906,34.802542116333),new google.maps.LatLng(50.91602197830412,34.80580368249511),new google.maps.LatLng(50.91515616688265,34.807949449707024),new google.maps.LatLng(50.91401976494645,34.80897941796874),new google.maps.LatLng(50.91504793932237,34.810181047607415),new google.maps.LatLng(50.9157514139653,34.81164016931152),new google.maps.LatLng(50.9156431877893,34.81447258203124),new google.maps.LatLng(50.91434445404547,34.81558838098144),new google.maps.LatLng(50.91282921886954,34.815159227539056),new google.maps.LatLng(50.910989224119774,34.813442613769524),new google.maps.LatLng(50.90812085193644,34.80880775659179)]
+                                       });
+    mapLine.runEdit(true);
+    google.maps.event.addListener(mapLine, 'click', function() {
+      document.getElementById("info").innerHTML = 'path:[';
+      mapLine.getPath().forEach(function (vertex, inex) {
+        document.getElementById("info").innerHTML += 'new google.maps.LatLng('+vertex.lat()+','+vertex.lng()+')' + ((inex<mapLine.getPath().getLength()-1)?',':'');
+      });
+      document.getElementById("info").innerHTML += ']';
+    });
+  }
+</script>
+<script type="text/javascript" src="http://code.google.com/js/prettify.js"></script>
+</head>
+<body onload="prettyPrint();initialize();">
+  <h1>Edit Polyline for Google Map API V3</h1>
+  <p>
+  <b>Author:</b> ryshkin@gmail.com <br />
+  <b>Licence:</b> Licensed under <a href="http://opensource.org/licenses/mit-license.php">MIT</a> license.<br />
+  Extends the functionality of a class google.maps.Polyline by methods runEdit() and stopEdit()   <br />
+  Enjoy guys:)  <br />
+  Special thanks Jan Pieter Waagmeester <code>jieter@jpwaag.com</code> for the idea of using the library google.maps.geometry , which performs spherical linear interpolation between the two locations.
+  </p>
+  <h1>class google.maps.Polyline expanded as follows</h1>
+  <table summary="class Map - Methods" width="90%">
+    <tbody>
+    <tr>
+    <th>Methods</th>
+    <th>Return&nbsp;Value</th>
+    <th>Description</th>
+    </tr>
+    <tr class="odd">
+      <td><code>runEdit(flag)</code></td>
+      <td><code>None</code></td>
+      <td>Starts editing polyline. Parameter <code>flag</code> indicates the use of ghost markers in the middle of each segment. By default, the <code>flag</code> is true.</td>
+    </tr>
+    <tr class="even">
+      <td><code>stopEdit()</code></td>
+      <td><code>None</code></td>
+      <td>Stops editing polyline.</td>
+      </tr>
+  </tbody>
+  </table>
+  <br /><br />
+  <h1>How to use:</h1>
+  <h4>Step 1 - Download script</h4>
+  <a href="polylineEdit.zip">polylineEdit.zip</a>
+  <h4>Step 2 - Include script</h4>
+  <br />
+  If you want to use a flat geometry for the lines at a large scale, simply include the Google Map API and this library as shown below
+  <pre>
+    &lt;head&gt;
+     &lt;script type=&quot;text/javascript&quot; src=&quot;http://maps.google.com/maps/api/js?sensor=false&quot;&gt;&lt;/script&gt;
+     &lt;script src=&quot;polylineEdit.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+   &lt;/head&gt;
+  </pre>
+  <br />
+  If you want to use the spherical geometry for the lines at small scales, include the Google Map API, a library <code>google.maps.geometry</code> and this library as shown below
+   <pre>
+    &lt;head&gt;
+     &lt;script type=&quot;text/javascript&quot; src=&quot;http://maps.google.com/maps/api/js?libraries=geometry&sensor=false&quot;&gt;&lt;/script&gt;
+     &lt;script src=&quot;polylineEdit.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+   &lt;/head&gt;
+  </pre>
+  <h4>Step 3 - Create and start editing the polyline</h4>
+  <pre class="prettyprint lang-javascript">
+  function initialize()
+  {
+    var map = new google.maps.Map(document.getElementById("map"),{zoom: 14,
+                                                                  center: new google.maps.LatLng(50.909528, 34.811726),
+                                                                  mapTypeId: google.maps.MapTypeId.ROADMAP
+                                                                 });
+    mapLine = new google.maps.Polyline({map : map,
+                                        strokeColor   : '#ff0000',
+                                        strokeOpacity : 0.6,
+                                        strokeWeight  : 4,
+                                        path:[new google.maps.LatLng(50.90065143090167,34.79679146020507),
+                                              new google.maps.LatLng(50.907525507257965,34.809408571411126),
+                                              new google.maps.LatLng(50.90563117807968,34.82176819055175),
+                                              new google.maps.LatLng(50.90936563893282,34.82880630700683)]
+                                       });
+    mapLine.runEdit(true);
+  }
+  </pre>
+  <h4>Step 4 - Stop editing polyline</h4>
+  <pre class="prettyprint lang-javascript">
+    mapLine.stopEdit();
+  </pre>
+
+  <h1>A working example:</h1>
+  <pre>
+  You can remove the point of a polyline by clicking the right mouse button.
+  </pre>
+   <br /><br />
+  <div id="map" style="width:500px; height:500px; float:left; margin:5px;"></div>
+  <div id="info"></div>
+</body>
+</html>
