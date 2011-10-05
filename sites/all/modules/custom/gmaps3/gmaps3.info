@@ -1,4 +1,0 @@
-name = "Google Maps Javascript API V3"
-description = "Adds the Google Maps API V3"
-package = "Scratchpads"
-core = 7.x
