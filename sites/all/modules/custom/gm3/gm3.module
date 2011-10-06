@@ -65,17 +65,16 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
-        ),
-        // FIXME - Adding the Google geometry class currently breaks this,
-        // mainly as a result of straight lines being rendered as straight lines
-        // on the screen (and not as curves).  For now, we'll stick with straight
-        // lines on screen that are actually curved!
-        /*array(
+        )
+      ) // FIXME - Adding the Google geometry class currently breaks this,
+    )// mainly as a result of straight lines being rendered as straight lines
+    // on the screen (and not as curves).  For now, we'll stick with straight
+    // lines on screen that are actually curved!
+    /*array(
           'gm3',
           'gm3.geometry'
         )*/
-      )
-    ),
+    ,
     // Enable the drawing of Lines.
     'gm3.polyline' => array(
       'title' => t('Google Maps Javascript API V3: Polygon drawing'),
@@ -143,6 +142,12 @@ function gm3_theme(){
         'map' => array(
           'id' => 'gm3-map'
         )
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polygon_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
       ),
       'file' => 'gm3.theme.inc'
     )
@@ -214,7 +219,7 @@ function gm3_settings(){
         'google.maps.MapTypeId.SATELLITE',
         'google.maps.MapTypeId.TERRAIN'
       ),
-      'style' => 'google.maps.MapTypeControlStyle.HORIZONTAL_BAR', // http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeControlStyle*/
+      'style' => 'google.maps.MapTypeControlStyle.DEFAULT', // http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeControlStyle
       'position' => 'google.maps.ControlPosition.TOP_RIGHT' // http://code.google.com/apis/maps/documentation/javascript/reference.html#ControlPosition
     ),
     'mapTypeId' => 'google.maps.MapTypeId.TERRAIN', // SATELLITE, TERRAIN, ROADMAP, HYBRID
@@ -262,6 +267,21 @@ function gm3_settings(){
  * 
  * TESTING.
  */
-function gm3_gm3_map_alter($map){
-  return $map;
+function gm3_gm3_map_alter(&$map){
+  if(isset($map['libraries'])){
+    foreach($map['libraries'] as $id => $library){
+      $library_name = $library;
+      if(is_array($library)){
+        $library_name = $id;
+      }
+      switch($library_name){
+        default:
+        case 'polygon':
+          $map['tools'][] = theme_gm3_polygon_button(array(
+            'id' => $map['id']
+          ));
+          break;
+      }
+    }
+  }
 }

@@ -4,21 +4,37 @@
  * Simple theme function
  */
 function theme_gm3_map($variables){
-  gm3_add($variables['map']);
   $variables['map'] = array_merge_recursive($variables['map'], array(
     'id' => 'gm3-map' // Could we get this dynamically from hook_theme?
   ));
-  return '<div id="' . $variables['map']['id'] . '"></div>';
+  gm3_add($variables['map']);
+  $tools = '';
+  if(isset($variables['map']['tools'])){
+    $tools = '<div class="gm3-tools"><!-- Apologies to Vizzuality for completely ripping off your ideas! <h1>'.t('Tools').'</h1> --><ul><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+  }
+  return array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'gm3') . '/css/gm3.css'
+      )
+    ),
+    '#markup' => '<div class="gm3-container">' . $tools . '<div class="gm3-map-wrapper"><div id="' . $variables['map']['id'] . '"></div></div></div>'
+  );
+}
+
+/**
+ * Polygon tools button
+ */
+function theme_gm3_polygon_button($variables){
+  return '<div id="'.$variables['id'].'-polygon" class="gm3-tools-button"><p>+ Polygon</p></div>';
 }
 
 /**
  * Callback to add a Google map to a specific element ID on the page.
  */
-function gm3_add($map = array()){
+function gm3_add(&$map = array()){
   $map['settings'] = array_merge(isset($map['settings']) ? $map['settings'] : array(), gm3_settings());
-  foreach(module_implements('gm3_map_alter') as $module){
-    $map = call_user_func($module . '_gm3_map_alter', $map);
-  }
+  drupal_alter('gm3_map', $map);
   if(isset($map['libraries']) && is_array($map['libraries'])){
     foreach($map['libraries'] as $library => $settings){
       $module = 'gm3';
@@ -37,7 +53,7 @@ function gm3_add($map = array()){
   drupal_add_js(array(
     'gm3' => array(
       'maps' => array(
-        (isset($map['id']) ? $map['id'] : 'gm3-map') => $map
+        $map['id'] => $map
       )
     )
   ), 'setting');
