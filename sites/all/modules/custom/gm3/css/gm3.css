@@ -1,6 +1,7 @@
 .gm3-container{
- border-radius: 5px 0 0 5px;
- background-color:#f5f5f5;
+ border-radius: 5px;
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(220, 220, 220)), to(rgb(240, 240, 240)));
+ background: -moz-linear-gradient(center top , rgb(220, 220, 220), rgb(240, 240, 240)) repeat scroll 0% 0% transparent;	
  padding:5px;
  margin:0;
 }
