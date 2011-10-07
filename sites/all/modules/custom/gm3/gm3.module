@@ -16,8 +16,8 @@
  * FIXME - Adding the Google geometry class currently breaks Polygon & Polyline.
  * Removed the following from dependencies for both gm3.polygon and gm3.polyline
  * array(
- *   'gm3',
- *   'gm3.geometry'
+ * 'gm3',
+ * 'gm3.geometry'
  * )
  */
 function gm3_library(){

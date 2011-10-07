@@ -1,31 +1,17 @@
 .gm3-container{
- border-radius: 5px;
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(200, 200, 200)), to(rgb(240, 240, 240)));
- background: -moz-linear-gradient(center top , rgb(200, 200, 200), rgb(240, 240, 240)) repeat scroll 0% 0% transparent;	
- padding:5px;
+ padding:0;
  margin:0;
 }
 .gm3-tools{
  margin-top:30px;
- width:50px;
+ width:60px;
  padding:0;
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
- background: -moz-linear-gradient(center top , #ddd, #eee) repeat scroll 0% 0% transparent;
+ background: -moz-linear-gradient(center top , #dddddd, #f5f5f5) repeat scroll 0% 0% transparent;
  min-height:200px;
  float:left;
- border-radius: 5px 0 0 5px;
  overflow:hidden;
-}
-.gm3-tools h1{
- margin:0 0 2px 0;
- padding:0;
- text-align:center;
- font-family:Helvetica,Arial,Sans-serif;
- font-size:12px;
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(40, 40, 40)), to(rgb(80, 80, 80)));
- background: -moz-linear-gradient(center top , rgb(40, 40, 40), rgb(80, 80, 80)) repeat scroll 0% 0% transparent;
- color:white;
- border-radius: 5px 0 0 5px;
+ border-radius: 4px 0 0 4px;
 }
 .gm3-tools ul{
  padding:0 !important;
@@ -33,11 +19,11 @@
 }
 .gm3-tools ul li{
  padding:0 !important;
- margin:0 0 2px 0 !important;
+ margin:0 !important;
  list-style:none;
  text-align: center; 
  position: relative;
- color: black;
+ color: white;
  font-family: Arial,sans-serif;
  -moz-user-select: none;
  -webkit-user-select: none;
@@ -45,7 +31,25 @@
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
  background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;
  padding: 0pt 6px;
- border: 1px solid rgb(103, 138, 199);
+ border-width: 1px 0 1px 1px;
+ border-style:solid;
+ border-color:rgb(103, 138, 199);
+ vertical-align:middle;
+}
+.gm3-tools ul li:hover{
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(243, 243, 243)), to(rgb(254, 254, 254)));
+ background: -moz-linear-gradient(center top , rgb(243, 243, 243), rgb(254, 254, 254)) repeat scroll 0% 0% transparent;
+ color:black;
+}
+.gm3-tools ul li:last-child{ 
+ border-bottom-left-radius: 5px;  
+}
+.gm3-tools ul li:first-child{ 
+ border-top-left-radius: 5px;
+}
+.gm3-tools ul li div p{
+ margin:0;
+ padding:5px 0;
 }
 .gm3-tools ul li:hover{
  cursor:pointer;

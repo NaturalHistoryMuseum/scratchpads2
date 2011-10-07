@@ -189,12 +189,17 @@ if(typeof (google.maps.Polygon.prototype.runEdit) === "undefined") {
         self.getPath().pop().marker.setMap(null);
       }
     };
+    var vertexClick = function(){
+      google.maps.event.trigger(self.map, "rightclick");
+      self.stopEdit();
+    }
     var createMarkerVertex = function(point){
       var markerVertex = new google.maps.Marker({position: point, map: self.getMap(), icon: imgVertex, draggable: true, raiseOnDrag: false});
       google.maps.event.addListener(markerVertex, "mouseover", vertexMouseOver);
       google.maps.event.addListener(markerVertex, "mouseout", vertexMouseOut);
       google.maps.event.addListener(markerVertex, "drag", vertexDrag);
       google.maps.event.addListener(markerVertex, "rightclick", vertexRightClick);
+      google.maps.event.addListener(markerVertex, "click", vertexClick);
       point.marker = markerVertex;
       return markerVertex;
     };
@@ -210,7 +215,6 @@ if(typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
   /**
    * Stops editing Polygon
    */
-  console.log('stopped editing');
   google.maps.Polygon.prototype.stopEdit = function(){
     this.getPath().forEach(function(vertex, inex){
       if(vertex.marker) {
