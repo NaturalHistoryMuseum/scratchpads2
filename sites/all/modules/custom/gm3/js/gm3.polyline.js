@@ -66,7 +66,6 @@
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
     });
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'click', function(point){
-      console.log(Drupal.settings.gm3.maps[map_id]['polyline']['polylines']);
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].stopEdit();
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().push(point.latLng);
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].runEdit(true);

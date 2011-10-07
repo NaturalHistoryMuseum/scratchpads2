@@ -37,6 +37,13 @@ function theme_gm3_polyline_button($variables){
 }
 
 /**
+ * Point tools button
+ */
+function theme_gm3_point_button($variables){
+  return '<div id="'.$variables['id'].'-point" class="gm3-tools-button"><p>'.t('Point').' +</p></div>';
+}
+
+/**
  * Callback to add a Google map to a specific element ID on the page.
  */
 function gm3_add(&$map = array()){

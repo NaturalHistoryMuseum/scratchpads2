@@ -41,6 +41,35 @@ function gm3_library(){
         )
       )
     ),
+    // Enable the clicking of points.
+    'gm3.point' => array(
+      'title' => t('Google Maps Javascript API V3: Point drawing'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.point.js'
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'point' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )    
+    ),
     // Enable drawing of Polygons.
     'gm3.polygon' => array(
       'title' => t('Google Maps Javascript API V3: Polygon drawing'),
@@ -145,6 +174,12 @@ function gm3_theme(){
       ),
       'file' => 'gm3.theme.inc'
     ),
+    'gm3_point_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
     'gm3_polygon_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
@@ -183,6 +218,7 @@ function gm3_test(){
   return theme('gm3_map', array(
     'map' => array(
       'libraries' => array(
+        'point',
         'polygon',
         'polyline'
       )
@@ -289,6 +325,11 @@ function gm3_gm3_map_alter(&$map){
           break;
         case 'polyline':
           $map['tools'][] = theme('gm3_polyline_button', array(
+            'id' => $map['id']
+          ));
+          break;
+        case 'point':
+          $map['tools'][] = theme('gm3_point_button', array(
             'id' => $map['id']
           ));
           break;
