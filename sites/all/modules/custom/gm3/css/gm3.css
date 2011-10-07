@@ -23,25 +23,28 @@
  list-style:none;
  text-align: center; 
  position: relative;
- color: white;
+ color: black;
  font-family: Arial,sans-serif;
  -moz-user-select: none;
  -webkit-user-select: none;
  font-size: 12px;
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
- background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(243, 243, 243)), to(rgb(254, 254, 254)));
+ background: -moz-linear-gradient(center top , rgb(243, 243, 243), rgb(254, 254, 254)) repeat scroll 0% 0% transparent;
  padding: 0pt 6px;
- border-width: 1px 0 1px 1px;
+ border-width: 1px 0 0 1px;
  border-style:solid;
  border-color:rgb(103, 138, 199);
  vertical-align:middle;
 }
-.gm3-tools ul li:hover{
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(243, 243, 243)), to(rgb(254, 254, 254)));
- background: -moz-linear-gradient(center top , rgb(243, 243, 243), rgb(254, 254, 254)) repeat scroll 0% 0% transparent;
- color:black;
+.gm3-tools ul li.gm3-clicked{	
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
+ background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;	
 }
-.gm3-tools ul li:last-child{ 
+.gm3-tools ul li:hover{
+ border-color: #aaa;	
+}
+.gm3-tools ul li:last-child{
+ border-bottom-width:1px;
  border-bottom-left-radius: 5px;  
 }
 .gm3-tools ul li:first-child{ 

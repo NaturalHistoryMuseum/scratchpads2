@@ -19,7 +19,9 @@
     Drupal.settings.gm3.maps[map_id]['polygon']['followline2'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
     Drupal.settings.gm3.maps[map_id]['polygon']['polygons'] = new Array();
     // Clicked to start.
-    document.getElementById(map_id + "-polygon").onclick = function(){
+    $('#' + map_id + "-polygon").click(function(){
+      $('.gm3-clicked').removeClass('gm3-clicked');
+      $(this).parent().addClass('gm3-clicked');
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
@@ -32,7 +34,7 @@
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       // Listeners added to map and polygons.
       Drupal.gm3.polygon.add_listeners(map_id, current_polygon);
-    }
+    });
   }
   Drupal.gm3.polygon.add_listeners = function(map_id, current_polygon){
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'mousemove', function(point){
@@ -47,6 +49,9 @@
       }
     });
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
+      // Unclick the button
+      $('.gm3-clicked').removeClass('gm3-clicked');
+      $('#gm3-default-button-'+map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(null);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(null);
@@ -91,7 +96,7 @@
         this.runEdit();
       });
     }
-    
+
   }
   Drupal.gm3.polygon.get_line_colour = function(index){
     switch(index % 8){

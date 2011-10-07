@@ -10,7 +10,7 @@ function theme_gm3_map($variables){
   gm3_add($variables['map']);
   $tools = '';
   if(isset($variables['map']['tools'])){
-    $tools = '<div class="gm3-tools"><!-- Apologies to Vizzuality for completely ripping off your ideas! <h1>'.t('Tools').'</h1> --><ul><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+    $tools = '<div class="gm3-tools"><ul><li id="gm3-default-button-'.$variables['map']['id'].'" class="gm3-clicked"><div class="gm3-tools-button"><p>'.t('Move').'</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
   }
   return array(
     '#attached' => array(
