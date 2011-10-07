@@ -1,7 +1,7 @@
 .gm3-container{
  border-radius: 5px;
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(220, 220, 220)), to(rgb(240, 240, 240)));
- background: -moz-linear-gradient(center top , rgb(220, 220, 220), rgb(240, 240, 240)) repeat scroll 0% 0% transparent;	
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(200, 200, 200)), to(rgb(240, 240, 240)));
+ background: -moz-linear-gradient(center top , rgb(200, 200, 200), rgb(240, 240, 240)) repeat scroll 0% 0% transparent;	
  padding:5px;
  margin:0;
 }
@@ -9,7 +9,8 @@
  margin-top:30px;
  width:50px;
  padding:0;
- background-color:#eee;
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
+ background: -moz-linear-gradient(center top , #ddd, #eee) repeat scroll 0% 0% transparent;
  min-height:200px;
  float:left;
  border-radius: 5px 0 0 5px;
@@ -36,25 +37,24 @@
  list-style:none;
  text-align: center; 
  position: relative;
- color: white;
+ color: black;
  font-family: Arial,sans-serif;
  -moz-user-select: none;
  -webkit-user-select: none;
- font-size: 12px; 
+ font-size: 12px;
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
  background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;
  padding: 0pt 6px;
- border-radius: 5px 0 0 5px;
  border: 1px solid rgb(103, 138, 199);
 }
 .gm3-tools ul li:hover{
- font-weight: bold;
+ cursor:pointer;
 }
 .gm3-map-wrapper{
  border-radius: 5px;
  overflow:hidden;
 }
-.gm3-map-wrapper, .gm3-tools ul, .gm3-tools{
+.gm3-map-wrapper, .gm3-tools{
  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);	
  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 3px;
 }

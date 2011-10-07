@@ -26,7 +26,7 @@ function theme_gm3_map($variables){
  * Polygon tools button
  */
 function theme_gm3_polygon_button($variables){
-  return '<div id="'.$variables['id'].'-polygon" class="gm3-tools-button"><p>+ Polygon</p></div>';
+  return '<div id="'.$variables['id'].'-polygon" class="gm3-tools-button"><p>'.t('Add Polygon').'</p></div>';
 }
 
 /**

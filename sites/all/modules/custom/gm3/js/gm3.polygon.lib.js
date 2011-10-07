@@ -210,6 +210,7 @@ if(typeof (google.maps.Polygon.prototype.stopEdit) === "undefined") {
   /**
    * Stops editing Polygon
    */
+  console.log('stopped editing');
   google.maps.Polygon.prototype.stopEdit = function(){
     this.getPath().forEach(function(vertex, inex){
       if(vertex.marker) {

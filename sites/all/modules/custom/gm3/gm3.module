@@ -11,6 +11,14 @@
  * 
  * Note, the sensor option could be set to true here to allow for maps to have 
  * the sensor enabled (useful perhaps on mobile devices, or shopping sites).
+ * 
+ * Note.
+ * FIXME - Adding the Google geometry class currently breaks Polygon & Polyline.
+ * Removed the following from dependencies for both gm3.polygon and gm3.polyline
+ * array(
+ *   'gm3',
+ *   'gm3.geometry'
+ * )
  */
 function gm3_library(){
   return array(
@@ -66,15 +74,8 @@ function gm3_library(){
           'gm3',
           'gm3'
         )
-      ) // FIXME - Adding the Google geometry class currently breaks this,
-    )// mainly as a result of straight lines being rendered as straight lines
-    // on the screen (and not as curves).  For now, we'll stick with straight
-    // lines on screen that are actually curved!
-    /*array(
-          'gm3',
-          'gm3.geometry'
-        )*/
-    ,
+      )
+    ),
     // Enable the drawing of Lines.
     'gm3.polyline' => array(
       'title' => t('Google Maps Javascript API V3: Polygon drawing'),
@@ -104,10 +105,6 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
-        ),
-        array(
-          'gm3',
-          'gm3.geometry'
         )
       )
     ),
