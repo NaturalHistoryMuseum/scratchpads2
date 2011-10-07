@@ -83,6 +83,9 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.lib.js'
+        ),
+        array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.js'
         ),
         array(
@@ -147,6 +150,12 @@ function gm3_theme(){
         'id' => 'gm3-map'
       ),
       'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polyline_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
     )
   );
 }
@@ -174,7 +183,8 @@ function gm3_test(){
   return theme('gm3_map', array(
     'map' => array(
       'libraries' => array(
-        'polygon'
+        'polygon',
+        'polyline'
       )
     )
   ));
@@ -272,11 +282,17 @@ function gm3_gm3_map_alter(&$map){
         $library_name = $id;
       }
       switch($library_name){
-        default:
         case 'polygon':
-          $map['tools'][] = theme_gm3_polygon_button(array(
+          $map['tools'][] = theme('gm3_polygon_button', array(
             'id' => $map['id']
           ));
+          break;
+        case 'polyline':
+          $map['tools'][] = theme('gm3_polyline_button', array(
+            'id' => $map['id']
+          ));
+          break;
+        default:
           break;
       }
     }

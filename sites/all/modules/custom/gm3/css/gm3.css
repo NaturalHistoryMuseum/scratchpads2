@@ -18,10 +18,9 @@
  margin:0 !important;
 }
 .gm3-tools ul li{
- padding:0 !important;
+ padding:0 0 0 3px !important;
  margin:0 !important;
- list-style:none;
- text-align: center; 
+ list-style:none; 
  position: relative;
  color: black;
  font-family: Arial,sans-serif;

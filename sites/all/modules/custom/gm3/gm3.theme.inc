@@ -26,7 +26,14 @@ function theme_gm3_map($variables){
  * Polygon tools button
  */
 function theme_gm3_polygon_button($variables){
-  return '<div id="'.$variables['id'].'-polygon" class="gm3-tools-button"><p>'.t('+ Shape').'</p></div>';
+  return '<div id="'.$variables['id'].'-polygon" class="gm3-tools-button"><p>'.t('Shape').' +</p></div>';
+}
+
+/**
+ * Polyline tools button
+ */
+function theme_gm3_polyline_button($variables){
+  return '<div id="'.$variables['id'].'-polyline" class="gm3-tools-button"><p>'.t('Line').' +</p></div>';
 }
 
 /**

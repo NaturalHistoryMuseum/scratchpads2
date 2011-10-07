@@ -9,14 +9,13 @@
     }
   }};
   Drupal.gm3.polyline.initialize = function(map_id){
-    // Polygon object.
+    // Polyline object.
     // We don't currently support geodesic shapes, mainly due to the library
     // we're using being a little buggy in its support for it. For this reason,
     // please avoid loading the
     var geodesic = false;
     Drupal.settings.gm3.maps[map_id]['polyline'] = Drupal.settings.gm3.maps[map_id]['polyline'] || {};
     Drupal.settings.gm3.maps[map_id]['polyline']['followline1'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
-    Drupal.settings.gm3.maps[map_id]['polyline']['followline2'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
     Drupal.settings.gm3.maps[map_id]['polyline']['polylines'] = new Array();
     // Clicked to start.
     $('#' + map_id + "-polyline").click(function(){
@@ -27,11 +26,9 @@
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'crosshair'});
       var current_polyline = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'].length;
-      Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polygon({geodesic: geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
+      Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polyline({geodesic: geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setPath([]);
-      Drupal.settings.gm3.maps[map_id]['polyline']['followline2'].setPath([]);
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
-      Drupal.settings.gm3.maps[map_id]['polyline']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       // Listeners added to map and polylines.
       Drupal.gm3.polyline.add_listeners(map_id, current_polyline);
     });
@@ -45,7 +42,6 @@
         Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setPath(followCoordinates1);
         var startingPoint2 = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().getAt(0);
         var followCoordinates2 = [startingPoint2, point.latLng];
-        Drupal.settings.gm3.maps[map_id]['polyline']['followline2'].setPath(followCoordinates2);
       }
     });
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
@@ -54,7 +50,6 @@
       $('#gm3-default-button-'+map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setMap(null);
-      Drupal.settings.gm3.maps[map_id]['polyline']['followline2'].setMap(null);
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
       // google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'],
@@ -71,6 +66,7 @@
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
     });
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'click', function(point){
+      console.log(Drupal.settings.gm3.maps[map_id]['polyline']['polylines']);
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].stopEdit();
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().push(point.latLng);
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].runEdit(true);
