@@ -46,10 +46,18 @@
           // Create the map
           map['google_map'] = new google.maps.Map(document.getElementById(map_id), map['settings']);
           map['initialized'] = true;
-          // Add listeners if we need to
-          for(event in map['events']){
-            google.maps.event.addListener(map['google_map'], event, eval(map['events'][event]));
-          }
+          console.log(map);
+          // Click the stuff!
+          $('#gm3-default-button-'+map_id).click(function(){
+            $('.gm3-clicked').removeClass('gm3-clicked');
+            $(this).addClass('gm3-clicked');
+            map['google_map'].setOptions({draggableCursor: 'pointer'});
+            for(library in map['libraries']){
+              if(Drupal.gm3[library] && Drupal.gm3[library].clear_listeners){
+                Drupal.gm3[library].clear_listeners(map['id']);
+              }
+            }
+          });
         } catch(err) {
           $('#' + map_id, context).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
         }

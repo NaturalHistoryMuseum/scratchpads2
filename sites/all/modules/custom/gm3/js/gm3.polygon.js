@@ -12,7 +12,7 @@
     // Polygon object.
     // We don't currently support geodesic shapes, mainly due to the library
     // we're using being a little buggy in its support for it. For this reason,
-    // please avoid loading the
+    // please avoid loading the geometry library.
     var geodesic = false;
     Drupal.settings.gm3.maps[map_id]['polygon'] = Drupal.settings.gm3.maps[map_id]['polygon'] || {};
     Drupal.settings.gm3.maps[map_id]['polygon']['followline1'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
@@ -33,11 +33,14 @@
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       // Listeners added to map and polygons.
-      Drupal.gm3.polygon.add_listeners(map_id, current_polygon);
+      Drupal.gm3.polygon.add_listeners(Drupal.settings.gm3.maps[map_id]['google_map'], map_id, current_polygon);
+      for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length; i++) {
+        Drupal.gm3.polygon.add_listeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], map_id, current_polygon);
+      }
     });
   }
-  Drupal.gm3.polygon.add_listeners = function(map_id, current_polygon){
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'mousemove', function(point){
+  Drupal.gm3.polygon.add_listeners = function(listener, map_id, current_polygon){
+    google.maps.event.addListener(listener, 'mousemove', function(point){
       var pathLength = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().getLength();
       if(pathLength >= 1) {
         var startingPoint1 = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().getAt(pathLength - 1);
@@ -48,33 +51,41 @@
         Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath(followCoordinates2);
       }
     });
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
+    google.maps.event.addListener(listener, 'rightclick', function(){
       // Unclick the button
       $('.gm3-clicked').removeClass('gm3-clicked');
       $('#gm3-default-button-'+map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(null);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(null);
-      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
-      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
-      // google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'],
+      google.maps.event.clearListeners(listener, "click");
+      google.maps.event.clearListeners(listener, "mousemove");
+      // google.maps.event.clearListeners(listener,
       // "rightclick");
       // Remove listeners from all polygons.
-      for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length; i++) {
-        Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i].stopEdit();
-        google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "click");
-        google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "mousemove");
-        google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "rightclick");
-      }
+      Drupal.gm3.polygon.clear_listeners(map_id);
       // Add click lisener to all polygons to re-enable editing.
       Drupal.gm3.polygon.add_polygon_click_listeners(map_id);
-      Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
+      listener.setOptions({draggableCursor: 'pointer'});
     });
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'click', function(point){
+    google.maps.event.addListener(listener, 'click', function(point){
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].stopEdit();
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().push(point.latLng);
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].runEdit(true);
     });
+  }
+  Drupal.gm3.polygon.clear_listeners = function(map_id){
+    for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length; i++) {
+      Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i].stopEdit();
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "click");
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "mousemove");
+      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][i], "rightclick");
+    }
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+    // Add back the click to a polygon, so that they can be edited.
+    Drupal.gm3.polygon.add_polygon_click_listeners(map_id);
   }
   Drupal.gm3.polygon.add_polygon_click_listeners = function(map_id){
     for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length; i++) {

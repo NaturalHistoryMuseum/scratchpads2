@@ -30,11 +30,14 @@
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setPath([]);
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       // Listeners added to map and polylines.
-      Drupal.gm3.polyline.add_listeners(map_id, current_polyline);
+      Drupal.gm3.polyline.add_listeners(Drupal.settings.gm3.maps[map_id]['google_map'], map_id, current_polyline);
+      for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polyline']['polylines'].length; i++) {
+        Drupal.gm3.polyline.add_listeners(Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][i], map_id, current_polyline);
+      }
     });
   }
-  Drupal.gm3.polyline.add_listeners = function(map_id, current_polyline){
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'mousemove', function(point){
+  Drupal.gm3.polyline.add_listeners = function(listener, map_id, current_polyline){
+    google.maps.event.addListener(listener, 'mousemove', function(point){
       var pathLength = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().getLength();
       if(pathLength >= 1) {
         var startingPoint1 = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().getAt(pathLength - 1);
@@ -44,15 +47,15 @@
         var followCoordinates2 = [startingPoint2, point.latLng];
       }
     });
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
+    google.maps.event.addListener(listener, 'rightclick', function(){
       // Unclick the button
       $('.gm3-clicked').removeClass('gm3-clicked');
-      $('#gm3-default-button-'+map_id).addClass('gm3-clicked');
+      $('#gm3-default-button-' + map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polyline']['followline1'].setMap(null);
-      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
-      google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
-      // google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'],
+      google.maps.event.clearListeners(listener, "click");
+      google.maps.event.clearListeners(listener, "mousemove");
+      // google.maps.event.clearListeners(listener,
       // "rightclick");
       // Remove listeners from all polylines.
       for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polyline']['polylines'].length; i++) {
@@ -63,9 +66,9 @@
       }
       // Add click lisener to all polylines to re-enable editing.
       Drupal.gm3.polyline.add_polyline_click_listeners(map_id);
-      Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
+      listener.setOptions({draggableCursor: 'pointer'});
     });
-    google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'click', function(point){
+    google.maps.event.addListener(listener, 'click', function(point){
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].stopEdit();
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].getPath().push(point.latLng);
       Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline].runEdit(true);
@@ -91,7 +94,6 @@
         this.runEdit();
       });
     }
-
   }
   Drupal.gm3.polyline.get_line_colour = function(index){
     switch(index % 8){
