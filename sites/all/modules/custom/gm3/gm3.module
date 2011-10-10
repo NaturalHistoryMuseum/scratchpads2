@@ -19,6 +19,9 @@
  * 'gm3',
  * 'gm3.geometry'
  * )
+ * 
+ * FIXME - Select countries.  Click on a country could bring up an option to 
+ * select the subregions (TDWG 4).
  */
 function gm3_library(){
   return array(
@@ -68,7 +71,7 @@ function gm3_library(){
           'gm3',
           'gm3'
         )
-      )    
+      )
     ),
     // Enable drawing of Polygons.
     'gm3.polygon' => array(
@@ -87,10 +90,7 @@ function gm3_library(){
             'gm3' => array(
               'settings' => array(
                 'images' => array(
-                  'ghostvertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertex.png'),
-                  'ghostvertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertexOver.png'),
-                  'vertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png'),
-                  'vertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertexOver.png')
+                  'vertex_sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex_sprite.png')
                 )
               )
             )
@@ -122,10 +122,7 @@ function gm3_library(){
             'gm3' => array(
               'settings' => array(
                 'images' => array(
-                  'ghostvertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertex.png'),
-                  'ghostvertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/ghostVertexOver.png'),
-                  'vertex' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png'),
-                  'vertexover' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertexOver.png')
+                  'vertex_sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex_sprite.png')
                 )
               )
             )

@@ -41,8 +41,8 @@ if(typeof (google.maps.Polyline.prototype.runEdit) === "undefined") {
     }
     var self = this;
     if(flag) {
-      var imgGhostVertex = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.ghostvertex, new google.maps.Size(11, 11), new google.maps.Point(0, 0), new google.maps.Point(6, 6));
-      var imgGhostVertexOver = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.ghostvertexover, new google.maps.Size(11, 11), new google.maps.Point(0, 0), new google.maps.Point(6, 6));
+      var imgGhostVertex = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertex_sprite, new google.maps.Size(11, 11), new google.maps.Point(0, 22), new google.maps.Point(6, 6));
+      var imgGhostVertexOver = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertex_sprite, new google.maps.Size(11, 11), new google.maps.Point(0, 33), new google.maps.Point(6, 6));
       var ghostPath = new google.maps.Polyline({map: this.getMap(), strokeColor: this.strokeColor, strokeOpacity: 0.2, strokeWeight: this.strokeWeight});
       var vertexGhostMouseOver = function(){
         this.setIcon(imgGhostVertexOver);
@@ -102,8 +102,8 @@ if(typeof (google.maps.Polyline.prototype.runEdit) === "undefined") {
         return null;
       };
     }
-    var imgVertex = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertex, new google.maps.Size(11, 11), new google.maps.Point(0, 0), new google.maps.Point(6, 6));
-    var imgVertexOver = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertexover, new google.maps.Size(11, 11), new google.maps.Point(0, 0), new google.maps.Point(6, 6));
+    var imgVertex = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertex_sprite, new google.maps.Size(11, 11), new google.maps.Point(0, 0), new google.maps.Point(6, 6));
+    var imgVertexOver = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.vertex_sprite, new google.maps.Size(11, 11), new google.maps.Point(0, 11), new google.maps.Point(6, 6));
     var vertexMouseOver = function(){
       this.setIcon(imgVertexOver);
     };
