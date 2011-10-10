@@ -36,11 +36,35 @@ function gm3_library(){
         array(
           'data' => 'http://maps.googleapis.com/maps/api/js?sensor=false',
           'options' => 'external'
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/sprite.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
         )
       ),
       'css' => array(
         array(
           'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
+        )
+      )
+    ),
+    // Marker clusterer
+    'gm3.clusterer' => array(
+      'title' => t('Google '),
+      'website' => 'http://google-maps-utility-library-v3.googlecode.com/',
+      'version' => '2.0.5',
+      'js' => array(
+        array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer.js',
+          'options' => 'external'
         )
       )
     ),
@@ -52,24 +76,16 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.point.js'
-        ),
-        array(
-          'data' => array(
-            'gm3' => array(
-              'settings' => array(
-                'images' => array(
-                  'point' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex.png')
-                )
-              )
-            )
-          ),
-          'type' => 'setting'
         )
       ),
       'dependencies' => array(
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.clusterer'
         )
       )
     ),
@@ -84,18 +100,6 @@ function gm3_library(){
         ),
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.js'
-        ),
-        array(
-          'data' => array(
-            'gm3' => array(
-              'settings' => array(
-                'images' => array(
-                  'vertex_sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex_sprite.png')
-                )
-              )
-            )
-          ),
-          'type' => 'setting'
         )
       ),
       'dependencies' => array(
@@ -116,18 +120,6 @@ function gm3_library(){
         ),
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.js'
-        ),
-        array(
-          'data' => array(
-            'gm3' => array(
-              'settings' => array(
-                'images' => array(
-                  'vertex_sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/vertex_sprite.png')
-                )
-              )
-            )
-          ),
-          'type' => 'setting'
         )
       ),
       'dependencies' => array(
@@ -212,10 +204,30 @@ function gm3_menu(){
  * Callback for testing.
  */
 function gm3_test(){
+  // FIXME - Testing with points!
+  $points = array(
+    array(
+      'lat' => 10,
+      'long' => 20
+    ),
+    array(
+      'lat' => 48,
+      'long' => 0
+    )
+  );
+  for($i = 0; $i < 1000; $i++){
+    $points[] = array(
+      'lat' => mt_rand(51000, 52000) / 1000,
+      'long' => mt_rand(-500, 500) / 1000
+    );
+  }
+  // FIXME - END!
   return theme('gm3_map', array(
     'map' => array(
       'libraries' => array(
-        'point',
+        'point' => array(
+          'points' => $points
+        ),
         'polygon',
         'polyline'
       )
