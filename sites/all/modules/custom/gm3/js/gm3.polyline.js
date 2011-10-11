@@ -13,10 +13,10 @@
     // We don't currently support geodesic shapes, mainly due to the library
     // we're using being a little buggy in its support for it. For this reason,
     // please avoid loading the geometry library.
-    var geodesic = false;
+    this.geodesic = false;
     Drupal.settings.gm3.maps[map_id]['polyline'] = Drupal.settings.gm3.maps[map_id]['polyline'] || {};
     // Editing lines
-    Drupal.settings.gm3.maps[map_id]['polyline']['followline'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
+    Drupal.settings.gm3.maps[map_id]['polyline']['followline'] = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
     // Polylines.
     Drupal.settings.gm3.maps[map_id]['polyline']['polylines'] = new Array();
     // Clicked to start.
@@ -32,7 +32,7 @@
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'crosshair'});
       // Create a new polyline
       var current_polyline = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'].length;
-      Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polyline({geodesic: geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
+      Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polyline({geodesic: this.geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
       // Set the path and maps for the lines.
       Drupal.settings.gm3.maps[map_id]['polyline']['followline'].setPath([]);
       Drupal.settings.gm3.maps[map_id]['polyline']['followline'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
@@ -45,7 +45,7 @@
     Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'crosshair'});
     // Create a new polyline
     var current_polyline = Drupal.settings.gm3.maps[map_id]['polyline']['polylines'].length;
-    Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polyline({geodesic: geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
+    Drupal.settings.gm3.maps[map_id]['polyline']['polylines'][current_polyline] = new google.maps.Polyline({geodesic: this.geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polyline.get_line_colour(current_polyline), strokeOpacity: 0.4, strokeWeight: 3, path: []});
     // Set the path and maps for the lines.
     Drupal.settings.gm3.maps[map_id]['polyline']['followline'].setPath([]);
     Drupal.settings.gm3.maps[map_id]['polyline']['followline'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
@@ -66,12 +66,10 @@
     });
     // Add a right click listener. This allows the polyline to be finished
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
-      // Unclick the button
-      $('.gm3-clicked').removeClass('gm3-clicked');
-      $('#gm3-default-button-' + map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polyline']['followline'].setMap(null);
       Drupal.gm3.clear_listeners(map_id);
+      Drupal.gm3.set_active_button(map_id);
       // Set the cursor back
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'pointer'});
       // Add edit listeners to the map, as we're back in edit mode.

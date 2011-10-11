@@ -62,10 +62,6 @@
     if(content){
       Drupal.settings.gm3.maps[map_id]['point']['markers'][latLng.toString()] = content;
       google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['point']['points'][current_point], "click", function(event){
-        /*Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new google.maps.InfoWindow({
-          content:Drupal.settings.gm3.maps[map_id]['point']['markers'][event.latLng.toString()],
-          postition:event.latLng
-        });*/
         Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new InfoBubble({
           map: this.map,
           content: content,
@@ -91,13 +87,15 @@
     }
   }
   Drupal.gm3.point.clear_listeners = function(map_id){
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+    // Clear all listeners from this map.
+  }
+  Drupal.gm3.point.add_transfer_listeners = function(map_id){
+    // Add transfer listeners so that polygons and other objects pass on their
   }
   Drupal.gm3.point.add_listeners = function(map_id){
-    for(i = 0; i < Drupal.settings.gm3.maps[map_id]['point']['points'][current_point].length; i++){
-      
-    }
+    // Add listeners
+  }
+  Drupal.gm3.point.add_edit_listeners = function(map_id){
+    // Add Edit listeners
   }
 })(jQuery);

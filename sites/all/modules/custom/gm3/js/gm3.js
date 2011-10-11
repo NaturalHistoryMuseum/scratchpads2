@@ -47,14 +47,20 @@
           map['google_map'] = new google.maps.Map(document.getElementById(map_id), map['settings']);
           map['initialized'] = true;
           // Click the stuff!
-          $('#gm3-default-button-'+map_id).click(function(){
+          $('.gm3-tools ul li div').click(function(){
             $('.gm3-clicked').removeClass('gm3-clicked');
             $(this).addClass('gm3-clicked');
-            map['google_map'].setOptions({draggableCursor: 'pointer'});
-            for(library in map['libraries']){
-              if(Drupal.gm3[library] && Drupal.gm3[library].clear_listeners){
-                Drupal.gm3[library].clear_listeners(map['id']);
-              }
+            if(Drupal.gm3[$(this).data('gm3-class')] && Drupal.gm3[$(this).data('gm3-class')].do_edit){
+              Drupal.gm3.clear_listeners($(this).data('gm3-map-id'));
+              $(this).parent().addClass('gm3-clicked');
+              Drupal.gm3[$(this).data('gm3-class')].do_edit($(this).data('gm3-map-id'));
+            } else {
+              // Default button clicked (or missing the class).
+              $('.gm3-clicked').removeClass('gm3-clicked');
+              $(this).addClass('gm3-clicked');
+              map['google_map'].setOptions({draggableCursor: 'pointer'});
+              Drupal.gm3.clear_listeners(map_id);
+              Drupal.gm3.add_edit_listeners(map_id);
             }
           });
         } catch(err) {
@@ -63,6 +69,12 @@
       }
     }
   }};
+  Drupal.gm3.set_active_button = function(map_id, class_name){
+    alert('Setting active button');
+    // Unclick the button
+    $('.gm3-clicked').removeClass('gm3-clicked');
+    $('#gm3-default-button-' + map_id).addClass('gm3-clicked');
+  }
   Drupal.gm3.clear_listeners = function(map_id){
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");

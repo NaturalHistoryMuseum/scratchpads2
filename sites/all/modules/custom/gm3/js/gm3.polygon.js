@@ -60,9 +60,6 @@
     });
     // Add a right click listener. This allows the polygon to be finished
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'rightclick', function(){
-      // Unclick the button
-      $('.gm3-clicked').removeClass('gm3-clicked');
-      $('#gm3-default-button-' + map_id).addClass('gm3-clicked');
       // Remove listeners from map.
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(null);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(null);
