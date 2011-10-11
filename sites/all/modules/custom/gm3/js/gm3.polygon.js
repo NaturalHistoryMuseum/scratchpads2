@@ -15,23 +15,30 @@
     // please avoid loading the geometry library.
     var geodesic = false;
     Drupal.settings.gm3.maps[map_id]['polygon'] = Drupal.settings.gm3.maps[map_id]['polygon'] || {};
+    // Editing lines
     Drupal.settings.gm3.maps[map_id]['polygon']['followline1'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
     Drupal.settings.gm3.maps[map_id]['polygon']['followline2'] = new google.maps.Polyline({geodesic: geodesic, clickable: false, map: Drupal.settings.gm3.maps[map_id]['google_map'], path: [], strokeColor: "#787878", strokeOpacity: 1, strokeWeight: 2});
+    // Polygons.
     Drupal.settings.gm3.maps[map_id]['polygon']['polygons'] = new Array();
     // Clicked to start.
     $('#' + map_id + "-polygon").click(function(){
+      // Display the button as being clicked (this should possibly be in the
+      // gm3.js file, which then passes the click call to here).
       $('.gm3-clicked').removeClass('gm3-clicked');
       $(this).parent().addClass('gm3-clicked');
+      // Clear listeners from the map (stops any events for other classes being
+      // called).
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
       google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+      // Set the cursor.
       Drupal.settings.gm3.maps[map_id]['google_map'].setOptions({draggableCursor: 'crosshair'});
+      // Create a new polygon
       var current_polygon = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length;
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon] = new google.maps.Polygon({geodesic: geodesic, map: Drupal.settings.gm3.maps[map_id]['google_map'], strokeColor: Drupal.gm3.polygon.get_line_colour(current_polygon), strokeOpacity: 0.4, strokeWeight: 3, path: []});
+      // Set the path and maps for the lines.
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setPath([]);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath([]);
-      Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
-      Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       // Listeners added to map and polygons.
       Drupal.gm3.polygon.add_listeners(Drupal.settings.gm3.maps[map_id]['google_map'], map_id, current_polygon);
       for(i = 0; i < Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length; i++) {
@@ -40,6 +47,8 @@
     });
   }
   Drupal.gm3.polygon.add_listeners = function(listener, map_id, current_polygon){
+    // Mouse move listener - Updates the "to be added" lines.
+    //google.maps.event.clearListeners(listener, 'mousemove');
     google.maps.event.addListener(listener, 'mousemove', function(point){
       var pathLength = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().getLength();
       if(pathLength >= 1) {
@@ -51,6 +60,8 @@
         Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath(followCoordinates2);
       }
     });
+    // Add a right click listener.  This allows the polygon to be finished
+    google.maps.event.clearListeners(listener, 'rightclick');
     google.maps.event.addListener(listener, 'rightclick', function(){
       // Unclick the button
       $('.gm3-clicked').removeClass('gm3-clicked');
@@ -68,6 +79,8 @@
       Drupal.gm3.polygon.add_polygon_click_listeners(map_id);
       listener.setOptions({draggableCursor: 'pointer'});
     });
+    // Add a click listener.
+    google.maps.event.clearListeners(listener, 'click');
     google.maps.event.addListener(listener, 'click', function(point){
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].stopEdit();
       Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().push(point.latLng);
