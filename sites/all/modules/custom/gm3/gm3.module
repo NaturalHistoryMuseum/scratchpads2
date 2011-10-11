@@ -217,32 +217,36 @@ function gm3_menu(){
  */
 function gm3_test(){
   // FIXME - Testing with points!
-  /*$points = array(
+  $points = array(
     array(
       'lat' => 10,
-      'long' => 20
+      'long' => 20,
+      'content' => 'Stuff 10,20'
     ),
     array(
-      'lat' => 48,
-      'long' => 0
+      'lat' => 50.5,
+      'long' => 0,
+      'content' => '<h1>London?</h1>Stuff 48,0'
     ),
     array(
       'lat' => 20,
-      'long' => 20
+      'long' => 20,
+      'content' => 'Stuff 20,20'
     ),
     array(
       'lat' => 30,
-      'long' => 22
+      'long' => 22,
+      'content' => 'Stuff 30,22'
     )
-  );*/
-  for($i = 0; $i < 1000; $i++){
+  );
+  /*for($i = 0; $i < 10000; $i++){
     $points[] = array(
-      'content' => '',
-      'title' => '',
-      'lat' => mt_rand(51000, 52000) / 1000,
-      'long' => mt_rand(-500, 500) / 1000
+      'content' => 'Contenty',
+      'title' => 'Stuff',
+      'lat' => round(mt_rand(51000, 52000)) / 1000,
+      'long' => round(mt_rand(-500, 500)) / 1000
     );
-  }
+  }*/
   // FIXME - END!
   return theme('gm3_map', array(
     'map' => array(

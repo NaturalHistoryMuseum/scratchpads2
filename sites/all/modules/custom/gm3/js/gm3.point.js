@@ -12,12 +12,14 @@
     // Point object.
     Drupal.settings.gm3.maps[map_id]['point'] = Drupal.settings.gm3.maps[map_id]['point'] || {};
     Drupal.settings.gm3.maps[map_id]['point']['points'] = new Array();
+    Drupal.settings.gm3.maps[map_id]['point']['markers'] = new Array();
+    Drupal.settings.gm3.maps[map_id]['point']['info_windows'] = new Array();
     // Icon
     Drupal.settings.gm3.maps[map_id]['point']['marker_image'] = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(16, 16), new google.maps.Point(0, 44), new google.maps.Point(8, 8));
     // Add points sent from server.
     if(Drupal.settings.gm3.maps[map_id]['libraries']['point']['points']){
       for(i in Drupal.settings.gm3.maps[map_id]['libraries']['point']['points']){
-        Drupal.gm3.point.add_marker(map_id, new google.maps.LatLng(Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['lat'], Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['long']), false);
+        Drupal.gm3.point.add_marker(map_id, new google.maps.LatLng(Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['lat'], Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['long']), false, Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['title'], Drupal.settings.gm3.maps[map_id]['libraries']['point']['points'][i]['content']);
       }
     }
     // Clusterer
@@ -46,15 +48,27 @@
       }        
     }
   }
-  Drupal.gm3.point.add_marker = function(map_id, latLng, redraw){
+  Drupal.gm3.point.add_marker = function(map_id, latLng, redraw, title, content){
     redraw = typeof(redraw) != 'undefined' ? redraw : false;
+    title = typeof(title) != 'undefined' ? title : '';
+    content = typeof(content) != 'undefined' ? content : '';
     var current_point = Drupal.settings.gm3.maps[map_id]['point']['points'].length;
     Drupal.settings.gm3.maps[map_id]['point']['points'][current_point] = new google.maps.Marker({
       position: latLng,
       draggable: true,
-      // animation: google.maps.Animation.DROP
+      title: title + " :: "+latLng.toString(),
       icon: Drupal.settings.gm3.maps[map_id]['point']['marker_image']
     });
+    if(content){
+      Drupal.settings.gm3.maps[map_id]['point']['markers'][latLng.toString()] = content;
+      google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['point']['points'][current_point], "click", function(event){
+        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new google.maps.InfoWindow({
+          content:Drupal.settings.gm3.maps[map_id]['point']['markers'][event.latLng.toString()],
+          postition:event.latLng
+        });
+        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()].open(this.map, this);
+      });
+    }
     if(redraw){
       Drupal.settings.gm3.maps[map_id]['point']['clusterer'].addMarker(Drupal.settings.gm3.maps[map_id]['point']['points'][current_point], true);
       Drupal.settings.gm3.maps[map_id]['point']['clusterer'].repaint();
