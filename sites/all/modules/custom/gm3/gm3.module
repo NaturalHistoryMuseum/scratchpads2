@@ -56,6 +56,18 @@ function gm3_library(){
         )
       )
     ),
+    // Fancy info bubbles
+    'gm3.infobubble' => array(
+      'title' => t('Google Info Bubble'),
+      'website' => '',
+      'version' => 1,
+      'js' => array(
+        array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble.js',
+          'options' => 'external'
+        )
+      )
+    ),
     // Marker clusterer
     'gm3.clusterer' => array(
       'title' => t('Google Marker Cluster'),
@@ -98,6 +110,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3.clusterer'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),
@@ -118,6 +134,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),
@@ -138,6 +158,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),

@@ -62,11 +62,27 @@
     if(content){
       Drupal.settings.gm3.maps[map_id]['point']['markers'][latLng.toString()] = content;
       google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['point']['points'][current_point], "click", function(event){
-        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new google.maps.InfoWindow({
+        /*Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new google.maps.InfoWindow({
           content:Drupal.settings.gm3.maps[map_id]['point']['markers'][event.latLng.toString()],
           postition:event.latLng
+        });*/
+        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()] = new InfoBubble({
+          map: this.map,
+          content: content,
+          position: latLng,
+          shadowStyle: 1,
+          padding: 0,
+          borderRadius: 4,
+          arrowSize: 10,
+          borderWidth: 1,
+          borderColor: '#2c2c2c',
+          disableAutoPan: true,
+          hideCloseButton: true,
+          arrowPosition: 30,
+          backgroundClassName: 'phoney',
+          arrowStyle: 2
         });
-        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()].open(this.map, this);
+        Drupal.settings.gm3.maps[map_id]['point']['info_windows'][latLng.toString()].open();
       });
     }
     if(redraw){
