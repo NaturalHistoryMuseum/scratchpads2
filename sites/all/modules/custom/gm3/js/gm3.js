@@ -63,4 +63,40 @@
       }
     }
   }};
+  Drupal.gm3.clear_listeners = function(map_id){
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
+    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
+    // Clear all listeners from this map.
+    for(i in Drupal.gm3){
+      if(Drupal.gm3[i]['clear_listeners']){
+        Drupal.gm3[i]['clear_listeners'](map_id);
+      }
+    }
+  }
+  Drupal.gm3.add_transfer_listeners = function(map_id){
+    // Add transfer listeners so that polygons and other objects pass on their
+    // clicks to the map.
+    for(i in Drupal.gm3){
+      if(Drupal.gm3[i]['add_transfer_listeners']){
+        Drupal.gm3[i]['add_transfer_listeners'](map_id);
+      }
+    }
+  }
+  Drupal.gm3.add_listeners = function(map_id){
+    // Add listeners
+    for(i in Drupal.gm3){
+      if(Drupal.gm3[i]['add_listeners']){
+        Drupal.gm3[i]['add_listeners'](map_id);
+      }
+    }
+  }
+  Drupal.gm3.add_edit_listeners = function(map_id){
+    // Add Edit listeners
+    for(i in Drupal.gm3){
+      if(Drupal.gm3[i]['add_edit_listeners']){
+        Drupal.gm3[i]['add_edit_listeners'](map_id);
+      }
+    }
+  }
 })(jQuery);

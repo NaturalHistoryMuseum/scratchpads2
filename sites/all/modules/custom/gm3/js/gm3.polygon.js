@@ -39,13 +39,14 @@
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setPath([]);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline1'].setMap(Drupal.settings.gm3.maps[map_id]['google_map']);
       Drupal.settings.gm3.maps[map_id]['polygon']['followline2'].setMap(Drupal.settings.gm3.maps[map_id]['google_map'])
-      Drupal.gm3.polygon.add_listeners(map_id, current_polygon);
+      Drupal.gm3.polygon.add_listeners(map_id);
       Drupal.gm3.polygon.add_transfer_listeners(map_id);
     });
   }
-  Drupal.gm3.polygon.add_listeners = function(map_id, current_polygon){
+  Drupal.gm3.polygon.add_listeners = function(map_id){
     // Add listeners to map
     // Mouse move listener.
+    current_polygon = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'].length - 1;
     google.maps.event.addListener(Drupal.settings.gm3.maps[map_id]['google_map'], 'mousemove', function(point){
       var pathLength = Drupal.settings.gm3.maps[map_id]['polygon']['polygons'][current_polygon].getPath().getLength();
       if(pathLength >= 1) {
