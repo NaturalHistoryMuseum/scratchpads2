@@ -39,6 +39,12 @@
         Drupal.gm3.point.add_marker(map_id, event.latLng, true)
       });
     });
+    // Finally, process any of the registered "Finished points" functions.
+    if(Drupal.settings.gm3.maps[map_id]['libraries']['point']['finished']){
+      for(i in Drupal.settings.gm3.maps[map_id]['libraries']['point']['finished']){
+        Drupal.settings.gm3.maps[map_id]['libraries']['point']['finished'][i](map_id);
+      }        
+    }
   }
   Drupal.gm3.point.add_marker = function(map_id, latLng, redraw){
     redraw = typeof(redraw) != 'undefined' ? redraw : false;

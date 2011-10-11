@@ -46,7 +46,6 @@
           // Create the map
           map['google_map'] = new google.maps.Map(document.getElementById(map_id), map['settings']);
           map['initialized'] = true;
-          console.log(map);
           // Click the stuff!
           $('#gm3-default-button-'+map_id).click(function(){
             $('.gm3-clicked').removeClass('gm3-clicked');

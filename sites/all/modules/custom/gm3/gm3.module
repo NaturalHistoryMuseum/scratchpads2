@@ -58,13 +58,25 @@ function gm3_library(){
     ),
     // Marker clusterer
     'gm3.clusterer' => array(
-      'title' => t('Google '),
+      'title' => t('Google Marker Cluster'),
       'website' => 'http://google-maps-utility-library-v3.googlecode.com/',
       'version' => '2.0.5',
       'js' => array(
         array(
           'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer.js',
           'options' => 'external'
+        )
+      )
+    ),
+    // Convex hull
+    // NOTE - This is not currently working, DO NOT USE!
+    'gm3.convexhull' => array(
+      'title' => t('Google Convex Hull'),
+      'website' => 'http://www.geocodezip.com/map-markers_ConvexHull_Polygon.asp',
+      'version' => '1',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.convexhull.js'
         )
       )
     ),
@@ -205,7 +217,7 @@ function gm3_menu(){
  */
 function gm3_test(){
   // FIXME - Testing with points!
-  $points = array(
+  /*$points = array(
     array(
       'lat' => 10,
       'long' => 20
@@ -213,10 +225,20 @@ function gm3_test(){
     array(
       'lat' => 48,
       'long' => 0
+    ),
+    array(
+      'lat' => 20,
+      'long' => 20
+    ),
+    array(
+      'lat' => 30,
+      'long' => 22
     )
-  );
+  );*/
   for($i = 0; $i < 1000; $i++){
     $points[] = array(
+      'content' => '',
+      'title' => '',
       'lat' => mt_rand(51000, 52000) / 1000,
       'long' => mt_rand(-500, 500) / 1000
     );
