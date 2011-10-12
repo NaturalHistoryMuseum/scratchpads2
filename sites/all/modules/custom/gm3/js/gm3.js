@@ -1,5 +1,6 @@
 (function($){
   Drupal.gm3 = Drupal.gm3 || {};
+  Drupal.gm3.active_button = Drupal.gm3.active_button || {};
   Drupal.behaviors.gm3 = {attach: function(context, settings){
     for(map_id in Drupal.settings.gm3.maps) {
       if($('#' + map_id, context).length) {
@@ -51,13 +52,19 @@
             $('.gm3-clicked').removeClass('gm3-clicked');
             $(this).addClass('gm3-clicked');
             if(Drupal.gm3[$(this).data('gm3-class')] && Drupal.gm3[$(this).data('gm3-class')].do_edit){
+              
+              
+              // FIXME - Set the active class.
+              
+              
+              
               Drupal.gm3.clear_listeners($(this).data('gm3-map-id'));
               $(this).parent().addClass('gm3-clicked');
               Drupal.gm3[$(this).data('gm3-class')].do_edit($(this).data('gm3-map-id'));
             } else {
               // Default button clicked (or missing the class).
               $('.gm3-clicked').removeClass('gm3-clicked');
-              $(this).addClass('gm3-clicked');
+              $(this).parent().addClass('gm3-clicked');
               map['google_map'].setOptions({draggableCursor: 'pointer'});
               Drupal.gm3.clear_listeners(map_id);
               Drupal.gm3.add_edit_listeners(map_id);
@@ -69,12 +76,6 @@
       }
     }
   }};
-  Drupal.gm3.set_active_button = function(map_id, class_name){
-    alert('Setting active button');
-    // Unclick the button
-    $('.gm3-clicked').removeClass('gm3-clicked');
-    $('#gm3-default-button-' + map_id).addClass('gm3-clicked');
-  }
   Drupal.gm3.clear_listeners = function(map_id){
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
