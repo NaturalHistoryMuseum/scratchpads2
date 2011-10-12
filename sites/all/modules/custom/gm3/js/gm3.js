@@ -5,6 +5,8 @@
     this.initialized = false;
     this.tools = typeof (map.tools) != 'undefined' ? map.tools : new Array();
     this.libraries = typeof (map.libraries) != 'undefined' ? map.libraries : new Object();
+    this.active_class = 'default';
+    this.children = new Object();
     try {
       $('#' + this.id).height(this.settings['height']);
       $('#' + this.id).width(this.settings['width']);
@@ -12,6 +14,13 @@
       // Create the map
       this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
       this.initialized = true;
+      // Add libraries
+      for(id in this.libraries){
+        if(Drupal.GM3[id]){
+          this.children[id] = new Drupal.GM3.point(this);
+        }
+      }
+      this.add_toolbar_listeners();
     } catch(err) {
       $('#' + this.id).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
     }    
@@ -20,17 +29,17 @@
 
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
     // Click the stuff!
+    var self=this;
     $('.gm3-tools ul li div').click(function(){
       $('.gm3-clicked').removeClass('gm3-clicked');
       $(this).addClass('gm3-clicked');
-      if(gm3[$(this).data('gm3-class')] && gm3[$(this).data('gm3-class')].do_edit) {
-
-        // FIXME - Set the active class.
-
-        this.clear_listeners($(this).data('gm3-map-id'));
+      if(self.children[$(this).data('gm3-class')] && self.children[$(this).data('gm3-class')].add_listeners) {
+        self.active_class = $(this).data('gm3-class');
+        self.clear_listeners();
         $(this).parent().addClass('gm3-clicked');
-        gm3[$(this).data('gm3-class')].do_edit($(this).data('gm3-map-id'));
+        self[self.active_class].add_listeners();
       } else {
+        return;
         // Default button clicked (or missing the class).
         $('.gm3-clicked').removeClass('gm3-clicked');
         $(this).parent().addClass('gm3-clicked');
@@ -89,7 +98,7 @@
     }
   }};
 
-  Drupal.GM3.clear_listeners = function(map_id){
+  Drupal.GM3.prototype.clear_listeners = function(map_id){
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
     google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
