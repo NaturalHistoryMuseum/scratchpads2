@@ -15,41 +15,107 @@
       this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
       this.initialized = true;
       // Add libraries
-      for(id in this.libraries){
-        if(Drupal.GM3[id]){
-          this.children[id] = new Drupal.GM3.point(this);
+      for(id in this.libraries) {
+        if(Drupal.GM3[id]) {
+          this.children[id] = new Drupal.GM3[id](this);
         }
       }
       this.add_toolbar_listeners();
+      this.add_listeners();
     } catch(err) {
       $('#' + this.id).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
-    }    
+    }
     return this;
   }
-
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
     // Click the stuff!
-    var self=this;
+    var self = this;
     $('.gm3-tools ul li div').click(function(){
-      $('.gm3-clicked').removeClass('gm3-clicked');
-      $(this).addClass('gm3-clicked');
-      if(self.children[$(this).data('gm3-class')] && self.children[$(this).data('gm3-class')].add_listeners) {
-        self.active_class = $(this).data('gm3-class');
-        self.clear_listeners();
-        $(this).parent().addClass('gm3-clicked');
-        self[self.active_class].add_listeners();
+      if(self.children[$(this).data('gm3-class')]) {
+        self.set_active_class($(this).data('gm3-class'));
       } else {
-        return;
         // Default button clicked (or missing the class).
-        $('.gm3-clicked').removeClass('gm3-clicked');
-        $(this).parent().addClass('gm3-clicked');
-        this.google_map.setOptions({draggableCursor: 'pointer'});
-        this.clear_listeners(this.id);
-        this.add_edit_listeners(this.id);
+        self.active_class = 'default';
       }
     });
   }
-
+  Drupal.GM3.prototype.active = function(){
+    this.google_map.setOptions({draggableCursor: 'pointer'});
+  }
+  Drupal.GM3.prototype.set_active_class = function(active_class){
+    $('.gm3-clicked').removeClass('gm3-clicked');
+    $('div[data-gm3-class="' + active_class + '"]').parent().addClass('gm3-clicked');
+    this.active_class = active_class;
+    if(this.active_class == 'default') {
+      this.active();
+    } else {
+      if(this.children[this.active_class] && this.children[this.active_class].active) {
+        this.children[this.active_class].active();
+      }
+    }
+  }
+  Drupal.GM3.prototype.add_listeners = function(){
+    for(id in this.libraries) {
+      // Add transfer listeners for each library
+      if(this[id] && this[id].add_transfer_listeners) {
+        this[id].add_transfer_listeners();
+      }
+      // Add listeners for each library (if they define one).
+      if(this[id] && this[id].add_listeners) {
+        this[id].add_listeners();
+      }
+    }
+    // Add listeners to the map. These will in turn execute the callbacks for
+    // the currently active class (or default).
+    this.add_listeners_helper();
+  }
+  Drupal.GM3.prototype.add_listeners_helper = function(map_object){
+    map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
+    var self = this;
+    google.maps.event.addListener(map_object, "click", function(event){
+      // Execute "click" function for the current active class.
+      if(self.active_class == 'default') {
+        self.event("click", event);
+      } else {
+        if(self.children[self.active_class].event) {
+          self.children[self.active_class].event("click", event);
+        }
+      }
+    });
+    google.maps.event.addListener(map_object, "rightclick", function(event){
+      // Execute "rightclick" function for the current active class.
+      if(self.active_class == 'default') {
+        self.event("rightclick", event);
+      } else {
+        if(self.children[self.active_class].event) {
+          self.children[self.active_class].event("rightclick", event);
+        }
+      }
+    });
+    google.maps.event.addListener(map_object, "mousemove", function(event){
+      // Execute "mousemove" function for the current active class.
+      if(self.active_class == 'default') {
+        self.event("mousemove", event);
+      } else {
+        if(self.children[self.active_class].event) {
+          self.children[self.active_class].event("mousemove", event);
+        }
+      }
+    });
+  }
+  Drupal.GM3.prototype.event = function(event_type, event){}
+  Drupal.GM3.prototype.clear_listeners = function(){
+    // Clear listeners from the map.
+    google.maps.event.clearListeners(this.google_map, "click");
+    google.maps.event.clearListeners(this.google_map, "mousemove");
+    google.maps.event.clearListeners(this.google_map, "rightclick");
+    // Clear all listeners from the children.
+    for(i in this.children) {
+      if(this.children[i]['clear_listeners']) {
+        this.children[i]['clear_listeners']();
+      }
+    }
+  }
   Drupal.GM3.prototype.default_settings = function(){
     // MapTypeID
     this.settings['mapTypeId'] = eval(this.settings['mapTypeId']);
@@ -88,7 +154,7 @@
       this.settings['zoomControlOptions']['style'] = eval(this.settings['zoomControlOptions']['style']);
     }
   }
-
+  // Entry point. Add a map to a page. This should hopefully work via AJAX.
   Drupal.behaviors.gm3 = {attach: function(context, settings){
     for(map_id in Drupal.settings.gm3.maps) {
       if($('#' + map_id, context).length) {
@@ -97,41 +163,4 @@
       }
     }
   }};
-
-  Drupal.GM3.prototype.clear_listeners = function(map_id){
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "click");
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "mousemove");
-    google.maps.event.clearListeners(Drupal.settings.gm3.maps[map_id]['google_map'], "rightclick");
-    // Clear all listeners from this map.
-    for(i in gm3) {
-      if(gm3[i]['clear_listeners']) {
-        gm3[i]['clear_listeners'](map_id);
-      }
-    }
-  }
-  Drupal.GM3.add_transfer_listeners = function(map_id){
-    // Add transfer listeners so that polygons and other objects pass on their
-    // clicks to the map.
-    for(i in gm3) {
-      if(gm3[i]['add_transfer_listeners']) {
-        gm3[i]['add_transfer_listeners'](map_id);
-      }
-    }
-  }
-  Drupal.GM3.add_listeners = function(map_id){
-    // Add listeners
-    for(i in gm3) {
-      if(gm3[i]['add_listeners']) {
-        gm3[i]['add_listeners'](map_id);
-      }
-    }
-  }
-  Drupal.GM3.add_edit_listeners = function(map_id){
-    // Add Edit listeners
-    for(i in gm3) {
-      if(gm3[i]['add_edit_listeners']) {
-        gm3[i]['add_edit_listeners'](map_id);
-      }
-    }
-  }
 })(jQuery);

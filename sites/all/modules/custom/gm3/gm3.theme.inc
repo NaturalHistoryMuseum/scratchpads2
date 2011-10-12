@@ -10,7 +10,7 @@ function theme_gm3_map($variables){
   gm3_add($variables['map']);
   $tools = '';
   if(isset($variables['map']['tools'])){
-    $tools = '<div class="gm3-tools"><ul><li id="gm3-default-button-' . $variables['map']['id'] . '" class="gm3-clicked"><div class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+    $tools = '<div class="gm3-tools"><ul><li id="gm3-default-button-' . $variables['map']['id'] . '" class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
   }
   return array(
     '#attached' => array(
@@ -26,21 +26,21 @@ function theme_gm3_map($variables){
  * Polygon tools button
  */
 function theme_gm3_polygon_button($variables){
-  return '<div id="' . $variables['id'] . '-polygon" class="gm3-tools-button"><p>' . t('Shape') . ' +</p></div>';
+  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>' . t('Shape') . ' +</p></div>';
 }
 
 /**
  * Polyline tools button
  */
 function theme_gm3_polyline_button($variables){
-  return '<div data-gm3-class="polyline" data-gm3-map-id="' . $variables['id'] . '" class="gm3-tools-button"><p>' . t('Line') . ' +</p></div>';
+  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>' . t('Line') . ' +</p></div>';
 }
 
 /**
  * Point tools button
  */
 function theme_gm3_point_button($variables){
-  return '<div data-gm3-class="point" data=gm3-map-id="' . $variables['id'] . '" class="gm3-tools-button"><p>' . t('Point') . ' +</p></div>';
+  return '<div data-gm3-class="point" class="gm3-tools-button"><p>' . t('Point') . ' +</p></div>';
 }
 
 /**

@@ -17,14 +17,15 @@
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
     this.clusterer.fitMapToMarkers();
   }
-  Drupal.GM3.point.prototype.add_listeners = function(){
-    // Clicked to start.
-    google.maps.event.clearListeners(this.GM3.google_map, "click");
-    google.maps.event.clearListeners(this.GM3.google_map, "mousemove");
-    google.maps.event.clearListeners(this.GM3.google_map, "rightclick");
+  Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+  }
+  Drupal.GM3.point.prototype.click = function(){
+    // Clicked to start.
+    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+    var self = this;
     google.maps.event.addListener(this.GM3.google_map, "click", function(event){
-      Drupal.gm3.point.add_marker(map_id, event.latLng, true)
+      self.add_marker(event.latLng, true)
     });
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, redraw, title, content){
@@ -34,27 +35,21 @@
     var current_point = this.points.length;
     this.points[current_point] = new google.maps.Marker({position: latLng, draggable: true, title: title + " :: " + latLng.toString(), icon: this.marker_image});
     if(content) {
-      //Drupal.settings.gm3.maps[map_id]['point']['markers'][latLng.toString()] = content;
       google.maps.event.addListener(this.points[current_point], "click", function(event){
         var info_window = new InfoBubble({map: this.map, content: content, position: latLng, shadowStyle: 1, padding: 0, borderRadius: 4, arrowSize: 10, borderWidth: 1, borderColor: '#2c2c2c', disableAutoPan: true, hideCloseButton: true, arrowPosition: 30, backgroundClassName: 'phoney', arrowStyle: 2});
         info_window.open();
       });
     }
     if(redraw) {
-      this.clusterer.addMarker(Drupal.settings.gm3.maps[map_id]['point']['points'][current_point], true);
+      this.clusterer.addMarker(this.points[current_point], true);
       this.clusterer.repaint();
     }
   }
-  /* Drupal.gm3.point.clear_listeners = function(map_id){
-    // Clear all listeners from this map.
+  Drupal.GM3.point.prototype.event = function(event_type, event){
+    switch(event_type){
+      case 'click':
+        this.add_marker(event.latLng, true)
+        break;
+    }
   }
-  Drupal.gm3.point.add_transfer_listeners = function(map_id){
-    // Add transfer listeners so that polygons and other objects pass on their
-  }
-  Drupal.gm3.point.add_listeners = function(map_id){
-    // Add listeners
-  }
-  Drupal.gm3.point.add_edit_listeners = function(map_id){
-    // Add Edit listeners
-  }*/
 })(jQuery);
