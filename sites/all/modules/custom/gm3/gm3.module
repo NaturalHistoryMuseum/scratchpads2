@@ -35,10 +35,10 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.getClass.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.getClass.min.js'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.min.js'
         ),
         array(
           'data' => array(
@@ -91,7 +91,7 @@ function gm3_library(){
       'version' => '1',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.convexhull.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.convexhull.min.js'
         )
       )
     ),
@@ -102,7 +102,7 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.point.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.point.min.js'
         )
       ),
       'dependencies' => array(
@@ -127,10 +127,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.lib.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.lib.min.js'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.min.js'
         )
       ),
       'dependencies' => array(
@@ -151,10 +151,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.lib.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.lib.min.js'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.js'
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.min.js'
         )
       ),
       'dependencies' => array(
