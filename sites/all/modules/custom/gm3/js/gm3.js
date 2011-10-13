@@ -68,78 +68,20 @@
   Drupal.GM3.prototype.add_listeners_helper = function(map_object){
     map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
     var self = this;
-    google.maps.event.clearListeners(map_object, "click");
-    google.maps.event.addListener(map_object, "click", function(event){
-      // Execute "click" function for the current active class.
-      if(self.active_class == 'default') {
-        var child_overrode = false;
-        for(i in self.children) {
-          child_overrode = self.children[i].event("click", event, this);
-          if(child_overrode) {
-            return;
-          }
-        }
-        self.event("click", event, this);
-      } else {
-        if(self.children[self.active_class].event) {
-          self.children[self.active_class].event("click", event, this);
-        }
-      }
-    });
-    google.maps.event.clearListeners(map_object, "dblclick");
-    google.maps.event.addListener(map_object, "dblclick", function(event){
-      // Execute "click" function for the current active class.
-      if(self.active_class == 'default') {
-        var child_overrode = false;
-        for(i in self.children) {
-          child_overrode = self.children[i].event("dblclick", event, this);
-          if(child_overrode) {
-            return;
-          }
-        }
-        self.event("dblclick", event, this);
-      } else {
-        if(self.children[self.active_class].event) {
-          self.children[self.active_class].event("dblclick", event, this);
-        }
-      }
-    });
-    google.maps.event.clearListeners(map_object, "rightclick");
-    google.maps.event.addListener(map_object, "rightclick", function(event){
-      // Execute "rightclick" function for the current active class.
-      if(self.active_class == 'default') {
-        var child_overrode = false;
-        for(i in self.children) {
-          child_overrode = self.children[i].event("rightclick", event, this);
-          if(child_overrode) {
-            return;
-          }
-        }
-        self.event("rightclick", event, this);
-      } else {
-        if(self.children[self.active_class].event) {
-          self.children[self.active_class].event("rightclick", event, this);
-        }
-      }
-    });
-    google.maps.event.clearListeners(map_object, "mousemove");
-    google.maps.event.addListener(map_object, "mousemove", function(event){
-      // Execute "mousemove" function for the current active class.
-      if(self.active_class == 'default') {
-        var child_overrode = false;
-        for(i in self.children) {
-          child_overrode = self.children[i].event("mousemove", event, this);
-          if(child_overrode) {
-            return;
-          }
-        }
-        self.event("mousemove", event, this);
-      } else {
-        if(self.children[self.active_class].event) {
-          self.children[self.active_class].event("mousemove", event, this);
-        }
-      }
-    });
+    var events_array = ["click", "dblclick", "mousemove", "rightclick"];
+    for(i in events_array){
+      eval('google.maps.event.clearListeners(map_object, "'+events_array[i]+'");'+
+           'google.maps.event.addListener(map_object, "'+events_array[i]+'", function(event){'+
+             'if(self.active_class == "default"){'+
+               'var child_overrode = false;'+
+               'for(i in self.children){'+
+                 'child_overrode = self.children[i].event("'+events_array[i]+'", event, this);'+
+                 'if(child_overrode) {return;}}'+
+               'self.event("'+events_array[i]+'", event, this);}'+
+             'else {'+
+               'if(self.children[self.active_class].event) {'+
+                 'self.children[self.active_class].event("'+events_array[i]+'", event, this);}}})');      
+    }
   }
   Drupal.GM3.prototype.clear_listeners = function(){
     for(id in this.children) {
