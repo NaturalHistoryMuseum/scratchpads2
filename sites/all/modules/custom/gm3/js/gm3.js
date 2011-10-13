@@ -29,21 +29,16 @@
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
     // Click the stuff!
     var self = this;
-    $('#toolbar-'+this.id+' li div').click(function(){
-      if(self.children[$(this).data('gm3-class')]) {
-        self.set_active_class($(this).data('gm3-class'));
-      } else {
-        // Default button clicked (or missing the class).
-        self.active_class = 'default';
-      }
+    $('#toolbar-' + this.id + ' li div').click(function(){
+      self.set_active_class($(this).data('gm3-class'));
     });
   }
   Drupal.GM3.prototype.active = function(){
     this.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.prototype.set_active_class = function(active_class){
-    $('.gm3-clicked', '#toolbar-'+this.id).removeClass('gm3-clicked');
-    $('div[data-gm3-class="' + active_class + '"]', '#toolbar-'+this.id).parent().addClass('gm3-clicked');
+    $('.gm3-clicked', '#toolbar-' + this.id).removeClass('gm3-clicked');
+    $('div[data-gm3-class="' + active_class + '"]', '#toolbar-' + this.id).parent().addClass('gm3-clicked');
     this.active_class = active_class;
     this.add_listeners();
     if(this.active_class == 'default') {
@@ -78,9 +73,9 @@
       // Execute "click" function for the current active class.
       if(self.active_class == 'default') {
         var child_overrode = false;
-        for(i in self.children){
+        for(i in self.children) {
           child_overrode = self.children[i].event("click", event, this);
-          if(child_overrode){
+          if(child_overrode) {
             return;
           }
         }
@@ -96,9 +91,9 @@
       // Execute "click" function for the current active class.
       if(self.active_class == 'default') {
         var child_overrode = false;
-        for(i in self.children){
+        for(i in self.children) {
           child_overrode = self.children[i].event("dblclick", event, this);
-          if(child_overrode){
+          if(child_overrode) {
             return;
           }
         }
@@ -114,9 +109,9 @@
       // Execute "rightclick" function for the current active class.
       if(self.active_class == 'default') {
         var child_overrode = false;
-        for(i in self.children){
+        for(i in self.children) {
           child_overrode = self.children[i].event("rightclick", event, this);
-          if(child_overrode){
+          if(child_overrode) {
             return;
           }
         }
@@ -132,9 +127,9 @@
       // Execute "mousemove" function for the current active class.
       if(self.active_class == 'default') {
         var child_overrode = false;
-        for(i in self.children){
+        for(i in self.children) {
           child_overrode = self.children[i].event("mousemove", event, this);
-          if(child_overrode){
+          if(child_overrode) {
             return;
           }
         }
