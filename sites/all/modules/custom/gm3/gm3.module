@@ -35,6 +35,9 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.getClass.js'
+        ),
+        array(
           'data' => drupal_get_path('module', 'gm3') . '/js/gm3.js'
         ),
         array(
