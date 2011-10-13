@@ -39,7 +39,7 @@
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
     // Click the stuff!
     var self = this;
-    $('.gm3-tools ul li div').click(function(){
+    $('#toolbar-'+this.id+' li div').click(function(){
       if(self.children[$(this).data('gm3-class')]) {
         self.set_active_class($(this).data('gm3-class'));
       } else {
@@ -52,8 +52,8 @@
     this.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.prototype.set_active_class = function(active_class){
-    $('.gm3-clicked').removeClass('gm3-clicked');
-    $('div[data-gm3-class="' + active_class + '"]').parent().addClass('gm3-clicked');
+    $('.gm3-clicked', '#toolbar-'+this.id).removeClass('gm3-clicked');
+    $('div[data-gm3-class="' + active_class + '"]', '#toolbar-'+this.id).parent().addClass('gm3-clicked');
     this.active_class = active_class;
     this.add_listeners();
     if(this.active_class == 'default') {
