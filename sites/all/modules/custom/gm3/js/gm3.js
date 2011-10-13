@@ -1,7 +1,14 @@
 (function($){
   Drupal.GM3 = function(map){
+    // Why doesn't Google already do this?
+    google.maps.Polygon.prototype.getClass = function(){
+      return "Polygon";
+    }
     google.maps.Map.prototype.getClass = function(){
       return "Map";
+    }
+    google.maps.Polyline.prototype.getClass = function(){
+      return "Polyline";
     }
     this.settings = map.settings;
     this.id = map.id;

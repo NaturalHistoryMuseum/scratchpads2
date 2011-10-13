@@ -1,12 +1,5 @@
 (function($){
   Drupal.GM3.polygon = function(map){
-    // Why doesn't Google already do this?
-    google.maps.Polygon.prototype.getClass = function(){
-      return "Polygon";
-    }
-    google.maps.Polyline.prototype.getClass = function(){
-      return "Polyline";
-    }
     this.GM3 = map;
     // Polygon object.
     // We don't currently support geodesic shapes, mainly due to the library
@@ -18,9 +11,6 @@
     this.followline2 = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
     // Polygons.
     this.polygons = new Array();
-    // Active state (are we clicking on a Polygon, or adding Polygon points).
-    this.active_state = 'add';
-    this.active_polygon = false;
   }
   Drupal.GM3.polygon.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
@@ -48,7 +38,7 @@
               var startingPoint2 = this.polygons[this.polygons.length - 1].getPath().getAt(0);
               var followCoordinates2 = [startingPoint2, event.latLng];
               this.followline2.setPath(followCoordinates2);
-            }console.log
+            }
             break;
           case 'rightclick':
             this.GM3.set_active_class('default');

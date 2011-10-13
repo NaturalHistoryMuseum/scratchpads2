@@ -20,14 +20,6 @@
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
   }
-  Drupal.GM3.point.prototype.click = function(){
-    // Clicked to start.
-    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
-    var self = this;
-    google.maps.event.addListener(this.GM3.google_map, "click", function(event){
-      self.add_marker(event.latLng, true)
-    });
-  }
   Drupal.GM3.point.prototype.add_marker = function(latLng, redraw, title, content){
     redraw = typeof (redraw) != 'undefined' ? redraw : false;
     title = typeof (title) != 'undefined' ? title : '';
@@ -45,11 +37,29 @@
       this.clusterer.repaint();
     }
   }
-  Drupal.GM3.point.prototype.event = function(event_type, event){
-    switch(event_type){
-      case 'click':
-        this.add_marker(event.latLng, true)
+  Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
+    switch(this.GM3.active_class){
+      case 'point':
+        switch(event_type){
+          case 'click':
+            this.add_marker(event.latLng, true);
+            break;
+          case 'rightclick':
+            this.GM3.set_active_class('default');
+            break;
+        }
         break;
+    }
+  }
+  Drupal.GM3.point.prototype.add_transfer_listeners = function(){
+    // If we have more than 100 points, we're going to struggle with too many
+    // listeners and "slowdown".
+    if(this.points.length < 100){
+      for(i = 0; i < this.points.length; i++) {
+        if(this.points[i]) {
+          this.GM3.add_listeners_helper(this.points[i]);
+        }
+      }
     }
   }
 })(jQuery);

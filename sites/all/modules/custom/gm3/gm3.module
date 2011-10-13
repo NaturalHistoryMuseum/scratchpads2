@@ -241,7 +241,7 @@ function gm3_menu(){
  */
 function gm3_test(){
   // FIXME - Testing with points!
-  $points = array(
+  $points1 = array(
     array(
       'lat' => 10,
       'long' => 20,
@@ -263,26 +263,39 @@ function gm3_test(){
       'content' => 'Stuff 30,22'
     )
   );
-  /*for($i = 0; $i < 10000; $i++){
-    $points[] = array(
+  $points2 = array();
+  for($i = 0; $i < 1000; $i++){
+    $points2[] = array(
       'content' => 'Contenty',
       'title' => 'Stuff',
       'lat' => round(mt_rand(51000, 52000)) / 1000,
       'long' => round(mt_rand(-500, 500)) / 1000
     );
-  }*/
+  }
   // FIXME - END!
-  return theme('gm3_map', array(
+  return drupal_render(theme('gm3_map', array(
     'map' => array(
+      'id' => 'map1',
       'libraries' => array(
         'point' => array(
-          'points' => $points
+          'points' => $points1
         ),
         'polygon',
         'polyline'
       )
     )
-  ));
+  ))) . drupal_render(theme('gm3_map', array(
+    'map' => array(
+      'id' => 'map2',
+      'libraries' => array(
+        'point' => array(
+          'points' => $points2
+        ),
+        'polygon',
+        'polyline'
+      )
+    )
+  )));
 }
 
 /**

@@ -4,9 +4,10 @@
  * Simple theme function
  */
 function theme_gm3_map($variables){
-  $variables['map'] = array_merge_recursive($variables['map'], array(
-    'id' => 'gm3-map' // Could we get this dynamically from hook_theme?
-  ));
+  if(!isset($variables['map']['id'])){
+    // Could we get this dynamically from hook_theme?
+    $variables['map']['id'] = 'gm3-map';
+  }
   gm3_add($variables['map']);
   $tools = '';
   if(isset($variables['map']['tools'])){
