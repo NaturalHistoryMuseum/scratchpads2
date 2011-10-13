@@ -31,11 +31,11 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.js'
-        ),
-        array(
           'data' => 'http://maps.googleapis.com/maps/api/js?sensor=false',
           'options' => 'external'
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.js'
         ),
         array(
           'data' => array(
