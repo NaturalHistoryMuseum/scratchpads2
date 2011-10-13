@@ -7,6 +7,9 @@
     google.maps.Map.prototype.getClass = function(){
       return "Map";
     }
+    google.maps.Marker.prototype.getClass = function(){
+      return "Marker";
+    }
     google.maps.Polyline.prototype.getClass = function(){
       return "Polyline";
     }
