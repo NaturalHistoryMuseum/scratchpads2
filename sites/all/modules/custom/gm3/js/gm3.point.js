@@ -15,7 +15,10 @@
     }
     // Clusterer
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
-    this.clusterer.fitMapToMarkers();
+    this.autofit = typeof (this.GM3.libraries.point.autofit) != 'undefined' ? this.GM3.libraries.point.autofit : false;
+    if(this.autofit){
+      this.clusterer.fitMapToMarkers();
+    }
   }
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});

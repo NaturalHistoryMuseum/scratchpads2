@@ -11,7 +11,7 @@ function theme_gm3_map($variables){
   gm3_add($variables['map']);
   $tools = '';
   if(isset($variables['map']['tools'])){
-    $tools = '<div class="gm3-tools"><ul id="toolbar-'.$variables['map']['id'].'"><li class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+    $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
   }
   return array(
     '#attached' => array(

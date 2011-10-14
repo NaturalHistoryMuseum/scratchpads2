@@ -24,6 +24,8 @@
  * select the subregions (TDWG 4).
  */
 function gm3_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
   return array(
     'gm3' => array(
       'title' => t('Google Maps Javascript API V3'),
@@ -35,10 +37,10 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.getClass.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3$min.js"
         ),
         array(
           'data' => array(
@@ -91,7 +93,25 @@ function gm3_library(){
       'version' => '1',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.convexhull.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.convexhull$min.js"
+        )
+      )
+    ),
+    // Google geometry library
+    'gm3.geocoder' => array(
+      'title' => t('Google Maps Javascript API V3: Geocoder library'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => 'http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false',
+          'options' => 'external'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
         )
       )
     ),
@@ -102,7 +122,7 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.point.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point$min.js"
         )
       ),
       'dependencies' => array(
@@ -127,10 +147,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.lib.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.lib$min.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polygon.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon$min.js"
         )
       ),
       'dependencies' => array(
@@ -151,10 +171,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.lib.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.lib$min.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/gm3.polyline.min.js'
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline$min.js"
         )
       ),
       'dependencies' => array(
@@ -276,29 +296,38 @@ function gm3_test(){
     );
   }
   // FIXME - END!
-  return drupal_render(theme('gm3_map', array(
+  return theme('gm3_map', array(
     'map' => array(
       'id' => 'map1',
       'libraries' => array(
         'point' => array(
-          'points' => $points1
-        ),
-        'polygon',
-        'polyline'
-      )
-    )
-  ))) . drupal_render(theme('gm3_map', array(
-    'map' => array(
-      'id' => 'map2',
-      'libraries' => array(
-        'point' => array(
           'points' => $points2
         ),
-        'polygon',
-        'polyline'
+        'polygon' => array(
+          'polygons' => array(
+            $points1
+          )
+        ),
+        'polyline' => array(
+          'polylines' => array(
+            array(
+              array(
+                'lat' => -40,
+                'long' => -40
+              ),
+              array(
+                'lat' => 40,
+                'long' => 40
+              )
+            )
+          )
+        ),
+        'country' => array(
+          'module' => 'gm3_country'
+        )
       )
     )
-  )));
+  ));
 }
 
 /**

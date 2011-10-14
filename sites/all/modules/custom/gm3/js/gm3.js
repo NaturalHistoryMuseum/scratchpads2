@@ -75,7 +75,8 @@
              'if(self.active_class == "default"){'+
                'var child_overrode = false;'+
                'for(i in self.children){'+
-                 'child_overrode = self.children[i].event("'+events_array[i]+'", event, this);'+
+                 'if(self.children[i].event){'+
+                   'child_overrode = self.children[i].event("'+events_array[i]+'", event, this);}'+
                  'if(child_overrode) {return;}}'+
                'self.event("'+events_array[i]+'", event, this);}'+
              'else {'+

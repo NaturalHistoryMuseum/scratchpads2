@@ -10,12 +10,25 @@
     this.followline = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
     // Polylines.
     this.polylines = new Array();
+    // Add Polylines sent from server.
+    if(this.GM3.libraries.polyline.polylines) {
+      for(i in this.GM3.libraries.polyline.polylines) {
+        this.add_polyline(this.GM3.libraries.polyline.polylines[i]);
+      }
+    }
   }
   Drupal.GM3.polyline.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
     this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
     this.followline.setPath([]);
     this.followline.setMap(this.GM3.google_map);
+  }
+  Drupal.GM3.polyline.prototype.add_polyline = function(points){
+    var path_points = new Array();
+    for(i=0; i<points.length; i++){
+      path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long'])
+    }
+    this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
   }
   Drupal.GM3.polyline.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
