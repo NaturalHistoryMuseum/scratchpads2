@@ -12,7 +12,7 @@
     this.polylines = new Array();
     // Add Polylines sent from server.
     if(this.GM3.libraries.polyline.polylines) {
-      for(i in this.GM3.libraries.polyline.polylines) {
+      for(var i in this.GM3.libraries.polyline.polylines) {
         this.add_polyline(this.GM3.libraries.polyline.polylines[i]);
       }
     }
@@ -25,7 +25,7 @@
   }
   Drupal.GM3.polyline.prototype.add_polyline = function(points){
     var path_points = new Array();
-    for(i=0; i<points.length; i++){
+    for(var i=0; i<points.length; i++){
       path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long'])
     }
     this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
@@ -58,13 +58,13 @@
           case 'click':
             if(event_object.getClass && event_object.getClass() == 'Polyline'){
               // Once clicked, stop editing other polylines
-              for(j = 0; j < this.polylines.length; j++) {
+              for(var j = 0; j < this.polylines.length; j++) {
                 this.polylines[j].stopEdit();
               }
               event_object.runEdit();              
             } else {
               // Clicked elsewhere, stop editing.
-              for(j = 0; j < this.polylines.length; j++) {
+              for(var j = 0; j < this.polylines.length; j++) {
                 this.polylines[j].stopEdit();
               }
             }
@@ -74,7 +74,7 @@
     }
   }
   Drupal.GM3.polyline.prototype.add_transfer_listeners = function(){
-    for(i = 0; i < this.polylines.length; i++) {
+    for(var i = 0; i < this.polylines.length; i++) {
       if(this.polylines[i]) {
         this.GM3.add_listeners_helper(this.polylines[i]);
       }

@@ -9,7 +9,7 @@
     this.marker_image = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(16, 16), new google.maps.Point(0, 44), new google.maps.Point(8, 8));
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
-      for(i in this.GM3.libraries.point.points) {
+      for(var i in this.GM3.libraries.point.points) {
         this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['lat'], this.GM3.libraries.point.points[i]['long']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
       }
     }
@@ -58,7 +58,7 @@
     // If we have more than 100 points, we're going to struggle with too many
     // listeners and "slowdown".
     if(this.points.length < 100){
-      for(i = 0; i < this.points.length; i++) {
+      for(var i = 0; i < this.points.length; i++) {
         if(this.points[i]) {
           this.GM3.add_listeners_helper(this.points[i]);
         }

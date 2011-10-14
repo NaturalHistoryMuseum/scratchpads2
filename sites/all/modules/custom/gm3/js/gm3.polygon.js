@@ -64,7 +64,6 @@
       case 'default':
         switch(event_type){
           case 'click':
-            console.log('Click');
             if(event_object.getClass && event_object.getClass() == 'Polygon'){
               // Once clicked, stop editing other polygons
               for(var j = 0; j < this.polygons.length; j++) {
@@ -83,7 +82,6 @@
     }
   }
   Drupal.GM3.polygon.prototype.add_transfer_listeners = function(){
-    console.log(this.polygons.length);
     for(var i = 0; i < this.polygons.length; i++) {
       if(this.polygons[i]) {
         this.GM3.add_listeners_helper(this.polygons[i]);
