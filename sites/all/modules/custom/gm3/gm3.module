@@ -411,8 +411,6 @@ function gm3_settings(){
 
 /**
  * Implementation of hook_gm3_settings_alter().
- * 
- * TESTING.
  */
 function gm3_gm3_map_alter(&$map){
   if(isset($map['libraries'])){

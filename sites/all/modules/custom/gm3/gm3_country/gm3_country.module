@@ -50,8 +50,6 @@ function gm3_country_theme(){
 
 /**
  * Implementation of hook_gm3_settings_alter().
- * 
- * TESTING.
  */
 function gm3_country_gm3_map_alter(&$map){
   if(isset($map['libraries'])){
