@@ -13,10 +13,11 @@
     this.polygons = new Array();
     // Add Polygons sent from server.
     if(this.GM3.libraries.polygon.polygons) {
-      for(i in this.GM3.libraries.polygon.polygons) {
+      for(var i in this.GM3.libraries.polygon.polygons) {
         this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
       }
     }
+    this.add_transfer_listeners();
   }
   Drupal.GM3.polygon.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
@@ -28,7 +29,7 @@
   }
   Drupal.GM3.polygon.prototype.add_polygon = function(points){
     var path_points = new Array();
-    for(i=0; i<points.length; i++){
+    for(var i=0; i<points.length; i++){
       path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long'])
     }
     this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
@@ -63,15 +64,16 @@
       case 'default':
         switch(event_type){
           case 'click':
+            console.log('Click');
             if(event_object.getClass && event_object.getClass() == 'Polygon'){
               // Once clicked, stop editing other polygons
-              for(j = 0; j < this.polygons.length; j++) {
+              for(var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
               event_object.runEdit();              
             } else {
               // Clicked elsewhere, stop editing.
-              for(j = 0; j < this.polygons.length; j++) {
+              for(var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
             }
@@ -81,7 +83,8 @@
     }
   }
   Drupal.GM3.polygon.prototype.add_transfer_listeners = function(){
-    for(i = 0; i < this.polygons.length; i++) {
+    console.log(this.polygons.length);
+    for(var i = 0; i < this.polygons.length; i++) {
       if(this.polygons[i]) {
         this.GM3.add_listeners_helper(this.polygons[i]);
       }
