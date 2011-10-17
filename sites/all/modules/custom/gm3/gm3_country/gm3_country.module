@@ -72,7 +72,8 @@ function gm3_country_gm3_map_alter(&$map){
   
   // TESTING - Get some country data.
   module_load_include('callback.inc', 'gm3_country');
-  $result = db_select('gm3_country_data', 'g')->condition('iso_code', 'CH')->fields('g')->execute();
+  $result = db_select('gm3_country_data', 'g')->condition('iso_code', 'US')->fields('g')->execute();
+  //$result = db_select('gm3_country_data', 'g')->fields('g')->execute();
   foreach($result as $something){
     foreach(gm3_country_convert_string($something->polygons) as $polygon){
       $map['libraries']['polygon']['polygons'][] = $polygon;
