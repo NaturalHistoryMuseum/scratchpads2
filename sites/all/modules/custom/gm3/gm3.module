@@ -323,7 +323,11 @@ function gm3_test(){
           )
         ),
         'country' => array(
-          'module' => 'gm3_country'
+          'module' => 'gm3_country',
+          'countries' => array(
+            'uk',
+            'us'
+          )
         )
       )
     )

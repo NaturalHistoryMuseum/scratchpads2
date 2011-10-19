@@ -3,7 +3,31 @@
     // Point object.
     this.GM3 = map;
     this.geo = new google.maps.Geocoder();
-    this.countries = new Object();
+    // Polygons.
+    this.countries = new Array();
+    // Add Polygons sent from server.
+    this.countries = typeof (this.GM3.libraries.country.countries) != 'undefined' ? this.GM3.libraries.country.countries : new Array();
+    console.log(this.countries);
+    var self=this;
+    this.country_options = {
+      getTileUrl: function(coord, zoom) {
+        return "http://tile.openstreetmap.org/mapnik_tiles/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+        return "http://mt3.google.com/mapstt?zoom=" + zoom + "&x=" + coord.x + "&y=" + coord.y + "&countries=" + self.get_query_string() + "&client=api";
+      },
+      tileSize: new google.maps.Size(256, 256)
+    };
+    this.countryMapOverlay = new google.maps.ImageMapType(this.country_options);
+    this.GM3.google_map.overlayMapTypes.insertAt(0, this.countryMapOverlay);
+  }
+  Drupal.GM3.country.prototype.get_query_string = function(){
+    var query_string = '';
+    for(i in this.countries){
+      if(query_string != ''){
+        query_string += ',';
+      }
+      query_string += this.countries[i];
+    }
+    return query_string;
   }
   Drupal.GM3.country.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
@@ -18,7 +42,6 @@
               if(status === 'OK'){
                 for(i in result){
                   if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political'){
-                    console.log(result);
                     var country_name = result[i].address_components[0]['long_name'];
                     var country_code = result[i].address_components[0]['short_name'];
                     if(self.countries[country_code] == country_name){
@@ -26,7 +49,6 @@
                     } else {
                       self.countries[country_code] = country_name;
                     }
-                    console.log(self.countries);
                   } 
                 }
               } else {
