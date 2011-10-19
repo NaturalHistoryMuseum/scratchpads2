@@ -11,10 +11,12 @@
     var self=this;
     this.country_options = {
       getTileUrl: function(coord, zoom) {
+        return "http://157.140.127.46/tiles/example/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
         return "http://tile.openstreetmap.org/mapnik_tiles/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
         return "http://mt3.google.com/mapstt?zoom=" + zoom + "&x=" + coord.x + "&y=" + coord.y + "&countries=" + self.get_query_string() + "&client=api";
       },
-      tileSize: new google.maps.Size(256, 256)
+      tileSize: new google.maps.Size(256, 256),
+      opacity: 0.5
     };
     this.countryMapOverlay = new google.maps.ImageMapType(this.country_options);
     this.GM3.google_map.overlayMapTypes.insertAt(0, this.countryMapOverlay);
@@ -38,6 +40,7 @@
         switch(event_type){
           case 'click':
             var self=this;
+            console.log(event.latLng);
             this.geo.geocode({location: event.latLng}, function(result, status){
               if(status === 'OK'){
                 for(i in result){
