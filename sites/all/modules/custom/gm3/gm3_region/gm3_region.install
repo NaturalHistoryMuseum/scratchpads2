@@ -9,7 +9,7 @@ function gm3_region_install(){
   // each region one by one.  This may be a little slower, but it's less likely
   // to fuck up!
   for($i = 1; $i <= 4; $i++){
-    $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_'.$i.'_data', 'r');
+    $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
     $fields = array();
     while($line = fgets($f)){
       if(substr($line, 0, 2) == "  "){
@@ -59,6 +59,7 @@ function gm3_region_install(){
  */
 function gm3_region_schema(){
   return array(
+    'cache_gm3_polygon' => drupal_get_schema_unprocessed('system', 'cache'),
     'gm3_region_data' => array(
       'description' => 'Stores the Polygon data for TDWG4 Regions',
       'fields' => array(
