@@ -21,7 +21,7 @@
     }
   }
   Drupal.GM3.point.prototype.active = function(){
-    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+    this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, redraw, title, content){
     redraw = typeof (redraw) != 'undefined' ? redraw : false;

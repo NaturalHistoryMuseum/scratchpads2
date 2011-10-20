@@ -18,7 +18,7 @@
     }
   }
   Drupal.GM3.polyline.prototype.active = function(){
-    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+    this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
     this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
     this.followline.setPath([]);
     this.followline.setMap(this.GM3.google_map);

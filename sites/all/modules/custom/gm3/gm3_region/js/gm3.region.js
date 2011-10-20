@@ -22,7 +22,7 @@
     }
   }
   Drupal.GM3.region.prototype.active = function(){
-    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+    this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.region.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
@@ -33,9 +33,10 @@
             this.geo.geocode({location: event.latLng}, function(result, status){
               if(status === 'OK') {
                 for(i in result) {
-                  if(result[i].types[0] && result[i].types[0] == 'region' && result[i].types[1] && result[i].types[1] == 'political') {
+                  if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
                     var region_name = result[i].address_components[0]['long_name'];
                     var region_code = result[i].address_components[0]['short_name'];
+                    console.log(region_name);
                     if(self.countries[region_code] == region_name) {
                       self.countries[region_code] = undefined;
                     } else {

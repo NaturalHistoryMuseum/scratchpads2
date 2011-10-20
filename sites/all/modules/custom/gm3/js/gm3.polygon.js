@@ -20,7 +20,7 @@
     this.add_transfer_listeners();
   }
   Drupal.GM3.polygon.prototype.active = function(){
-    this.GM3.google_map.setOptions({draggableCursor: 'crosshair'});
+    this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
     this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
     this.followline1.setPath([]);
     this.followline2.setPath([]);
@@ -75,7 +75,13 @@
               for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
-              event_object.runEdit();
+              // We need to check this object is one of ours. Else we simply
+              // ignore it
+              for( var i = 0; i < this.polygons.length; i++) {
+                if(event_object == this.polygons[i]){
+                  this.polygons[i].runEdit();
+                }
+              }
             } else {
               // Clicked elsewhere, stop editing.
               for( var j = 0; j < this.polygons.length; j++) {
