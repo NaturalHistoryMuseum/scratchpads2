@@ -11,12 +11,16 @@
     var self=this;
     this.country_options = {
       getTileUrl: function(coord, zoom) {
-        return "http://157.140.127.46/tiles/example/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
-        return "http://tile.openstreetmap.org/mapnik_tiles/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
-        return "http://mt3.google.com/mapstt?zoom=" + zoom + "&x=" + coord.x + "&y=" + coord.y + "&countries=" + self.get_query_string() + "&client=api";
+        var tiles_accross = Math.pow(2, zoom);
+        if(zoom == 0){
+          tiles_accross = 0;
+        }
+        if(coord.x < 0 || coord.x > tiles_accross || coord.y < 0 || coord.y > tiles_accross){
+          return null;
+        }
+        return "http://157.140.127.175/tiles/example/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
       },
-      tileSize: new google.maps.Size(256, 256),
-      opacity: 0.5
+      tileSize: new google.maps.Size(256, 256)
     };
     this.countryMapOverlay = new google.maps.ImageMapType(this.country_options);
     this.GM3.google_map.overlayMapTypes.insertAt(0, this.countryMapOverlay);
