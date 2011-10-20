@@ -13,7 +13,7 @@
     this.polygons = new Array();
     // Add Polygons sent from server.
     if(this.GM3.libraries.polygon.polygons) {
-      for(var i in this.GM3.libraries.polygon.polygons) {
+      for( var i in this.GM3.libraries.polygon.polygons) {
         this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
       }
     }
@@ -27,12 +27,18 @@
     this.followline1.setMap(this.GM3.google_map);
     this.followline2.setMap(this.GM3.google_map);
   }
-  Drupal.GM3.polygon.prototype.add_polygon = function(points){
+  Drupal.GM3.polygon.prototype.add_polygon = function(points, editable){
+    editable = typeof (editable) != 'undefined' ? editable : true;
     var path_points = new Array();
-    for(var i=0; i<points.length; i++){
+    for( var i = 0; i < points.length; i++) {
       path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long'])
     }
-    this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
+    if(editable) {
+      this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
+    } else {
+      var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
+      this.GM3.add_listeners_helper(polygon);
+    }
   }
   Drupal.GM3.polygon.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
@@ -64,15 +70,15 @@
       case 'default':
         switch(event_type){
           case 'click':
-            if(event_object.getClass && event_object.getClass() == 'Polygon'){
+            if(event_object.getClass && event_object.getClass() == 'Polygon') {
               // Once clicked, stop editing other polygons
-              for(var j = 0; j < this.polygons.length; j++) {
+              for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
-              event_object.runEdit();              
+              event_object.runEdit();
             } else {
               // Clicked elsewhere, stop editing.
-              for(var j = 0; j < this.polygons.length; j++) {
+              for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
             }
@@ -82,7 +88,7 @@
     }
   }
   Drupal.GM3.polygon.prototype.add_transfer_listeners = function(){
-    for(var i = 0; i < this.polygons.length; i++) {
+    for( var i = 0; i < this.polygons.length; i++) {
       if(this.polygons[i]) {
         this.GM3.add_listeners_helper(this.polygons[i]);
       }
