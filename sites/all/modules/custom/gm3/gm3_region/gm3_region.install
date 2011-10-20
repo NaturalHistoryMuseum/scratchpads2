@@ -1,0 +1,122 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function gm3_region_install(){
+  // Load the data into the tables.
+  // As the files are so huge, we'll read the file line by line and insert 
+  // each region one by one.  This may be a little slower, but it's less likely
+  // to fuck up!
+  for($i = 1; $i <= 4; $i++){
+    $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_'.$i.'_data', 'r');
+    $fields = array();
+    while($line = fgets($f)){
+      if(substr($line, 0, 2) == "  "){
+        switch(substr($line, 0, 11)){
+          case '  CONTINENT':
+            $fields['continent'] = trim(array_pop(explode("=", $line)));
+            break;
+          case '  ISO_CODE ':
+            $fields['iso_code'] = trim(array_pop(explode("=", $line)));
+            break;
+          case '  LEVEL1_CO':
+          case '  LEVEL_1_C':
+            $fields['level_1_code'] = (int)trim(array_pop(explode("=", $line)));
+            break;
+          case '  LEVEL2_CO':
+          case '  LEVEL_2_R':
+            $fields['level_2_code'] = (int)trim(array_pop(explode("=", $line)));
+            break;
+          case '  LEVEL3_CO':
+          case '  LEVEL_3_C':
+            $fields['level_3_code'] = trim(array_pop(explode("=", $line)));
+            break;
+          case '  LEVEL_4_C':
+            $fields['level_4_code'] = trim(array_pop(explode("=", $line)));
+            break;
+          case '  LEVEL_4_N':
+          case '  LEVEL3_NA':
+          case '  LEVEL2_NA':
+          case '  LEVEL1_NA':
+            $fields['name'] = trim(array_pop(explode("=", $line)));
+            break;
+          case '  MULTIPOLY':
+          case '  POLYGON (':
+            // Do the insert
+            $fields['polygons'] = trim($line);
+            db_insert('gm3_region_data')->fields($fields)->execute();
+            $fields = array();
+            break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function gm3_region_schema(){
+  return array(
+    'gm3_region_data' => array(
+      'description' => 'Stores the Polygon data for TDWG4 Regions',
+      'fields' => array(
+        'name' => array(
+          'description' => "Level name",
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 64
+        ),
+        'continent' => array(
+          'description' => "Continent",
+          'type' => 'varchar',
+          'not null' => FALSE,
+          'length' => 20
+        ),
+        'iso_code' => array(
+          'description' => "ISO Code",
+          'type' => 'varchar',
+          'not null' => FALSE,
+          'length' => 2
+        ),
+        'level_4_code' => array(
+          'description' => "Level 4 code",
+          'type' => 'varchar',
+          'not null' => FALSE,
+          'length' => 2
+        ),
+        'level_3_code' => array(
+          'description' => "Level 3 code",
+          'type' => 'varchar',
+          'not null' => FALSE,
+          'length' => 3
+        ),
+        'level_2_code' => array(
+          'description' => "Level 2 id",
+          'type' => 'int',
+          'not null' => FALSE,
+          'size' => 'tiny'
+        ),
+        'level_1_code' => array(
+          'description' => "Level 1 id",
+          'type' => 'int',
+          'not null' => TRUE,
+          'size' => 'tiny'
+        ),
+        'polygons' => array(
+          'description' => "Polygons",
+          'type' => 'text',
+          'not null' => TRUE,
+          'size' => 'medium'
+        )
+      ),
+      'primary key' => array(
+        'level_4_code',
+        'level_3_code',
+        'level_2_code',
+        'level_1_code'
+      )
+    )
+  );
+}
