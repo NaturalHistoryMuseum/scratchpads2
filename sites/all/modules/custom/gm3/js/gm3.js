@@ -20,7 +20,9 @@
           this.children[id] = new Drupal.GM3[id](this);
         }
       }
+      // Add listeners
       this.add_toolbar_listeners();
+      this.add_map_moved_listener();
     } catch(err) {
       $('#' + this.id).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
     }
@@ -31,6 +33,20 @@
     var self = this;
     $('#toolbar-' + this.id + ' li div').click(function(){
       self.set_active_class($(this).data('gm3-class'));
+    });
+  }
+  Drupal.GM3.prototype.add_map_moved_listener = function(){
+    // Ensure the user can not pan the map constantly. This is due to the
+    // overlays we are using.
+    this.allowedBounds = new google.maps.LatLngBounds(new google.maps.LatLng(-89.99999, -179.99999), new google.maps.LatLng(89.99999, 179.99999));
+    this.lastValidCenter = this.google_map.getCenter();
+    var self = this;
+    google.maps.event.addListener(this.google_map, 'center_changed', function(event){
+      if(self.allowedBounds.contains(self.google_map.getCenter())) {
+        self.lastValidCenter = self.google_map.getCenter();
+      } else {
+        self.google_map.panTo(self.lastValidCenter);
+      }
     });
   }
   Drupal.GM3.prototype.active = function(){
