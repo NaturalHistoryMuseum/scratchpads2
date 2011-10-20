@@ -52,16 +52,19 @@ function gm3_region_get_points($region_type, $region_id){
         }else{
           $result = db_select('gm3_region_data', 'g')->condition('name', $region_id)->condition('level_2_code', 0)->fields('g')->execute();
         }
-        foreach($result as $something){
+        foreach($result as $something){          
           foreach(gm3_region_convert_string($something->polygons) as $polygon){
             $polygons[] = $polygon;
           }
         }
         break;
     }
+    $polygons = json_encode($polygons);
     cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
+  } else {
+    $polygons = $polygons->data;
   }
-  print json_encode($polygons);
+  print $polygons;
   exit();
 }
 
@@ -70,6 +73,9 @@ function gm3_region_get_points($region_type, $region_id){
  * points.
  */
 function gm3_region_convert_string($poly_string){
+  // Increase the memory limit, as some shapes are a little on the large side.
+  // This won't be a problem once they're cached.
+  ini_set('memory_limit', '256M');
   switch(substr($poly_string, 0, 7)){
     case 'POLYGON':
       // Get rid of unneeded text      

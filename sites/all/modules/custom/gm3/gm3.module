@@ -326,70 +326,22 @@ function gm3_test(){
           'module' => 'gm3_region',
           'regions' => array(
             'countries' => array(
-              'uk'
-            ),
-            'level1' => array(
-              'EUROPE'
+              'UK'
             ),
             'level4' => array(
-              'LEE-AB',
-              'TCS-AB',
-              'BZN-AC',
-              'WAU-AC',
-              'TCS-AD',
-              'LEE-AG',
-              'MXE-AG',
-              'CHS-AH',
-              'CLS-AI',
-              'BZE-AL',
-              'BZN-AM',
-              'AND-AN',
-              'CLN-AN',
-              'GGI-AN',
-              'SPA-AN',
-              'BZN-AP',
-              'EHM-AP',
-              'IND-AP',
-              'TCS-AR',
-              'ASS-AS',
-              'SAM-AS',
-              'CLN-AT',
-              'AUT-AU',
-              'LEE-AV',
-              'TCS-AZ',
-              'AGE-BA',
-              'BZE-BA',
-              'GST-BA',
-              'LSI-BA',
-              'WIN-BA',
-              'MXN-BC',
-              'BGM-BE',
-              'EHM-BH',
-              'YUG-BH',
-              'CLC-BI',
-              'GGI-BI',
-              'IND-BI',
-              'CHN-BJ',
-              'NLA-BO',
-              'BOR-BR',
-              'MXN-BS',
-              'LEE-BV',
-              'AGW-CA',
-              'MXT-CA',
-              'AGS-CB',
-              'SWC-CC',
-              'BZE-CE',
-              'AGE-CH',
-              'IND-CH',
-              'NCS-CH',
-              'FRA-CI',
-              'MXT-CI',
-              'CPI-CL',
-              'MXS-CL',
-              'AGE-CN',
-              'AGE-CO',
-              'AND-CO',
-              'CLC-CO'
+              'FRA-FR'
+            ),
+            'level3' => array(
+              //'GER'
+              'Germany'
+            ),
+            'level2' => array(
+              //50
+              'Australia'
+            ),
+            'level1' => array(
+              7
+              //'NORTHERN AMERICA'
             )
           )
         )
