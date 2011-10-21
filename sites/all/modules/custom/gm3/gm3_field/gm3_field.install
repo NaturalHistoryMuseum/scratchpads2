@@ -15,14 +15,14 @@ function gm3_field_field_schema($field){
           'longitude' => array(
             'type' => 'float',
             'not null' => TRUE
+          )
+        ),
+        'indexes' => array(
+          'latitude' => array(
+            'latitude'
           ),
-          'indexes' => array(
-            'latitude' => array(
-              'latitude'
-            ),
-            'longitude' => array(
-              'longitude'
-            )
+          'longitude' => array(
+            'longitude'
           )
         )
       );
