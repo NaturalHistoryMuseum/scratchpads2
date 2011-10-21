@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_field_schema($field).
  */
-function gm3_fields_field_schema($field){
+function gm3_field_field_schema($field){
   switch($field['type']){
     case 'gm3_point':
       return array(

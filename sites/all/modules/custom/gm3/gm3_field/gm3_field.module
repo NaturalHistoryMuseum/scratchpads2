@@ -12,7 +12,7 @@
 /**
  * Implementation of hook_field_info().
  */
-function gm3_fields_field_info(){
+function gm3_field_field_info(){
   return array(
     'gm3_point' => array(
       'label' => t('Latitude/Longitude'),
