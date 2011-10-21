@@ -82,14 +82,4 @@
         break;
     }
   }
-  Drupal.GM3.point.prototype.add_transfer_listeners = function(){
-    // We should perhaps just add transfer listeners so that the "map" is
-    // clicked on. This could inturn send an ajax request to the server to find
-    // out what point was clicked on. Clunky, but may well scale.
-    for( var i = 0; i < this.points.length; i++) {
-      if(this.points[i]) {
-        this.GM3.add_listeners_helper(this.points[i]);
-      }
-    }
-  }
 })(jQuery);
