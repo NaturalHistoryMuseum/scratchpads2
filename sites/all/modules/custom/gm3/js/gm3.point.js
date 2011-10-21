@@ -38,9 +38,9 @@
     if(redraw) {
       this.clusterer.addMarker(this.points[current_point], true);
       this.clusterer.repaint();
+      // Add transfer listeners so the added points can be rightclicked.
+      this.add_transfer_listeners();
     }
-    // Add transfer listeners so the added points can be rightclicked.
-    this.add_transfer_listeners();
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
