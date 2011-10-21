@@ -19,7 +19,7 @@ function gm3_requirements($phase){
     if($geophp_version >= 0.4){
       return array(
         'gm3_geophp' => array(
-          'title' => t('GeoPHP Library Installed'),
+          'title' => t('GeoPHP Library'),
           'severity' => REQUIREMENT_OK,
           'value' => $geophp_version
         )
@@ -27,7 +27,7 @@ function gm3_requirements($phase){
     }elseif($geophp_version >= 0.3){
       return array(
         'gm3_geophp' => array(
-          'title' => t('Old GeoPHP Library'),
+          'title' => t('GeoPHP Library'),
           'severity' => REQUIREMENT_INFO,
           'value' => $geophp_version,
           'description' => t('GeoPHP library was found, but you are running an old version. The version you are running is compatible, but it is not current, possibly leading to problems.')
@@ -36,7 +36,7 @@ function gm3_requirements($phase){
     }else{
       return array(
         'gm3_geophp' => array(
-          'title' => t('Old GeoPHP Library'),
+          'title' => t('GeoPHP Library'),
           'severity' => REQUIREMENT_ERROR,
           'value' => $geophp_version,
           'description' => t('GeoPHP library was found, but you are running an old version. This will lead to problems when working with GM3. Please download %link and update.', array(
@@ -48,7 +48,7 @@ function gm3_requirements($phase){
   }else{
     return array(
       'gm3_geophp' => array(
-        'title' => t('GeoPHP Library Not Found'),
+        'title' => t('GeoPHP Library'),
         'severity' => REQUIREMENT_ERROR,
         'description' => t('GeoPHP library was not found. This will lead to problems when working with GM3. Please download from %link and install.', array(
           '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
