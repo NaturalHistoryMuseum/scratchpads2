@@ -9,6 +9,7 @@
  * Implements hook_field_schema().
  */
 function geofield_field_schema($field) {
+  dpm($field);
   return array(
     'columns' => array(
       'wkt' => array(

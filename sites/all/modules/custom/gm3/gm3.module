@@ -12,6 +12,10 @@
  * Note, the sensor option could be set to true here to allow for maps to have 
  * the sensor enabled (useful perhaps on mobile devices, or shopping sites).
  * 
+ * Thanks to the authors of the geofield for a considerable amount of
+ * inspiration when writing this module.  I hope that at some point this module
+ * and the geofield module can be combined.
+ * 
  * Note.
  * FIXME - Adding the Google geometry class currently breaks Polygon & Polyline.
  * Removed the following from dependencies for both gm3.polygon and gm3.polyline
@@ -22,6 +26,9 @@
  * 
  * FIXME - Select countries.  Click on a region could bring up an option to 
  * select the subregions (TDWG 4).
+ */
+/**
+ * Implementation of hook_library().
  */
 function gm3_library(){
   // Whether or not to use the minified versions of the code.
@@ -260,6 +267,31 @@ function gm3_menu(){
 }
 
 /**
+ * Load the geoPHP library.  This could be made optional, as not all features
+ * require the library.
+ * 
+ * This code is adapted from the geofield module.
+ */
+function gm3_load_geophp(){
+  static $filename = FALSE;
+  if(!$filename){
+    // Folk can install geoPHP using a "libraries" path, or simply shove it in
+    // the gm3 module folder.
+    if(function_exists('libraries_get_path')){
+      $file = libraries_get_path('geoPHP') . '/geoPHP.inc';
+    }else{
+      $file = drupal_get_path('module', 'gm3') . '/geoPHP/geoPHP.inc';
+    }
+    if(file_exists($file)){
+      if(include_once ($file)){
+        $filename = $file;
+      }
+    }
+  }
+  return $filename;
+}
+
+/**
  * Callback for testing.
  */
 function gm3_test(){
@@ -341,8 +373,7 @@ function gm3_test(){
             ),
             'level1' => array(
               7
-              //'NORTHERN AMERICA'
-            )
+            ) //'NORTHERN AMERICA'
           )
         )
       )

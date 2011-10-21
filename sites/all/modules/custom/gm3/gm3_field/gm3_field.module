@@ -15,31 +15,25 @@
 function gm3_field_field_info(){
   return array(
     'gm3_point' => array(
-      'label' => t('Latitude/Longitude'),
+      'label' => t('Geo: Point'),
       'description' => t('This field stores latitude/longitude pairs.'),
       'default_widget' => '', // FIXME
       'default_formatter' => '' // FIXME
     ),
     'gm3_polygon' => array(
-      'label' => t('Geographical polygon'),
+      'label' => t('Geo: Polygon'),
       'description' => t('This field stores geographical polygons/areas.'),
       'default_widget' => '', // FIXME
       'default_formatter' => '' // FIXME
     ),
     'gm3_line' => array(
-      'label' => t('Geographical line'),
+      'label' => t('Geo: Line'),
       'description' => t('This field stores geographical lines.'),
       'default_widget' => '', // FIXME
       'default_formatter' => '' // FIXME
     ),
-    'gm3_countries' => array(
-      'label' => t('Countries'),
-      'description' => t('This field stores a list of countries.'),
-      'default_widget' => '', // FIXME
-      'default_formatter' => '' // FIXME    
-    ),
     'gm3_combination' => array(
-      'label' => t('Geographical super-combo'),
+      'label' => t('Geo: Super-combo'),
       'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of countries, and addresses'),
       'settings' => array(
         'field_types' => array(
@@ -54,3 +48,24 @@ function gm3_field_field_info(){
     )
   );
 }
+
+/**
+ * Implements hook_field_info().
+function geofield_field_info() {
+  return array(
+    'geofield' => array(
+      'label' => 'Geofield',
+      'description' => t('This field stores geo information.'),
+      'default_widget' => 'geofield_wkt',
+      'default_formatter' => 'geofield_wkt',
+      'instance_settings' => array(
+        'local_solr' => array(
+          'enabled' => FALSE,
+          'lat_field' => 'lat',
+          'lng_field' => 'lng',
+        ),
+      ),
+    ),
+  );
+}
+ */

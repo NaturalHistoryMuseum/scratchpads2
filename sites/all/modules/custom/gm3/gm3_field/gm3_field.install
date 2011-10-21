@@ -10,12 +10,10 @@ function gm3_field_field_schema($field){
         'columns' => array(
           'latitude' => array(
             'type' => 'float',
-            'size' => 'big',
             'not null' => TRUE
           ),
           'longitude' => array(
             'type' => 'float',
-            'size' => 'big',
             'not null' => TRUE
           ),
           'indexes' => array(
@@ -31,17 +29,53 @@ function gm3_field_field_schema($field){
     case 'gm3_polygon':
       return array(
         'columns' => array(
-          'latitude' => array(
+          'wkt' => array(
             'type' => 'float',
             'size' => 'big',
             'not null' => TRUE
-          ),
-          'indexes' => array(
-            'latitude' => array(
-              'latitude'
-            )
           )
         )
       );
+    case 'gm3_polyline':
+      return array(
+        'columns' => array(
+          'wkt' => array(
+            'type' => 'float',
+            'size' => 'big',
+            'not null' => TRUE
+          )
+        )
+      );
+    case 'gm3_combination':
+      // If the region module is installed, we'll start with that schema!
+      $schema = array();
+      if(module_exists('gm3_region_field')){
+        module_load_include('install', 'gm3_region_field');
+        $schema = gm3_region_field_field_schema(array(
+          'type' => 'gm3_region'
+        ));
+      }
+      $schema = array_merge($schema, gm3_field_field_schema(array(
+        'type' => 'gm3_point'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_polygon'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_polyline'
+      )));
+      foreach($schema['columns'] as $column_name => $x){
+        if(isset($schema['columns'][$column_name]['not null'])){
+          unset($schema['columns'][$column_name]['not null']);
+        }
+      }
+      // Finally, set the type column
+      $schema = array(
+        'columns' => array(
+          'gm3_type' => array(
+            'type' => 'varchar', // Give flexibilty incase another module extends this.
+            'length' => 16
+          )
+        )
+      );
+      break;
   }
 }
