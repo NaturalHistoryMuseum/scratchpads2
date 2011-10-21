@@ -50,6 +50,33 @@ function gm3_field_field_info(){
 }
 
 /**
+ * Implementation of hook_library().
+ */
+function gm3_field_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  return array(
+    // Enable the clicking of countries.
+    'field_point' => array(
+      'title' => t('Google Maps Javascript API V3: Point field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_point$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.point'
+        )
+      )
+    )
+  );
+}
+
+/**
  * Implementation of hook_field_widget_info().
  */
 function gm3_field_field_widget_info(){
@@ -224,6 +251,9 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'libraries' => array(
                 'point' => array(
                   'points' => $points // FIXME - Get the points that we've already set (Default values).
+                ),
+                'field_point' => array(
+                  'module' => 'gm3_field'
                 )
               )
             )
