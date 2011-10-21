@@ -9,14 +9,14 @@
     this.marker_image = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(16, 16), new google.maps.Point(0, 44), new google.maps.Point(8, 8));
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
-      for(var i in this.GM3.libraries.point.points) {
+      for( var i in this.GM3.libraries.point.points) {
         this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['lat'], this.GM3.libraries.point.points[i]['long']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
       }
     }
     // Clusterer
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
     this.autofit = typeof (this.GM3.libraries.point.autofit) != 'undefined' ? this.GM3.libraries.point.autofit : false;
-    if(this.autofit){
+    if(this.autofit) {
       this.clusterer.fitMapToMarkers();
     }
   }
@@ -39,6 +39,8 @@
       this.clusterer.addMarker(this.points[current_point], true);
       this.clusterer.repaint();
     }
+    // Add transfer listeners so the added points can be rightclicked.
+    this.add_transfer_listeners();
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
@@ -48,7 +50,34 @@
             this.add_marker(event.latLng, true);
             break;
           case 'rightclick':
-            this.GM3.set_active_class('default');
+            switch(event_object.getClass()){
+              case 'Map':
+                this.GM3.set_active_class('default');
+                break;
+              case 'Marker':
+                // Loop through this objects points, and unset the one(s) that
+                // equal this object.
+                for( var i = 0; i < this.points.length; i++) {
+                  if(this.points[i].position.equals(event_object.position)){
+                    this.clusterer.removeMarker(this.points[i], true);
+                    this.points[i].setMap(null);
+                    this.points[i] = undefined;
+                  }
+                }
+                // Finally, close up the array, which seems pretty clunky, but
+                // perhaps the only way of doing this.
+                var new_points = new Array();
+                var j = 0;
+                for( var i = 0; i < this.points.length; i++) {
+                  if(this.points[i] != undefined){
+                    new_points[j] = this.points[i];
+                    j ++;
+                  }
+                }
+                this.points = new_points;
+                console.log(this.points);
+                break;
+            }
             break;
         }
         break;
@@ -56,9 +85,12 @@
   }
   Drupal.GM3.point.prototype.add_transfer_listeners = function(){
     // If we have more than 100 points, we're going to struggle with too many
-    // listeners and "slowdown".
-    if(this.points.length < 100){
-      for(var i = 0; i < this.points.length; i++) {
+    // listeners and "slowdown". We should perhaps just add transfer listeners
+    // so that the "map" is clicked on. This could inturn send an ajax request
+    // to the server to find out what point was clicked on. Clunky, but may
+    // well scale.
+    if(this.points.length < 100) {
+      for( var i = 0; i < this.points.length; i++) {
         if(this.points[i]) {
           this.GM3.add_listeners_helper(this.points[i]);
         }
