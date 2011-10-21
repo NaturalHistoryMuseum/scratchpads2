@@ -5,7 +5,7 @@
  * 
  * - Google maps point
  * - Google maps polygon
- * - Google maps line
+ * - Google maps polyline
  * - Google maps countries (click on a country to select)
  * - Google maps combination (combination of the above).
  */
@@ -17,20 +17,20 @@ function gm3_field_field_info(){
     'gm3_point' => array(
       'label' => t('Geo: Point'),
       'description' => t('This field stores latitude/longitude pairs.'),
-      'default_widget' => '', // FIXME
-      'default_formatter' => '' // FIXME
+      'default_widget' => 'gm3_point_gm3',
+      'default_formatter' => 'gm3_entity_map'
     ),
     'gm3_polygon' => array(
       'label' => t('Geo: Polygon'),
       'description' => t('This field stores geographical polygons/areas.'),
-      'default_widget' => '', // FIXME
-      'default_formatter' => '' // FIXME
+      'default_widget' => 'gm3_polygon_gm3',
+      'default_formatter' => 'gm3_entity_map'
     ),
-    'gm3_line' => array(
+    'gm3_polyline' => array(
       'label' => t('Geo: Line'),
       'description' => t('This field stores geographical lines.'),
-      'default_widget' => '', // FIXME
-      'default_formatter' => '' // FIXME
+      'default_widget' => 'gm3_polyline_gm3',
+      'default_formatter' => 'gm3_entity_map'
     ),
     'gm3_combination' => array(
       'label' => t('Geo: Super-combo'),
@@ -39,33 +39,199 @@ function gm3_field_field_info(){
         'field_types' => array(
           'gm3_point',
           'gm3_polygon',
-          'gm3_line',
+          'gm3_polyline',
           'gm3_countries'
         )
       ),
-      'default_widget' => '', // FIXME
-      'default_formatter' => '' // FIXME
+      'default_widget' => 'gm3_combination_gm3',
+      'default_formatter' => 'gm3_entity_map'
     )
   );
 }
 
 /**
- * Implements hook_field_info().
-function geofield_field_info() {
+ * Implementation of hook_field_widget_info().
+ */
+function gm3_field_field_widget_info(){
   return array(
-    'geofield' => array(
-      'label' => 'Geofield',
-      'description' => t('This field stores geo information.'),
-      'default_widget' => 'geofield_wkt',
-      'default_formatter' => 'geofield_wkt',
-      'instance_settings' => array(
-        'local_solr' => array(
-          'enabled' => FALSE,
-          'lat_field' => 'lat',
-          'lng_field' => 'lng',
-        ),
+    'gm3_point_gm3' => array(
+      'label' => t('Geo: Point Google Map'),
+      'description' => t('Latitude/Longitude pairs entered by clicking on a map.'),
+      'field types' => array(
+        'gm3_point'
       ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
     ),
+    'gm3_point_text' => array(
+      'label' => t('Geo: Point text'),
+      'description' => t('Latitude/Longitude pairs entered into a text box'),
+      'field types' => array(
+        'gm3_point'
+      )
+    )
+  ); // FIXME - Add other fields.
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field. We're really only interested in the $items parameter, since
+ * it holds arrays representing content in the field we've defined.
+ * We want to verify that the items only contain RGB hex values like
+ * this: #RRGGBB. If the item validates, we do nothing. If it doesn't
+ * validate, we add our own error notification to the $errors parameter.
+ *
+ * @see field_example_field_widget_error()
+ */
+function gm3_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
+  // FIXME - We need a switch on the field type.
+  foreach($items as $delta => $item){
+    // FIXME Add validation to the lat/longs
+  /*
+    if (!empty($item['gm3_point'])) {
+      if (! preg_match('@^#[0-9a-f]{6}$@', $item['rgb'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'field_example_invalid',
+          'message' => t('Color must be in the HTML format #abcdef.'),
+        );
+      }
+    }*/
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function gm3_field_field_is_empty($item, $field){
+  // FIXME - We need a switch on the field type.
+  return FALSE;
+  // FIXME - We need to return the correct data here.
+  return empty($item['rgb']);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ * 
+ * FIXME - We need to add settings to these formatter types to allow the display
+ * of the map to be altered.
+ */
+function gm3_field_field_formatter_info(){
+  return array(
+    'gm3_entity_map' => array(
+      'label' => t('Geo field single map.'),
+      'description' => t('Displays all the data from a single field on a single map.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
+    ),
+    'gm3_field_map' => array(
+      'label' => t('Geo field map per field.'),
+      'description' => t('Displays all the data from fields also selected to use this display type on a single map.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
+    ),
+    'gm3_text' => array(
+      'label' => t('Geo field text.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
+    )
   );
 }
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * FIXME - These are far from finished.
  */
+function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    // This formatter simply outputs the field as text and with a color.
+    case 'gm3_text':
+      foreach($items as $delta => $item){
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'pre',
+          '#value' => print_r($item, 1)
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * hook_widget_form() is where Drupal tells us to create form elements for
+ * our field's widget.
+ *
+ * We provide one of three different forms, depending on the widget type of
+ * the Form API item provided.
+ *
+ * The 'field_example_colorpicker' and 'field_example_text' are essentially
+ * the same, but field_example_colorpicker adds a javascript colorpicker
+ * helper.
+ *
+ * field_example_3text displays three text fields, one each for red, green,
+ * and blue. However, the field type defines a single text column,
+ * rgb, which needs an HTML color spec. Define an element validate
+ * handler that converts our r, g, and b fields into a simulated single
+ * 'rgb' form element.
+ */
+function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $value = isset($items[$delta]['rgb']) ? $items[$delta]['rgb'] : '';
+  $widget = $element;
+  $widget['#delta'] = $delta;
+  switch($instance['widget']['type']){
+    case 'gm3_point_gm3':
+      // We need to add a GM3 map to the page.
+      // We'll also need some additional JS to record the points and save them
+      // actually into a form element.
+      if(!$delta){
+        // Only show the map for the 0 delta.  All others will use the same map.  $points2 = array();
+        for($i = 0; $i < 1000; $i++){
+          $points[] = array(
+            'content' => 'Contenty',
+            'title' => 'Stuff',
+            'lat' => round(mt_rand(51000, 52000)) / 1000,
+            'long' => round(mt_rand(-500, 500)) / 1000
+          );
+        }
+        $widget += array(
+          '#suffix' => drupal_render(theme('gm3_map', array(
+            'map' => array(
+              'id' => $element['#field_name'],
+              'libraries' => array(
+                'point' => array(
+                  'points' => $points // FIXME - Get the points that we've already set (Default values).
+                )
+              )
+            )
+          )))
+        );
+      }
+      break;
+  }
+  $element['map'] = $widget;
+  return $element;
+}
