@@ -38,7 +38,7 @@ function gm3_region_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3_region') . "/js/gm3_region$min.js"
+          'data' => drupal_get_path('module', 'gm3_region') . "/js/gm3_region.region$min.js"
         ),
         array(
           'data' => array(
