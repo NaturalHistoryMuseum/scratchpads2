@@ -38,9 +38,9 @@
     if(redraw) {
       this.clusterer.addMarker(this.points[current_point], true);
       this.clusterer.repaint();
-      // Add transfer listeners so the added points can be rightclicked.
-      this.add_transfer_listeners();
     }
+    // Add transfer listeners so the added points can be rightclicked.
+    this.GM3.add_listeners_helper(this.points[current_point]);
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
@@ -58,7 +58,7 @@
                 // Loop through this objects points, and unset the one(s) that
                 // equal this object.
                 for( var i = 0; i < this.points.length; i++) {
-                  if(this.points[i].position.equals(event_object.position)){
+                  if(this.points[i].position.equals(event_object.position)) {
                     this.clusterer.removeMarker(this.points[i], true);
                     this.points[i].setMap(null);
                     this.points[i] = undefined;
@@ -69,13 +69,12 @@
                 var new_points = new Array();
                 var j = 0;
                 for( var i = 0; i < this.points.length; i++) {
-                  if(this.points[i] != undefined){
+                  if(this.points[i] != undefined) {
                     new_points[j] = this.points[i];
-                    j ++;
+                    j++;
                   }
                 }
                 this.points = new_points;
-                console.log(this.points);
                 break;
             }
             break;
@@ -84,16 +83,12 @@
     }
   }
   Drupal.GM3.point.prototype.add_transfer_listeners = function(){
-    // If we have more than 100 points, we're going to struggle with too many
-    // listeners and "slowdown". We should perhaps just add transfer listeners
-    // so that the "map" is clicked on. This could inturn send an ajax request
-    // to the server to find out what point was clicked on. Clunky, but may
-    // well scale.
-    if(this.points.length < 100) {
-      for( var i = 0; i < this.points.length; i++) {
-        if(this.points[i]) {
-          this.GM3.add_listeners_helper(this.points[i]);
-        }
+    // We should perhaps just add transfer listeners so that the "map" is
+    // clicked on. This could inturn send an ajax request to the server to find
+    // out what point was clicked on. Clunky, but may well scale.
+    for( var i = 0; i < this.points.length; i++) {
+      if(this.points[i]) {
+        this.GM3.add_listeners_helper(this.points[i]);
       }
     }
   }
