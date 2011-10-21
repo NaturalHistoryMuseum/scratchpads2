@@ -6,7 +6,6 @@
  * Thanks to the geofield module for a large portion (ALL) of this code.
  */
 function gm3_requirements($phase){
-  dpm($phase);
   module_load_include('module', 'gm3');
   $geophp = gm3_load_geophp();
   if($geophp){
