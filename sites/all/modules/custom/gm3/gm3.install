@@ -6,10 +6,9 @@
  * Thanks to the geofield module for a large portion (ALL) of this code.
  */
 function gm3_requirements($phase){
-  $requirements = array();
+  dpm($phase);
   module_load_include('module', 'gm3');
   $geophp = gm3_load_geophp();
-  // Report geoPHP library status
   if($geophp){
     try{
       $geophp_version = geoPHP::version();
@@ -18,39 +17,43 @@ function gm3_requirements($phase){
       $geophp_version = 0;
     }
     if($geophp_version >= 0.4){
-      $requirements['geofield_geophp'] = array(
-        'title' => t('GeoPHP Library Installed'),
-        'severity' => REQUIREMENT_OK,
-        'value' => t('GeoPHP %version library installed at %path', array(
-          '%path' => $geophp,
-          '%version' => geoPHP::version()
-        ))
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('GeoPHP Library Installed'),
+          'severity' => REQUIREMENT_OK,
+          'value' => $geophp_version
+        )
       );
     }elseif($geophp_version >= 0.3){
-      $requirements['geofield_geophp'] = array(
-        'title' => t('Old GeoPHP Library'),
-        'severity' => REQUIREMENT_INFO,
-        'value' => t('GeoPHP library was found, but you are running an old version. The version you are running is compatible, but it is not current, possibly leading to problems. You can download the newest version from %link and place in your libraries diectory as per the geofield installation instructions.', array(
-          '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
-        ))
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('Old GeoPHP Library'),
+          'severity' => REQUIREMENT_INFO,
+          'value' => $geophp_version,
+          'description' => t('GeoPHP library was found, but you are running an old version. The version you are running is compatible, but it is not current, possibly leading to problems.')
+        )
       );
     }else{
-      $requirements['geofield_geophp'] = array(
-        'title' => t('Old GeoPHP Library'),
-        'severity' => REQUIREMENT_ERROR,
-        'value' => t('GeoPHP library was found, but you are running an old version. This will lead to problems when working with geofield. Please download from %link and place in your libraries diectory as per the geofield installation instructions.', array(
-          '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
-        ))
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('Old GeoPHP Library'),
+          'severity' => REQUIREMENT_ERROR,
+          'value' => $geophp_version,
+          'description' => t('GeoPHP library was found, but you are running an old version. This will lead to problems when working with GM3. Please download %link and update.', array(
+            '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
+          ))
+        )
       );
     }
   }else{
-    $requirements['geofield_geophp'] = array(
-      'title' => t('GeoPHP Library Not Found'),
-      'severity' => REQUIREMENT_ERROR,
-      'value' => t('GeoPHP library was not found. This will lead to problems when working with geofield. Please download from %link and place in your libraries diectory as per the geofield installation instructions.', array(
-        '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
-      ))
+    return array(
+      'gm3_geophp' => array(
+        'title' => t('GeoPHP Library Not Found'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('GeoPHP library was not found. This will lead to problems when working with GM3. Please download from %link and install.', array(
+          '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
+        ))
+      )
     );
   }
-  return $requirements;
 }
