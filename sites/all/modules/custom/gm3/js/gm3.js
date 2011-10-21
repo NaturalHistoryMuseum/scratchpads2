@@ -26,6 +26,8 @@
     } catch(err) {
       $('#' + this.id).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
     }
+    // Set the active class to default
+    this.set_active_class('default');
     return this;
   }
   Drupal.GM3.prototype.add_toolbar_listeners = function(){

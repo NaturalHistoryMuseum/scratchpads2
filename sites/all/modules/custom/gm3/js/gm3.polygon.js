@@ -78,12 +78,20 @@
               // We need to check this object is one of ours. Else we simply
               // ignore it
               for( var i = 0; i < this.polygons.length; i++) {
-                if(event_object == this.polygons[i]){
+                if(event_object == this.polygons[i]) {
                   this.polygons[i].runEdit();
                 }
               }
             } else {
               // Clicked elsewhere, stop editing.
+              for( var j = 0; j < this.polygons.length; j++) {
+                this.polygons[j].stopEdit();
+              }
+            }
+            break;
+          case 'rightclick':
+            if(event_object.getClass && event_object.getClass() != 'Polygon') {
+              // Once clicked, stop editing other polygons
               for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
