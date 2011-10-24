@@ -251,22 +251,6 @@ function gm3_theme(){
 }
 
 /**
- * Implementation of hook_menu().
- */
-function gm3_menu(){
-  return array(
-    'gm3_test' => array(
-      'title' => 'GM3 Test',
-      'page callback' => 'gm3_test',
-      'access arguments' => array(
-        'access content'
-      ),
-      'type' => MENU_CALLBACK
-    )
-  );
-}
-
-/**
  * Load the geoPHP library.  This could be made optional, as not all features
  * require the library.
  * 
@@ -289,96 +273,6 @@ function gm3_load_geophp(){
     }
   }
   return $filename;
-}
-
-/**
- * Callback for testing.
- */
-function gm3_test(){
-  // FIXME - Testing with points!
-  $points1 = array(
-    array(
-      'lat' => 10,
-      'long' => 20,
-      'content' => 'Stuff 10,20'
-    ),
-    array(
-      'lat' => 50.5,
-      'long' => 0,
-      'content' => '<h1>London?</h1>Stuff 48,0'
-    ),
-    array(
-      'lat' => 20,
-      'long' => 20,
-      'content' => 'Stuff 20,20'
-    ),
-    array(
-      'lat' => 30,
-      'long' => 22,
-      'content' => 'Stuff 30,22'
-    )
-  );
-  $points2 = array();
-  for($i = 0; $i < 1000; $i++){
-    $points2[] = array(
-      'content' => 'Contenty',
-      'title' => 'Stuff',
-      'lat' => round(mt_rand(51000, 52000)) / 1000,
-      'long' => round(mt_rand(-500, 500)) / 1000
-    );
-  }
-  // FIXME - END!
-  return theme('gm3_map', array(
-    'map' => array(
-      'id' => 'map1',
-      'libraries' => array(
-        'point' => array(
-          'points' => $points2
-        ),
-        'polygon' => array(
-          'polygons' => array(
-            $points1
-          )
-        ),
-        'polyline' => array(
-          'polylines' => array(
-            array(
-              array(
-                'lat' => -40,
-                'long' => -40
-              ),
-              array(
-                'lat' => 40,
-                'long' => 40
-              )
-            )
-          )
-        ),
-        'region' => array(
-          'module' => 'gm3_region',
-          'regions' => array(
-            'countries' => array(
-              'UK'
-            ),
-            'level4' => array(
-              'FRA-FR'
-            ),
-            'level3' => array(
-              //'GER'
-              'Germany'
-            ),
-            'level2' => array(
-              //50
-              'Australia'
-            ),
-            'level1' => array(
-              7
-            ) //'NORTHERN AMERICA'
-          )
-        )
-      )
-    )
-  ));
 }
 
 /**
