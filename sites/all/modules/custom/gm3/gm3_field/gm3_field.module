@@ -50,6 +50,89 @@ function gm3_field_field_info(){
 }
 
 /**
+ * Implementation of hook_field_insert().
+ */
+function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  switch($field['type']){
+    case 'gm3_point':
+      $items = explode("|", $items[0]);
+      $delta = 0;
+      $entity_info = entity_get_info($entity_type);
+      foreach($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table_name => $column_info){
+        ;
+      }
+      foreach($items as $item){
+        $lat_long = preg_replace('/[)(]/', '', $item);
+        $lat_long = explode(", ", $lat_long);
+        $items[$delta] = array(
+          'entity_type' => $instance['entity_type'],
+          'bundle' => $instance['bundle'],
+          'deleted' => 0,
+          'entity_id' => $entity->{$entity_info['entity keys']['id']},
+          'revision_id' => $entity->{$entity_info['entity keys']['revision']},
+          'language' => 'und',
+          'delta' => $delta,
+          $column_info['latitude'] => $lat_long[0],
+          $column_info['longitude'] => $lat_long[1]
+        );
+        $delta++;
+      }
+      if(count($items)){
+        $insert = db_insert($table_name)->fields(array_keys($items[0]));
+        foreach($items as $record){
+          $insert->values($record);
+        }
+        $insert->execute();
+      }
+      $items = array();
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_field_update()
+ */
+function gm3_field_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
+  switch($field['type']){
+    case 'gm3_point':
+      $items = explode("|", $items[0]);
+      $delta = 0;
+      $entity_info = entity_get_info($entity_type);
+      foreach($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table_name => $column_info){
+        ;
+      }
+      foreach($items as $item){
+        $lat_long = preg_replace('/[)(]/', '', $item);
+        $lat_long = explode(", ", $lat_long);
+        $items[$delta] = array(
+          'entity_type' => $instance['entity_type'],
+          'bundle' => $instance['bundle'],
+          'deleted' => 0,
+          'entity_id' => $entity->{$entity_info['entity keys']['id']},
+          'revision_id' => $entity->{$entity_info['entity keys']['revision']},
+          'language' => 'und',
+          'delta' => $delta,
+          $column_info['latitude'] => $lat_long[0],
+          $column_info['longitude'] => $lat_long[1]
+        );
+        $delta++;
+      }
+      if(count($items)){
+        $insert = db_insert($table_name)->fields(array_keys($items[0]));
+        foreach($items as $record){
+          $insert->values($record);
+        }
+        $insert->execute();
+      }
+      $items = array();
+      break;
+  }
+}
+
+/**
+ * Implementatino of hook_field_pre
+ */
+/**
  * Implementation of hook_library().
  */
 function gm3_field_library(){
@@ -208,22 +291,6 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
 
 /**
  * Implements hook_field_widget_form().
- *
- * hook_widget_form() is where Drupal tells us to create form elements for
- * our field's widget.
- *
- * We provide one of three different forms, depending on the widget type of
- * the Form API item provided.
- *
- * The 'field_example_colorpicker' and 'field_example_text' are essentially
- * the same, but field_example_colorpicker adds a javascript colorpicker
- * helper.
- *
- * field_example_3text displays three text fields, one each for red, green,
- * and blue. However, the field type defines a single text column,
- * rgb, which needs an HTML color spec. Define an element validate
- * handler that converts our r, g, and b fields into a simulated single
- * 'rgb' form element.
  */
 function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
   $value = isset($items[$delta]['rgb']) ? $items[$delta]['rgb'] : '';
@@ -234,32 +301,23 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       // We need to add a GM3 map to the page.
       // We'll also need some additional JS to record the points and save them
       // actually into a form element.
-      if(!$delta){
-        // Only show the map for the 0 delta.  All others will use the same map.  $points2 = array();
-        for($i = 0; $i < 1000; $i++){
-          $points[] = array(
-            'content' => 'Contenty',
-            'title' => 'Stuff',
-            'lat' => round(mt_rand(51000, 52000)) / 1000,
-            'long' => round(mt_rand(-500, 500)) / 1000
-          );
-        }
-        $widget += array(
-          '#suffix' => drupal_render(theme('gm3_map', array(
-            'map' => array(
-              'id' => $element['#field_name'],
-              'libraries' => array(
-                'point' => array(
-                  'points' => $points // FIXME - Get the points that we've already set (Default values).
-                ),
-                'field_point' => array(
-                  'module' => 'gm3_field'
-                )
+      $widget += array(
+        '#prefix' => drupal_render(theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              'point' => array(
+                'points' => $items // FIXME - Get the points that we've already set (Default values).
+              ),
+              'field_point' => array(
+                'module' => 'gm3_field'
               )
             )
-          )))
-        );
-      }
+          )
+        ))),
+        '#id' => $element['#field_name'] . '-textarea',
+        '#type' => 'textarea'
+      );
       break;
   }
   $element['map'] = $widget;

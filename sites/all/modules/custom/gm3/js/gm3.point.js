@@ -10,7 +10,7 @@
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
       for( var i in this.GM3.libraries.point.points) {
-        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['lat'], this.GM3.libraries.point.points[i]['long']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
+        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
       }
     }
     // Clusterer
