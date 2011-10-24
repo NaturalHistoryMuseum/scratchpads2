@@ -353,36 +353,3 @@ function gm3_settings(){
     )
   ));
 }
-
-/**
- * Implementation of hook_gm3_settings_alter().
- */
-function gm3_gm3_map_alter(&$map){
-  if(isset($map['libraries'])){
-    foreach($map['libraries'] as $id => $library){
-      $library_name = $library;
-      if(is_array($library)){
-        $library_name = $id;
-      }
-      switch($library_name){
-        case 'polygon':
-          $map['tools'][] = theme('gm3_polygon_button', array(
-            'id' => $map['id']
-          ));
-          break;
-        case 'polyline':
-          $map['tools'][] = theme('gm3_polyline_button', array(
-            'id' => $map['id']
-          ));
-          break;
-        case 'point':
-          $map['tools'][] = theme('gm3_point_button', array(
-            'id' => $map['id']
-          ));
-          break;
-        default:
-          break;
-      }
-    }
-  }
-}

@@ -312,6 +312,11 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'field_point' => array(
                 'module' => 'gm3_field'
               )
+            ),
+            'tools' => array(
+              theme('gm3_point_button', array(
+                'id' => $element['#field_name']
+              ))
             )
           )
         ))),
