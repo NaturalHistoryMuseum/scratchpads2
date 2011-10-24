@@ -269,20 +269,28 @@ function gm3_field_field_formatter_info(){
 
 /**
  * Implements hook_field_formatter_view().
- * 
- * FIXME - These are far from finished.
  */
 function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $element = array();
   switch($display['type']){
-    // This formatter simply outputs the field as text and with a color.
-    case 'gm3_text':
-      foreach($items as $delta => $item){
-        $element[$delta] = array(
-          '#type' => 'html_tag',
-          '#tag' => 'pre',
-          '#value' => print_r($item, 1)
-        );
+    case 'gm3_entity_map':
+      switch($field['type']){
+        case 'gm3_point':
+          // We need to keep a record of whether or not this field has been displayed
+          $element[] = theme('gm3_map', array(
+            'map' => array(
+              'id' => 'unique_id',//FIXME
+              'libraries' => array(
+                'point' => array(
+                  'points' => $items
+                ),
+                'field_point' => array(
+                  'module' => 'gm3_field'
+                )
+              )
+            )
+          ));
+          break;
       }
       break;
   }
@@ -307,7 +315,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'id' => $element['#field_name'],
             'libraries' => array(
               'point' => array(
-                'points' => $items // FIXME - Get the points that we've already set (Default values).
+                'points' => $items
               ),
               'field_point' => array(
                 'module' => 'gm3_field'
