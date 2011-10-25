@@ -10,6 +10,16 @@
  * - Google maps combination (combination of the above).
  */
 /**
+ * Does not implement the following (amongst others) hook_field_* hooks.
+ * This is for my benefit only, and will be removed.
+ * 
+ * hook_field_load().
+ * hook_field_delete().
+ * hook_field_access().
+ * hook_field_presave().
+ * hook_field_settings_form().
+ */
+/**
  * Implementation of hook_field_info().
  */
 function gm3_field_field_info(){
@@ -57,34 +67,15 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_point':
       $items = explode("|", $items[0]);
       $delta = 0;
-      $entity_info = entity_get_info($entity_type);
-      foreach($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table_name => $column_info){
-        ;
-      }
       foreach($items as $item){
         $lat_long = preg_replace('/[)(]/', '', $item);
         $lat_long = explode(", ", $lat_long);
         $items[$delta] = array(
-          'entity_type' => $instance['entity_type'],
-          'bundle' => $instance['bundle'],
-          'deleted' => 0,
-          'entity_id' => $entity->{$entity_info['entity keys']['id']},
-          'revision_id' => $entity->{$entity_info['entity keys']['revision']},
-          'language' => 'und',
-          'delta' => $delta,
-          $column_info['latitude'] => $lat_long[0],
-          $column_info['longitude'] => $lat_long[1]
+          'latitude' => $lat_long[0],
+          'longitude' => $lat_long[1]
         );
         $delta++;
       }
-      if(count($items)){
-        $insert = db_insert($table_name)->fields(array_keys($items[0]));
-        foreach($items as $record){
-          $insert->values($record);
-        }
-        $insert->execute();
-      }
-      $items = array();
       break;
   }
 }
@@ -93,45 +84,9 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
  * Implementation of hook_field_update()
  */
 function gm3_field_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
-  switch($field['type']){
-    case 'gm3_point':
-      $items = explode("|", $items[0]);
-      $delta = 0;
-      $entity_info = entity_get_info($entity_type);
-      foreach($field['storage']['details']['sql']['FIELD_LOAD_CURRENT'] as $table_name => $column_info){
-        ;
-      }
-      foreach($items as $item){
-        $lat_long = preg_replace('/[)(]/', '', $item);
-        $lat_long = explode(", ", $lat_long);
-        $items[$delta] = array(
-          'entity_type' => $instance['entity_type'],
-          'bundle' => $instance['bundle'],
-          'deleted' => 0,
-          'entity_id' => $entity->{$entity_info['entity keys']['id']},
-          'revision_id' => $entity->{$entity_info['entity keys']['revision']},
-          'language' => 'und',
-          'delta' => $delta,
-          $column_info['latitude'] => $lat_long[0],
-          $column_info['longitude'] => $lat_long[1]
-        );
-        $delta++;
-      }
-      if(count($items)){
-        $insert = db_insert($table_name)->fields(array_keys($items[0]));
-        foreach($items as $record){
-          $insert->values($record);
-        }
-        $insert->execute();
-      }
-      $items = array();
-      break;
-  }
+  gm3_field_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
 }
 
-/**
- * Implementatino of hook_field_pre
- */
 /**
  * Implementation of hook_library().
  */
@@ -187,44 +142,19 @@ function gm3_field_field_widget_info(){
 
 /**
  * Implements hook_field_validate().
- *
- * This hook gives us a chance to validate content that's in our
- * field. We're really only interested in the $items parameter, since
- * it holds arrays representing content in the field we've defined.
- * We want to verify that the items only contain RGB hex values like
- * this: #RRGGBB. If the item validates, we do nothing. If it doesn't
- * validate, we add our own error notification to the $errors parameter.
- *
- * @see field_example_field_widget_error()
  */
 function gm3_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
-  // FIXME - We need a switch on the field type.
-  foreach($items as $delta => $item){
-    // FIXME Add validation to the lat/longs
-  /*
-    if (!empty($item['gm3_point'])) {
-      if (! preg_match('@^#[0-9a-f]{6}$@', $item['rgb'])) {
-        $errors[$field['field_name']][$langcode][$delta][] = array(
-          'error' => 'field_example_invalid',
-          'message' => t('Color must be in the HTML format #abcdef.'),
-        );
-      }
-    }*/
-  }
+  // FIXME - Add validation on the fields.
 }
 
 /**
  * Implements hook_field_is_empty().
- *
- * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
- * Return TRUE if it does not contain data, FALSE if it does. This lets
- * the form API flag an error when required fields are empty.
  */
 function gm3_field_field_is_empty($item, $field){
-  // FIXME - We need a switch on the field type.
-  return FALSE;
-  // FIXME - We need to return the correct data here.
-  return empty($item['rgb']);
+  switch($field['type']){
+    case 'gm3_point':
+      return !strlen($item);
+  }
 }
 
 /**
@@ -279,7 +209,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           // We need to keep a record of whether or not this field has been displayed
           $element[] = theme('gm3_map', array(
             'map' => array(
-              'id' => 'unique_id',//FIXME
+              'id' => 'unique_id', //FIXME
               'libraries' => array(
                 'point' => array(
                   'points' => $items
@@ -328,8 +258,18 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             )
           )
         ))),
-        '#id' => $element['#field_name'] . '-textarea',
-        '#type' => 'textarea'
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        ),
+        //'#id' => $element['#field_name'] . '-textarea',
+        '#attributes' => array(
+          'class' => array(
+            $element['#field_name'] . '-hidden_field'
+          )
+        ),
+        '#type' => 'hidden'
       );
       break;
   }
