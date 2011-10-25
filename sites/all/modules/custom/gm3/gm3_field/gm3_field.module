@@ -82,7 +82,19 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
       }
       break;
     case 'gm3_polygon':
-      // FIXME - Add insert stuff for the Polygons!
+    case 'gm3_polyline':
+      if(strlen(trim($items[0]))){
+        $items = preg_split("/\n/", $items[0]);
+        $delta = 0;
+        foreach($items as $item){
+          $items[$delta] = array(
+            substr($field['type'], 4) => $items[0]
+          );
+          $delta++;
+        }
+      }else{
+        $items = array();
+      }
       break;
   }
 }
@@ -263,6 +275,13 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
                 )
               )
             ));
+          }
+          break;
+        case 'gm3_polygon':
+          if(count($items)){
+            foreach($items as $item){
+              
+            }
           }
           break;
       }

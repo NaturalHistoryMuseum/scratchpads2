@@ -75,25 +75,29 @@
       }
     }
   }
+  // KNOWN BUG - If removing a polygon, it doesn't get removed until the map is
+  // clicked/rightclicked on.
   Drupal.GM3.polygon.prototype.update_field = function(){
     // Update the field.
     var new_value = '';
     for( var i = 0; i < this.polygons.length; i++) {
-      if(i > 0) {
+      if(new_value.length) {
         new_value += "\n";
       }
-      new_value += "POLYGON (("
-      this.polygons[i].getPaths().forEach(function(paths){        
-        for(var j = 0; j < paths.length; j++){
-          if(j > 0){
-            new_value += ",";
+      this.polygons[i].getPaths().forEach(function(paths){
+        // Only continue if the path has three or more points.
+        if(paths.length > 2){
+          new_value += "POLYGON (("
+          for(var j = 0; j < paths.length; j++){
+            if(j > 0){
+              new_value += ",";
+            }
+            new_value += paths.b[j].lng() + " " + paths.b[j].lat()
           }
-          new_value += paths.b[j].lng() + " " + paths.b[j].lat()
-        }          
+          new_value += "))"
+        }
       })
-      new_value += "))"
     }
-    console.log(new_value);
     $('.' + this.GM3.id + '-hidden_field').val(new_value);
   }
 })(jQuery);

@@ -29,9 +29,9 @@ function gm3_field_field_schema($field){
     case 'gm3_polygon':
       return array(
         'columns' => array(
-          'wkt' => array(
-            'type' => 'float',
-            'size' => 'big',
+          'polygon' => array(
+            'type' => 'text',
+            'size' => 'medium',
             'not null' => TRUE
           )
         )
@@ -39,9 +39,9 @@ function gm3_field_field_schema($field){
     case 'gm3_polyline':
       return array(
         'columns' => array(
-          'wkt' => array(
-            'type' => 'float',
-            'size' => 'big',
+          'polyline' => array(
+            'type' => 'text',
+            'size' => 'medium',
             'not null' => TRUE
           )
         )
