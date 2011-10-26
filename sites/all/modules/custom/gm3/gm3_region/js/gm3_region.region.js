@@ -2,6 +2,7 @@
   Drupal.GM3.region = function(map){
     // Point object.
     this.GM3 = map;
+    console.log(this.GM3);
     this.geo = new google.maps.Geocoder();
     this.countries = new Object();
     // Add Regions sent from server.

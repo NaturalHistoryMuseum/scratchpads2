@@ -18,6 +18,8 @@
  * hook_field_access().
  * hook_field_presave().
  * hook_field_settings_form().
+ * 
+ * FIXME - Drag'n'dropped points are not updated.
  */
 /**
  * Implementation of hook_field_info().
@@ -44,13 +46,13 @@ function gm3_field_field_info(){
     ),
     'gm3_combination' => array(
       'label' => t('Geo: Super-combo'),
-      'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of countries, and addresses'),
+      'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of regions, and addresses'),
       'settings' => array(
         'field_types' => array(
           'gm3_point',
           'gm3_polygon',
           'gm3_polyline',
-          'gm3_countries'
+          'gm3_region'
         )
       ),
       'default_widget' => 'gm3_combination_gm3',
@@ -170,7 +172,6 @@ function gm3_field_library(){
   // Whether or not to use the minified versions of the code.
   $min = variable_get('gm3_use_minified', false) ? '.min' : '';
   return array(
-    // Enable the clicking of countries.
     'field_point' => array(
       'title' => t('Google Maps Javascript API V3: Point field'),
       'website' => 'http://code.google.com/apis/maps/',
@@ -456,15 +457,37 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             break;
         }
       }
+      $map['libraries']['region'] = array(
+        'module' => 'gm3_region',
+        'regions' => array(
+          'level1' => array(
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          )
+        )
+      );
       if($display_map){
-        $element= theme('gm3_map', array(
+        $element = theme('gm3_map', array(
           'map' => $map
         ));
       }
       break;
   }
-  if(isset($element) && $element){
-    return array($element);
+  if(isset($element) && $element){return array(
+      $element
+    );}
+}
+
+/**
+ * Implementation of hook_field_display_alter().
+ */
+function gm3_field_field_display_alter(&$display, $context){
+  if($display['type'] == 'gm3_entity_map'){
+    $display['label'] = 'hidden';
   }
 }
 
@@ -483,8 +506,8 @@ function _gm3_field_get_points_string_from_array($items){
  * Implements hook_field_widget_form().
  */
 function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  $value = isset($items[$delta]['rgb']) ? $items[$delta]['rgb'] : '';
   $widget = $element;
+  // FIXME - Is this "delta" required? I don't think so.
   $widget['#delta'] = $delta;
   switch($instance['widget']['type']){
     case 'gm3_point_gm3':
@@ -601,7 +624,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             switch($item['gm3_type']){
               case 'polygon':
               case 'polyline':
-                dpm($item);
                 module_load_include('functions.inc', 'gm3');
                 if($default_values_string[$item['gm3_type']] != ''){
                   $default_values_string[$item['gm3_type']] .= "\n";
