@@ -369,94 +369,103 @@ function gm3_field_field_formatter_info(){
 /**
  * Implements hook_field_formatter_view().
  * 
- * FIXME - Still need to do the field/entity formats properly.
+ * FIXME - Still need to do the field/entity formats properly (so that an entity
+ * map will show all the fields set as "entity_map" on that entity.
  */
 function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
-  $element = array();
   switch($display['type']){
     case 'gm3_entity_map':
-      // Here we need to set the maps ID, and perhaps instead alter the map if
-      // it has already been set (rather than setting it again).
-      static $entity_map_initialised = FALSE;
+      // Set an ID based on the entity.
+      $entity_info = entity_get_info($entity_type);
+      $id = "gm3_map-{$entity->{$entity_info['entity keys']['bundle']}}-{$entity->{$entity_info['entity keys']['id']}}";
+      break;
     case 'gm3_field_map':
-      switch($field['type']){
-        case 'gm3_point':
-          if(count($items)){
-            $element[] = theme('gm3_map', array(
-              'map' => array(
-                'id' => 'unique_id', //FIXME
-                'libraries' => array(
-                  'point' => array(
-                    'points' => $items
-                  )
-                )
-              )
-            ));
-          }
-          break;
-        case 'gm3_polyline':
-        case 'gm3_polygon':
-          module_load_include('functions.inc', 'gm3');
-          if(count($items)){
-            $polys = array();
-            foreach($items as $key => $item){
-              $polys = array_merge($polys, gm3_convert_polygon_string($item[substr($field['type'], 4)]));
-            }
-            $element[] = theme('gm3_map', array(
-              'map' => array(
-                'id' => 'unique_id', //FIXME
-                'libraries' => array(
-                  substr($field['type'], 4) => array(
-                    substr($field['type'], 4) . 's' => $polys
-                  )
-                )
-              )
-            ));
-          }
-          break;
-        case 'gm3_combination':
-          $map = array(
-            'id' => 'unique_id', //FIXME
+      // Setting the ID here is easy, as we can simply use the field ID.
+      $id = $instance['field_name'];
+      break;
+    case 'gm3_text':
+    default:
+      // We return the element here!
+      break;
+  }
+  switch($field['type']){
+    case 'gm3_point':
+      if(count($items)){
+        $element = theme('gm3_map', array(
+          'map' => array(
+            'id' => $id,
             'libraries' => array(
               'point' => array(
-                'points' => array()
-              ),
-              'polygon' => array(
-                'polygons' => array()
-              ),
-              'polyline' => array(
-                'polylines' => array()
+                'points' => $items
               )
             )
-          );
-          $display_map = FALSE;
-          module_load_include('functions.inc', 'gm3');
-          foreach($items as $item){
-            switch($item['gm3_type']){
-              case 'polygon':
-              case 'polyline':
-                $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'] = array_merge($map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'], gm3_convert_polygon_string($item[$item['gm3_type']]));
-                $display_map = TRUE;
-                break;
-              case 'point':
-                $map['libraries']['point']['points'][] = array(
-                  'latitude' => $item['latitude'],
-                  'longitude' => $item['longitude']
-                );
-                $display_map = TRUE;
-                break;
-            }
-          }
-          if($display_map){
-            $element[] = theme('gm3_map', array(
-              'map' => $map
-            ));
-          }
-          break;
+          )
+        ));
+      }
+      break;
+    case 'gm3_polyline':
+    case 'gm3_polygon':
+      module_load_include('functions.inc', 'gm3');
+      if(count($items)){
+        $polys = array();
+        foreach($items as $key => $item){
+          $polys = array_merge($polys, gm3_convert_polygon_string($item[substr($field['type'], 4)]));
+        }
+        $element = theme('gm3_map', array(
+          'map' => array(
+            'id' => $id,
+            'libraries' => array(
+              substr($field['type'], 4) => array(
+                substr($field['type'], 4) . 's' => $polys
+              )
+            )
+          )
+        ));
+      }
+      break;
+    case 'gm3_combination':
+      $map = array(
+        'id' => $id,
+        'libraries' => array(
+          'point' => array(
+            'points' => array()
+          ),
+          'polygon' => array(
+            'polygons' => array()
+          ),
+          'polyline' => array(
+            'polylines' => array()
+          )
+        )
+      );
+      $display_map = FALSE;
+      module_load_include('functions.inc', 'gm3');
+      foreach($items as $item){
+        switch($item['gm3_type']){
+          case 'polygon':
+          case 'polyline':
+            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'] = array_merge($map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'], gm3_convert_polygon_string($item[$item['gm3_type']]));
+            $display_map = TRUE;
+            break;
+          case 'point':
+            $map['libraries']['point']['points'][] = array(
+              'latitude' => $item['latitude'],
+              'longitude' => $item['longitude']
+            );
+            $display_map = TRUE;
+            break;
+        }
+      }
+      if($display_map){
+        $element= theme('gm3_map', array(
+          'map' => $map
+        ));
       }
       break;
   }
-  return $element;
+  if(isset($element) && $element){
+    return array($element);
+  }
 }
 
 /**
@@ -588,22 +597,25 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           'polyline' => ''
         );
         foreach($items as $item){
-          switch($item['gm3_type']){
-            case 'polygon':
-            case 'polyline':
-              module_load_include('functions.inc', 'gm3');
-              if($default_values_string[$item['gm3_type']] != ''){
-                $default_values_string[$item['gm3_type']] .= "\n";
-              }
-              $default_values_string[$item['gm3_type']] .= $item[$item['gm3_type']];
-              $default_values[$item['gm3_type']] = array_merge($default_values[$item['gm3_type']], gm3_convert_polygon_string($item[$item['gm3_type']]));
-              break;
-            case 'point':
-              $default_values['point'][] = array(
-                'latitude' => $item['latitude'],
-                'longitude' => $item['longitude']
-              );
-              break;
+          if(isset($item['gm3_type'])){
+            switch($item['gm3_type']){
+              case 'polygon':
+              case 'polyline':
+                dpm($item);
+                module_load_include('functions.inc', 'gm3');
+                if($default_values_string[$item['gm3_type']] != ''){
+                  $default_values_string[$item['gm3_type']] .= "\n";
+                }
+                $default_values_string[$item['gm3_type']] .= $item[$item['gm3_type']];
+                $default_values[$item['gm3_type']] = array_merge($default_values[$item['gm3_type']], gm3_convert_polygon_string($item[$item['gm3_type']]));
+                break;
+              case 'point':
+                $default_values['point'][] = array(
+                  'latitude' => $item['latitude'],
+                  'longitude' => $item['longitude']
+                );
+                break;
+            }
           }
         }
         switch($field_type){

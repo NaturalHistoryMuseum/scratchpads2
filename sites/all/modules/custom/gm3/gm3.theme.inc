@@ -4,23 +4,43 @@
  * Simple theme function
  */
 function theme_gm3_map($variables){
+  // No need to use drupal_static here!
+  static $info = array();
   if(!isset($variables['map']['id'])){
     // Could we get this dynamically from hook_theme?
     $variables['map']['id'] = 'gm3-map';
   }
-  gm3_add($variables['map']);
-  $tools = '';
-  if(isset($variables['map']['tools'])){
-    $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
-  }
-  return array(
-    '#attached' => array(
-      'css' => array(
-        drupal_get_path('module', 'gm3') . '/css/gm3.css'
+  if(isset($info[$variables['map']['id']])){
+    // this map has already been initialized.
+    // We can alter settings for the map, but won't be able to add any tools
+    // to the map.  This won't be a problem for viewing a map, but may be an
+    // issue for editing.
+    drupal_add_js(array(
+      'gm3' => array(
+        'maps' => array(
+          $variables['map']['id'] => array(
+            'libraries' => $variables['map']['libraries']
+          )
+        )
       )
-    ),
-    '#markup' => '<div class="gm3-container">' . $tools . '<div class="gm3-map-wrapper"><div id="' . $variables['map']['id'] . '"></div></div></div>'
-  );
+    ), 'setting');
+    return FALSE;
+  }else{
+    $info[$variables['map']['id']] = TRUE;
+    gm3_add($variables['map']);
+    $tools = '';
+    if(isset($variables['map']['tools'])){
+      $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+    }
+    return array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'gm3') . '/css/gm3.css'
+        )
+      ),
+      '#markup' => '<div class="gm3-container">' . $tools . '<div class="gm3-map-wrapper"><div id="' . $variables['map']['id'] . '"></div></div></div>'
+    );
+  }
 }
 
 /**
