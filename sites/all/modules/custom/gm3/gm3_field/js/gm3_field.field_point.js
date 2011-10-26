@@ -57,6 +57,6 @@
       }
       new_value += this.points[i].position.toString();
     }
-    $('.'+this.GM3.id+'-hidden_field').val(new_value);
+    $('.'+this.GM3.id+'-point').val(new_value);
   }
 })(jQuery);

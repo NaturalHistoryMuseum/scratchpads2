@@ -98,6 +98,6 @@
         }
       })
     }
-    $('.' + this.GM3.id + '-hidden_field').val(new_value);
+    $('.' + this.GM3.id + '-polygon').val(new_value);
   }
 })(jQuery);
