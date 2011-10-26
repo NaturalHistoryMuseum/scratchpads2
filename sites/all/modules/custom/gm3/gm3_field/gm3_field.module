@@ -113,7 +113,6 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
         }
       }
       $items = $new_items;
-      dpm($items);
       break;
   }
 }
@@ -319,6 +318,11 @@ function gm3_field_field_is_empty($item, $field){
     case 'gm3_polygon':
     case 'gm3_polyline':
       return !strlen(trim($item));
+    case 'gm3_combination':
+      foreach($item['children'] as $type => $value){
+        if(strlen(trim($value))){return FALSE;}
+      }
+      return TRUE;
   }
 }
 
@@ -410,10 +414,60 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             ));
           }
           break;
+        case 'gm3_combination':
+          $map = array(
+            'id' => 'unique_id', //FIXME
+            'libraries' => array(
+              'point' => array(
+                'points' => array()
+              ),
+              'polygon' => array(
+                'polygons' => array()
+              ),
+              'polyline' => array(
+                'polylines' => array()
+              )
+            )
+          );
+          $display_map = FALSE;
+          module_load_include('functions.inc', 'gm3');
+          foreach($items as $item){
+            switch($item['gm3_type']){
+              case 'polygon':
+              case 'polyline':
+                $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'] = array_merge($map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'], gm3_convert_polygon_string($item[$item['gm3_type']]));
+                $display_map = TRUE;
+                break;
+              case 'point':
+                $map['libraries']['point']['points'][] = array(
+                  'latitude' => $item['latitude'],
+                  'longitude' => $item['longitude']
+                );
+                $display_map = TRUE;
+                break;
+            }
+          }
+          if($display_map){
+            $element[] = theme('gm3_map', array(
+              'map' => $map
+            ));
+          }
+          break;
       }
       break;
   }
   return $element;
+}
+
+/**
+ * Helper function to convert an array to a points string.
+ */
+function _gm3_field_get_points_string_from_array($items){
+  $item_length = count($items);
+  for($i = 0; $i < $item_length; $i++){
+    $items[$i] = "({$items[$i]['latitude']}, {$items[$i]['longitude']})";
+  }
+  return implode("|", $items);
 }
 
 /**
@@ -457,6 +511,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             $element['#field_name'] . '-point'
           )
         ),
+        '#default_value' => _gm3_field_get_points_string_from_array($items),
         '#type' => 'hidden'
       );
       break;
@@ -465,9 +520,14 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       $poly_type = explode("_", $instance['widget']['type']);
       $poly_type = $poly_type[1];
       $polys = array();
+      $default_value_string = '';
       if(count($items)){
         module_load_include('functions.inc', 'gm3');
         foreach($items as $key => $item){
+          if(strlen($default_value_string)){
+            $default_value_string .= "\n";
+          }
+          $default_value_string .= $item[$poly_type];
           $polys = array_merge($polys, gm3_convert_polygon_string($item[$poly_type]));
         }
       }
@@ -500,6 +560,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             $element['#field_name'] . '-' . $poly_type
           )
         ),
+        '#default_value' => $default_value_string,
         '#type' => 'hidden'
       );
       break;
@@ -517,9 +578,37 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         )
       );
       foreach($field['settings']['field_types'] as $field_type => $value){
+        $default_values = array(
+          'point' => array(),
+          'polygon' => array(),
+          'polyline' => array()
+        );
+        $default_values_string = array(
+          'polygon' => '',
+          'polyline' => ''
+        );
+        foreach($items as $item){
+          switch($item['gm3_type']){
+            case 'polygon':
+            case 'polyline':
+              module_load_include('functions.inc', 'gm3');
+              if($default_values_string[$item['gm3_type']] != ''){
+                $default_values_string[$item['gm3_type']] .= "\n";
+              }
+              $default_values_string[$item['gm3_type']] .= $item[$item['gm3_type']];
+              $default_values[$item['gm3_type']] = array_merge($default_values[$item['gm3_type']], gm3_convert_polygon_string($item[$item['gm3_type']]));
+              break;
+            case 'point':
+              $default_values['point'][] = array(
+                'latitude' => $item['latitude'],
+                'longitude' => $item['longitude']
+              );
+              break;
+          }
+        }
         switch($field_type){
           case 'gm3_point':
-            $map['libraries']['point']['points'] = array();
+            $map['libraries']['point']['points'] = $default_values['point'];
             $map['libraries']['field_point']['module'] = 'gm3_field';
             $map['tools'][] = theme('gm3_point_button', array(
               'id' => $element['#field_name']
@@ -530,14 +619,15 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                 'class' => array(
                   $element['#field_name'] . '-point'
                 )
-              )
+              ),
+              '#default_value' => _gm3_field_get_points_string_from_array($default_values['point'])
             );
             break;
           case 'gm3_polygon':
           case 'gm3_polyline':
             $poly_type = explode("_", $field_type);
             $poly_type = $poly_type[1];
-            $map['libraries'][$poly_type][$poly_type . 's'] = array();
+            $map['libraries'][$poly_type][$poly_type . 's'] = $default_values[$poly_type];
             $map['libraries']['field_' . $poly_type]['module'] = 'gm3_field';
             $map['tools'][] = theme('gm3_' . $poly_type . '_button', array(
               'id' => $element['#field_name']
@@ -548,7 +638,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                 'class' => array(
                   $element['#field_name'] . '-' . $poly_type
                 )
-              )
+              ),
+              '#default_value' => $default_values_string[$poly_type]
             );
             break;
           default:
