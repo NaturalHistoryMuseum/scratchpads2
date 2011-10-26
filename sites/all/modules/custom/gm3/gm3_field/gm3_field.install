@@ -55,7 +55,7 @@ function gm3_field_field_schema($field){
           'type' => 'gm3_region'
         ));
       }
-      $schema = array_merge($schema, gm3_field_field_schema(array(
+      $schema = array_merge_recursive($schema, gm3_field_field_schema(array(
         'type' => 'gm3_point'
       )), gm3_field_field_schema(array(
         'type' => 'gm3_polygon'
@@ -68,14 +68,20 @@ function gm3_field_field_schema($field){
         }
       }
       // Finally, set the type column
-      $schema = array(
+      $schema = array_merge_recursive($schema, array(
         'columns' => array(
           'gm3_type' => array(
             'type' => 'varchar', // Give flexibilty incase another module extends this.
             'length' => 16
           )
+        ),
+        'indexes' => array(
+          'gm3_type' => array(
+            'gm3_type'
+          )
         )
-      );
+      ));
+      return $schema;
       break;
   }
 }

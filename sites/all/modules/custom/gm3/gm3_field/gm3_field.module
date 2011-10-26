@@ -89,40 +89,71 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
 function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_point':
-      if(strlen(trim($items[0]))){
-        $items = explode("|", $items[0]);
-        $delta = 0;
-        foreach($items as $item){
-          $lat_long = preg_replace('/[)(]/', '', $item);
-          $lat_long = explode(", ", $lat_long);
-          $items[$delta] = array(
-            'latitude' => $lat_long[0],
-            'longitude' => $lat_long[1]
-          );
-          $delta++;
-        }
-      }else{
-        $items = array();
-      }
+      $new_items = array();
+      _gm3_field_get_array_from_points_string($items[0], $new_items);
+      $items = $new_items;
       break;
     case 'gm3_polygon':
     case 'gm3_polyline':
-      if(strlen(trim($items[0]))){
-        $items = preg_split("/\n/", $items[0]);
-        $delta = 0;
-        foreach($items as $item){
-          $items[$delta] = array(
-            substr($field['type'], 4) => $item
-          );
-          $delta++;
-        }
-      }else{
-        $items = array();
-      }
+      $new_items = array();
+      _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      $items = $new_items;
       break;
     case 'gm3_combination':
-      // Handle the data.
+      $new_items = array();
+      foreach($items[0]['children'] as $type => $value){
+        switch($type){
+          case 'gm3_point':
+            _gm3_field_get_array_from_points_string($value, $new_items, 'point');
+            break;
+          case 'gm3_polygon':
+          case 'gm3_polyline':
+            _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+            break;
+        }
+      }
+      $items = $new_items;
+      dpm($items);
       break;
+  }
+}
+
+/**
+ * Helper function to get values from a polygon/polyline string
+ */
+function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $type = FALSE){
+  if(strlen(trim($value))){
+    $polys = preg_split("/\n/", $value);
+    foreach($polys as $poly){
+      $item = array(
+        $poly_type => $poly
+      );
+      if($type){
+        $item['gm3_type'] = $poly_type;
+      }
+      $items[] = $item;
+    }
+  }
+}
+
+/**
+ * Helper function to get values from a points string
+ */
+function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE){
+  if(strlen(trim($value))){
+    $lat_lngs = explode("|", $value);
+    foreach($lat_lngs as $lat_lng){
+      $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
+      $lat_lng = explode(", ", $lat_lng);
+      $lat_lng = array(
+        'latitude' => $lat_lng[0],
+        'longitude' => $lat_lng[1]
+      );
+      if($type){
+        $lat_lng['gm3_type'] = $type;
+      }
+      $items[] = $lat_lng;
+    }
   }
 }
 
@@ -466,7 +497,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         ),
         '#attributes' => array(
           'class' => array(
-            $element['#field_name'] . '-' .$poly_type
+            $element['#field_name'] . '-' . $poly_type
           )
         ),
         '#type' => 'hidden'
@@ -494,7 +525,12 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_point'] = array(
-              '#type' => 'hidden'
+              '#type' => 'hidden',
+              '#attributes' => array(
+                'class' => array(
+                  $element['#field_name'] . '-point'
+                )
+              )
             );
             break;
           case 'gm3_polygon':
@@ -510,7 +546,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               '#type' => 'hidden',
               '#attributes' => array(
                 'class' => array(
-                  $element['#field_name'] . '-point'
+                  $element['#field_name'] . '-' . $poly_type
                 )
               )
             );
