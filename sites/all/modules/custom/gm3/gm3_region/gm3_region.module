@@ -5,7 +5,7 @@
  */
 function gm3_region_menu(){
   return array(
-    'gm3_region/callback/%/%' => array(
+    'gm3_region/callback/%' => array(
       'title' => 'GM3 Region callback',
       'page callback' => 'gm3_region_get_points',
       'page arguments' => array(
@@ -71,27 +71,4 @@ function gm3_region_theme(){
       'file' => 'gm3_region.theme.inc'
     )
   );
-}
-
-/**
- * Implementation of hook_gm3_settings_alter().
- */
-function gm3_region_gm3_map_alter(&$map){
-  if(isset($map['libraries'])){
-    foreach($map['libraries'] as $id => $library){
-      $library_name = $library;
-      if(is_array($library)){
-        $library_name = $id;
-      }
-      switch($library_name){
-        case 'region':
-          $map['tools'][] = theme('gm3_region_region_button', array(
-            'id' => $map['id']
-          ));
-          break;
-        default:
-          break;
-      }
-    }
-  }
 }
