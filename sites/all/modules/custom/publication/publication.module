@@ -1,5 +1,31 @@
 <?php
 
+/*********************************************************************************************
+ * 
+ * CORE HOOKS
+ * 
+ ********************************************************************************************/
+/*********************************************************************************************
+ * 
+ * CONTRIB HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function publication_views_api(){
+  $path = drupal_get_path('module', 'publication');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes'
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * ENTITY HOOKS
+ * 
+ ********************************************************************************************/
 /**
  * Implement hook_entity_info().
  *
@@ -36,8 +62,8 @@ function publication_entity_info(){
   // The entity that holds information about the entity types	  
   $return['publication_type'] = array(
     'label' => t('Publication type'),
-    'entity class' => 'Entity',
-    'controller class' => 'EntityAPIController',
+    'entity class' => 'PublicationType',
+    'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'publication_type',
     'fieldable' => FALSE,
     'bundle of' => 'publication',
@@ -52,22 +78,11 @@ function publication_entity_info(){
     // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/structure/publication_types',
-      'file' => 'publication_type.admin.inc'
+      'file' => 'publication_type.admin.inc',
+      'controller class' => 'PublicationTypeUIController'
     )
   );
   return $return;
-}
-
-/**
- * Implements hook_forms().
- * All node forms share the same form handler.
- */
-function publication_forms() {
-  $forms = array();
-	$forms['publication_settings_form']['callback'] = 'publication_form';
-	$forms['publication_edit_form']['callback'] = 'publication_form';
-	$forms['publication_add_form']['callback'] = 'publication_form';
-  return $forms;
 }
 
 /**
@@ -137,6 +152,22 @@ function publication_theme(){
     'publication' => array(
       'render element' => 'elements',
       'template' => 'publication',
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    'publication_field_group' => array(
+      'render element' => 'element',
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    'relation_select_publication_field_publication_authors_field_view' => array(
+      'variables' => array(
+        'entities' => NULL,
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field_name' => NULL
+      ),
+      'file' => 'theme.inc',
       'path' => $path . '/theme'
     )
   );
@@ -197,6 +228,137 @@ function publication_field_extra_fields(){
 }
 
 /**
+ * Implements hook_field_group_formatter_info().
+ */
+function publication_field_group_formatter_info(){
+  // Define a field group display for the publication module
+  return array(
+    'display' => array(
+      'publication' => array(
+        'label' => t('Publication'),
+        'description' => t('Used for the publication module: render the label in the left hand block with an optional link.'),
+        'default_formatter' => 'collapsible'
+      )
+    )
+  );
+}
+
+function publication_field_group_format_settings($group){
+  switch($group->format_type){
+    case 'publication':
+      $form['instance_settings']['links'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Links')
+      );
+      $form['instance_settings']['links']['edit_link'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Edit link'),
+        '#description' => t('Provide a link to edit this publication section.'),
+        '#default_value' => (isset($group->format_settings['instance_settings']['links']['edit_link']) ? $group->format_settings['instance_settings']['links']['edit_link'] : '')
+      );
+      $form['instance_settings']['links']['additional_link'] = array(
+        '#type' => 'item',
+        '#title' => t("Additional link"),
+        '#description' => t('An optional additional link - use tokens to reference the publication being viewed.')
+      );
+      $form['instance_settings']['links']['additional_link']['url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('URL'),
+        '#default_value' => (isset($group->format_settings['instance_settings']['links']['additional_link']['url']) ? $group->format_settings['instance_settings']['links']['additional_link']['url'] : '')
+      );
+      $form['instance_settings']['links']['additional_link']['title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Title'),
+        '#default_value' => (isset($group->format_settings['instance_settings']['links']['additional_link']['title']) ? $group->format_settings['instance_settings']['links']['additional_link']['title'] : '')
+      );
+      if(module_exists('token')){
+        $form['instance_settings']['links']['additional_link']['token_help'] = array(
+          '#theme' => 'token_tree',
+          '#token_types' => array(
+            'publication'
+          ),
+          '#global_types' => false,
+          '#click_insert' => false
+        );
+      }
+      return $form;
+      break;
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function publication_token_info(){
+  $types['publication'] = array(
+    'name' => t('Publications'),
+    'description' => t('Tokens related to publications.'),
+    'needs-data' => 'publication'
+  );
+  $publication = array();
+  $publication['pid'] = array(
+    'name' => t("Publication ID"),
+    'description' => t("The ID of the publication.")
+  );
+  $publication['type'] = array(
+    'name' => t("Type"),
+    'description' => t("The publication type.")
+  );
+  $publication['edit_url'] = array(
+    'name' => t("Edit url"),
+    'description' => t("The URL to edit the publication (links to appropriate field group).")
+  );
+  return array(
+    'types' => $types,
+    'tokens' => array(
+      'publication' => $publication
+    )
+  );
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function publication_tokens($type, $tokens, array $data = array(), array $options = array()){
+  $replacements = array();
+  $sanitize = !empty($options['sanitize']);
+  // Node tokens.
+  if($type == 'publication' && !empty($data['publication'])){
+    $publication = $data['publication'];
+    foreach($tokens as $name => $original){
+      $replacements[$original] = $publication->$name;
+    }
+  }
+  return $replacements;
+}
+
+function publication_field_group_pre_render(& $element, $group, & $form){
+  $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $group->group_name;
+  $classes = array(
+    $group->format_type,
+    str_replace('_', '-', $group->group_name)
+  );
+  switch($group->format_type){
+    case 'publication':
+      $element += array(
+        '#id' => $id,
+        '#type' => 'container',
+        '#weight' => $group->weight,
+        '#attributes' => array(
+          'class' => $classes
+        ),
+        '#theme_wrappers' => array(
+          'publication_field_group'
+        ),
+        '#group' => $group,
+        '#entity' => $form['#entity'],
+        '#entity_type' => $form['#entity_type']
+      );
+      break;
+  }
+}
+
+/**
  * Determines whether the given user has access to a publication.
  *
  * @param $op
@@ -211,9 +373,9 @@ function publication_field_extra_fields(){
  * Whether access is allowed or not.
  */
 function publication_access($op, $publication = NULL, $account = NULL){
+  return true;
   if(user_access('administer publication', $account)){return TRUE;}
   if(isset($publication) && $type_name = $publication->type){
-    $op = ($op == 'view') ? 'view' : 'edit';
     if(user_access("$op any $type_name publication", $account)){return TRUE;}
   }
   return FALSE;
@@ -235,9 +397,7 @@ function publication_type_access($op, $type = NULL, $account = NULL){
  * Depending whether $type isset, an array of publication types or a single one.
  */
 function publication_get_types($type_name = NULL){
-  // entity_load will get the Entity controller for our publication entity and call the load
-  // function of that object.
-  $types = entity_load('publication_type', isset($type_name) ? array(
+  $types = entity_load_multiple_by_name('publication_type', isset($type_name) ? array(
     $type_name
   ) : FALSE);
   return isset($type_name) ? reset($types) : $types;
@@ -313,14 +473,18 @@ function publication_page_title(Publication $publication){
 }
 
 /**
- * Sets up content to show an individula publication
+ * Sets up content to show an individual publication
  */
 function publication_page_view($publication, $view_mode = 'full'){
+  $page_array = array();
   $controller = entity_get_controller('publication');
   $content = $controller->view(array(
     $publication->pid => $publication
   ));
   drupal_set_title($publication->title);
+  $content['#attached']['css'] = array(
+    drupal_get_path('module', 'publication') . '/css/publication.css'
+  );
   return $content;
 }
 
@@ -341,5 +505,26 @@ class Publication extends Entity{
     return array(
       'path' => 'publication/' . $this->pid
     );
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class PublicationType extends Entity{
+
+  public function __construct($values = array()){
+    parent::__construct($values, 'publication_type');
+  }
+
+  /**
+   * Returns whether the publication type is locked, thus may not be deleted or renamed.
+   *
+   * Publication types provided in code are automatically treated as locked, as well
+   * as any fixed profile type.
+   */
+  public function isLocked(){
+    return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
   }
 }

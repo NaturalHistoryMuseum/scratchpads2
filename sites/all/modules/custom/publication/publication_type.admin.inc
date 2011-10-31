@@ -1,6 +1,21 @@
 <?php
 
 /**
+ * UI controller.
+ */
+class PublicationTypeUIController extends EntityDefaultUIController{
+
+  /**
+   * Overrides hook_menu() defaults.
+   */
+  public function hook_menu(){
+    $items = parent::hook_menu();
+    $items[$this->path]['description'] = 'Manage publications.';
+    return $items;
+  }
+}
+
+/**
  * Generates the publication type editing form.
  */
 function publication_type_form($form, &$form_state, $publication_type, $op = 'edit'){
@@ -35,23 +50,23 @@ function publication_type_form($form, &$form_state, $publication_type, $op = 'ed
   );
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save publication type'),
+    '#value' => t('Save publication type')
   );
-
-  $form['actions']['cancel'] = array('#markup' => l(t('Cancel'), 'admin/structure/publication_types'));
-  
+  $form['actions']['cancel'] = array(
+    '#markup' => l(t('Cancel'), 'admin/structure/publication_types')
+  );
   return $form;
 }
 
 function publication_form_cancel(){
-	$form_state['redirect'] = 'admin/structure/publication_types';
+  $form_state['redirect'] = 'admin/structure/publication_types';
 }
 
 /**
  * Form API submit callback for the type form.
  */
 function publication_type_form_submit(&$form, &$form_state){
-  $publication_type = entity_ui_controller('publication_type')->entityFormSubmitBuildEntity($form, $form_state);
+  $publication_type = entity_ui_form_submit_build_entity($form, $form_state);
   // Save and go back.
   $publication_type->save();
   $form_state['redirect'] = 'admin/structure/publication_types';
