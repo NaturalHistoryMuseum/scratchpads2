@@ -25,6 +25,12 @@
  * Implementation of hook_field_info().
  */
 function gm3_field_field_info(){
+  $options = array(
+    'gm3_point' => 'Point',
+    'gm3_polygon' => 'Polygon',
+    'gm3_polyline' => 'Polyline'
+  );
+  drupal_alter('gm3_combination_field_options', $options);
   return array(
     'gm3_point' => array(
       'label' => t('Geo: Point'),
@@ -47,14 +53,7 @@ function gm3_field_field_info(){
     'gm3_combination' => array(
       'label' => t('Geo: Super-combo'),
       'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of regions, and addresses'),
-      'settings' => array(
-        'field_types' => array(
-          'gm3_point',
-          'gm3_polygon',
-          'gm3_polyline',
-          'gm3_region'
-        )
-      ),
+      'settings' => $options,
       'default_widget' => 'gm3_combination_gm3',
       'default_formatter' => 'gm3_entity_map'
     )
@@ -79,7 +78,7 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
           '#title' => t('Field types'),
           '#options' => $options,
           '#multiple' => TRUE,
-          '#default_value' => $field['settings']['field_types'],
+          '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
           '#required' => TRUE,
           '#description' => t('Select the types of Widget you would like to use')
         )
@@ -113,6 +112,16 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
           case 'gm3_polygon':
           case 'gm3_polyline':
             _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+            break;
+          default:
+            // Here we have a field that was not defined by this module, we use the 
+            // name of the module, plus the name of the type plus view to get the name
+            // of the function to call
+            // "{$field['module']}_{$field['type']}_view()"
+            if(function_exists("{$type}_gm3_combination_insert")){
+              $function_name = "{$type}_gm3_combination_insert";
+              $function_name($new_items, $value);
+            }
             break;
         }
       }
@@ -323,7 +332,11 @@ function gm3_field_field_is_empty($item, $field){
       return !strlen(trim($item));
     case 'gm3_combination':
       foreach($item['children'] as $type => $value){
-        if(strlen(trim($value))){return FALSE;}
+        if(is_array($value)){
+          if(count($value)){return FALSE;}
+        }else if(is_string($value)){
+          if(strlen(trim($value))){return FALSE;}
+        }
       }
       return TRUE;
   }
@@ -457,21 +470,15 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             );
             $display_map = TRUE;
             break;
+          default:
+            if(function_exists("{$item['gm3_type']}_map_alter")){
+              $function = "{$item['gm3_type']}_map_alter";
+              $function($map, $item);
+              $display_map = TRUE;
+            }
+            break;
         }
       }
-      $map['libraries']['region'] = array(
-        'module' => 'gm3_region',
-        'regions' => array(
-          'level1' => array(
-            1,
-            2,
-            3,
-            4,
-            5,
-            6
-          )
-        )
-      );
       if($display_map){
         $element = theme('gm3_map', array(
           'map' => $map
@@ -649,6 +656,9 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                   'longitude' => $item['longitude']
                 );
                 break;
+              default:
+                $default_values[$item['gm3_type']][] = $item['region_id'];
+                break;
             }
           }
         }
@@ -691,9 +701,9 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           default:
             // We have a field type not defined by this module, most likely it
             // is the gm3_region module.
-            if(function_exists("{$field_type}_form")){
-              $function_name = "{$field_type}_form";
-              $element = $function_name($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $map, $widget);
+            if(function_exists("{$field_type}_gm3_combination_form_alter")){
+              $function_name = "{$field_type}_gm3_combination_form_alter";
+              $element = $function_name($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $map, $widget, $default_values);
             }
             break;
         }
