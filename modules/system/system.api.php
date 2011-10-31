@@ -544,7 +544,7 @@ function hook_cron() {
 
   // Long-running operation example, leveraging a queue:
   // Fetch feeds from other sites.
-  $result = db_query('SELECT * FROM {aggregator_feed} WHERE checked + refresh < :time AND refresh != :never', array(
+  $result = db_query('SELECT * FROM {aggregator_feed} WHERE checked + refresh < :time AND refresh <> :never', array(
     ':time' => REQUEST_TIME,
     ':never' => AGGREGATOR_CLEAR_NEVER,
   ));
@@ -1971,6 +1971,12 @@ function hook_permission() {
 /**
  * Register a module (or theme's) theme implementations.
  *
+ * The implementations declared by this hook have two purposes: either they
+ * specify how a particular render array is to be rendered as HTML (this is
+ * usually the case if the theme function is assigned to the render array's
+ * #theme property), or they return the HTML that should be returned by an
+ * invocation of theme().
+ *
  * The following parameters are all optional.
  *
  * @param array $existing
@@ -1998,21 +2004,26 @@ function hook_permission() {
  * @return array
  *   An associative array of theme hook information. The keys on the outer
  *   array are the internal names of the hooks, and the values are arrays
- *   containing information about the hook. Each array may contain the
- *   following elements:
- *   - variables: (required if "render element" not present) An array of
- *     variables that this theme hook uses. This value allows the theme layer
- *     to properly utilize templates. Each array key represents the name of the
- *     variable and the value will be used as the default value if it is not
- *     given when theme() is called. Template implementations receive these
- *     arguments as variables in the template file. Function implementations
- *     are passed this array data in the $variables parameter.
- *   - render element: (required if "variables" not present) A string that is
- *     the name of the sole renderable element to pass to the theme function.
- *     The string represents the name of the "variable" that will hold the
- *     renderable array inside any optional preprocess or process functions.
- *     Cannot be used with the "variables" item; only one or the other, not
- *     both, can be present in a hook's info array.
+ *   containing information about the hook. Each information array must contain
+ *   either a 'variables' element or a 'render element' element, but not both.
+ *   Use 'render element' if you are theming a single element or element tree
+ *   composed of elements, such as a form array, a page array, or a single
+ *   checkbox element. Use 'variables' if your theme implementation is
+ *   intended to be called directly through theme() and has multiple arguments
+ *   for the data and style; in this case, the variables not supplied by the
+ *   calling function will be given default values and passed to the template
+ *   or theme function. The returned theme information array can contain the
+ *   following key/value pairs:
+ *   - variables: (see above) Each array key is the name of the variable, and
+ *     the value given is used as the default value if the function calling
+ *     theme() does not supply it. Template implementations receive each array
+ *     key as a variable in the template file (so they must be legal PHP
+ *     variable names). Function implementations are passed the variables in a
+ *     single $variables function argument.
+ *   - render element: (see above) The name of the renderable element or element
+ *     tree to pass to the theme function. This name is used as the name of the
+ *     variable that holds the renderable element or tree in preprocess and
+ *     process functions.
  *   - file: The file the implementation resides in. This file will be included
  *     prior to the theme being rendered, to make sure that the function or
  *     preprocess function (as needed) is actually loaded; this makes it
@@ -2123,7 +2134,7 @@ function hook_theme($existing, $type, $theme, $path) {
 function hook_theme_registry_alter(&$theme_registry) {
   // Kill the next/previous forum topic navigation links.
   foreach ($theme_registry['forum_topic_navigation']['preprocess functions'] as $key => $value) {
-    if ($value = 'template_preprocess_forum_topic_navigation') {
+    if ($value == 'template_preprocess_forum_topic_navigation') {
       unset($theme_registry['forum_topic_navigation']['preprocess functions'][$key]);
     }
   }
@@ -2907,12 +2918,19 @@ function hook_requirements($phase) {
  * more tables and their related keys and indexes. A schema is defined by
  * hook_schema() which must live in your module's .install file.
  *
- * By implementing hook_schema() and specifying the tables your module
- * declares, you can easily create and drop these tables on all
- * supported database engines. You don't have to deal with the
- * different SQL dialects for table creation and alteration of the
- * supported database engines.
+ * This hook is called at both install and uninstall time, and in the latter
+ * case, it cannot rely on the .module file being loaded or hooks being known.
+ * If the .module file is needed, it may be loaded with drupal_load().
  *
+ * The tables declared by this hook will be automatically created when
+ * the module is first enabled, and removed when the module is uninstalled.
+ * This happens before hook_install() is invoked, and after hook_uninstall()
+ * is invoked, respectively.
+ *
+ * By declaring the tables used by your module via an implementation of
+ * hook_schema(), these tables will be available on all supported database
+ * engines. You don't have to deal with the different SQL dialects for table
+ * creation and alteration of the supported database engines *
  * See the Schema API Handbook at http://drupal.org/node/146843 for
  * details on schema definition structures.
  *
@@ -3068,11 +3086,13 @@ function hook_query_TAG_alter(QueryAlterableInterface $query) {
  * If the module implements hook_schema(), the database tables will
  * be created before this hook is fired.
  *
- * This hook will only be called the first time a module is enabled or after it
+ * Implementations of this hook are by convention declared in the module's
+ * .install file. The implementation can rely on the .module file being loaded.
+ * The hook will only be called the first time a module is enabled or after it
  * is re-enabled after being uninstalled. The module's schema version will be
- * set to the module's greatest numbered update hook. Because of this, anytime a
- * hook_update_N() is added to the module, this function needs to be updated to
- * reflect the current version of the database schema.
+ * set to the module's greatest numbered update hook. Because of this, any time
+ * a hook_update_N() is added to the module, this function needs to be updated
+ * to reflect the current version of the database schema.
  *
  * See the Schema API documentation at
  * @link http://drupal.org/node/146843 http://drupal.org/node/146843 @endlink
@@ -3298,9 +3318,10 @@ function hook_update_last_removed() {
  * The module should not remove its entry from the {system} table. Database
  * tables defined by hook_schema() will be removed automatically.
  *
- * The uninstall hook will fire when the module gets uninstalled but before the
- * module's database tables are removed, allowing your module to query its own
- * tables during this routine.
+ * The uninstall hook must be implemented in the module's .install file. It
+ * will fire when the module gets uninstalled but before the module's database
+ * tables are removed, allowing your module to query its own tables during
+ * this routine.
  *
  * When hook_uninstall() is called, your module will already be disabled, so
  * its .module file will not be automatically included. If you need to call API
@@ -3322,7 +3343,9 @@ function hook_uninstall() {
 /**
  * Perform necessary actions after module is enabled.
  *
- * The hook is called every time the module is enabled.
+ * The hook is called every time the module is enabled. It should be
+ * implemented in the module's .install file. The implementation can
+ * rely on the .module file being loaded.
  *
  * @see module_enable()
  * @see hook_install()
@@ -3335,7 +3358,9 @@ function hook_enable() {
 /**
  * Perform necessary actions before module is disabled.
  *
- * The hook is called every time the module is disabled.
+ * The hook is called every time the module is disabled. It should be
+ * implemented in the module's .install file. The implementation can rely
+ * on the .module file being loaded.
  *
  * @see hook_uninstall()
  * @see hook_modules_disabled()
@@ -4426,7 +4451,7 @@ function hook_menu_site_status_alter(&$menu_site_status, $path) {
 /**
  * Register information about FileTransfer classes provided by a module.
  *
- * The FileTransfer class allows transfering files over a specific type of
+ * The FileTransfer class allows transferring files over a specific type of
  * connection. Core provides classes for FTP and SSH. Contributed modules are
  * free to extend the FileTransfer base class to add other connection types,
  * and if these classes are registered via hook_filetransfer_info(), those
