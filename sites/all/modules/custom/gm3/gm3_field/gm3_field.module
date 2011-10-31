@@ -67,15 +67,17 @@ function gm3_field_field_info(){
 function gm3_field_field_settings_form($field, $instance, $has_data){
   switch($field['type']){
     case 'gm3_combination':
+      $options = array(
+        'gm3_point' => 'Point',
+        'gm3_polygon' => 'Polygon',
+        'gm3_polyline' => 'Polyline'
+      );
+      drupal_alter('gm3_combination_field_options', $options);
       return array(
         'field_types' => array(
           '#type' => 'select',
           '#title' => t('Field types'),
-          '#options' => array(
-            'gm3_point' => 'Point',
-            'gm3_polygon' => 'Polygon',
-            'gm3_polyline' => 'Polyline'
-          ),
+          '#options' => $options,
           '#multiple' => TRUE,
           '#default_value' => $field['settings']['field_types'],
           '#required' => TRUE,
