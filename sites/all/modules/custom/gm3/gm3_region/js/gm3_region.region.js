@@ -2,23 +2,20 @@
   Drupal.GM3.region = function(map){
     // Point object.
     this.GM3 = map;
-    console.log(this.GM3);
     this.geo = new google.maps.Geocoder();
     this.countries = new Object();
     // Add Regions sent from server.
     if(this.GM3.libraries.region.regions) {
       for( var i in this.GM3.libraries.region.regions) {
-        for( var j in this.GM3.libraries.region.regions[i]) {
-          // Execute the callback to get the Polygon. This Polygon should then
-          // be added to the map, but without it being editable.
-          var self = this;
-          $.ajax({url: Drupal.settings.gm3_region.callback + '/' + i + '/' + this.GM3.libraries.region.regions[i][j], success: function(data, textStatus, jqXHR){
-            var polygons = eval(data);
-            for( var i in polygons) {
-              self.GM3.children.polygon.add_polygon(polygons[i], false);
-            }
-          }})
-        }
+        // Execute the callback to get the Polygon. This Polygon should then
+        // be added to the map, but without it being editable.
+        var self = this;
+        $.ajax({url: Drupal.settings.gm3_region.callback + '/' + this.GM3.libraries.region.regions[i], success: function(data, textStatus, jqXHR){
+          var polygons = eval(data);
+          for( var i in polygons) {
+            self.GM3.children.polygon.add_polygon(polygons[i], false);
+          }
+        }})
       }
     }
   }
