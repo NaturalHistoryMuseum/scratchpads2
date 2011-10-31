@@ -3,3 +3,4 @@ description = Provides a number of different fields for entering Geographical da
 core = 7.x
 package = Google maps
 dependencies[] = gm3
+dependencies[] = field

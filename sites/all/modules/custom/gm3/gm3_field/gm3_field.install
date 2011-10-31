@@ -72,7 +72,7 @@ function gm3_field_field_schema($field){
         'columns' => array(
           'gm3_type' => array(
             'type' => 'varchar', // Give flexibilty incase another module extends this.
-            'length' => 16
+            'length' => 32
           )
         ),
         'indexes' => array(
