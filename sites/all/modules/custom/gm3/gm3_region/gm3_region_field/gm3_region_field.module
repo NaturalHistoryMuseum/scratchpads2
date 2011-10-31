@@ -114,7 +114,10 @@ function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instan
             'regions' => $regions
           ),
           'polygon'
-        )
+        ),
+        'tools' => theme('gm3_region_region_button', array(
+          'id' => $id
+        ))
       )
     ));
   }
