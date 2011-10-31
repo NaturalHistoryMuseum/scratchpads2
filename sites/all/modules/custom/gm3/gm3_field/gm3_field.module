@@ -476,6 +476,19 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         ));
       }
       break;
+    default:
+      // Here we have a field that was not defined by this module, we use the 
+      // name of the module, plus the name of the type plus view to get the name
+      // of the function to call
+      // "{$field['module']}_{$field['type']}_view()"
+      if(function_exists("{$field['module']}_{$field['type']}_view")){
+        $function_name = "{$field['module']}_{$field['type']}_view";
+        $element = $function_name($entity_type, $entity, $field, $instance, $langcode, $items, $display, $id);
+      }else{
+        // We have an error, a naughty module!
+        dpm('Pants');
+      }
+      break;
   }
   if(isset($element) && $element){return array(
       $element
