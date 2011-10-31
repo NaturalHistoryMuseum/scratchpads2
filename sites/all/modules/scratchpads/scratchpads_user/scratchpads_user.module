@@ -1,0 +1,321 @@
+<?php
+
+/**
+ * @file
+ */
+/**
+ * Implement hook_theme().
+ */
+function scratchpads_user_theme(){
+  return array(
+    'scratchpads_user_register_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+function scratchpads_user_menu_alter(&$items){
+  // Example - disable the page at node/add
+  $items['admin/people']['page callback'] = 'scratchpads_user_admin';
+}
+
+/**
+ * Menu callback;
+ * Replaces user_admin(list) function to allow for real user names / hiding dummy usernames
+ */
+function scratchpads_user_admin($callback_arg = '') {
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+  switch ($op) {
+    case t('Create new account'):
+    case 'create':
+      $build['user_register'] = drupal_get_form('user_register_form');
+      break;
+    default:
+      if (!empty($_POST['accounts']) && isset($_POST['operation']) && ($_POST['operation'] == 'cancel')) {
+        $build['user_multiple_cancel_confirm'] = drupal_get_form('user_multiple_cancel_confirm');
+      }
+      else {
+        $build['user_filter_form'] = drupal_get_form('user_filter_form');
+        $build['user_admin_account'] = drupal_get_form('scratchpads_user_admin_account');
+      }
+  }
+  return $build;
+}
+
+function scratchpads_user_admin_account(){
+  $header = array(
+    'username' => array(
+      'data' => t('Username'),
+      'field' => 'u.name'
+    ),
+    'given_names' => array(
+      'data' => t('Given names'),
+      'field' => 'fgn.field_user_given_names_value'
+    ),
+    'family_name' => array(
+      'data' => t('Family name'),
+      'field' => 'fn.field_user_family_name_value'
+    ),
+    'status' => array(
+      'data' => t('Status'),
+      'field' => 'u.status'
+    ),
+    'roles' => array(
+      'data' => t('Roles')
+    ),
+    'member_for' => array(
+      'data' => t('Member for'),
+      'field' => 'u.created',
+      'sort' => 'desc'
+    ),
+    'access' => array(
+      'data' => t('Last access'),
+      'field' => 'u.access'
+    ),
+    'operations' => array(
+      'data' => t('Operations')
+    )
+  );
+  $query = db_select('users', 'u');
+  $query->condition('u.uid', 0, '<>');
+  $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
+  $query->addField('fn', 'field_user_family_name_value', 'family_name');
+  $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
+  $query->addField('fgn', 'field_user_given_names_value', 'given_names');
+  user_build_filter_query($query);
+  $count_query = clone $query;
+  $count_query->addExpression('COUNT(u.uid)');
+  $query = $query->extend('PagerDefault')->extend('TableSort');
+  $query->fields('u', array(
+    'uid',
+    'name',
+    'status',
+    'created',
+    'access',
+  	'pass'
+  ));
+  $query->limit(50);
+  $query->orderByHeader($header);
+  $query->setCountQuery($count_query);
+  $result = $query->execute();
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update options'),
+    '#attributes' => array(
+      'class' => array(
+        'container-inline'
+      )
+    )
+  );
+  $options = array();
+  foreach(module_invoke_all('user_operations') as $operation => $array){
+    $options[$operation] = $array['label'];
+  }
+  $form['options']['operation'] = array(
+    '#type' => 'select',
+    '#title' => t('Operation'),
+    '#title_display' => 'invisible',
+    '#options' => $options,
+    '#default_value' => 'unblock'
+  );
+  $options = array();
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update')
+  );
+  $destination = drupal_get_destination();
+  $status = array(
+    t('blocked'),
+    t('active')
+  );
+  $roles = array_map('check_plain', user_roles(TRUE));
+  $accounts = array();
+  foreach($result as $account){
+    dd($account);
+    $users_roles = array();
+    $roles_result = db_query('SELECT rid FROM {users_roles} WHERE uid = :uid', array(
+      ':uid' => $account->uid
+    ));
+    foreach($roles_result as $user_role){
+      $users_roles[] = $roles[$user_role->rid];
+    }
+    asort($users_roles);
+    
+    if(empty($account->pass)){
+    	$username = '';
+    }else{
+    	$username = theme('username', array(
+        'account' => $account
+      ));
+    }
+    
+    $options[$account->uid] = array(
+      'username' => $username,
+      'given_names' => $account->given_names,
+      'family_name' => $account->family_name,
+      'status' => $status[$account->status],
+      'roles' => theme('item_list', array(
+        'items' => $users_roles
+      )),
+      'member_for' => format_interval(REQUEST_TIME - $account->created),
+      'access' => $account->access ? t('@time ago', array(
+        '@time' => format_interval(REQUEST_TIME - $account->access)
+      )) : t('never'),
+      'operations' => array(
+        'data' => array(
+          '#type' => 'link',
+          '#title' => t('edit'),
+          '#href' => "user/$account->uid/edit",
+          '#options' => array(
+            'query' => $destination
+          )
+        )
+      )
+    );
+  }
+  $form['accounts'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $options,
+    '#empty' => t('No people available.')
+  );
+  $form['pager'] = array(
+    '#markup' => theme('pager')
+  );
+  return $form;
+}
+
+/**
+ * 
+ * Implement hook_ENTITY_TYPE_load()
+ */
+function scratchpads_user_user_load($entities){
+  // For entitites with a dummy username, use the name/surname
+  foreach($entities as $entity_id => $entity){
+    if($entity->uid && empty($entity->pass)){
+      // Is this user just a stub - cannot login
+      $entities[$entity_id]->stub_user = true;
+      $entities[$entity_id]->name = $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] . ' ' . $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'];
+    }
+  }
+  return $entities;
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
+  _scratchpads_user_form_alter($form, $form_state);
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $form['actions']['submit']['#submit'] = array(
+      'scratchpads_user_register_form_pre_submit',
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
+  global $user;
+  _scratchpads_user_form_alter($form, $form_state);
+  if(isset($form['#user']->stub_user)){
+    $form['account']['name']['#default_value'] = '';
+    $form['create_user_account']['#default_value'] = 0;
+  }else{
+    $form['create_user_account']['#default_value'] = 1;
+    if($user->uid == 1){
+      $form['create_user_account']['#disabled'] = true;
+    }
+  }
+}
+
+/**
+ * 
+ * helper function - make alterations to both the user_profile_form() & user_register_form() forms
+ * @param array $form
+ * @param array $form_state
+ */
+function _scratchpads_user_form_alter(&$form, &$form_state){
+	global $user;
+  $form['account']['#type'] = 'fieldset';
+  $form['account']['#title'] = t('User account settings');
+  $form['account']['#states'] = array(
+    // Hide the settings when the cancel notify checkbox is disabled.
+    'invisible' => array(
+      'input[name="create_user_account"]' => array(
+        'checked' => FALSE
+      )
+    )
+  );
+  $form['create_user_account'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow user login?'),
+    '#description' => t("Do you want to create a user account for this user so they can log into the website?")
+  );
+  $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
+  // Add the theme function to make this form look better
+  array_unshift($form['#theme'], 'scratchpads_user_register_form');
+  // If the user isn't creating a user account, limit the validation errors to email & extra fields
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $form['actions']['submit']['#limit_validation_errors'] = array(
+      array(
+        'mail'
+      )
+    );
+    foreach($form['#fields'] as $field_name => $field){
+      if($field['required']){
+        $form['actions']['submit']['#limit_validation_errors'][] = array(
+          $field_name
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Submit function called before user_register_submit()
+ * Used to manipulate the values before the user is saved
+ * @param array $form
+ * @param array $form_state
+ */
+function scratchpads_user_register_form_pre_submit($form, &$form_state){
+  $form_state['values']['name'] = uniqid();
+}
+
+/**
+ * Submit function called after user_register_submit()
+ * Used to manipulate the message displayed to the user
+ * @param array $form
+ * @param array $form_state
+ */
+function scratchpads_user_register_form_post_submit($form, &$form_state){
+  // Reset the messages
+  drupal_get_messages('status');
+  drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
+    '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
+    '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
+    '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
+  )));
+  // Give a warning that no user account was created
+  drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+}
+
+function theme_scratchpads_user_register_form($variables){
+  $output = '';
+  $form = $variables['form'];
+  // Add the email field
+  $output .= drupal_render($form['account']['mail']);
+  $field_names = array_keys($form['#fields']);
+  // And then any field api fields
+  foreach($field_names as $field_name){
+    $output .= drupal_render($form[$field_name]);
+  }
+  $output .= drupal_render($form['create_user_account']);
+  // And then the rest of the form
+  $output .= drupal_render_children($form);
+  return $output;
+}
+

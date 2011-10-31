@@ -237,18 +237,33 @@ function _drupal_theme_initialize($theme, $base_theme = array(), $registry_callb
 /**
  * Get the theme registry.
  *
+ * @param $complete
+ *   Optional boolean to indicate whether to return the complete theme registry
+ *   array or an instance of the ThemeRegistry class. If TRUE, the complete
+ *   theme registry array will be returned. This is useful if you want to
+ *   foreach over the whole registry, use array_* functions or inspect it in a
+ *   debugger. If FALSE, an instance of the ThemeRegistry class will be
+ *   returned, this provides an ArrayObject which allows it to be accessed
+ *   with array syntax and  isset(), and should be more lightweight
+ *   than the full registry. Defaults to TRUE.
+ *
  * @return
- *   The theme registry array if it has been stored in memory, NULL otherwise.
+ *   The complete theme registry array, or an instance of the ThemeRegistry
+ *   class.
  */
-function theme_get_registry() {
-  static $theme_registry = NULL;
+function theme_get_registry($complete = TRUE) {
+  static $theme_registry = array();
+  $key = (int) $complete;
 
-  if (!isset($theme_registry)) {
+  if (!isset($theme_registry[$key])) {
     list($callback, $arguments) = _theme_registry_callback();
-    $theme_registry = call_user_func_array($callback, $arguments);
+    if (!$complete) {
+      $arguments[] = FALSE;
+    }
+    $theme_registry[$key] = call_user_func_array($callback, $arguments);
   }
 
-  return $theme_registry;
+  return $theme_registry[$key];
 }
 
 /**
@@ -268,32 +283,43 @@ function _theme_registry_callback($callback = NULL, array $arguments = array()) 
 }
 
 /**
- * Get the theme_registry cache from the database; if it doesn't exist, build it.
+ * Get the theme_registry cache; if it doesn't exist, build it.
  *
  * @param $theme
  *   The loaded $theme object as returned by list_themes().
  * @param $base_theme
  *   An array of loaded $theme objects representing the ancestor themes in
  *   oldest first order.
- * @param theme_engine
+ * @param $theme_engine
  *   The name of the theme engine.
+ * @param $complete
+ *   Whether to load the complete theme registry or an instance of the
+ *   ThemeRegistry class.
+ *
+ * @return
+ *   The theme registry array, or an instance of the ThemeRegistry class.
  */
-function _theme_load_registry($theme, $base_theme = NULL, $theme_engine = NULL) {
-  // Check the theme registry cache; if it exists, use it.
-  $cache = cache_get("theme_registry:$theme->name", 'cache');
-  if (isset($cache->data)) {
-    $registry = $cache->data;
+function _theme_load_registry($theme, $base_theme = NULL, $theme_engine = NULL, $complete = TRUE) {
+  if ($complete) {
+    // Check the theme registry cache; if it exists, use it.
+    $cached = cache_get("theme_registry:$theme->name");
+    if (isset($cached->data)) {
+      $registry = $cached->data;
+    }
+    else {
+      // If not, build one and cache it.
+      $registry = _theme_build_registry($theme, $base_theme, $theme_engine);
+      // Only persist this registry if all modules are loaded. This assures a
+      // complete set of theme hooks.
+      if (module_load_all(NULL)) {
+        _theme_save_registry($theme, $registry);
+      }
+    }
+    return $registry;
   }
   else {
-    // If not, build one and cache it.
-    $registry = _theme_build_registry($theme, $base_theme, $theme_engine);
-   // Only persist this registry if all modules are loaded. This assures a
-   // complete set of theme hooks.
-    if (module_load_all(NULL)) {
-      _theme_save_registry($theme, $registry);
-    }
+    return new ThemeRegistry('theme_registry:runtime:' . $theme->name, 'cache');
   }
-  return $registry;
 }
 
 /**
@@ -310,6 +336,104 @@ function _theme_save_registry($theme, $registry) {
  */
 function drupal_theme_rebuild() {
   cache_clear_all('theme_registry', 'cache', TRUE);
+}
+
+/**
+ * Builds the run-time theme registry.
+ *
+ * Extends DrupalCacheArray to allow the theme registry to be accessed as a
+ * complete registry, while internally caching only the parts of the registry
+ * that are actually in use on the site. On cache misses the complete
+ * theme registry is loaded and used to update the run-time cache.
+ */
+class ThemeRegistry Extends DrupalCacheArray {
+
+  /**
+   * Whether the partial registry can be persisted to the cache.
+   *
+   * This is only allowed if all modules and the request method is GET. theme()
+   * should be very rarely called on POST requests and this avoids polluting
+   * the runtime cache.
+   */
+  protected $persistable;
+
+  /**
+   * The complete theme registry array.
+   */
+  protected $completeRegistry;
+
+  function __construct($cid, $bin) {
+    $this->cid = $cid;
+    $this->bin = $bin;
+    $this->persistable = module_load_all(NULL) && $_SERVER['REQUEST_METHOD'] == 'GET';
+
+    $data = array();
+    if ($this->persistable && $cached = cache_get($this->cid, $this->bin)) {
+      $data = $cached->data;
+    }
+    else {
+      $complete_registry = theme_get_registry();
+      if ($this->persistable) {
+        // If there is no runtime cache stored, fetch the full theme registry,
+        // but then initialize each value to NULL. This allows
+        // offsetExists() to function correctly on non-registered theme hooks
+        // without triggering a call to resolveCacheMiss().
+        $data = array_fill_keys(array_keys($complete_registry), NULL);
+        $this->set($this->cid, $data, $this->bin);
+        $this->completeRegistry = $complete_registry;
+      }
+      else {
+        $data = $complete_registry;
+      }
+    }
+    $this->storage = $data;
+  }
+
+  public function offsetExists($offset) {
+    // Since the theme registry allows for theme hooks to be requested that
+    // are not registered, just check the existence of the key in the registry.
+    // Use array_key_exists() here since a NULL value indicates that the theme
+    // hook exists but has not yet been requested.
+    return array_key_exists($offset, $this->storage);
+  }
+
+  public function offsetGet($offset) {
+    // If the offset is set but empty, it is a registered theme hook that has
+    // not yet been requested. Offsets that do not exist at all were not
+    // registered in hook_theme().
+    if (isset($this->storage[$offset])) {
+      return $this->storage[$offset];
+    }
+    elseif (array_key_exists($offset, $this->storage)) {
+      return $this->resolveCacheMiss($offset);
+    }
+  }
+
+  public function resolveCacheMiss($offset) {
+    if (!isset($this->completeRegistry)) {
+      $this->completeRegistry = theme_get_registry();
+    }
+    $this->storage[$offset] = $this->completeRegistry[$offset];
+    if ($this->persistable) {
+      $this->persist($offset);
+    }
+    return $this->storage[$offset];
+  }
+
+  public function set($cid, $data, $bin, $lock = TRUE) {
+    $lock_name = $cid . ':' . $bin;
+    if (!$lock || lock_acquire($lock_name)) {
+      if ($cached = cache_get($cid, $this->bin)) {
+        // Use array merge instead of union so that filled in values in $data
+        // overwrite empty values in the current cache.
+        $data = array_merge($cached->data, $data);
+      }
+      cache_set($cid, $data, $bin);
+      if ($lock) {
+        lock_release($lock_name);
+      }
+    }
+  }
 }
 
 /**
@@ -512,22 +636,33 @@ function _theme_process_registry(&$cache, $name, $type, $theme, $path) {
 }
 
 /**
- * Rebuild the theme registry cache.
+ * Build the theme registry cache.
  *
  * @param $theme
  *   The loaded $theme object as returned by list_themes().
  * @param $base_theme
  *   An array of loaded $theme objects representing the ancestor themes in
  *   oldest first order.
- * @param theme_engine
+ * @param $theme_engine
  *   The name of the theme engine.
  */
 function _theme_build_registry($theme, $base_theme, $theme_engine) {
   $cache = array();
   // First, process the theme hooks advertised by modules. This will
-  // serve as the basic registry.
-  foreach (module_implements('theme') as $module) {
-    _theme_process_registry($cache, $module, 'module', $module, drupal_get_path('module', $module));
+  // serve as the basic registry. Since the list of enabled modules is the same
+  // regardless of the theme used, this is cached in its own entry to save
+  // building it for every theme.
+  if ($cached = cache_get('theme_registry:build:modules')) {
+    $cache = $cached->data;
+  }
+  else {
+    foreach (module_implements('theme') as $module) {
+      _theme_process_registry($cache, $module, 'module', $module, drupal_get_path('module', $module));
+    }
+    // Only cache this registry if all modules are loaded.
+    if (module_load_all(NULL)) {
+      cache_set('theme_registry:build:modules', $cache);
+    }
   }
 
   // Process each base theme.
@@ -760,7 +895,7 @@ function theme($hook, $variables = array()) {
 
   if (!isset($hooks)) {
     drupal_theme_initialize();
-    $hooks = theme_get_registry();
+    $hooks = theme_get_registry(FALSE);
   }
 
   // If an array of hook candidates were passed, use the first one that has an
@@ -1388,7 +1523,8 @@ function theme_link($variables) {
  *     - html: (optional) Whether or not 'title' is HTML. If set, the title
  *       will not be passed through check_plain().
  *     - attributes: (optional) Attributes for the anchor, or for the <span> tag
- *       used in its place if no 'href' is supplied.
+ *       used in its place if no 'href' is supplied. If element 'class' is
+ *       included, it must be an array of one or more class names.
  *     If the 'href' element is supplied, the entire link array is passed to l()
  *     as its $options parameter.
  *   - attributes: A keyed array of attributes for the UL containing the
@@ -2086,7 +2222,7 @@ function template_preprocess(&$variables, $hook) {
 }
 
 /**
- * Returns hook-independant variables to template_preprocess().
+ * Returns hook-independent variables to template_preprocess().
  */
 function _template_preprocess_default_variables() {
   global $user;
