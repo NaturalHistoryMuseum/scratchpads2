@@ -40,7 +40,25 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
  * Implementation of hook_gm3_combination_field_options_alter()
  */
 function gm3_region_field_gm3_combination_field_options_alter(&$options){
-  $options['gm3_region'] = t('Region');  
+  $options['gm3_region_field_region'] = t('Region');
+}
+
+/**
+ * Function to update the map on the combination form element.
+ */
+function gm3_region_field_region_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget){
+  $map['libraries']['region']['regions'] = array();
+  $map['libraries']['field_region']['module'] = 'gm3_region_field';
+  $map['tools'][] = theme('gm3_region_region_button', array(
+    'id' => $element['#field_name']
+  ));
+  $widget['children']['gm3_region'] = array(
+    //'#default_value' => $default_values_string[$poly_type], // FIXME - Set the default values.
+    '#options' => _gm3_region_field_get_options(),
+    '#multiple' => TRUE,
+    '#size' => 10,
+    '#type' => 'select'
+  );
 }
 
 /**
