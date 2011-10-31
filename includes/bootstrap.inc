@@ -8,7 +8,7 @@
 /**
  * The current system version.
  */
-define('VERSION', '7.8');
+define('VERSION', '7.10-dev');
 
 /**
  * Core API compatibility.
@@ -418,7 +418,7 @@ abstract class DrupalCacheArray implements ArrayAccess {
  * Start the timer with the specified name. If you start and stop the same
  * timer multiple times, the measured intervals will be accumulated.
  *
- * @param name
+ * @param $name
  *   The name of the timer.
  */
 function timer_start($name) {
@@ -431,8 +431,9 @@ function timer_start($name) {
 /**
  * Read the current timer value without stopping the timer.
  *
- * @param name
+ * @param $name
  *   The name of the timer.
+ *
  * @return
  *   The current timer value in ms.
  */
@@ -454,8 +455,9 @@ function timer_read($name) {
 /**
  * Stop the timer with the specified name.
  *
- * @param name
+ * @param $name
  *   The name of the timer.
+ *
  * @return
  *   A timer array. The array contains the number of times the timer has been
  *   started and stopped (count) and the accumulated timer value in ms (time).
@@ -824,7 +826,7 @@ function drupal_settings_initialize() {
 function drupal_get_filename($type, $name, $filename = NULL) {
   // The location of files will not change during the request, so do not use
   // drupal_static().
-  static $files = array();
+  static $files = array(), $dirs = array();
 
   if (!isset($files[$type])) {
     $files[$type] = array();
@@ -870,16 +872,19 @@ function drupal_get_filename($type, $name, $filename = NULL) {
         $extension = $type;
       }
 
-      if (!function_exists('drupal_system_listing')) {
-        require_once DRUPAL_ROOT . '/includes/common.inc';
-      }
-      // Scan the appropriate directories for all files with the requested
-      // extension, not just the file we are currently looking for. This
-      // prevents unnecessary scans from being repeated when this function is
-      // called more than once in the same page request.
-      $matches = drupal_system_listing("/^" . DRUPAL_PHP_FUNCTION_PATTERN . "\.$extension$/", $dir, 'name', 0);
-      foreach ($matches as $matched_name => $file) {
-        $files[$type][$matched_name] = $file->uri;
+      if (!isset($dirs[$dir][$extension])) {
+        $dirs[$dir][$extension] = TRUE;
+        if (!function_exists('drupal_system_listing')) {
+          require_once DRUPAL_ROOT . '/includes/common.inc';
+        }
+        // Scan the appropriate directories for all files with the requested
+        // extension, not just the file we are currently looking for. This
+        // prevents unnecessary scans from being repeated when this function is
+        // called more than once in the same page request.
+        $matches = drupal_system_listing("/^" . DRUPAL_PHP_FUNCTION_PATTERN . "\.$extension$/", $dir, 'name', 0);
+        foreach ($matches as $matched_name => $file) {
+          $files[$type][$matched_name] = $file->uri;
+        }
       }
     }
   }
@@ -1426,15 +1431,7 @@ function drupal_unpack($obj, $field = 'data') {
  *   A string containing the English string to translate.
  * @param $args
  *   An associative array of replacements to make after translation.
- *   Occurrences in $string of any key in $args are replaced with the
- *   corresponding value, after sanitization. The sanitization function depends
- *   on the first character of the key:
- *   - !variable: Inserted as is. Use this for text that has already been
- *     sanitized.
- *   - @variable: Escaped to HTML using check_plain(). Use this for anything
- *     displayed on a page on the site.
- *   - %variable: Escaped as a placeholder for user-submitted content using
- *     drupal_placeholder(), which shows up as <em>emphasized</em> text.
+ *   See format_string().
  * @param $options
  *   An associative array of additional options, with the following elements:
  *   - 'langcode' (defaults to the current language): The language code to
@@ -1480,26 +1477,50 @@ function t($string, array $args = array(), array $options = array()) {
     return $string;
   }
   else {
-    // Transform arguments before inserting them.
-    foreach ($args as $key => $value) {
-      switch ($key[0]) {
-        case '@':
-          // Escaped only.
-          $args[$key] = check_plain($value);
-          break;
-
-        case '%':
-        default:
-          // Escaped and placeholder.
-          $args[$key] = drupal_placeholder($value);
-          break;
-
-        case '!':
-          // Pass-through.
-      }
-    }
-    return strtr($string, $args);
+    return format_string($string, $args);
   }
+}
+
+/**
+ * Replace placeholders with sanitized values in a string.
+ *
+ * @param $string
+ *   A string containing placeholders.
+ * @param $args
+ *   An associative array of replacements to make. Occurrences in $string of
+ *   any key in $args are replaced with the corresponding value, after
+ *   sanitization. The sanitization function depends on the first character of
+ *   the key:
+ *   - !variable: Inserted as is. Use this for text that has already been
+ *     sanitized.
+ *   - @variable: Escaped to HTML using check_plain(). Use this for anything
+ *     displayed on a page on the site.
+ *   - %variable: Escaped as a placeholder for user-submitted content using
+ *     drupal_placeholder(), which shows up as <em>emphasized</em> text.
+ *
+ * @see t()
+ * @ingroup sanitization
+ */
+function format_string($string, array $args = array()) {
+  // Transform arguments before inserting them.
+  foreach ($args as $key => $value) {
+    switch ($key[0]) {
+      case '@':
+        // Escaped only.
+        $args[$key] = check_plain($value);
+        break;
+
+      case '%':
+      default:
+        // Escaped and placeholder.
+        $args[$key] = drupal_placeholder($value);
+        break;
+
+      case '!':
+        // Pass-through.
+    }
+  }
+  return strtr($string, $args);
 }
 
 /**
@@ -2403,6 +2424,34 @@ function drupal_maintenance_theme() {
 }
 
 /**
+ * Returns a simple 404 Not Found page.
+ *
+ * If fast 404 pages are enabled, and this is a matching page then print a
+ * simple 404 page and exit.
+ *
+ * This function is called from drupal_deliver_html_page() at the time when a
+ * a normal 404 page is generated, but it can also optionally be called directly
+ * from settings.php to prevent a Drupal bootstrap on these pages. See
+ * documentation in settings.php for the benefits and drawbacks of using this.
+ *
+ * Paths to dynamically-generated content, such as image styles, should also be
+ * accounted for in this function.
+ */
+function drupal_fast_404() {
+  $exclude_paths = variable_get('404_fast_paths_exclude', FALSE);
+  if ($exclude_paths && !preg_match($exclude_paths, $_GET['q'])) {
+    $fast_paths = variable_get('404_fast_paths', FALSE);
+    if ($fast_paths && preg_match($fast_paths, $_GET['q'])) {
+      drupal_add_http_header('Status', '404 Not Found');
+      $fast_404_html = variable_get('404_fast_html', '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>');
+      // Replace @path in the variable with the page path.
+      print strtr($fast_404_html, array('@path' => check_plain(request_uri())));
+      exit;
+    }
+  }
+}
+
+/**
  * Return TRUE if a Drupal installation is currently being attempted.
  */
 function drupal_installation_attempted() {
@@ -2421,7 +2470,7 @@ function drupal_installation_attempted() {
  * non-installation time, such as while installing the module from the the
  * module administration page.
  *
- * Example useage:
+ * Example usage:
  * @code
  *   $t = get_t();
  *   $translated = $t('translate this');
@@ -2503,9 +2552,18 @@ function language_types() {
 }
 
 /**
- * Get a list of languages set up indexed by the specified key
+ * Returns a list of installed languages, indexed by the specified key.
  *
- * @param $field The field to index the list with.
+ * @param $field
+ *   (optional) The field to index the list with.
+ *
+ * @return
+ *   An associative array, keyed on the values of $field.
+ *   - If $field is 'weight' or 'enabled', the array is nested, with the outer
+ *     array's values each being associative arrays with language codes as
+ *     keys and language objects as values.
+ *   - For all other values of $field, the array is only one level deep, and
+ *     the array's values are language objects.
  */
 function language_list($field = 'language') {
   $languages = &drupal_static(__FUNCTION__);
@@ -2750,7 +2808,7 @@ class SchemaCache extends DrupalCacheArray {
 
   public function __construct() {
     // Cache by request method.
-    parent::__construct('schema:runtime:' . $_SERVER['REQUEST_METHOD'] == 'GET', 'cache');
+    parent::__construct('schema:runtime:' . ($_SERVER['REQUEST_METHOD'] == 'GET'), 'cache');
   }
 
   protected function resolveCacheMiss($offset) {
