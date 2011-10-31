@@ -79,11 +79,11 @@ class PublicationUIController extends EntityDefaultUIController{
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     );
-    $items['publication/%publication/settings'] = array(
-      'title' => 'Settings',
+    $items['publication/%publication/edit'] = array(
+      'title' => 'Edit',
       'page callback' => 'publication_form_wrapper',
       'page arguments' => array(
-        'publication_settings_form',
+        'publication_edit_form',
         1
       ),
       'access callback' => 'publication_access',
@@ -106,7 +106,7 @@ class PublicationUIController extends EntityDefaultUIController{
       ),
       'access callback' => 'publication_access',
       'access arguments' => array(
-        'delete',
+        'update',
         1
       ),
       'type' => MENU_LOCAL_TASK,
@@ -260,6 +260,10 @@ function publication_form_wrapper($form_id, $publication = null){
  * with only a publication type defined.
  */
 function publication_edit_form($form, &$form_state, $publication){
+	// Jump to a particular step
+  if(isset($_GET['step']) & !$form_state['submitted']){
+    $form_state['current_group'] = $_GET['step'];
+  }
   // Add the default field elements.
   $form['title'] = array(
     '#type' => 'textfield',
@@ -290,29 +294,43 @@ function publication_edit_form($form, &$form_state, $publication){
   }
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save publication'),
+    '#value' => t('Save'),
     '#submit' => $submit + array(
       'publication_edit_form_submit'
     )
   );
-  if(!empty($publication->name)){
+  if(!empty($publication->pid)){
     $form['actions']['delete'] = array(
       '#type' => 'submit',
-      '#value' => t('Delete publication'),
-      '#suffix' => l(t('Cancel'), 'admin/content/publications'),
+      '#value' => t('Delete'),
       '#submit' => $submit + array(
         'publication_form_submit_delete'
       ),
       '#weight' => 45
     );
   }
-  $form['actions']['cancel'] = array(
-    '#markup' => l(t('Cancel'), 'admin/content/publications')
-  );
   // We append the validate handler to #validate in case a form callback_wrapper
   // is used to add validate handlers earlier.
   $form['#validate'][] = 'publication_edit_form_validate';
   return $form;
+}
+
+/**
+ * Button submit function: handle the 'Delete' button on the node form.
+ */
+function publication_form_submit_delete($form, &$form_state){
+  $destination = array();
+  if(isset($_GET['destination'])){
+    $destination = drupal_get_destination();
+    unset($_GET['destination']);
+  }
+  $publication = $form_state['publication'];
+  $form_state['redirect'] = array(
+    'publication/' . $publication->pid . '/delete',
+    array(
+      'query' => $destination
+    )
+  );
 }
 
 /**
@@ -338,6 +356,7 @@ function publication_edit_form_submit(&$form, &$form_state){
   }
   $publication->changed = time();
   $publication->save();
+  $form_state['pid'] = $publication->pid;
   $form_state['redirect'] = 'publication/' . $publication->pid;
 }
 

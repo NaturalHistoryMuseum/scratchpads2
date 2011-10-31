@@ -7,7 +7,7 @@
 function relation_select_preprocess_views_view_relation_select(&$variables){
   $variables['class'] = 'views-view-relation-select';
   $view = $variables['view'];
-  $result = $variables['result'] = $variables['rows'];  
+  $result = $variables['result'] = $variables['rows'];
   $handler = $view->style_plugin;
   $fields = &$view->field;
   $columns = $handler->sanitize_columns($fields);
@@ -26,10 +26,20 @@ function relation_select_preprocess_views_view_relation_select(&$variables){
     if($row_class = $handler->get_row_class($num)){
       $variables['row_classes'][$num][] = $row_class;
     }
-    $bundle = relation_select_entity_get_bundle($result[$num]->entity_type, $result[$num]);
+    // IS this an EFQ view?
+    if($view->efq){
+      $entity_id = $num;
+      $entity = $result[$num];
+      $entity_type = $result[$num]->entity_type;
+    }else{
+      $entity_id = $result[$num]->{$view->base_field};
+      $entity = $result[$num]->_field_data[$view->base_field]['entity'];
+      $entity_type = $result[$num]->_field_data[$view->base_field]['entity_type'];
+    }
+    $bundle = relation_select_entity_get_bundle($entity_type, $entity);
     $variables['row_entity'][$num] = array(
-      'entity_type' => $result[$num]->entity_type,
-      'entity_id' => $num,
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_id,
       'bundle' => $bundle
     );
   }
@@ -59,24 +69,13 @@ function relation_select_preprocess_relation_select_item_value(&$variables){
   $variables['theme_hook_suggestions'][] = 'relation_select_' . $variables['entity_type'] . 'item_value';
 }
 
-function relation_select_preprocess_relation_select_field_view(&$variables){	
-  // Theme hook suggestions so the field can be themed based on entity type, bundle and field name 
-  $variables['theme_hook_suggestions'][] = 'relation_select_' . $variables['entity_type'] . '_field_view';
-  $variables['theme_hook_suggestions'][] = 'relation_select_' . $variables['entity_type'] . '_' . $variables['bundle'] . '_field_view';
-  $variables['theme_hook_suggestions'][] = 'relation_select_' . $variables['entity_type'] . '_' . $variables['bundle'] . '_' . $variables['field_name'] . '_field_view';
-}
-
-function theme_relation_select_field_view(&$variables){
-  $links = array();
+function relation_select_preprocess_relation_select_field(&$variables){
+  $variables['list_type'] = 'ul';
+  $variables['items'] = array();
   foreach($variables['entities'] as $entity){
     $link = entity_uri($entity->entity_type, $entity);
-    $link['title'] = entity_label($entity->entity_type, $entity);
-    $link['href'] = $link['path'];
-    $links[] = $link;
+    $variables['items'][] = l(entity_label($entity->entity_type, $entity), $link['path']);
   }
-  return theme('links', array(
-    'links' => $links
-  ));
 }
 
 /**
@@ -89,7 +88,7 @@ function theme_relation_select_item_value($variables){
   ));
   if(is_array($entity)){
     $entity = current($entity);
-  }  
+  }
   if($label = entity_label($variables['entity_type'], $entity)){
     $output = '<span class="title">' . $label . '</span> (' . $variables['element']['#value'] . ')';
   }else{

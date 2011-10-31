@@ -45,6 +45,16 @@ class relation_select_plugin_style extends views_plugin_style{
     }
   }
 
+  function query(){
+    if($this->view->query->definition['handler'] == 'efq_views_plugin_query'){
+      $this->view->efq = true;
+    }else{
+      // We always want the query to be distinct - this also adds the correct base field
+      $this->view->query->set_distinct();
+      $this->view->efq = false;
+    }
+  }
+
   function pre_render($result){
     // We don't want to output any exposed filters - the form for this is already embeded
     unset($this->view->exposed_widgets);
