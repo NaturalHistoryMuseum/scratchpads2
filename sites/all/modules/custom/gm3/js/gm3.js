@@ -7,6 +7,9 @@
     this.libraries = typeof (map.libraries) != 'undefined' ? map.libraries : new Object();
     this.active_class = 'default';
     this.children = new Object();
+    this.added_zoom_changed_listener = false;
+    this.map_events = ["click", "dblclick", "mousemove", "rightclick", "zoom_changed", "bounds_changed", "center_changed"];
+    this.other_events = ["click", "dblclick", "mousemove", "rightclick"];
     try {
       $('#' + this.id).height(this.settings['height']);
       $('#' + this.id).width(this.settings['width']);
@@ -84,11 +87,23 @@
   }
   Drupal.GM3.prototype.event = function(event_type, event){}
   Drupal.GM3.prototype.add_listeners_helper = function(map_object){
-    map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
     var self = this;
-    var events_array = ["click", "dblclick", "mousemove", "rightclick"];
+    map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
+    // Add additional listeners to the Map
+    if(map_object.getClass() == 'Map') {
+      var events_array = this.map_events;
+    } else {
+      var events_array = this.other_events;
+    }
     for(i in events_array) {
-      eval('google.maps.event.clearListeners(map_object, "' + events_array[i] + '");' + 'google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
+      // Gah, this is ugly, but sadly necessary due to the way we're calling
+      // child listeners.
+      if(events_array[i] != 'zoom_changed') {
+        eval('google.maps.event.clearListeners(map_object, "' + events_array[i] + '");' + 'google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
+      } else if(!this.added_zoom_changed_listener){
+        eval('google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
+        this.added_zoom_changed_listener = true;
+      }
     }
   }
   Drupal.GM3.prototype.clear_listeners = function(){
@@ -108,11 +123,14 @@
   }
   Drupal.GM3.prototype.clear_listeners_helper = function(map_object){
     map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
-    var self = this;
-    google.maps.event.clearListeners(map_object, "click");
-    google.maps.event.clearListeners(map_object, "dblclick");
-    google.maps.event.clearListeners(map_object, "rightclick");
-    google.maps.event.clearListeners(map_object, "mousemove");
+    if(map_object.getClass() == 'Map') {
+      var events_array = this.map_events;
+    } else {
+      var events_array = this.other_events;
+    }
+    for(i in events_array) {
+      google.maps.event.clearListeners(map_object, events_array[i]);
+    }
   }
   Drupal.GM3.prototype.event = function(event_type, event){}
   Drupal.GM3.prototype.clear_listeners = function(){
@@ -168,7 +186,7 @@
   // Entry point. Add a map to a page. This should hopefully work via AJAX.
   Drupal.behaviors.gm3 = {attach: function(context, settings){
     for(map_id in Drupal.settings.gm3.maps) {
-      if($('#' + map_id, context).length && typeof(Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
+      if($('#' + map_id, context).length && typeof (Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
         // Create the new GM3 map object.
         Drupal.settings.gm3.maps[map_id] = new Drupal.GM3(Drupal.settings.gm3.maps[map_id]);
       }

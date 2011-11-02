@@ -6,29 +6,63 @@
     this.countries = new Object();
     // Add Regions sent from server.
     if(this.GM3.libraries.region.regions) {
-      for( var i in this.GM3.libraries.region.regions) {
-        this.add_polygons_by_id(this.GM3.libraries.region.regions[i]);
+      this.add_polygons_by_ids(this.GM3.libraries.region.regions);
+    }
+  }
+  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids){
+    if(typeof region_ids != 'object') {
+      if(typeof region_ids == 'string') {
+        region_ids = new Array(region_ids);
+      } else {
+        // Error, we can't handle this data type.
+        return;
+      }
+    }
+    // Execute the callback to get the Polygon. This Polygon should then
+    // be added to the map, but without it being editable.
+    var region_ids_to_add = new Array();
+    for( var i in region_ids) {
+      if(this.countries[region_ids[i]] == undefined) {
+        this.countries[region_ids[i]] = new Array();
+        region_ids_to_add[region_ids_to_add.length] = region_ids[i];
+      } else {
+        this.remove_polygons_by_id(region_ids[i]);
+      }
+    }
+    // Add the ones we need to add.
+    if(region_ids_to_add.length) {
+      // We need to do this x regions at a time, else the server will complain
+      // that the URL is too long
+      if(region_ids_to_add.length > 10){
+        var region_ids_copy = region_ids_to_add;
+        var region_ids = new Array();
+        var region_ids_index = -1;
+        for(var i in region_ids_copy){
+          if(i%10 == 0){
+            region_ids_index ++;
+            region_ids[region_ids_index] = new Array();
+          }
+          region_ids[region_ids_index][region_ids[region_ids_index].length] = region_ids_copy[i];
+        }
+      } else {
+        var region_ids = new Array(region_ids);
+      }
+      var self = this;
+      for(var i in region_ids){
+        $.getJSON(Drupal.settings.gm3_region.callback + '/' + region_ids[i].join(','), function(data, textStatus, jqXHR){
+          for( var i in data) {
+            for( var j in data[i]) {
+              for( var k in data[i][j]) {
+                self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j][k], false);
+              }
+            }
+          }
+        })
       }
     }
   }
-  Drupal.GM3.region.prototype.add_polygons_by_id = function(region_id){
-    // Execute the callback to get the Polygon. This Polygon should then
-    // be added to the map, but without it being editable.
-    if(this.countries[region_id] == undefined){
-      this.countries[region_id] = new Array();
-      var self = this;
-      $.ajax({url: Drupal.settings.gm3_region.callback + '/' + region_id, success: function(data, textStatus, jqXHR){
-        var polygons = eval(data);
-        for( var j in polygons) {
-          self.countries[region_id][self.countries[region_id].length] = self.GM3.children.polygon.add_polygon(polygons[j], false);
-        }
-      }})
-    } else {
-      this.remove_polygons_by_id(region_id);
-    }
-  }
   Drupal.GM3.region.prototype.remove_polygons_by_id = function(region_id){
-    for(var i in this.countries[region_id]){
+    for( var i in this.countries[region_id]) {
       this.countries[region_id][i].setMap(null);
     }
     this.countries[region_id] = undefined;
@@ -48,8 +82,8 @@
                   if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
                     var region_code = result[i].address_components[0]['short_name'];
                     $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code, function(data){
-                      if(data){
-                        self.add_polygons_by_id(data);
+                      if(data) {
+                        self.add_polygons_by_ids(data);
                         this.update_field();
                       }
                     });
