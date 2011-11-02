@@ -17,11 +17,9 @@ function gm3_convert_polygon_string($poly_string){
       $lat_longs = explode(",", $poly_string);
       foreach($lat_longs as $index => $lat_long){
         $lat_long_parts = explode(" ", $lat_long);
-        // Note, we round the data to attempt to reduce the bandwidth required,
-        // and also because the level of precision offered in the file is FUCKING STUPID!
         $lat_longs[$index] = array(
-          round((float)$lat_long_parts[0], 4),
-          round((float)$lat_long_parts[1], 4)
+          $lat_long_parts[0],
+          $lat_long_parts[1]
         );
       }
       return array(
