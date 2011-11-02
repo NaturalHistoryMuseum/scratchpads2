@@ -96,62 +96,41 @@ function gm3_region_get_points($region_ids){
     if($polygons === false){
       module_load_include('functions.inc', 'gm3');
       $region_id_parts = explode(":", $region_id);
+      // Load the geoPHP library.
+      gm3_load_geophp();
+      $wkb_reader = new WKB();
       switch(count($region_id_parts)){
         case 4:
-          /* 
-           * Need to add a way of querying by a country code.
-          $result = db_select('gm3_region_data', 'g')->condition('iso_code', $region_id)->fields('g')->execute();
-          $polygons = array();
-          foreach($result as $something){
-            foreach(gm3_convert_polygon_string($something->polygons) as $polygon){
-              $polygons[] = $polygon;
-            }
-          }*/
           $region_id_4_parts = explode("-", $region_id_parts[3]);
-          $result = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute();
-          foreach($result as $something){
-            foreach(gm3_convert_polygon_string($something->polygons) as $polygon){
-              $polygons[] = $polygon;
-            }
-          }
+          $row = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute()->fetch();
+          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
+          $polygons = $polygon->out('json');
           break;
         case 3:
-          $result = db_select('gm3_region_data', 'g')->condition(db_or()->condition('level_3_code', $region_id_parts[2])->condition('name', $region_id_parts[2]))->condition('level_4_code', '')->fields('g')->execute();
-          foreach($result as $something){
-            foreach(gm3_convert_polygon_string($something->polygons) as $polygon){
-              $polygons[] = $polygon;
-            }
-          }
+          $row = db_select('gm3_region_data', 'g')->condition(db_or()->condition('level_3_code', $region_id_parts[2])->condition('name', $region_id_parts[2]))->condition('level_4_code', '')->fields('g')->execute()->fetch();
+          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
+          $polygons = $polygon->out('json');
           break;
         case 2:
           if(is_numeric($region_id_parts[1])){
-            $result = db_select('gm3_region_data', 'g')->condition('level_2_code', $region_id_parts[1])->condition('level_3_code', '')->fields('g')->execute();
+            $row = db_select('gm3_region_data', 'g')->condition('level_2_code', $region_id_parts[1])->condition('level_3_code', '')->fields('g')->execute()->fetch();
           }else{
-            $result = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[1])->condition('level_3_code', '')->fields('g')->execute();
+            $row = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[1])->condition('level_3_code', '')->fields('g')->execute()->fetch();
           }
-          foreach($result as $something){
-            foreach(gm3_convert_polygon_string($something->polygons) as $polygon){
-              $polygons[] = $polygon;
-            }
-          }
+          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
+          $polygons = $polygon->out('json');
           break;
         case 1:
           if(is_numeric($region_id_parts[0])){
-            $result = db_select('gm3_region_data', 'g')->condition('level_1_code', $region_id_parts[0])->condition('level_2_code', 0)->fields('g')->execute();
+            $row = db_select('gm3_region_data', 'g')->condition('level_1_code', $region_id_parts[0])->condition('level_2_code', 0)->fields('g')->execute()->fetch();
           }else{
-            $result = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[0])->condition('level_2_code', 0)->fields('g')->execute();
+            $row = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[0])->condition('level_2_code', 0)->fields('g')->execute()->fetch();
           }
-          foreach($result as $something){
-            foreach(gm3_convert_polygon_string($something->polygons) as $polygon){
-              $polygons[] = $polygon;
-            }
-          }
+          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
+          $polygons = $polygon->out('json');
           break;
       }
-      $polygons = json_encode(array(
-        $region_id => $polygons
-      ));
-      watchdog('gm3_region', 'Setting cache');
+      $polygons = '{"' . $region_id . '":' . $polygons . '}';
       cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{
       $polygons = $polygons->data;

@@ -52,8 +52,10 @@
         $.getJSON(Drupal.settings.gm3_region.callback + '/' + region_ids[i].join(','), function(data, textStatus, jqXHR){
           for( var i in data) {
             for( var j in data[i]) {
-              for( var k in data[i][j]) {
-                self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j][k], false);
+              for(var k in data[i][j]['coordinates']){
+                for(var l in data[i][j]['coordinates'][k]){
+                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['coordinates'][k][l], false);                  
+                }
               }
             }
           }
