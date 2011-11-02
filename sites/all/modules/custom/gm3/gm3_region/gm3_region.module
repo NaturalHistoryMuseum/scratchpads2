@@ -9,6 +9,18 @@ function gm3_region_menu(){
       'title' => 'GM3 Region callback',
       'page callback' => 'gm3_region_get_points',
       'page arguments' => array(
+        2
+      ),
+      'file' => 'gm3_region.callback.inc',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    ),
+    'gm3_region/callback2/%/%' => array(
+      'title' => 'GM3 Region callback',
+      'page callback' => 'gm3_region_get_region_id_from_latlng',
+      'page arguments' => array(
         2,
         3
       ),
@@ -16,7 +28,7 @@ function gm3_region_menu(){
       'access arguments' => array(
         'access content'
       ),
-      'type' => MENU_CALLBACK
+      'type' => MENU_CALLBACK    
     )
   );
 }
@@ -43,7 +55,8 @@ function gm3_region_library(){
         array(
           'data' => array(
             'gm3_region' => array(
-              'callback' => url('gm3_region/callback')
+              'callback' => url('gm3_region/callback'),
+              'callback2' => url('gm3_region/callback2')
             )
           ),
           'type' => 'setting'

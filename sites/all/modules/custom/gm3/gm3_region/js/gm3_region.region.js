@@ -7,17 +7,31 @@
     // Add Regions sent from server.
     if(this.GM3.libraries.region.regions) {
       for( var i in this.GM3.libraries.region.regions) {
-        // Execute the callback to get the Polygon. This Polygon should then
-        // be added to the map, but without it being editable.
-        var self = this;
-        $.ajax({url: Drupal.settings.gm3_region.callback + '/' + this.GM3.libraries.region.regions[i], success: function(data, textStatus, jqXHR){
-          var polygons = eval(data);
-          for( var i in polygons) {
-            self.GM3.children.polygon.add_polygon(polygons[i], false);
-          }
-        }})
+        this.add_polygons_by_id(this.GM3.libraries.region.regions[i]);
       }
     }
+  }
+  Drupal.GM3.region.prototype.add_polygons_by_id = function(region_id){
+    // Execute the callback to get the Polygon. This Polygon should then
+    // be added to the map, but without it being editable.
+    if(this.countries[region_id] == undefined){
+      this.countries[region_id] = new Array();
+      var self = this;
+      $.ajax({url: Drupal.settings.gm3_region.callback + '/' + region_id, success: function(data, textStatus, jqXHR){
+        var polygons = eval(data);
+        for( var j in polygons) {
+          self.countries[region_id][self.countries[region_id].length] = self.GM3.children.polygon.add_polygon(polygons[j], false);
+        }
+      }})
+    } else {
+      this.remove_polygons_by_id(region_id);
+    }
+  }
+  Drupal.GM3.region.prototype.remove_polygons_by_id = function(region_id){
+    for(var i in this.countries[region_id]){
+      this.countries[region_id][i].setMap(null);
+    }
+    this.countries[region_id] = undefined;
   }
   Drupal.GM3.region.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
@@ -32,18 +46,15 @@
               if(status === 'OK') {
                 for(i in result) {
                   if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
-                    var region_name = result[i].address_components[0]['long_name'];
                     var region_code = result[i].address_components[0]['short_name'];
-                    console.log(region_name);
-                    if(self.countries[region_code] == region_name) {
-                      self.countries[region_code] = undefined;
-                    } else {
-                      self.countries[region_code] = region_name;
-                    }
+                    $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code, function(data){
+                      if(data){
+                        self.add_polygons_by_id(data);
+                        this.update_field();
+                      }
+                    });
                   }
                 }
-              } else {
-                alert(Drupal.t('There has been an error with Google\'s service.  Please try again later.'));
               }
             });
             break;
@@ -53,8 +64,5 @@
         }
         break;
     }
-  }
-  Drupal.GM3.region.prototype.highlight_region = function(){
-
   }
 })(jQuery);

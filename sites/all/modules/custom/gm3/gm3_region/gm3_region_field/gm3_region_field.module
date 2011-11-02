@@ -75,17 +75,23 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
  * Function to update the map on the combination form element.
  */
 function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
-  $map['libraries']['region']['regions'] = $default_values['gm3_region_region'];
+  $map['libraries']['region']['regions'] = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
   $map['libraries']['field_region']['module'] = 'gm3_region_field';
   $map['tools'][] = theme('gm3_region_region_button', array(
     'id' => $element['#field_name']
   ));
   $widget['children']['gm3_region'] = array(
-    '#default_value' => $default_values['gm3_region_region'], // FIXME - Set the default values.
+    '#default_value' => isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array(),
     '#options' => _gm3_region_field_get_options(),
     '#multiple' => TRUE,
     '#size' => 10,
-    '#type' => 'select'
+    '#type' => 'select',
+    '#attributes' => array(
+      'class' => array(
+        $element['#field_name'] . '-region'
+      ),
+      'style' => 'display:none'
+    )
   );
 }
 
@@ -277,8 +283,9 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
         ),
         '#attributes' => array(
           'class' => array(
-            $element['#field_name'] . '-point'
-          )
+            $element['#field_name'] . '-region'
+          ),
+          'style' => 'display:none'
         ),
         '#default_value' => $regions,
         '#options' => _gm3_region_field_get_options(),

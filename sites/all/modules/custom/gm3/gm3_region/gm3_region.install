@@ -1,13 +1,21 @@
 <?php
 
 /**
+ * FIXME - Add a hook requirements to check for the GEOS extension.
+ */
+
+/**
  * Implementation of hook_install().
+ * 
+ * FIXME - The install should be done as a batch, as the insert takes a long
+ * time to process every shape.
  */
 function gm3_region_install(){
   // Load the data into the tables.
   // As the files are so huge, we'll read the file line by line and insert 
   // each region one by one.  This may be a little slower, but it's less likely
   // to fuck up!
+  gm3_load_geophp();  
   for($i = 1; $i <= 4; $i++){
     $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
     $fields = array();
@@ -44,7 +52,9 @@ function gm3_region_install(){
           case '  MULTIPOLY':
           case '  POLYGON (':
             // Do the insert
-            $fields['polygons'] = trim($line);
+            $fields['polygons'] = trim($line);            
+            $geophp = geoPHP::load($fields['polygons'], 'wkt');
+            $fields['binary_polygons'] = bin2hex($geophp->asBinary());
             db_insert('gm3_region_data')->fields($fields)->execute();
             $fields = array();
             break;
@@ -107,6 +117,12 @@ function gm3_region_schema(){
         ),
         'polygons' => array(
           'description' => "Polygons",
+          'type' => 'text',
+          'not null' => TRUE,
+          'size' => 'medium'
+        ),
+        'binary_polygons' => array(
+          'description' => "Binary polygons",
           'type' => 'text',
           'not null' => TRUE,
           'size' => 'medium'
