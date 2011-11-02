@@ -31,13 +31,24 @@
     editable = typeof (editable) != 'undefined' ? editable : true;
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
-      path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long'])
+      if(points[i]['lat'] == undefined){
+        // We have a string rather than an array, split it
+        if(typeof points[i] == 'object'){
+          points[i] = String(points[i]);          
+        }
+        points[i] = points[i].split(",");
+        path_points[i] = new google.maps.LatLng(points[i][1], points[i][0]);
+      } else {
+        path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long']);
+      }
     }
     if(editable) {
       this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
     } else {
       var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
       this.GM3.add_listeners_helper(polygon);
+      // Return the polygon so that it can be saved elsewhere.
+      return polygon;
     }
   }
   Drupal.GM3.polygon.prototype.event = function(event_type, event, event_object){
