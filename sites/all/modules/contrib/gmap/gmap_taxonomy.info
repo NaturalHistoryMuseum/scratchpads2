@@ -5,9 +5,3 @@ core = 7.x
 dependencies[] = taxonomy
 dependencies[] = gmap
 files[] = gmap_taxonomy.module
-; Information added by drupal.org packaging script on 2011-04-01
-version = "7.x-1.x-dev"
-core = "7.x"
-project = "gmap"
-datestamp = "1301616521"
-
