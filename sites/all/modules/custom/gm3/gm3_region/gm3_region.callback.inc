@@ -103,13 +103,9 @@ function gm3_region_get_points($region_ids){
         case 4:
           $region_id_4_parts = explode("-", $region_id_parts[3]);
           $row = db_select('gm3_region_data', 'g')->condition('level_4_code', $region_id_4_parts[1])->condition('level_3_code', $region_id_4_parts[0])->fields('g')->execute()->fetch();
-          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
-          $polygons = $polygon->out('json');
           break;
         case 3:
           $row = db_select('gm3_region_data', 'g')->condition(db_or()->condition('level_3_code', $region_id_parts[2])->condition('name', $region_id_parts[2]))->condition('level_4_code', '')->fields('g')->execute()->fetch();
-          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
-          $polygons = $polygon->out('json');
           break;
         case 2:
           if(is_numeric($region_id_parts[1])){
@@ -117,8 +113,6 @@ function gm3_region_get_points($region_ids){
           }else{
             $row = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[1])->condition('level_3_code', '')->fields('g')->execute()->fetch();
           }
-          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
-          $polygons = $polygon->out('json');
           break;
         case 1:
           if(is_numeric($region_id_parts[0])){
@@ -126,11 +120,13 @@ function gm3_region_get_points($region_ids){
           }else{
             $row = db_select('gm3_region_data', 'g')->condition('name', $region_id_parts[0])->condition('level_2_code', 0)->fields('g')->execute()->fetch();
           }
-          $polygon = $wkb_reader->read($row->binary_polygons, TRUE);
-          $polygons = $polygon->out('json');
           break;
       }
-      $polygons = '{"' . $region_id . '":' . $polygons . '}';
+      if($row){
+        $polygons = $wkb_reader->read($row->binary_polygons, TRUE);
+        $polygons = $polygons->out('json');
+        $polygons = '{"' . $region_id . '":' . $polygons . '}';
+      }
       cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{
       $polygons = $polygons->data;

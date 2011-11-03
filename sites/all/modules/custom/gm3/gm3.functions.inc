@@ -3,6 +3,9 @@
 /**
  * Helper function to convert a POLYGON/MULTIPOLYGON string to an array of
  * points.
+ * 
+ * REALLY NEED TO REMOVE THIS FUNCTION - We have the geoPHP library installed
+ * for a reason.
  */
 function gm3_convert_polygon_string($poly_string){
   // Increase the memory limit, as some shapes are a little on the large side.
