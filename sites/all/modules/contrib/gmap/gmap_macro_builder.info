@@ -1,6 +1,0 @@
-name = GMap Macro Builder
-description = UI for building GMap macros.
-package = Location
-core = 7.x
-dependencies[] = gmap
-files[] = gmap_macro_builder.module
