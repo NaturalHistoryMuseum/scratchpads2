@@ -68,7 +68,7 @@ function theme_gm3_point_button($variables){
  * Callback to add a Google map to a specific element ID on the page.
  */
 function gm3_add(&$map = array()){
-  $map['settings'] = array_merge(isset($map['settings']) ? $map['settings'] : array(), gm3_settings());
+  $map['settings'] = array_merge(gm3_settings(), isset($map['settings']) ? $map['settings'] : array());
   drupal_alter('gm3_map', $map);
   if(isset($map['libraries']) && is_array($map['libraries'])){
     foreach($map['libraries'] as $library => $settings){
