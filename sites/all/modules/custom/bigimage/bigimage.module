@@ -41,6 +41,53 @@ function bigimage_access_callback($fid){
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function bigimage_theme(){
+  return array(
+    'bigimage' => array(
+      'variables' => array(
+        'fid' => '0'
+      ),
+    )
+  );
+}
+
+/**
+ * Theme function.
+ */
+function theme_bigimage($variables){
+  $file = file_load($variables['fid']);
+  $image = image_load($file->uri);
+  $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
+  $image = null;
+  $max_zoom = ceil(log($max_dimension / 256) / log(2));
+  return theme('gm3_map', array(
+    'map' => array(
+      'id' => 'bigimage-'.$variables['fid'],
+      'settings' => array(
+        'zoom' => 3,
+        'minZoom' => 2,
+        'maxZoom' => $max_zoom,
+        'center' => array(
+          'latitude' => 75,
+          'longitude' => 0
+        ),
+        'mapTypeControlOptions' => array(
+          'mapTypeIds' => array()
+        )
+      ),
+      'libraries' => array(
+        'bigimage' => array(
+          'fid' => $variables['fid'],
+          'module' => 'bigimage'
+        )
+      )
+    )
+  ));
+}
+
+/**
  * Implementation of hook_library().
  */
 function bigimage_library(){
@@ -76,28 +123,7 @@ function bigimage_library(){
  * Bigimage test
  */
 function bigimage_test(){
-  return theme('gm3_map', array(
-    'map' => array(
-      'settings' => array(
-        'zoom' => 3,
-        'minZoom' => 2,
-        'maxZoom' => 6,
-        'center' => array(
-          'latitude' => 75,
-          'longitude' => 0
-        ),
-        'mapTypeControlOptions' => array(
-          'mapTypeIds' => array()
-        )
-      ),
-      'libraries' => array(
-        'bigimage' => array(
-          'fid' => 1,
-          'module' => 'bigimage'
-        )
-      )
-    )
-  ));
+  return theme('bigimage', array('fid' => 1));
 }
 
 /**
