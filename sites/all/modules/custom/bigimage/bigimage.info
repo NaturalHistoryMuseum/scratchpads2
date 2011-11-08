@@ -1,0 +1,3 @@
+name = Big Image
+description = Uses the Google Maps Javascript API V3 to display large images as tiles.
+core = 7.x

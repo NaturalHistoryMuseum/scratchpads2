@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * Two simple functions, one to theme a map, and the other as a callback for
+ * the tile for an image.
+ */
+/**
+ * Implementation of hook_menu().
+ */
+function bigimage_menu(){
+  return array(
+    'bigimage/%/%/%/%' => array(
+      'title' => 'Big Image Callback',
+      'title callback' => FALSE,
+      'page callback' => 'bigimage_get_tile',
+      'page arguments' => array(
+        1, // FID
+        2, // Zoom
+        3, // x
+        4 //  y
+      ),
+      'access callback' => 'bigimage_access_callback',
+      'access arguments' => array(
+        1
+      )
+    ),
+    'bigimage-test' => array(
+      'title' => 'Big Image Test',
+      'page callback' => 'bigimage_test',
+      'access arguments' => array('access content')
+    )
+  );
+}
+
+/**
+ * Access callback for above menu item.
+ */
+function bigimage_access_callback($fid){
+  // FIXME - We need to properly check whether the user has access to this file.
+  return TRUE;
+}
+
+/**
+ * Bigimage test
+ */
+function bigimage_test(){
+  return theme('gm3_map', array(
+    'map' => array(
+      'settings' => array(
+        'zoom' => 3,
+        'minZoom' => 2,
+        'maxZoom' => 6,
+        'center' => array(
+          'latitude' => 75,
+          'longitude' => 0
+        )
+      )
+    )
+  ));
+}
+
+/**
+ * Callback for the above menu function.
+ */
+function bigimage_get_tile($fid, $zoom, $x, $y){
+  // Create the fid folder.
+  if(!file_exists("public://bigimage/$fid") || !file_exists("public://bigimage/$fid/base.jpg")){
+    // Load the file object
+    $file = file_load($fid);
+    if(!$file){
+      // WTF! Error dude!
+      watchdog('bigimage', 'We tried to load a file and failed');
+      bigimage_get_tile_error();
+    }
+    // Create the directory (therefore, if this directory is there, we know the
+    // fid is valid).
+    $directory = "public://bigimage/$fid";
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+    $image = image_load($file->uri);
+    $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
+    $max_zoom = ceil(log($max_dimension / 256) / log(2));
+    $max_dimension = pow(2, $max_zoom) * 256;
+    // Next we need to create a base image that is padded to make cropping and
+    // scaling much easier.
+    image_crop($image, 0, 0, $max_dimension, $max_dimension);
+    image_save($image, "public://bigimage/$fid/base.jpg");
+  }
+  // Create the zoom level folder.
+  if(!file_exists("public://bigimage/$fid/$zoom")){
+    $directory = "public://bigimage/$fid/$zoom";
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+  }
+  // Next create the zoomed image based on the max_zoom, and the base image
+  if(!file_exists("public://bigimage/$fid/$zoom/base.jpg")){
+    // Zoom of 0 requires the image to be scaled to 256*256, Zoom of 1 requires
+    // the image to be scaled to 512*512, Zoom of 2 requires the image to be
+    // scaled to 1024*1024, and so on.
+    $image = image_load("public://bigimage/$fid/base.jpg");
+    image_scale($image, 256 * pow(2, $zoom));
+    image_save($image, "public://bigimage/$fid/$zoom/base.jpg");
+  }
+  // Finally, create the crop of the image if we don't already have it.
+  if(!file_exists("public://bigimage/$fid/$zoom/$x-$y.jpg")){
+    // Check that we have a valid x and y
+    if($x < 0 || $y < 0 || $x >= pow(2, $zoom) || $y >= pow(2, $zoom)){
+      bigimage_get_tile_error();
+    }
+    // We serve the file, else we go through a sequence of events to prepare 
+    // the file.
+    $image = image_load("public://bigimage/$fid/$zoom/base.jpg");
+    // FIXME - Check if $x and $y start at 1 or 0
+    image_crop($image, ($x * 256) + 1, ($y * 256) + 1, 256, 256);
+    image_save($image, "public://bigimage/$fid/$zoom/$x-$y.jpg");
+  }
+  // Redirect permanently to the file, allowing Apache to work its magic (or
+  // whatever web server you're using).
+  drupal_goto(file_create_url("public://bigimage/$fid/$zoom/$x-$y.jpg"), array(), 301);
+}
+
+/**
+ * Error tile.
+ */
+function bigimage_get_tile_error(){
+  // Return a standard error tile.
+  drupal_goto(file_create_url(drupal_get_path('module','bigimage').'/empty.jpg'));
+}
