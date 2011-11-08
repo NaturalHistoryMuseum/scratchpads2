@@ -104,25 +104,27 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
       break;
     case 'gm3_combination':
       $new_items = array();
-      foreach($items[0]['children'] as $type => $value){
-        switch($type){
-          case 'gm3_point':
-            _gm3_field_get_array_from_points_string($value, $new_items, 'point');
-            break;
-          case 'gm3_polygon':
-          case 'gm3_polyline':
-            _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
-            break;
-          default:
-            // Here we have a field that was not defined by this module, we use the 
-            // name of the module, plus the name of the type plus view to get the name
-            // of the function to call
-            // "{$field['module']}_{$field['type']}_view()"
-            if(function_exists("{$type}_gm3_combination_insert")){
-              $function_name = "{$type}_gm3_combination_insert";
-              $function_name($new_items, $value);
-            }
-            break;
+      if(count($items)){
+        foreach($items[0]['children'] as $type => $value){
+          switch($type){
+            case 'gm3_point':
+              _gm3_field_get_array_from_points_string($value, $new_items, 'point');
+              break;
+            case 'gm3_polygon':
+            case 'gm3_polyline':
+              _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+              break;
+            default:
+              // Here we have a field that was not defined by this module, we use the 
+              // name of the module, plus the name of the type plus view to get the name
+              // of the function to call
+              // "{$field['module']}_{$field['type']}_view()"
+              if(function_exists("{$type}_gm3_combination_insert")){
+                $function_name = "{$type}_gm3_combination_insert";
+                $function_name($new_items, $value);
+              }
+              break;
+          }
         }
       }
       $items = $new_items;

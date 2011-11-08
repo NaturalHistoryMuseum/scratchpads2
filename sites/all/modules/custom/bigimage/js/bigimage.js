@@ -15,5 +15,9 @@
     var bigImageMapType = new BigImageMapType();
     this.GM3.google_map.mapTypes.set('bigimage', bigImageMapType);
     this.GM3.google_map.setMapTypeId('bigimage');
+    var self = this;
+    google.maps.event.addListener(this.GM3.google_map, 'idle', function(){
+      $('a','#' + self.GM3.id).parent().remove();
+    })
   }
 })(jQuery);

@@ -82,6 +82,10 @@ function bigimage_field_formatter_info(){
       'description' => t('Displays a bigmiage as a tile.'),
       'field types' => array(
         'image'
+      ),
+      'settings' => array(
+        'minimum_dimensions' => '500',
+        'image_style' => ''
       )
     ),
     'bigimage_annotations_formatter' => array(
@@ -95,6 +99,67 @@ function bigimage_field_formatter_info(){
 }
 
 /**
+ * Implements hook_field_formatter_settings_form().
+ */
+function bigimage_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  return array(
+    'minimum_dimensions' => array(
+      '#title' => t('Minimum dimensions'),
+      '#type' => 'select',
+      '#default_value' => $instance['display'][$view_mode]['settings']['minimum_dimensions'],
+      '#empty_option' => t('Always use'),
+      '#options' => array(
+        500 => 500,
+        600 => 600,
+        700 => 700,
+        800 => 800,
+        1000 => 1000,
+        1200 => 1200,
+        1400 => 1400,
+        1600 => 1600,
+        2000 => 2000,
+        3000 => 3000,
+        5000 => 5000
+      )
+    ),
+    'image_style' => array(
+      '#title' => t('Image style'),
+      '#type' => 'select',
+      '#default_value' => $instance['display'][$view_mode]['settings']['image_style'],
+      '#empty_option' => t('None (original image)'),
+      '#options' => image_style_options(FALSE)
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function bigimage_field_formatter_settings_summary($field, $instance, $view_mode){
+  switch($instance['display'][$view_mode]['type']){
+    case 'bigimage_bigimage_formatter':
+      $summary = array();
+      if(!isset($instance['display'][$view_mode]['settings']['minimum_dimensions']) || !$instance['display'][$view_mode]['settings']['minimum_dimensions']){
+        $summary[] = t('Always use bigimage.');
+      }else{
+        $this_summary = t('Images smaller than %dimensions px will be displayed as: ', array(
+          '%dimensions' => $instance['display'][$view_mode]['settings']['minimum_dimensions']
+        ));
+        if(isset($instance['display'][$view_mode]['settings']['image_style']) && $instance['display'][$view_mode]['settings']['image_style']){
+          $image_styles = image_style_options(FALSE);
+          $this_summary .= t('"Image style @style"', array(
+            '@style' => $image_styles[$instance['display'][$view_mode]['settings']['image_style']]
+          ));
+        }else{
+          $this_summary .= t('Original image');
+        }
+        $summary[] = $this_summary;
+      }
+      return implode('<br />', $summary);
+  }
+}
+
+/**
  * Implements hook_field_formatter_view().
  * 
  * FIXME - Still need to do the field/entity formats properly (so that an entity
@@ -104,10 +169,19 @@ function bigimage_field_formatter_view($entity_type, $entity, $field, $instance,
   $elements = array();
   switch($display['type']){
     case 'bigimage_bigimage_formatter':
-      foreach($items as $item){
-        $elements[] = theme('bigimage', array(
-          'fid' => $item['fid']
-        ));
+      $min_dimension = isset($display['settings']['minimum_dimensions']) ? $display['settings']['minimum_dimensions'] : 0;
+      foreach($items as $delta => $item){
+        if($item['height'] > $min_dimension || $item['width'] > $min_dimension){
+          $elements[$delta] = theme('bigimage', array(
+            'fid' => $item['fid']
+          ));
+        }else{
+          $elements[$delta] = array(
+            '#theme' => 'image_formatter',
+            '#item' => $item,
+            '#image_style' => $display['settings']['image_style']
+          );
+        }
       }
       break;
   }
@@ -128,44 +202,125 @@ function bigimage_theme(){
 }
 
 /**
+ * Batch function for creating the tiles.
+ */
+function bigimage_batch_process($fid, &$context){
+  if(!isset($context['sandbox']['total_tiles'])){
+    // Calculate the total number of tiles for this file.
+    $file = file_load($fid);
+    // By making this directory here, we ensure that we don't end up with a loop
+    // of batch processes.
+    drupal_mkdir("public://bigimage/$fid");
+    $image = image_load($file->uri);
+    $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
+    $max_zoom = ceil(log($max_dimension / 256) / log(2));
+    $context['sandbox']['total_tiles'] = _bigimage_tiles_per_zoom($max_zoom);
+    $context['sandbox']['images_processed'] = 0;
+  }
+  $tiles_processed_this_round = 0;
+  while($context['sandbox']['images_processed'] < $context['sandbox']['total_tiles'] && $tiles_processed_this_round < 10){
+    _bigimage_create_tile($fid, $context['sandbox']['images_processed']);
+    $context['sandbox']['images_processed']++;
+    $tiles_processed_this_round++;
+  }
+  $context['finished'] = $context['sandbox']['images_processed'] / $context['sandbox']['total_tiles'];
+}
+
+/**
+ * Create an image tile.
+ */
+function _bigimage_create_tile($fid, $image_number){
+  // We need to calculate the zoom level for the image number.
+  $zoom_level = 0;
+  while(true){
+    if($image_number < _bigimage_tiles_per_zoom($zoom_level)){
+      break;
+    }
+    $zoom_level++;
+  }
+  // Once we have the zoom level, we need to know the number within that zoom
+  // level, and also calculate the x and y.
+  if($zoom_level > 0){
+    $image_number_per_level = $image_number - _bigimage_tiles_per_zoom($zoom_level - 1);
+  }
+  $zoom_level_dimensions = pow(2, $zoom_level);
+  if($image_number){
+    $x = floor($image_number_per_level / $zoom_level_dimensions);
+    $y = $image_number_per_level % $zoom_level_dimensions;
+    bigimage_create_tile($fid, $zoom_level, $x, $y);
+  }else{
+    bigimage_create_tile($fid, 0, 0, 0);
+  }
+}
+
+/**
+ * Function to calculate the total number of tiles required for a zoom level.
+ */
+function _bigimage_tiles_per_zoom($zoom, $recursive = TRUE){
+  if($recursive){
+    if($zoom == 0){return 1;}
+    return pow(pow(2, $zoom), 2) + _bigimage_tiles_per_zoom($zoom - 1);
+  }else{
+    return pow(pow(2, $zoom), 2);
+  }
+}
+
+/**
  * Theme function.
  */
 function theme_bigimage($variables){
-  $file = file_load($variables['fid']);
-  $image = image_load($file->uri);
-  $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
-  $max_zoom = ceil(log($max_dimension / 256) / log(2));
-  $max_dimension = pow(2, $max_zoom) * 256;
-  // Longitude is easy - linear.
-  $longitude = ((($image->info['width'] / 2) / $max_dimension) * 360) - 180;
-  // Latitude - Mercator complications.  Thanks to the code from 
-  // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
-  $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
-  $image = null;
-  $max_zoom = ceil(log($max_dimension / 256) / log(2));
-  return theme('gm3_map', array(
-    'map' => array(
-      'id' => 'bigimage-' . $variables['fid'],
-      'settings' => array(
-        'zoom' => 2,
-        'minZoom' => 2,
-        'maxZoom' => $max_zoom,
-        'center' => array(
-          'latitude' => $latitude,
-          'longitude' => $longitude
-        ),
-        'mapTypeControlOptions' => array(
-          'mapTypeIds' => array()
-        )
-      ),
-      'libraries' => array(
-        'bigimage' => array(
-          'fid' => $variables['fid'],
-          'module' => 'bigimage'
+  // Check to see if this file has been displayed before.
+  if(!file_exists('public://bigimage/' . $variables['fid'])){
+    // If it hasn't, then we create a batch, redirect to the batch page, and
+    // then redirect back to this original page.
+    $batch = batch_set(array(
+      'operations' => array(
+        array(
+          'bigimage_batch_process',
+          array(
+            $variables['fid']
+          )
         )
       )
-    )
-  ));
+    ));
+    batch_process();
+  }else{
+    $file = file_load($variables['fid']);
+    $image = image_load($file->uri);
+    $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
+    $max_zoom = ceil(log($max_dimension / 256) / log(2));
+    $max_dimension = pow(2, $max_zoom) * 256;
+    // Longitude is easy - linear.
+    $longitude = ((($image->info['width'] / 2) / $max_dimension) * 360) - 180;
+    // Latitude - Mercator complications.  Thanks to the code from 
+    // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
+    $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
+    $image = null;
+    $max_zoom = ceil(log($max_dimension / 256) / log(2));
+    return theme('gm3_map', array(
+      'map' => array(
+        'id' => 'bigimage-' . $variables['fid'],
+        'settings' => array(
+          'zoom' => 2,
+          'minZoom' => 2,
+          'maxZoom' => $max_zoom,
+          'center' => array(
+            'latitude' => $latitude,
+            'longitude' => $longitude
+          ),
+          'mapTypeControlOptions' => array(
+            'mapTypeIds' => array()
+          )
+        ),
+        'libraries' => array(
+          'bigimage' => array(
+            'fid' => $variables['fid'],
+            'module' => 'bigimage'
+          )
+        )
+      )
+    ));
+  }
 }
 
 /**
@@ -213,6 +368,19 @@ function bigimage_test(){
  * Callback for the above menu function.
  */
 function bigimage_get_tile($fid, $zoom, $x, $y){
+  if(bigimage_create_tile($fid, $zoom, $x, $y)){
+    drupal_goto(file_create_url("public://bigimage/$fid/$zoom/$x-$y.jpg"), array(), 301);
+  }else{
+    bigimage_get_tile_error();
+  }
+}
+
+/**
+ * Does the heavy lifting for the callback, and the batch function.
+ * 
+ * Returns TRUE on success (or if it already exists), and FALSE on failure.
+ */
+function bigimage_create_tile($fid, $zoom, $x, $y){
   // Create the fid folder.
   if(!file_exists("public://bigimage/$fid") || !file_exists("public://bigimage/$fid/base.jpg")){
     // Load the file object
@@ -220,7 +388,7 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
     if(!$file){
       // WTF! Error dude!
       watchdog('bigimage', 'We tried to load a file and failed');
-      bigimage_get_tile_error();
+      return FALSE;
     }
     // Create the directory (therefore, if this directory is there, we know the
     // fid is valid).
@@ -250,9 +418,7 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
   // Finally, create the crop of the image if we don't already have it.
   if(!file_exists("public://bigimage/$fid/$zoom/$x-$y.jpg")){
     // Check that we have a valid x and y
-    if($x < 0 || $y < 0 || $x >= pow(2, $zoom) || $y >= pow(2, $zoom)){
-      bigimage_get_tile_error();
-    }
+    if($x < 0 || $y < 0 || $x >= pow(2, $zoom) || $y >= pow(2, $zoom)){return FALSE;}
     // We serve the file, else we go through a sequence of events to prepare 
     // the file.
     $image = image_load("public://bigimage/$fid/$zoom/base.jpg");
@@ -262,7 +428,7 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
   }
   // Redirect permanently to the file, allowing Apache to work its magic (or
   // whatever web server you're using).
-  drupal_goto(file_create_url("public://bigimage/$fid/$zoom/$x-$y.jpg"), array(), 301);
+  return TRUE;
 }
 
 /**
@@ -270,5 +436,5 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
  */
 function bigimage_get_tile_error(){
   // Return a standard black tile.
-  drupal_goto(file_create_url(drupal_get_path('module', 'bigimage') . '/empty.jpg'));
+  drupal_goto(file_create_url(drupal_get_path('module', 'bigimage') . '/empty.jpg'), array(), 301);
 }
