@@ -31,31 +31,6 @@
     }
     // Set the active class to default
     this.set_active_class('default');
-    
-    // Quick hack to alter where we get the images from.
-    console.log(this.google_map);
-    function customGetTileURL(a,b) {
-      //converts tile x,y into keyhole string
-
-      var c=Math.pow(2,b);
-
-        var d=a.x;
-        var e=a.y;
-        var f="t";
-        for(var g=0;g<b;g++){
-            c=c/2;
-            if(e<c){
-                if(d<c){f+="q"}
-                else{f+="r";d-=c}
-            }
-            else{
-                if(d<c){f+="t";e-=c}
-                else{f+="s";d-=c;e-=c}
-            }
-        }
-        return "japanpano-tiles/"+f+".jpg"
-    }
-    
     return this;
   }
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
