@@ -15,23 +15,5 @@
     var bigImageMapType = new BigImageMapType();
     this.GM3.google_map.mapTypes.set('bigimage', bigImageMapType);
     this.GM3.google_map.setMapTypeId('bigimage');
-    
-    // Following has been added for debugging purposes.
-
-    function CoordMapType(tileSize){
-      this.tileSize = tileSize;
-    }
-    CoordMapType.prototype.getTile = function(coord, zoom, ownerDocument){
-      var div = ownerDocument.createElement('DIV');
-      div.innerHTML = coord;
-      div.style.width = this.tileSize.width + 'px';
-      div.style.height = this.tileSize.height + 'px';
-      div.style.fontSize = '10';
-      div.style.borderStyle = 'solid';
-      div.style.borderWidth = '1px';
-      div.style.borderColor = '#AAAAAA';
-      return div;
-    };
-    this.GM3.google_map.overlayMapTypes.insertAt(0, new CoordMapType(new google.maps.Size(256, 256)));
   }
 })(jQuery);

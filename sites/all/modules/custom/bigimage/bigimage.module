@@ -76,7 +76,7 @@ function theme_bigimage($variables){
       'id' => 'bigimage-' . $variables['fid'],
       'settings' => array(
         'zoom' => 3,
-        'minZoom' => 0,
+        'minZoom' => 2,
         'maxZoom' => $max_zoom,
         'center' => array(
           'latitude' => $latitude,
@@ -102,26 +102,6 @@ function theme_bigimage($variables){
       )
     )
   ));
-}
-
-/**
- * Helper function to get a latitude from a fraction
- */
-function _bigimage_get_latitude_from_fraction($fraction){
-  // Inorder to set the latitude, we would need to do some complex mercator
-  // calcuations http://wiki.openstreetmap.org/wiki/Mercator#PHP_Code
-  return;
-  /*$temp = $r_minor / $r_major;
-  $es = 1.0 - ($temp * $temp);
-  $eccent = sqrt($es);
-  $phi = deg2rad($lat);
-  $sinphi = sin($phi);
-  $con = $eccent * $sinphi;
-  $com = 0.5 * $eccent;
-  $con = pow((1.0 - $con) / (1.0 + $con), $com);
-  $ts = tan(0.5 * ((M_PI * 0.5) - $phi)) / $con;
-  $y = -$r_major * log($ts);
-  return $y;*/
 }
 
 /**
