@@ -43,6 +43,78 @@ function bigimage_access_callback($fid){
 }
 
 /**
+ * Implementation of hook_field_widget_info().
+ */
+function bigimage_field_widget_info(){
+  return array(
+    'bigimage_annotations_widget' => array(
+      'label' => t('Image and annotations'),
+      'description' => t('Add anotations to small or BIG images.'),
+      'field types' => array(
+        'bigimage_annotations'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_info().
+ */
+function bigimage_field_info(){
+  return array(
+    'bigimage_annotations_field' => array(
+      'label' => t('Image + annotations'),
+      'description' => t('This field stores an image, along with annotations for the image.'),
+      'default_widget' => 'bigimage_annotations_widget',
+      'default_formatter' => 'bigimage_annotations_formatter'
+    )
+  );
+}
+
+function bigimage_field_formatter_info(){
+  return array(
+    'bigimage_bigimage_formatter' => array(
+      'label' => t('Bigimage'),
+      'description' => t('Displays a bigmiage as a tile.'),
+      'field types' => array(
+        'image'
+      )
+    ),
+    'bigimage_annotations_formatter' => array(
+      'label' => t('Image + annotations'),
+      'description' => t('Displays an image along with its annotations.'),
+      'field types' => array(
+        'bigimage_annotations_field'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * FIXME - Still need to do the field/entity formats properly (so that an entity
+ * map will show all the fields set as "entity_map" on that entity.
+ */
+function bigimage_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $elements = array();
+  switch($display['type']){
+    case 'bigimage_bigimage_formatter':
+      foreach($items as $item){
+        $elements[] = theme('bigimage', array(
+          'fid' => $item['fid']
+        ));
+      }
+      break;
+  }
+  return $elements;
+}
+
+/**
  * Implementation of hook_theme().
  */
 function bigimage_theme(){
@@ -75,7 +147,7 @@ function theme_bigimage($variables){
     'map' => array(
       'id' => 'bigimage-' . $variables['fid'],
       'settings' => array(
-        'zoom' => 3,
+        'zoom' => 2,
         'minZoom' => 2,
         'maxZoom' => $max_zoom,
         'center' => array(
@@ -90,14 +162,6 @@ function theme_bigimage($variables){
         'bigimage' => array(
           'fid' => $variables['fid'],
           'module' => 'bigimage'
-        ),
-        'point' => array(
-          'points' => array(
-            array(
-              'latitude' => $latitude,
-              'longitude' => $longitude
-            )
-          )
         )
       )
     )
