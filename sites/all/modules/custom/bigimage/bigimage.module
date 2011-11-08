@@ -64,10 +64,12 @@ function theme_bigimage($variables){
   $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
   $max_zoom = ceil(log($max_dimension / 256) / log(2));
   $max_dimension = pow(2, $max_zoom) * 256;
+  // Longitude is easy - linear.
   $longitude = ((($image->info['width'] / 2) / $max_dimension) * 360) - 180;
+  // Latitude - Mercator complications.  Thanks to the code from 
+  // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
+  $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
   $image = null;
-  // Inorder to set the latitude, we would need to do some complex mercator
-  // calcuations http://wiki.openstreetmap.org/wiki/Mercator#PHP_Code 
   $max_zoom = ceil(log($max_dimension / 256) / log(2));
   return theme('gm3_map', array(
     'map' => array(
@@ -77,7 +79,7 @@ function theme_bigimage($variables){
         'minZoom' => 0,
         'maxZoom' => $max_zoom,
         'center' => array(
-          'latitude' => 80,
+          'latitude' => $latitude,
           'longitude' => $longitude
         ),
         'mapTypeControlOptions' => array(
@@ -88,10 +90,38 @@ function theme_bigimage($variables){
         'bigimage' => array(
           'fid' => $variables['fid'],
           'module' => 'bigimage'
+        ),
+        'point' => array(
+          'points' => array(
+            array(
+              'latitude' => $latitude,
+              'longitude' => $longitude
+            )
+          )
         )
       )
     )
   ));
+}
+
+/**
+ * Helper function to get a latitude from a fraction
+ */
+function _bigimage_get_latitude_from_fraction($fraction){
+  // Inorder to set the latitude, we would need to do some complex mercator
+  // calcuations http://wiki.openstreetmap.org/wiki/Mercator#PHP_Code
+  return;
+  /*$temp = $r_minor / $r_major;
+  $es = 1.0 - ($temp * $temp);
+  $eccent = sqrt($es);
+  $phi = deg2rad($lat);
+  $sinphi = sin($phi);
+  $con = $eccent * $sinphi;
+  $com = 0.5 * $eccent;
+  $con = pow((1.0 - $con) / (1.0 + $con), $com);
+  $ts = tan(0.5 * ((M_PI * 0.5) - $phi)) / $con;
+  $y = -$r_major * log($ts);
+  return $y;*/
 }
 
 /**
