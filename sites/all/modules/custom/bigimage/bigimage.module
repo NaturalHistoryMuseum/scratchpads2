@@ -62,18 +62,23 @@ function theme_bigimage($variables){
   $file = file_load($variables['fid']);
   $image = image_load($file->uri);
   $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
+  $max_zoom = ceil(log($max_dimension / 256) / log(2));
+  $max_dimension = pow(2, $max_zoom) * 256;
+  $longitude = ((($image->info['width'] / 2) / $max_dimension) * 360) - 180;
   $image = null;
+  // Inorder to set the latitude, we would need to do some complex mercator
+  // calcuations http://wiki.openstreetmap.org/wiki/Mercator#PHP_Code 
   $max_zoom = ceil(log($max_dimension / 256) / log(2));
   return theme('gm3_map', array(
     'map' => array(
       'id' => 'bigimage-' . $variables['fid'],
       'settings' => array(
         'zoom' => 3,
-        'minZoom' => 2,
+        'minZoom' => 0,
         'maxZoom' => $max_zoom,
         'center' => array(
-          'latitude' => 75,
-          'longitude' => 0
+          'latitude' => 80,
+          'longitude' => $longitude
         ),
         'mapTypeControlOptions' => array(
           'mapTypeIds' => array()
