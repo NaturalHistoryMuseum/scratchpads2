@@ -5,13 +5,5 @@
  */
 function bigimage_install(){
   // Create the bigimage folder in the public files directory.
-  drupal_mkdir('public://bigimage');
-}
-
-/**
- * Implementation of hook_uninstall
- */
-function bigimage_uninstall(){
-  // Delete the bigimage folder.
-  drupal_rmdir('public://bigimage');
+  @drupal_mkdir('public://bigimage');
 }
