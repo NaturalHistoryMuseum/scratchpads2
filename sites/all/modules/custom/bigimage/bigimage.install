@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Implementation of hook_enable().
+ * Implementation of hook_install().
  */
-function bigimage_enable(){
+function bigimage_install(){
   // Create the bigimage folder in the public files directory.
-  $directory = 'public://bigimage';
-  file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+  drupal_mkdir('public://bigimage');
 }
 
 /**
- * Implementation of hook_requirements().
+ * Implementation of hook_uninstall
  */
-function bigimage_requirements($phase){
-  // FIXME - Check that the bigimage folder has been created.
+function bigimage_uninstall(){
+  // Delete the bigimage folder.
+  drupal_rmdir('public://bigimage');
 }

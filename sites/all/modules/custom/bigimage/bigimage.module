@@ -27,7 +27,9 @@ function bigimage_menu(){
     'bigimage-test' => array(
       'title' => 'Big Image Test',
       'page callback' => 'bigimage_test',
-      'access arguments' => array('access content')
+      'access arguments' => array(
+        'access content'
+      )
     )
   );
 }
@@ -48,7 +50,7 @@ function bigimage_theme(){
     'bigimage' => array(
       'variables' => array(
         'fid' => '0'
-      ),
+      )
     )
   );
 }
@@ -64,7 +66,7 @@ function theme_bigimage($variables){
   $max_zoom = ceil(log($max_dimension / 256) / log(2));
   return theme('gm3_map', array(
     'map' => array(
-      'id' => 'bigimage-'.$variables['fid'],
+      'id' => 'bigimage-' . $variables['fid'],
       'settings' => array(
         'zoom' => 3,
         'minZoom' => 2,
@@ -103,7 +105,7 @@ function bigimage_library(){
         array(
           'data' => array(
             'bigimage' => array(
-              'callback' => url('bigimage'),
+              'callback' => url('bigimage')
             )
           ),
           'type' => 'setting'
@@ -123,7 +125,9 @@ function bigimage_library(){
  * Bigimage test
  */
 function bigimage_test(){
-  return theme('bigimage', array('fid' => 1));
+  return theme('bigimage', array(
+    'fid' => 1
+  ));
 }
 
 /**
@@ -141,8 +145,7 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
     }
     // Create the directory (therefore, if this directory is there, we know the
     // fid is valid).
-    $directory = "public://bigimage/$fid";
-    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+    drupal_mkdir("public://bigimage/$fid");
     $image = image_load($file->uri);
     $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
     $max_zoom = ceil(log($max_dimension / 256) / log(2));
@@ -154,8 +157,7 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
   }
   // Create the zoom level folder.
   if(!file_exists("public://bigimage/$fid/$zoom")){
-    $directory = "public://bigimage/$fid/$zoom";
-    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+    drupal_mkdir("public://bigimage/$fid/$zoom");
   }
   // Next create the zoomed image based on the max_zoom, and the base image
   if(!file_exists("public://bigimage/$fid/$zoom/base.jpg")){
@@ -188,6 +190,6 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
  * Error tile.
  */
 function bigimage_get_tile_error(){
-  // Return a standard error tile.
-  drupal_goto(file_create_url(drupal_get_path('module','bigimage').'/empty.jpg'));
+  // Return a standard black tile.
+  drupal_goto(file_create_url(drupal_get_path('module', 'bigimage') . '/empty.jpg'));
 }
