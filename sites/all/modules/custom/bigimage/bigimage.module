@@ -53,6 +53,14 @@ function bigimage_library(){
         array(
           'data' => drupal_get_path('module', 'bigimage') . "/js/bigimage.js"
         ),
+        array(
+          'data' => array(
+            'bigimage' => array(
+              'callback' => url('bigimage'),
+            )
+          ),
+          'type' => 'setting'
+        )
       ),
       'dependencies' => array(
         array(
@@ -77,10 +85,14 @@ function bigimage_test(){
         'center' => array(
           'latitude' => 75,
           'longitude' => 0
+        ),
+        'mapTypeControlOptions' => array(
+          'mapTypeIds' => array()
         )
       ),
       'libraries' => array(
         'bigimage' => array(
+          'fid' => 1,
           'module' => 'bigimage'
         )
       )
