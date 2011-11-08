@@ -41,6 +41,30 @@ function bigimage_access_callback($fid){
 }
 
 /**
+ * Implementation of hook_library().
+ */
+function bigimage_library(){
+  return array(
+    'bigimage' => array(
+      'title' => t('Google Maps Javascript API V3: Big image'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'bigimage') . "/js/bigimage.js"
+        ),
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    )
+  );
+}
+
+/**
  * Bigimage test
  */
 function bigimage_test(){
@@ -53,6 +77,11 @@ function bigimage_test(){
         'center' => array(
           'latitude' => 75,
           'longitude' => 0
+        )
+      ),
+      'libraries' => array(
+        'bigimage' => array(
+          'module' => 'bigimage'
         )
       )
     )
