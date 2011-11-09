@@ -1,0 +1,24 @@
+; $Id: theme080.info,v 1.4 Elfin Exp $
+name = theme080
+description = this template is made by template-help.com.
+version = 6.4
+core = 7.x
+engine = phptemplate
+
+version = "6.4"
+project = "drupal"
+datestamp = "1202913006"
+
+php = DRUPAL_MINIMUM_PHP
+
+regions[header] = Header
+regions[sidebar_first] = Left sidebar
+regions[right] = Right sidebar
+regions[content] = Content
+regions[footer] = Footer
+regions[custom] = Custom
+regions[help] = Help
+regions[highlighted] = Highlighted
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+stylesheets[all][] = style.css

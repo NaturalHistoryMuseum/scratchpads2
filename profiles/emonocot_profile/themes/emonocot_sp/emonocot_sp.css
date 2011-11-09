@@ -1,0 +1,175 @@
+h1 {
+	color: black;
+}
+
+h1.title {
+	background: none;
+}
+
+.accordion-item-odd .accordion-header {
+	background-color: #D2E8F4;
+}
+
+.accordion-item-even .accordion-header {
+	background-color: #B1DCF3;
+	border-color: #FFFFFF;
+}
+
+.emono_acc_title {
+	width: 100%;
+}
+
+.emono_acc_plus {
+	float: right;
+	vertical-align: center;
+}
+
+.accordion-active,.views-accordion-item,.accordion-item,h3.accordion-header,.accordion-content,.views-accordion-item .accordion-header-active,h3.accordion-header-active,.views-accordion-item .accordion-content,.views-accordion-item .accordion-header,h3.accordion-header
+	{
+	border-color: #FFFFFF;
+}
+
+.emono_acc_title a {
+	color: #363E4B;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.emono_acc_title a:hover {
+	text-decoration: underline;
+}
+
+.accordion-header:hover {
+	border-color: #BBBBBB;
+	border-width: 4px;
+}
+
+h2 {
+	text-transform: none;
+}
+
+#main {
+	width: 80%;
+}
+
+#mission {
+	background-color: #D2E8F4;
+	padding: 5px;
+}
+
+#header {
+	background: none;
+	height: 163px;
+}
+
+#footer {
+	margin: -14px;
+	width: 100%;
+}
+
+h1.site-name {
+	padding-top: 30px;
+	padding-left: 0px;
+}
+
+h1.site-name a {
+	color: white;
+	font-size: 32px;
+	text-transform: none;
+}
+
+.head-row1 {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.head-row3 {
+	margin-left: 0px;
+	margin-right: 6px;
+}
+
+#header-blue {
+	background-color: #D2E8F4;
+	width: 100%;
+	margin-left: 3px;
+	margin-right: 3px;
+	height: 41px;
+}
+
+.col1 {
+	width: 100%;
+}
+
+.logo {
+	float: right;
+}
+
+.breadcrumb {
+	padding-left: 12px;
+}
+
+.corner-bot-right2 .inner {
+	padding: 15px;
+	padding-top: 0px;
+}
+
+.foot {
+	width: 80%;
+	text-align: center;
+}
+
+#edit-search-block-form-1,#edit-keys {
+	width: 200px;
+}
+
+.mado_content {
+	width: 98%;
+	overflow-y: auto;
+	margin-right: 25px;
+}
+
+.mado_content>* {
+	width: 97%;
+}
+
+.boxtitle {
+	background-image: none;
+}
+
+field-content img {
+	padding: 5px;
+}
+
+.form-select {
+	max-width: 100%;
+}
+
+#cont {
+	position: relative;
+}
+
+.mado_sort {
+	top: -8px;
+	right: 12px;
+}
+
+.mado_sort h1 img {
+	height: 35px;
+	width: 35px;
+}
+
+#tabs-wrapper {
+	border: none;
+}
+
+.node-page {
+	padding: 0px;
+}
+
+.block .content {
+	padding: 5px;
+}
+
+.content .clearfix {
+	padding-top: 10px;
+}
