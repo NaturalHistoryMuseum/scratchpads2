@@ -15,6 +15,7 @@ function gm3_region_install(){
   // As the files are so huge, we'll read the file line by line and insert 
   // each region one by one.  This may be a little slower, but it's less likely
   // to fuck up!
+  return;
   gm3_load_geophp();  
   for($i = 1; $i <= 4; $i++){
     $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
