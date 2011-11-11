@@ -28,6 +28,15 @@
  * select the subregions (TDWG 4).
  */
 /**
+ * Implementation of hook_views_api().
+ */
+function gm3_views_api(){
+  return array(
+    'api' => 3
+  );
+}
+
+/**
  * Implementation of hook_library().
  */
 function gm3_library(){
