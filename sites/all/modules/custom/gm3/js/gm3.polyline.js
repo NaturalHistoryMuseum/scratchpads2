@@ -38,7 +38,6 @@
       }
     }
     this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
-    console.log(this.polylines);
   }
   Drupal.GM3.polyline.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
