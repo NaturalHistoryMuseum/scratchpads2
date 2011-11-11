@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * @file
+ * Provides advanced ImageMagick effects and options.
+ */
+
+/**
+ * Implements hook_form_FORMID_alter().
+ */
+function imagemagick_advanced_form_system_image_toolkit_settings_alter(&$form, &$form_state, $form_id) {
+  if (image_get_toolkit() != 'imagemagick') {
+    return;
+  }
+  $im_form = &$form['image_toolkit_settings']['imagemagick'];
+
+  $im_form['imagemagick_advanced_density'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Change image resolution to 72 ppi'),
+    '#default_value' => variable_get('imagemagick_advanced_density', 0),
+    '#return_value' => 72,
+    '#description' => t('Resamples the image <a href="@help-url">density</a> to a resolution of 72 pixels per inch, the default for web images. Does not affect the pixel size or quality.', array(
+      '@help-url' => 'http://www.imagemagick.org/script/command-line-options.php#density',
+    )),
+  );
+  $im_form['imagemagick_advanced_colorspace'] = array(
+    '#type' => 'select',
+    '#title' => t('Convert colorspace'),
+    '#default_value' => variable_get('imagemagick_advanced_colorspace', 0),
+    '#options' => array(
+      'RGB' => 'RGB',
+      'sRGB' => 'sRGB',
+      'GRAY' => t('Gray'),
+    ),
+    '#empty_value' => 0,
+    '#empty_option' => t('- Original -'),
+    '#description' => t('Converts processed images to the specified <a href="@help-url">colorspace</a>. The color profile option overrides this setting.', array(
+      '@help-url' => 'http://www.imagemagick.org/script/command-line-options.php#colorspace',
+    )),
+    '#states' => array(
+      'enabled' => array(
+        ':input[name="imagemagick_advanced_profile"]' => array('value' => ''),
+      ),
+    ),
+  );
+  $im_form['imagemagick_advanced_profile'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Color profile path'),
+    '#default_value' => variable_get('imagemagick_advanced_profile', ''),
+    '#description' => t('The path to a <a href="@help-url">color profile</a> file that all processed images will be converted to. Leave blank to disable. Use a <a href="@color-url">sRGB profile</a> to correct the display of professional images and photography.', array(
+      '@help-url' => 'http://www.imagemagick.org/script/command-line-options.php#profile',
+      '@color-url' => 'http://www.color.org/profiles.html',
+    )),
+  );
+}
+
+/**
+ * Implements hook_imagemagick_arguments_alter().
+ */
+function imagemagick_advanced_imagemagick_arguments_alter(&$args, $context) {
+  // Change image density.
+  if ($density = (int) variable_get('imagemagick_advanced_density', 0)) {
+    $args['density'] = "-density {$density} -units PixelsPerInch";
+  }
+  // Apply color profile.
+  if ($profile = variable_get('imagemagick_advanced_profile', '')) {
+    if (file_exists($profile)) {
+      $args['profile'] = '-profile ' . escapeshellarg($profile);
+    }
+  }
+  // Or alternatively apply colorspace.
+  elseif ($colorspace = variable_get('imagemagick_advanced_colorspace', 0)) {
+    // Do not hi-jack desaturate effect.
+    if (array_search('-colorspace GRAY', $args) === FALSE) {
+      $args['colorspace'] = '-colorspace ' . escapeshellarg($colorspace);
+    }
+  }
+}
+
+/**
+ * Strips metadata from an image.
+ *
+ * @param $image
+ *   An image object. The $image->resource value will be modified by this call.
+ *
+ * @return
+ *   TRUE or FALSE, based on success.
+ */
+function image_imagemagick_strip(stdClass $image) {
+  $image->ops[] = '-strip';
+  return TRUE;
+}
+
+/**
+ * Sharpens an image.
+ *
+ * @param $image
+ *   An image object. The $image->resource value will be modified by this call.
+ * @param $radius
+ *   (optional) The radius of the gaussian, in pixels, not counting the center
+ *   pixel. Defaults to 0.5.
+ * @param $sigma
+ *   (optional) The standard deviation of the gaussian, in pixels. Defaults to
+ *   0.5.
+ * @param $amount
+ *   (optional) The percentage of the difference between the original and the
+ *   blur image that is added back into the original. Defaults to 100.
+ * @param $threshold
+ *   (optional) The threshold, as a fraction of max RGB levels, needed to apply
+ *   the difference amount. Defaults to 0.05.
+ *
+ * @return
+ *   TRUE or FALSE, based on success.
+ *
+ * @see image_sharpen()
+ */
+function image_imagemagick_sharpen(stdClass $image, $radius = 0.5, $sigma = 0.5, $amount = 100, $threshold = 0.05) {
+  $unsharp_arg = $radius . 'x' . $sigma . '+' . $amount / 100 . '+' . $threshold;
+  $image->ops[] = '-unsharp ' . $unsharp_arg;
+  return TRUE;
+}
+
+/**
+ * Adds a watermark to an image.
+ *
+ * @param $image
+ *   An image object.
+ * @param $watermark
+ *   A string file URI or path of the watermark image.
+ *
+ * @return
+ *   TRUE or FALSE, based on success.
+ *
+ * @see image_watermark()
+ */
+function image_imagemagick_watermark(stdClass $image, $watermark) {
+  $image->ops[] = drupal_realpath($watermark) . '-composite -set ' . escapeshellarg('option:compose:outside-overlay') . ' false';
+  return TRUE;
+}
+
+/**
+ * Implements hook_image_effect_info().
+ */
+function imagemagick_advanced_image_effect_info() {
+  $effects['imagemagick_strip'] = array(
+    'label' => t('Strip metadata'),
+    'help' => t('Resizing will make images an exact set of dimensions. This may cause images to be stretched or shrunk disproportionately.'),
+    'effect callback' => 'imagemagick_advanced_strip_effect',
+  );
+  return $effects;
+}
+
+/**
+ * Image effect callback; Strips metadata from an image resource.
+ *
+ * @param $image
+ *   An image object returned by image_load().
+ *
+ * @return
+ *   TRUE on success. FALSE on failure to resize image.
+ *
+ * @see imagemagick_strip()
+ */
+function imagemagick_advanced_strip_effect($image) {
+  if (!image_toolkit_invoke('strip', $image)) {
+    watchdog('imagemagick', 'Image strip failed using the %toolkit toolkit on %path (%mimetype, %dimensions)', array(
+      '%toolkit' => $image->toolkit,
+      '%path' => $image->source,
+      '%mimetype' => $image->info['mime_type'],
+      '%dimensions' => $image->info['height'] . 'x' . $image->info['height'],
+    ), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  return TRUE;
+}
+

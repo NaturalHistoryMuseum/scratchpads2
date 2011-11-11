@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for ImageMagick module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function imagemagick_install() {
+  // Migrate ImageAPI ImageMagick variables upon installation.
+  $value = variable_get('imageapi_imagemagick_quality', NULL);
+  if (!empty($value)) {
+    variable_set('imagemagick_quality', $value);
+  }
+  variable_del('imageapi_imagemagick_quality');
+
+  $value = variable_get('imageapi_imagemagick_convert', NULL);
+  if (!empty($value)) {
+    variable_set('imagemagick_convert', $value);
+
+    // If we have a convert path and previous toolkit was ImageAPI's
+    // ImageMagick, also switch the toolkit.
+    $value = variable_get('image_toolkit', 'gd');
+    if ($value == 'imageapi_imagemagick') {
+      variable_set('image_toolkit', 'imagemagick');
+    }
+  }
+  variable_del('imageapi_imagemagick_convert');
+
+  $value = variable_get('imageapi_imagemagick_debugging', NULL);
+  if (!empty($value)) {
+    variable_set('imagemagick_debug', $value);
+  }
+  variable_del('imageapi_imagemagick_debugging');
+
+  // Disable ImageAPI ImageMagick module if it is enabled to avoid confusion.
+  if (module_exists('imageapi_imagemagick')) {
+    module_disable(array('imageapi_imagemagick'));
+    drupal_set_message(t('ImageAPI ImageMagick module has been disabled.'));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function imagemagick_uninstall() {
+  variable_del('imagemagick_quality');
+  variable_del('imagemagick_convert');
+  variable_del('imagemagick_debug');
+}
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function imagemagick_update_last_removed() {
+  return 7000;
+}
+
