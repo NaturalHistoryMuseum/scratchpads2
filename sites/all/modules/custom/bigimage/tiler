@@ -1,0 +1,97 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+	echo "usage: $0 image_file tile_directory" 1>&2
+	exit 1
+fi
+
+# Get the dimensions.
+IMAGE_DIMENSIONS=`identify $1 | sed -r "s/.* ([0-9]*x[0-9]*).*/\1/"`
+IMAGE_WIDTH=`echo $IMAGE_DIMENSIONS | sed "s/x.*//"`
+IMAGE_HEIGHT=`echo $IMAGE_DIMENSIONS | sed "s/.*x//"`
+
+# Start at the top left.
+X=0
+Y=0
+
+# Create the directory for the output.
+mkdir -p $2/max 2>/dev/null
+
+# Go across the image
+while [ $X -lt $IMAGE_WIDTH ]
+do
+	# Create a vertical strip image, rather than using the full image every time.
+	convert -size $IMAGE_DIMENSIONS -extract 256x$IMAGE_HEIGHT+$X+0 -extent 256x$IMAGE_HEIGHT $1 $2/$X.jpg
+	IMAGE_X=$(($X/256))
+	# Go down the strip.
+	while [ $Y -lt $IMAGE_HEIGHT ]
+	do
+		echo "Creating "$X" : "$Y
+		IMAGE_Y=$(($Y/256))
+		convert -size $IMAGE_DIMENSIONS -extract 256x256+0+$Y -extent 256x256 $2/$X.jpg $2/max/$IMAGE_X-$IMAGE_Y.jpg
+		Y=$(($Y+256))
+	done
+	rm $2/$X.jpg
+	Y=0
+	X=$(($X+256))
+done
+
+# Now we have the tiles, we can combine them to create the zoom levels above this one
+# FIXME - This assumes the largest dimension is the width
+finished=0
+X=0
+Y=0
+PREVIOUS_ZOOM="max"
+CURRENT_ZOOM=1
+while [ $finished -lt 1 ]
+do
+	echo "Zoom level: "$CURRENT_ZOOM
+	# Go across the image first
+	mkdir -p $2/$CURRENT_ZOOM
+	while [ $X -lt $IMAGE_WIDTH ]
+	do
+		IMAGE_X=$(($X/256))
+		# Go down the image
+		while [ $Y -lt $IMAGE_HEIGHT ]
+		do
+			IMAGE_Y=$(($Y/256))
+			TILENAME=$2/$CURRENT_ZOOM/$(($IMAGE_X/2))-$(($IMAGE_Y/2))".jpg"
+			# Note, we redirect the errors from the following commands to /dev/null as the files may not exist
+			convert $2/$PREVIOUS_ZOOM/$IMAGE_X-$IMAGE_Y.jpg -extent 512x512 $TILENAME 2>/dev/null
+			composite -geometry +0+256 $2/$PREVIOUS_ZOOM/$IMAGE_X-$(($IMAGE_Y+1)).jpg $TILENAME $TILENAME 2>/dev/null
+			composite -geometry +256+256 $2/$PREVIOUS_ZOOM/$(($IMAGE_X+1))-$(($IMAGE_Y+1)).jpg $TILENAME $TILENAME 2>/dev/null
+			composite -geometry +256+0 $2/$PREVIOUS_ZOOM/$(($IMAGE_X+1))-$IMAGE_Y.jpg $TILENAME $TILENAME 2>/dev/null
+			convert $TILENAME -resize 256x256 $TILENAME 2>/dev/null
+			Y=$(($Y+512))
+		done
+		Y=0
+		X=$(($X+512))
+	done
+	if [ $(($CURRENT_ZOOM*$CURRENT_ZOOM*256)) -gt $IMAGE_WIDTH ]
+	then
+		if [ $(($CURRENT_ZOOM*$CURRENT_ZOOM*256)) -gt $IMAGE_WIDTH ]
+		then
+			finished=1	
+		fi		
+	fi
+	PREVIOUS_ZOOM=$CURRENT_ZOOM
+	CURRENT_ZOOM=$(($CURRENT_ZOOM+1))
+	X=0
+done
+
+# Move the directories about, as they're currently numbering in reverse order.
+X=$(($CURRENT_ZOOM-1))
+Y=0
+while [ $X -gt 0 ]
+do
+	mv $2/$X $2/$Y.temp
+	X=$(($X-1))
+	Y=$(($Y+1))
+done
+X=0
+while [ $X -lt $Y ]
+do
+	mv $2/$X.temp $2/$X
+	X=$(($X+1))
+done
+mv $2/max $2/$Y
