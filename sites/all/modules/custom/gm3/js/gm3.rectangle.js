@@ -17,7 +17,7 @@
     // Add Rectangles sent from server.
     if(this.GM3.libraries.rectangle.rectangles) {
       for( var i in this.GM3.libraries.rectangle.rectangles) {
-        // this.add_rectangle(this.GM3.libraries.rectangle.rectangles[i]);
+        this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i], false);
       }
     }
     this.add_transfer_listeners();
@@ -25,7 +25,6 @@
   Drupal.GM3.rectangle.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
     this.first_click = false;
-    this.rectangles[this.rectangles.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
     this.followlineN.setPath([]);
     this.followlineN.setMap(this.GM3.google_map);
     this.followlineE.setPath([]);
@@ -43,58 +42,60 @@
             // Is this the first click? If so, we start a rectangle, else we
             // finish a rectangle.
             if(this.first_click) {
-              console.log('Second click');
+              // We have a second click, we add the rectangle, and clear the
+              // first
+              // click.
+              var points = new Array({lat: this.first_click.latLng.lat(), long: this.first_click.latLng.lng()}, {lat: this.first_click.latLng.lat(), long: event.latLng.lng()}, {lat: event.latLng.lat(), long: event.latLng.lng()}, {lat: event.latLng.lat(), long: this.first_click.latLng.lng()});
+              this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(points, false);
+              this.GM3.set_active_class('default');
+              this.followlineN.setMap(null);
+              this.followlineE.setMap(null);
+              this.followlineS.setMap(null);
+              this.followlineW.setMap(null);
+              if(this.update_field) {
+                this.update_field();
+              }
             } else {
               this.first_click = event;
             }
             break;
           case 'mousemove':
-            var pathLength = this.rectangles[this.rectangles.length - 1].getPath().getLength();
-            if(pathLength >= 1) {
-              var startingPoint1 = this.rectangles[this.rectangles.length - 1].getPath().getAt(pathLength - 1);
-              var followCoordinates1 = [startingPoint1, event.latLng];
-              this.followline1.setPath(followCoordinates1);
-              var startingPoint2 = this.rectangles[this.rectangles.length - 1].getPath().getAt(0);
-              var followCoordinates2 = [startingPoint2, event.latLng];
-              this.followline2.setPath(followCoordinates2);
+            if(this.first_click) {
+              var neLatLng = new google.maps.LatLng(this.first_click.latLng.lat(), event.latLng.lng());
+              var swLatLng = new google.maps.LatLng(event.latLng.lat(), this.first_click.latLng.lng());
+              this.followlineN.setPath([this.first_click.latLng, neLatLng]);
+              this.followlineE.setPath([neLatLng, event.latLng]);
+              this.followlineS.setPath([event.latLng, swLatLng]);
+              this.followlineW.setPath([swLatLng, this.first_click.latLng]);
             }
             break;
           case 'rightclick':
-            this.GM3.set_active_class('default');
-            this.followline1.setMap(null);
-            this.followline2.setMap(null);
-            break;
-        }
-        break;
-      case 'default':
-        switch(event_type){
-          case 'click':
-            if(event_object.getClass && event_object.getClass() == 'Polygon') {
-              // Once clicked, stop editing other polygons
-              for( var j = 0; j < this.rectangles.length; j++) {
-                this.rectangles[j].stopEdit();
-              }
-              // We need to check this object is one of ours. Else we simply
-              // ignore it
-              for( var i = 0; i < this.rectangles.length; i++) {
-                if(event_object == this.rectangles[i]) {
-                  this.rectangles[i].runEdit();
+            if(event_object.getClass()=='Polygon'){
+              for(var i = 0; i < this.rectangles.length; i++){
+                if(this.rectangles[i] == event_object){
+                  this.rectangles[i].setMap(null);
+                  this.rectangles[i] = null;
                 }
               }
-            } else {
-              // Clicked elsewhere, stop editing.
-              for( var j = 0; j < this.rectangles.length; j++) {
-                this.rectangles[j].stopEdit();
+            }
+            // Close up the array
+            var new_rectangles = new Array();
+            var j = 0;
+            for( var i = 0; i < this.rectangles.length; i++) {
+              if(this.rectangles[i] != undefined) {
+                new_rectangles[j] = this.rectangles[i];
+                j++;
               }
             }
-            break;
-          case 'rightclick':
-            if(event_object.getClass && event_object.getClass() != 'Polygon') {
-              // Once clicked, stop editing other polygons
-              for( var j = 0; j < this.rectangles.length; j++) {
-                this.rectangles[j].stopEdit();
-              }
+            this.rectangles = new_rectangles;
+            if(this.update_field) {
+              this.update_field();
             }
+            this.GM3.set_active_class('default');
+            this.followlineN.setMap(null);
+            this.followlineE.setMap(null);
+            this.followlineS.setMap(null);
+            this.followlineW.setMap(null);
             break;
         }
         break;

@@ -258,6 +258,12 @@ function gm3_theme(){
       ),
       'file' => 'gm3.theme.inc'
     ),
+    'gm3_rectangle_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
     'gm3_polyline_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
