@@ -53,8 +53,14 @@
           for( var i in data) {
             for( var j in data[i]) {
               for(var k in data[i][j]['coordinates']){
-                for(var l in data[i][j]['coordinates'][k]){
-                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['coordinates'][k][l], false);                  
+                if(typeof data[i][j]['coordinates'][k][0][0] == 'number'){
+                  // We have a region with a single shape.
+                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['coordinates'][k], false);
+                } else {
+                  for(var l in data[i][j]['coordinates'][k]){
+                    // We have a region with multiple shapes.
+                    self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['coordinates'][k][l], false);
+                  }
                 }
               }
             }

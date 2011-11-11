@@ -7,10 +7,10 @@
     // please avoid loading the geometry library.
     this.geodesic = false;
     // Editing lines
-    this.followlineN = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-    this.followlineE = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-    this.followlineS = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-    this.followlineW = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
+    this.followlineN = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+    this.followlineE = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+    this.followlineS = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+    this.followlineW = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
     this.firstclick = false;
     // Rectanlges
     this.rectangles = new Array();
@@ -45,7 +45,7 @@
               // We have a second click, we add the rectangle, and clear the
               // first
               // click.
-              var points = new Array({lat: this.first_click.latLng.lat(), long: this.first_click.latLng.lng()}, {lat: this.first_click.latLng.lat(), long: event.latLng.lng()}, {lat: event.latLng.lat(), long: event.latLng.lng()}, {lat: event.latLng.lat(), long: this.first_click.latLng.lng()});
+              var points = new Array({'lat': this.first_click.latLng.lat(), 'long': this.first_click.latLng.lng()}, {'lat': this.first_click.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': this.first_click.latLng.lng()});
               this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(points, false);
               this.GM3.set_active_class('default');
               this.followlineN.setMap(null);
@@ -70,9 +70,9 @@
             }
             break;
           case 'rightclick':
-            if(event_object.getClass()=='Polygon'){
-              for(var i = 0; i < this.rectangles.length; i++){
-                if(this.rectangles[i] == event_object){
+            if(event_object.getClass() == 'Polygon') {
+              for( var i = 0; i < this.rectangles.length; i++) {
+                if(this.rectangles[i] == event_object) {
                   this.rectangles[i].setMap(null);
                   this.rectangles[i] = null;
                 }
