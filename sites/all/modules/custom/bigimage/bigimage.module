@@ -19,27 +19,9 @@ function bigimage_menu(){
         3, // x
         4 //  y
       ),
-      'access callback' => 'bigimage_access_callback',
-      'access arguments' => array(
-        1
-      )
-    ),
-    'bigimage-test' => array(
-      'title' => 'Big Image Test',
-      'page callback' => 'bigimage_test',
-      'access arguments' => array(
-        'access content'
-      )
+      'access callback' => TRUE
     )
   );
-}
-
-/**
- * Access callback for above menu item.
- */
-function bigimage_access_callback($fid){
-  // FIXME - We need to properly check whether the user has access to this file.
-  return TRUE;
 }
 
 /**
@@ -75,6 +57,9 @@ function bigimage_field_info(){
   );
 }
 
+/**
+ * Implementation of hook_field_formatter_info().
+ */
 function bigimage_field_formatter_info(){
   return array(
     'bigimage_bigimage_formatter' => array(
@@ -217,11 +202,18 @@ function bigimage_batch_process($fid, &$context){
     $context['sandbox']['total_tiles'] = _bigimage_tiles_per_zoom($max_zoom);
     $context['sandbox']['images_processed'] = 0;
   }
+  $batch = batch_get();
   $tiles_processed_this_round = 0;
-  while($context['sandbox']['images_processed'] < $context['sandbox']['total_tiles'] && $tiles_processed_this_round < 10){
-    _bigimage_create_tile($fid, $context['sandbox']['images_processed']);
-    $context['sandbox']['images_processed']++;
-    $tiles_processed_this_round++;
+  _bigimage_create_tile($fid, $context['sandbox']['images_processed']);
+  $context['sandbox']['images_processed']++;
+  $context['message'] = t('Processed %processed_images of %max_images tiles', array(
+    '%processed_images' => $context['sandbox']['images_processed'],
+    '%max_images' => $context['sandbox']['total_tiles']
+  )) . '<br/>' . t('Estimated time remaining: %time_remaining', array(
+    '%time_remaining' => format_interval(($batch['sets'][0]['elapsed'] * ($context['sandbox']['total_tiles'] / $context['sandbox']['images_processed']) - $batch['sets'][0]['elapsed']) / 1000)
+  ));
+  if($context['sandbox']['images_processed'] > 341){
+    $context['message'] .= '<br/>' . l(t('The first four levels have been created, it is safe to skip creating the rest, and to let them be created dynamically.'), $batch['source_url']);
   }
   $context['finished'] = $context['sandbox']['images_processed'] / $context['sandbox']['total_tiles'];
 }
@@ -281,7 +273,8 @@ function theme_bigimage($variables){
             $variables['fid']
           )
         )
-      )
+      ),
+      'title' => t('Tiling image')
     ));
     batch_process();
   }else{
@@ -291,12 +284,11 @@ function theme_bigimage($variables){
     $max_zoom = ceil(log($max_dimension / 256) / log(2));
     $max_dimension = pow(2, $max_zoom) * 256;
     // Longitude is easy - linear.
-    $longitude = ((($image->info['width'] / 2) / $max_dimension) * 360) - 180;
+    $longitude = (($image->info['width'] / ($max_dimension * 2)) * 360) - 180;
     // Latitude - Mercator complications.  Thanks to the code from 
     // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
     $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
     $image = null;
-    $max_zoom = ceil(log($max_dimension / 256) / log(2));
     return theme('gm3_map', array(
       'map' => array(
         'id' => 'bigimage-' . $variables['fid'],
@@ -316,6 +308,28 @@ function theme_bigimage($variables){
           'bigimage' => array(
             'fid' => $variables['fid'],
             'module' => 'bigimage'
+          ),
+          'polygon' => array(
+            'polygons' => array(
+              array(
+                array(
+                  'lat' => 78.41247213570998,
+                  'long' => -20.418090820312045
+                ),
+                array(
+                  'lat' => 76.90195383437998,
+                  'long' => -20.418090820312045
+                ),
+                array(
+                  'lat' => 76.90195383437998,
+                  'long' => -11.365356445312045
+                ),
+                array(
+                  'lat' => 78.41247213570998,
+                  'long' => -11.365356445312045
+                )
+              )
+            )
           )
         )
       )
@@ -356,15 +370,6 @@ function bigimage_library(){
 }
 
 /**
- * Bigimage test
- */
-function bigimage_test(){
-  return theme('bigimage', array(
-    'fid' => 1
-  ));
-}
-
-/**
  * Callback for the above menu function.
  */
 function bigimage_get_tile($fid, $zoom, $x, $y){
@@ -381,6 +386,8 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
  * Returns TRUE on success (or if it already exists), and FALSE on failure.
  */
 function bigimage_create_tile($fid, $zoom, $x, $y){
+  // Added for debugging.
+  return TRUE;
   // Create the fid folder.
   if(!file_exists("public://bigimage/$fid") || !file_exists("public://bigimage/$fid/base.jpg")){
     // Load the file object
