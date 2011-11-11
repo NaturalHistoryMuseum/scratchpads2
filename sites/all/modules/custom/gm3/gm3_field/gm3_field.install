@@ -36,6 +36,16 @@ function gm3_field_field_schema($field){
           )
         )
       );
+    case 'gm3_rectangle':
+      return array(
+        'columns' => array(
+          'rectangle' => array(
+            'type' => 'text',
+            'size' => 'medium',
+            'not null' => TRUE
+          )
+        )
+      );
     case 'gm3_polyline':
       return array(
         'columns' => array(
@@ -61,6 +71,8 @@ function gm3_field_field_schema($field){
         'type' => 'gm3_polygon'
       )), gm3_field_field_schema(array(
         'type' => 'gm3_polyline'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_rectangle'
       )));
       foreach($schema['columns'] as $column_name => $x){
         if(isset($schema['columns'][$column_name]['not null'])){
@@ -71,7 +83,7 @@ function gm3_field_field_schema($field){
       $schema = array_merge_recursive($schema, array(
         'columns' => array(
           'gm3_type' => array(
-            'type' => 'varchar', // Give flexibilty incase another module extends this.
+            'type' => 'varchar', // Give flexibilty in case another module extends this.
             'length' => 32
           )
         ),

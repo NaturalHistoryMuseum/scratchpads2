@@ -58,6 +58,13 @@ function theme_gm3_polyline_button($variables){
 }
 
 /**
+ * Polyline tools button
+ */
+function theme_gm3_rectangle_button($variables){
+  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>' . t('Rectangle') . ' +</p></div>';
+}
+
+/**
  * Point tools button
  */
 function theme_gm3_point_button($variables){
