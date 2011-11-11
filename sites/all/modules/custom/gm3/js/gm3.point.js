@@ -48,6 +48,9 @@
         switch(event_type){
           case 'click':
             this.add_marker(event.latLng, true);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'rightclick':
             switch(event_object.getClass()){
@@ -75,6 +78,9 @@
                   }
                 }
                 this.points = new_points;
+                if(this.update_field) {
+                  this.update_field();
+                }
                 break;
             }
             break;

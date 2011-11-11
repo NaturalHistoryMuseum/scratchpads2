@@ -31,10 +31,10 @@
     editable = typeof (editable) != 'undefined' ? editable : true;
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
-      if(points[i]['lat'] == undefined){
+      if(points[i]['lat'] == undefined) {
         // We have a string rather than an array, split it
-        if(typeof points[i] == 'object'){
-          points[i] = String(points[i]);          
+        if(typeof points[i] == 'object') {
+          points[i] = String(points[i]);
         }
         points[i] = points[i].split(",");
         path_points[i] = new google.maps.LatLng(points[i][1], points[i][0]);
@@ -59,6 +59,9 @@
             this.polygons[this.polygons.length - 1].stopEdit();
             this.polygons[this.polygons.length - 1].getPath().push(event.latLng);
             this.polygons[this.polygons.length - 1].runEdit(true);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'mousemove':
             var pathLength = this.polygons[this.polygons.length - 1].getPath().getLength();
@@ -75,6 +78,9 @@
             this.GM3.set_active_class('default');
             this.followline1.setMap(null);
             this.followline2.setMap(null);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
         }
         break;
@@ -99,6 +105,9 @@
                 this.polygons[j].stopEdit();
               }
             }
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'rightclick':
             if(event_object.getClass && event_object.getClass() != 'Polygon') {
@@ -106,6 +115,9 @@
               for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
+            }
+            if(this.update_field) {
+              this.update_field();
             }
             break;
         }
