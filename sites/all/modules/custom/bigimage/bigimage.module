@@ -25,39 +25,6 @@ function bigimage_menu(){
 }
 
 /**
- * Implementation of hook_field_widget_info().
- */
-function bigimage_field_widget_info(){
-  return array(
-    'bigimage_annotations_widget' => array(
-      'label' => t('Image and annotations'),
-      'description' => t('Add anotations to small or BIG images.'),
-      'field types' => array(
-        'bigimage_annotations'
-      ),
-      'behaviors' => array(
-        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
-        'default value' => FIELD_BEHAVIOR_NONE
-      )
-    )
-  );
-}
-
-/**
- * Implementation of hook_field_info().
- */
-function bigimage_field_info(){
-  return array(
-    'bigimage_annotations_field' => array(
-      'label' => t('Image + annotations'),
-      'description' => t('This field stores an image, along with annotations for the image.'),
-      'default_widget' => 'bigimage_annotations_widget',
-      'default_formatter' => 'bigimage_annotations_formatter'
-    )
-  );
-}
-
-/**
  * Implementation of hook_field_formatter_info().
  */
 function bigimage_field_formatter_info(){
@@ -146,9 +113,6 @@ function bigimage_field_formatter_settings_summary($field, $instance, $view_mode
 
 /**
  * Implements hook_field_formatter_view().
- * 
- * FIXME - Still need to do the field/entity formats properly (so that an entity
- * map will show all the fields set as "entity_map" on that entity.
  */
 function bigimage_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $elements = array();
@@ -157,9 +121,10 @@ function bigimage_field_formatter_view($entity_type, $entity, $field, $instance,
       $min_dimension = isset($display['settings']['minimum_dimensions']) ? $display['settings']['minimum_dimensions'] : 0;
       foreach($items as $delta => $item){
         if($item['height'] > $min_dimension || $item['width'] > $min_dimension){
-          $elements[$delta] = theme('bigimage', array(
-            'fid' => $item['fid']
-          ));
+          $elements[$delta] = array(
+            '#theme' => 'bigimage',
+            '#item' => $item
+          );
         }else{
           $elements[$delta] = array(
             '#theme' => 'image_formatter',
@@ -180,7 +145,7 @@ function bigimage_theme(){
   return array(
     'bigimage' => array(
       'variables' => array(
-        'fid' => '0'
+        'item' => array()
       )
     )
   );
@@ -262,7 +227,7 @@ function _bigimage_tiles_per_zoom($zoom, $recursive = TRUE){
  */
 function theme_bigimage($variables){
   // Check to see if this file has been displayed before.
-  if(!file_exists('public://bigimage/' . $variables['fid'])){
+  if(!file_exists('public://bigimage/' . $variables['item']['fid'])){
     // If it hasn't, then we create a batch, redirect to the batch page, and
     // then redirect back to this original page.
     $batch = batch_set(array(
@@ -270,7 +235,7 @@ function theme_bigimage($variables){
         array(
           'bigimage_batch_process',
           array(
-            $variables['fid']
+            $variables['item']['fid']
           )
         )
       ),
@@ -278,7 +243,7 @@ function theme_bigimage($variables){
     ));
     batch_process();
   }else{
-    $file = file_load($variables['fid']);
+    $file = file_load($variables['item']['fid']);
     $image = image_load($file->uri);
     $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
     $max_zoom = ceil(log($max_dimension / 256) / log(2));
@@ -289,9 +254,9 @@ function theme_bigimage($variables){
     // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
     $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
     $image = null;
-    return theme('gm3_map', array(
+    return drupal_render(theme('gm3_map', array(
       'map' => array(
-        'id' => 'bigimage-' . $variables['fid'],
+        'id' => 'bigimage-' . $variables['item']['fid'],
         'settings' => array(
           'zoom' => 2,
           'minZoom' => 2,
@@ -306,7 +271,7 @@ function theme_bigimage($variables){
         ),
         'libraries' => array(
           'bigimage' => array(
-            'fid' => $variables['fid'],
+            'fid' => $variables['item']['fid'],
             'module' => 'bigimage'
           ),
           'polygon' => array(
@@ -333,7 +298,7 @@ function theme_bigimage($variables){
           )
         )
       )
-    ));
+    )));
   }
 }
 

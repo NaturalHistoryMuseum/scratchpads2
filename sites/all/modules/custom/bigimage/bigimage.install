@@ -7,3 +7,10 @@ function bigimage_install(){
   // Create the bigimage folder in the public files directory.
   @drupal_mkdir('public://bigimage');
 }
+
+/**
+ * Implementation of hook_requirements().
+ */
+function bigimage_requirements($phase){
+  
+}
