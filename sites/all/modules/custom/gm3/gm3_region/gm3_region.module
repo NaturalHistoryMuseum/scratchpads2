@@ -5,7 +5,6 @@
  * 
  * $ ogrinfo level4.shp level4 > level_4_data
  */
-
 /**
  * Implementation of hook_menu().
  */
@@ -35,7 +34,7 @@ function gm3_region_menu(){
       'access arguments' => array(
         'access content'
       ),
-      'type' => MENU_CALLBACK    
+      'type' => MENU_CALLBACK
     )
   );
 }
@@ -87,6 +86,12 @@ function gm3_region_theme(){
     'gm3_region_region_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
+      ),
+      'file' => 'gm3_region.theme.inc'
+    ),
+    'gm3_region_region_text' => array(
+      'variables' => array(
+        'data' => array()
       ),
       'file' => 'gm3_region.theme.inc'
     )

@@ -10,11 +10,13 @@ function gm3_field_field_schema($field){
         'columns' => array(
           'latitude' => array(
             'type' => 'float',
-            'not null' => TRUE
+            'not null' => TRUE,
+            'size' => 'big'
           ),
           'longitude' => array(
             'type' => 'float',
-            'not null' => TRUE
+            'not null' => TRUE,
+            'size' => 'big'
           )
         ),
         'indexes' => array(

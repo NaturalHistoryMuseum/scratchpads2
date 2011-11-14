@@ -22,6 +22,54 @@
  * FIXME - Drag'n'dropped points are not updated.
  */
 /**
+ * Implementation of hook_theme().
+ */
+function gm3_field_theme(){
+  return array(
+    'gm3_point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    )
+  );
+}
+
+/**
  * Implementation of hook_field_info().
  */
 function gm3_field_field_info(){
@@ -101,14 +149,18 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
   switch($field['type']){
     case 'gm3_point':
       $new_items = array();
-      _gm3_field_get_array_from_points_string($items[0], $new_items);
+      if(count($items)){
+        _gm3_field_get_array_from_points_string($items[0], $new_items);
+      }
       $items = $new_items;
       break;
     case 'gm3_rectangle':
     case 'gm3_polygon':
     case 'gm3_polyline':
       $new_items = array();
-      _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      if(count($items)){
+        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      }
       $items = $new_items;
       break;
     case 'gm3_combination':
@@ -430,6 +482,61 @@ function gm3_field_field_formatter_info(){
 }
 
 /**
+ * Themes for field types.
+ */
+function theme_gm3_point_text($variables){
+  return array(
+    '#markup' => t('Longitude: %longitude, Latitude: %latitude', array(
+      '%longitude' => $variables['data']['longitude'],
+      '%latitude' => $variables['data']['latitude']
+    ))
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polygon_text($variables){
+  return array(
+    '#markup' => $variables['data']['polygon']
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polyline_text($variables){
+  return array(
+    '#markup' => $variables['data']['polyline']
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_rectangle_text($variables){
+  return array(
+    '#markup' => $variables['data']['rectangle']
+  );
+}
+
+function theme_point_text($variables){
+  return theme('gm3_point_text', $variables);
+}
+
+function theme_polygon_text($variables){
+  return theme('gm3_polygon_text', $variables);
+}
+
+function theme_polyline_text($variables){
+  return theme('gm3_polyline_text', $variables);
+}
+
+function theme_rectangle_text($variables){
+  return theme('gm3_rectangle_text', $variables);
+}
+
+/**
  * Implements hook_field_formatter_view().
  * 
  * FIXME - Still need to do the field/entity formats properly (so that an entity
@@ -448,8 +555,24 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       break;
     case 'gm3_text':
     default:
-      // We return the element here!
-      break;
+      $elements = array();
+      switch($field['type']){
+        case 'gm3_combination':
+          foreach($items as $item){
+            $elements[] = theme($item['gm3_type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+        default:
+          foreach($items as $item){
+            $elements[] = theme($field['type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+      }
+      return $elements;
   }
   switch($field['type']){
     case 'gm3_point':
