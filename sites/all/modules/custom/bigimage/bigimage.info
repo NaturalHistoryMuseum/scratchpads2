@@ -3,4 +3,5 @@ description = Uses the Google Maps Javascript API V3 to display large images as 
 core = 7.x
 dependencies[] = imagemagick
 dependencies[] = gm3
-configure = admin/config/bigimage
+dependencies[] = image
+configure = admin/config/media/bigimage
