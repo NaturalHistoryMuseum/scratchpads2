@@ -20,8 +20,44 @@ function bigimage_menu(){
         4 //  y
       ),
       'access callback' => TRUE
+    ),
+    'admin/config/bigimage' => array(
+      'title' => 'Big Image settings',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'bigimage_admin_settings'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      )
     )
   );
+}
+
+/**
+ * Settings form for Big image
+ */
+function bigimage_admin_settings(){
+  $durden_path = variable_get('bigimage_durden_path', FALSE);
+  $output = array();
+  $durden_output = '';
+  if($durden_path){
+    exec($durden_path, $output);
+    if(count($output)){
+      $durden_output = '<pre>' . implode("\n", $output) . '</pre>';
+      variable_set('bigimage_durden_installed', TRUE);
+    }else{
+      variable_set('bigimage_durden_installed', FALSE);
+    }
+  }
+  return system_settings_form(array(
+    'bigimage_durden_path' => array(
+      '#title' => 'Path to durden',
+      '#type' => 'textfield',
+      '#description' => '<p>Relative or absolute path to the durden executable.</p>' . $durden_output,
+      '#default_value' => $durden_path
+    )
+  ));
 }
 
 /**
@@ -222,24 +258,32 @@ function theme_bigimage($variables){
     if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
       drupal_set_message('Unable to create the big image folder.', 'error');
     }else{
-      $directory = 'public://bigimage/' . $variables['item']['fid'];
-      if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
-        drupal_set_message('Unable to write to the bigimage folder.', 'error');
+      // Use Durden if we've specified it.
+      if(variable_get('bigimage_durden_installed', FALSE)){
+        $file = file_load($variables['item']['fid']);
+        // Start durden, but don't wait for a response.
+        exec('nohup ' . variable_get('bigimage_durden_path', 'error_message') . ' ' . drupal_realpath($file->uri) . ' ' . drupal_realpath("public://bigimage/{$variables['item']['fid']}") . ' &');
+        return '<p>' . t('The thumbnails for this image are currently being generated') . '</p>';
       }else{
-        // If it hasn't, then we create a batch, redirect to the batch page, and
-        // then redirect back to this original page.
-        $batch = batch_set(array(
-          'operations' => array(
-            array(
-              'bigimage_batch_process',
+        $directory = 'public://bigimage/' . $variables['item']['fid'];
+        if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
+          drupal_set_message('Unable to write to the bigimage folder.', 'error');
+        }else{
+          // If it hasn't, then we create a batch, redirect to the batch page, and
+          // then redirect back to this original page.
+          $batch = batch_set(array(
+            'operations' => array(
               array(
-                $variables['item']['fid']
+                'bigimage_batch_process',
+                array(
+                  $variables['item']['fid']
+                )
               )
-            )
-          ),
-          'title' => t('Tiling image')
-        ));
-        batch_process();
+            ),
+            'title' => t('Tiling image')
+          ));
+          batch_process();
+        }
       }
     }
   }else{
