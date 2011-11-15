@@ -39,13 +39,6 @@ function bigimage_field_formatter_info(){
         'minimum_dimensions' => '500',
         'image_style' => ''
       )
-    ),
-    'bigimage_annotations_formatter' => array(
-      'label' => t('Image + annotations'),
-      'description' => t('Displays an image along with its annotations.'),
-      'field types' => array(
-        'bigimage_annotations_field'
-      )
     )
   );
 }

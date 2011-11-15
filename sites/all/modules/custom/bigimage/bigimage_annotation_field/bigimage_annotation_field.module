@@ -32,3 +32,18 @@ function bigimage_annotation_field_field_info(){
     )
   );
 }
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function bigimage_annotation_field_field_formatter_info(){
+  return array(
+    'bigimage_annotations_formatter' => array(
+      'label' => t('Image + annotations'),
+      'description' => t('Displays an image along with its annotations.'),
+      'field types' => array(
+        'bigimage_annotations_field'
+      )
+    )
+  );
+}
