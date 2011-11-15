@@ -158,9 +158,6 @@ function bigimage_batch_process($fid, &$context){
   if(!isset($context['sandbox']['total_tiles'])){
     // Calculate the total number of tiles for this file.
     $file = file_load($fid);
-    // By making this directory here, we ensure that we don't end up with a loop
-    // of batch processes.
-    drupal_mkdir("public://bigimage/$fid");
     $image = image_load($file->uri);
     $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
     $max_zoom = ceil(log($max_dimension / 256) / log(2));
@@ -227,21 +224,26 @@ function _bigimage_tiles_per_zoom($zoom, $recursive = TRUE){
  */
 function theme_bigimage($variables){
   // Check to see if this file has been displayed before.
-  if(!file_exists('public://bigimage/' . $variables['item']['fid'])){
-    // If it hasn't, then we create a batch, redirect to the batch page, and
-    // then redirect back to this original page.
-    $batch = batch_set(array(
-      'operations' => array(
-        array(
-          'bigimage_batch_process',
+  if(file_exists('public://bigimage') && !file_exists('public://bigimage/' . $variables['item']['fid'])){
+    $directory = 'public://bigimage/' . $variables['item']['fid'];
+    if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
+      drupal_set_message('Unable to write to the bigimage folder.', 'error');
+    }else{
+      // If it hasn't, then we create a batch, redirect to the batch page, and
+      // then redirect back to this original page.
+      $batch = batch_set(array(
+        'operations' => array(
           array(
-            $variables['item']['fid']
+            'bigimage_batch_process',
+            array(
+              $variables['item']['fid']
+            )
           )
-        )
-      ),
-      'title' => t('Tiling image')
-    ));
-    batch_process();
+        ),
+        'title' => t('Tiling image')
+      ));
+      batch_process();
+    }
   }else{
     $file = file_load($variables['item']['fid']);
     $image = image_load($file->uri);
@@ -258,6 +260,7 @@ function theme_bigimage($variables){
       'map' => array(
         'id' => 'bigimage-' . $variables['item']['fid'],
         'settings' => array(
+          'backgroundColor' => 'white', // Could set this as an option if we include other blank tiles.
           'zoom' => 2,
           'minZoom' => 2,
           'maxZoom' => $max_zoom,
@@ -274,7 +277,7 @@ function theme_bigimage($variables){
             'fid' => $variables['item']['fid'],
             'module' => 'bigimage'
           ),
-          'polygon' => array(
+          /*'polygon' => array(
             'polygons' => array(
               array(
                 array(
@@ -295,7 +298,7 @@ function theme_bigimage($variables){
                 )
               )
             )
-          )
+          )*/
         )
       )
     )));
@@ -351,55 +354,82 @@ function bigimage_get_tile($fid, $zoom, $x, $y){
  * Returns TRUE on success (or if it already exists), and FALSE on failure.
  */
 function bigimage_create_tile($fid, $zoom, $x, $y){
-  // Added for debugging.
-  return TRUE;
+  // If the requested file already exists, return TRUE immediately.
+  if(file_exists("public://bigimage/{$fid}/{$zoom}/{$x}-{$y}.jpg")){return TRUE;}
+  // If the X and Y are less than 0 return FALSE.
+  if($x < 0 || $y < 0){return FALSE;}
+  // Load the file from the database so that we can get the URI and some info
+  // about the image.
+  $file = file_load($fid);
+  if(!$file){
+    // WTF! Error dude!
+    watchdog('bigimage', 'We tried to load a file and failed');
+    return FALSE;
+  }
+  $image_info = image_get_info($file->uri);
+  // Calculate whether or not the $x and $y are within the bounds of the image.
+  // If they're not, then we return FALSE.
+  $max_dimension = $image_info['width'] > $image_info['height'] ? $image_info['width'] : $image_info['height'];
+  $max_zoom = ceil(log($max_dimension / 256) / log(2));
+  $max_dimension = pow(2, $max_zoom) * 256;
+  $max_x_tiles = ceil(($image_info['width'] / $max_dimension) * pow(2, $max_zoom));
+  $max_y_tiles = ceil(($image_info['height'] / $max_dimension) * pow(2, $max_zoom));
+  if($zoom > $max_zoom){return FALSE;} // We have attempted to zoom in too far.
+  if($zoom < $max_zoom){ // Calculate the max x and y tiles for this zoom level.
+    $max_x_tiles = ceil($max_x_tiles / pow(2, $max_zoom - $zoom));
+    $max_y_tiles = ceil($max_y_tiles / pow(2, $max_zoom - $zoom));
+  }
+  // If we're past the image, return FALSE.
+  if($x >= $max_x_tiles || $y >= $max_y_tiles){return FALSE;}
+  // If we're here, then we DON'T HAVE THE IMAGE.  We should now try to create
+  // it.
   // Create the fid folder.
   if(!file_exists("public://bigimage/$fid") || !file_exists("public://bigimage/$fid/base.jpg")){
-    // Load the file object
-    $file = file_load($fid);
-    if(!$file){
-      // WTF! Error dude!
-      watchdog('bigimage', 'We tried to load a file and failed');
-      return FALSE;
-    }
     // Create the directory (therefore, if this directory is there, we know the
     // fid is valid).
-    drupal_mkdir("public://bigimage/$fid");
-    $image = image_load($file->uri);
-    $max_dimension = $image->info['width'] > $image->info['height'] ? $image->info['width'] : $image->info['height'];
-    $max_zoom = ceil(log($max_dimension / 256) / log(2));
-    $max_dimension = pow(2, $max_zoom) * 256;
-    // Next we need to create a base image that is padded to make cropping and
-    // scaling much easier.
-    image_crop($image, 0, 0, $max_dimension, $max_dimension);
-    image_save($image, "public://bigimage/$fid/base.jpg");
+    $directory = "public://bigimage/$fid";
+    $dir_prepared = file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS);
+    if(!$dir_prepared){
+      watchdog('bigimage', 'Unable to create the path "%directory"', array(
+        '%directory' => $directory
+      ));
+    }
   }
   // Create the zoom level folder.
   if(!file_exists("public://bigimage/$fid/$zoom")){
-    drupal_mkdir("public://bigimage/$fid/$zoom");
+    $directory = "public://bigimage/$fid/$zoom";
+    $dir_prepared = file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS);
+    if(!$dir_prepared){
+      watchdog('bigimage', 'Unable to create the path "%directory"', array(
+        '%directory' => $directory
+      ));
+    }
   }
   // Next create the zoomed image based on the max_zoom, and the base image
   if(!file_exists("public://bigimage/$fid/$zoom/base.jpg")){
     // Zoom of 0 requires the image to be scaled to 256*256, Zoom of 1 requires
     // the image to be scaled to 512*512, Zoom of 2 requires the image to be
     // scaled to 1024*1024, and so on.
-    $image = image_load("public://bigimage/$fid/base.jpg");
-    image_scale($image, 256 * pow(2, $zoom));
-    image_save($image, "public://bigimage/$fid/$zoom/base.jpg");
+    $max_dimension = $image_info['width'] > $image_info['height'] ? $image_info['width'] : $image_info['height'];
+    $max_zoom = ceil(log($max_dimension / 256) / log(2));
+    if($zoom < $max_zoom){
+      $image = image_load($file->uri);
+      $height = ceil($image->info['height'] / pow(2, $max_zoom - $zoom));
+      $width = ceil($image->info['width'] / pow(2, max_zoom - $zoom));
+      image_scale($image, $width, $height);
+      image_save($image, "public://bigimage/$fid/$zoom/base.jpg");
+    }else{
+      // $zoom must = $max_zoom
+      file_unmanaged_copy($file->uri, "public://bigimage/$fid/$zoom/base.jpg");
+    }
   }
   // Finally, create the crop of the image if we don't already have it.
   if(!file_exists("public://bigimage/$fid/$zoom/$x-$y.jpg")){
-    // Check that we have a valid x and y
-    if($x < 0 || $y < 0 || $x >= pow(2, $zoom) || $y >= pow(2, $zoom)){return FALSE;}
-    // We serve the file, else we go through a sequence of events to prepare 
-    // the file.
     $image = image_load("public://bigimage/$fid/$zoom/base.jpg");
     // FIXME - Check if $x and $y start at 1 or 0
     image_crop($image, ($x * 256) + 1, ($y * 256) + 1, 256, 256);
     image_save($image, "public://bigimage/$fid/$zoom/$x-$y.jpg");
   }
-  // Redirect permanently to the file, allowing Apache to work its magic (or
-  // whatever web server you're using).
   return TRUE;
 }
 
@@ -407,6 +437,6 @@ function bigimage_create_tile($fid, $zoom, $x, $y){
  * Error tile.
  */
 function bigimage_get_tile_error(){
-  // Return a standard black tile.
+  // Return a standard white tile.
   drupal_goto(file_create_url(drupal_get_path('module', 'bigimage') . '/empty.jpg'), array(), 301);
 }
