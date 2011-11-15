@@ -21,8 +21,9 @@ function bigimage_menu(){
       ),
       'access callback' => TRUE
     ),
-    'admin/config/bigimage' => array(
+    'admin/config/media/bigimage' => array(
       'title' => 'Big Image settings',
+      'description' => 'Set the path to the durden executable, if it is installed.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'bigimage_admin_settings'
@@ -252,6 +253,22 @@ function _bigimage_tiles_per_zoom($zoom, $recursive = TRUE){
  * Theme function.
  */
 function theme_bigimage($variables){
+  // Check to see if Durden is running for this image, if so we need to return
+  // a message.
+  if(variable_get('bigimage_durden_installed', FALSE)){
+    $durden_pids = variable_get('bigimage_durden_pids', array());
+    if(isset($durden_pids[$variables['item']['fid']])){
+      // We've already started this process, lets check on it
+      exec('ps -p ' . $durden_pids[$variables['item']['fid']], $output);
+      if(isset($output[1])){
+        return '<p class="error">' . t('The thumbnails for this image are currently being generated') . '</p>';
+      }else{
+        // The process has finished - remove it from the pids list
+        unset($durden_pids[$variables['item']['fid']]);
+        variable_set('bigimage_durden_pids', $durden_pids);
+      }
+    }
+  }
   // Check to see if this file has been displayed before.
   if(!file_exists('public://bigimage/' . $variables['item']['fid'])){
     $directory = 'public://bigimage';
@@ -262,8 +279,10 @@ function theme_bigimage($variables){
       if(variable_get('bigimage_durden_installed', FALSE)){
         $file = file_load($variables['item']['fid']);
         // Start durden, but don't wait for a response.
-        exec('nohup ' . variable_get('bigimage_durden_path', 'error_message') . ' ' . drupal_realpath($file->uri) . ' ' . drupal_realpath("public://bigimage/{$variables['item']['fid']}") . ' &');
-        return '<p>' . t('The thumbnails for this image are currently being generated') . '</p>';
+        $durden_pids = variable_get('bigimage_durden_pids', array());
+        $durden_pids[$variables['item']['fid']] = exec('nohup ' . variable_get('bigimage_durden_path', 'error_message') . ' ' . drupal_realpath($file->uri) . ' ' . drupal_realpath("public://bigimage/{$variables['item']['fid']}") . ' > /dev/null 2>&1 & echo $!');
+        variable_set('bigimage_durden_pids', $durden_pids);
+        return '<p class="error">' . t('The thumbnails for this image are currently being generated') . '</p>';
       }else{
         $directory = 'public://bigimage/' . $variables['item']['fid'];
         if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
