@@ -224,25 +224,30 @@ function _bigimage_tiles_per_zoom($zoom, $recursive = TRUE){
  */
 function theme_bigimage($variables){
   // Check to see if this file has been displayed before.
-  if(file_exists('public://bigimage') && !file_exists('public://bigimage/' . $variables['item']['fid'])){
-    $directory = 'public://bigimage/' . $variables['item']['fid'];
+  if(!file_exists('public://bigimage/' . $variables['item']['fid'])){
+    $directory = 'public://bigimage';
     if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
-      drupal_set_message('Unable to write to the bigimage folder.', 'error');
+      drupal_set_message('Unable to create the big image folder.', 'error');
     }else{
-      // If it hasn't, then we create a batch, redirect to the batch page, and
-      // then redirect back to this original page.
-      $batch = batch_set(array(
-        'operations' => array(
-          array(
-            'bigimage_batch_process',
+      $directory = 'public://bigimage/' . $variables['item']['fid'];
+      if(!file_prepare_directory($directory, FILE_CREATE_DIRECTORY || FILE_MODIFY_PERMISSIONS)){
+        drupal_set_message('Unable to write to the bigimage folder.', 'error');
+      }else{
+        // If it hasn't, then we create a batch, redirect to the batch page, and
+        // then redirect back to this original page.
+        $batch = batch_set(array(
+          'operations' => array(
             array(
-              $variables['item']['fid']
+              'bigimage_batch_process',
+              array(
+                $variables['item']['fid']
+              )
             )
-          )
-        ),
-        'title' => t('Tiling image')
-      ));
-      batch_process();
+          ),
+          'title' => t('Tiling image')
+        ));
+        batch_process();
+      }
     }
   }else{
     $file = file_load($variables['item']['fid']);
