@@ -100,3 +100,8 @@ function gm3_add(&$map = array()){
     )
   ), 'setting');
 }
+
+/**
+ * Theme a GM3 view.
+ */
+function theme_gm3_view_gm3($variables){}

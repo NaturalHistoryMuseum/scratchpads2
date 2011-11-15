@@ -513,6 +513,9 @@ function theme_gm3_polyline_text($variables){
 
 /**
  * Themes for field types.
+ * 
+ * Note, this is A LOT simpler than renaming every instance of "polygon" to
+ * "gm3_polygon", although I may do that in the future.
  */
 function theme_gm3_rectangle_text($variables){
   return array(

@@ -255,6 +255,10 @@ function gm3_theme(){
       ),
       'file' => 'gm3.theme.inc'
     ),
+    'gm3_view_gm3' => array(
+      'variables' => array(),
+      'file' => 'gm3.theme.inc'
+    ),
     'gm3_point_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
