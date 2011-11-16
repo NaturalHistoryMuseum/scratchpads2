@@ -599,7 +599,10 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       if(count($items)){
         $polys = array();
         foreach($items as $key => $item){
-          $polys = array_merge($polys, gm3_convert_polygon_string($item[substr($field['type'], 4)]));
+          $polys[] = array(
+            'points' => array_pop(gm3_convert_polygon_string($item[substr($field['type'], 4)])),
+            'editable' => FALSE
+          );
         }
         $element = theme('gm3_map', array(
           'map' => array(
@@ -638,7 +641,10 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           case 'rectangle':
           case 'polygon':
           case 'polyline':
-            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'] = array_merge($map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'], gm3_convert_polygon_string($item[$item['gm3_type']]));
+            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
+              $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
+              'editable' => FALSE
+            );
             $display_map = TRUE;
             break;
           case 'point':
