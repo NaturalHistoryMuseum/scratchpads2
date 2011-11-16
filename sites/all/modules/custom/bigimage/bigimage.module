@@ -36,6 +36,13 @@ function bigimage_menu(){
 }
 
 /**
+ * Implementation of hook_file_delete().
+ */
+function bigimage_file_delete($file){
+  // Delete the big image folder.
+}
+
+/**
  * Settings form for Big image
  */
 function bigimage_admin_settings(){
