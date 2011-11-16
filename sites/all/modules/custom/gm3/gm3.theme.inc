@@ -10,6 +10,29 @@ function theme_gm3_map($variables){
     // Could we get this dynamically from hook_theme?
     $variables['map']['id'] = 'gm3-map';
   }
+  if(isset($variables['map']['libraries']['point']['convexhull']) && $variables['map']['libraries']['point']['convexhull']){
+    // We need to add a convex hull polygon.  Lets do so.
+    if(gm3_load_geophp()){
+      $points = array();
+      foreach($variables['map']['libraries']['point']['points'] as $point){
+        $points[] = new Point($point['latitude'], $point['longitude']);
+      }
+      $multipoint = new MultiPoint($points);
+      $convexhull = json_decode(@$multipoint->convexHull()->out('json'));
+      $poly = array();
+      foreach($convexhull->coordinates[0] as $latlng){
+        $poly[] = array(
+          $latlng[1],// WHY OH WHY is this the reverse order of what we expect?
+          $latlng[0]
+        );
+      }
+      $variables['map']['libraries']['polygon']['polygons'][] = array(
+        'polygon' => $poly,
+        'editable' => FALSE,
+        'content' => t('Convex hull for the points within it.')
+      );
+    }
+  }
   if(isset($info[$variables['map']['id']])){
     // this map has already been initialized.
     // We can alter settings for the map, but won't be able to add any tools
@@ -139,7 +162,6 @@ function theme_gm3_view_gm3($variables){
       switch($type){
         case 'gm3_polygon':
         case 'gm3_polyline':
-          
           break;
         case 'gm3_point':
           if(!isset($map['libraries']['point'])){
