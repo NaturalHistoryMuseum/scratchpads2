@@ -36,6 +36,16 @@
     return this;
   }
   Drupal.GM3.prototype.add_popup = function(object, content, title){
+    // There appears to be a small bug with the infobubble code that calculates
+    // the height/width of the content before it is added as a child of the 
+    // "backgroundClassName" resulting in incorrect results.
+    if(typeof content == 'string'){
+      content = '<div class="gm3_infobubble">'+content+'</div>';
+    } else {
+      for(var i in content){
+        content[i]['content'] = '<div class="gm3_infobubble">'+content[i]['content']+'</div>';        
+      }
+    }
     this.popups[this.popups.length] = {'object': object, 'content': content};
     self = this;
     // FIXME - May have the type of event an option.
@@ -44,7 +54,14 @@
         self.info_window.close();
         self.info_window = false;
       }
-      self.info_window = new InfoBubble({map: self.google_map, content: content, position: event.latLng, shadowStyle: 1, padding: 0, borderRadius: 4, arrowSize: 10, borderWidth: 1, borderColor: '#2c2c2c', disableAutoPan: true, hideCloseButton: true, arrowPosition: 30, backgroundClassName: 'phoney', arrowStyle: 2});
+      self.info_window = new InfoBubble({map: self.google_map, position: event.latLng, disableAutoPan: true, borderRadius: 4, borderWidth: 2, backgroundColor: '#f5f5f5', borderColor: '#6261d8', arrowStyle: 0});
+      if(typeof content == 'string'){
+        self.info_window.setContent(content);
+      } else {
+        for(var i in content){
+          self.info_window.addTab(content[i]['title'], content[i]['content']);        
+        }
+      }
       self.info_window.open();
     });
   }
