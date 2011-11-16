@@ -75,6 +75,12 @@ function gm3_library(){
         array(
           'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
         )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.infobubble'
+        )
       )
     ),
     // Fancy info bubbles
@@ -84,7 +90,7 @@ function gm3_library(){
       'version' => 1,
       'js' => array(
         array(
-          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble.js',
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble-compiled.js',
           'options' => 'external'
         )
       )
@@ -96,7 +102,7 @@ function gm3_library(){
       'version' => '2.0.5',
       'js' => array(
         array(
-          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer.js',
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer_packed.js',
           'options' => 'external'
         )
       )
