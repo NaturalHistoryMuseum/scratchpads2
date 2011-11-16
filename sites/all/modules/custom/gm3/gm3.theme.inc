@@ -22,7 +22,7 @@ function theme_gm3_map($variables){
       $poly = array();
       foreach($convexhull->coordinates[0] as $latlng){
         $poly[] = array(
-          $latlng[1],// WHY OH WHY is this the reverse order of what we expect?
+          $latlng[1], // WHY OH WHY is this the reverse order of what we expect?
           $latlng[0]
         );
       }
