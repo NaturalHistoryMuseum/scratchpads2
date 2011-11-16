@@ -17,7 +17,13 @@
     // Add Rectangles sent from server.
     if(this.GM3.libraries.rectangle.rectangles) {
       for( var i in this.GM3.libraries.rectangle.rectangles) {
-        this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i], false);
+        if(typeof (this.GM3.libraries.rectangle.rectangles[i]['rectangle']) == 'undefined') {
+          this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i], false);
+        } else {
+          var content = typeof (this.GM3.libraries.rectangle.rectangles[i]['content']) != 'undefined' ? this.GM3.libraries.rectangle.rectangles[i]['content'] : '';
+          var title = typeof (this.GM3.libraries.rectangle.rectangles[i]['title']) != 'undefined' ? this.GM3.libraries.rectangle.rectangles[i]['title'] : '';
+          this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i]['rectangle'], this.GM3.libraries.rectangle.rectangles[i]['editable'], content, title)
+        }
       }
     }
     this.add_transfer_listeners();

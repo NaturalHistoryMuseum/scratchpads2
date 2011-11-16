@@ -13,7 +13,13 @@
     // Add Polylines sent from server.
     if(this.GM3.libraries.polyline.polylines) {
       for( var i in this.GM3.libraries.polyline.polylines) {
-        this.add_polyline(this.GM3.libraries.polyline.polylines[i]);
+        if(typeof (this.GM3.libraries.polyline.polylines[i]['polyline']) == 'undefined') {
+          this.add_polyline(this.GM3.libraries.polyline.polylines[i]);
+        } else {
+          var content = typeof (this.GM3.libraries.polyline.polylines[i]['content']) != 'undefined' ? this.GM3.libraries.polyline.polylines[i]['content'] : '';
+          var title = typeof (this.GM3.libraries.polyline.polylines[i]['title']) != 'undefined' ? this.GM3.libraries.polyline.polylines[i]['title'] : '';
+          this.add_polyline(this.GM3.libraries.polyline.polylines[i]['polyline'], this.GM3.libraries.polyline.polylines[i]['editable'], content);
+        }
       }
     }
   }
@@ -23,7 +29,7 @@
     this.followline.setPath([]);
     this.followline.setMap(this.GM3.google_map);
   }
-  Drupal.GM3.polyline.prototype.add_polyline = function(points){
+  Drupal.GM3.polygon.prototype.add_polyline = function(points, editable, content, title){
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
       if(points[i]['lat'] == undefined) {
@@ -37,7 +43,21 @@
         path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long']);
       }
     }
-    this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
+    if(editable) {
+      // We don't add a popup to an editable polyline.
+      this.polylines[this.polylines.length] = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
+    } else {
+      // Add the popup also if we have content!
+      content = typeof (content) != 'undefined' ? content : '';
+      title = typeof (title) != 'undefined' ? title : '';
+      var polyline = new google.maps.Polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
+      this.GM3.add_listeners_helper(polyline);
+      if(content) {
+        this.GM3.add_popup(polyline, content, title);
+      }
+      // Return the polyline so that it can be saved elsewhere.
+      return polyline;
+    }
   }
   Drupal.GM3.polyline.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){

@@ -14,7 +14,13 @@
     // Add Polygons sent from server.
     if(this.GM3.libraries.polygon.polygons) {
       for( var i in this.GM3.libraries.polygon.polygons) {
-        this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
+        if(typeof (this.GM3.libraries.polygon.polygons[i]['polygon']) == 'undefined') {
+          this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
+        } else {
+          var content = typeof (this.GM3.libraries.polygon.polygons[i]['content']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['content'] : '';
+          var title = typeof (this.GM3.libraries.polygon.polygons[i]['title']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['title'] : '';
+          this.add_polygon(this.GM3.libraries.polygon.polygons[i]['polygon'], this.GM3.libraries.polygon.polygons[i]['editable'], content);
+        }
       }
     }
     this.add_transfer_listeners();
@@ -27,7 +33,7 @@
     this.followline1.setMap(this.GM3.google_map);
     this.followline2.setMap(this.GM3.google_map);
   }
-  Drupal.GM3.polygon.prototype.add_polygon = function(points, editable){
+  Drupal.GM3.polygon.prototype.add_polygon = function(points, editable, content, title){
     editable = typeof (editable) != 'undefined' ? editable : true;
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
@@ -43,10 +49,18 @@
       }
     }
     if(editable) {
+      // We don't add a popup to an editable polygon.
       this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
     } else {
+      // Add the popup also if we have content!
+      content = typeof (content) != 'undefined' ? content : '';
+      title = typeof (title) != 'undefined' ? title : '';
       var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
       this.GM3.add_listeners_helper(polygon);
+      if(content) {
+        console.log(content);
+        this.GM3.add_popup(polygon, content, title);
+      }
       // Return the polygon so that it can be saved elsewhere.
       return polygon;
     }
