@@ -229,7 +229,7 @@ function theme_gm3_view_gm3($variables){
       }
     }
   }
-  return drupal_render(theme_gm3_map(array(
+  return drupal_render(theme('gm3_map', array(
     'map' => $map
   )));
 }
