@@ -29,18 +29,15 @@
     content = typeof (content) != 'undefined' ? content : '';
     var current_point = this.points.length;
     this.points[current_point] = new google.maps.Marker({position: latLng, draggable: true, title: title + " :: " + latLng.toString(), icon: this.marker_image});
+    // Add transfer listeners so the added points can be rightclicked.
+    this.GM3.add_listeners_helper(this.points[current_point]);
     if(content) {
-      google.maps.event.addListener(this.points[current_point], "click", function(event){
-        var info_window = new InfoBubble({map: this.map, content: content, position: latLng, shadowStyle: 1, padding: 0, borderRadius: 4, arrowSize: 10, borderWidth: 1, borderColor: '#2c2c2c', disableAutoPan: true, hideCloseButton: true, arrowPosition: 30, backgroundClassName: 'phoney', arrowStyle: 2});
-        info_window.open();
-      });
+      this.GM3.add_popup(this.points[current_point], content, title);
     }
     if(redraw) {
       this.clusterer.addMarker(this.points[current_point], true);
       this.clusterer.repaint();
     }
-    // Add transfer listeners so the added points can be rightclicked.
-    this.GM3.add_listeners_helper(this.points[current_point]);
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
     switch(this.GM3.active_class){
