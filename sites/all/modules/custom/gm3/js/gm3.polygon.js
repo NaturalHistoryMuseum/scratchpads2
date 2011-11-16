@@ -58,7 +58,6 @@
       var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
       this.GM3.add_listeners_helper(polygon);
       if(content) {
-        console.log(content);
         this.GM3.add_popup(polygon, content, title);
       }
       // Return the polygon so that it can be saved elsewhere.
