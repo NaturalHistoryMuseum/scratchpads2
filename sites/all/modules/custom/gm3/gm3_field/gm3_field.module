@@ -457,6 +457,9 @@ function gm3_field_field_formatter_info(){
         'gm3_polygon',
         'gm3_polyline',
         'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
       )
     ),
     'gm3_field_map' => array(
@@ -467,6 +470,9 @@ function gm3_field_field_formatter_info(){
         'gm3_polygon',
         'gm3_polyline',
         'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
       )
     ),
     'gm3_text' => array(
@@ -479,6 +485,41 @@ function gm3_field_field_formatter_info(){
       )
     )
   );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  return array(
+    'display_convex_hull' => array(
+      '#title' => t('Display convex hull of points.'),
+      '#type' => 'radios',
+      '#required' => TRUE,
+      '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
+      '#options' => array(
+        t('NO'),
+        t('YES')
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function gm3_field_field_formatter_settings_summary($field, $instance, $view_mode){
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      $summary = array();
+      if(!isset($instance['display'][$view_mode]['settings']['display_convex_hull']) || $instance['display'][$view_mode]['settings']['display_convex_hull']){
+        $summary[] = t('Display convex hull of points on the map.');
+      }else{
+        $summary[] = t('No convex hull will be displayed.');
+      }
+      return implode('<br />', $summary);
+  }
 }
 
 /**
@@ -585,7 +626,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             'id' => $id,
             'libraries' => array(
               'point' => array(
-                'points' => $items
+                'points' => $items,
+                'convexhull' => $display['settings']['display_convex_hull']
               )
             )
           )
@@ -621,7 +663,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         'id' => $id,
         'libraries' => array(
           'point' => array(
-            'points' => array()
+            'points' => array(),
+            'convexhull' => $display['settings']['display_convex_hull']
           ),
           'polygon' => array(
             'polygons' => array()
