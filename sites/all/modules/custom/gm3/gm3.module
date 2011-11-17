@@ -86,7 +86,9 @@ function gm3_library(){
         /*array(
           'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble-compiled.js',
           'options' => 'external'
-        )*/    
+        )
+        * Posted issue to http://code.google.com/p/google-maps-utility-library-v3/issues/detail?id=105&q=size%20infobubble&colspec=ID%20Type%20Status%20Priority%20Fixed%20Owner%20Summary%20Stars
+        */
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble$min.js"
         )
