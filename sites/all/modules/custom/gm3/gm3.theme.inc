@@ -160,8 +160,22 @@ function theme_gm3_view_gm3($variables){
     }
     foreach($geo_fields as $key => $type){
       switch($type){
+        case 'gm3_rectangle':
         case 'gm3_polygon':
         case 'gm3_polyline':
+          foreach($row->{"field_$key"} as $item){
+            module_load_include('functions.inc', 'gm3');
+            if(!isset($map['libraries'][substr($type, 4)])){
+              $map['libraries'][substr($type, 4)] = array(
+                substr($type, 4) . 's' => array()
+              );
+            }
+            $map['libraries'][substr($type, 4)][substr($type, 4) . 's'][] = array(
+              substr($type, 4) => array_pop(gm3_convert_polygon_string($item['raw'][substr($type, 4)])),
+              'editable' => FALSE,
+              'content' => $content
+            );
+          }
           break;
         case 'gm3_point':
           if(!isset($map['libraries']['point'])){
@@ -190,10 +204,10 @@ function theme_gm3_view_gm3($variables){
                   'content' => $content
                 );
                 break;
+              case 'rectangle':
               case 'polyline':
               case 'polygon':
                 module_load_include('functions.inc', 'gm3');
-                //gm3_convert_polygon_string
                 if(!isset($map['libraries'][$item['raw']['gm3_type']])){
                   $map['libraries'][$item['raw']['gm3_type']] = array(
                     $item['raw']['gm3_type'] . 's' => array()

@@ -491,18 +491,22 @@ function gm3_field_field_formatter_info(){
  * Implements hook_field_formatter_settings_form().
  */
 function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
-  return array(
-    'display_convex_hull' => array(
-      '#title' => t('Display convex hull of points.'),
-      '#type' => 'radios',
-      '#required' => TRUE,
-      '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
-      '#options' => array(
-        t('NO'),
-        t('YES')
-      )
-    )
-  );
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      return array(
+        'display_convex_hull' => array(
+          '#title' => t('Display convex hull of points.'),
+          '#type' => 'radios',
+          '#required' => TRUE,
+          '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
+          '#options' => array(
+            t('NO'),
+            t('YES')
+          )
+        )
+      );
+  }
 }
 
 /**
@@ -642,7 +646,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         $polys = array();
         foreach($items as $key => $item){
           $polys[] = array(
-            'points' => array_pop(gm3_convert_polygon_string($item[substr($field['type'], 4)])),
+            substr($field['type'], 4) => array_pop(gm3_convert_polygon_string($item[substr($field['type'], 4)])),
             'editable' => FALSE
           );
         }
