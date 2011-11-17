@@ -1,0 +1,7 @@
+; $Id$
+name = Biblio Scholar
+description = Adds Google Scholar metatags to Biblio nodes.
+core = 7.x
+dependencies[] = biblio
+package = Biblio
+
