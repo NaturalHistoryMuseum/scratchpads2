@@ -59,10 +59,10 @@
                 if(data[i][j]['shape']['type'] == 'MultiPolygon') {
                   for( var l in data[i][j]['shape']['coordinates'][k]) {
                     // We have a region with multiple shapes.
-                    self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k][l], false, '<p style="color:red">'+data[i][j]['name']+'</p>');
+                    self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k][l], false);
                   }
                 } else if(data[i][j]['shape']['type'] == 'Polygon') {
-                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k], false, '<p style="color:red;font-size:300%">'+data[i][j]['name']+'</p>');
+                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k], false);
                 }
               }
             }
