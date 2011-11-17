@@ -83,9 +83,12 @@ function gm3_library(){
       'website' => '',
       'version' => 1,
       'js' => array(
-        array(
-          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble.js',
+        /*array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble-compiled.js',
           'options' => 'external'
+        )*/    
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble$min.js"
         )
       )
     ),
