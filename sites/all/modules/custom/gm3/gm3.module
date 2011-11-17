@@ -69,16 +69,23 @@ function gm3_library(){
             )
           ),
           'type' => 'setting'
-        ),
-        array(
-          //'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble-compiled.js',
-          //'options' => 'external'
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble$min.js"
         )
       ),
       'css' => array(
         array(
           'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
+        )
+      )
+    ),
+    // Fancy info bubbles
+    'gm3.infobubble' => array(
+      'title' => t('Google Info Bubble'),
+      'website' => '',
+      'version' => 1,
+      'js' => array(
+        array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble.js',
+          'options' => 'external'
         )
       )
     ),
@@ -142,6 +149,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3.clusterer'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),
@@ -162,6 +173,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),
@@ -199,6 +214,10 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
         )
       )
     ),
