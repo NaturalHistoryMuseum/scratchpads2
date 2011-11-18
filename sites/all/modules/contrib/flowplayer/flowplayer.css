@@ -1,0 +1,13 @@
+/*
+ *
+*/
+
+/**
+ * @file
+ * Default stylesheet for the Flowplayer.
+*/
+.flowplayer {
+  display: block;
+  width: 640px;
+  height: 380px;
+}

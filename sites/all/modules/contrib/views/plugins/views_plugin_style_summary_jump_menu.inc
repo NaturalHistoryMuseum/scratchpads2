@@ -99,17 +99,19 @@ class views_plugin_style_summary_jump_menu extends views_plugin_style {
       $args = $this->view->args;
       $args[$argument->position] = $row_args[$id];
       $base_path = NULL;
-      if (!empty($argument->options['style_options']['base_path'])) {
-        $base_path = $argument->options['style_options']['base_path'];
+      if (!empty($argument->options['summary_options']['base_path'])) {
+        $base_path = $argument->options['summary_options']['base_path'];
       }
       $path = url($this->view->get_url($args, $base_path), $url_options);
+      $summary_value = strip_tags($argument->summary_name($row));
+      $key = md5($path . $summary_value) . "::" . $path;
 
-      $options[$path] = strip_tags($argument->summary_name($row));
+      $options[$key] = $summary_value;
       if (!empty($this->options['count'])) {
-        $options[$path] .= ' (' . intval($row->{$argument->count_alias}) . ')';
+        $options[$key] .= ' (' . intval($row->{$argument->count_alias}) . ')';
       }
       if ($this->options['default_value'] && $_GET['q'] == $this->view->get_url($args)) {
-        $default_value = $path;
+        $default_value = $key;
       }
     }
 

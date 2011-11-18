@@ -20,7 +20,7 @@ function node_views_data() {
 
   // Define the base group of this table. Fields that don't
   // have a group defined will go into this field by default.
-  $data['node']['table']['group']  = t('Content');
+  $data['node']['table']['group'] = t('Content');
 
   // Advertise this table as a possible base table
   $data['node']['table']['base'] = array(
@@ -32,6 +32,8 @@ function node_views_data() {
       'field' => 'title',
     ),
   );
+  $data['node']['table']['entity type'] = 'node';
+
 
   // For other base tables, explain how we join
   $data['node']['table']['join'] = array(
@@ -196,6 +198,9 @@ function node_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_boolean',
       'click sortable' => TRUE,
+      'output formats' => array(
+        'promoted-notpromoted' => array(t('Promoted'), t('Not promoted')),
+      ),
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_boolean_operator',
@@ -216,7 +221,7 @@ function node_views_data() {
       'handler' => 'views_handler_field_boolean',
       'click sortable' => TRUE,
       'output formats' => array(
-        'sticky' => array('', t('Sticky')),
+        'sticky' => array(t('Sticky'), ''),
       ),
     ),
     'filter' => array(
@@ -230,9 +235,12 @@ function node_views_data() {
     ),
   );
 
-  // links to operate on the node
+  // Define some fields based upon views_handler_field_entity in the entity
+  // table so they can be re-used with other query backends.
+  // @see views_handler_field_entity
 
-  $data['node']['view_node'] = array(
+  $data['node']['view_node']['moved to'] = array('views_entity_node', 'view_node');
+  $data['views_entity_node']['view_node'] = array(
     'field' => array(
       'title' => t('Link'),
       'help' => t('Provide a simple link to the content.'),
@@ -240,7 +248,8 @@ function node_views_data() {
     ),
   );
 
-  $data['node']['edit_node'] = array(
+  $data['node']['edit_node']['moved to'] = array('views_entity_node', 'edit_node');
+  $data['views_entity_node']['edit_node'] = array(
     'field' => array(
       'title' => t('Edit link'),
       'help' => t('Provide a simple link to edit the content.'),
@@ -248,7 +257,8 @@ function node_views_data() {
     ),
   );
 
-  $data['node']['delete_node'] = array(
+  $data['node']['delete_node']['moved to'] = array('views_entity_node', 'delete_node');
+  $data['views_entity_node']['delete_node'] = array(
     'field' => array(
       'title' => t('Delete link'),
       'help' => t('Provide a simple link to delete the content.'),
@@ -377,13 +387,24 @@ function node_views_data() {
 
   // uid field
   $data['node']['uid'] = array(
-    'title' => t('Author'),
-    'help' => t('Relate content to the user who created it.'),
+    'title' => t('Author uid'),
+    'help' => t('The user authoring the content. If you need more fields then the uid add the content: author relationship'),
     'relationship' => array(
+      'title' => t('Author'),
+      'help' => t('Relate content to the user who created it.'),
       'handler' => 'views_handler_relationship',
       'base' => 'users',
       'field' => 'uid',
       'label' => t('author'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_user_name',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_user',
     ),
   );
 
@@ -660,8 +681,7 @@ function node_row_node_view_preprocess_node(&$vars) {
   }
 
   if (!empty($options['comments']) && user_access('access comments') && $node->comment) {
-    $build = comment_node_page_additions($node);
-    $vars['content']['comments'] = drupal_render($build);
+    $vars['content']['comments'] = comment_node_page_additions($node);
   }
 }
 
@@ -683,6 +703,9 @@ function node_views_analyze($view) {
   // Check for something other than the default display:
   if ($view->base_table == 'node') {
     foreach ($view->display as $id => $display) {
+      if (empty($display->handler)) {
+        continue;
+      }
       if (!$display->handler->is_defaulted('access') || !$display->handler->is_defaulted('filters')) {
         // check for no access control
         $access = $display->handler->get_option('access');

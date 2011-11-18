@@ -1,0 +1,242 @@
+<?php
+
+/**
+ * @file
+ * Provides integration with FlowPlayer.
+ */
+
+/**
+ * Implementation of hook_help().
+ *
+ * The code provided in this function is a demonstration of how to use jcarousel_add().
+ */
+function flowplayer_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/media/flowplayer':
+      return t('The following provides the default Flowplayer settings when the player is displayed. This does not mean it is how it will be displayed everywhere, it will just be the defaults if these settings are not explicitly sent through to the player.');
+
+    case 'admin/help#flowplayer':
+      $output = '<p>' . t('The following is a demonstration of <a href="@flowplayer">Flowplayer</a>. Note that you can change the defaults of how it looks in the <a href="@settings">Flowplayer settings</a>.', array('@flowplayer' => 'http://flowplayer.org', '@settings' => url('admin/settings/flowplayer'))) . '</p>';
+      $output .= '<p>' . t("To create Flowplayer elements, you can either use the theme('flowplayer') function, or the flowplayer_add() function. The theme function will add the JavaScript to the page, as well as create the markup for you, while the <code>flowplayer_add()</code> function will just add the JavaScript.") . '</p>';
+
+      /**
+       * Theme Function
+       */
+      $output .= '<h3>' . t('Theme Funciton') . '</h3>';
+      $output .= '<p>' . t("Calling <code>theme('flowplayer')</code> will not only add the correct JavaScript to the page, but also construct the markup for you. The second argument passed through here is the video URL, but you can pass the <a href='http://flowplayer.org/documentation/configuration.html'>configuration options</a> instead as seen below.") . '</p>';
+      // Construct the video and output it using theme('flowplayer').
+      // Create the preview
+      $config = array(
+        'clip' => array(
+          'url' => 'http://pseudo01.hddn.com/vod/demo.flowplayervod/flowplayer-700.flv',
+          'autoPlay' => FALSE,
+        )
+      );
+      $output .= theme('flowplayer', array('config' => $config, 'id' => 'flowplayer-preview', 'attributes' => array('style' => 'width:640px;height:380px;')));
+      // The second parameter can either be the video URL or configuration options from:
+      //   http://flowplayer.org/documentation/configuration.html
+
+      /**
+       * Flowplayer Add
+       */
+      $output .= '<h3>' . t('Flowplayer Add') . '</h3>';
+      $output .= '<p>' . t("The <code>flowplayer_add()</code> function will add the Flowplayer JavaScript to the page, as well as register the Drupal JavaScript behaviors to load the Flowplayer appropriately. The first argument is the jQuery selector to apply the Flowplayer element to. The second argument is the <a href='http://flowplayer.org/documentation/configuration.html'>configuration options</a>. Using <code>flowplayer_add</code> requires you to already have the markup created.") . '</p>';
+      // Construct the video markup first.
+      $output .= '<a href="http://e1h13.simplecdn.net/flowplayer/flowplayer.flv" id="player" class="flowplayer"></a>';
+      // Now add the required JavaScript using some configuration options (http://flowplayer.org/documentation/configuration.html).
+      flowplayer_add('#player', array(
+        'clip' => array(
+          'autoPlay' => FALSE,
+          'linkUrl' => 'http://flowplayer.org',
+        ),
+      ));
+
+      /**
+       * Audio
+       */
+      $output .= '<h3>' . t('Audio Plugin') . '</h3>';
+      $output .= theme('flowplayer', array(
+            'playlist' => array(
+              array(
+                'url' => 'http://flowplayer.org/img/demos/national.jpg',
+                'scaling' => 'orig',
+              ),
+              array(
+                'url' => 'http://flowplayer.org/demos/plugins/fake_empire.mp3',
+                'autoPlay' => FALSE,
+              ),
+            ),
+              ), 'audio', array('style' => 'width:300px; height: 243px;'));
+      return $output;
+      break;
+  }
+}
+
+/**
+ * Adds a FlowPlayer element to the page.
+ *
+ * @param $selector
+ *   (optional) The jQuery selector to apply the FlowPlayer to. If not
+ *   given, will just add the FlowPlayer JavaScript plugin.
+ * @param $config
+ *   (optional) Can either be a string representing the media to load, or
+ *   an array of arguments containing the options provided on this page:
+ *     http://flowplayer.org/documentation/configuration.html
+ */
+function flowplayer_add($selector = NULL, $config = NULL) {
+  // Maintain kill switches for both Flowplayer and the Drupal behaviors.
+  static $flowplayer_added = FALSE;
+  static $flowplayer_selectors = array();
+
+  // Add Flowplayer to the page if it hasn't been added yet.
+  if ($flowplayer_added === FALSE) {
+    // Add the FlowPlayer JavaScript and CSS to the page.
+    drupal_add_js(drupal_get_path('module', 'flowplayer') . '/flowplayer/example/flowplayer.min.js');
+    drupal_add_css(drupal_get_path('module', 'flowplayer') . '/flowplayer.css');
+
+    // Tell the JavaScript where flowplayer.swf is.
+    $settings = array(
+      'flowplayerSwf' => drupal_get_path('module', 'flowplayer') . '/flowplayer/flowplayer.swf',
+    );
+    drupal_add_js($settings, 'setting');
+    $flowplayer_added = TRUE;
+  }
+
+  // Add the settings if they haven't been added for the selector yet.
+  if (isset($selector) && !isset($flowplayer_selectors[$selector])) {
+
+    // Register the FlowPlayer Drupal behavior so that the elements are processed.
+    if (empty($flowplayer_selectors)) {
+      // Note that this is only added for the first one added because we only need
+      // it if we are processing through settings.flowplayer.
+      drupal_add_js(drupal_get_path('module', 'flowplayer') . '/flowplayer.js');
+    }
+
+    // Convert any strings to an array so that we can merge in the defaults.
+    if (is_string($config)) {
+      $config = array(
+        'clip' => array(
+          'url' => $config,
+        ),
+      );
+    }
+
+    // Merge in the defaults, starting with the license key.
+    if (!isset($config['key'])) {
+      $key = variable_get('flowplayer_key', NULL);
+      if (!empty($key)) {
+        $config['key'] = $key;
+      }
+    }
+
+    // Merge scaling option in the defaults.
+    $scaling = variable_get('flowplayer_scaling', NULL);
+    if (!empty($scaling)) {
+      $config['clip']['scaling'] = $scaling;
+    }
+
+    // The player colors.
+    $colors = array('backgroundColor', 'sliderColor', 'buttonColor', 'buttonOverColor', 'durationColor', 'timeColor', 'progressColor', 'bufferColor');
+    foreach ($colors as $color) {
+      if (!isset($config['plugins']['controls'][$color])) {
+        $color_value = variable_get('flowplayer_color_' . $color, NULL);
+        if (!empty($color_value)) {
+          $config['plugins']['controls'][$color] = $color_value;
+        }
+      }
+    }
+
+    // The controlbar styling.
+    $buttons = variable_get('flowplayer_buttons', array());
+    foreach ($buttons as $button => $enabled) {
+      if (!isset($config['plugins']['controls'][$button])) {
+        $config['plugins']['controls'][$button] = $enabled ? TRUE : FALSE;
+      }
+    }
+
+    // Gradient.
+    if (!isset($config['plugins']['controls']['backgroundGradient'])) {
+      $gradient = variable_get('flowplayer_background_gradient', NULL);
+      if (!empty($gradient)) {
+        $config['plugins']['controls']['backgroundGradient'] = $gradient;
+      }
+    }
+
+    // Border radius.
+    if (!isset($config['plugins']['controls']['borderRadius'])) {
+      $radius = variable_get('flowplayer_border_radius', NULL);
+      if (!empty($radius)) {
+        $config['plugins']['controls']['borderRadius'] = $radius;
+      }
+    }
+
+    // Add the flowplayer element to the settings so that it's processed by the behaviours.
+    drupal_add_js(array('flowplayer' => array($selector => $config)), 'setting');
+    $flowplayer_selectors[$selector] = TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function flowplayer_menu() {
+  $items = array();
+  $items['admin/config/media/flowplayer'] = array(
+    'title' => 'Flowplayer',
+    'description' => 'Manage how Flowplayer is used on your site.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flowplayer_admin_settings'),
+    'file' => 'flowplayer.admin.inc',
+    'access arguments' => array('administer site configuration'),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function flowplayer_theme() {
+  return array(
+    'flowplayer' => array(
+      'variables' => array(
+        'config' => NULL,
+        'id' => 'flowplayer',
+        'attributes' => array(),
+      ),
+    ),
+  );
+}
+
+/**
+ * Creates the markup and adds the JavaScript to display a media file in
+ *
+ * @param $config
+ *   (optional) Can either be a string representing the media to load, or
+ *   an array of arguments containing the options provided on this page:
+ *     http://flowplayer.org/documentation/configuration.html
+ * @param $id
+ *   (optional) The ID of the DIV element to use.
+ * @param $attributes
+ *   (optional) Any additional attributes to associate with the DIV.
+ */
+function theme_flowplayer($variables) {
+  $config = $variables['config'];
+  $id = $variables['id'];
+  $attributes = $variables['attributes'];
+  // Prepare the ID.
+  $id = drupal_clean_css_identifier($id);
+
+  // Prepare the attributes, passing in the flowplayer class.
+  if (isset($attributes['class'])) {
+    $attributes['class'] .= ' flowplayer';
+  } else {
+    $attributes['class'] = 'flowplayer';
+  }
+  $attributes = drupal_attributes($attributes);
+
+  // Add the JavaScript to handle the element.
+  flowplayer_add('#' . $id, $config);
+
+  // Return the markup.
+  return "<div id='$id' $attributes></div>";
+}
