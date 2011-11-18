@@ -33,7 +33,7 @@ function field_views_data() {
     drupal_alter('field_views_data', $result, $field, $module);
 
     if (is_array($result)) {
-      $data = array_merge($data, $result);
+      $data = drupal_array_merge_deep($result, $data);
     }
   }
 
@@ -217,7 +217,7 @@ function field_views_field_default_views_data($field) {
           $also_known[] = t('@group: @field', array('@group' => $groups[$entity_name], '@field' => $label_name));
         }
         else {
-          if ($group_name != $groups[$entity_name] && $label != $label_name) {
+          if ($group_name != $groups[$entity_name] && $label != $label_name && isset($revision_tables[$entity_name])) {
             $aliases[] = array(
               'base' => $revision_tables[$entity_name],
               'group' => t('@group (historical data)', array('@group' => $groups[$entity_name])),
@@ -410,7 +410,7 @@ function list_field_views_data($field) {
   $data = field_views_field_default_views_data($field);
   foreach ($data as $table_name => $table_data) {
     foreach ($table_data as $field => $field_data) {
-      if (isset($field_data['filter'])) {
+      if (isset($field_data['filter']) && $field != 'delta') {
         $data[$table_name][$field]['filter']['handler'] = 'views_handler_filter_field_list';
       }
     }

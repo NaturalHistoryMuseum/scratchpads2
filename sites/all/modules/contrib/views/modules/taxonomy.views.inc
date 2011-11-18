@@ -71,6 +71,10 @@ function taxonomy_views_data() {
   $data['taxonomy_vocabulary']['vid'] = array(
     'title' => t('Vocabulary ID'), // The item it appears as on the UI,
     'help' => t('The taxonomy vocabulary ID'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
     'argument' => array(
       'handler' => 'views_handler_argument_vocabulary_vid',
       'name field' => 'name',
@@ -98,6 +102,8 @@ function taxonomy_views_data() {
     'help' => t('Taxonomy terms are attached to nodes.'),
     'access query tag' => 'term_access',
   );
+  $data['taxonomy_term_data']['table']['entity type'] = 'taxonomy_term';
+
 
 
   // The term data table
@@ -124,7 +130,7 @@ function taxonomy_views_data() {
   // tid field
   $data['taxonomy_term_data']['tid'] = array(
     'title' => t('Term ID'),
-    'help' => t('The taxonomy term ID.'),
+    'help' => t('The tid of a taxonomy term.'),
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
@@ -133,7 +139,7 @@ function taxonomy_views_data() {
       'handler' => 'views_handler_sort',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_numeric',
+      'handler' => 'views_handler_argument_taxonomy',
       'name field' => 'name',
       'zero is null' => TRUE,
     ),
@@ -325,33 +331,10 @@ function taxonomy_views_data() {
     ),
     'argument' => array(
       'help' => t('The parent term of the term.'),
-      'handler' => 'views_handler_argument_numeric',
+      'handler' => 'views_handler_argument_taxonomy',
     ),
   );
 
-  // ----------------------------------------------------------------------
-  // taxonomy_term_synonym table
-
-  $data['term_synonym']['moved to'] = 'taxonomy_term_synonym';
-  $data['taxonomy_term_synonym']['table']['group']  = t('Taxonomy term');
-
-  $data['taxonomy_term_synonym']['table']['join'] = array(
-    'taxonomy_term_data' => array(
-      // links directly to taxonomy_term_data via tid
-      'left_field' => 'tid',
-      'field' => 'tid',
-    ),
-  );
-
-  $data['taxonomy_term_synonym']['name'] = array(
-    'title' => t('Term synonym'),
-    'help' => t('Term synonyms may be used to find terms by alternate names.'),
-    'argument' => array(
-      'handler' => 'views_handler_argument_string',
-      'many to one' => TRUE,
-      'empty field name' => t('Uncategorized'),
-    ),
-  );
   return $data;
 }
 
@@ -410,7 +393,7 @@ function taxonomy_field_views_data($field) {
   $data = field_views_field_default_views_data($field);
   foreach ($data as $table_name => $table_data) {
     foreach ($table_data as $field_name => $field_data) {
-      if (isset($field_data['filter'])) {
+      if (isset($field_data['filter']) && $field_name != 'delta') {
         $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_term_node_tid';
         $data[$table_name][$field_name]['filter']['vocabulary'] = $field['settings']['allowed_values'][0]['vocabulary'];
       }
@@ -498,7 +481,7 @@ function views_taxonomy_set_breadcrumb(&$breadcrumb, &$argument) {
     if ($parent->tid == $argument->argument) {
       continue;
     }
-    if ($argument->options['use_taxonomy_term_path']) {
+    if (!empty($argument->options['use_taxonomy_term_path'])) {
       $path = taxonomy_term_uri($parent);
     }
     else {
