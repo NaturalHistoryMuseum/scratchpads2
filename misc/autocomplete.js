@@ -182,7 +182,6 @@ Drupal.jsAC.prototype.hidePopup = function (keycode) {
  */
 Drupal.jsAC.prototype.populatePopup = function () {
   var $input = $(this.input);
-  $($input).parent().css('position', 'relative');
   var position = $input.position();
   // Show popup.
   if (this.popup) {
