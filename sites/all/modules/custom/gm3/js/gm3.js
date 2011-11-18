@@ -15,6 +15,14 @@
     try {
       $('#' + this.id).height(this.settings['height']);
       $('#' + this.id).width(this.settings['width']);
+      // Set the width of the parent wrapper class.
+      var parent_width = $('#' + this.id).outerWidth();
+      var parent_height = $('#' + this.id).outerWidth();
+      if($('#' + this.id).siblings('.gm3-tools')) {
+        var parent_width = parent_width + $('#' + this.id).siblings('.gm3-tools').first().outerWidth()
+      }
+      $('#' + this.id).parent().width(parent_width);
+      $('#' + this.id).parent().height(parent_height);
       this.default_settings();
       // Create the map
       this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
@@ -37,13 +45,13 @@
   }
   Drupal.GM3.prototype.add_popup = function(object, content, title){
     // There appears to be a small bug with the infobubble code that calculates
-    // the height/width of the content before it is added as a child of the 
+    // the height/width of the content before it is added as a child of the
     // "backgroundClassName" resulting in incorrect results.
-    if(typeof content == 'string'){
-      content = '<div class="gm3_infobubble">'+content+'</div>';
+    if(typeof content == 'string') {
+      content = '<div class="gm3_infobubble">' + content + '</div>';
     } else {
-      for(var i in content){
-        content[i]['content'] = '<div class="gm3_infobubble">'+content[i]['content']+'</div>';        
+      for( var i in content) {
+        content[i]['content'] = '<div class="gm3_infobubble">' + content[i]['content'] + '</div>';
       }
     }
     this.popups[this.popups.length] = {'object': object, 'content': content};
@@ -55,11 +63,11 @@
         self.info_window = false;
       }
       self.info_window = new InfoBubble({map: self.google_map, position: event.latLng, disableAutoPan: true, borderRadius: 4, borderWidth: 2, backgroundColor: '#f5f5f5', borderColor: '#6261d8', arrowStyle: 0});
-      if(typeof content == 'string'){
+      if(typeof content == 'string') {
         self.info_window.setContent(content);
       } else {
-        for(var i in content){
-          self.info_window.addTab(content[i]['title'], content[i]['content']);        
+        for( var i in content) {
+          self.info_window.addTab(content[i]['title'], content[i]['content']);
         }
       }
       self.info_window.open();
