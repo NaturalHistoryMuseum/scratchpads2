@@ -11,7 +11,7 @@
  * http://dev.mysql.com/doc/refman/5.0/en/example-maximum-column-group-row.html
  * In lay terms, instead of joining to get all matching records in the linked
  * table, we get only one record, a 'representative record' picked according
- * to a given criterion.
+ * to a given criteria.
  *
  * Example:
  * Suppose we have a term view that gives us the terms: Horse, Cat, Aardvark.
@@ -59,8 +59,9 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['subquery_sort'] = array('default' => array(NULL)); // TODO: Correct structure?
-    $options['subquery_order'] = array('default' => 'DESC'); // Descending more useful.
+    $options['subquery_sort'] = array('default' => NULL);
+    // Descending more useful.
+    $options['subquery_order'] = array('default' => 'DESC');
     $options['subquery_regenerate'] = array('default' => FALSE);
     $options['subquery_view'] = array('default' => FALSE);
     $options['subquery_namespace'] = array('default' => FALSE);
@@ -80,20 +81,22 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
     foreach ($sorts as $sort_id => $sort) {
       $sort_options[$sort_id] = "$sort[group]: $sort[title]";
     }
+    $base_table_data = views_fetch_data($this->definition['base']);
 
     $form['subquery_sort'] = array(
       '#type' => 'select',
-      '#title' => t('Representative sort criterion'),
-      '#default_value' => $this->options['subquery_sort'],
+      '#title' => t('Representative sort criteria'),
+      // Provide the base field as sane default sort option.
+      '#default_value' => !empty($this->options['subquery_sort']) ? $this->options['subquery_sort'] : $this->definition['base'] . '.' . $base_table_data['table']['base']['field'],
       '#options' => $sort_options,
       '#description' => theme('advanced_help_topic', array('module' => 'views', 'topic' => 'relationship-representative')) .
-        t("The sort criterion is applied to the data brought in by the relationship to determine how a representative item is obtained for each row. For example, to show the most recent node for each user, pick 'Content: Updated date'."),
+        t("The sort criteria is applied to the data brought in by the relationship to determine how a representative item is obtained for each row. For example, to show the most recent node for each user, pick 'Content: Updated date'."),
     );
 
     $form['subquery_order'] = array(
       '#type' => 'radios',
       '#title' => t('Representative sort order'),
-      '#description' => t("The ordering to use for the sort criterion selected above."),
+      '#description' => t("The ordering to use for the sort criteria selected above."),
       '#options' => array('ASC' => t('Ascending'), 'DESC' => t('Descending')),
       '#default_value' => $this->options['subquery_order'],
     );
@@ -149,7 +152,7 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
    * Generate the subquery string when the user submits the options, and store
    * it. This saves the expense of generating it when the view is run.
    */
-  function options_submit($form, &$form_state) {
+  function options_submit(&$form, &$form_state) {
     // Get the new user options from the form values.
     $new_options = $form_state['values']['options'];
     $subquery = $this->left_query($new_options);
@@ -197,7 +200,7 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
     else {
       // Create a new view object on the fly, which we use to generate a query
       // object and then get the SQL we need for the subquery.
-      $temp_view = $this->view_aliased();
+      $temp_view = $this->get_temporary_view();
 
       // Add the sort from the options to the default display.
       // This is broken, in that the sort order field also gets added as a
@@ -239,8 +242,6 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
     // Now take the SelectQuery object the View has built and massage it
     // somewhat so we can get the SQL query from it.
     $subquery = $temp_view->build_info['query'];
-    //dsm($temp_view, 'temp view');
-    //dsm($subquery, 'subq');
 
     // Workaround until http://drupal.org/node/844910 is fixed:
     // Remove all fields from the SELECT except the base id.

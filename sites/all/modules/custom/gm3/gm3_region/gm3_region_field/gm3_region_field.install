@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Implementation of hook_field_schema($field).
+ */
+function gm3_region_field_field_schema($field){
+  switch($field['type']){
+    case 'gm3_region':
+      return array(
+        'columns' => array(
+          'region_id' => array(
+            'description' => "Region ID",
+            'type' => 'varchar',
+            'not null' => TRUE,
+            'length' => 16
+          )
+        ),
+        'indexes' => array(
+          'region_id' => array(
+            'region_id'
+          )
+        )
+      );
+      break;
+  }
+}
