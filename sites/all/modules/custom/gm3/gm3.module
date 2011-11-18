@@ -1,0 +1,396 @@
+<?php
+
+/**
+ * Simple Google Maps v3 API module file.
+ * 
+ * Includes code from http://www.mistechko.sumy.ua/jscript/google/map/
+ * 
+ */
+/**
+ * Implementation of hook_library().
+ * 
+ * Note, the sensor option could be set to true here to allow for maps to have 
+ * the sensor enabled (useful perhaps on mobile devices, or shopping sites).
+ * 
+ * Thanks to the authors of the geofield for a considerable amount of
+ * inspiration when writing this module.  I hope that at some point this module
+ * and the geofield module can be combined.
+ * 
+ * Note.
+ * FIXME - Adding the Google geometry class currently breaks Polygon & Polyline.
+ * Removed the following from dependencies for both gm3.polygon and gm3.polyline
+ * array(
+ * 'gm3',
+ * 'gm3.geometry'
+ * )
+ * 
+ * FIXME - Select countries.  Click on a region could bring up an option to 
+ * select the subregions (TDWG 4).
+ */
+/**
+ * Implementation of hook_views_api().
+ */
+function gm3_views_api(){
+  return array(
+    'api' => 3
+  );
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function gm3_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  return array(
+    'gm3' => array(
+      'title' => t('Google Maps Javascript API V3'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => 'http://maps.googleapis.com/maps/api/js?sensor=false',
+          'options' => 'external'
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3$min.js"
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/sprite.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'css' => array(
+        array(
+          'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
+        )
+      )
+    ),
+    // Fancy info bubbles
+    'gm3.infobubble' => array(
+      'title' => t('Google Info Bubble'),
+      'website' => '',
+      'version' => 1,
+      'js' => array(
+        /*array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobubble/src/infobubble-compiled.js',
+          'options' => 'external'
+        )
+        * Posted issue to http://code.google.com/p/google-maps-utility-library-v3/issues/detail?id=105&q=size%20infobubble&colspec=ID%20Type%20Status%20Priority%20Fixed%20Owner%20Summary%20Stars
+        */
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble$min.js"
+        )
+      )
+    ),
+    // Marker clusterer
+    'gm3.clusterer' => array(
+      'title' => t('Google Marker Cluster'),
+      'website' => 'http://google-maps-utility-library-v3.googlecode.com/',
+      'version' => '2.0.5',
+      'js' => array(
+        array(
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer_packed.js',
+          'options' => 'external'
+        )
+      )
+    ),
+    // Convex hull
+    // NOTE - This is not currently working, DO NOT USE!
+    'gm3.convexhull' => array(
+      'title' => t('Google Convex Hull'),
+      'website' => 'http://www.geocodezip.com/map-markers_ConvexHull_Polygon.asp',
+      'version' => '1',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.convexhull$min.js"
+        )
+      )
+    ),
+    // Google geometry library
+    'gm3.geocoder' => array(
+      'title' => t('Google Maps Javascript API V3: Geocoder library'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => 'http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false',
+          'options' => 'external'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    ),
+    // Enable the clicking of points.
+    'gm3.point' => array(
+      'title' => t('Google Maps Javascript API V3: Point drawing'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.clusterer'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
+        )
+      )
+    ),
+    // Enable drawing of Polygons.
+    'gm3.polygon' => array(
+      'title' => t('Google Maps Javascript API V3: Polygon drawing'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.lib$min.js"
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
+        )
+      )
+    ),
+    // Enable the drawing of rectangles.
+    'gm3.rectangle' => array(
+      'title' => t('Google Maps Javascript API V3: Rectangle drawing'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.rectangle$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.polygon'
+        )
+      )
+    ),
+    // Enable the drawing of Lines.
+    'gm3.polyline' => array(
+      'title' => t('Google Maps Javascript API V3: Polygon drawing'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.lib$min.js"
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.infobubble'
+        )
+      )
+    ),
+    // Google geometry library
+    'gm3.geometry' => array(
+      'title' => t('Google Maps Javascript API V3: Geometry library'),
+      'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => 'http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false',
+          'options' => 'external'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function gm3_theme(){
+  return array(
+    'gm3_map' => array(
+      'variables' => array(
+        'map' => array(
+          'id' => 'gm3-map'
+        )
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_view_gm3' => array(
+      'variables' => array(),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_point_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polygon_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_rectangle_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polyline_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    )
+  );
+}
+
+/**
+ * Load the geoPHP library.  This could be made optional, as not all features
+ * require the library.
+ * 
+ * This code is adapted from the geofield module.
+ */
+function gm3_load_geophp(){
+  static $filename = FALSE;
+  if(!$filename){
+    // Folk can install geoPHP using a "libraries" path, or simply shove it in
+    // the gm3 module folder.
+    if(function_exists('libraries_get_path')){
+      $file = libraries_get_path('geoPHP') . '/geoPHP.inc';
+    }else{
+      $file = drupal_get_path('module', 'gm3') . '/geoPHP/geoPHP.inc';
+    }
+    if(file_exists($file)){
+      if(include_once ($file)){
+        $filename = $file;
+      }
+    }
+  }
+  return $filename;
+}
+
+/**
+ * Get the default settings.  Note, these vary slightly from Google's default
+ * settings, as not all of Google's defaults are appropriate for the intended
+ * uses of the GM3 module.  The following changes have been made:
+ * 
+ * center: Now centered on Europe.
+ * backgroundColor: white
+ * mapTypeId: google.maps.MapTypeId.TERRAIN
+ * panControl: false
+ * scaleControl: false
+ * streetViewControl: false
+ */
+function gm3_settings(){
+  return variable_get('gm3_default_settings', array(
+    'width' => '100%',
+    'height' => '500px',
+    'center' => array(
+      'latitude' => 52,
+      'longitude' => 0
+    ),
+    //'backgroundColor' => 'white',
+    'disableDefaultUI' => FALSE,
+    'disableDoubleClickZoom' => FALSE,
+    'draggable' => TRUE,
+    'draggableCursor' => 'move',
+    'draggingCursor' => 'move',
+    'heading' => 0,
+    'keyboardShortcuts' => TRUE,
+    'mapTypeControl' => TRUE,
+    'mapTypeControlOptions' => array(
+      'mapTypeIds' => array(
+        'google.maps.MapTypeId.HYBRID',
+        'google.maps.MapTypeId.ROADMAP',
+        'google.maps.MapTypeId.SATELLITE',
+        'google.maps.MapTypeId.TERRAIN'
+      ),
+      'style' => 'google.maps.MapTypeControlStyle.DEFAULT', // http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeControlStyle
+      'position' => 'google.maps.ControlPosition.TOP_RIGHT' // http://code.google.com/apis/maps/documentation/javascript/reference.html#ControlPosition
+    ),
+    'mapTypeId' => 'google.maps.MapTypeId.TERRAIN', // SATELLITE, TERRAIN, ROADMAP, HYBRID
+    'maxZoom' => null,
+    'minZoom' => 2,
+    'noClear' => FALSE,
+    'overviewMapControl' => FALSE,
+    'overviewMapControlOptions' => array(
+      'opened' => TRUE
+    ),
+    'panControl' => FALSE,
+    'panControlOptions' => array(
+      'position' => 'google.maps.ControlPosition.TOP_LEFT'
+    ),
+    'rotateControl' => TRUE,
+    'rotateControlOptions' => array(
+      'position' => 'google.maps.ControlPosition.TOP_LEFT'
+    ),
+    'scaleControl' => FALSE,
+    'scaleControlOptions' => array(
+      'position' => 'google.maps.ControlPosition.BOTTOM_LEFT',
+      'style' => 'google.maps.ScaleControlStyle.DEFAULT'
+    ),
+    'scrollwheel' => TRUE,
+    // 'streeView' => '', // This appears to be more complicated than we require
+    // if users would like this, then they can add it!
+    'streetViewControl' => FALSE,
+    'streetViewControlOptions' => array(
+      'position' => ''
+    ),
+    // 'styles' => '', // Deliberately left blank.  This may be tweaked in the
+    // future.
+    'tilt' => 0,
+    'zoom' => 4,
+    'zoomControl' => TRUE,
+    'zoomControlOptions' => array(
+      'position' => 'google.maps.ControlPosition.TOP_LEFT',
+      'style' => 'google.maps.ZoomControlStyle.DEFAULT'
+    )
+  ));
+}

@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implementation of hook_field_widget_info().
+ */
+function bigimage_annotation_field_field_widget_info(){
+  return array(
+    'bigimage_annotations_widget' => array(
+      'label' => t('Image and annotations'),
+      'description' => t('Add anotations to small or BIG images.'),
+      'field types' => array(
+        'bigimage_annotations'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_info().
+ */
+function bigimage_annotation_field_field_info(){
+  return array(
+    'bigimage_annotations_field' => array(
+      'label' => t('Image + annotations'),
+      'description' => t('This field stores an image, along with annotations for the image.'),
+      'default_widget' => 'bigimage_annotations_widget',
+      'default_formatter' => 'bigimage_annotations_formatter'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function bigimage_annotation_field_field_formatter_info(){
+  return array(
+    'bigimage_annotations_formatter' => array(
+      'label' => t('Image + annotations'),
+      'description' => t('Displays an image along with its annotations.'),
+      'field types' => array(
+        'bigimage_annotations_field'
+      )
+    )
+  );
+}

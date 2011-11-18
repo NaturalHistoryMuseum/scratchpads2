@@ -89,6 +89,12 @@ function views_ui_menu() {
     'theme callback' => 'ajax_base_page_theme',
     'type' => MENU_CALLBACK,
   ) + $base;
+  $items['admin/structure/views/view/%views_ui_cache/preview/%'] = array(
+    'page callback' => 'views_ui_build_preview',
+    'page arguments' => array(4, 6),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  ) + $base;
   $items['admin/structure/views/view/%views_ui_cache/preview/%/ajax'] = array(
     'page callback' => 'views_ui_build_preview',
     'page arguments' => array(4, 6),
@@ -143,6 +149,13 @@ function views_ui_menu() {
   $items['admin/views/ajax/autocomplete/tag'] = array(
     'page callback' => 'views_ui_autocomplete_tag',
     'type' => MENU_CALLBACK,
+  ) + $base;
+
+  // A page in the Reports section to show usage of fields in all views
+  $items['admin/reports/views-fields'] = array(
+    'title' => 'Fields used in views',
+    'description' => 'Overview of fields used in all views.',
+    'page callback' => 'views_ui_field_list',
   ) + $base;
 
   return $items;
@@ -220,6 +233,21 @@ function views_ui_theme() {
       'file' => 'theme/theme.inc',
     ),
   );
+}
+
+/**
+ * Impements hook_custom_theme()
+ */
+function views_ui_custom_theme() {
+  $theme = variable_get('views_ui_custom_theme', '_default');
+
+  if ($theme != '_default') {
+    $available = list_themes();
+
+    if (isset($available[$theme]) && $available[$theme]->status && preg_match('/^admin\/structure\/views/', current_path())) {
+      return $theme;
+    }
+  }
 }
 
 /**
@@ -335,7 +363,7 @@ function views_ui_preprocess_views_view(&$vars) {
           '#theme' => 'views_ui_view_preview_section',
           '#view' => $view,
           '#section' => $section,
-          '#content' => $vars[$section],
+          '#content' => is_array($vars[$section]) ? drupal_render($vars[$section]) : $vars[$section],
           '#theme_wrappers' => array('views_container'),
           '#attributes' => array('class' => 'contextual-links-region'),
         );
@@ -515,18 +543,22 @@ function views_ui_ctools_plugin_directory($module, $plugin) {
  */
 function views_ui_get_wizard($wizard_type) {
   ctools_include('plugins');
-  $w = ctools_get_plugins('views_ui', 'views_wizard', $wizard_type);
+  $wizard = ctools_get_plugins('views_ui', 'views_wizard', $wizard_type);
   // @todo - handle this via an alter hook instead.
-  if (!$w) {
+  if (!$wizard) {
     // Must be a base table using the default wizard plugin.
     $base_tables = views_fetch_base_tables();
     if (!empty($base_tables[$wizard_type])) {
-      $w = views_ui_views_wizard_defaults();
-      $w['base_table'] = $wizard_type;
-      $w['title'] = $base_tables[$wizard_type]['title'];
+      $wizard = views_ui_views_wizard_defaults();
+      $wizard['base_table'] = $wizard_type;
+      $wizard['title'] = $base_tables[$wizard_type]['title'];
+    }
+    // The plugin is neither a base table nor an existing wizard.
+    else {
+      vpr('Views Wizard: @wizard does not exist. Be sure to implement hook_ctools_plugin_directory.', array('@wizard' => $wizard_type));
     }
   }
-  return $w;
+  return $wizard;
 }
 
 /**
@@ -802,7 +834,7 @@ function _views_ui_get_displays_list($view) {
 function views_ui_library_alter(&$libraries, $module) {
   if ($module == 'system' && isset($libraries['ui.dialog'])) {
     if (version_compare($libraries['ui.dialog']['version'], '1.7.2', '>=')) {
-      drupal_add_js(drupal_get_path('module', 'views') . '/js/jquery.ui.dialog.patch.js', array('group' => JS_THEME));
+      $libraries['ui.dialog']['js'][drupal_get_path('module', 'views') . '/js/jquery.ui.dialog.patch.js'] = array();
     }
   }
 }

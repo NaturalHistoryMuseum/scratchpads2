@@ -4,6 +4,7 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = libraries
 dependencies[] = feeds
+dependencies[] = taxonomy
 dependencies[] = feeds_tamper
 dependencies[] = feeds_xls
 features[ctools][] = "feeds:feeds_importer_default:1"

@@ -359,47 +359,28 @@ function image_imagemagick_get_info(stdClass $image) {
 /**
  * Calls the convert executable with the specified filter.
  */
-function _imagemagick_convert($source, $destination, $args) {
-  // Backup original paths for alter hook context.
-  $source_original = $source;
-  $destination_original = $destination;
-
+function _imagemagick_convert($source, $dest, $args) {
   $source = drupal_realpath($source);
-  $destination = drupal_realpath($destination);
-  $destination_format = '';
+  $dest = drupal_realpath($dest);
 
   $args['quality'] = '-quality ' . escapeshellarg(variable_get('imagemagick_quality', 75));
 
   // Allow other modules to alter the ImageMagick command line parameters.
   $context = array(
-    'source' => &$source,
-    'source_original' => $source_original,
-    'destination' => &$destination,
-    'destination_original' => $destination_original,
-    'destination_format' => &$destination_format,
+    'source' => $source,
+    'destination' => $dest,
   );
   drupal_alter('imagemagick_arguments', $args, $context);
-
-  // If the format of the derivative image was changed, concatenate the new
-  // image format and the destination path, delimited by a colon.
-  // @see http://www.imagemagick.org/script/command-line-processing.php#output
-  // @see hook_imagemagick_arguments_alter()
-  if ($destination_format !== '') {
-    $destination_format .= ':' . $destination;
-  }
-  else {
-    $destination_format = $destination;
-  }
 
   // To make use of ImageMagick 6's parenthetical command grouping we need to make
   // the $source image the first parameter and $dest the last.
   // @see http://www.imagemagick.org/Usage/basics/#cmdline
-  $command = escapeshellarg($source) . ' ' . implode(' ', $args) . ' ' . escapeshellarg($destination_format);
+  $command = escapeshellarg($source) . ' ' . implode(' ', $args) . ' ' . escapeshellarg($dest);
 
   if (_imagemagick_convert_exec($command, $output, $error) !== TRUE) {
     return FALSE;
   }
-  return file_exists($destination);
+  return file_exists($dest);
 }
 
 /**
