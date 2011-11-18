@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file Set up new canvas actions. Tell imagecache.module about them
+ */
+
+/**
+ * Need to flush the cache when this module is enabled or disabled
+ */
+function imagecache_canvasactions_install() {
+  if (function_exists('imagecache_action_definitions') ) {
+    imagecache_action_definitions(TRUE);
+  }
+  cache_clear_all('imagecache_actions', 'cache');
+  drupal_set_message(t('Additional image style actions should now be available in the presets !settings_link', array('!settings_link' => l(t('settings'), 'admin/config/media/image-styles'))));
+}
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function imagecache_canvasactions_uninstall() {
+  if (function_exists('imagecache_action_definitions') ) {
+    imagecache_action_definitions(TRUE);
+  }
+  cache_clear_all('imagecache_actions', 'cache');
+}
+
+
+
+/**
+ * Changed aspect switcher from presetid to presetname as a key
+ * DRUPAL-6--2-0 (pre-release 1)
+ */
+function imagecache_canvasactions_update_6201() {
+  $count = 0;
+  foreach (imagecache_presets(TRUE) as $preset_id => $preset) {
+    foreach ($preset['actions'] as $action_id => $action) {
+      if ($action['action'] == 'canvasactions_aspect') {
+        // Convert from presetid to presetname
+        foreach (array('portrait', 'landscape') as $aspect) {
+          $old_id = $action['data'][$aspect];
+          if (is_numeric($old_id)) {
+            $old_preset = imagecache_preset($old_id);
+            // Set it!
+            if ($old_preset) {
+              $action['data'][$aspect] = $old_preset['presetname'];
+              imagecache_action_save($action);
+              $count ++;
+            }
+            else {
+              drupal_set_message("Could not update $preset_id fully. You'd better check it.", 'warning');
+            }
+          }
+        }
+      }
+    }
+  }
+  drupal_set_message((($count) ? $count : "no") . " actions updated");
+  return array();
+}

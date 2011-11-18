@@ -1,0 +1,42 @@
+Features
+
+    * Easily adds Flowplayer support to other systems
+    * Takes advantage of Drupal JavaScript Behaviors
+    * Applying any configuration option is simple
+    * jQ module support
+    * Stripped down to just the API to provide an integration point for other modules
+    * Global custom styling options to change how it looks
+
+Integration
+
+    * Embedded Media Field
+    * Blue Droplet Video
+    * Video
+
+API
+
+To create Flowplayer elements, you can either use the theme('flowplayer') function, or the flowplayer_add() function. The theme function will add the JavaScript to the page, as well as create the markup for you, while the flowplayer_add() function will just add the JavaScript. To see both methods in action, install the module, and visit admin/help/flowplayer.
+Theme Function
+
+Calling theme('flowplayer') will not only add the correct JavaScript to the page, but also construct the markup for you. The second argument passed through here is the video URL, but you can pass the configuration options instead as seen below.
+<?php
+  $video = theme('flowplayer', 'http://player-e7.simplecdn.net/flowplayer.flv');
+  $video2 = theme('flowplayer', array(
+    'clip' => array(
+      'url' => 'http://player-e7.simplecdn.net/flowplayer.flv',
+      'autoPlay' => FALSE, // Turn autoplay off
+    ),
+  ));
+?>
+Flowplayer Add
+
+The flowplayer_add() function will add the Flowplayer JavaScript to the page, as well as register the Drupal JavaScript behaviors to load the Flowplayer appropriately. The first argument is the jQuery selector to apply the Flowplayer element to. The second argument is the configuration options. Using flowplayer_add requires you to already have the markup created.
+<?php
+  $video = '<a href="http://player-e7.simplecdn.net/flowplayer.flv" id="player" class="flowplayer"></a>';
+  flowplayer_add('#player', array(
+    'clip' => array(
+      'autoPlay' => FALSE, // Turn autoplay off
+      'linkUrl' => 'http://flowplayer.org', // When clicked on
+    ),
+  ));
+?>

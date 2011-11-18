@@ -1,0 +1,169 @@
+<?php
+
+/**
+ *
+ * @file video_ui.module
+ * Administrative interface to Video. Without this module you cannot configure the video module.
+ * @author : Heshan (heshan@heidisoft.com)
+ *
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function video_ui_menu() {
+  $items = array();
+  // General settings
+  $items['admin/config/media/video'] = array(
+    'title' => 'Video',
+    'description' => 'Configure different aspects of the video module and its plugins',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_general_admin_settings'),
+    'file' => 'video.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/media/video/general'] = array(
+    'title' => 'General',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  // Player settings
+  $items['admin/config/media/video/players'] = array(
+    'title' => 'Players',
+    'description' => 'Configure your player settings for each video extension.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_players_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  // Transcoder settings
+  $items['admin/config/media/video/transcoders'] = array(
+    'title' => 'Transcoders',
+    'description' => 'Configure your transcoder to convert your videos or extra thumbnails.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_transcoder_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  // Preset settings
+  $items['admin/config/media/video/presets'] = array(
+    'title' => 'Manage Preset',
+    'description' => 'Configure your transcoder presets to convert your videos.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+  $items['admin/config/media/video/presets/all'] = array(
+    'title' => 'Presets',
+    'description' => 'Configure your transcoder presets to convert your videos.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/media/video/presets/list'] = array(
+    'title' => 'List',
+    'file' => 'video.preset.inc',
+    'description' => 'Manage and configure the presets for Video.',
+    'page callback' => 'video_presets_overview',
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -9,
+  );
+  $items['admin/config/media/video/presets/add'] = array(
+    'title' => 'Add preset',
+    'file' => 'video.preset.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_form'),
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_LOCAL_TASK
+  );
+  $items['admin/config/media/video/presets/import'] = array(
+    'title' => t('Import preset'),
+    'file' => 'video.preset.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_import_form'),
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_LOCAL_TASK
+  );
+
+  $items['admin/config/media/video/presets/preset/%video_preset'] = array(
+    'title' => 'Edit video preset',
+    'title callback' => 'video_preset_page_title',
+    'title arguments' => array(6),
+    'file' => 'video.preset.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_form', 6),
+    'access arguments' => array('administer video presets')
+  );
+  $items['admin/config/media/video/presets/preset/%video_preset/edit'] = array(
+    'title' => 'Edit',
+    'file' => 'video.preset.inc',
+    'page arguments' => array(6),
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/media/video/presets/preset/%video_preset/delete'] = array(
+    'title' => 'Delete',
+    'file' => 'video.preset.inc',
+    'page arguments' => array('video_preset_delete_confirm', 6),
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_CALLBACK
+  );
+  $items['admin/config/media/video/presets/preset/%video_preset/export'] = array(
+    'title' => t('Export'),
+    'file' => 'video.preset.inc',
+    'title callback' => 'video_preset_page_title',
+    'title arguments' => array(6),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_preset_export_form', 6),
+    'access arguments' => array('administer video presets'),
+    'type' => MENU_CALLBACK
+  );
+  // Metadata settings
+  $items['admin/config/media/video/metadata'] = array(
+    'title' => 'Metadata',
+    'description' => 'Configure your metadata settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_metadata_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+  // Cron settings
+  $items['admin/config/media/video/cron'] = array(
+    'title' => 'Cron Settings',
+    'description' => 'Configure your cron settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('video_cron_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'video.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 6,
+  );
+
+
+  return $items;
+}
+
+/**
+ * Implementing the special "auto-loader" for menu %video_preset.
+ *
+ * @param <string> $preset_name
+ * @return <object> $preset
+ */
+function video_preset_load($preset_name) {
+  module_load_include('inc', 'video_ui', 'video.preset');
+  return video_get_preset($preset_name);
+}

@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file Set up new color actions. Tell imagecache.module about them
+ */
+
+/**
+ * Need to flush the cache when this module is enabled or disabled
+ */
+function imagecache_coloractions_install() {
+  if (function_exists('imagecache_action_definitions') ) {
+    imagecache_action_definitions(TRUE);
+  }
+  cache_clear_all('imagecache_actions', 'cache');
+  drupal_set_message(t('Additional image style actions should now be available in the presets !settings_link', array('!settings_link' => l(t('settings'), 'admin/config/media/image-styles'))));
+}
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function imagecache_coloractions_uninstall() {
+  if (function_exists('imagecache_action_definitions') ) {
+    imagecache_action_definitions(TRUE);
+  }
+  cache_clear_all('imagecache_actions', 'cache');
+}

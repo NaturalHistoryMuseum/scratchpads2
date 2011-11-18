@@ -1,0 +1,30 @@
+
+/**
+ *  @file
+ *  Overlay for YouTube thumbnails in the media library browser.
+ */
+#media-browser .styles-container-media_youtube {
+  /* Relative wrapper for the overlay. */
+  position: relative;
+}
+#media-browser .styles-container-media_youtube span {
+  /* Here's the overlay image. */
+  background: url(images/stream-youtube.png) no-repeat;
+
+  /* Absolute positioning in the relative wrapper creates the overlay. */
+  position: absolute;
+
+  /* Size of the overlay */
+  width: 69px;
+  height: 22px;
+
+  /* Position of the overlay */
+  left: 33px;
+  top: 80px;
+}
+#media-browser .styles-container-media_youtube span:hover {
+  /* The  */
+  background-position: 0px -22px;
+}
+#media-browser .styles-container-media_youtube img {
+}
