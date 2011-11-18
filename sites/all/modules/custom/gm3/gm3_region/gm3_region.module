@@ -83,7 +83,7 @@ function gm3_region_library(){
  */
 function gm3_region_theme(){
   return array(
-    'gm3_region_region_button' => array(
+    'gm3_region_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
       ),
