@@ -200,6 +200,38 @@ function libraries_test_libraries_info() {
     ),
   );
 
+  // Test dependency loading.
+  // We add one file to each library to be able to verify if it was loaded with
+  // libraries_load().
+  // This library acts as a dependency for the libraries below.
+  $libraries['example_dependency'] = array(
+    'name' => 'Example dependency',
+    'library path' => drupal_get_path('module', 'libraries') . '/tests/example',
+    'version' => '1.1',
+    'files' => array('js' => array('example_1.js')),
+  );
+  $libraries['example_dependency_missing'] = array(
+    'name' => 'Example dependency missing',
+    'library path' => drupal_get_path('module', 'libraries') . '/tests/example',
+    'version' => '1',
+    'dependencies' => array('example_missing'),
+    'files' => array('js' => array('example_1.js')),
+  );
+  $libraries['example_dependency_incompatible'] = array(
+    'name' => 'Example dependency incompatible',
+    'library path' => drupal_get_path('module', 'libraries') . '/tests/example',
+    'version' => '1',
+    'dependencies' => array('example_dependency (>1.1)'),
+    'files' => array('js' => array('example_1.js')),
+  );
+  $libraries['example_dependency_compatible'] = array(
+    'name' => 'Example dependency compatible',
+    'library path' => drupal_get_path('module', 'libraries') . '/tests/example',
+    'version' => '1',
+    'dependencies' => array('example_dependency (>=1.1)'),
+    'files' => array('js' => array('example_1.js')),
+  );
+
   // Test the applying of callbacks.
   $libraries['example_callback'] = array(
     'name' => 'Example callback',
@@ -213,14 +245,16 @@ function libraries_test_libraries_info() {
             'info callback' => 'not applied',
             'pre-detect callback' => 'not applied',
             'post-detect callback' => 'not applied',
-            'load callback' => 'not applied',
+            'pre-load callback' => 'not applied',
+            'post-load callback' => 'not applied',
           ),
         ),
         // These keys are for testing purposes only.
         'info callback' => 'not applied',
         'pre-detect callback' => 'not applied',
         'post-detect callback' => 'not applied',
-        'load callback' => 'not applied',
+        'pre-load callback' => 'not applied',
+        'post-load callback' => 'not applied',
       ),
     ),
     'variants' => array(
@@ -229,20 +263,23 @@ function libraries_test_libraries_info() {
         'info callback' => 'not applied',
         'pre-detect callback' => 'not applied',
         'post-detect callback' => 'not applied',
-        'load callback' => 'not applied',
+        'pre-load callback' => 'not applied',
+        'post-load callback' => 'not applied',
       ),
     ),
     'callbacks' => array(
       'info' => array('_libraries_test_info_callback'),
       'pre-detect' => array('_libraries_test_pre_detect_callback'),
       'post-detect' => array('_libraries_test_post_detect_callback'),
-      'load' => array('_libraries_test_load_callback'),
+      'pre-load' => array('_libraries_test_pre_load_callback'),
+      'post-load' => array('_libraries_test_post_load_callback'),
     ),
     // These keys are for testing purposes only.
     'info callback' => 'not applied',
     'pre-detect callback' => 'not applied',
     'post-detect callback' => 'not applied',
-    'load callback' => 'not applied',
+    'pre-load callback' => 'not applied',
+    'post-load callback' => 'not applied',
   );
 
   return $libraries;
@@ -360,14 +397,25 @@ function _libraries_test_post_detect_callback(&$library, $version, $variant) {
 }
 
 /**
- * Sets the 'load callback' key.
+ * Sets the 'pre-load callback' key.
  *
- * This function is used as a test callback for the 'load' callback group.
+ * This function is used as a test callback for the 'pre-load' callback group.
  *
  * @see _libraries_test_callback()
  */
-function _libraries_test_load_callback(&$library, $version, $variant) {
-  _libraries_test_callback($library, $version, $variant, 'load');
+function _libraries_test_pre_load_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'pre-load');
+}
+
+/**
+ * Sets the 'post-load callback' key.
+ *
+ * This function is used as a test callback for the 'post-load' callback group.
+ *
+ * @see _libraries_test_callback()
+ */
+function _libraries_test_post_load_callback(&$library, $version, $variant) {
+  _libraries_test_callback($library, $version, $variant, 'post-load');
 }
 
 /**
@@ -406,41 +454,46 @@ function _libraries_test_callback(&$library, $version, $variant, $group) {
     $string .= ' (top-level)';
   }
   $library["$group callback"] = $string;
+
+  // The following is used to test caching of library information.
+  // Only set the message for the top-level library to prevent confusing,
+  // duplicate messages.
+  if (!isset($version) && !isset($variant) && variable_get('libraries_test_cache', FALSE)) {
+    drupal_set_message("The <em>$group</em> callback group was invoked.");
+  }
 }
 
 /**
  * Implements hook_menu().
  */
 function libraries_test_menu() {
-  $items['libraries_test/files'] = array(
+  $base = array(
+    'page callback' => '_libraries_test_load',
+    'access callback' => TRUE,
+  );
+  $items['libraries_test/files'] = $base + array(
     'title' => 'Test files',
-    'page callback' => '_libraries_test_load',
     'page arguments' => array('example_files'),
-    'access callback' => TRUE,
   );
-  $items['libraries_test/integration_files'] = array(
+  $items['libraries_test/integration_files'] = $base + array(
     'title' => 'Test integration files',
-    'page callback' => '_libraries_test_load',
     'page arguments' => array('example_integration_files'),
-    'access callback' => TRUE,
   );
-  $items['libraries_test/versions'] = array(
+  $items['libraries_test/versions'] = $base + array(
     'title' => 'Test version loading',
-    'page callback' => '_libraries_test_load',
     'page arguments' => array('example_versions'),
-    'access callback' => TRUE,
   );
-  $items['libraries_test/variant'] = array(
+  $items['libraries_test/variant'] = $base + array(
     'title' => 'Test variant loading',
-    'page callback' => '_libraries_test_load',
     'page arguments' => array('example_variant', 'example_variant'),
-    'access callback' => TRUE,
   );
-  $items['libraries_test/versions_and_variants'] = array(
+  $items['libraries_test/versions_and_variants'] = $base + array(
     'title' => 'Test concurrent version and variant loading',
-    'page callback' => '_libraries_test_load',
     'page arguments' => array('example_versions_and_variants', 'example_variant_2'),
-    'access callback' => TRUE,
+  );
+  $items['libraries_test/cache'] = $base + array(
+    'title' => 'Test caching of library information',
+    'page arguments' => array('example_callback'),
   );
   return $items;
 }
