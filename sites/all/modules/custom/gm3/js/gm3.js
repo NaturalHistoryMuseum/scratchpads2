@@ -17,7 +17,7 @@
       $('#' + this.id).width(this.settings['width']);
       // Set the width of the parent wrapper class.
       var parent_width = $('#' + this.id).outerWidth();
-      var parent_height = $('#' + this.id).outerWidth();
+      var parent_height = $('#' + this.id).outerHeight();
       if($('#' + this.id).siblings('.gm3-tools')) {
         var parent_width = parent_width + $('#' + this.id).siblings('.gm3-tools').first().outerWidth()
       }
