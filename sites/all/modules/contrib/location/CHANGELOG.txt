@@ -1,0 +1,142 @@
+
+Location 6.3.1
+------------------
+ - by rooby - Updated translation template location.pot for the current version of location.
+ - #718928 by rooby - Fix bug intrduced in previous commit. Call to undefined mothod when using table click sorting on distance/proximity field.
+ - #718928 by ankur, rooby, hutch, nicholasThompson, evan23, - Overhaul of views field/sort/filter proximity handlers so they have the same options.  Added options to use views arguments or php code for the origin coordinates.
+ - #821628 by rooby - Make sure invalid numbers are not passed into the asin() function in earth_longitude_range().
+ - #839652 by dboulet - Set element type to div for the address views field.
+ - #130550 by killes@www.drop.org, dboulet & hutch - Increase max length of location name, additional, street & city fields to 255.
+ - #343487 by danielnolde - Addition of location_latlon_rough_default function in case countries do not have their own
+ - #606342 by Dustin Currie, gravisrs, matt2000, totsubo, corona ronin, hutch, rooby et al. - Add views argument handler for proximity.
+ - #175193 by drupal steve - Added us zipcode database entry for 92011
+ - #175193 by DarrellDuane - In us zipcode database file zipcode 10004 should be NY not NJ
+ - #830352 by rooby & hutch - Postcodes for au and be have their lat/lon coords reversed.  Also, make sure all the files have consistent formatting.
+ - bug #578216 by Blackice2999 - Proximity filter not working for countries that do not have a location_latlon_rough_xx() function defined.
+ - #338963 by thebuckst0p & hutch - Made default values for content type max num locations and max locations added at once to 1
+ - #757186 by TechnoBuddhist - Added province data for Guernsey, Jersey and Isle of Man.
+ - #115323 by SeanA, catch, hutch - Allow option for display of state/province field, province name or province code
+ - #503468 by hutch, sreynen, pingers, rooby - Make Google geocoding minimum accuracy a variable and allow country specific settings
+ - #761768 by hutch - Added location.pot for translations
+ - #487790 by dww: Added initial integration between location and panels/ctools.
+Currently there is support for a location context (with keyword substitution, so you can create a custom panel content item and format a location however you want with keywords for each field), and a full-featured relationship to create a location context from a node context.
+ - bug #394870 by mattyoung - state/province field required asterisk pushed to new line
+ - #603200 by jerdiggity - Added permissions for default location views
+ - #182786 by fuerst, hutch, rooby - Added option to have map link open in a new window
+ - #432232 by seanr - Move map link inside location div when locations are themed.
+ - #310828 by tonycpsu, SeanA et al. - Removed comma between state/province and postal code when locations are themed.
+ - Fix #370344 reported by ccurvey: Fix postgresql incompatibility.
+ - Fix #367022, reported by amccann, patch by gapple: Use drupal_json to prevent issues with devel.
+ - #665800 by nfreear, ankur: Wrap locations in div
+ - #736190 by aviram: Fixed unicode chars and accents in supported/location.br.inc and better handling of off-site links to google maps in location.br.inc
+ - #617226 by nrussell, nickl: stop PHP error about foreach() applied to non-array
+ - #340856 by SeanA: Use CSS instead of em tags to style location name
+ - bug #584914 by claudiu.cristea: Fixed Romanian province list
+ - Fixed prefixing bug in location_cck.install; patch courtesy of reubidium in #757594
+ - Improved support for Denmark; patch courtesy of mikl and kaerast in #412112
+ - fix for map links issue at #340740; using patch by mikl given in #412102
+ - Fixed click sort for distance field handler; thanks to nickl and traxer for revisions of the patch in #326569
+ - add new div with it's own class for location map links; revisions of patch by BWPanda and anonymous5190 in #172646
+ - Committing fix for bug causing wrong default operator for provice operator; patch from ooh_truck in #746295
+ - location_cck fixes from #391160; thank you nickl and smk-ka for patches
+ - Fix #692668 requested by greggles in IRC: Reimplement gmap locpick proximity filter.
+ - Fix #322328, original patch by AdAstra, rerolled by chx, rewritten to fix the root cause by BDragon: Fix country_name and province_name tokens.
+ - Fix #679864 reported by ycwjjjj.
+ - Fix #685946, original patch by mvc, alternate solution by me: Don't cause a php warning when attempting to load an unsupported country.
+ - Fix #381498, patches by KarenS and jeffschuler -- Fix PHP warning.
+ - Fix #403194, patch by eojthebrave (line added by BDragon as per the issue) -- Views support for phone/fax fields.
+ - Fix [#441272], patch by mrtoner: Use non-broken code for special-casing the additional field.
+ - Bring CCK tests in sync with base COW tests.
+ - Fix location_cck node deletion (Apparently this never worked in the first place.)
+ - Remove extra checks from location_cck that were working around a bug in location. 
+ - Fix a few bugs in location_cck discovered while revamping the tests.
+ - location_is_empty() will now consider a node with the delete checkbox checked to be "empty." 
+ - Change reorderLocations() in the test suite to work on CCK fields.
+ - Fix emptiness check centrally, instead of relying on location_save().
+ - Remove cck validator -- the condition it was checking for was a bug, not a feature.
+ - Add another test to the COW tests.
+ - Start of CCK tests. (Finally!)
+ - Fix bug in field determination that was screwing up defaults.
+ - Add form based node creation routine based on [#212304].
+ - Fix bug preventing hcards from working.
+ - By popular demand, add phone and fax support. (hi skyred)
+ - More #511378 work: Fix warning, remove non functioning code that was forcing the zoom to 0. (Should address deva1983's problem).
+ - More #511378 work: Fix another instance of using the wrong default gmap macro.
+ - Followup for #511378: Use cleaner defaults, keep settings even with gmap disabled.
+ - #511378, #373465 fixes for Array errors in location_cck.
+   Differences pulled from #511378 comment 10, which in theory
+   matches #373465 comment 60. (Will verify in a moment.)
+   Thanks alexw, noahb et al!
+ - #511378 by KarenS: Modernize location_cck.module.  Note: I did not verify the correctness of the gmap parts yet.
+ - #507606 by roball (additional formatting fix by me): Fix encoding and accented characters on location.at.inc
+ - #508380 by claudiu.cristea: Fix boneheaded mistake in location_get_postalcode_data().
+ - #485642 by r
+ - Fix #431226.
+ - #482588 by andyhu (small modification by me): Remove broken characters from location.cn.inc
+ - #462454 by alexw: Add Kenya and Panama to google geocoder list.
+ - Add a utilities page to the settings interface.
+ - Add buttons to clear the location country support / province caches.
+ - #402964 reported by VeryMisunderstood, patch by webchick: Fix notices.
+ - Beginnings of location / taxonomy integration, requested in #260726
+ - Augment instance_links by adding 'type', move the node and user implementations to where they belong.
+ - #421656 reported by geodaniel: Add missing t() to 'NOT LISTED'.
+ - Fix logic error pointed out by mikl at #412102 comment 1
+
+
+Location 6.3.1 RC1
+------------------
+ - Don't lose location data when previewing.
+ - Fix (somewhat) CCK empty/ defaults handling
+ - Hide location settings that aren't used for cck locations.
+ - #351840 by erantone: Fix weight on additional field.
+ - #352550 by Morbus Iff: Allow long/lat to be hidden in collection/display.
+ - Add relationship support for location CCK fields. This gets us most of the way to full location_cck views support.
+ - API CHANGE! location_api_variant() now returns 2.
+ - Don't check_plain() arrays.
+ - Several mult-istep and CCK fixes. CCK should be much much happier in CVS now.
+ - #351630 by claudiu.cristea: Fix error while uninstalling location_add_another.
+ - #351642, reported by Aren Cambre: Fix placeholder text in location_cck.info.
+ - Fix validation stupidity. It doesn't matter what add is set to if max is 0.
+ - Fix tests, which were broken by the validation reactivation.
+ - Add 'nodiff' option to fields in the 'defaults' op of hook_locationapi().
+ - This is needed to unbreak cow after the [#352550] change.
+ - Unbreak cow, again.
+ - #356077 reported by kenorb: Fix country force default.
+ - #355320 reported by WesleyTx, patch by bec, modified by me: Make CCK Location respect the "hide fields" settings.
+ - Port old tests to simpletest 2.x.
+ - Only merge in stuff that actually has defaults, to prevent warnings.
+ - Sync google geocoder list, alphabetize to match spreadsheet, add country names for easier maintenance.
+ - Add comment about CS being transitional.
+ - Modernize the HTTP geocoder call in google.inc.
+ - #356806 reported by jackspiv: Don't crash if locpick is a string.
+ - Change broken requirements code to not drop fields on the floor.
+ - Add a test for LID conservation. (Which I just noticed is broken again, hence the test.)
+ - Fix LID conservation.
+ - #351754, reported by carlogen, patch by erantone, akahn, modified by me: Fix province filter.
+ - Repair element validation.
+ - #356492, reported by traxer: Fix using multiple distance fields.
+ - Fix bug skyred had ran into in IRC:
+ - Fix delete location checkbox when not collecting coordinates, due to a misplaced brace.
+ - #369264 by litwol: Remove trailing whitespace from provinces, to fix validation.
+ - Part of #317159, patch by karens & me: Fix accidental displaying 0.00,0.00 coords.
+ - #368141 by jhedstrom: Fix missing include on earth.test.
+ - Remove bogus 'callbacks' stuff. #326945 removed it, and nobody updated the upgrade docs :(
+ - Minimal fix for #359348: Implement token support for CCK fields.
+ - Part of #346694. patch by pathfinderelite, modified by me: Fix map links.
+ - Fix #373723. This is a modified version of the patch I provided there, changed slightly to be appropriate for general inclusion.
+ - Add JIT geocoding. To use with bulk importing, set the source to 4 when inserting your locations into the {location} table, and enable JIT geocoding on the Location settings page.
+ - #382758, reported by skyredwang: Allow the user to hide all fields, not just "real" fields, on the location address field.
+ - Part of #383244 by dragonwize: Make cck load and cache locations properly.
+ - No need to load the location now that CCK caches it properly.
+ - Split location_node out like I did for location_user. Huzzah!
+ - Refactor RSS support to make it easier to reuse. *cough*cck georss support?*cough*
+ - Fix tests to load location_node.
+ - Split relevant uninstall sections out into location_node.install and location_user.install.
+ - #383216 by dragonwize: Fix location_addanother dependencies.
+ - #387830 by VeryMisunderstood: Grammar fix in location.admin.inc.
+ - Remove unneeded hook_simpletest().
+ - garbage collect some commented out stuff, minor whitespace change.
+
+
+Location 6.3.0
+--------------

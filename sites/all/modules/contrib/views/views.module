@@ -12,7 +12,7 @@
  * Advertise the current views api version
  */
 function views_api_version() {
-  return '3.0-alpha1';
+  return '3.0';
 }
 
 /**
@@ -72,13 +72,18 @@ function views_theme($existing, $type, $theme, $path) {
     'pattern' => 'views_mini_pager__',
   );
 
-  $arguments = array(
+  $variables = array(
     // For displays, we pass in a dummy array as the first parameter, since
     // $view is an object but the core contextual_preprocess() function only
     // attaches contextual links when the primary theme argument is an array.
     'display' => array('view_array' => array(), 'view' => NULL),
     'style' => array('view' => NULL, 'options' => NULL, 'rows' => NULL, 'title' => NULL),
     'row' => array('view' => NULL, 'options' => NULL, 'row' => NULL, 'field_alias' => NULL),
+    'exposed_form' => array('view' => NULL, 'options' => NULL),
+    'pager' => array(
+      'view' => NULL, 'options' => NULL,
+      'tags' => array(), 'quantity' => 10, 'element' => 0, 'parameters' => array()
+    ),
   );
 
   // Default view themes
@@ -92,12 +97,12 @@ function views_theme($existing, $type, $theme, $path) {
   // Register theme functions for all style plugins
   foreach ($plugins as $type => $info) {
     foreach ($info as $plugin => $def) {
-      if (isset($def['theme'])) {
+      if (isset($def['theme']) && (!isset($def['register theme']) || !empty($def['register theme']))) {
         $hooks[$def['theme']] = array(
           'pattern' => $def['theme'] . '__',
           'file' => $def['theme file'],
           'path' => $def['theme path'],
-          'variables' => $arguments[$type],
+          'variables' => $variables[$type],
         );
 
         $include = DRUPAL_ROOT . '/' . $def['theme path'] . '/' . $def['theme file'];
@@ -120,7 +125,7 @@ function views_theme($existing, $type, $theme, $path) {
             'pattern' => $theme . '__',
             'file' => $def['theme file'],
             'path' => $def['theme path'],
-            'variables' => $arguments[$theme_type],
+            'variables' => $variables[$theme_type],
           );
 
           if (!function_exists('theme_' . $theme)) {
@@ -144,7 +149,7 @@ function views_theme($existing, $type, $theme, $path) {
   $hooks['views_more'] = $base + array(
     'template' => 'views-more',
     'pattern' => 'views_more__',
-    'variables' => array('more_url' => NULL, 'link_text' => 'more'),
+    'variables' => array('more_url' => NULL, 'link_text' => 'more', 'view' => NULL),
   );
 
   // Add theme suggestions which are part of modules.
@@ -167,6 +172,7 @@ function views_theme($existing, $type, $theme, $path) {
  * @see drupal_find_theme_templates
  */
 function _views_find_module_templates($cache, $path) {
+  $templates = array();
   $regex = '/' . '\.tpl\.php' . '$' . '/';
 
   // Because drupal_system_listing works the way it does, we check for real
@@ -611,7 +617,7 @@ function views_block_view($delta) {
           $output = $view->display_handler->view_special_blocks($type);
           // Before returning the block output, convert it to a renderable
           // array with contextual links.
-          views_add_block_contextual_links($output, $view, $display_id);
+          views_add_block_contextual_links($output, $view, $display_id, 'special_block_' . $type);
           $view->destroy();
           return $output;
         }
@@ -620,7 +626,12 @@ function views_block_view($delta) {
     }
   }
 
-  list($name, $display_id) = explode('-', $delta);
+  // If the delta doesn't contain valid data return nothing.
+  $explode = explode('-', $delta);
+  if (count($explode) != 2) {
+    return;
+  }
+  list($name, $display_id) = $explode;
   // Load the view
   if ($view = views_get_view($name)) {
     if ($view->access($display_id)) {
@@ -649,8 +660,11 @@ function views_block_view($delta) {
  * @param $display_id
  *   The ID of the display within the view that was used to generate the block
  *   content.
+ * @param $block_type
+ *   The type of the block. If it's block it's a regular views display,
+ *   but 'special_block_-exp' exist as well.
  */
-function views_add_block_contextual_links(&$block, $view, $display_id) {
+function views_add_block_contextual_links(&$block, $view, $display_id, $block_type = 'block') {
   // Do not add contextual links to an empty block.
   if (!empty($block['content'])) {
     // Contextual links only work on blocks whose content is a renderable
@@ -660,7 +674,7 @@ function views_add_block_contextual_links(&$block, $view, $display_id) {
       $block['content'] = array('#markup' => $block['content']);
     }
     // Add the contextual links.
-    views_add_contextual_links($block['content'], 'block', $view, $display_id);
+    views_add_contextual_links($block['content'], $block_type, $view, $display_id);
   }
 }
 
@@ -740,6 +754,8 @@ function views_add_contextual_links(&$render_element, $location, $view, $display
     // avoid displaying any contextual links at all, a display plugin can still
     // set 'contextual links locations' to, e.g., an empty array.)
     $plugin += array('contextual links locations' => array('view'));
+    // On exposed_forms blocks contextual links should always be visible.
+    $plugin['contextual links locations'][] = 'special_block_-exp';
     $has_links = !empty($plugin['contextual links']) && !empty($plugin['contextual links locations']);
     if ($has_links && in_array($location, $plugin['contextual links locations'])) {
       foreach ($plugin['contextual links'] as $module => $link) {
@@ -775,7 +791,7 @@ function views_add_contextual_links(&$render_element, $location, $view, $display
 }
 
 /**
- * Returns array of language names.
+ * Returns an array of language names.
  *
  * This is a one to one copy of locale_language_list because we can't rely on enabled locale module.
  *
@@ -931,6 +947,9 @@ function &views_set_page_view($view = NULL) {
  * Find out what, if any, page view is currently in use. Please note that
  * this returns a reference, so be careful! You can unintentionally modify the
  * $view object.
+ *
+ * @return view
+ *   A fully formed, empty $view object.
  */
 function &views_get_page_view() {
   return views_set_page_view();
@@ -1127,7 +1146,7 @@ function views_get_handler($table, $field, $key, $override = NULL) {
   }
 
   // DEBUG -- identify missing handlers
-  vpr("Missing handler: $table $field $key");
+  vpr("Missing handler: @table @field @key", array('@table' => $table, '@field' => $field, '@key' => $key));
   $broken = array(
     'title' => t('Broken handler @table.@field', array('@table' => $table, '@field' => $field)),
     'handler' => 'views_handler_' . $key . '_broken',
@@ -1286,7 +1305,7 @@ function views_get_applicable_views($type) {
   // @todo: Use a smarter flagging system so that we don't have to
   // load every view for this.
   $result = array();
-  $views = views_get_all_views();
+  $views = views_get_all_views(TRUE);
 
   foreach ($views as $view) {
     // Skip disabled views.
@@ -1349,6 +1368,79 @@ function views_get_disabled_views() {
 }
 
 /**
+ * Return an array of view as options array, that can be used by select,
+ * checkboxes and radios as #options.
+ *
+ * @param bool $views_only
+ *  If TRUE, only return views, not displays.
+ * @param string $filter
+ *  Filters the views on status. Can either be 'all' (default), 'enabled' or
+ *  'disabled'
+ * @param  mixed $exclude_view
+ *  view or current display to exclude
+ *  either a
+ *  - views object (containing $exclude_view->name and $exclude_view->current_display)
+ *  - views name as string:  e.g. my_view
+ *  - views name and display id (separated by ':'): e.g. my_view:default
+ * @param bool $optgroup
+ *  If TRUE, returns an array with optgroups for each view (will be ignored for
+ *  $views_only = TRUE). Can be used by select
+ *
+ * @return array
+ *  an associative array for use in select.
+ *  - key: view name and display id separated by ':', or the view name only
+ */
+function views_get_views_as_options($views_only = FALSE, $filter = 'all', $exclude_view = NULL, $optgroup = FALSE) {
+
+  // Filter the big views array.
+  switch ($filter) {
+    case 'all':
+    case 'disabled':
+    case 'enabled':
+      $func = "views_get_{$filter}_views";
+      $views = $func();
+      break;
+    default:
+      return array();
+  }
+
+  // Prepare exclude view strings for comparison.
+  if (empty($exclude_view)) {
+    $exclude_view_name = '';
+    $exclude_view_display = '';
+  }
+  elseif (is_object($exclude_view)) {
+    $exclude_view_name = $exclude_view->name;
+    $exclude_view_display = $exclude_view->current_display;
+  }
+  else {
+    list($exclude_view_name, $exclude_view_display) = explode(':', $exclude_view);
+  }
+
+  $options = array();
+  foreach ($views as $view) {
+    // Return only views.
+    if ($views_only && $view->name != $exclude_view_name) {
+      $options[$view->name] = $view_name;
+    }
+    // Return views with display ids.
+    else {
+      foreach ($view->display as $display_id => $display) {
+        if (!($view->name == $exclude_view_name && $view->current_display != $exclude_view_display)) {
+          if ($optgroup) {
+            $options[$view->name][$view->name . ':' . $display->id] = t('@view : @display', array('@view' => $view->name, '@display' => $display->id));
+          }
+          else {
+            $options[$view->name . ':' . $display->id] = t('View: @view - Display: @display', array('@view' => $view->name, '@display' => $display->id));
+          }
+        }
+      }
+    }
+  }
+  return $options;
+}
+
+/**
  * Returns TRUE if a view is enabled, FALSE otherwise.
  */
 function views_view_is_enabled($view) {
@@ -1394,7 +1486,7 @@ function views_get_view($name, $reset = FALSE) {
 }
 
 /**
- * Find the real location of at able.
+ * Find the real location of a table.
  *
  * If a table has moved, find the new name of the table so that we can
  * change its name directly in options where necessary.
@@ -1474,33 +1566,45 @@ function views_export_view(&$view, $indent = '') {
 // Views debug helper functions
 
 /**
- * Provide debug output for Views. This relies on devel.module
+ * Provide debug output for Views.
+ *
+ * This relies on devel.module
+ * or on the debug() function if you use a simpletest.
+ *
+ * @param $message
+ *   The message/variable which should be debugged.
+ *   This either could be
+ *     * an array/object which is converted to pretty output
+ *     * a translation source string which is used together with the parameter placeholders.
+ *
+ * @param $placeholder
+ *   The placeholders which are used for the translation source string.
  */
-function views_debug($message) {
+function views_debug($message, $placeholders = array()) {
+  if (!is_string($message)) {
+    $output = '<pre>' . var_export($message, TRUE) . '</pre>';
+  }
   if (module_exists('devel') && variable_get('views_devel_output', FALSE) && user_access('access devel information')) {
-    if (is_string($message)) {
-      $output = $message;
-    }
-    else {
-      $output = var_export($message, TRUE);
-    }
     if (variable_get('views_devel_region', 'footer') != 'watchdog') {
-      drupal_add_region_content(variable_get('views_devel_region', 'footer'), '<pre>' . $output . '</pre>');
+      $output = empty($output) ? t($message, $placeholders) : $output;
+      drupal_add_region_content(variable_get('views_devel_region', 'footer'), $output);
     }
     else {
-      watchdog('views_logging', '<pre>' . $output . '</pre>');
+      $output = $message;
+      watchdog('views_logging', $output, $placeholders);
     }
   }
   elseif (isset($GLOBALS['drupal_test_info'])) {
-    debug($message);
+    $output = empty($output) ? t($message, $placeholders) : $output;
+    debug($output);
   }
 }
 
 /**
  * Shortcut to views_debug()
  */
-function vpr($message) {
-  views_debug($message);
+function vpr($message, $placeholders = array()) {
+  views_debug($message, $placeholders);
 }
 
 /**
@@ -1508,7 +1612,7 @@ function vpr($message) {
  */
 function vsm($message) {
   if (module_exists('devel')) {
-    dsm($message);
+    dpm($message);
   }
 }
 
@@ -1556,13 +1660,15 @@ function views_view_has_form_elements($view) {
 /**
  * This is the entry function. Just gets the form for the current step.
  * The form is always assumed to be multistep, even if it has only one
- * step (the default 'views_form_vews_form' step). That way it is actually
+ * step (the default 'views_form_views_form' step). That way it is actually
  * possible for modules to have a multistep form if they need to.
  */
 function views_form($form, &$form_state, $view, $output) {
   $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 'views_form_views_form';
 
   $form = array();
+  $query = drupal_get_query_parameters($_GET, array('q'));
+  $form['#action'] = url($view->get_url(), array('query' => $query));
   $form['#validate'] = array('views_form_validate');
   $form['#submit'] = array('views_form_submit');
   // Tell the preprocessor whether it should hide the header, footer, pager...
@@ -1688,6 +1794,15 @@ function views_form_views_form_validate($form, &$form_state) {
       $field->views_form_validate($form, $form_state);
     }
   }
+
+  // Call the validate method on every area handler that has it.
+  foreach (array('header', 'footer') as $area) {
+    foreach ($view->{$area} as $area_name => $area_handler) {
+      if (method_exists($area_handler, 'views_form_validate')) {
+        $area_handler->views_form_validate($form, $form_state);
+      }
+    }
+  }
 }
 
 /**
@@ -1702,6 +1817,15 @@ function views_form_views_form_submit($form, &$form_state) {
   foreach ($view->field as $field_name => $field) {
     if (method_exists($field, 'views_form_submit')) {
       $field->views_form_submit($form, $form_state);
+    }
+  }
+
+  // Call the submit method on every area handler that has it.
+  foreach (array('header', 'footer') as $area) {
+    foreach ($view->{$area} as $area_name => $area_handler) {
+      if (method_exists($area_handler, 'views_form_submit')) {
+        $area_handler->views_form_submit($form, $form_state);
+      }
     }
   }
 }
@@ -2179,7 +2303,7 @@ function views_trim_text($alter, $value) {
     $value = rtrim(preg_replace('/(?:<(?!.+>)|&(?!.+;)).*$/us', '', $value));
 
     if (!empty($alter['ellipsis'])) {
-      $value .= '...';
+      $value .= t('...');
     }
   }
   if (!empty($alter['html'])) {
@@ -2223,16 +2347,24 @@ if (!function_exists('comment_views_api')) {
   function comment_views_api() { return views_views_api(); }
 }
 
-if (!function_exists('locale_views_api')) {
-  function locale_views_api() { return views_views_api(); }
-}
-
 if (!function_exists('field_views_api')) {
   function field_views_api() { return views_views_api(); }
 }
 
+if (!function_exists('file_views_api')) {
+  function file_views_api() { return views_views_api(); }
+}
+
 if (!function_exists('filter_views_api')) {
   function filter_views_api() { return views_views_api(); }
+}
+
+if (!function_exists('image_views_api')) {
+  function image_views_api() { return views_views_api(); }
+}
+
+if (!function_exists('locale_views_api')) {
+  function locale_views_api() { return views_views_api(); }
 }
 
 if (!function_exists('node_views_api')) {

@@ -1,0 +1,232 @@
+<?php
+
+/**
+ * @file Allow advanced users to code their own PHP image manipulation routines
+ * as part of imagecache processing.
+ *
+ * @author Originally contributed by crea http://drupal.org/node/325103#comment-
+ * 1076011
+ *
+ * @author merged into imagecache_actions by dman http://coders.co.nz
+ *
+ * Needs review - currently a security risk etc
+ */
+
+/**
+ *
+ * Notes about imagecache action extensions. For each action:
+ *
+ * 1: Implement imagecache_HOOK_form($formdata) to define the config form.
+ *
+ * 1a: Implement theme_imagecache_HOOK_form if needed - optional
+ *
+ * 2: Implement imagecache_HOOK_image($image, $data) to DO the process
+ *
+ * 3: Impliment theme_imagecache_HOOK($element) to return a text description of
+ * the setting
+ *
+ * 4: Declare the action in HOOK_imagecache_actions()
+ *
+ *
+ * API ref for hook_image()
+ *
+ * @param $image array defining an image file, including  :
+ *
+ *   $image- >source as the filename,
+ *
+ *   $image->info array
+ *
+ *   $image->resource handle on the image object
+ *
+ * @param $action array of settings as defined in your form.
+ */
+
+
+function imagecache_customactions_image_effect_info() {
+  $effects = array();
+
+  $effects['imagecache_customactions'] = array(
+    'label' => t('Custom action'),
+    'help' => t('Runs custom PHP code.'),
+    'effect callback' => 'imagecache_customactions_image',
+    'form callback' => 'imagecache_customactions_form',
+  );
+
+   $effects['imagecache_subroutine'] = array(
+    'label' => t('Subroutine'),
+    'help' => t('Runs another defined preset on the image.'),
+    'effect callback' => 'imagecache_subroutine_image',
+    'form callback' => 'imagecache_subroutine_form',
+  );
+
+  return $effects;
+}
+
+/**
+ * Implementation of theme_hook() for imagecache_customactions.module
+ */
+function imagecache_customactions_theme() {
+  return array(
+    'imagecache_subroutine' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_form().
+ *
+ * @param $action array of settings for this action
+ * @return a form definition
+ */
+function imagecache_customactions_form($action) {
+  if ( empty($action) ) {
+    $action = array('text' => 'return $image;');
+  }
+  $form = array(
+    'text' => array(
+      '#type' => 'textarea',
+      '#rows' => 10,
+      '#title' => t('Code'),
+      '#default_value' => $action['text'],
+      '#description' => t('
+      <p>Enter PHP code for your custom action. Source image is available in the $image object
+      which contains an <code>$image->info</code> array,
+      and a <code>$image->resource</code> which is the php toolkit object itself.
+      Your code must <b>return</b> an image object of the same structure (see ImageAPI).
+      For convenience, the images current <code>$image->info</code> variables
+      - <code>$width</code>, <code>$height</code> are available in the current scope.
+      <br/>Do not use %php tags. </p>
+      <p>If possible, the owning $node object may also be available.</p>
+      <p>Note that executing incorrect PHP-code can break your Drupal site.</p>
+      <p>If you are using a WYSIWYG, you must disable it for this edit area.</p>
+<h3>example:</h3>
+<pre style="overflow:auto; background-color:#EEEEEE;padding:0.3em; font-size:0.8em; line-height:1em;">
+// Wave an image
+  $amplitude = 10; $period = 10;
+  $x=0; $y=0;
+// Make a copy of the image twice the size
+  $height2 = $height * 2; $width2 = $width * 2;
+  $img2 = imagecreatetruecolor($width2, $height2);
+  imagecopyresampled($img2, $image->resource, 0, 0, $x, $y, $width2, $height2, $width, $height);
+// Wave it
+  for($i = 0; $i < ($width2); $i += 2)
+    imagecopy($img2, $img2, $x+$i-2, $y+sin($i/$period)*$amplitude, $x+$i, $y, 2, $height2);
+// Resample it down again
+  imagecopyresampled($image->resource, $img2, $x, $y, 0, 0, $width, $height, $width2, $height2);
+  imagedestroy($img2);
+return $image;
+
+# code modified from bokehman at http://www.sitepoint.com/forums/showpost.php?p=3655457
+</pre>
+      ',
+      array('%php' => '<?php ?>')),
+      '#wysiwyg' => FALSE,
+    ),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_image().
+ *
+ * @param $image
+ * @param $action
+ */
+function imagecache_customactions_image($image, $action) {
+  // Pull the images $width and $height out to play
+  @extract($image->info);
+  // And maybe the owner node data could be useful
+  if (function_exists('imagecache_actions_node_from_filepath')) {
+    $node = imagecache_actions_node_from_filepath($image->source);
+  }
+  // To get clever and do things post-process, let the process know what the final filename will be.
+  // It seems we cannot see what $dst or even our onwing presetname is.
+  // But we do know what the URL was the invoked this action! that's out filename-to-be!
+  $dst = $_REQUEST['q'];
+
+  $result = eval($action['text']);
+  return $result;
+}
+
+/**
+ * Implementation of theme_hook() for imagecache_ui.module
+ */
+function theme_imagecache_customactions($element) {
+  // TODO: Should this theme imagecache_customactions be declared in hook_theme()?
+  $data = $element['#value'];
+  return "<em><strong>" . $data['text'] . "</strong></em>";
+}
+
+
+
+
+/**
+ * Subroutine - an imagecache action that just calls another one.
+ *
+ * Contributed by Alan D
+ * http://drupal.org/node/618784
+ *
+ * Reworked into customactions by dman 2010-07
+ */
+
+/**
+ * Config form for this preset.
+ *
+ * Implementation of imagecache_hook_form()
+ *
+ * @param $action array of settings for this action
+ * @return a form definition
+ */
+function imagecache_subroutine_form($action) {
+  $action = (array) $action;
+  $form = array();
+
+  // List available presets
+  $presets = array();
+  foreach (imagecache_presets(TRUE) as $preset) {
+    $presets[$preset['presetname']] = $preset['presetname'];
+  }
+
+  $form['subroutine_presetname'] = array(
+    '#type' => 'select',
+    '#title' => t('Preset to call'),
+    '#default_value' => $action['subroutine_presetname'],
+    '#options' => $presets,
+  );
+
+  return $form;
+}
+
+
+/**
+ * Actually invoke the action - which means just handing off to the named real
+ * preset to do the job.
+ *
+ * Implementation of hook_image()
+ *
+ * @param $image
+ * @param $action
+ */
+function imagecache_subroutine_image($image, $data) {
+  if ($preset = imagecache_preset_by_name($data['subroutine_presetname'])) {
+    foreach ($preset['actions'] as $sub_action) {
+      _imagecache_apply_action($sub_action, $image);
+    }
+  }
+  return TRUE;
+}
+
+
+/**
+ * This lets the user see what parameters were selected for the action
+ */
+function theme_imagecache_subroutine($variables) {
+  $element = $variables['element'];
+  $data = $element['#value'];
+  if ($preset = imagecache_preset_by_name($data['subroutine_presetname'])) {
+    return t('%name (pid: !presetid)', array('%name' => $preset['presetname'], '!presetid' => $preset['presetid']));
+  }
+  return t('<span class="error">Invalid reference. The referenced preset may have been deleted!</span>');
+}

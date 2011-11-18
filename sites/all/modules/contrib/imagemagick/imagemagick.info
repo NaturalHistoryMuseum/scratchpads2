@@ -1,0 +1,12 @@
+name = ImageMagick
+description = Provides ImageMagick integration.
+core = 7.x
+configure = admin/config/media/image-toolkit
+;files[] = tests/imagemagick.test
+
+; Information added by drupal.org packaging script on 2011-06-23
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "imagemagick"
+datestamp = "1308791216"
+

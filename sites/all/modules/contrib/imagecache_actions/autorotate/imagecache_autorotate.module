@@ -1,0 +1,119 @@
+<?php
+/**
+ * @file
+ * Autorotate image based on EXIF Orientation tag.
+ * http://sylvana.net/jpegcrop/exif_orientation.html
+ *
+ * This mini-module contributed by jonathan_hunt http://drupal.org/user/28976
+ * September 1, 2009
+ *
+ * Tweaked by dman to add documentation
+ */
+
+/* In Adobe PNGs and TIFF, this information MAY be present in the XMP
+ * metadata like so:
+
+ <x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <rdf:Description rdf:about="" xmlns:tiff="http://ns.adobe.com/tiff/1.0/">
+ <tiff:Orientation>6</tiff:Orientation>
+ </rdf:Description>
+ </rdf:RDF>
+ </x:xmpmeta>
+
+ */
+
+function imagecache_autorotate_image_effect_info() {
+  $effects = array();
+
+  $effects['imagecache_autorotate'] = array(
+    'label' => t('Autorotate'),
+    'help' => t('Add autorotate image based on EXIF Orientation.'),
+    'effect callback' => 'imagecache_autorotate_image',
+  );
+
+  return $effects;
+}
+
+/**
+ * Declare dummy form, since we have no settings.
+ *
+ * @todo: A form is no longer needed, if this information still needs to be
+ * displayed it should probably be moved to help.
+ */
+function imagecache_autorotate_form() {
+  $form = array();
+  $form['help'] = array(
+    '#type' => 'markup',
+    '#value' => "<p>
+      <b>There are no user-configurable options for this process.</b>
+      </p><p>
+      Certain cameras can embed <em>orientation</em> information into image
+      files when they save them. This information is embedded in an EXIF tag
+      and can be used to rotate images to their correct position for display.
+      </p><p>
+      <em>Not all cameras or images contain this information.</em>
+      This process is only useful for those that do.
+      </p><p>
+      The expected/supported values are
+      <br/><strong>Tag</strong>: <code>0x0112  Orientation</code>
+      </p>
+      <ul>
+      <li>1 = Horizontal (normal)</li>
+      <li>3 = Rotate 180</li>
+      <li>6 = Rotate 90 CW</li>
+      <li>8 = Rotate 270 CW</li>
+      </ul>
+      <p>
+      <a href='http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/EXIF.html'>
+EXIF Reference</a>
+      </p>
+    ",
+  );
+  return $form;
+}
+
+/**
+ * Autorotate image based on EXIF Orientation tag.
+ *
+ * See code at
+ * http://sylvana.net/jpegcrop/exif_orientation.html
+ *
+ * and reference at
+ * http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/EXIF.html
+ *
+ * @todo:
+ * Add horizontal and vertical flips etc.
+ * Need to create sample set for tests.
+ */
+function imagecache_autorotate_image($image, $data) {
+  // Test to see if EXIF is supported for image type (e.g. not PNG).
+  // @todo: Add mimetype for TIFF also
+  $realpath = drupal_realpath($image->source);
+
+  if ($image->info['mime_type'] == 'image/jpeg') {
+    $exif = exif_read_data(drupal_realpath($image->source));
+    //debug(__FUNCTION__ .': exif[Orientation]='. print_r($exif['Orientation'], TRUE));
+    if (! isset($exif['Orientation'])) {
+      return TRUE;
+    }
+    switch ($exif['Orientation']) {
+      case 3:
+        $degrees = 180;
+        break;
+      case 6:
+        $degrees = 90; // Rotate 90 CW
+        break;
+      case 8:
+        $degrees = 270; // Rotate 270 CW
+        break;
+      default:
+        $degrees = 0;
+    }
+    if ($degrees) {
+      //debug(__FUNCTION__ .': rotating degrees='. $degrees);
+      image_rotate_effect($image, array('degrees' => $degrees));
+    }
+  }
+  return TRUE;
+}

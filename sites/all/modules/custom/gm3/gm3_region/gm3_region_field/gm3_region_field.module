@@ -1,0 +1,300 @@
+<?php
+
+/**
+ * Provides the following fields:
+ * 
+ * - Google maps regions (click on a country to select)
+ */
+/**
+ * Implementation of hook_field_info().
+ */
+function gm3_region_field_field_info(){
+  return array(
+    'gm3_region' => array(
+      'label' => t('Geo: Region'),
+      'description' => t('Allows for the storage of geographical regions.'),
+      'default_widget' => 'gm3_region_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_insert().
+ */
+function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  switch($field['type']){
+    case 'gm3_region':
+      $items = array_keys($items[0]);
+      $num_items = count($items);
+      for($i = 0; $i < $num_items; $i++){
+        $items[$i] = array(
+          'region_id' => $items[$i]
+        );
+      }
+      break;
+  }
+}
+
+/**
+ * Insert function for the combination field
+ */
+function gm3_region_gm3_combination_insert(&$new_items, $value){
+  if(!is_array($value)){
+    $value = array(
+      $value
+    );
+  }
+  foreach($value as $val){
+    $new_items[] = array(
+      'region_id' => $val,
+      'gm3_type' => 'gm3_region_region'
+    );
+  }
+}
+
+/**
+ * View for the combo field.
+ */
+function gm3_region_region_map_alter(&$map, $item){
+  $map['libraries']['region']['module'] = 'gm3_region';
+  if(!isset($map['libraries']['polygon'])){
+    $map['libaries']['polygon'] = array();
+  }
+  $map['libraries']['region']['regions'][] = $item['region_id'];
+}
+
+/**
+ * Implementation of hook_gm3_combination_field_options_alter()
+ */
+function gm3_region_field_gm3_combination_field_options_alter(&$options){
+  $options['gm3_region'] = t('Region');
+}
+
+/**
+ * Function to update the map on the combination form element.
+ */
+function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
+  $map['libraries']['region']['regions'] = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
+  $map['libraries']['field_region']['module'] = 'gm3_region_field';
+  $map['tools'][] = theme('gm3_region_region_button', array(
+    'id' => $element['#field_name']
+  ));
+  $widget['children']['gm3_region'] = array(
+    '#default_value' => isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array(),
+    '#options' => _gm3_region_field_get_options(),
+    '#multiple' => TRUE,
+    '#size' => 10,
+    '#type' => 'select',
+    '#attributes' => array(
+      'class' => array(
+        $element['#field_name'] . '-region'
+      ),
+      'style' => 'display:none'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_update()
+ */
+function gm3_region_field_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
+  gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function gm3_region_field_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  return array(
+    'field_region' => array(
+      'title' => t('Google Maps Javascript API V3: Region field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_region_field') . "/js/gm3_region_field.field_region$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3_region',
+          'region'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_widget_info().
+ */
+function gm3_region_field_field_widget_info(){
+  return array(
+    'gm3_region_gm3' => array(
+      'label' => t('Geo: Region select (with map)'),
+      'description' => t('Regions entered by selecting, or clicking on a map.'),
+      'field types' => array(
+        'gm3_region'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_region_select' => array(
+      'label' => t('Geo: Region select (no map)'),
+      'description' => t('Regions entered by selecting.'),
+      'field types' => array(
+        'gm3_region'
+      )
+    )
+  );
+}
+
+/**
+ * View function that is called by the gm3_field module.
+ */
+function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $id){
+  $element = array();
+  if(count($items)){
+    $regions = array();
+    foreach($items as $item){
+      $regions[] = $item['region_id'];
+    }
+    $element = theme('gm3_map', array(
+      'map' => array(
+        'id' => $id,
+        'libraries' => array(
+          'region' => array(
+            'module' => 'gm3_region',
+            'regions' => $regions
+          ),
+          'polygon'
+        )
+      )
+    ));
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function gm3_region_field_field_is_empty($item, $field){
+  return !count($item);
+}
+
+/**
+ * Helper function to get the options for the region field.
+ */
+function _gm3_region_field_get_options(){
+  // We cache this, as it should only change if the module is updated.
+  $result = db_select('gm3_region_data', 'g')->fields('g', array(
+    'name',
+    'continent',
+    'iso_code',
+    'level_4_code',
+    'level_3_code',
+    'level_2_code',
+    'level_1_code'
+  ))->execute();
+  $options = array();
+  foreach($result as $region){
+    if($region->level_2_code == 0){
+      $options["{$region->level_1_code}"] = $region->name;
+    }else if($region->level_3_code == ''){
+      $options["{$region->level_1_code}:{$region->level_2_code}"] = "- {$region->name}";
+    }else if($region->level_4_code == ''){
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}"] = "- - {$region->name}";
+    }else{
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}:{$region->level_3_code}-{$region->level_4_code}"] = "- - - {$region->name}";
+    }
+  }
+  uksort($options, '_gm3_region_field_array_sort');
+  return $options;
+}
+
+/**
+ * Sort the array
+ */
+function _gm3_region_field_array_sort($a, $b){
+  $a = explode(":", $a);
+  $b = explode(":", $b);
+  if($a[0] != $b[0]){return $a[0] > $b[0];}
+  if(isset($a[1]) && isset($b[1])){
+    if($a[1] != $b[1]){return $a[1] > $b[1];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[2]) && isset($b[2])){
+    if($a[2] != $b[2]){return $a[2] > $b[2];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[3]) && isset($b[3])){
+    if($a[3] != $b[3]){return $a[3] > $b[3];}
+  }else{
+    return count($a) > count($b);
+  }
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $widget = $element;
+  switch($instance['widget']['type']){
+    case 'gm3_region_gm3':
+      // We need to add a GM3 map to the page.
+      // We'll also need some additional JS to record the points and save them
+      // actually into a form element.
+      $regions = array();
+      foreach($items as $item){
+        $regions[] = $item['region_id'];
+      }
+      $widget += array(
+        '#prefix' => drupal_render(theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              'region' => array(
+                'module' => 'gm3_region',
+                'regions' => $regions
+              ),
+              'polygon' => array(),
+              'field_region' => array(
+                'module' => 'gm3_region_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_region_region_button', array(
+                'id' => $element['#field_name']
+              ))
+            )
+          )
+        ))),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        ),
+        '#attributes' => array(
+          'class' => array(
+            $element['#field_name'] . '-region'
+          ),
+          'style' => 'display:none'
+        ),
+        '#default_value' => $regions,
+        '#options' => _gm3_region_field_get_options(),
+        '#multiple' => TRUE,
+        '#size' => 10,
+        '#type' => 'select'
+      );
+      break;
+  }
+  $element['map'] = $widget;
+  return $element;
+}

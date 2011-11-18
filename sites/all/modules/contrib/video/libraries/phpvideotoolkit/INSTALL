@@ -1,0 +1,49 @@
+There is now a super-duper Automated FFmpeg installer.
+It's written by a clever guy called Sherinmon A, and is supplied under a GPL license.
+
+It installs, ffmpeg, ffmpeg-php, MPlayer, Codecs, Flvtool, Lame, Libogg, Libvorbis, 
+Vorbis-tools, Libtheora, FFMPEG, AMR 3gp Encoder and decoder (amrnb,amrwb-), 
+Ruby, wmf Lib, faad2, facc, a52dec-0.7.4,  xvid/div decoder, and x264  .
+
+Requirements:
+a) You will need to have access to ssh to start these installs
+b) Must be a Linux/Unix/POSIX server
+c) Must need root shell(bash) access
+d) Must need 200 MB of free space in your server
+	
+i) Check if yum in installed or not in the server. If there is no yum, please make 
+sure automake,autoconf and libtools are installed. It is reccommend to configure the 
+distribution specific  yum.	
+
+There are two types of installers, one for root users and one for users on shared hosts.
+The instructions below are as of October 9th, 2008.
+The process will take a very long time, in the region of 15-20 minutes so be patient.
+
+-----------
+FOR SHARED HOSTS
+Source Download link : http://sourceforge.net/project/showfiles.php?group_id=210922
+-----------
+
+cd ~
+mkdir ffmpeg
+wget http://kent.dl.sourceforge.net/sourceforge/shf/sharedhostffmpeg.1.0.2.tar.gz
+tar zxf sharedhostffmpeg.1.0.2.tar.gz
+cd sharedhostffmpeg.1.0.2
+./install
+
+
+-----------
+FOR SHARED HOSTS
+Source Download link : http://sourceforge.net/project/showfiles.php?group_id=205330
+-----------
+
+cd ~
+mkdir ffmpeg
+wget http://dfn.dl.sourceforge.net/sourceforge/ffmpeginstall/ffmpeginstall.3.2.1.tar.gz
+tar zxf ffmpeginstall.3.2.1.tar.gz
+cd ffmpeginstall.3.2.1
+./install
+
+
+
+/* SVN FILE: $Id$ */

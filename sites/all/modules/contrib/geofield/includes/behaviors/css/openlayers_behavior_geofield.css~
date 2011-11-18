@@ -1,0 +1,16 @@
+.openlayers_behavior_geofield_button_panel {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  }
+
+.openlayers_behavior_geofield_buttonItemInactive {
+/*  background:url(openlayers_behavior_fullscreen.png);*/
+  background: #b44;
+  width:20px;
+  height:20px;
+  }
+ 
+.openlayers_map_geofield .openlayers_behavior_geofield_buttonItemInactive {
+  background-position:20px 0;
+  }
