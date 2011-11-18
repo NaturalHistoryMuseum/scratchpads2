@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Enables a user to embed a google map within filtered text simply by adding
+ * 
+ * [google_map]
+ * 
+ * {gm3_json_specification}
+ * 
+ * [/google_map]
+ */
+/**
+ * Implementation of hook_filter_info().
+ */
+function gm3_filter_filter_info(){
+  return array(
+    'gm3_filter_google_map' => array(
+      'title' => 'Google Map',
+      'description' => 'Embed a Google Map into any formatted text on your site',
+      'process callback' => 'gm3_filter_google_map_process',
+      'cache' => TRUE,
+      'tips callback' => 'gm3_filter_google_map_tips',
+      'weight' => 0
+    )
+  );
+}
+
+/**
+ * Callbacks as defined in hook_filter_info.
+ */
+function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  preg_match_all('|\[google_map\](.+?)\[/google_map\]|i', $text, $matches);
+  dpm($matches);
+}
