@@ -9,7 +9,8 @@
       this.add_polygons_by_ids(this.GM3.libraries.region.regions);
     }
   }
-  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids){
+  // FIXME - Add content from the server and on the server.
+  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content){
     if(typeof region_ids != 'object') {
       if(typeof region_ids == 'string') {
         region_ids = new Array(region_ids);
