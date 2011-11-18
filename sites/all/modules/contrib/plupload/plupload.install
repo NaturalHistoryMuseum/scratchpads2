@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Plupload module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function plupload_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $libraries = plupload_library();
+     $library = $libraries['plupload'];
+     // We grab the first file.
+    $testfile = key($library['js']);
+    if (!file_exists($testfile)) {
+      $requirements['plupload'] = array(
+        'title' => check_plain($library['title']),
+        'value' => t('The <a href="@url">@title</a> library (version @version) is not installed.', array('@title' => $library['title'], '@url' => url($library['website']), '@version' => $library['version'])),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+
+  return $requirements;
+}

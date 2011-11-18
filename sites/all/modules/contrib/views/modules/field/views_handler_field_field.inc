@@ -57,6 +57,11 @@ class views_handler_field_field extends views_handler_field {
         $this->limit_values = TRUE;
       }
 
+      // If "First and last only" is chosen, limit the values
+      if (!empty($this->options['delta_first_last'])) {
+        $this->limit_values = TRUE;
+      }
+
       // Otherwise, we only limit values if the user hasn't selected "all", 0, or
       // the value matching field cardinality.
       if ((intval($this->options['delta_limit']) && ($this->options['delta_limit'] != $field['cardinality'])) || intval($this->options['delta_offset'])) {
@@ -192,7 +197,9 @@ class views_handler_field_field extends views_handler_field {
       $field = $this->field_info;
       if (field_is_translatable($entity_type, $field) && !empty($this->query->options['field_language_add_to_query'])) {
         $column = $this->table_alias . '.language';
-        $this->query->add_where(0, $column, $this->query->options['field_language']);
+        // By the same reason as field_language the field might be LANGUAGE_NONE in reality so allow it as well.
+        // @see this::field_language()
+        $this->query->add_where(0, $column, array($this->query->options['field_language'], LANGUAGE_NONE));
       }
     }
 
@@ -302,6 +309,9 @@ class views_handler_field_field extends views_handler_field {
       'default' => 0,
     );
     $options['delta_reversed'] = array(
+      'default' => FALSE,
+    );
+    $options['delta_first_last'] = array(
       'default' => FALSE,
     );
 
@@ -429,13 +439,11 @@ class views_handler_field_field extends views_handler_field {
       $type = 'textfield';
       $options = NULL;
       $size = 5;
-      $process = array();
     }
     else {
       $type = 'select';
       $options = drupal_map_assoc(range(1, $field['cardinality']));
       $size = 1;
-      $process = array('form_process_select');
     }
     $form['multi_type'] = array(
       '#type' => 'radios',
@@ -445,7 +453,6 @@ class views_handler_field_field extends views_handler_field {
         'ol' => t('Ordered list'),
         'separator' => t('Simple separator'),
       ),
-      '#process' => array('form_process_radios', 'ctools_dependent_process'),
       '#dependency' => array('edit-options-group-rows' => array(TRUE)),
       '#default_value' => $this->options['multi_type'],
       '#fieldset' => 'multiple_field_settings',
@@ -455,7 +462,6 @@ class views_handler_field_field extends views_handler_field {
       '#type' => 'textfield',
       '#title' => t('Separator'),
       '#default_value' => $this->options['separator'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array(
         'radio:options[multi_type]' => array('separator'),
         'edit-options-group-rows' => array(TRUE),
@@ -472,7 +478,6 @@ class views_handler_field_field extends views_handler_field {
       '#options' => $options,
       '#default_value' => $this->options['delta_limit'],
       '#prefix' => '<div class="container-inline">',
-      '#process' => $process + array('ctools_dependent_process'),
       '#dependency' => array('edit-options-group-rows' => array(TRUE)),
       '#fieldset' => 'multiple_field_settings',
     );
@@ -484,7 +489,6 @@ class views_handler_field_field extends views_handler_field {
       '#field_prefix' => $prefix,
       '#field_suffix' => $suffix,
       '#default_value' => $this->options['delta_offset'],
-      '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-options-group-rows' => array(TRUE)),
       '#description' => t('(first item is 0)'),
       '#fieldset' => 'multiple_field_settings',
@@ -493,10 +497,17 @@ class views_handler_field_field extends views_handler_field {
       '#title' => t('Reversed'),
       '#type' => 'checkbox',
       '#default_value' => $this->options['delta_reversed'],
-      '#suffix' => '</div>',
-      '#process' => array('form_process_checkbox', 'ctools_dependent_process'),
+      '#suffix' => $suffix,
       '#dependency' => array('edit-options-group-rows' => array(TRUE)),
       '#description' => t('(start from last values)'),
+      '#fieldset' => 'multiple_field_settings',
+    );
+    $form['delta_first_last'] = array(
+      '#title' => t('First and last only'),
+      '#type' => 'checkbox',
+      '#default_value' => $this->options['delta_first_last'],
+      '#suffix' => '</div>',
+      '#dependency' => array('edit-options-group-rows' => array(TRUE)),
       '#fieldset' => 'multiple_field_settings',
     );
   }
@@ -651,10 +662,10 @@ class views_handler_field_field extends views_handler_field {
       // 'safe_value' which doesn't appear anywhere in the field definition
       // so we can't affect it. Other side effects could happen similarly.
       $data = FALSE;
-      foreach ($this->group_fields as $field => $column) {
+      foreach ($this->group_fields as $field_name => $column) {
         if (property_exists($values, $this->aliases[$column])) {
-          $base_value[$field] = $values->{$this->aliases[$column]};
-          if (isset($base_value[$field])) {
+          $base_value[$field_name] = $values->{$this->aliases[$column]};
+          if (isset($base_value[$field_name])) {
             $data = TRUE;
           }
         }
@@ -701,12 +712,22 @@ class views_handler_field_field extends views_handler_field {
         }
       }
 
+      // Determine if only the first and last values should be shown
+      $delta_first_last = $this->options['delta_first_last'];
+
       $new_values = array();
       for ($i = 0; $i < $delta_limit; $i++) {
         $new_delta = $offset + $i;
 
         if (isset($all_values[$new_delta])) {
-          $new_values[] = $all_values[$new_delta];
+          // If first-last option was selected, only use the first and last values
+          if (!$delta_first_last
+            // Use the first value.
+            || $new_delta == $offset
+            // Use the last value.
+            || $new_delta == ($delta_limit + $offset - 1)) {
+            $new_values[] = $all_values[$new_delta];
+          }
         }
       }
       $entity->{$this->definition['field_name']}[$langcode] = $new_values;
@@ -716,7 +737,7 @@ class views_handler_field_field extends views_handler_field {
       return $entity;
     }
     else {
-      return $entity->{$this->definition['field_name']}[$langcode];
+      return !empty($entity->{$this->definition['field_name']}[$langcode]) ? $entity->{$this->definition['field_name']}[$langcode] : array();
     }
   }
 
@@ -757,7 +778,19 @@ class views_handler_field_field extends views_handler_field {
 
     foreach (element_children($render_array) as $count) {
       $items[$count]['rendered'] = $render_array[$count];
-      $items[$count]['raw'] = $render_array['#items'][$count];
+      // field_view_field() adds an #access property to the render array that
+      // determines whether or not the current user is allowed to view the
+      // field in the context of the current entity. We need to respect this
+      // parameter when we pull out the children of the field array for
+      // rendering.
+      if (isset($render_array['#access'])) {
+        $items[$count]['rendered']['#access'] = $render_array['#access'];
+      }
+      // Only add the raw field items (for use in tokens) if the curent user
+      // has access to view the field content.
+      if (!isset($items[$count]['rendered']['#access']) || $items[$count]['rendered']['#access']) {
+        $items[$count]['raw'] = $render_array['#items'][$count];
+      }
     }
     return $items;
   }
@@ -788,6 +821,10 @@ class views_handler_field_field extends views_handler_field {
       if (isset($raw) && isset($raw[$id]) && is_scalar($raw[$id])) {
         $tokens['[' . $this->options['id'] . '-' . $id . ']'] = filter_xss_admin($raw[$id]);
       }
+      else {
+        // Take sure that empty values are replaced as well.
+        $tokens['[' . $this->options['id'] . '-' . $id . ']'] = '';
+      }
     }
   }
 
@@ -802,7 +839,7 @@ class views_handler_field_field extends views_handler_field {
       $default_language = language_default('language');
       $language = str_replace(array('***CURRENT_LANGUAGE***', '***DEFAULT_LANGUAGE***'),
                               array($language_content->language, $default_language),
-                              $this->query->options['field_language']);
+                              $this->view->display_handler->options['field_language']);
 
       // Give the Field Language API a chance to fallback to a different language
       // (or LANGUAGE_NONE), in case the field has no data for the selected language.

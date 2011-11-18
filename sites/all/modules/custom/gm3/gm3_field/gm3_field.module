@@ -1,0 +1,956 @@
+<?php
+
+/**
+ * Provides the following fields:
+ * 
+ * - Google maps point
+ * - Google maps polygon
+ * - Google maps polyline
+ * - Google maps countries (click on a country to select)
+ * - Google maps combination (combination of the above).
+ */
+/**
+ * Does not implement the following (amongst others) hook_field_* hooks.
+ * This is for my benefit only, and will be removed.
+ * 
+ * hook_field_load().
+ * hook_field_delete().
+ * hook_field_access().
+ * hook_field_presave().
+ * hook_field_settings_form().
+ * 
+ * FIXME - Drag'n'dropped points are not updated.
+ */
+/**
+ * Implementation of hook_theme().
+ */
+function gm3_field_theme(){
+  return array(
+    'gm3_point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_info().
+ */
+function gm3_field_field_info(){
+  $options = array(
+    'gm3_point' => 'Point',
+    'gm3_polygon' => 'Polygon',
+    'gm3_polyline' => 'Polyline',
+    'gm3_rectangle' => 'Rectangle'
+  );
+  drupal_alter('gm3_combination_field_options', $options);
+  return array(
+    'gm3_point' => array(
+      'label' => t('Geo: Point'),
+      'description' => t('This field stores latitude/longitude pairs.'),
+      'default_widget' => 'gm3_point_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    ),
+    'gm3_polygon' => array(
+      'label' => t('Geo: Polygon'),
+      'description' => t('This field stores geographical polygons/areas.'),
+      'default_widget' => 'gm3_polygon_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    ),
+    'gm3_polyline' => array(
+      'label' => t('Geo: Line'),
+      'description' => t('This field stores geographical lines.'),
+      'default_widget' => 'gm3_polyline_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    ),
+    'gm3_rectangle' => array(
+      'label' => t('Geo: Rectangle'),
+      'description' => t('This field stores a rectangle.'),
+      'default_widget' => 'gm3_rectangle_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    ),
+    'gm3_combination' => array(
+      'label' => t('Geo: Super-combo'),
+      'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of regions, and addresses'),
+      'settings' => $options,
+      'default_widget' => 'gm3_combination_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_settings_form().
+ */
+function gm3_field_field_settings_form($field, $instance, $has_data){
+  switch($field['type']){
+    case 'gm3_combination':
+      $options = array(
+        'gm3_point' => 'Point',
+        'gm3_polygon' => 'Polygon',
+        'gm3_polyline' => 'Polyline',
+        'gm3_rectangle' => 'Rectangle'
+      );
+      drupal_alter('gm3_combination_field_options', $options);
+      return array(
+        'field_types' => array(
+          '#type' => 'select',
+          '#title' => t('Field types'),
+          '#options' => $options,
+          '#multiple' => TRUE,
+          '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
+          '#required' => TRUE,
+          '#description' => t('Select the types of Widget you would like to use')
+        )
+      );
+  }
+}
+
+/**
+ * Implementation of hook_field_insert().
+ */
+function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  switch($field['type']){
+    case 'gm3_point':
+      $new_items = array();
+      if(count($items)){
+        _gm3_field_get_array_from_points_string($items[0], $new_items);
+      }
+      $items = $new_items;
+      break;
+    case 'gm3_rectangle':
+    case 'gm3_polygon':
+    case 'gm3_polyline':
+      $new_items = array();
+      if(count($items)){
+        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      }
+      $items = $new_items;
+      break;
+    case 'gm3_combination':
+      $new_items = array();
+      if(count($items)){
+        foreach($items[0]['children'] as $type => $value){
+          switch($type){
+            case 'gm3_point':
+              _gm3_field_get_array_from_points_string($value, $new_items, 'point');
+              break;
+            case 'gm3_rectangle':
+            case 'gm3_polygon':
+            case 'gm3_polyline':
+              _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+              break;
+            default:
+              // Here we have a field that was not defined by this module, we use the 
+              // name of the module, plus the name of the type plus view to get the name
+              // of the function to call
+              // "{$field['module']}_{$field['type']}_view()"
+              if(function_exists("{$type}_gm3_combination_insert")){
+                $function_name = "{$type}_gm3_combination_insert";
+                $function_name($new_items, $value);
+              }
+              break;
+          }
+        }
+      }
+      $items = $new_items;
+      break;
+  }
+}
+
+/**
+ * Helper function to get values from a polygon/polyline/rectangle string
+ */
+function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $type = FALSE){
+  if(strlen(trim($value))){
+    $polys = preg_split("/\n/", $value);
+    foreach($polys as $poly){
+      $item = array(
+        $poly_type => $poly
+      );
+      if($type){
+        $item['gm3_type'] = $poly_type;
+      }
+      $items[] = $item;
+    }
+  }
+}
+
+/**
+ * Helper function to get values from a points string
+ */
+function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE){
+  if(strlen(trim($value))){
+    $lat_lngs = explode("|", $value);
+    foreach($lat_lngs as $lat_lng){
+      $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
+      $lat_lng = explode(", ", $lat_lng);
+      $lat_lng = array(
+        'latitude' => $lat_lng[0],
+        'longitude' => $lat_lng[1]
+      );
+      if($type){
+        $lat_lng['gm3_type'] = $type;
+      }
+      $items[] = $lat_lng;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_field_update()
+ */
+function gm3_field_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
+  gm3_field_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function gm3_field_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  return array(
+    'field_point' => array(
+      'title' => t('Google Maps Javascript API V3: Point field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_point$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.point'
+        )
+      )
+    ),
+    'field_polygon' => array(
+      'title' => t('Google Maps Javascript API V3: Polygon field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polygon$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.polygon'
+        )
+      )
+    ),
+    'field_rectangle' => array(
+      'title' => t('Google Maps Javascript API V3: Rectangle field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_rectangle$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.rectangle'
+        )
+      )
+    ),
+    'field_polyline' => array(
+      'title' => t('Google Maps Javascript API V3: Polyline field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polyline$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.polyline'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_field_widget_info().
+ */
+function gm3_field_field_widget_info(){
+  return array(
+    'gm3_point_gm3' => array(
+      'label' => t('Geo: Point Google Map'),
+      'description' => t('Latitude/Longitude pairs entered by clicking on a map.'),
+      'field types' => array(
+        'gm3_point'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_point_text' => array(
+      'label' => t('Geo: Point text'),
+      'description' => t('Latitude/Longitude pairs entered into a text box'),
+      'field types' => array(
+        'gm3_point'
+      )
+    ),
+    'gm3_polygon_gm3' => array(
+      'label' => t('Geo: Polygon Google Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered on a Google map.'),
+      'field types' => array(
+        'gm3_polygon'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_polygon_text' => array(
+      'label' => t('Geo: Polygon text'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered in a text box.'),
+      'field types' => array(
+        'gm3_polygon'
+      )
+    ),
+    'gm3_rectangle_gm3' => array(
+      'label' => t('Geo: Rectangle Google Map'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a Google map.'),
+      'field types' => array(
+        'gm3_rectangle'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_rectangle_text' => array(
+      'label' => t('Geo: Rectangle text'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered in a text box.'),
+      'field types' => array(
+        'gm3_rectangle'
+      )
+    ),
+    'gm3_polyline_gm3' => array(
+      'label' => t('Geo: Polyline Google Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a Google map.'),
+      'field types' => array(
+        'gm3_polyline'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_polyline_text' => array(
+      'label' => t('Geo: Polygon text'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered in a text box.'),
+      'field types' => array(
+        'gm3_polygon'
+      )
+    ),
+    'gm3_combination_gm3' => array(
+      'label' => t('Geo: Combination Google Map'),
+      'description' => t('Whatever you would like, on a Google map.'),
+      'field types' => array(
+        'gm3_combination'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_combination_text' => array(
+      'label' => t('Geo: Combination text'),
+      'description' => t('Whatever you would like, in a text box.'),
+      'field types' => array(
+        'gm3_combination'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function gm3_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
+  // FIXME - Add validation on the fields.
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function gm3_field_field_is_empty($item, $field){
+  switch($field['type']){
+    case 'gm3_point':
+    case 'gm3_polygon':
+    case 'gm3_polyline':
+    case 'gm3_rectangle':
+      return !strlen(trim($item));
+    case 'gm3_combination':
+      foreach($item['children'] as $type => $value){
+        if(is_array($value)){
+          if(count($value)){return FALSE;}
+        }else if(is_string($value)){
+          if(strlen(trim($value))){return FALSE;}
+        }
+      }
+      return TRUE;
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ * 
+ * FIXME - We need to add settings to these formatter types to allow the display
+ * of the map to be altered.
+ */
+function gm3_field_field_formatter_info(){
+  return array(
+    'gm3_entity_map' => array(
+      'label' => t('Geo field single map.'),
+      'description' => t('Displays all the data from a single field on a single map.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
+      )
+    ),
+    'gm3_field_map' => array(
+      'label' => t('Geo field map per field.'),
+      'description' => t('Displays all the data from fields also selected to use this display type on a single map.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
+      )
+    ),
+    'gm3_text' => array(
+      'label' => t('Geo field text.'),
+      'field types' => array(
+        'gm3_point',
+        'gm3_polygon',
+        'gm3_polyline',
+        'gm3_combination'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      return array(
+        'display_convex_hull' => array(
+          '#title' => t('Display convex hull of points.'),
+          '#type' => 'radios',
+          '#required' => TRUE,
+          '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
+          '#options' => array(
+            t('NO'),
+            t('YES')
+          )
+        )
+      );
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function gm3_field_field_formatter_settings_summary($field, $instance, $view_mode){
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      $summary = array();
+      if(!isset($instance['display'][$view_mode]['settings']['display_convex_hull']) || $instance['display'][$view_mode]['settings']['display_convex_hull']){
+        $summary[] = t('Display convex hull of points on the map.');
+      }else{
+        $summary[] = t('No convex hull will be displayed.');
+      }
+      return implode('<br />', $summary);
+  }
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_point_text($variables){
+  return array(
+    '#markup' => t('Longitude: %longitude, Latitude: %latitude', array(
+      '%longitude' => $variables['data']['longitude'],
+      '%latitude' => $variables['data']['latitude']
+    ))
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polygon_text($variables){
+  return array(
+    '#markup' => $variables['data']['polygon']
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polyline_text($variables){
+  return array(
+    '#markup' => $variables['data']['polyline']
+  );
+}
+
+/**
+ * Themes for field types.
+ * 
+ * Note, this is A LOT simpler than renaming every instance of "polygon" to
+ * "gm3_polygon", although I may do that in the future.
+ */
+function theme_gm3_rectangle_text($variables){
+  return array(
+    '#markup' => $variables['data']['rectangle']
+  );
+}
+
+function theme_point_text($variables){
+  return theme('gm3_point_text', $variables);
+}
+
+function theme_polygon_text($variables){
+  return theme('gm3_polygon_text', $variables);
+}
+
+function theme_polyline_text($variables){
+  return theme('gm3_polyline_text', $variables);
+}
+
+function theme_rectangle_text($variables){
+  return theme('gm3_rectangle_text', $variables);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * FIXME - Still need to do the field/entity formats properly (so that an entity
+ * map will show all the fields set as "entity_map" on that entity.
+ */
+function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  switch($display['type']){
+    case 'gm3_entity_map':
+      // Set an ID based on the entity.
+      $entity_info = entity_get_info($entity_type);
+      $id = "gm3_map-{$entity->{$entity_info['entity keys']['bundle']}}-{$entity->{$entity_info['entity keys']['id']}}";
+      break;
+    case 'gm3_field_map':
+      // Setting the ID here is easy, as we can simply use the field ID.
+      $id = $instance['field_name'];
+      break;
+    case 'gm3_text':
+    default:
+      $elements = array();
+      switch($field['type']){
+        case 'gm3_combination':
+          foreach($items as $item){
+            $elements[] = theme($item['gm3_type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+        default:
+          foreach($items as $item){
+            $elements[] = theme($field['type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+      }
+      return $elements;
+  }
+  switch($field['type']){
+    case 'gm3_point':
+      if(count($items)){
+        $element = theme('gm3_map', array(
+          'map' => array(
+            'id' => $id,
+            'libraries' => array(
+              'point' => array(
+                'points' => $items,
+                'convexhull' => $display['settings']['display_convex_hull']
+              )
+            )
+          )
+        ));
+      }
+      break;
+    case 'gm3_rectangle':
+    case 'gm3_polyline':
+    case 'gm3_polygon':
+      module_load_include('functions.inc', 'gm3');
+      if(count($items)){
+        $polys = array();
+        foreach($items as $key => $item){
+          $polys[] = array(
+            substr($field['type'], 4) => array_pop(gm3_convert_polygon_string($item[substr($field['type'], 4)])),
+            'editable' => FALSE
+          );
+        }
+        $element = theme('gm3_map', array(
+          'map' => array(
+            'id' => $id,
+            'libraries' => array(
+              substr($field['type'], 4) => array(
+                substr($field['type'], 4) . 's' => $polys
+              )
+            )
+          )
+        ));
+      }
+      break;
+    case 'gm3_combination':
+      $map = array(
+        'id' => $id,
+        'libraries' => array(
+          'point' => array(
+            'points' => array(),
+            'convexhull' => $display['settings']['display_convex_hull']
+          ),
+          'polygon' => array(
+            'polygons' => array()
+          ),
+          'polyline' => array(
+            'polylines' => array()
+          ),
+          'rectangle' => array(
+            'rectangles' => array()
+          )
+        )
+      );
+      $display_map = FALSE;
+      module_load_include('functions.inc', 'gm3');
+      foreach($items as $item){
+        switch($item['gm3_type']){
+          case 'rectangle':
+          case 'polygon':
+          case 'polyline':
+            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
+              $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
+              'editable' => FALSE
+            );
+            $display_map = TRUE;
+            break;
+          case 'point':
+            $map['libraries']['point']['points'][] = array(
+              'latitude' => $item['latitude'],
+              'longitude' => $item['longitude']
+            );
+            $display_map = TRUE;
+            break;
+          default:
+            if(function_exists("{$item['gm3_type']}_map_alter")){
+              $function = "{$item['gm3_type']}_map_alter";
+              $function($map, $item);
+              $display_map = TRUE;
+            }
+            break;
+        }
+      }
+      if($display_map){
+        $element = theme('gm3_map', array(
+          'map' => $map
+        ));
+      }
+      break;
+    default:
+      // Here we have a field that was not defined by this module, we use the 
+      // name of the module, plus the name of the type plus view to get the name
+      // of the function to call
+      // "{$field['module']}_{$field['type']}_view()"
+      if(function_exists("{$field['module']}_{$field['type']}_view")){
+        $function_name = "{$field['module']}_{$field['type']}_view";
+        $element = $function_name($entity_type, $entity, $field, $instance, $langcode, $items, $display, $id);
+      }
+      break;
+  }
+  if(isset($element) && $element){return array(
+      $element
+    );}
+}
+
+/**
+ * Implementation of hook_field_display_alter().
+ */
+function gm3_field_field_display_alter(&$display, $context){
+  if($display['type'] == 'gm3_entity_map'){
+    $display['label'] = 'hidden';
+  }
+}
+
+/**
+ * Helper function to convert an array to a points string.
+ */
+function _gm3_field_get_points_string_from_array($items){
+  $item_length = count($items);
+  for($i = 0; $i < $item_length; $i++){
+    $items[$i] = "({$items[$i]['latitude']}, {$items[$i]['longitude']})";
+  }
+  return implode("|", $items);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $widget = $element;
+  // FIXME - Is this "delta" required? I don't think so.
+  $widget['#delta'] = $delta;
+  switch($instance['widget']['type']){
+    case 'gm3_point_gm3':
+      // We need to add a GM3 map to the page.
+      // We'll also need some additional JS to record the points and save them
+      // actually into a form element.
+      $widget += array(
+        '#prefix' => drupal_render(theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              'point' => array(
+                'points' => $items
+              ),
+              'field_point' => array(
+                'module' => 'gm3_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_point_button', array(
+                'id' => $element['#field_name']
+              ))
+            )
+          )
+        ))),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        ),
+        '#attributes' => array(
+          'class' => array(
+            $element['#field_name'] . '-point'
+          )
+        ),
+        '#default_value' => _gm3_field_get_points_string_from_array($items),
+        '#type' => 'hidden'
+      );
+      break;
+    case 'gm3_polyline_gm3':
+    case 'gm3_polygon_gm3':
+    case 'gm3_rectangle_gm3':
+      $poly_type = explode("_", $instance['widget']['type']);
+      $poly_type = $poly_type[1];
+      $polys = array();
+      $default_value_string = '';
+      if(count($items)){
+        module_load_include('functions.inc', 'gm3');
+        foreach($items as $key => $item){
+          if(strlen($default_value_string)){
+            $default_value_string .= "\n";
+          }
+          $default_value_string .= $item[$poly_type];
+          $polys = array_merge($polys, gm3_convert_polygon_string($item[$poly_type]));
+        }
+      }
+      $widget += array(
+        '#prefix' => drupal_render(theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              $poly_type => array(
+                $poly_type . 's' => $polys
+              ),
+              'field_' . $poly_type => array(
+                'module' => 'gm3_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_' . $poly_type . '_button', array(
+                'id' => $element['#field_name']
+              ))
+            )
+          )
+        ))),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        ),
+        '#attributes' => array(
+          'class' => array(
+            $element['#field_name'] . '-' . $poly_type
+          )
+        ),
+        '#default_value' => $default_value_string,
+        '#type' => 'hidden'
+      );
+      break;
+    case 'gm3_combination_gm3':
+      $map = array(
+        'id' => $element['#field_name'],
+        'libraries' => array(),
+        'tools' => array()
+      );
+      $widget += array(
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        )
+      );
+      foreach($field['settings']['field_types'] as $field_type => $value){
+        $default_values = array(
+          'point' => array(),
+          'polygon' => array(),
+          'polyline' => array(),
+          'rectangle' => array()
+        );
+        $default_values_string = array(
+          'polygon' => '',
+          'polyline' => '',
+          'rectangle' => ''
+        );
+        foreach($items as $item){
+          if(isset($item['gm3_type'])){
+            switch($item['gm3_type']){
+              case 'polygon':
+              case 'polyline':
+              case 'rectangle':
+                module_load_include('functions.inc', 'gm3');
+                if($default_values_string[$item['gm3_type']] != ''){
+                  $default_values_string[$item['gm3_type']] .= "\n";
+                }
+                $default_values_string[$item['gm3_type']] .= $item[$item['gm3_type']];
+                $default_values[$item['gm3_type']] = array_merge($default_values[$item['gm3_type']], gm3_convert_polygon_string($item[$item['gm3_type']]));
+                break;
+              case 'point':
+                $default_values['point'][] = array(
+                  'latitude' => $item['latitude'],
+                  'longitude' => $item['longitude']
+                );
+                break;
+              default:
+                $default_values[$item['gm3_type']][] = $item['region_id'];
+                break;
+            }
+          }
+        }
+        switch($field_type){
+          case 'gm3_point':
+            $map['libraries']['point']['points'] = $default_values['point'];
+            $map['libraries']['field_point']['module'] = 'gm3_field';
+            $map['tools'][] = theme('gm3_point_button', array(
+              'id' => $element['#field_name']
+            ));
+            $widget['children']['gm3_point'] = array(
+              '#type' => 'hidden',
+              '#attributes' => array(
+                'class' => array(
+                  $element['#field_name'] . '-point'
+                )
+              ),
+              '#default_value' => _gm3_field_get_points_string_from_array($default_values['point'])
+            );
+            break;
+          case 'gm3_polygon':
+          case 'gm3_polyline':
+          case 'gm3_rectangle':
+            $poly_type = explode("_", $field_type);
+            $poly_type = $poly_type[1];
+            $map['libraries'][$poly_type][$poly_type . 's'] = $default_values[$poly_type];
+            $map['libraries']['field_' . $poly_type]['module'] = 'gm3_field';
+            $map['tools'][] = theme('gm3_' . $poly_type . '_button', array(
+              'id' => $element['#field_name']
+            ));
+            $widget['children']['gm3_' . $poly_type] = array(
+              '#type' => 'hidden',
+              '#attributes' => array(
+                'class' => array(
+                  $element['#field_name'] . '-' . $poly_type
+                )
+              ),
+              '#default_value' => $default_values_string[$poly_type]
+            );
+            break;
+          default:
+            // We have a field type not defined by this module, most likely it
+            // is the gm3_region module.
+            if(function_exists("{$field_type}_gm3_combination_form_alter")){
+              $function_name = "{$field_type}_gm3_combination_form_alter";
+              $element = $function_name($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $map, $widget, $default_values);
+            }
+            break;
+        }
+      }
+      $widget += array(
+        '#prefix' => drupal_render(theme('gm3_map', array(
+          'map' => $map
+        )))
+      );
+      break;
+  }
+  $element['map'] = $widget;
+  return $element;
+}

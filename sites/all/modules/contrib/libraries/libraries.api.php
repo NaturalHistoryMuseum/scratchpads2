@@ -51,7 +51,10 @@
  *     - file: The filename to parse for the version, relative to the library
  *       path. For example: 'docs/changelog.txt'.
  *     - pattern: A string containing a regular expression (PCRE) to match the
- *       library version. For example: '@version\s+([0-9a-zA-Z\.-]+)@'.
+ *       library version. For example: '@version\s+([0-9a-zA-Z\.-]+)@'. Note
+ *       that the returned version is not the match of the entire pattern (i.e.
+ *       '@version 1.2.3' in the above example) but the match of the first
+ *       sub-pattern (i.e. '1.2.3' in the above example).
  *     - lines: (optional) The maximum number of lines to search the pattern in.
  *       Defaults to 20.
  *     - cols: (optional) The maximum number of characters per line to take into
@@ -63,6 +66,27 @@
  *     - css: A list of CSS files to load, using the same syntax as Drupal
  *       core's hook_library().
  *     - php: A list of PHP files to load.
+ *   - dependencies: An array of libraries this library depends on. Similar to
+ *     declaring module dependencies, the dependency declaration may contain
+ *     information on the supported version. Examples of supported declarations:
+ *     @code
+ *     $libraries['dependencies'] = array(
+ *       // Load the 'example' library, regardless of the version available:
+ *       'example',
+ *       // Only load the 'example' library, if version 1.2 is available:
+ *       'example (1.2)',
+ *       // Only load a version later than 1.3-beta2 of the 'example' library:
+ *       'example (>1.3-beta2)'
+ *       // Only load a version equal to or later than 1.3-beta3:
+ *       'example (>=1.3-beta3)',
+ *       // Only load a version earlier than 1.5:
+ *       'example (<1.5)',
+ *       // Only load a version equal to or earlier than 1.4:
+ *       'example (<=1.4)',
+ *       // Combinations of the above are allowed as well:
+ *       'example (>=1.3-beta2, <1.5)',
+ *     );
+ *     @endcode
  *   - variants: (optional) An associative array of available library variants.
  *     For example, the top-level 'files' property may refer to a default
  *     variant that is compressed. If the library also ships with a minified and
@@ -138,10 +162,13 @@
  *         variant, a boolean indicating whether the variant is installed or
  *         not.
  *       Note that in this group the 'versions' property is no longer available.
- *     - load: Callbacks registered in this group are applied directly
+ *     - pre-load: Callbacks registered in this group are applied directly
  *       before this library is loaded. At this point the library contains
  *       variant-specific information, if specified. Note that in this group the
  *       'variants' property is no longer available.
+ *     - post-load: Callbacks registered in this group are applied directly
+ *       after this library is loaded. At this point, the library contains a
+ *       'loaded' key, which contains the number of files that were loaded.
  *   Additional top-level properties can be registered as needed.
  *
  * @see hook_library()
@@ -254,11 +281,27 @@ function hook_libraries_info() {
       ),
     ),
     // Optionally register callbacks to apply to the library during different
-    // stages of its lifetime ('callback groups'). Here, a callback is
-    // registered in the 'detect' group.
+    // stages of its lifetime ('callback groups').
     'callbacks' => array(
-      'detect' => array(
-        'mymodule_example_detect_callback',
+      // Used to alter the info associated with the library.
+      'info' => array(
+        'mymodule_example_libraries_info_callback',
+      ),
+      // Called before detecting the given library.
+      'pre-detect' => array(
+        'mymodule_example_libraries_predetect_callback',
+      ),
+      // Called after detecting the library.
+      'post-detect' => array(
+        'mymodule_example_libraries_postdetect_callback',
+      ),
+      // Called before the library is loaded.
+      'pre-load' => array(
+        'mymodule_example_libraries_preload_callback',
+      ),
+      // Called after the library is loaded.
+      'post-load' => array(
+        'mymodule_example_libraries_postload_callback',
       ),
     ),
   );

@@ -88,6 +88,8 @@ function views_views_plugins() {
         'title' => t('Empty display extender'),
         'help' => t('Default settings for this view.'),
         'handler' => 'views_plugin_display_extender',
+        // You can force the plugin to be enabled
+        'enabled' => FALSE,
         'no ui' => TRUE,
       ),
     ),
@@ -423,6 +425,9 @@ function views_discover_plugins() {
         if (!isset($def['parent'])) {
           $def['parent'] = 'parent';
         }
+        // Set the internal name to be able to read it out later.
+        $def['name'] = $plugin;
+
         // merge the new data in
         $cache[$type][$plugin] = $def;
       }
@@ -453,6 +458,11 @@ class views_plugin extends views_object {
   var $display = NULL;
 
   /**
+   * The plugin type of this plugin, for example style or query.
+   */
+  var $plugin_type = NULL;
+
+  /**
    * Init will be called after construct, when the plugin is attached to a
    * view and a display.
    */
@@ -460,7 +470,13 @@ class views_plugin extends views_object {
   /**
    * Provide a form to edit options for this plugin.
    */
-  function options_form(&$form, &$form_state) { }
+  function options_form(&$form, &$form_state) {
+    // Some form elements belong in a fieldset for presentation, but can't
+    // be moved into one because of the form_state['values'] hierarchy. Those
+    // elements can add a #fieldset => 'fieldset_name' property, and they'll
+    // be moved to their fieldset during pre_render.
+    $form['#pre_render'][] = 'views_ui_pre_render_add_fieldset_markup';
+  }
 
   /**
    * Validate the options form.
@@ -523,4 +539,17 @@ class views_plugin extends views_object {
     }
     return check_plain($this->definition['title']);
   }
+}
+
+/**
+ * Get enabled display extenders.
+ */
+function views_get_enabled_display_extenders() {
+  $enabled = array_filter(variable_get('views_display_extenders', array()));
+  $options = views_fetch_plugin_names('display_extender');
+  foreach ($options as $name => $plugin) {
+    $enabled[$name] = $name;
+  }
+
+  return $enabled;
 }

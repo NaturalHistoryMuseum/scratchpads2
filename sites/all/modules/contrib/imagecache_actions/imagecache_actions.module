@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file Home for the most basic imagecache_action routines, for re-use
+ */
+
+/**
+ * Need to register the theme functions we expect to use
+ */
+function imagecache_actions_theme() {
+  return array(
+    'imagecacheactions_rgb_form' => array(
+      'file' => 'utility-color.inc',
+      'render element' => 'form',
+    ),
+    'imagecacheactions_rgb' => array(
+      'file' => 'utility-color.inc',
+      'variables' => array('rgb' => NULL),
+    ),
+  );
+}

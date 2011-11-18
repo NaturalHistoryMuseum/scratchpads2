@@ -1,0 +1,18 @@
+name = Media
+description = Provides the core Media API
+package = Media
+core = 7.x
+dependencies[] = file_entity
+dependencies[] = image
+files[] = includes/MediaReadOnlyStreamWrapper.inc
+files[] = tests/media.test
+files[] = tests/media.types.test
+files[] = tests/media.entity.test
+testing_api = 2.x
+
+; Information added by drupal.org packaging script on 2011-07-31
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "media"
+datestamp = "1312071919"
+

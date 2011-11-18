@@ -67,6 +67,7 @@ function views_ajax() {
         }
       }
     }
+    drupal_alter('views_ajax_data', $commands, $view);
     return array('#type' => 'ajax', '#commands' => $commands);
   }
 }
@@ -246,9 +247,6 @@ function views_ajax_form_wrapper($form_id, &$form_state) {
     $url = empty($form_state['url']) ? url($_GET['q'], array('absolute' => TRUE)) : $form_state['url'];
 
     $commands[] = views_ajax_command_set_form($display, $title, $url);
-    if (!empty($form_state['js settings'])) {
-      $commands[] = ajax_command_settings($form_state['js settings']);
-    }
 
     if (!empty($form_state['#section'])) {
       $commands[] = views_ajax_command_hilite('.' . drupal_clean_css_identifier($form_state['#section']));
@@ -339,7 +337,7 @@ function views_ajax_autocomplete_taxonomy($vid, $tags_typed = '') {
       ->execute()
       ->fetchAllKeyed();
 
-    $prefix = count($tags_typed) ? implode(', ', $tags_typed) . ', ' : '';
+    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
 
     $term_matches = array();
     foreach ($tags_return as $tid => $name) {
@@ -348,9 +346,8 @@ function views_ajax_autocomplete_taxonomy($vid, $tags_typed = '') {
       if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
         $n = '"' . str_replace('"', '""', $name) . '"';
       }
-      else {
-        $term_matches[$prefix . $n] = check_plain($name);
-      }
+      // Add term name to list of matches.
+      $term_matches[$prefix . $n] = check_plain($name);
     }
   }
 
