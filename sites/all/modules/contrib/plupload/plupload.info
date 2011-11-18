@@ -4,9 +4,9 @@ files[] = plupload.module
 core = 7.x
 package = Media
 
-; Information added by drupal.org packaging script on 2011-03-27
+; Information added by drupal.org packaging script on 2011-05-25
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "plupload"
-datestamp = "1301185064"
+datestamp = "1306284154"
 

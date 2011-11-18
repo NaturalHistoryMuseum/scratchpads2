@@ -1,0 +1,162 @@
+<?php
+
+/**
+ * @file styles/contrib/file_styles/file_styles.install
+ * Install, update and uninstall functions for the file styles module.
+ */
+
+/**
+ * Implement hook_install().
+ */
+function file_styles_install() {
+  // Create the styles directory and ensure it's writable.
+  $path = 'temporary://file-styles';
+  file_prepare_directory($path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function file_styles_uninstall() {
+  // Remove the styles directory and generated images.
+  $path = 'temporary://file-styles';
+  file_unmanaged_delete_recursive($path);
+}
+
+/**
+ * Implement hook_schema().
+ */
+function file_styles_schema() {
+  $schema = array();
+
+  $schema['cache_file_styles'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_file_styles']['description'] = 'Cache table used to store information file manipulations that are in-progress.';
+
+  $schema['file_styles'] = array(
+    'description' => 'Stores configuration options for file styles.',
+    'fields' => array(
+      'msid' => array(
+        'description' => 'The primary identifier for a file style.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The style name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('msid'),
+    'indexes' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['file_effects'] = array(
+    'description' => 'Stores configuration options for file effects.',
+    'fields' => array(
+      'meid' => array(
+        'description' => 'The primary identifier for an file effect.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'msid' => array(
+        'description' => 'The {file_styles}.isid for a file style.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight' => array(
+        'description' => 'The weight of the effect in the style.',
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'name' => array(
+        'description' => 'The unique name of the effect to be executed.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => 'The configuration data for the effect.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('meid'),
+    'indexes' => array(
+      'msid' => array('msid'),
+      'weight' => array('weight'),
+    ),
+    'foreign keys' => array(
+      'msid' => array('file_styles' => 'msid'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Add labels to file styles.
+ */
+function file_styles_update_7202() {
+  return array();
+}
+
+/**
+ * Rebuild themes.
+ */
+function file_styles_update_7203() {
+  drupal_theme_rebuild();
+  return array();
+}
+
+/**
+ * Add new presets.
+ */
+function file_styles_update_7206() {
+  return array();
+}
+
+/**
+ * Fix presets to use camelCase and honor links to media.
+ */
+function file_styles_update_7207() {
+  return array();
+}
+
+/**
+ * Fetch any image styles for use as new presets and register new hooks.
+ */
+function file_styles_update_7208() {
+  return array();
+}
+
+/**
+ * Fix any broken custom image styles.
+ */
+function file_styles_update_7209() {
+  return array();
+}
+
+/**
+ * Add support for media objects.
+ */
+function file_styles_update_7210() {
+  return array();
+}
+
+/**
+ * Create custom file entity view modes for styles.
+ */
+function file_styles_update_7211() {
+  return array();
+}

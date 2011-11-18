@@ -4,9 +4,9 @@ core = 7.x
 dependencies[] = libraries
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-06-22
+; Information added by drupal.org packaging script on 2011-11-12
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "libraries"
-datestamp = "1308701856"
+datestamp = "1321100601"
 

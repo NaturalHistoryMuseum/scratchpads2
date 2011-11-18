@@ -24,6 +24,12 @@ function _views_theme_functions($hook, $view, $display = NULL) {
     $themes[] = $hook . '__' . $view->name . '__' . $display->id;
     $themes[] = $hook . '__' . $display->id;
     $themes[] = $hook . '__' . preg_replace('/[^a-z0-9]/', '_', strtolower($view->tag));
+
+    // Add theme suggestions foreach single tag.
+    foreach (drupal_explode_tags($view->tag) as $tag) {
+      $themes[] = $hook . '__' . preg_replace('/[^a-z0-9]/', '_', strtolower($tag));
+    }
+
     if ($display->id != $display->display_plugin) {
       $themes[] = $hook . '__' . $view->name . '__' . $display->display_plugin;
       $themes[] = $hook . '__' . $display->display_plugin;
@@ -42,7 +48,7 @@ function template_preprocess_views_view(&$vars) {
 
   $view = $vars['view'];
 
-  $vars['rows']       = !empty($view->result) || $view->style_plugin->even_empty() ? $view->style_plugin->render($view->result) : '';
+  $vars['rows']       = (!empty($view->result) || $view->style_plugin->even_empty()) ? $view->style_plugin->render($view->result) : '';
 
   $vars['css_name']   = drupal_clean_css_identifier($view->name);
   $vars['name']       = $view->name;
@@ -118,7 +124,7 @@ function template_preprocess_views_view(&$vars) {
       'views' => array(
         'ajax_path' => url('views/ajax'),
         'ajaxViews' => array(
-          array(
+          'views_dom_id:' . $vars['dom_id'] => array(
             'view_name' => $view->name,
             'view_display_id' => $view->current_display,
             'view_args' => check_plain(implode('/', $view->args)),
@@ -138,12 +144,11 @@ function template_preprocess_views_view(&$vars) {
     drupal_add_js($settings, 'setting');
     views_add_js('ajax_view');
   }
-  // Flatten the classes to a string for the template file.
-  $vars['classes'] = implode(' ', $vars['classes_array']);
 
   // If form fields were found in the View, reformat the View output as a form.
   if (views_view_has_form_elements($view)) {
-    $form = drupal_get_form(views_form_id($view), $view, $vars['rows']);
+    $output = !empty($vars['rows']) ? $vars['rows'] : $vars['empty'];
+    $form = drupal_get_form(views_form_id($view), $view, $output);
     // The form is requesting that all non-essential views elements be hidden,
     // usually because the rendered step is not a view result.
     if ($form['show_view_elements']['#value'] == FALSE) {
@@ -154,8 +159,20 @@ function template_preprocess_views_view(&$vars) {
       $vars['more'] = '';
       $vars['feed_icon'] = '';
     }
-    $vars['rows'] = drupal_render($form);
+    $vars['rows'] = $form;
   }
+}
+
+/**
+ * Process function to render certain elements into the view.
+ */
+function template_process_views_view(&$vars) {
+  if (is_array($vars['rows'])) {
+    $vars['rows'] = drupal_render($vars['rows']);
+  }
+
+  // Flatten the classes to a string for the template file.
+  $vars['classes'] = implode(' ', $vars['classes_array']);
 }
 
 /**
@@ -329,9 +346,15 @@ function template_preprocess_views_view_summary(&$vars) {
     $url_options['query'] = $view->exposed_raw_input;
   }
 
+  $active_urls = drupal_map_assoc(array(
+    url($_GET['q'], array('alias' => TRUE)), // force system path
+    url($_GET['q']), // could be an alias
+  ));
+
   // Collect all arguments foreach row, to be able to alter them for example by the validator.
   // This is not done per single argument value, because this could cause performance problems.
   $row_args = array();
+
   foreach ($vars['rows'] as $id => $row) {
     $row_args[$id] = $argument->summary_argument($row);
   }
@@ -350,7 +373,7 @@ function template_preprocess_views_view_summary(&$vars) {
     }
     $vars['rows'][$id]->url = url($view->get_url($args, $base_path), $url_options);
     $vars['rows'][$id]->count = intval($row->{$argument->count_alias});
-    if ($vars['rows'][$id]->url == base_path() . $_GET['q'] || $vars['rows'][$id]->url == base_path() . drupal_get_path_alias($_GET['q'])) {
+    if (isset($active_urls[$vars['rows'][$id]->url])) {
       $vars['row_classes'][$id] = 'active';
     }
   }
@@ -372,6 +395,10 @@ function template_preprocess_views_view_summary_unformatted(&$vars) {
   }
 
   $count = 0;
+  $active_urls = drupal_map_assoc(array(
+    url($_GET['q'], array('alias' => TRUE)), // force system path
+    url($_GET['q']), // could be an alias
+  ));
 
   // Collect all arguments foreach row, to be able to alter them for example by the validator.
   // This is not done per single argument value, because this could cause performance problems.
@@ -396,7 +423,7 @@ function template_preprocess_views_view_summary_unformatted(&$vars) {
     }
     $vars['rows'][$id]->url = url($view->get_url($args, $base_path), $url_options);
     $vars['rows'][$id]->count = intval($row->{$argument->count_alias});
-    if ($vars['rows'][$id]->url == base_path() . $_GET['q'] || $vars['rows'][$id]->url == base_path() . drupal_get_path_alias($_GET['q'])) {
+    if (isset($active_urls[$vars['rows'][$id]->url])) {
       $vars['row_classes'][$id] = 'active';
     }
   }
@@ -540,6 +567,20 @@ function template_preprocess_views_view_table(&$vars) {
         }
 
         $vars['rows'][$num][$column] .= $field_output;
+      }
+    }
+
+    // Remove columns if the option is hide empty column is checked and the field is not empty.
+    if (!empty($options['info'][$field]['empty_column'])) {
+      $empty = TRUE;
+      foreach ($vars['rows'] as $num => $columns) {
+        $empty &= empty($columns[$column]);
+      }
+      if ($empty) {
+        foreach ($vars['rows'] as $num => &$columns) {
+          unset($columns[$column]);
+          unset($vars['header'][$column]);
+        }
       }
     }
   }

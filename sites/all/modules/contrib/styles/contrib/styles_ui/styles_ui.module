@@ -1,0 +1,102 @@
+<?php
+
+/**
+ *  @file
+ *  Allows administration of the Styles modules.
+ */
+
+
+/**
+ *  Implements hook_menu().
+ */
+function styles_ui_menu() {
+  // Each field type Style may choose to allow the Styles module to manage its
+  // UI. To do so, they'll need to create an 'admin' array in its definition
+  // at hook_styles_containers that will contain the path info:
+  //  'path' => The path to the overview listing page,
+  //  'title' => The title for the overview listing page,
+  //  'description' => The description for the overview listing page,
+  //  'access arguments' => The access arguments for the overview listing page,
+  //  'add' => an optional array with the info for adding a new container:
+  //    'title' => The title to add a new container for this field,
+  //    'description' => The discription to add a new container for this field,
+  $items = array();
+  $styles_containers = styles_default_containers();
+  foreach ($styles_containers as $field_type => $containers) {
+    if (isset($containers['admin']) && isset($containers['admin']['path'])) {
+      $field_info = field_info_field_types($field_type);
+      $field_label = $field_info['label'];
+      $title = $field_label . ' styles';
+      $description = 'Configure ' . $field_label . ' styles.';
+      $access = isset($containers['admin']['access arguments']) ? $containers['admin']['access arguments'] : array('administer styles ui');
+      $items[$containers['admin']['path']] = array(
+        'title' => $title,
+        'description' => $description,
+        'access arguments' => $access,
+        'page callback' => 'styles_ui_containers_overview',
+        'page arguments' => array($field_type),
+        'file' => 'styles_ui.admin.inc',
+      );
+      $items[$containers['admin']['path'] . '/list'] = array(
+        'title' => 'List',
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => -10,
+      );
+      $title = 'Add ' . $field_label . ' style';
+      $description = '';
+      $items[$containers['admin']['path'] . '/add'] = array(
+        'title' => $title,
+        'description' => $description,
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('styles_ui_style_add_form', $field_type),
+        'access arguments' => $access,
+        'type' => MENU_LOCAL_ACTION,
+        'file' => 'styles_ui.admin.inc',
+      );
+      $count = substr_count($containers['admin']['path'] . '/edit/%', '/');
+      $items[$containers['admin']['path'] . '/edit/%'] = array(
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('styles_ui_style_edit_form', $field_type, $count),
+        'access arguments' => $access,
+        'file' => 'styles_ui.admin.inc',
+      );
+      $items[$containers['admin']['path'] . '/delete/%'] = array(
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('styles_ui_delete_confirm', $field_type, $count),
+        'access arguments' => $access,
+        'file' => 'styles_ui.admin.inc',
+      );
+    }
+  }
+
+  $items['styles-ui/preview/%/%/%'] = array(
+    'page callback' => 'styles_ui_preview_ajax',
+    'page arguments' => array(2, 3, 4),
+    'access arguments' => array('access content'),
+    'file' => 'styles_ui.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implement Styles module's hook_styles_style_flush().
+ */
+function styles_ui_styles_style_flush($style = NULL) {
+  // Rebuild the menu so that we catch any new styles or containers.
+  menu_rebuild();
+}
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function styles_ui_permission() {
+  return array(
+    'administer styles ui' => array(
+      'title' => t('Administer Styles'),
+      'description' => t('Configure styles settings.'),
+    ),
+  );
+}

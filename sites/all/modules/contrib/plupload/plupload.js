@@ -82,7 +82,7 @@ Drupal.behaviors.plupload = {
           alert('Your files are currently being uploaded. Please wait until they are finished before submitting this form.');
         }
         else {
-          var progressHandler = function() {
+          var stateChangedHandler = function() {
             if (uploader.total.uploaded == uploader.files.length) {
               // Plupload's html4 runtime has a bug where it changes the
               // attributes of the form to handle the file upload, but then
@@ -90,11 +90,11 @@ Drupal.behaviors.plupload = {
               for (var attr in originalFormAttributes) {
                 $form.attr(attr, originalFormAttributes[attr]);
               }
-              uploader.unbind('UploadProgress', progressHandler);
+              uploader.unbind('StateChanged', stateChangedHandler);
               $form.submit();
             }
           };
-          uploader.bind('UploadProgress', progressHandler);
+          uploader.bind('StateChanged', stateChangedHandler);
           uploader.start();
         }
       });

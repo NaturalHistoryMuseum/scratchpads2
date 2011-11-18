@@ -69,8 +69,8 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
   }
 
   function options_submit(&$form, &$form_state, &$options = array()) {
-    // filter trash out of the options so we don't store giant unnecessary arrays
-    $form_state['values']['vocabularies'] = array_filter($form_state['values']['vocabularies']);
+    // Filter unselected items so we don't unnecessarily store giant arrays.
+    $options['vocabularies'] = array_filter($options['vocabularies']);
   }
 
   function convert_options(&$options) {
@@ -102,9 +102,15 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
         if (!$term) {
           return FALSE;
         }
+        $this->argument->validated_title = check_plain($term->name);
         return empty($vocabularies) || !empty($vocabularies[$term->machine_name]);
 
       case 'tids':
+        // An empty argument is not a term so doesn't pass.
+        if (empty($argument)) {
+          return FALSE;
+        }
+
         $tids = new stdClass();
         $tids->value = $argument;
         $tids = views_break_phrase($argument, $tids);
@@ -188,6 +194,7 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
   function process_summary_arguments(&$args) {
     $type = $this->options['type'];
     $transform = $this->options['transform'];
+    $vocabularies = array_filter($this->options['vocabularies']);
 
     if ($type == 'convert') {
       $arg_keys = array_flip($args);
