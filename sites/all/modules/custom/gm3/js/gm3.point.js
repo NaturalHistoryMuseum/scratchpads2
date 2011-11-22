@@ -10,7 +10,9 @@
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
       for( var i in this.GM3.libraries.point.points) {
-        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
+        // Default editable to false
+        var editable = typeof (this.GM3.libraries.point.points[i]['editable']) != 'undefined' ? this.GM3.libraries.point.points[i]['editable'] : false;
+        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), editable, false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
       }
     }
     // Clusterer
@@ -23,12 +25,12 @@
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
-  Drupal.GM3.point.prototype.add_marker = function(latLng, redraw, title, content){
+  Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, title, content){
     redraw = typeof (redraw) != 'undefined' ? redraw : false;
     title = typeof (title) != 'undefined' ? title : '';
     content = typeof (content) != 'undefined' ? content : '';
     var current_point = this.points.length;
-    this.points[current_point] = new google.maps.Marker({position: latLng, draggable: true, title: title + " :: " + latLng.toString(), icon: this.marker_image});
+    this.points[current_point] = new google.maps.Marker({position: latLng, draggable: editable, title: title + " :: " + latLng.toString(), icon: this.marker_image});
     // Add transfer listeners so the added points can be rightclicked.
     this.GM3.add_listeners_helper(this.points[current_point]);
     if(content) {
@@ -44,7 +46,7 @@
       case 'point':
         switch(event_type){
           case 'click':
-            this.add_marker(event.latLng, true);
+            this.add_marker(event.latLng, true, true);
             if(this.update_field) {
               this.update_field();
             }
