@@ -1,0 +1,18 @@
+TODO LIST
+////////////////////
+
+Perhaps show/hide questions in divs, rather than reload the page in the 
+license selection form.
+
+Figure out why <script> is not loaded by drupal_set_html_head() in the 
+Democractica theme.  Other themes seem to work fine.
+
+Preserve metadata when "no license" is selected for preview, so that if a 
+license is then chosen the metadata is not lost.
+
+Clean up the UI issues for the license selection form, "autofill" button, 
+etc.  
+
+Add link to save a set of metadata to a user's preferences, so they don't 
+have to re-enter the same content everytime they submit content.
+
