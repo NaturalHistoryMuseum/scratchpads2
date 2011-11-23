@@ -1,0 +1,2536 @@
+<?php
+
+/**
+ * @file
+ * Creative Commons Drupal module
+ *   Allows content within a site or attached to a node to
+ *   be assigned a Creative Commons license.
+ *   http://creativecommons.org/license/
+ *
+ *
+ * By: Peter Bull <pbull@ltc.org>
+ * 2005-02-28 / digitalbicycle.org / ltc.org
+ * This software is released under the terms of the LGPL license, relicensed
+ * under GPLv2 for drupal.org.
+ *
+ * Utilizes code and inspiration from http://cclicense.sourceforge.net/
+ *   Originally released by Blake Watters <sbw@ibiblio.org>
+ *   under the terms of the LGPL license (now, GPLv2 for drupal.org).
+ *
+ */
+
+//TODO: split into relevant files (get methods can go into an includes)
+//TODO: review cc->new
+//TODO: 2.x change 'available' to 'enabled' -- makes more sense
+//TODO: default to Drupal user metadata (only in user default settings... not sure how to handle blanks yet)
+//TODO: dynamically determine nc image style (problem: when site and user wishes not in harmony)
+//TODO: 2.x add internationalization flags/links to settings pages
+//TODO: dummy function to translate CC API strings? or use API locale?
+//TODO: node license block still displays if permission denied to view node...
+//TODO: 2.x many different errors displayed if API inaccessible, including some false (e.g. invalid licenses when really valid)
+
+define('CC_API_ROOT', 'http://api.creativecommons.org/rest/1.5');
+define('CC_SAMPLE_LICENSE_URI', 'http://creativecommons.org/licenses/by/3.0/us/');
+
+//module_load_include('inc', 'coder_upgrade', 'conversions/coder_upgrade.list');
+
+require_once(drupal_get_path('module', 'creativecommons') . '/creativecommons.class.php');
+require_once(drupal_get_path('module', 'creativecommons') . '/creativecommons.actions.inc');
+
+/**
+ * Implements hook_permission().
+ */
+function creativecommons_permission() {
+  return array(
+    'administer creative commons' => array(
+      'title' => t('administer creative commons'),
+      'description' => t('TODO Add a description for \'administer creative commons\''),
+    ),
+    'attach creative commons' => array(
+      'title' => t('attach creative commons'),
+      'description' => t('TODO Add a description for \'attach creative commons\''),
+    ),
+    'use creative commons user defaults' => array(
+      'title' => t('use creative commons user defaults'),
+      'description' => t('TODO Add a description for \'use creative commons user defaults\''),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function creativecommons_menu() {
+  $items = array();
+
+  //admin/config/development/coder/upgrade
+  
+  $items['admin/config/search/creativecommons'] = array(
+    'title' => 'Creative Commons',
+    'description' => 'Configure the Creative Commons settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('creativecommons_settings'),
+    'access arguments' => array('administer creative commons'),
+  );
+
+  $items['admin/config/search/creativecommons/edit'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/config/search/creativecommons/default'] = array(
+    'title' => 'Defaults',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('creativecommons_site_defaults'),
+    'access arguments' => array('administer creative commons'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/config/search/creativecommons/types'] = array(
+    'title' => 'Content types',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('creativecommons_types_form'),
+    'access arguments' => array('administer creative commons'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_help().
+ */
+function creativecommons_help($path, $arg) {
+  $cc_desc = '<p>' . t('A Creative Commons license helps you publish your work while letting others know exactly what they can and can\'t do with it. Creative Commons offers a flexible range of protections and freedoms for authors and artists, built upon the "all rights reserved" concept of traditional copyright to create a voluntary "some rights reserved" copyright.') . '</p>';
+  $cc_desc_short = '<p>' . t('Assign a Creative Commons license to site content.') . '</p>';
+  $cc_node = '<p>' . t('Attaching a Creative Commons license to a node within Drupal will designate the content of that node, as well as any attached files, as available under that license.') . '</p>';
+  $cc_url = '<p>' . t('For more information, visit <a href="@learn-more">@learn-more</a>.', array('@learn-more' => 'http://creativecommons.org/learnmore')) . '</p>';
+
+  //TODO: default
+  //TODO: content types
+  switch ($path) {
+    case 'admin/modules#description':
+      return $cc_desc_short;
+    case 'admin/config/creativecommons':
+      return $cc_desc . $cc_node . $cc_url;
+    case 'admin/help#creativecommons':
+      return $cc_desc . $cc_node . $cc_url;
+  }
+}
+
+/**
+ * General Creative Commons settings page.
+ */
+function creativecommons_settings($form, &$form_state) {
+  $available_license_types = creativecommons_get_available_license_types();
+  $license_array_keys = creativecommons_get_licenses(array('jurisdiction' => variable_get('creativecommons_default_jurisdiction', '')), TRUE);
+  $metadata_types_keys = creativecommons_get_metadata_types();
+
+  $form['#submit'][] = 'creativecommons_settings_check_license_types_in_use';
+  $form['creativecommons_license'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('License selection'),
+  );
+
+  $form['creativecommons_license']['creativecommons_locale'] = array(
+    '#type' => 'select',
+    '#title' => t('Locale'),
+    '#description' => t('The locale will determine in which language Creative Commons data from the API is displayed.'),
+    '#default_value' => variable_get('creativecommons_locale', ''),
+    '#options' => creativecommons_get_locales(),
+  );
+
+  $form['creativecommons_license']['creativecommons_available_license_types'] = array(
+    '#type' => 'select',
+    '#title' => t('Available license types'),
+    '#default_value' => $available_license_types,
+    '#options' => $license_array_keys,
+    '#description' => t('Select the license types to make available to users. To make a Creative Commons license mandatory, unselect "None."') . ' ' . t('(Hold CTRL to select multiple.)'),
+    '#multiple' => TRUE,
+    '#required' => TRUE,
+  );
+
+  // TODO: should HTML be included in metadata keys at all?
+  foreach ($metadata_types_keys as $key => $value) {
+    $metadata_types_keys[$key] = strip_tags($value);
+  }
+
+  $form['creativecommons_license']['creativecommons_available_metadata'] = array(
+    '#type' => 'select',
+    '#title' => t('Available metadata fields'),
+    '#default_value' => creativecommons_get_available_metadata(),
+    '#options' => $metadata_types_keys,
+    '#description' => t('Select the metadata fields to make available to users.') . ' ' . t('(Hold CTRL to select multiple.)'),
+    '#multiple' => TRUE,
+  );
+
+  $form['creativecommons_license']['creativecommons_required_metadata'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Required metadata fields'),
+    '#default_value' => variable_get('creativecommons_required_metadata', array()),
+    '#options' => $metadata_types_keys,
+    '#description' => t('This option allows you to require specific metadata to be included when a license is applied. Metadata must be enabled for requirement to be enforced.'),
+  );
+
+
+  $form['creativecommons_display'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Display'),
+  );
+
+  $cc = creativecommons_get_sample_license();
+
+  $text_style_keys = array('full', 'generic', 'short');
+  foreach ($text_style_keys as $style) {
+    $text_styles[$style] = ucwords($style) . ', e.g. ' . $cc->get_name($style);
+  }
+  $form['creativecommons_display']['creativecommons_text_style'] = array(
+    '#type' => 'radios',
+    '#title' => t('License text style'),
+    '#options' => $text_styles,
+    '#default_value' => variable_get('creativecommons_text_style', 'full'),
+  );
+
+  $image_style_keys = array('button_large', 'button_small', 'icons');
+  foreach ($image_style_keys as $style) {
+    $image_styles[$style] = $cc->get_image($style) . ' ' . ucwords(str_replace('_', ' ', $style));
+  }
+  $image_styles[''] = t('(None)');
+
+  $form['creativecommons_display']['creativecommons_image_style'] = array(
+    '#type' => 'radios',
+    '#title' => t('License image style'),
+    '#options' => $image_styles,
+    '#default_value' => variable_get('creativecommons_image_style', 'button_large'),
+  );
+
+  $nc_img_options = array();
+  foreach (array(
+    '' => 'nc',
+    'eu' => 'nc-eu',
+    'jp' => 'nc-jp',
+  ) as $key => $value) {
+    
+    //$nc_img_options[$key] = theme('image', array('path' => drupal_get_path('module', 'creativecommons') . '/images/icons/' . $value . '.png', 'width' => $value, 'height' => $value));
+    
+  $variables = array(
+    'path' => drupal_get_path('module', 'creativecommons') . '/images/icons/' . $value . '.png',
+    'alt' => $value,
+    'title' => $value,
+  );
+  $nc_img_options[$key] = theme('image', $variables);
+
+  }
+  $form['creativecommons_display']['creativecommons_nc_img'] = array(
+    '#type' => 'radios',
+    '#title' => t('Noncommercial image style (only changes when using Icons)'),
+    '#options' => $nc_img_options,
+    '#default_value' => variable_get('creativecommons_nc_img', ''),
+  );
+
+
+  // TODO: 2.x license text for all licenses should be configurable
+  $form['creativecommons_display']['creativecommons_arr_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('All Rights Reserved Text'),
+    '#default_value' => variable_get('creativecommons_arr_text', NULL),
+    '#cols' => 60,
+    '#rows' => 3,
+    '#description' => t('This text will be displayed for content which has no license specified (i.e. all rights reserved).'),
+    '#attributes' => NULL,
+    '#required' => NULL,
+  );
+
+  $form['creativecommons_advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced'),
+  );
+
+  if (module_exists('search')) {
+    $form['creativecommons_advanced']['creativecommons_search'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Creative Commons Search'),
+      '#default_value' => variable_get('creativecommons_search', TRUE),
+      '#description' => t('Enabled CC search options'),
+    );
+  }
+
+  // TODO: 2.x revisit (and probably remove) this when ccREL is implemented, since RDF/XML is no longer recommended
+  $form['creativecommons_advanced']['creativecommons_rdf'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Insert RDF/XML'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('creativecommons_rdf', TRUE),
+    '#description' => t('Attach machine-readable license information as RDF/XML within the HTML of a node to let visitors know what license applies to your works.'),
+  );
+
+  $form['creativecommons_advanced']['creativecommons_node_license_redundant_display'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display node license when same as site license'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('creativecommons_node_license_redundant_display', TRUE),
+    '#description' => t('Note: if not displayed, node specific metadata won\'t be displayed either.'),
+  );
+
+  $form['creativecommons_advanced']['creativecommons_user_message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Custom Message'),
+    '#rows' => 10,
+    '#default_value' => variable_get('creativecommons_user_message', ''),
+    '#description' => t('Customize the message displayed to users when adding a license.  HTML allowed.  This message overrides both the main message and the public domain message when public domain is enabled'),
+  );
+
+  return system_settings_form($form);
+
+}
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_settings_check_license_types_in_use($form, &$form_state) {
+  $prev = creativecommons_get_available_license_types();
+  $curr = $form_state['values']['creativecommons_available_license_types'];
+  foreach ($prev as $type) {
+    if (!in_array($type, $curr)) {
+      $count = creativecommons_count_by_license_type($type);
+      if ($count > 0) {
+        $name = creativecommons_get_license_type_name($type);
+        $message = format_plural($count, 'There is 1 node currently using the %name license. ', 'There are @count nodes currently using the %name license. ', array('%name' => $name));
+        $message .= t('License information will not be displayed for nodes with disabled licenses.');
+
+        drupal_set_message($message, 'warning', FALSE);
+      }
+    }
+  }
+}
+
+/**
+ * Checks to see if any license types are available. If not, sets a warning.
+ */
+function creativecommons_licenses_enabled() {
+  $available_license_types = creativecommons_get_available_license_types();
+
+  // Need to use count, because special case where only None is available (e.g. 'Array( [] => )')
+  if (count($available_license_types) == 0) {
+    drupal_set_message(t('No Creative Commons license types are enabled!'), 'warning', FALSE);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Creative Commons site license settings form
+ */
+function creativecommons_site_defaults($form, &$form_state) {
+  creativecommons_licenses_enabled();
+
+  // Load default license
+  $cc = creativecommons_get_default_license();
+
+  // Check to see if default license is still enabled
+  if ($cc && $cc->has_license() && !$cc->is_available()) {
+    $message = $cc->get_license_unavailable_message();
+    drupal_set_message($message, 'warning');
+  }
+
+  $form['creativecommons_default_license'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Default license'),
+  );
+
+  $available_license_types = creativecommons_get_available_license_list(NULL, TRUE);
+
+  // If None isn't an option, create blank first entry
+  if (!in_array('', $available_license_types)) {
+    $available_license_types = array_merge( array('' => ''), $available_license_types );
+  }
+
+  $form['creativecommons_default_license']['creativecommons_default_license_type'] = array(
+    '#type' => 'select',
+    '#title' => t('License type'),
+    '#default_value' => variable_get('creativecommons_default_license_type', ''),
+    '#options' => $available_license_types,
+    '#description' => t('Select the site wide default license type for new content.'),
+  );
+
+  $q = creativecommons_get_questions_array('standard');
+  $form['creativecommons_default_license']['creativecommons_default_jurisdiction'] = array(
+    '#type' => 'select',
+    '#title' => t('Default jurisdiction'),
+    '#description' => $q['jurisdiction']['description'],
+    '#options' => creativecommons_format_jurisdiction_array($q['jurisdiction']['answers']),
+    '#default_value' => variable_get('creativecommons_default_jurisdiction', ''),
+  );
+
+
+  // site license display
+  $form['creativecommons_site_license'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site license'),
+  );
+  $form['creativecommons_site_license']['creativecommons_site_license_display'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the default license as a site wide license, to be displayed on every page.'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('creativecommons_site_license_display', FALSE),
+  );
+
+
+  // Site license metadata
+  $site_metadata = variable_get('creativecommons_site_metadata', array());
+
+  $hasmeta = FALSE;
+  foreach ($site_metadata as $key => $value) {
+    if ($value) {
+      $hasmeta = TRUE;
+    }
+  }
+
+  $form['creativecommons_site_license']['metadata'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Additional Information'),
+    '#description' => t('If default license is used as site wide license, the following metadata will apply.'),
+    '#collapsible' => TRUE,
+    // show additional info by default if (a) site-license enabled and (b) some metadata fields non-empty; otherwise, hide.
+    '#collapsed' => !($hasmeta && variable_get('creativecommons_site_license_display', FALSE)),
+    '#tree' => TRUE,
+  );
+
+  // Default site wide metadata values
+  /* TODO: 2.x this should be done on output, otherwise creates redundancy. What if
+   site title changes?
+   $defaults = array('type' => 'InteractiveResource',
+   'attributionURL' => url('<front>', array('absolute' => TRUE)),
+   'title' => variable_get('site_name', ''),
+   'description' => variable_get('site_mission', ''),
+   ); */
+  $defaults = array();
+
+  $metadata_types = creativecommons_get_available_metadata_types();
+
+  // build metadata form fields TODO: code is very similar to node form -- refactor?
+  foreach ($metadata_types as $key => $title) {
+    $title = 'Website ' . $title;
+
+    switch ($key) {
+      case 'type':
+        $form['creativecommons_site_license']['metadata'][$key] = array(
+          '#type' => 'select',
+          '#title' => $title,
+          '#default_value' => array_key_exists($key, $site_metadata) ? $site_metadata[$key] : $defaults[$key],
+          '#options' => creativecommons_get_dcmi_types(),
+          '#description' => creativecommons_get_metadata_description($key),
+          '#extra' => NULL,
+          '#multiple' => NULL,
+        );
+        break;
+
+      case 'description':
+        $form['creativecommons_site_license']['metadata'][$key] = array(
+          '#type' => 'textarea',
+          '#title' => $title,
+          '#default_value' => array_key_exists($key, $site_metadata) ? $site_metadata[$key] : $defaults[$key],
+          '#cols' => 60,
+          '#rows' => 5,
+          '#description' => creativecommons_get_metadata_description($key),
+          '#attributes' => NULL,
+        );
+        break;
+
+      default:
+        $form['creativecommons_site_license']['metadata'][$key] = array(
+          '#type' => 'textfield',
+          '#title' => $title,
+          '#default_value' => array_key_exists($key, $site_metadata) ? $site_metadata[$key] : $defaults[$key],
+          '#size' => 50,
+          '#maxlength' => 255,
+          '#description' => creativecommons_get_metadata_description($key),
+          '#attributes' => NULL,
+        );
+        break;
+    }
+  }
+
+  $form['creativecommons_site_license']['creativecommons_site_license_additional_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Additional text'),
+    '#default_value' => variable_get('creativecommons_site_license_additional_text', NULL),
+    '#cols' => 60,
+    '#rows' => 3,
+    '#description' => t('This text will accompany the site license.'),
+    '#attributes' => NULL,
+    '#required' => NULL,
+  );
+
+  $form['#submit'][] = 'creativecommons_site_defaults_submit';
+  return system_settings_form($form);
+}
+
+/**
+ * Submit function for site_defaults form. Stores metadata as array.
+ */
+function creativecommons_site_defaults_submit($form, &$form_state) {
+  if ($form_state['values']['metadata']) {
+    variable_set('creativecommons_site_metadata', $form_state['values']['metadata']);
+    unset($form_state['values']['metadata']);
+  }
+}
+
+/**
+ * Form builder. Allow administrator to enable Creative Commons licensing for
+ * content types in one central location.
+ */
+function creativecommons_types_form($form, &$form_state) {
+  creativecommons_licenses_enabled();
+
+  $form = array();
+
+  $form['creativecommons_license']['creativecommons_node_types'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Content Types'),
+    '#default_value' => variable_get('creativecommons_node_types', array()),
+    '#options' => node_type_get_names(),
+    '#description' => t('Enable Creative Commons licensing for the following content types.'),
+  );
+
+  return system_settings_form($form);
+}
+
+
+/**
+ * Display license selection form.
+ *
+ * @param $node -- the Drupal node being edited
+ * @param $key -- the name of the license form element
+ * @param $form_state_segment (optional) -- the part of the Drupal form generated by this function (used for previews)
+ * @return Drupal form array for CC license selection
+ */
+//TODO: should jurisdiction be an option in license selection form?
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_select_license_form($node, $key, $form_state_segment = NULL) {
+  // load user for user defaults
+  global $user;
+  $account = user_load($user->uid);
+
+  // load available licenses
+  $jurisdiction = isset($account->creativecommons['jurisdiction']) ? $account->creativecommons['jurisdiction'] : variable_get('creativecommons_default_jurisdiction', '');
+  $available_licenses = creativecommons_get_available_license_list( array('jurisdiction' => $jurisdiction) );
+  $available_license_types = creativecommons_get_available_license_types();
+  $jurisdictions = creativecommons_get_jurisdictions();
+
+
+  /**
+   * Determine which license to select from the list.
+   *
+   * Three cases (in order):
+   *  1. license uri already selected in form (i.e. preview)
+   *  2. license uri is already attached to the node
+   *  3. No license information selected or attached, so fall back to defaults:
+   *    a. user default, if set;
+   *    b. otherwise, site default.
+   */
+
+  // Case 1: If license uri selected in form, use that
+  if ($form_state_segment && isset($form_state_segment[$key])) {
+    $desired_license = new creativecommons_license($form_state_segment[$key]);
+  }
+  // Case 2: Otherwise, use license uri attached to node
+  elseif (isset($node->cc)) {
+    $desired_license = new creativecommons_license($node->cc->uri);
+  }
+  // Case 3a: Otherwise, use user default
+  elseif (isset($account->cc) && $account->cc->is_available()) {
+    $desired_license = $account->cc;
+  }
+  // Case 3b: Otherwise, use site default
+  else {
+    $desired_license = creativecommons_get_default_license($jurisdiction);
+  }
+
+
+
+  /**
+   * Check the desired URI against the list.
+   *
+   * There are three (known) cases (in order) where the desired uri won't be in
+   * the list:
+   *  1. the license type is no longer available;
+   *  2. the default jurisdiction has changed;
+   *  3. a new version of the license has been released.
+   */
+  $selected_license_uri = creativecommons_get_license_uri_from_available($desired_license->type, $jurisdiction);
+
+  // Warn user if changed (if selected doesn't match desired, or (special case) if node->cc is None but that's not available)
+  if (($desired_license->uri != $selected_license_uri) || (isset($node->cc) && !$desired_license->uri && !$desired_license->is_available())) {
+    $selected_license = new creativecommons_license($selected_license_uri);
+
+    // Case 1: License is no longer available
+    if (!$desired_license->is_available()) {
+      $args = array('@license-name' => $desired_license->get_name('generic'));
+      $message = t('The @license-name license is not enabled.', $args) . ' ' . t('Please review license selection.');
+    }
+    // Case 2: Jurisdiction change (same license type)
+    elseif ($desired_license->jurisdiction != $selected_license->jurisdiction) {
+      $args = array();
+      $args['@old-jurisdiction'] = $jurisdictions[$desired_license->jurisdiction];
+      $args['@new-jurisdiction'] = $jurisdictions[$selected_license->jurisdiction];
+      $message = t('License jurisdiction will be changed from @old-jurisdiction to @new-jurisdiction.', $args) . ' ' . t('Please review license selection.');
+    }
+    // Case 3: Version change (upgrade)
+    elseif ($desired_license->version != $selected_license->version) {
+      $args = array();
+      $args['@old-version'] = $desired_license->version;
+      $args['@new-version'] = $selected_license->version;
+      $message = t('The version of your license will be changed from @old-version to @new-version.', $args) . ' ' . t('Please review license selection.');
+    }
+    // Any other cases?
+    else {
+      $message = t('Your license selection is set to be altered.') . ' ' . t('Please review license selection.');
+    }
+    drupal_set_message($message, 'warning');
+  }
+
+
+
+  /**
+   * If selected_license_uri is blank but None is not an available type,
+   * then a blank entry is placed at the beginning of the list (and the field
+   * is set to required). This forces the user to actively select a license,
+   * rather than just defaulting to the first on the list.
+   *
+   * This will only arise in the following cases:
+   *  - if content had no license (None), but that is no longer an available type
+   *  - if there is no site default set, but None is not an available type
+   */
+  if (!$selected_license_uri && !in_array('', $available_license_types)) {
+    $available_licenses = array_merge( array('' => ''), $available_licenses);
+  }
+
+
+
+  /**
+   * (After all this hard work,) the form element.
+   */
+  $form[$key] = array(
+    '#type' => 'select',
+    '#title' => t('Creative Commons License'),
+    '#default_value' => $selected_license_uri,
+    '#options' => $available_licenses,
+    //'#attributes' => array('class' => 'creativecommons creativecommons-license-select'),
+    '#required' => !in_array('', $available_license_types) ? TRUE : FALSE,
+  );
+
+
+  return $form;
+}
+
+/**
+ * Provides license uri validation for form validate methods to use.
+ */
+function creativecommons_validate_license_uri($license_uri_key, $license_uri) {
+  // Check to see if selected license is available
+  $cc = new creativecommons_license($license_uri);
+  if ($cc->has_license() && !$cc->is_available()) {
+    $message = $cc->get_license_unavailable_message();
+    form_set_error($license_uri_key, $message);
+  }
+}
+
+
+
+/**
+ * Return default license. 'Empty' license returned if no default set.
+ * @param $jurisdiction (optional) -- override default jurisdiction
+ * @return Creative Commons license object
+ */
+function creativecommons_get_default_license($jurisdiction = NULL) {
+  $license_uri = creativecommons_get_default_license_uri($jurisdiction);
+  return new creativecommons_license($license_uri);
+}
+
+/**
+ * Return site license, including metadata.
+ * @return Creative Commons license object
+ */
+function creativecommons_get_site_license() {
+  $license_uri = creativecommons_get_default_license_uri();
+  return new creativecommons_license($license_uri, variable_get('creativecommons_site_metadata', array()));
+}
+/**
+ * Return default license URI.
+ * @param $jurisdiction (optional) -- override default jurisdiction
+ * @return license URI as string
+ */
+function creativecommons_get_default_license_uri($jurisdiction = NULL) {
+  $license_type = variable_get('creativecommons_default_license_type', '');
+  $jurisdiction = $jurisdiction ? $jurisdiction : variable_get('creativecommons_default_jurisdiction', '');
+
+  return creativecommons_get_license_uri_from_all($license_type, $jurisdiction);
+}
+
+/**
+ * Return a sample license; site license, if set, otherwise CC_SAMPLE_LICENSE_URI.
+ */
+function creativecommons_get_sample_license() {
+  $default_license_uri = creativecommons_get_default_license_uri();
+  return new creativecommons_license($default_license_uri ? $default_license_uri : CC_SAMPLE_LICENSE_URI);
+}
+
+/**
+ * Parse license URI and return type.
+ * @param $uri - a valid CC license uri
+ * @return license type (e.g. 'by-sa')
+ */
+function creativecommons_get_license_type_from_uri($uri) {
+  $parts = explode('/', $uri);
+
+  return $parts[4];
+}
+
+
+/**
+ * Strip out jurisdiction and version from license name.
+ *
+ * @param $name - full name of a CC license
+ * @return license name, without version number or jurisdiction
+ */
+function creativecommons_generic_license_name($full_name) {
+  $name_parts = explode(' ', $full_name);
+  $version_part = count($name_parts);
+
+  // Find the version number (only numeric part)
+  $i = 0;
+  foreach ($name_parts as $part) {
+    if (is_numeric($part)) {
+      $version_part = $i;
+    }
+    $i++;
+  }
+
+  // Build the name, up to but not including version number
+  $name = $name_parts[0];
+  for ($i = 1; $i < $version_part; $i++) {
+    $name .= ' ' . $name_parts[$i];
+  }
+
+  return $name;
+}
+
+/**
+ * Return list of locales from CC API.
+ */
+function creativecommons_get_locales() {
+  $uri = '/locales';
+  $xml = creativecommons_get_xml($uri);
+
+  $parser = new SimpleXMLElement($xml);
+  $locales = array('');
+  foreach ($parser->locale as $locale) {
+    $id = (string) $locale['id'];
+    $locales[$id] = $id;
+  }
+  asort($locales);
+  return $locales;
+}
+
+/**
+ * Return list of jurisdictions from CC API.
+ */
+function creativecommons_get_jurisdictions() {
+  $uri = '/support/jurisdictions?locale=' . variable_get('creativecommons_locale', '');
+  $xml = '<jurisdictions>' . creativecommons_get_xml($uri) . '</jurisdictions>';
+
+  $parser = xml_parser_create();
+  xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+  xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+  xml_parse_into_struct($parser, $xml, $values, $index);
+  xml_parser_free($parser);
+
+  $jurisdictions = array('' => t('Generic'));
+  foreach ($values as $key) {
+    if ($key['tag'] == 'option' && $key['level'] == 2) {
+      $id = explode('/', $key['attributes']['value']);
+      $jurisdictions[$id[4]] = $key['value'];
+    }
+  }
+
+  return $jurisdictions;
+}
+
+/**
+ * Return name of jurisdiction.
+ */
+function creativecommons_get_jurisdiction_name($key) {
+  $jurisdictions = creativecommons_get_jurisdictions();
+  return $jurisdictions[$key];
+}
+
+/**
+ * Take the raw array of jurisdictions from the CC API and format it for use in
+ * a Drupal form by flipping keys/values, and sorting by Jurisdiction name
+ * @param $raw_array - array of jurisdictions from CC API
+ * @return array of jurisdictions for use in Drupal form
+ */
+function creativecommons_format_jurisdiction_array($raw_array) {
+  $jurisdictions = array();
+
+  foreach ($raw_array as $name => $id) {
+    $jurisdictions[$id] = $name;
+  }
+
+  // Sort by Jurisdiction name
+  asort($jurisdictions);
+
+  // Move special case 'Generic' to front
+  $generic = array('' => $jurisdictions['']);
+  unset($jurisdictions['']);
+  $jurisdictions = array_merge($generic, $jurisdictions);
+
+  return $jurisdictions;
+}
+
+
+/**
+ * Return array of all available licenses, grouped by class, for use in a Drupal
+ * form.
+ *
+ * @param $options - optional array of options for CC API simple license
+ * chooser, as per: http://api.creativecommons.org/docs/readme_15.html#simple-chooser
+ * @param $value_as_type - if set to TRUE, the key for each license will be the
+ *                        license type (e.g. 'by-sa'), instead of the full URI.
+ * @return array of all available license
+ */
+//TODO: 2.x should the array key be a translated string? needed for optgroup...
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_get_licenses($options = NULL, $value_as_type = FALSE) {
+  $licenses = array();
+
+  // Unlicensed
+  $blank_license = new creativecommons_license('');
+  $licenses[''] = $blank_license->get_name();
+
+  // License classes
+  $licenses[t('Creative Commons')] = array();
+  $licenses[t('Public Domain')] = array();
+
+  // Manual adjustments for 'standard' class
+  $parser = xml_parser_create();
+  xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+  xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+
+  $uri = '/simple/chooser';
+  $options['locale'] = variable_get('creativecommons_locale', '');
+  $uri .= '?' . http_build_query($options);
+  $standard_xml = '<standard>' . creativecommons_get_xml($uri) . '</standard>';
+
+  xml_parse_into_struct($parser, $standard_xml, $standard_licenses, $index);
+  xml_parser_free($parser);
+
+  foreach ($standard_licenses as $key) {
+    if ($key['tag'] == 'option' && $key['level'] == 2) {
+      // strip out license type identifier from uri
+      $license_uri = $key['attributes']['value'];
+      $license_type = creativecommons_get_license_type_from_uri($license_uri);
+
+      $license_key = $value_as_type ? $license_type : $license_uri;
+      $license_name = $value_as_type ? creativecommons_generic_license_name($key['value']) : $key['value'];
+
+      $license_class = in_array($license_type, array('mark', 'zero')) ? t('Public Domain') : t('Creative Commons');
+      $licenses[$license_class][$license_key] = $license_name;
+    }
+  }
+
+  // Sort licenses by freedom
+  uksort($licenses[t('Creative Commons')], 'creativecommons_license_sort');
+
+  return $licenses;
+}
+
+/**
+ * Sort function. Licenses weighted by permissiveness.
+ */
+function creativecommons_license_sort($x, $y) {
+  $order = array(
+    'mark' => 0,
+    'zero' => 1,
+    'publicdomain' => 2,
+    'by' => 3,
+    'by-sa' => 4,
+    'by-nd' => 5,
+    'by-nc' => 6,
+    'by-nc-sa' => 7,
+    'by-nc-nd' => 8,
+  );
+
+  // Need to extract types
+  if (strpos($x, 'http') !== FALSE) {
+    $x = creativecommons_get_license_type_from_uri($x);
+    $y = creativecommons_get_license_type_from_uri($y);
+  }
+
+  $order_x = array_key_exists($x, $order) ? $order[$x] : 10; 
+  $order_y = array_key_exists($y, $order) ? $order[$y] : 10; 
+	
+  return $order_x - $order_y;
+
+  //return $order[$x] - $order[$y];
+}
+
+
+/**
+ * Return an array of available license types.
+ */
+function creativecommons_get_available_license_types() {
+  return variable_get('creativecommons_available_license_types', array());
+}
+
+/**
+ * Return name of license
+ * @param $type
+ */
+function creativecommons_get_license_type_name($type) {
+  $license_array = creativecommons_get_licenses(NULL, TRUE);
+  foreach ($license_array as $licenses) {
+    if (is_array($licenses) && array_key_exists($type, $licenses)) {
+      return $licenses[$type];
+    }
+  }
+}
+
+/**
+ * Return an array of available licenses.
+ * @param $options -- options for querying the CC API for available licenses
+ * @param $first_entry_blank -- if TRUE, insert blank entry at start of array
+ *
+ * @return array of available licenses
+ */
+function creativecommons_get_available_license_list($options = NULL, $value_as_type = FALSE) {
+  $licenses = creativecommons_get_licenses($options, $value_as_type);
+
+  $available_licenses = creativecommons_remove_unavailable_licenses($licenses);
+
+  // Clear out empty license classes (e.g. Don't show Public Domain optgroup if PD and CC0 not enabled)
+  foreach ($available_licenses as $class => $value) {
+    if (empty($value)) {
+      unset($available_licenses[$class]);
+    }
+  }
+
+  // If only empty licenses enabled, need to make sure we return an empty array instead of NULL
+  if (!is_array($available_licenses)) {
+    return array();
+  }
+  else {
+    return $available_licenses;
+  }
+}
+
+/**
+ * Takes a list of licenses and unsets any which are not available in the site settings.
+ * @param $list  list of licenses to check
+ */
+function creativecommons_remove_unavailable_licenses($list, $available_license_types = NULL) {
+
+  if (!$available_license_types) {
+    $available_license_types = creativecommons_get_available_license_types();
+  }
+
+  foreach ($list as $key => $value) {
+    if (is_array($value)) {
+      $list[$key] = creativecommons_remove_unavailable_licenses($value, $available_license_types);
+    }
+    elseif (
+      !(
+        in_array($key, $available_license_types)
+        || (strpos($key, 'http') === 0 && in_array(creativecommons_get_license_type_from_uri($key), $available_license_types))
+      )) {
+      unset($list[$key]);
+    }
+  }
+
+  return $list;
+}
+
+/**
+ * Return true if license uri receives a valid response from CC API, false
+ * otherwise.
+ */
+function creativecommons_is_available_license_uri($license_uri) {
+  $cc = new creativecommons_license($license_uri);
+  return $cc->is_available();
+}
+
+//TODO: consolidate the following functions... the available one may not be needed...
+/**
+ * Lookup license uri based on type and jurisdiction.
+ * @param $license_type (e.g. by, by-sa)
+ * @param $jurisdiction (e.g. us, ca)
+ * @return valid license-uri, or empty string if none found
+ */
+function creativecommons_get_license_uri_from_all($license_type, $jurisdiction) {
+  return creativecommons_get_license_uri_from_available($license_type, $jurisdiction, FALSE);
+}
+/**
+ * Lookup license uri based on type and jurisdiction (only searches available types)
+ * @param $license_type (e.g. by, by-sa)
+ * @param $jurisdiction (e.g. us, ca)
+ * @param $only_available -- if TRUE, only return license if available
+ * @return valid license-uri, or empty string if none found
+ */
+function creativecommons_get_license_uri_from_available($license_type, $jurisdiction, $only_available = TRUE) {
+  if (!$license_type) {
+    return '';
+  }
+
+  // TODO: review
+  if ($only_available) {
+    $license_list = creativecommons_get_available_license_list( array('jurisdiction' => $jurisdiction) );
+  }
+  else {
+    $license_list = creativecommons_get_licenses( array('jurisdiction' => $jurisdiction) );
+  }
+
+  foreach ($license_list as $class => $licenses) {
+    if (is_array($licenses)) {
+      foreach ($licenses as $uri => $title) {
+        if ($license_type == creativecommons_get_license_type_from_uri($uri)) {
+          $license_uri = $uri;
+        }
+      }
+    }
+  }
+
+  return $license_uri;
+}
+
+/**
+ * Send HTTP Request to CC API services.
+ * $uri     relative uri of file content on CC api site, not inclucing interface root (can be '')
+ * $headers An array containing an HTTP header => value pair.
+ * $method  A string defining the HTTP request to use.
+ * $data    A string containing data to include in the request.
+ */
+//TODO: fix this
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_api_request($uri, $headers = array(), $method = 'GET', $data = NULL) {
+
+  $uri = CC_API_ROOT . (strpos($uri, '/') === 0 ? $uri : '/' . $uri);
+
+  $result = drupal_http_request($uri, array('headers' => $headers, 'method' => $method, 'data' => $data));
+
+  if (isset($result->error)) {
+    drupal_set_message(t('Error accessing CC API (%uri): %error', array('%error' => $result->error, '%uri' => $uri)), 'error', FALSE);
+    return NULL;
+  }
+
+  return utf8_encode($result->data);
+}
+
+/**
+ * Retrieves CC API XML from cache, if available; otherwise, from API.
+ *
+ * $uri		  uri of file content on CC api site, beyond the interface root
+ * $update  force cache update
+ */
+function creativecommons_get_xml($uri, $update = FALSE) {
+  if (empty($uri)) {
+    return;
+  }
+
+  $cid = str_replace('?', ':', $uri);
+  // Attempt to load from cache
+  if (!$update && $cached = cache_get($cid, 'cache_creativecommons_api')) {
+    return $cached->data;
+  }
+
+  // Otherwise, Retrieve data from API
+  $xml = creativecommons_api_request($uri);
+  cache_set($cid, $xml, 'cache_creativecommons_api', strtotime('+2 days'));
+  return $xml;
+}
+
+/**
+ * Implements hook_flush_caches().
+ */
+function creativecommons_flush_caches() {
+  return array('cache_creativecommons_api');
+}
+
+/**
+ * Implements hook_cron().
+ */
+function creativecommons_cron() {
+  // Regardless of how often cron.php runs, this is only needed daily
+  if (strtotime('+1 day', variable_get('creativecommons_cron', 0)) < REQUEST_TIME) {
+    variable_set('creativecommons_cron', REQUEST_TIME);
+
+    // 0. We have a list of available licenses.
+    $available_license_types = creativecommons_get_available_license_types();
+
+    // 1. Collect a list of active jurisdictions.
+    $jurisdictions = array();
+    $license_uris = array();
+
+    // 1a. Jurisdictions currently in use on licenses attached to nodes
+    // Also grab all license uri's in use while we're at it...
+    $result = db_query('SELECT DISTINCT license_uri as uri FROM {creativecommons_node}');
+    foreach ($result as $row) {
+      $parts = explode('/', $row['uri']);
+      $jurisdictions[] = $parts[6];
+
+      // Don't pre-load cache for licenses that aren't enabled
+      $license_type = creativecommons_get_license_type_from_uri($row['uri']);
+      if (in_array($license_type, $available_license_types)) {
+        $license_uris[] = $row['uri'];
+      }
+    }
+
+    // 1b. Site default jurisdiction
+    $jurisdictions[] = variable_get('creativecommons_default_jurisdiction', '');
+
+    // 1c. User default jurisdictions
+    $result = db_query('SELECT DISTINCT jurisdiction FROM {creativecommons_user}');
+    foreach ($result as $row) {
+      $jurisdictions[] = $row['jurisdiction'];
+    }
+
+    $jurisdictions = array_unique($jurisdictions);
+
+    // 2. Cache calls to /simple/chooser, while building list of license URIS
+    foreach ($jurisdictions as $j) {
+      $uri = '/simple/chooser';
+      $options = array();
+      $options['locale'] = variable_get('creativecommons_locale', '');
+      if (!empty($j)) {
+        $options['jurisdiction'] = $j;
+      }
+      $uri .= '?' . http_build_query($options);
+      $xml = creativecommons_get_xml($uri);
+      // Get (and store, by forcing update) xml
+      $standard_xml = '<standard>' . $xml . '</standard>';
+
+      // Parse the results, grab license URIs for any available license types
+      $parser = xml_parser_create();
+      xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+      xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+      xml_parse_into_struct($parser, $standard_xml, $standard_licenses, $index);
+      xml_parser_free($parser);
+
+      foreach ($standard_licenses as $key) {
+        if ($key['tag'] == 'option' && $key['level'] == 2) {
+          // strip out license type identifier from uri
+          $license_uri = $key['attributes']['value'];
+          $license_type = creativecommons_get_license_type_from_uri($license_uri);
+          if (in_array($license_type, $available_license_types)) {
+            $license_uris[] = $license_uri;
+          }
+        }
+      }
+    }
+    $license_uris = array_unique($license_uris);
+    foreach ($license_uris as $uri) {
+      creativecommons_get_xml('/details?license-uri=' . urlencode($uri));
+    }
+  }
+}
+
+/**
+ * Return associative array of metadata names.
+ */
+//TODO: 2.x add ns to key (e.g. cc:attributionName)
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_get_metadata_types() {
+  return array(
+    // from http://creativecommons.org/ns
+    'attributionName' => t('Attribution Name'),
+    'attributionURL' => t('Attribution URL'),
+    'morePermissions' => t('<a href="@cc-plus-about">CC+</a> URL', array('@cc-plus-about' => 'http://wiki.creativecommons.org/CCPlus')),
+    // from http://dublincore.org/documents/dces/
+    'title' => t('Title'),
+    'type' => t('Type'),
+    'source' => t('Source work URL'),
+    // the rest are not mentioned in the ccREL spec
+    'description' => t('Description'),
+    'creator' => t('Creator'),
+    'rights' => t('Copyright holder'),
+    'date' => t('Year of copyright'),
+  );
+}
+
+/**
+ * Return available metadata. If none set, return ccREL default.
+ */
+function creativecommons_get_available_metadata() {
+  $defaults = array(
+    'attributionName' => 'attributionName',
+    'attributionURL' => 'attributionURL',
+    'morePermissions' => 'morePermissions',
+    'title' => 'title',
+    'type' => 'type',
+    'source' => 'source',
+  );
+  return variable_get('creativecommons_available_metadata', $defaults);
+}
+
+/**
+ * Return available metadata types.
+ */
+function creativecommons_get_available_metadata_types() {
+  $metadata = creativecommons_get_metadata_types();
+  $available = creativecommons_get_available_metadata();
+  foreach ($metadata as $key => $value) {
+    if (!in_array($key, $available)) {
+      unset($metadata[$key]);
+    }
+  }
+  return $metadata;
+}
+
+/**
+ * Return true if metadata is available (enabled), false otherwise.
+ */
+function creativecommons_metadata_is_available($key) {
+  $available = creativecommons_get_available_metadata();
+  return !empty($available[$key]);
+}
+
+/**
+ * Return a description of the metadata type.
+ */
+//TODO: 2.x add ns to key (e.g. cc:attributionName)
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function creativecommons_get_metadata_description($key) {
+  $descriptions = array(
+    // from http://creativecommons.org/ns
+    'attributionName' => t('The name the creator of a Work would like used when attributing re-use.'),
+    'attributionURL' => t('The URL the creator of a Work would like used when attributing re-use.'),
+    'morePermissions' => t('The URL where additional permissions or alternative licenses for a Work are available.'),
+    // from http://dublincore.org/documents/dces/
+    'title' => t('A name by which the Work is formally known.'),
+    'type' => t('The nature or genre of the Work.'),
+    'description' => t('An account of the Work.'),
+    'creator' => t('An entity primarily responsible for making the Work.'),
+    'rights' => t('Information about rights held in and over the Work.'),
+    'date' => t('Year of copyright.'),
+    'source' => t('A related resource from which the described Work is derived.'),
+  );
+
+  //TODO: 2.x integrate links with text, maybe turn into a function parameter?
+  $links = array(
+    'attributionName' => l('cc:attributionName', 'http://creativecommons.org/ns#attributionName'),
+    'attributionURL' => l('cc:attributionURL', 'http://creativecommons.org/ns#attributionURL'),
+    'morePermissions' => l('cc:morePermissions', 'http://creativecommons.org/ns#morePermissions'),
+    'title' => l('dc:title', 'http://dublincore.org/documents/dces/#title'),
+    'type' => l('dc:type', 'http://dublincore.org/documents/dces/#type'),
+    'description' => l('dc:description', 'http://dublincore.org/documents/dces/#description'),
+    'creator' => l('dc:creator', 'http://dublincore.org/documents/dces/#creator'),
+    'rights' => l('dc:rights', 'http://dublincore.org/documents/dces/#rights'),
+    'date' => l('dc:date', 'http://dublincore.org/documents/dces/#date'),
+    'source' => l('dc:source', 'http://dublincore.org/documents/dces/#source'),
+  );
+  return $descriptions[$key] . t(' (see !link)', array('!link' => $links[$key]));
+}
+
+/**
+ * Return default value for metadata, empty string if none available.
+ * @param $key -- metadata key
+ * @return string default metadata value
+ */
+function creativecommons_get_metadata_default($key) {
+  $output = '';
+  switch ($key) {
+    case 'attributionURL':
+    case 'attributionName':
+      // User defaults
+      global $user;
+      $account = user_load($user->uid);
+      if (isset($account->creativecommons[$key])) {
+        $output = $account->creativecommons[$key];
+      }
+      break;
+    case 'morePermission':
+      //TODO: site default
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Return array of questions for specified license
+ */
+function creativecommons_get_questions_array($license_id) {
+  $question_xml = creativecommons_get_questions_xml($license_id);
+  $parser = xml_parser_create();
+  xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+  xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+  xml_parse_into_struct($parser, $question_xml, $values, $index);
+  xml_parser_free($parser);
+
+  $questions = array();
+  $ans_lbl = '';
+  $ans_val = '';
+  foreach ($values as $xn) {
+
+    // new question array item
+    if ($xn['tag'] == 'field' && $xn['type'] == 'open') {
+      $current = $xn['attributes']['id'];
+      $questions[$current] = array();
+    }
+
+    // set description
+    if ($xn['tag'] == 'description') {
+      $questions[$current]['description'] = $xn['value'];
+    }
+
+    // set question
+    if ($xn['tag'] == 'label' && is_null($questions[$current]['answers'])
+       && $current !== NULL && is_null($ans_lbl)) {
+      $questions[$current]['question'] = $xn['value'];
+    }
+
+    // set answer labels/values
+    if ($ans_lbl !== NULL && $ans_val !== NULL) {
+      if (isset($questions)) {
+        $questions[$current]['answers'][$ans_val] = $ans_lbl;
+        $ans_lbl = NULL;
+        $ans_val = NULL;
+      }
+    }
+    if ($xn['tag'] == 'enum' && $xn['type'] == 'open') {
+      $ans_lbl = $xn['attributes']['id'];
+    }
+    if ($xn['tag'] == 'label' && $ans_lbl !== NULL) {
+      $ans_val = $xn['value'];
+    }
+  }
+
+  return $questions;
+}
+
+/**
+ * Return xml defining questions/answers for a specific creative commons license
+ */
+function creativecommons_get_questions_xml($license_id) {
+  if ($license_id != 'none' && !is_null($license_id)) {
+    $filename = $license_id . '.xml';
+    return creativecommons_get_xml('/license/' . $license_id . '/?locale=' . variable_get('creativecommons_locale', ''));
+  }
+  return;
+}
+
+/**
+ * Return array of DCMI types,
+ * based on http://dublincore.org/documents/dcmi-type-vocabulary/
+ */
+function creativecommons_get_dcmi_types() {
+  $dcmi_types = array(
+    '' => '',
+    'Collection' => t('Collection'),
+    'Dataset' => t('Dataset'),
+    'Event' => t('Event'),
+    'Image' => t('Image'),
+    'InteractiveResource' => t('Interactive Resource'),
+    'MovingImage' => t('Moving Image'),
+    //'PhysicalObject' => t('Physical Object'),
+    'Service' => t('Service'),
+    'Software' => t('Software'),
+    'Sound' => t('Sound'),
+    'StillImage' => t('Still Image'),
+    'Text' => t('Text'),
+  );
+  return $dcmi_types;
+}
+
+
+/**
+ * Implements hook_node_load().
+ */
+function creativecommons_node_load($nodes, $types) {
+  foreach ($nodes as $node) {
+    if (creativecommons_node_type_is_enabled($node->type)) { 
+      $node->cc = creativecommons_license::for_node($node->nid);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+//function creativecommons_node_view($node, $view_mode = 'full') {
+//  creativecommons_view($node, FALSE, FALSE, TRUE);
+//}
+
+/**
+ * Implements hook_node_insert().
+ */
+function creativecommons_node_insert($node) {
+  creativecommons_save($node, 'insert');
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function creativecommons_node_update($node) {
+  creativecommons_save($node, 'update');
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function creativecommons_node_delete($node) {
+  creativecommons_delete($node);
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function creativecommons_node_view($node, $view_mode = 'rss') {
+
+  //TODO: move xmlns declarations to top of file...
+  if ($node->cc && $node->cc->is_available() && $node->cc->has_license()) {
+    $return = array();
+    $return[] = array(
+      'key' => 'creativeCommons:license',
+      'value' => $node->cc->uri,
+      'attributes' => array('xmlns:creativeCommons' => 'http://backend.userland.com/creativeCommonsRssModule'),
+    );
+    
+    if (FALSE) {
+    //if (creativecommons_metadata_is_available('morePermissions') && $node->cc->metadata['morePermissions']) {
+      $return[] = array(
+        'key' => 'cc:morePermissions',
+        'value' => $node->cc->metadata['morePermissions'],
+        'attributes' => array('xmlns:cc' => 'http://creativecommons.org/ns#'),
+      );
+    }
+    return $return;
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function creativecommons_nodeapi_OLD(&$node, $op, $arg, $a4) { }
+
+/**
+ * Implements hook_form_alter().
+ */
+function creativecommons_form_alter(&$form, $form_state, $form_id) {
+  // Add content type checkbox to node_type_form
+  if (isset($form['#node']) && $form_id == $form['#node']->type .'_node_form') {
+
+    if (creativecommons_node_type_is_enabled($form['#node']->type)) {
+      $form = creativecommons_node_form($form, $form_state);
+    }
+  
+  }
+  
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function creativecommons_form_user_profile_form_alter(&$form, $form_state, $form_id) {
+  if (!user_access('use creative commons user defaults')) {
+    // user doesn't have permission to use this feature
+    return;
+  }
+  $form = creativecommons_user_form($form);
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function creativecommons_form_node_type_form_alter(&$form, $form_state, $form_id) {
+
+    $node->type = $form['#node_type']->type;
+
+    $form['creativecommons'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Creative Commons'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#group' => 'additional_settings',
+    );
+    
+    $form['creativecommons']['cc_enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user to attach a Creative Commons license'),
+      '#description' => t('Users with the <em>attach creative commons</em> permission will be able to select a license for a node of this type.'),
+      '#return_value' => 1,
+      '#default_value' => creativecommons_node_type_is_enabled($node->type) ? 1 : 0,
+    );
+    
+    $form['#submit'][] = 'creativecommons_node_type_submit';
+}
+  
+  
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function creativecommons_form_search_form_alter(&$form, $form_state, $form_id) { 
+  //case 'search_form': 
+    //TODO: super hack, shouldn't be using $_GET
+    $cc_search_filters = explode(',', search_query_extract(str_replace('search/creativecommons/', '', $_GET['q']), 'cc'));
+    
+    // TODO:  Add search fields to Content search form
+    // can these fields be added to node_search? (yes, but it's not obvious how that search would actually be done...)
+    
+    $form['creativecommons'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Creative Commons'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#group' => 'additional_settings',
+    );
+
+    $form['creativecommons']['enable'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Creative Commons'),
+      '#description' => t('Find content that can be...'),
+      '#attributes' => array('class' => 'search-creativecommons'), //TODO: more of this elsewhere!
+    );
+    $form['creativecommons']['commercial_use'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('used for <strong>commercial purposes</strong>'),
+      '#default_value' => in_array('commercial_use', $cc_search_filters),
+    );
+
+    $form['creativecommons']['derivative_works'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('<strong>modified</strong>, <strong>adapted</strong> or <strong>built upon</strong>'),
+      '#default_value' => in_array('derivative_works', $cc_search_filters),
+    );
+
+    $form['#validate'][] = 'creativecommons_search_validate';
+    
+    /**
+     * Advanced node search form (copied from node_form_alter()...). Ideally,
+     * this code should not be copied, but the CC search filter should simply be
+     * integrated into the node_search(). It's just not clear how to do that...
+     */
+    if (user_access('use advanced search')) {
+      // Keyword boxes:
+      $form['advanced'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Advanced search'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#attributes' => array('class' => 'search-advanced'),
+      );
+      $form['advanced']['keywords'] = array(
+        '#prefix' => '<div class="criterion">',
+        '#suffix' => '</div>',
+      );
+      $form['advanced']['keywords']['or'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Containing any of the words'),
+        '#size' => 30,
+        '#maxlength' => 255,
+      );
+      $form['advanced']['keywords']['phrase'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Containing the phrase'),
+        '#size' => 30,
+        '#maxlength' => 255,
+      );
+      $form['advanced']['keywords']['negative'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Containing none of the words'),
+        '#size' => 30,
+        '#maxlength' => 255,
+      );
+
+      // Taxonomy box:
+      if ($taxonomy = module_invoke('taxonomy', 'form_all', 1)) {
+        $form['advanced']['category'] = array(
+          '#type' => 'select',
+          '#title' => t('Only in the category(s)'),
+          '#prefix' => '<div class="criterion">',
+          '#size' => 10,
+          '#suffix' => '</div>',
+          '#options' => $taxonomy,
+          '#multiple' => TRUE,
+        );
+      }
+
+      // Node types:
+      $types = array_map('check_plain', node_type_get_names());
+      $form['advanced']['type'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Only of the type(s)'),
+        '#prefix' => '<div class="criterion">',
+        '#suffix' => '</div>',
+        '#options' => $types,
+      );
+      $form['advanced']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Advanced search'),
+        '#prefix' => '<div class="action">',
+        '#suffix' => '</div>',
+      );
+      $form['#validate'][] = 'node_search_validate';
+    }
+
+}
+
+/**
+ * Implements hook_search().
+ */
+function creativecommons_search($op = 'search', $keys = NULL) {
+  if (variable_get('creativecommons_search', TRUE)) {
+    switch ($op) {
+      case 'name':
+        return t('Creative Commons');
+      case 'search':
+        // Extract CC filters from query
+        $cc_search_filters = explode(',', search_query_extract($keys, 'cc'));
+
+        // Load available licenses
+        $license_list = creativecommons_get_licenses();
+        $all_licenses = array();
+        $available_licenses = array();
+        $have_available_licenses = FALSE;
+        foreach ($license_list as $class => $licenses) {
+          if (is_array($licenses)) {
+            foreach (array_keys($licenses) as $uri) {
+              $license = new creativecommons_license($uri);
+              $all_licenses[] = $license;
+              if ($license->is_available() && $license->has_license()) {
+                $available_licenses[] = $license;
+                $have_available_licenses = TRUE;
+              }
+            }
+          }
+        }
+
+        // No results to show, if no CC licenses enabled
+        if (!$have_available_licenses) {
+          drupal_set_message(t('No Creative Commons licenses are enabled.'), 'warning', FALSE);
+          return;
+        }
+
+        # Next for lines from node_search()
+        // Build matching conditions
+        list($join1, $where1) = _db_rewrite_sql();
+        $arguments1 = array();
+        $conditions1 = 'n.status = 1';
+        # end node_search lines
+
+        // Creative Commons search filters
+        $keys = search_query_insert($keys, 'cc');
+        $conditions1 .= " AND cc.license_uri LIKE 'http://creativecommons.org/%'"; // only return CC licensed content
+        $join1 .= ' INNER JOIN {creativecommons_node} cc ON i.sid=cc.nid';
+
+        // Only search available/enabled licenses
+        $cc_conditions = array();
+        foreach ($available_licenses as $license) {
+          $cc_conditions[] = "cc.license_uri LIKE 'http://creativecommons.org/%/" . creativecommons_get_license_type_from_uri($license->uri) . "/%'";
+        }
+        if (!empty($cc_conditions)) {
+          $conditions1 .= ' AND (' . implode(' OR ', $cc_conditions) . ')';
+        }
+
+        foreach (array('commercial_use', 'derivative_works') as $filter) {
+          if (in_array($filter, $cc_search_filters)) {
+            $filter_function = 'permits_' . $filter;
+            $cc_conditions = array();
+            foreach ($all_licenses as $license) {
+              if ($license->$filter_function()) {
+                $cc_conditions[] = "cc.license_uri LIKE 'http://creativecommons.org/%/" . creativecommons_get_license_type_from_uri($license->uri) . "/%'";
+              }
+            }
+            if (!empty($cc_conditions)) {
+              $conditions1 .= ' AND (' . implode(' OR ', $cc_conditions) . ')';
+            }
+          }
+        }
+
+        /**
+         * The rest of the code for this case has been copied from node_search(),
+         * with the exception of one line to add the CC license into the title text.
+         */
+        if ($type = search_query_extract($keys, 'type')) {
+          $types = array();
+          foreach (explode(',', $type) as $t) {
+            $types[] = "n.type = '%s'";
+            $arguments1[] = $t;
+          }
+          $conditions1 .= ' AND (' . implode(' OR ', $types) . ')';
+          $keys = search_query_insert($keys, 'type');
+        }
+
+        if ($category = search_query_extract($keys, 'category')) {
+          $categories = array();
+          foreach (explode(',', $category) as $c) {
+            $categories[] = "tn.tid = %d";
+            $arguments1[] = $c;
+          }
+          $conditions1 .= ' AND (' . implode(' OR ', $categories) . ')';
+          $join1 .= ' INNER JOIN {taxonomy_term_node} tn ON n.vid = tn.vid';
+          $keys = search_query_insert($keys, 'category');
+        }
+
+        // Build ranking expression (we try to map each parameter to a
+        // uniform distribution in the range 0..1).
+        $ranking = array();
+        $arguments2 = array();
+        $join2 = '';
+        // Used to avoid joining on node_comment_statistics twice
+        $stats_join = FALSE;
+        $total = 0;
+        if ($weight = (int) variable_get('node_rank_relevance', 5)) {
+          // Average relevance values hover around 0.15
+          $ranking[] = '%d * i.relevance';
+          $arguments2[] = $weight;
+          $total += $weight;
+        }
+        if ($weight = (int) variable_get('node_rank_recent', 5)) {
+          // Exponential decay with half-life of 6 months, starting at last indexed node
+          $ranking[] = '%d * POW(2, (GREATEST(MAX(n.created), MAX(n.changed), MAX(c.last_comment_timestamp)) - %d) * 6.43e-8)';
+          $arguments2[] = $weight;
+          $arguments2[] = (int) variable_get('node_cron_last', 0);
+          $join2 .= ' LEFT JOIN {node_comment_statistics} c ON c.nid = i.sid';
+          $stats_join = TRUE;
+          $total += $weight;
+        }
+        if (module_exists('comment') && $weight = (int) variable_get('node_rank_comments', 5)) {
+          // Inverse law that maps the highest reply count on the site to 1 and 0 to 0.
+          $scale = variable_get('node_cron_comments_scale', 0.0);
+          $ranking[] = '%d * (2.0 - 2.0 / (1.0 + MAX(c.comment_count) * %f))';
+          $arguments2[] = $weight;
+          $arguments2[] = $scale;
+          if (!$stats_join) {
+            $join2 .= ' LEFT JOIN {node_comment_statistics} c ON c.nid = i.sid';
+          }
+          $total += $weight;
+        }
+        if (module_exists('statistics') && variable_get('statistics_count_content_views', 0) &&
+            $weight = (int) variable_get('node_rank_views', 5)) {
+          // Inverse law that maps the highest view count on the site to 1 and 0 to 0.
+          $scale = variable_get('node_cron_views_scale', 0.0);
+          $ranking[] = '%d * (2.0 - 2.0 / (1.0 + MAX(nc.totalcount) * %f))';
+          $arguments2[] = $weight;
+          $arguments2[] = $scale;
+          $join2 .= ' LEFT JOIN {node_counter} nc ON nc.nid = i.sid';
+          $total += $weight;
+        }
+
+        // When all search factors are disabled (ie they have a weight of zero),
+        // the default score is based only on keyword relevance and there is no need to
+        // adjust the score of each item.
+        if ($total == 0) {
+          $select2 = 'i.relevance AS score';
+          $total = 1;
+        }
+        else {
+          $select2 = implode(' + ', $ranking) . ' AS score';
+        }
+
+        // Do search.
+        $find = do_search($keys, 'node', 'INNER JOIN {node} n ON n.nid = i.sid ' . $join1, $conditions1 . (empty($where1) ? '' : ' AND ' . $where1), $arguments1, $select2, $join2, $arguments2);
+
+        // Load results.
+        $results = array();
+        foreach ($find as $item) {
+          // Build the node body.
+          $node = node_load($item->sid);
+          $node->build_mode = NODE_BUILD_SEARCH_RESULT;
+          $node = node_build_content($node, FALSE, FALSE);
+          $node->body = drupal_render($node->content);
+
+          // Fetch comments for snippet.
+          $node->body .= module_invoke('comment', 'nodeapi', $node, 'update index');
+          // Fetch terms for snippet.
+          $node->body .= module_invoke('taxonomy', 'nodeapi', $node, 'update index');
+
+          $extra = module_invoke_all('node_search_result', $node);
+          $results[] = array(
+            'link' => url('node/' . $item->sid, array('absolute' => TRUE)),
+            'type' => check_plain(node_type_get_name($node)),
+            //TODO: this is a hack, should override search result template some how, but I'm unsure how to pass additional information through...
+            'title' => $node->title . ' (' . $node->cc->get_name('short') . ')',
+            'user' => theme('username', array('account' => $node)),
+            'date' => $node->changed,
+            'node' => $node,
+            'extra' => $extra,
+            'score' => $item->score / $total,
+            'snippet' => search_excerpt($keys, $node->body),
+          );
+        }
+        return $results;
+    }
+  }
+}
+
+/**
+ * Search validation function.
+ */
+function creativecommons_search_validate($form, &$form_state) {
+  // Initialise using any existing basic search keywords.
+  $keys = $form_state['values']['processed_keys'];
+
+  // Insert extra restrictions into the search keywords string.
+  $cc_search_filters = array();
+  foreach (array('commercial_use', 'derivative_works') as $key) {
+    if ($form_state['values'][$key] == 1) {
+      $cc_search_filters[] = $key;
+    }
+  }
+
+  $keys = search_query_insert($keys, 'cc', implode(',', $cc_search_filters));
+  form_set_value($form['basic']['inline']['processed_keys'], trim($keys), $form_state);
+}
+
+/**
+ * Store node type value.
+ */
+function creativecommons_node_type_submit($form, &$form_state) {
+  $node_types = variable_get('creativecommons_node_types', array());
+  $type = $form_state['values']['type'];
+  
+  $node_types[$type] = !empty($form_state['values']['cc_enabled']) ? $type : 0;
+  variable_set('creativecommons_node_types', $node_types);
+}
+
+/**
+ * Append rdf content to node. TODO: 2.x RDF/XML is no longer recommended by CC
+ */
+function creativecommons_view($node, $teaser = FALSE, $page = FALSE) {
+  if (isset($node->cc) && $node->cc && variable_get('creativecommons_rdf', TRUE)) {
+    $output = "<!-- " . $node->cc->get_rdf() . " -->";
+
+    $node->body .= $output;
+
+    if ($teaser) {
+      $node->teaser .= $output;
+    }
+
+    return $node;
+  }
+}
+
+/**
+ * Implements hook_link().
+ */
+function creativecommons_link($type, $node = NULL, $teaser = FALSE) {
+  $links = array();
+
+  if ($type == 'node') {
+    if ($teaser == 1 && $node->cc && $node->cc->is_available()) {
+      $links['creativecommons'] = array(
+        'title' => $node->cc->get_image('tiny_icons'),
+        'href' => $node->cc->uri,
+        'html' => TRUE,
+        'attributes' => array(
+          'rel' => 'license',
+          'title' => $node->cc->get_name('full'),
+        ),
+      );
+    }
+  }
+
+  return $links;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function creativecommons_block_info() {
+  $blocks['node_license'] = array(
+    'info' => t('Creative Commons Node License'),
+    //'cache' => BLOCK_CACHE_PER_PAGE,
+    'cache' => TRUE,
+    'weight' => -1,
+    'enabled' => 1, // default make it enabled
+    'region' => 'content',
+    'theme' => 'bartik',
+  );
+
+  $blocks['site_license'] = array(
+    'info' => t('Creative Commons Site License'),
+    'weight' => -10,
+    'enabled' => 1, // default make it enabled
+    'region' => 'footer',
+    'theme' => 'bartik',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function creativecommons_block_view($delta) {
+  // TODO Rename block deltas (e.g. delta-0) to readable strings.
+  switch ($delta) {
+    // Node license
+    case 'node_license':
+    case 'delta-0': // for backward-compatibility
+      //dsm('node_license');
+      if ($node = menu_get_object()) {
+        //dsm($node);
+        if (isset($node->cc) && $node->cc->is_available()) {
+          
+          // Check for redundant site license
+          $site_license_display = variable_get('creativecommons_site_license_display', FALSE);
+          $site_license = creativecommons_get_site_license();
+          $redundant_display = variable_get('creativecommons_node_license_redundant_display', TRUE);
+          if ($site_license_display && !$redundant_display && $node->cc->uri == $site_license->uri) {
+            return;
+          }
+
+          // license html
+          $block['content'] = theme('creativecommons_node_license', array('node' => $node));
+          return $block;
+        }
+      }
+      return; // otherwise return nothing
+
+      // Site license
+    case 'site_license':
+    case 'delta-1': // for backward-compatibility
+      if (variable_get('creativecommons_site_license_display', FALSE)) {
+        $cc = creativecommons_get_site_license();
+        if ($cc->is_available()) {
+          $block['content'] = theme('creativecommons_site_license', array('cc' => $cc));
+          $block['subject'] = 'Site License';
+        }
+        return $block;
+      }
+  }
+}
+
+/**
+ * Implements hook_block().
+ */
+function creativecommons_block_OLD($op = 'list', $delta = 0, $edit = array()) {
+  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
+  // listing of blocks, such as on the admin/block page
+}
+
+/**
+ * Form for attaching Creative Commons license to a node (not a hook)
+ */
+function creativecommons_node_form(&$form, $form_state) {
+  
+  $node = $form['#node'];
+  // Check user permissions and license availability
+  if (!user_access('attach creative commons') || !creativecommons_get_available_license_types()) {
+    return array();
+  }
+
+  // Add validate and submit functions
+  $form['#validate'][] = 'creativecommons_node_form_validate';
+
+  // Links for description
+  $description_args = array(
+    '@about-licenses-url' => 'http://creativecommons.org/about/licenses/',
+    '@attribution-wiki-url' => 'http://wiki.creativecommons.org/Attribution',
+    '@think-about-url' => 'http://creativecommons.org/about/think',
+  );
+
+  if (variable_get('creativecommons_user_message', '')) {
+    // Custom Creative Commons license description
+    $description = variable_get('creativecommons_user_message', '');
+  }
+  else {
+
+    // Creative Commons license description
+    $description = '<p>' . t('With a Creative Commons license, <em>you keep your	copyright</em> but allow people to <a href="@about-licenses-url">copy and distribute your work</a> provided they <a href="@attribution-wiki-url">give you credit</a> -- and only on the conditions you specify here. For those new to Creative Commons licensing, visit the website for <a href="@think-about-url">a list of things to think about</a>.', $description_args) . '</p>';
+
+    // Public Domain tools description
+    $description .= '<p>' . t('If you want to offer your work with no conditions or you want to certify a work as public domain, choose one of the <a href="@public-domain-url">public domain tools</a>.', array('@public-domain-url' => 'http://creativecommons.org/publicdomain/')) . '</p>';
+
+  }
+  // required metadata
+  $required_metadata = variable_get('creativecommons_required_metadata', array());
+
+  // loop thru metadata fields
+  $fields = '';
+  $metadata_types = creativecommons_get_available_metadata_types();
+  
+  //dsm($metadata_types);
+    
+  $form['creativecommons'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Creative Commons'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#description' => $description,
+      '#group' => 'additional_settings',
+  );
+ 
+
+  $form_state_select_license_form = isset($form_state['values']['creativecommons']['select_license_form']) ? $form_state['values']['creativecommons']['select_license_form'] : NULL;
+  $form['creativecommons']['select_license_form'] = creativecommons_select_license_form($node, 'cc_license_uri', $form_state_select_license_form);
+
+
+  //TODO: 2.x button 'save user defaults' here? or checkbox maybe (save as defaults...)?
+
+  // Show metadata by default if some stored fields are set
+  $show_meta = FALSE;
+
+  // Show metadata by default if some fields are required
+  foreach ($required_metadata as $key => $value) {
+    if (!empty($value)) {
+      $show_meta = TRUE;
+      break;
+    }
+  }
+
+  // Check for non-empty fields if preview mode
+  if (!$show_meta && isset($form_state['values']['creativecommons']['metadata']) && is_array($form_state['values']['creativecommons']['metadata'])) {
+    foreach ($form_state['values']['creativecommons']['metadata'] as $key => $value) {
+      if ($value && creativecommons_metadata_is_available($key)) {
+        $show_meta = TRUE;
+        break;
+      }
+    }
+  }
+  // Check for stored non-empty fields if not in preview mode
+  elseif (isset($node->cc) && $node->cc->has_available_metadata()) {
+    $show_meta = TRUE;
+  }
+
+/*
+
+  $form['creativecommons']['metadata'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Additional Information'),
+    '#collapsible' => TRUE,
+    // show additional info by default if any metadata fields are (a) required, or (b) non-empty; otherwise, hide.
+    '#collapsed' => !$show_meta,
+    '#tree' => TRUE,
+  );
+*/
+
+
+  // build metadata form fields
+  //foreach ($metadata_types as $key => $title) {
+  if(FALSE){
+    $title = t('!metadata-name of licensed work', array('!metadata-name' => $title));
+    $required = $required_metadata[$key] ? TRUE : FALSE;
+     
+    /**
+     * Three cases: preview, stored, default (only for some).
+     */
+    if (isset($form_state['values']['creativecommons']) && is_array($form_state['values']['creativecommons']['metadata'])) {
+      $selected = $form_state['values']['creativecommons'][$key];
+    }
+    
+    elseif ($node->cc->metadata[$key]) {
+      $selected = $node->cc->metadata[$key];
+    }
+    
+    else {
+      $selected = creativecommons_get_metadata_default($key);
+    }
+
+    switch ($key) {
+      case 'type':
+        $form['creativecommons'][$key] = array(
+          '#type' => 'select',
+          '#title' => $title,
+          '#default_value' => $selected,
+          '#options' => creativecommons_get_dcmi_types(),
+          '#description' => creativecommons_get_metadata_description($key),
+          //'#attributes' => array('class' => 'creativecommons creativecommons-metadata-select-' . $key),
+          '#multiple' => NULL,
+          '#required' => $required,
+        );
+        break;
+
+      case 'description':
+        $form['creativecommons'][$key] = array(
+          '#type' => 'textarea',
+          '#title' => $title,
+          '#default_value' => $selected,
+          '#cols' => 60,
+          '#rows' => 5,
+          '#description' => creativecommons_get_metadata_description($key),
+          //'#attributes' => array('class' => 'creativecommons creativecommons-metadata-select-' . $key),
+          '#required' => $required,
+        );
+        break;
+
+      default:
+        $form['creativecommons'][$key] = array(
+          '#type' => 'textfield',
+          '#title' => $title,
+          '#default_value' => $selected,
+          '#size' => 50,
+          '#maxlength' => 255,
+          '#description' => creativecommons_get_metadata_description($key),
+          //'#attributes' => array('class' => 'creativecommons creativecommons-metadata-select-' . $key),
+          '#required' => $required,
+        );
+        break;
+    }
+  }
+  
+  return $form;
+}
+
+
+
+/**
+ * Validate the Creative Commons node form.
+ *
+ * The case of a non-available license is actually handled well by Drupal already.
+ * Drupal says, "an illegal choice has been detected," because only available
+ * licenses appear in the form.
+ *
+ * However, it seems that if a license becomes unavailable after a form is
+ * already in edit, or at least the preview stage, then the following check is
+ * still needed.
+ */
+function creativecommons_node_form_validate($form, &$form_state) {
+  creativecommons_validate_license_uri('cc_license_uri', $form_state['input']['cc_license_uri']);
+}
+
+/**
+ * Save license/node relationship in database
+ */
+function creativecommons_save($node, $op) {
+  // form submits data in creativecommons, while node_load stores it in cc
+  
+  if (isset($node->cc_license_uri)) {
+    //dsm($node->cc_license_uri);
+    $cc_license_uri = $node->cc_license_uri;
+    $metadata = NULL;
+    //$metadata = $node->creativecommons['metadata'];
+  }
+  elseif (isset($node->cc)) {
+    $cc_license_uri = $node->cc->uri;
+    $metadata = $node->cc->metadata;
+  }
+  // Fallback to the default user or site license
+  else {
+    // Retrieve the account of the node owner
+    if (isset($user->uid) && $user->uid == $node->uid) {
+      $account = $user;
+    }
+    else {
+      $account = user_load($node->uid);
+    }
+    // Test whether user has permissions to set his default license
+    if (user_access('use creative commons user defaults', $account)) {
+      //$cc_license_uri = $account->cc->uri;
+      //$metadata = $account->cc->metadata;
+    }
+    // Fallback to the default site license
+    elseif (creativecommons_node_type_is_enabled($node->type)) {
+      $default_license = creativecommons_get_default_license();
+      $cc_license_uri = $default_license->uri;
+      $metadata = $default_license->metadata;
+    }
+  }
+
+  // check that licensing is enabled for the content type and at least on license is enabled to
+  // avoid errors on new installs
+  if (creativecommons_node_type_is_enabled($node->type) && creativecommons_licenses_enabled()) {
+    //dsm('saving node');
+    $cc = new creativecommons_license($cc_license_uri, $metadata);
+    $cc->save($node->nid, $op);
+  }
+}
+
+/**
+ * Delete node/license relationship from database
+ */
+function creativecommons_delete($node) {
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query("DELETE FROM {creativecommons_node} WHERE nid = %d", $node->nid) */
+  db_delete('creativecommons_node')
+  ->condition('nid', $node->nid)
+  ->execute();
+}
+
+
+/**
+ * Returns true if Creative Commons licensing is enabled for this node type;
+ * false otherwise
+ */
+function creativecommons_node_type_is_enabled($type) {
+  $node_types = variable_get('creativecommons_node_types', array());
+
+  return !empty($node_types[$type]);
+}
+
+/**
+ * Find out how many nodes are using a given license type.
+ *
+ * @param $type -- license type to search for
+ * @return the number of nodes licensed under the given type.
+ */
+function creativecommons_count_by_license_type($type) {
+  // TODO Please convert this statement to the D7 database API syntax.
+  $result = db_query("SELECT COUNT(*) as count FROM {creativecommons_node} WHERE license_uri LIKE 'http://creativecommons.org/%/%s/%'", $type);
+  $row = db_fetch_object($result);
+  return $row->count;
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function creativecommons_user_view($account, $view_mode) {
+  global $user;
+  if ($account->uid == $user->uid) {
+    $site_license = creativecommons_get_default_license();
+    $account->content['creativecommons'] = array(
+      '#type' => 'user_profile_category',
+      '#title' => t('Creative Commons User Defaults'),
+      '#weight' => 50,
+    );
+    $account->content['creativecommons']['jurisdiction'] = array(
+      '#type' => 'user_profile_item',
+      '#title' => t('Jurisdiction'),
+      '#value' => $account->creativecommons['jurisdiction'] ? creativecommons_get_jurisdiction_name($account->creativecommons['jurisdiction']) : creativecommons_get_jurisdiction_name(variable_get('creativecommons_default_jurisdiction', '')) . ' [site default]', // TODO: compact, t()
+      '#attributes' => array('class' => 'creativecommons-user-default-jurisdiction'),
+      '#weight' => 1,
+    );
+    $account->content['creativecommons']['default_license'] = array(
+      '#type' => 'user_profile_item',
+      '#title' => t('Default license'),
+      '#value' => $account->cc ? $account->cc->get_name('generic') : $site_license->get_name('generic') . ' [site default]',
+      '#attributes' => array('class' => 'creativecommons-user-default-license-type'),
+      '#weight' => 2,
+    );
+
+    // Build attribution text (not using ccREL/RDFa here because this isn't actually attribution for anything)
+    if ($account->creativecommons['attributionName']) {
+      if ($account->creativecommons['attributionURL']) {
+        $attribution = l($account->creativecommons['attributionName'], $account->creativecommons['attributionURL']);
+      }
+      else {
+        $attribution = $account->creativecommons['attributionName'];
+      }
+    }
+    else {
+      $attribution = l($account->creativecommons['attributionURL'], $account->creativecommons['attributionURL']);
+    }
+    $account->content['creativecommons']['attribution'] = array(
+      '#type' => 'user_profile_item',
+      '#title' => t('Attribution'),
+      '#value' => $attribution,
+      '#attributes' => array('class' => 'creativecommons-user-default-license-type'),
+      '#weight' => 3,
+    );
+
+    return $account;
+  }
+}
+
+/**
+ * Implements hook_user_XXX().
+ */
+function creativecommons_user_form(&$form) {
+
+  $site_license = creativecommons_get_default_license();
+  $available_license_types = creativecommons_get_available_license_list(NULL, TRUE);
+
+  // Create site default entry at beginning
+  $available_license_types = array_merge( array('site' => t('[use site default]')), $available_license_types );
+
+
+  // Check to see if default license is still available
+  //TODO: check works, but appears on reload when saving a change that fixes the problem...
+  /* if ($account->cc && !$account->cc->is_available()) {
+   $message = $account->cc->get_name('generic');
+   $message .= $account->cc->is_valid() ? ' is not enabled' : ' is not valid';
+   drupal_set_message(t($message), 'warning', FALSE);
+   }*/
+
+  $form['creativecommons_user_defaults'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Creative Commons User Defaults'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $q = creativecommons_get_questions_array('standard');
+  $jurisdictions = creativecommons_format_jurisdiction_array($q['jurisdiction']['answers']);
+  $jurisdictions[''] = ''; //cannot default to 'generic' to avoid confusion -- no jurisdiction means 'use site default', rather than 'use generic'
+  $form['creativecommons_user_defaults']['jurisdiction'] = array(
+    '#type' => 'select',
+    '#title' => t('Jurisdiction'),
+    '#description' => $q['jurisdiction']['description'] . ' ' . t('If none set, site default will be used.'),
+    '#options' => $jurisdictions,
+    '#default_value' => $account->creativecommons['jurisdiction'],
+  );
+
+  $form['creativecommons_user_defaults']['license_type'] = array(
+    '#type' => 'select',
+    '#title' => t('License type'),
+    '#default_value' => $account->creativecommons['license_type'],
+    '#options' => $available_license_types,
+    '#description' => t('Select your default license type for new content.') . ' ' . t('If none set, site default will be used.'),
+  );
+
+
+  foreach (creativecommons_get_available_metadata_types() as $key => $name) {
+    if (in_array($key, array('attributionURL', 'attributionName'))) {
+      $form['creativecommons_user_defaults'][$key] = array(
+        '#type' => 'textfield',
+        '#title' => $name,
+        '#default_value' => $account->creativecommons[$key],
+        '#description' => creativecommons_get_metadata_description($key), // .' '. t('If none set, Drupal user info will be used'),
+      );
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+/*
+
+function creativecommons_user_presave(&$edit, $account, $category) {
+  // Delete old entry from database
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  // db_query("DELETE FROM {creativecommons_user} WHERE uid = %d", $account->uid) 
+  db_delete('creativecommons_user')
+  ->condition('uid', $account->uid)
+  ->execute();
+
+  // Load fields for query
+  $fields = array('uid', 'license_type', 'jurisdiction');
+  $values = array('%d', "'%s'", "'%s'");
+  $args = array($account->uid, $edit['license_type'], $edit['jurisdiction']);
+
+  // Load available user specific metadata fields
+  foreach (array('attributionName', 'attributionURL') as $key) {
+    if (creativecommons_metadata_is_available($key)) {
+      //$fields[] = $key;
+      //$values[] = "'%s'";
+      ///$args[] = $edit[$key];
+      $fields[$key] => 
+    }
+  }
+
+  // Build query
+  //$query = 'INSERT INTO {creativecommons_user} (' . implode(', ', $fields) . ') VALUES (' . implode(', ', $values) . ')';
+  //$args = array_merge(array($query), $args);
+  //$result = call_user_func_array('db_query', $args);
+  // TODO: review
+  
+  
+}
+*/
+
+/**
+ * Implements hook_user_insert().
+ */
+/*
+function creativecommons_user_insert(&$edit, $account, $category) {
+  // Delete old entry from database
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  // db_query("DELETE FROM {creativecommons_user} WHERE uid = %d", $account->uid) 
+  db_delete('creativecommons_user')
+  ->condition('uid', $account->uid)
+  ->execute();
+
+  // Load fields for query
+  $fields = array('uid', 'license_type', 'jurisdiction');
+  $values = array('%d', "'%s'", "'%s'");
+  $args = array($account->uid, $edit['license_type'], $edit['jurisdiction']);
+
+  // Load available user specific metadata fields
+  foreach (array('attributionName', 'attributionURL') as $key) {
+    if (creativecommons_metadata_is_available($key)) {
+      $fields[] = $key;
+      $values[] = "'%s'";
+      $args[] = $edit[$key];
+    }
+  }
+
+  // Build query
+  $query = 'INSERT INTO {creativecommons_user} (' . implode(', ', $fields) . ') VALUES (' . implode(', ', $values) . ')';
+  $args = array_merge(array($query), $args);
+  $result = call_user_func_array('db_query', $args);
+  // TODO: review
+}
+*/
+/**
+ * Implements hook_user_cancel().
+ */
+function creativecommons_user_cancel($edit, $account, $method) {
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query("DELETE FROM {creativecommons_user} WHERE uid = %d", $account->uid) */
+  db_delete('creativecommons_user')
+  ->condition('uid', $account->uid)
+  ->execute();
+}
+
+/**
+ * Implements hook_user_load().
+ */
+/*
+function creativecommons_user_load($users) {
+    
+  
+  $account->creativecommons = array();
+  $result = db_query('SELECT * FROM {creativecommons_user} WHERE uid = :uid', array(':uid' => $account->uid));
+  
+  
+  
+  foreach ($result as $row) {
+    foreach ($row as $key => $value) {
+      if ($key != 'uid') {
+        $account->creativecommons[$key] = $value;
+      }
+    }
+  }
+
+  // Load license, if not set to use site default
+  if (!empty($account->creativecommons['license_type']) && $account->creativecommons['license_type'] != 'site') {
+    $jurisdiction = $account->creativecommons['jurisdiction'] ? $account->creativecommons['jurisdiction'] : variable_get('creativecommons_default_jurisdiction', '');
+    $license_uri = creativecommons_get_license_uri_from_all($account->creativecommons['license_type'], $jurisdiction);
+    $account->cc = new creativecommons_license($license_uri);
+  }
+}
+*/
+
+/**
+ * Implements hook_user().
+ */
+function creativecommons_user_OLD($op, &$edit, &$account, $category = NULL) {
+  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
+  if (!user_access('use creative commons user defaults')) {
+    // user doesn't have permission to use this feature
+    return;
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function creativecommons_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'creativecommons') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function creativecommons_theme() {
+  $path = drupal_get_path('module', 'creativecommons') . '/theme';
+  require_once DRUPAL_ROOT . '/' . "./$path/theme.inc";
+
+  return array(
+    'creativecommons_node_license' => array(
+      'variables' => array('node' => NULL),
+      'file' => 'theme.inc',
+      'path' => $path,
+    ),
+    'creativecommons_site_license' => array(
+      'variables' => array('cc' => NULL),
+      'file' => 'theme.inc',
+      'path' => $path,
+    ),
+  );
+}
+
+/**
+ * Implements hook_content_extra_fields().
+ */
+function creativecommons_content_extra_fields() {
+  $extras['creativecommons'] = array(
+    'label' => t('Creative Commons Licensing'),
+    'description' => t('Allows user to select Creative Commons license and add additional attributes.'),
+    'weight' => 100,
+  );
+  return $extras;
+}
+
+/**
+ * Implements hook_token_list().
+ *
+ */
+function creativecommons_token_list($type = 'all') {
+  if ($type == 'node' || $type == 'all') {
+
+    $tokens['node']['creativecommons-licence-name'] = t("Full Creative Commons license for node.");
+    $tokens['node']['creativecommons-licence-type'] = t("Short Creative Commons license for node.");
+    $tokens['node']['creativecommons-licence-uri'] = t("Creative Commons URI  for node.");
+  }
+
+  if ($type == 'global' || $type == 'all') {
+
+    $tokens['global']['creativecommons-site-licence-name'] = t("Full Creative Commons license for site.");
+    $tokens['global']['creativecommons-site-licence-type'] = t("Short Creative Commons license for site.");
+    $tokens['global']['creativecommons-site-licence-uri'] = t("Creative Commons URI for site.");
+
+  }
+
+  return $tokens;
+}
+
+
+/**
+ * Implements hook_token_values().
+ */
+function creativecommons_token_values($type, $object = NULL) {
+  $values = array();
+  switch ($type) {
+    case 'global':
+
+      $site_license = creativecommons_get_site_license();
+
+      $values['creativecommons-site-licence-name'] = $site_license->name;
+      $values['creativecommons-site-licence-type'] = $site_license->type;
+      $values['creativecommons-site-licence-uri'] = $site_license->uri;
+
+      break;
+    case 'node':
+      // Node tokens here.
+
+      if ($object->creativecommons) {
+        //initial form submit
+        $values['creativecommons-licence-uri'] = $object->creativecommons['select_license_form']['cc_license_uri'];
+        $selected_license = new creativecommons_license($object->creativecommons['select_license_form']['cc_license_uri']);
+
+        $values['creativecommons-licence-name'] = $selected_license->name;
+        $values['creativecommons-licence-type'] = $selected_license->type;
+
+      }
+      else {
+        //value saved to node
+        $values['creativecommons-licence-name'] = $object->cc->name;
+        $values['creativecommons-licence-type'] = $object->cc->type;
+        $values['creativecommons-licence-uri'] = $object->cc->uri;
+
+      }
+      break;
+  }
+  return $values;
+}
+
+function creativecommons_status() {
+  //admin/config/search/creativecommons
+  return 'Installed, but no default jurisdiction selected or licenses enabled.';
+}

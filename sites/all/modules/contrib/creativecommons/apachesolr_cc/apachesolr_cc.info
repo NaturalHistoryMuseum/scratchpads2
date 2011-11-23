@@ -1,0 +1,7 @@
+; file apachesolr_cc.info
+name = Apache Solr Creative Commons
+description = Integrates Creative Commons and Apache Solr Search
+dependencies[] = creativecommons
+dependencies[] = apachesolr
+package = Apache Solr
+core = "6.x"
