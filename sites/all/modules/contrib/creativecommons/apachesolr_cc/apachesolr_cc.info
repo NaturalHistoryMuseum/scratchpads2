@@ -5,3 +5,9 @@ dependencies[] = creativecommons
 dependencies[] = apachesolr
 package = Apache Solr
 core = "6.x"
+; Information added by drupal.org packaging script on 2011-04-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "creativecommons"
+datestamp = "1304121987"
+

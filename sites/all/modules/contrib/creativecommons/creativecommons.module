@@ -1407,7 +1407,7 @@ function creativecommons_node_delete($node) {
 function creativecommons_node_view($node, $view_mode = 'rss') {
 
   //TODO: move xmlns declarations to top of file...
-  if ($node->cc && $node->cc->is_available() && $node->cc->has_license()) {
+  if (isset($node->cc) && $node->cc->is_available() && $node->cc->has_license()) {
     $return = array();
     $return[] = array(
       'key' => 'creativeCommons:license',

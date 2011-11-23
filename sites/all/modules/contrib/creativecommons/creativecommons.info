@@ -17,3 +17,10 @@ files[] = includes/creativecommons_views_handler_field_attribution.inc
 files[] = includes/creativecommons_views_handler_field_license_uri.inc
 files[] = includes/creativecommons_views_handler_filter_license_uri.inc
 files[] = theme/theme.inc
+
+; Information added by drupal.org packaging script on 2011-04-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "creativecommons"
+datestamp = "1304121987"
+
