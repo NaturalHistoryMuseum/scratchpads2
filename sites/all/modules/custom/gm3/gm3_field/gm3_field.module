@@ -625,6 +625,10 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
   switch($field['type']){
     case 'gm3_point':
       if(count($items)){
+        // Set the items as not being editable.
+        foreach($items as $key => $item){
+          $items[$key]['editable'] = FALSE;
+        }
         $element = theme('gm3_map', array(
           'map' => array(
             'id' => $id,
@@ -697,7 +701,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           case 'point':
             $map['libraries']['point']['points'][] = array(
               'latitude' => $item['latitude'],
-              'longitude' => $item['longitude']
+              'longitude' => $item['longitude'],
+              'editable' => FALSE
             );
             $display_map = TRUE;
             break;
