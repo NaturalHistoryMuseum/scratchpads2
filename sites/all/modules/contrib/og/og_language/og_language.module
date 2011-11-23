@@ -1,0 +1,106 @@
+<?php
+
+
+/**
+ * @file
+ * Associate language interface to a group.
+ */
+
+/**
+ * Group language field.
+ */
+define('OG_LANGUAGE_FIELD', 'group_language');
+
+/**
+ * Implement og_fields_info().
+ */
+function og_language_group_fields_info() {
+  $items[OG_LANGUAGE_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Associate language interface to a group.'),
+    'field' => array(
+      'field_name' => OG_LANGUAGE_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_text',
+      'cardinality' => 1,
+      'settings' => array('allowed_values' => array(), 'allowed_values_function' => 'og_language_field_allowed_values'),
+    ),
+    'instance' => array(
+      'label' => t('Groups language interface'),
+      'widget_type' => 'options_select',
+      'required' => TRUE,
+      // Use default language as default value.
+      'default_value' => array(0 => array('value' => '__default')),
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_language_negotiation_info().
+ */
+function og_language_language_negotiation_info() {
+  $providers = array();
+
+  $providers['group-language'] = array(
+    'callbacks' => array('language' => 'og_language_from_group_context'),
+    'weight' => -5,
+    'name' => t('Group'),
+    'description' => t("Follow the Group context's language preference."),
+    'file' => drupal_get_path('module', 'og_language') .'/group_language.module',
+  );
+
+  return $providers;
+}
+
+/**
+ * Identify language from a request/session parameter.
+ *
+ * @param $languages
+ *   An array of valid language objects.
+ *
+ * @return
+ *   A valid language code on success, FALSE otherwise.
+ */
+function og_language_from_group_context($languages) {
+  // We need a full bootstrap in order to get the group context.
+  drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+
+  if ($group = og_context()) {
+    // Load the entity.
+    $entity = $group->getEntity();
+
+    // Check if a theme field exists, and it isn't defined as "default"
+    // (i.e. use the default site language).
+    if (!empty($entity->{OG_LANGUAGE_FIELD}[LANGUAGE_NONE][0]['value']) && $entity->{OG_LANGUAGE_FIELD}[LANGUAGE_NONE][0]['value'] != '__default') {
+      // TODO: Check language is valid.
+      return $entity->{OG_LANGUAGE_FIELD}[LANGUAGE_NONE][0]['value'];
+    }
+  }
+  return FALSE;
+}
+
+
+/**
+ * Return all enabled languages.
+ */
+function og_language_field_allowed_values() {
+  $return = array('__default' => t('Use site-wide language interface definition'));
+
+  foreach (locale_language_list() as $key => $value) {
+    $return[$key] = check_plain($value);
+  }
+
+  return $return;
+}

@@ -1,0 +1,106 @@
+<?php
+
+
+/**
+ * @file
+ * Add content creation links based on group context.
+ */
+
+/**
+ * Group node link field.
+ */
+define('OG_NODE_LINK_FIELD', 'og_node_link');
+
+/**
+ * Implement hook_field_formatter_info().
+ */
+function og_node_link_field_formatter_info() {
+  return array(
+    'og_node_link_default' => array(
+      'label' => t('Group content links'),
+      'field types' => array('list_text'),
+    ),
+  );
+}
+
+/**
+ * Implement og_fields_info().
+ */
+function og_node_link_og_fields_info() {
+  $items[OG_NODE_LINK_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Add content creation links based on group context.'),
+    'field' => array(
+      'field_name' => OG_NODE_LINK_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_text',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array('allowed_values' => array(), 'allowed_values_function' => 'og_node_link_field_allowed_values'),
+    ),
+    'instance' => array(
+      'label' => t('Group content links'),
+      'widget_type' => 'options_select',
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'og_node_link_default',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'og_node_link_default',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+
+/**
+ * Get all the content types a user should be able to add.
+ */
+function og_node_link_field_allowed_values() {
+  $options = array();
+
+  foreach (node_type_get_types() as $node) {
+    if (og_is_group_content_type('node', $node->type)) {
+      $options[$node->type] = check_plain($node->name);
+    }
+  }
+
+  return $options;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function og_node_link_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  if ($field['field_name'] == OG_NODE_LINK_FIELD && !empty($entity->{OG_NODE_LINK_FIELD}[LANGUAGE_NONE][0]['value'])) {
+
+    // Get the allowed links.
+    $links = array();
+    foreach ($entity->{OG_NODE_LINK_FIELD}[LANGUAGE_NONE] as $delta => $value) {
+      $node_type = $value['value'];
+      // Check if the user can create this node type.
+      if (node_access('create', $node_type)) {
+        $element[$delta] = array(
+          '#type' => 'link',
+          '#title' => check_plain(node_type_get_name($node_type)),
+          '#href' => 'node/add/' . str_replace('_', '-', $node_type),
+          '#options' => array(
+            'query' => array(
+              // We know the entity is a node.
+              'gids_node[]' => $entity->nid,
+              // Redirect back to the original page.
+              'destination' => $_GET['q'],
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  return $element;
+}

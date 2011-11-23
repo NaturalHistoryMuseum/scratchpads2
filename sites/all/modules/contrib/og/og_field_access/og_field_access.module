@@ -1,0 +1,151 @@
+<?php
+
+
+/**
+ * @file
+ * Provide field access based on group.
+ */
+
+/**
+ * Implements hook_og_permission().
+ *
+ * Add view/ edit permissions to all existing fields.
+ */
+function og_field_access_og_permission() {
+  $perms = array();
+  foreach (field_info_instances() as $entity => $bundles) {
+    foreach ($bundles as $bundle => $bundle_value) {
+      if (!empty($bundle_value)) {
+        foreach ($bundle_value as $field_name => $value) {
+          $label = $value['label'];
+
+          $perm = 'view ' . $field_name . ' field';
+          $perms[$perm] = array(
+              'title' => t('View @label field', array('@label' => $label)),
+              'description' => t('View the @label field for existing groups.', array('@label' => $label)),
+              'roles' => array(OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE),
+              'default role' => array(
+                OG_ANONYMOUS_ROLE,
+                OG_AUTHENTICATED_ROLE,
+                OG_ADMINISTRATOR_ROLE,
+              ),
+              'module' => 'og_field_access',
+            );
+
+          $perm = 'update ' . $field_name . ' field';
+          $perms[$perm] = array(
+            'title' => t('Edit @label field', array('@label' => $label)),
+            'description' => t('Edit the @label field for existing groups.', array('@label' => $label)),
+            'roles' => array(OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE),
+            'default role' => array(OG_ADMINISTRATOR_ROLE),
+            'module' => 'og_field_access',
+          );
+        }
+      }
+    }
+  }
+  return $perms;
+}
+
+
+/**
+ * Implements hook_field_attach_form().
+ *
+ * Controls editing fields.
+ */
+function og_field_access_field_attach_form($entity_type, $entity, &$form, $form_state, $langcode) {
+  // Make sure entity is a group or group content.
+  if (isset($entity->{OG_AUDIENCE_FIELD}) || isset($entity->{OG_GROUP_FIELD})) {
+    // Check field access permissions for the specific bundle.
+    $fields = field_info_instances($entity_type, $form['#bundle']);
+    if ($fields) {
+      foreach ($fields as $field_name => $value) {
+        og_field_access_check_access($entity_type, $entity, $form, $form_state, $langcode, $field_name, 'update');
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_view_alter().
+ *
+ * Controls viewing fields.
+ */
+function og_field_access_field_attach_view_alter(&$result, $context) {
+  $entity = $context['entity'];
+  // Make sure entity is a group or group content.
+  if (isset($entity->{OG_AUDIENCE_FIELD}) || isset($entity->{OG_GROUP_FIELD})) {
+    // Copy the result to a new variable, so it won't be changed in
+    // element_children().
+    $fields = $result;
+    if ($field_names = element_children($fields)) {
+      foreach ($field_names as $field_name) {
+        og_field_access_check_access($context['entity_type'], $entity, $result, array(), '', $field_name, 'view');
+      }
+    }
+  }
+}
+
+
+/**
+ * Helper function to check if a user has access to a field.
+ *
+ * @see hook_field_attach_form().
+
+ * @param $entity_type
+ * @param $entity
+ * @param $form
+ * @param $field_name
+ *   The name of the field that the edit access is checked for.
+ */
+function og_field_access_check_access($entity_type, $entity, &$form, $form_state, $langcode, $field_name, $op) {
+  global $user;
+
+  // TODO: It seems $langcode isn't always passed.
+  $langcode = !empty($langcode) ? $langcode : LANGUAGE_NONE;
+
+  // We might need to copy the bundle property from the form into the field.
+  // This is because this function is called from the view and the edit
+  // field attachers, and we want to deal with the access in a general way.
+  if (!empty($form['#bundle'])) {
+    $form[$field_name]['#bundle'] = $form['#bundle'];
+  }
+  if (!empty($form[$field_name]['#bundle'])) {
+    $account = clone $user;
+    list($id) = entity_extract_ids($entity_type, $entity);
+    if (!empty($id)) {
+      // Existing entity and the field exists.
+      $access = FALSE;
+
+      $perm = $op . ' ' . $field_name . ' field';
+
+      if (og_is_group_type($entity_type, $form[$field_name]['#bundle']) && $group = og_get_group($entity_type, $id)) {
+        $access = og_user_access($group->gid, $perm);
+      }
+      // If there is no access, check if this is a group content.
+      if (!$access && og_is_group_content_type($entity_type, $form[$field_name]['#bundle'])) {
+        if ($gids = og_get_entity_groups($entity_type, $entity)) {
+          foreach ($gids as $gid) {
+            // TODO: Add "strict" mode.
+            if (og_user_access($gid, $perm)) {
+              $access = TRUE;
+              break;
+            }
+          }
+        }
+        else {
+          // This is an orphan group content.
+          $access = TRUE;
+        }
+      }
+
+      if ($op == 'update') {
+        $element = &$form[$field_name][$langcode]['#access'];
+      }
+      else {
+        $element = &$form[$field_name]['#access'];
+      }
+      $element = $access;
+    }
+  }
+}
