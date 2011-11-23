@@ -1,0 +1,42 @@
+This module allows users to assign a Creative Commons license to the content 
+of a node.  It uses to Creatve Commons API to update when new licenses are 
+made available.
+
+Administators can also select a site license, which can be displayed in the 
+footer of each page.
+
+
+QUESTIONS, COMMENTS, ANGRY OUTBURSTS?
+////////////////////
+
+Please direct them to Peter Bull <pbull@ltc.org>
+
+
+INSTALLATION
+////////////////////
+
+1.  Uncompress the creativecommons.tar file to your modules directory.
+
+2.  Create the database table using the file creativecommons.mysql
+
+3.  Turn on the module under admin > modules.
+
+4.  Under admin > settings > Creative Commons, set up the module.  Note that 
+you must have at least one license selected (under "License Selection") for 
+the module to work.  You can also, optionally, select required metadata 
+fields, and the manner in which the license will be displayed.
+
+5.  If you would like to select a license that encompasses the entire site,
+do so under admin > settings > Creative Commons > site license.  You can 
+customize the display of the site license and accompanying text.
+
+6.  Under admin > content > configure > default workflow, you can select
+which node types can have a license appended to them.  For example, you
+might wish to allow Creative Commons licenses to be atttached to blog
+posts, but not to forum posts.
+
+7.  Under admin > users > configure > permissions, select the user roles
+that will have permission to attach licenses to nodes.
+
+8.  That's all folks... now your users can assign a Creative Commons
+license to their new content.
