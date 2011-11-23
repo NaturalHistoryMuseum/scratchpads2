@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter.
+ */
+function itis_term_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == 'taxonomy_form_term'){
+    $form['field_unit_name2']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name1[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_name3']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name2[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_name4']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name3[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_indicator1']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name1[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_indicator2']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name2[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_indicator3']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name3[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+    $form['field_unit_indicator4']['#states'] = array(
+      'visible' => array(
+        ':input[name="field_unit_name4[und][0][value]"]' => array(
+          'filled' => TRUE
+        )
+      )
+    );
+  }
+}
