@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * Implementation of hook_field_info().
+ */
+function anytaxonomyfield_field_info(){
+  return array(
+    'anytaxonomy_term_reference' => array(
+      'label' => t('Term reference (flexible)'),
+      'description' => t('Identical to the "Term reference" field, but allows a user to select the vocabulary referenced during input.'),
+      'default_widget' => 'options_select',
+      'default_formatter' => 'taxonomy_term_reference_link',
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => '',
+            'parent' => '0'
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function anytaxonomyfield_field_settings_form($field, $instance, $has_data){
+  $form = taxonomy_field_settings_form($field, $instance, $has_data);
+  foreach($field['settings']['allowed_values'] as $delta => $tree){
+    $form['allowed_values'][$delta]['vocabulary']['#empty_value'] = TRUE;
+    $form['allowed_values'][$delta]['vocabulary']['#title'] = t('Default vocabulary');
+    $form['allowed_values'][$delta]['vocabulary']['#required'] = FALSE;
+  }
+  return $form;
+}
+
+/**
+ * Implementation of hook_field_is_empty().
+ */
+function anytaxonomyfield_field_is_empty($item, $field){
+  return taxonomy_field_is_empty($item, $field);
+}
+
+/**
+ * Implementation of hook_field_widget_info_alter().
+ */
+function anytaxonomyfield_field_widget_info_alter(&$info){
+  // Update the widgets that are compatible with the "Term reference" field to 
+  // also mark them as being compatible with this field.
+  $info['taxonomy_autocomplete']['field types'][] = 'anytaxonomy_term_reference';
+  $info['options_select']['field types'][] = 'anytaxonomy_term_reference';
+  $info['options_buttons']['field types'][] = 'anytaxonomy_term_reference';
+}
+
+/**
+ * Implementation of hook_options_list().
+ */
+function anytaxonomyfield_options_list($field){
+  return taxonomy_options_list($field);
+}
+
+/**
+ * Implementation of hook_field_widget_form_alter().
+ */
+function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $context){
+  if($context['field']['type'] == 'anytaxonomy_term_reference'){
+    $context['field']['settings']['allowed_values'][0]['vocabulary'] = 1;
+    $callback = "{$context['instance']['widget']['module']}_field_widget_form";
+    if(function_exists(($callback))){
+      $form = array();
+      //options_field_widget_form($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $element);
+      $term_field = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $element);
+    }else{
+      $term_field = array(
+        '#markup' => '<p class="error">' . t('There has been an error with your configuration, please contact an administrator') . '</p>'
+      );
+    }
+    dpm($context);
+    $vocabularies = taxonomy_get_vocabularies();
+    $options = array();
+    foreach($vocabularies as $vocabulary){
+      $options[$vocabulary->machine_name] = $vocabulary->name;
+    }
+    $element = array(
+      '#type' => 'fieldset',
+      '#title' => $element['#title'],
+      'vocabulary_select' => array(
+        '#title' => t('Select vocabulary'),
+        '#type' => 'select',
+        '#options' => $options,
+        '#empty_value' => TRUE,
+        '#required' => FALSE,
+        '#ajax' => array(
+          'callback' => 'anytaxonomyfield_ajax_callback',
+          'effect' => 'slide'
+        )
+      ),
+      'term_field' => $term_field
+    );
+  }
+}
+
+function anytaxonomyfield_ajax_callback($form, $form_state){
+  return '';
+}

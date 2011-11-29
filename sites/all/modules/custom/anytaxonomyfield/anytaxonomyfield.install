@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ */
+function anytaxonomyfield_field_schema($field){
+  // Load the taxonomy install file, and return the schema from that.
+  module_load_include('install', 'taxonomy');
+  return taxonomy_field_schema($field);
+}
