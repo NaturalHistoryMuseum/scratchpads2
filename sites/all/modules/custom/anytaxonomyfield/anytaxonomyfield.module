@@ -28,7 +28,8 @@ function anytaxonomyfield_field_info(){
 function anytaxonomyfield_field_settings_form($field, $instance, $has_data){
   $form = taxonomy_field_settings_form($field, $instance, $has_data);
   foreach($field['settings']['allowed_values'] as $delta => $tree){
-    $form['allowed_values'][$delta]['vocabulary']['#empty_value'] = TRUE;
+    $form['allowed_values'][$delta]['vocabulary']['#empty_value'] = FALSE;
+    $form['allowed_values'][$delta]['vocabulary']['#empty_option'] = t('No default');
     $form['allowed_values'][$delta]['vocabulary']['#title'] = t('Default vocabulary');
     $form['allowed_values'][$delta]['vocabulary']['#required'] = FALSE;
   }
@@ -36,10 +37,32 @@ function anytaxonomyfield_field_settings_form($field, $instance, $has_data){
 }
 
 /**
+ * Implementation of hook_field_insert().
+ */
+function anytaxonomyfield_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  return taxonomy_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function anytaxonomyfield_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
+  return taxonomy_field_update($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implementation of hook_field_presave().
+ */
+function anytaxonomyfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items){
+  $a = $items;
+}
+
+/**
  * Implementation of hook_field_is_empty().
  */
 function anytaxonomyfield_field_is_empty($item, $field){
-  return taxonomy_field_is_empty($item, $field);
+  $is_empty = taxonomy_field_is_empty($item, $field);
+  return $is_empty;
 }
 
 /**
@@ -48,9 +71,11 @@ function anytaxonomyfield_field_is_empty($item, $field){
 function anytaxonomyfield_field_widget_info_alter(&$info){
   // Update the widgets that are compatible with the "Term reference" field to 
   // also mark them as being compatible with this field.
-  $info['taxonomy_autocomplete']['field types'][] = 'anytaxonomy_term_reference';
-  $info['options_select']['field types'][] = 'anytaxonomy_term_reference';
-  $info['options_buttons']['field types'][] = 'anytaxonomy_term_reference';
+  foreach($info as $key => $value){
+    if(in_array('taxonomy_term_reference', $value['field types'])){
+      $info[$key]['field types'][] = 'anytaxonomy_term_reference';
+    }
+  }
 }
 
 /**
@@ -65,18 +90,22 @@ function anytaxonomyfield_options_list($field){
  */
 function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $context){
   if($context['field']['type'] == 'anytaxonomy_term_reference'){
-    $context['field']['settings']['allowed_values'][0]['vocabulary'] = 1;
+    if(isset($form_state['input'][$context['field']['field_name']][$context['langcode']]['vocabulary_select'])){
+      $context['field']['settings']['allowed_values'][0]['vocabulary'] = $form_state['input'][$context['field']['field_name']][$context['langcode']]['vocabulary_select'];
+    }
     $callback = "{$context['instance']['widget']['module']}_field_widget_form";
-    if(function_exists(($callback))){
+    if(function_exists(($callback)) && $context['field']['settings']['allowed_values'][0]['vocabulary']){
       $form = array();
-      //options_field_widget_form($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $element);
-      $term_field = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $element);
+      $term_field = array(
+        '#required' => isset($element['#required']) ? $element['#required'] : FALSE
+      );
+      $term_field = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $term_field);
     }else{
       $term_field = array(
-        '#markup' => '<p class="error">' . t('There has been an error with your configuration, please contact an administrator') . '</p>'
+        '#markup' => ''
       );
     }
-    dpm($context);
+    // Set the options for the taxonomy drop down.
     $vocabularies = taxonomy_get_vocabularies();
     $options = array();
     foreach($vocabularies as $vocabulary){
@@ -85,15 +114,17 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
     $element = array(
       '#type' => 'fieldset',
       '#title' => $element['#title'],
+      '#prefix' => '<div class="anytaxonomyfield">',
+      '#suffix' => '</div>',
       'vocabulary_select' => array(
-        '#title' => t('Select vocabulary'),
+        '#title' => '',
         '#type' => 'select',
         '#options' => $options,
-        '#empty_value' => TRUE,
+        '#empty_option' => t('Select a vocabulary'),
+        '#default_value' => $context['field']['settings']['allowed_values'][0]['vocabulary'],
         '#required' => FALSE,
         '#ajax' => array(
-          'callback' => 'anytaxonomyfield_ajax_callback',
-          'effect' => 'slide'
+          'callback' => 'anytaxonomyfield_ajax_callback'
         )
       ),
       'term_field' => $term_field
@@ -102,5 +133,10 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
 }
 
 function anytaxonomyfield_ajax_callback($form, $form_state){
-  return '';
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      ajax_command_replace('#' . str_replace("_", "-", $form_state['input']['form_id']) . ' .anytaxonomyfield', drupal_render($form[$form_state['triggering_element']['#parents'][0]]))
+    )
+  );
 }
