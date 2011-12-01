@@ -3,28 +3,27 @@
  * @file biblio_bibtex.module
  *
  */
-/*function biblio_bibtex_menu() {
-  global $user;
-  $items = array();
-  $base = variable_get('biblio_base', 'biblio');
-
-  $items["$base/export/bibtex"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_bibtex_biblio_export',
-    'access callback'   => 'user_access',
-    'access arguments'  => array('show export links'),
-    'type'              => MENU_CALLBACK
+function biblio_bibtex_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_bibtex') . '/views',
   );
-
-  return $items;
 }
-*//*
+/*
  *   add the BibTex option to the option list of the biblio_import_form
  *   the key is the module name use by module_invoke to call hook_biblio_import
  *   module_invoke('biblio_bibtex', 'biblio_import',...)
  */
 function biblio_bibtex_biblio_import_options() {
   return array('biblio_bibtex' => t('BibTex'));
+}
+function biblio_bibtex_biblio_mapper_options() {
+  return  array(
+    'bibtex' => array(
+      'title' => t('BibTex'),
+      'export' => TRUE,
+      )
+    );
 }
 
 function biblio_bibtex_form_biblio_node_form_alter(&$form, &$form_state) {
@@ -70,7 +69,7 @@ function biblio_bibtex_form_biblio_node_form_submit($form, &$form_state) {
   }
   if (!empty($node_data) && is_object($node_data[0])) {
     $form_state['values'] = array_merge($form_state['values'], (array)$node_data[0]);
-    $form_state['input']['biblio_type'] = $node_data[0]->biblio_type;
+    $form_state['input']['biblio_type'] = $form_state['biblio_type'] =  $node_data[0]->biblio_type;
 
 //    $form_state['storage']['biblio_type']  = $node_data[0]->biblio_type;
   }
@@ -188,8 +187,8 @@ function biblio_bibtex_biblio_export($nids) {
     drupal_add_http_header('Content-Disposition', 'attachment; filename="Biblio-Bibtex.bib"');
   }
 
-  foreach ($nids as $nid) {
-    $node = node_load($nid, FALSE, TRUE);
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
     if (!$popup) {
       print _biblio_bibtex_export($node);
     }
@@ -295,6 +294,7 @@ function _biblio_bibtex_import($entries, $terms = array(), $batch = FALSE, $sess
  *   none
  */
 function _biblio_bibtex_export($node) {
+  static $converter = NULL;
 
   $bibtex = '';
   $type = "article";
@@ -327,6 +327,7 @@ function _biblio_bibtex_export($node) {
       $journal = $node->biblio_secondary_title;
       break;
   }
+
   $bibtex .= '@' . $type . ' {';
   $bibtex .= ($node->biblio_citekey) ? $node->biblio_citekey  : "";
   $bibtex .= _biblio_bibtex_format_entry('title', $node->title);
@@ -364,10 +365,12 @@ function _biblio_bibtex_export($node) {
     $kw_array = array_unique($kw_array);
     $bibtex .= _biblio_bibtex_format_entry('keywords', implode(', ', $kw_array));
   }
+
   $bibtex .= _biblio_bibtex_format_entry('isbn', $node->biblio_isbn);
   $bibtex .= _biblio_bibtex_format_entry('issn', $node->biblio_issn);
   $bibtex .= _biblio_bibtex_format_entry('doi', $node->biblio_doi);
   $bibtex .= _biblio_bibtex_format_entry('url', $node->biblio_url);
+
   if (!empty ($node->upload) && count($node->upload['und']) && user_access('view uploaded files')) {
       foreach ($node->upload['und'] as $file) {
       $attachments[] = file_create_url($file['uri']);
@@ -390,10 +393,12 @@ function _biblio_bibtex_export($node) {
 
 
   //now convert any special characters to the latex equivelents...
-  module_load_include('php', 'biblio_bibtex', 'PARSEENTRIES');
-  include(drupal_get_path('module', 'biblio_bibtex') . '/transtab_unicode_bibtex.inc.php');
-  $converter = new PARSEENTRIES();
-  $bibtex = $converter->searchReplaceText($transtab_unicode_bibtex, $bibtex, FALSE);
+  if (!isset($converter)) {
+    module_load_include('php', 'biblio_bibtex', 'PARSEENTRIES');
+    include_once(drupal_get_path('module', 'biblio_bibtex') . '/transtab_unicode_bibtex.inc.php');
+    $converter = new PARSEENTRIES();
+  }
+  $bibtex = $converter->searchReplaceText(_biblio_bibtex_get_transtab(), $bibtex, FALSE);
 
   return $bibtex;
 }

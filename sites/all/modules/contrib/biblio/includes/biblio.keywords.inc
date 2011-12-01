@@ -27,7 +27,10 @@
 function biblio_get_keyword_by_name($name) {
   static $keywords = array();
   if (!$kid = array_search($name, $keywords)) {
-    $term = db_query("SELECT * FROM {biblio_keyword_data} k WHERE LOWER(k.word) = LOWER(:name)", array(':name' => trim($name)))->fetchObject();
+    $term = db_query("SELECT kd.kid, kd.word, COUNT(*) as use_count FROM {biblio_keyword_data} kd
+    								LEFT JOIN {biblio_keyword} bk on bk.kid = kd.kid
+    								WHERE LOWER(kd.word) = LOWER(:name)
+    								GROUP BY kd.kid, kd.word", array(':name' => trim($name)))->fetchObject();
     if ($term) {
       $keywords[$term->kid] = $term;
       return $keywords[$term->kid];
@@ -80,6 +83,7 @@ function biblio_load_keywords_multiple($vids = array()) {
   else {
     $query->condition('bk.vid', $vids, 'IN');
   }
+  $query->addMetaData('base_table', 'biblio_keyword');
   $query->addTag('node_access');
   $result = $query->execute();
 
@@ -169,20 +173,15 @@ function biblio_insert_keywords($node, $update = FALSE) {
     }
     // Defend against duplicate, differently cased tags
     if (!isset($inserted[$kid])) {
-      if ($update) {
-        $and = db_and()->condition('nid', $node->nid)
-                       ->condition('vid', $node->vid)
-                       ->condition('kid', $kid);
-         db_delete('biblio_keyword')
-            ->condition($and)
-            ->execute();
-      }
-      $inserted[$kid] = db_insert('biblio_keyword')->fields(
-        array(
-          'kid' => $kid,
-          'nid' => $node->nid,
-          'vid' => $node->vid
-        ))->execute();
+      db_merge('biblio_keyword')
+        ->key(array('kid' => $kid, 'vid' => $node->vid))
+        ->fields(
+          array(
+            'kid' => $kid,
+            'nid' => $node->nid,
+            'vid' => $node->vid
+          ))->execute();
+      $inserted[$kid] = TRUE;
     }
   }
 

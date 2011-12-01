@@ -99,7 +99,7 @@ function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $ses
             break;
           case '650':
             foreach ($field->subfields() as $subject) {
-              $node->biblio_keywords[] = $subject;
+              $node->biblio_keywords[] = $subject[0];
             }
             break;
           case '100':

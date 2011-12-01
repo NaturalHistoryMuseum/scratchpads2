@@ -7,7 +7,8 @@
 
 
 function biblio_view_node($nid) {
-  drupal_goto('node/' . (int)$nid, NULL, NULL, 301); // set a 301 response code
+  $options = array();
+  drupal_goto('node/' . (int)$nid, $options, 301); // set a 301 response code
 }
 
 function biblio_arg_handler($arg_info) {
@@ -100,7 +101,7 @@ function biblio_page() {
 function biblio_page_header($filter = array()) {
   $header = array();
   $header = array(
-    	'#prefix' => '<div id="biblio-header" class="clear-block">',
+      '#prefix' => '<div id="biblio-header" class="clear-block">',
       '#suffix' => '</div>',
       '#weight' => -100,
   );
@@ -110,9 +111,9 @@ function biblio_page_header($filter = array()) {
     $header += array(
       'search_form' => array(
         '#type'   => 'fieldset',
-        '#title' 	=> t('Search'),
-    		'#collapsible' => TRUE,
-  			'#collapsed' => TRUE,
+        '#title'   => t('Search'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
         'searchform' => drupal_get_form('biblio_search_form'),
         'filterform' => drupal_get_form('biblio_form_filter')
       ),
@@ -124,10 +125,10 @@ function biblio_page_header($filter = array()) {
   }
   $header += array(
     'export_links' => array(
-    	'#prefix' => '<div class="biblio-export">',
-      '#node'		=> NULL,
+      '#prefix' => '<div class="biblio-export">',
+      '#node'    => NULL,
       '#filter' => $filter,
-      '#theme'	=> 'biblio_export_links',
+      '#theme'  => 'biblio_export_links',
       //'#markup' => theme('biblio_export_links', array('node' => NULL)),
       '#suffix' => '</div>',
     ),
@@ -148,7 +149,7 @@ function biblio_page_header($filter = array()) {
   }
   $header += array(
     'filter_status' => array(
-    	'#prefix' => '<div class="biblio-filter-status">',
+      '#prefix' => '<div class="biblio-filter-status">',
       '#suffix' => '</div>',
       '#markup' => _biblio_filter_info_line($filter),
     ),
@@ -167,13 +168,13 @@ function biblio_page_header($filter = array()) {
       }
       $header += array(
         'alpha_line' => array(
-        	'#prefix' => '<div class="biblio-alpha-line">',
+          '#prefix' => '<div class="biblio-alpha-line">',
           '#suffix' => '</div>',
           '#markup' => theme('biblio_alpha_line', array(
-          													'type' => $_GET['s'],
-          													'current' => $value,
-          													'path' => variable_get('biblio_base', 'biblio'))
-                       ),
+          'type' => $_GET['s'],
+          'current' => $value,
+          'path' => variable_get('biblio_base', 'biblio'))
+          ),
         ),
       );
     }
@@ -252,7 +253,7 @@ function biblio_entry($node) {
 //  $prefix .= theme('checkbox', array('element' => $select_box));
 
   $entry  = array(
-  	'#prefix' => $prefix,
+    '#prefix' => $prefix,
     '#suffix' => $suffix,
   );
 
@@ -308,13 +309,6 @@ function biblio_build_query($arg_list) {
   $rss_info['title'] = variable_get('biblio_base_title', 'Biblio');
   $rss_info['link'] = '';
   $rss_info['description'] = '';
-
-  $joins = array();
-  $args = array();
-  $selects = array();
-  $count_selects = array();
-  $count_limit = '';
-
 
   if ($arg_list['page_limit'] > 0) {
     $query = db_select('node', 'n')->extend('PagerDefault');
@@ -396,7 +390,6 @@ function biblio_build_query($arg_list) {
 
 
   if (isset($arg_list['f']) && count($arg_list['f']) ) {
-    $args = array();
     $fields = biblio_get_db_fields();
     foreach ($arg_list['f'] as $type => $value) {
       $tables = array_keys($query->getTables());
@@ -426,7 +419,7 @@ function biblio_build_query($arg_list) {
           $tcc++;
           break;
         case 'tg':
-          $query->where("substring(('biblio_sort_title'),1 ,1) " . $match_op . " LOWER(:letter)", array(':letter' => $value));
+          $query->where("UPPER(substring(biblio_sort_title,1 ,1)) = :letter", array(':letter' => $value));
           break;
         case 'ag': //selects entries whoose authors firstname starts with the letter provided
           $query->where(" UPPER(substring(bcd.lastname,1,1)) = :letter ", array(':letter' => $value));
@@ -667,7 +660,7 @@ function _biblio_filter_info_line($args = array()) {
       if ($type == 'aid' || ($type == 'author' && is_numeric($value))) {
         module_load_include('inc', 'biblio', 'includes/biblio.contributors');
         $author = biblio_get_contributor($value);
-        $value = $author->name;
+        $value = isset($author->name) ? $author->name : t('Unknown Author');
         $type = t("Author");
       }
       if ($type == 'ag' ) {
@@ -887,7 +880,7 @@ function biblio_search_form($form, &$form_state) {
     '#suffix' => '</div>',
     );
   $form['biblio_search']['keys'] = array(
-  	'#type' => 'textfield',
+    '#type' => 'textfield',
     '#title' => '',
     '#default_value' => '',
     '#size' => 25,
@@ -895,8 +888,8 @@ function biblio_search_form($form, &$form_state) {
   );
   $button_text = variable_get('biblio_search_button_text', 'Biblio search');
   $form['biblio_search']['submit'] = array(
-  	'#type' => 'submit',
-  	'#value' => t($button_text)
+    '#type' => 'submit',
+    '#value' => t($button_text)
   );
  // $form['#cache'] = FALSE;
   return $form;
@@ -1231,15 +1224,16 @@ function _biblio_get_authors($filter = NULL) {
   }
 
   $db_result = db_query('SELECT bd.cid, bd.drupal_uid, bd.name, bd.lastname,
-                              bd.firstname, bd.prefix, bd.suffix, bd.initials,
-                              bd.affiliation, bd.md5, COUNT(*) AS cnt
+                                bd.firstname, bd.prefix, bd.suffix,
+                                bd.initials, bd.affiliation, bd.md5, bd.literal,
+                                COUNT(*) AS cnt
                             FROM {biblio_contributor} b
                                  LEFT JOIN {biblio_contributor_data} bd ON b.cid = bd.cid
                                  INNER JOIN {node} n on n.vid = b.vid
                             ' . $where_clause . '
                             GROUP BY bd.cid, bd.drupal_uid, bd.name, bd.lastname,
                                      bd.firstname, bd.prefix, bd.suffix,
-                                     bd.initials, bd.affiliation, bd.md5
+                                     bd.initials, bd.affiliation, bd.md5, bd.literal
                             HAVING COUNT(*) > 0
                             ORDER BY  lastname ASC, SUBSTRING(firstname,1,1) ASC,
                             initials ASC', array(':filter' => $filter), array('fetch' => PDO::FETCH_ASSOC));
@@ -1264,8 +1258,8 @@ function _biblio_format_author_page($path, $filter, $authors) {
     }
     $checkbox = array(
       '#title' => t('Hightlight possible duplicates'),
-      '#type'	 => 'checkbox',
-      '#id'		 => 'biblio-highlight',
+      '#type'  => 'checkbox',
+      '#id'    => 'biblio-highlight',
     );
     $checkbox = '<div class="biblio-alpha-line">' . drupal_render($checkbox) . '</div>';
     $header = array(array('data' => t('There are a total of @count authors in the database!header_ext.', array('@count' => count($authors), '!header_ext' => $header_ext)), 'align' =>'center', 'colspan' => 3));
@@ -1315,7 +1309,7 @@ function _biblio_author_edit_links($author) {
 
 function biblio_keyword_page() {
   $uri = drupal_parse_url(request_uri());
-  $uri['path'] = variable_get('biblio_base', 'biblio');
+//  $uri['path'] = variable_get('biblio_base', 'biblio');
   $filter = isset($uri['query']['f']['keyword']) ? $uri['query']['f']['keyword'] : '';
   $keywords = _biblio_get_keywords($filter);
   return _biblio_format_keyword_page($uri, $filter, $keywords);
@@ -1359,7 +1353,7 @@ function _biblio_get_keywords($filter = NULL) {
 }
 
 function _biblio_format_keyword_page($uri, $filter, $keywords) {
-  $rows[] = array(array('data' => theme('biblio_alpha_line', array('type' => 'keywords', 'current' => $filter, 'path' => '')), 'colspan' => 3));
+  $rows[] = array(array('data' => theme('biblio_alpha_line', array('type' => 'keywords', 'current' => $filter, 'path' => $uri['path'])), 'colspan' => 3));
   for ($i=0; $i < count($keywords); $i+=3) {
     $rows[] = array( array('data' => _biblio_format_keyword($uri, $keywords[$i]) ),
     array('data' => isset($keywords[$i+1]) ? _biblio_format_keyword($uri, $keywords[$i+1]) : '' ),

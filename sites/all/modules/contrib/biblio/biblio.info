@@ -4,7 +4,7 @@ core = 7.x
 dependencies[] = taxonomy
 package = Biblio
 
-configure = admin/config/biblio
+configure = admin/config/content/biblio
 files[] = tests/biblio.test
 files[] = tests/keyword.test
 files[] = tests/contributor.test
@@ -26,9 +26,10 @@ files[] = views/biblio_handler_filter_contributor_uid.inc
 files[] = views/biblio_handler_filter_contributor.inc
 files[] = views/biblio_handler_sort_contributor_lastname.inc
 files[] = views/biblio_handler_argument_many_to_one.inc
-; Information added by drupal.org packaging script on 2011-06-28
+files[] = views/biblio_handler_field_export_link.inc
+; Information added by drupal.org packaging script on 2011-11-29
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1309262626"
+datestamp = "1322525602"
 

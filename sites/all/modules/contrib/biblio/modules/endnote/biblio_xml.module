@@ -3,22 +3,13 @@
  * @file biblio_xml.module
  *
  */
-/*function biblio_xml_menu() {
-  global $user;
-  $items = array();
-  $base = variable_get('biblio_base', 'biblio');
-
-  $items["$base/export/xml"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_xml_biblio_export',
-    'access callback'   => 'user_access',
-    'access arguments'  => array('show export links'),
-    'type'              => MENU_CALLBACK
+function biblio_xml_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_xml') . '/views',
   );
-
-  return $items;
 }
- */
+
  /*
  *   add the xml option to the option list of the biblio_import_form
  *   the key is the module name use by module_invoke to call hook_biblio_import
@@ -26,6 +17,18 @@
  */
 function biblio_xml_biblio_import_options() {
   return array('biblio_xml' => t('EndNote XML'));
+}
+function biblio_xml_biblio_mapper_options() {
+  return array(
+    'endnote7' => array(
+      'title' => t('EndNote 7 XML'),
+      'export' => TRUE,
+      ),
+    'endnote8' => array(
+      'title' => t('EndNote X3 XML'),
+  		'export' => TRUE,
+  		),
+  );
 }
 
 function biblio_xml_biblio_export_options() {
@@ -105,14 +108,13 @@ function biblio_xml_biblio_import($file, $terms = array(), $batch = FALSE, $sess
 
 function biblio_xml_biblio_export($nids) {
   module_load_include('inc', 'biblio_xml', 'endnote8_export');
-
   drupal_add_http_header('Content-type', 'application/xml; charset=utf-8');
   drupal_add_http_header('Content-Disposition', 'attachment; filename="Biblio-EndNote.xml"');
 
   print _endnote8_XML_export('', 'begin');
-
-  foreach ($nids as $nid) {
-    $node = node_load($nid, FALSE, TRUE);
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
+  //  $node = node_load($nid, FALSE, TRUE);
     if (variable_get('biblio_hide_bibtex_braces', 0) ) {
       $node->title = biblio_remove_brace($node->title);
     }

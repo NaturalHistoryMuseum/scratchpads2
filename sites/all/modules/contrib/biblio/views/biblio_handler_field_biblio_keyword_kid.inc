@@ -28,6 +28,7 @@ class biblio_handler_field_biblio_keyword_kid extends views_handler_field_preren
       $query->addField('bk', 'vid', 'node_vid');
       $query->orderby('bkd.word');
       $query->condition('bk.vid', $vids);
+      $query->addMetaData('base_table', 'biblio_keyword');
       $query->addTag('node_access');
       $result = $query->execute();
 

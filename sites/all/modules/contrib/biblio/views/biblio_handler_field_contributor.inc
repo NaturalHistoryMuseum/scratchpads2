@@ -35,24 +35,8 @@ class biblio_handler_field_contributor extends biblio_handler_field {
         4 => t('Subsidiary'),
         5 => t('Corporate/Institutional')
       ),
-      '#description' => t('Defineee the layout of author lists.')
+
     );
-    parent::options_form($form, $form_state);
-    if ( $this->view->display_handler instanceof  views_oai_pmh_plugin_display ) {
-      unset($form['biblio_label']);
-      unset($form['style_settings']);
-      unset($form['element_type_enable']);
-      unset($form['element_wrapper_type_enable']);
-      unset($form['element_type']);
-      unset($form['element_class']);
-      unset($form['element_label_type']);
-      unset($form['element_label_type_enable']);
-      unset($form['element_label_class']);
-      unset($form['element_label_colon']);
-      unset($form['element_wrapper_type']);
-      unset($form['element_wrapper_class']);
-      unset($form['element_default_classes']);
-    }
     $form['formatting'] = array(
       '#type' => 'fieldset',
       '#title' => t('Author format'),
@@ -113,6 +97,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
       '#description' => t('Enter the character which will be used to separate the authors (Smith, John; Doe, Jane).'),
       '#fieldset' => 'separators',
     );
+    parent::options_form($form, $form_state);
 
   }
 
@@ -128,13 +113,13 @@ class biblio_handler_field_contributor extends biblio_handler_field {
 
     foreach ($values as $result) {
       // Don't add empty results to the array.
-      if (!empty($result->{$this->aliases['vid']})) {
+      if (isset($result->{$this->aliases['vid']}) && !empty($result->{$this->aliases['vid']})) {
         $vids[] = $result->{$this->aliases['vid']};
       }
     }
 
     if (count($vids)) {
-      $this->items = biblio_load_contributors_multiple($vids);
+      $this->items = biblio_load_contributors_multiple($vids, $this->options['auth_category']);
     }
   }
 
@@ -207,6 +192,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
         }
       }
     }
+
     return implode($this->options['separator'], $authors);
   }
   function get_regex_patterns() {

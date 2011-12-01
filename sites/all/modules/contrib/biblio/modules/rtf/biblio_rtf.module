@@ -3,22 +3,13 @@
  * @file biblio_rtf.module
  *
  */
-/*function biblio_rtf_menu() {
-  global $user;
-  $items = array();
-  $base = variable_get('biblio_base', 'biblio');
-
-  $items["$base/export/rtf"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_rtf_biblio_export',
-    'access callback'   => 'user_access',
-    'access arguments'  => array('show export links'),
-    'type'              => MENU_CALLBACK
+function biblio_rtf_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_rtf') . '/views',
   );
-
-  return $items;
 }
-*/
+
 function biblio_rtf_biblio_export_options() {
   return array('rtf' => t('RTF'));
 }
@@ -75,8 +66,8 @@ function biblio_rtf_biblio_export($nids) {
     'style_name' => biblio_get_style(),
   );
 
-  foreach ($nids as $nid) {
-    $node = node_load($nid, FALSE, TRUE);
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
     if (variable_get('biblio_hide_bibtex_braces', 0) ) {
       $node->title = biblio_remove_brace($node->title);
     }
@@ -89,7 +80,7 @@ function biblio_rtf_biblio_export($nids) {
       $rtf->setPaperOrientation(1);
       $rtf->setDefaultFontFace(1);
       $rtf->setDefaultFontSize(24);
-      $rtf->setAuthor("Biblio");
+      $rtf->setAuthor("Biblio 7.x");
       $rtf->setOperator("");
       $rtf->setTitle("Biblio RTF Export");
       $rtf->addColour("#000000");

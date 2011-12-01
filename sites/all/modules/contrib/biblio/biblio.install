@@ -305,303 +305,323 @@ function biblio_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => '',
-  ),
+      ),
       'vid' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => '',
-  ),
+      ),
       'biblio_type' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => '',
-  ),
+      ),
       'biblio_number' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_other_number' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_sort_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '64',
         'description' => 'A normalized version of the title, used for sorting on titles. (only first 64 characters saved)',
-  ),
+      ),
       'biblio_secondary_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_tertiary_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_edition' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_publisher' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_place_published' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_year' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 9999,
         'description' => '',
-  ),
+      ),
       'biblio_volume' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_pages' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_date' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '16',
         'description' => '',
-  ),
+      ),
       'biblio_isbn' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_lang' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '24',
         'default' => 'eng',
         'description' => '',
-  ),
+      ),
       'biblio_abst_e' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_abst_f' => array(
         'not null' => FALSE,
         'type' => 'text',
         'description' => '',
-  ),
+      ),
       'biblio_full_text' => array(
         'type' => 'int',
         'not null' => FALSE,
         'default' => 0,
         'description' => '',
-  ),
+      ),
       'biblio_url' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_issue' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_type_of_work' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_accession_number' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_call_number' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_notes' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom1' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom2' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom3' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom4' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom5' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom6' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_custom7' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_research_notes' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_number_of_volumes' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_short_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_alternate_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_original_publication' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_reprint_edition' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_translated_title' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_section' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_citekey' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_coins' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_doi' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_issn' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '128',
         'description' => '',
-  ),
+      ),
       'biblio_auth_address' => array(
         'type' => 'text',
         'not null' => FALSE,
         'description' => '',
-  ),
+      ),
       'biblio_remote_db_name' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_remote_db_provider' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_label' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
+      ),
       'biblio_access_date' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '255',
         'description' => '',
-  ),
-     'biblio_refereed' => array(
+      ),
+      'biblio_refereed' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '20',
         'description' => '',
-  ),
+      ),
       'biblio_md5' => array(
         'type' => 'varchar',
         'not null' => FALSE,
         'length' => '32',
         'description' => '',
-  )
-  ),
-    'primary key' => array(
+      ),
+      'biblio_formats' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'description' => '',
+        'serialize' => TRUE,
+      ),
+    ),
+    'foreign keys' => array(
+      'node_revision' => array(
+        'table' => 'node_revision',
+        'columns' => array('vid' => 'vid'),
+       ),
+      'node' => array(
+        'table' => 'node',
+        'columns' => array('nid' => 'nid'),
+       ),
+      'biblio_type' => array(
+        'table' => 'biblio_types',
+        'columns' => array('biblio_type' => 'tid'),
+       ),
+     ),
+     'primary key' => array(
       'vid'
       ),
     'indexes' => array(
@@ -798,51 +818,78 @@ function biblio_schema() {
  $schema['biblio_contributor'] = array(
   'description' => 'Relational table linking authors to biblio entries',
   'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 0,
-        'description' => '{node}.nid of the node',
-        ),
-      'vid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 0,
-        'description' => '{node}.vid of the node',
-        ),
-        'cid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 0,
-        'description' => '{biblio_contributor_data}.cid of the node',
-        ),
-        'auth_type' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 1,
-        'description' => '{biblio_contributor_type}.auth_type of the node',
-        ),
-        'auth_category' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 1,
-        'description' => '',
-        ),
-        'rank' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'unsigned' => TRUE,
-        'default' => 0,
-        'description' => 'Position of the author name on the publication (first,second,third...)',
-        )
-        ),
-      'primary key' => array('vid', 'cid', 'auth_type', 'rank'),
-        );
+    'nid' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 0,
+      'description' => '{node}.nid of the node',
+    ),
+    'vid' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 0,
+      'description' => '{node}.vid of the node',
+    ),
+    'cid' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 0,
+      'description' => '{biblio_contributor_data}.cid of the node',
+    ),
+    'auth_type' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 1,
+      'description' => '{biblio_contributor_type}.auth_type of the node',
+    ),
+    'auth_category' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 1,
+      'description' => '',
+    ),
+    'rank' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 0,
+      'description' => 'Position of the author name on the publication (first,second,third...)',
+    )
+   ),
+   'foreign keys' => array(
+     'node_revision' => array(
+       'table' => 'node_revision',
+       'columns' => array('vid' => 'vid'),
+     ),
+     'node' => array(
+       'table' => 'node',
+       'columns' => array('nid' => 'nid'),
+     ),
+     'biblio_contributor_data' => array(
+       'table' => 'biblio_contributor_data',
+       'columns' => array('cid' => 'cid'),
+     ),
+     'biblio_contributor_type' => array(
+       'table' => 'biblio_contributor_type',
+       'columns' => array('auth_type' => 'auth_type'),
+     ),
+      'biblio_contributor_category' => array(
+       'table' => 'biblio_contributor_type',
+       'columns' => array('auth_category' => 'auth_category'),
+     ),
+   ),
+   'primary key' => array(
+   		'vid',
+   		'cid',
+   		'auth_type',
+   		'rank'
+    ),
+   );
 
   $schema['biblio_contributor_data'] = array(
     'description' => 'Contains Author information for each publication',
@@ -928,16 +975,24 @@ function biblio_schema() {
         'not null' => FALSE,
         'description' => '',
         )
-
-        ),
-      'primary key' => array('cid', 'aka'),
-      'indexes' => array(
-          'lastname' => array('lastname'),
-          'firstname' => array('firstname'),
-          'initials' => array('initials')
-
-        )
-        );
+      ),
+    'foreign keys' => array(
+      'biblio_contributor' => array(
+        'table' => 'biblio_contributor',
+        'columns' => array('cid' => 'cid'),
+       ),
+      'node_author' => array(
+        'table' => 'users',
+        'columns' => array('drupal_uid' => 'uid'),
+      ),
+     ),
+  	'primary key' => array('cid', 'aka'),
+    'indexes' => array(
+      'lastname' => array('lastname'),
+      'firstname' => array('firstname'),
+      'initials' => array('initials')
+     )
+    );
     $schema['biblio_contributor_type'] = array(
       'description' => 'Contains definitions of the contributor types',
       'fields' => array(
@@ -962,10 +1017,23 @@ function biblio_schema() {
           'default' => 0,
           'description' => 'This is the pulication type specific verion of a particular catagory',
         ),
-        ),
-    'primary key' => array('auth_category', 'biblio_type', 'auth_type'),
-
-        );
+    ),
+    'foreign keys' => array(
+       'biblio' => array(
+         'table' => 'biblio',
+         'columns' => array('biblio_type' => 'biblio_type'),
+       ),
+       'biblio_contributor_type' => array(
+         'table' => 'biblio_contributor',
+         'columns' => array('auth_type' => 'auth_type'),
+       ),
+      'biblio_contributor_category' => array(
+         'table' => 'biblio_contributor',
+         'columns' => array('auth_category' => 'auth_category'),
+       ),
+     ),
+     'primary key' => array('auth_category', 'biblio_type', 'auth_type'),
+   );
 
   $schema['biblio_contributor_type_data'] = array(
     'description' => 'Data used to build the form elements on the input form',
@@ -975,23 +1043,23 @@ function biblio_schema() {
         'not null' => TRUE,
         'unsigned' => TRUE,
         'description' => '{biblio_contributor_type_data} ctdid of the node',
-        ),
+      ),
       'title' => array(
         'type' => 'varchar',
         'length' => '128',
         'not null' => TRUE,
         'default' => '',
         'description' => 'The title, which will be displayed on the form, for a given field'
-        ),
+      ),
       'hint' => array(
         'type' => 'varchar',
         'length' => '255',
         'not null' => FALSE,
         'description' => 'The hint text printed below the input widget'
-        ),
-        ),
+      ),
+    ),
     'primary key' => array('auth_type'),
-        );
+   );
 
     $schema['biblio_keyword'] = array(
       'description' => t('Relational table linking keywords to biblio nodes'),
@@ -1017,8 +1085,22 @@ function biblio_schema() {
           'default' => 0,
           'description' => t('Primary Key: The {node}.vid of the node.'),
         ),
-        ),
-      'primary key' => array('kid', 'vid'),
+    ),
+    'foreign keys' => array(
+     'node_revision' => array(
+       'table' => 'node_revision',
+       'columns' => array('vid' => 'vid'),
+     ),
+     'node' => array(
+       'table' => 'node',
+       'columns' => array('nid' => 'nid'),
+     ),
+     'keyword' => array(
+       'table' => 'biblio_keyword_data',
+       'columns' => array('kid' => 'kid'),
+     ),
+    ),
+    'primary key' => array('kid', 'vid'),
       'indexes' => array(
            'vid' => array('vid'),
            'nid' => array('nid'),
@@ -1237,18 +1319,18 @@ function biblio_schema() {
 function biblio_reset_types() {
   $result = array();
 
-  db_drop_table($result, 'biblio_field_type_data');
-  db_drop_table($result, 'biblio_field_type');
-  db_drop_table($result, 'biblio_fields');
-  db_drop_table($result, 'biblio_contributor_type');
-  db_drop_table($result, 'biblio_contributor_type_data');
+  db_drop_table('biblio_field_type_data');
+  db_drop_table('biblio_field_type');
+  db_drop_table('biblio_fields');
+  db_drop_table('biblio_contributor_type');
+  db_drop_table('biblio_contributor_type_data');
 
   $schema = biblio_schema();
-  db_create_table($result, 'biblio_field_type_data', $schema['biblio_field_type_data']);
-  db_create_table($result, 'biblio_field_type', $schema['biblio_field_type']);
-  db_create_table($result, 'biblio_fields', $schema['biblio_fields']);
-  db_create_table($result, 'biblio_contributor_type', $schema['biblio_contributor_type']);
-  db_create_table($result, 'biblio_contributor_type_data', $schema['biblio_contributor_type_data']);
+  db_create_table('biblio_field_type_data', $schema['biblio_field_type_data']);
+  db_create_table('biblio_field_type', $schema['biblio_field_type']);
+  db_create_table('biblio_fields', $schema['biblio_fields']);
+  db_create_table('biblio_contributor_type', $schema['biblio_contributor_type']);
+  db_create_table('biblio_contributor_type_data', $schema['biblio_contributor_type_data']);
 
   variable_set('biblio_last_ftdid', 100); // reset custom field type id too
   //_add_db_field_data_XML();
@@ -1708,9 +1790,14 @@ function biblio_update_6028() {
 }
 
 function biblio_update_6029() {
-  $result = array();
-  db_query("ALTER TABLE {biblio_type_maps} ADD COLUMN export_map  LONGBLOB NULL DEFAULT NULL ");
-  return $result;
+  $spec = array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'default'  => NULL,
+        'size' => 'big',
+        'description' => 'Stores the mapping between biblio fields and external file formats',
+        );
+  db_add_field('biblio_type_maps', 'export_map', $spec);
 }
 
 function biblio_update_6030() {
@@ -1943,4 +2030,43 @@ function biblio_update_7013() {
   db_add_index('biblio', 'title_sort', array('biblio_sort_title'));
   db_add_index('biblio', 'date', array('biblio_date'));
 
+}
+
+/**
+ *
+ * Widen the biblio_date column to 64 characters
+ */
+function biblio_update_7014() {
+  $spec =  array(
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => '64',
+        'description' => '',
+  );
+  db_change_field('biblio', 'biblio_date', 'biblio_date', $spec);
+
+}
+/**
+ *
+ * Add biblio_formats column to biblio table to hold the format information for each text area
+ */
+function biblio_update_7015() {
+  if (!db_field_exists('biblio', 'biblio_formats')) {
+    $spec =  array(
+              'type' => 'blob',
+              'not null' => FALSE,
+              'description' => '',
+              'serialize' => TRUE,
+      );
+    db_add_field('biblio', 'biblio_formats', $spec);
+  }
+}
+/**
+ * Convert textarea fields to text_format
+ */
+function biblio_update_7016() {
+    db_update('biblio_fields')
+      ->fields(array('type' => 'text_format'))
+      ->condition('type', 'textarea')
+      ->execute();
 }
