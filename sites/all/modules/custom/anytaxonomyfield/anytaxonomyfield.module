@@ -149,6 +149,9 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
       if(isset($context['items']) && is_array($context['items']) && count($context['items'])){
         $term = taxonomy_term_load($context['items'][0]['tid']);
         $context['field']['settings']['allowed_values'][0]['vocabulary'] = $term->vocabulary_machine_name;
+      } else {
+        // No items already loaded.  We'll set the drop down to "empty".
+        $context['field']['settings']['allowed_values'][0]['vocabulary'] = FALSE;
       }
     }
     $callback = "{$context['instance']['widget']['module']}_field_widget_form";
@@ -159,7 +162,7 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
       );
       $element = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $term_field);
     }else{
-      $term_field = array(
+      $element = array(
         '#markup' => ''
       );
     }
@@ -168,6 +171,14 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
     $options = array();
     foreach($vocabularies as $vocabulary){
       $options[$vocabulary->machine_name] = $vocabulary->name;
+    }
+    if(!$context['field']['settings']['allowed_values'][0]['vocabulary']){
+      $options = array_merge(array(
+        '0' => '-- Select a vocabulary --'
+      ), $options);
+      $element = array(
+        '#markup' => ''
+      );
     }
     $element['#prefix'] = '<div class="anytaxonomyfield">';
     $element['#suffix'] = '</div>';
