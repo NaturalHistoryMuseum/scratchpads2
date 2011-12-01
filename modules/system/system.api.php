@@ -991,7 +991,8 @@ function hook_menu_get_item_alter(&$router_item, $path, $original_map) {
  *   );
  * @endcode
  * When path 'my-module/foo/edit' is requested, integer 1 will be replaced
- * with 'foo' and passed to the callback function.
+ * with 'foo' and passed to the callback function. Note that wildcards may not
+ * be used as the first component.
  *
  * Registered paths may also contain special "auto-loader" wildcard components
  * in the form of '%mymodule_abc', where the '%' part means that this path
@@ -1876,6 +1877,15 @@ function hook_mail_alter(&$message) {
  * This hook is invoked during module_implements(). A module may implement this
  * hook in order to reorder the implementing modules, which are otherwise
  * ordered by the module's system weight.
+ *
+ * Note that hooks invoked using drupal_alter() can have multiple variations
+ * (such as hook_form_alter() and hook_form_FORM_ID_alter()). drupal_alter()
+ * will call all such variants defined by a single module in turn. For the
+ * purposes of hook_module_implements_alter(), these variants are treated as
+ * a single hook. Thus, to ensure that your implementation of
+ * hook_form_FORM_ID_alter() is called at the right time, you will have to
+ * have to change the order of hook_form_alter() implementation in
+ * hook_module_implements_alter().
  *
  * @param $implementations
  *   An array keyed by the module's name. The value of each item corresponds

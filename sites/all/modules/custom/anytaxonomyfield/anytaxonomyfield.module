@@ -208,7 +208,6 @@ function anytaxonomyfield_form_alter(&$form, &$form_state, $form_id){
     foreach($form_state['anytaxonomyfield'] as $key => $field){
       $new_form = array();
       foreach($form as $form_key => $value){
-        //dpm(substr($key, 0, strlen($form_key)) . ":" . $form_key);
         if(substr($key, 0, strlen($form_key)) == $form_key){
           foreach($field as $select_field_key => $select_field){
             $new_form[$select_field_key] = $select_field;
