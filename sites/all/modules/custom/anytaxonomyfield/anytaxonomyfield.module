@@ -28,12 +28,64 @@ function anytaxonomyfield_field_info(){
 function anytaxonomyfield_field_settings_form($field, $instance, $has_data){
   $form = taxonomy_field_settings_form($field, $instance, $has_data);
   foreach($field['settings']['allowed_values'] as $delta => $tree){
-    $form['allowed_values'][$delta]['vocabulary']['#empty_value'] = FALSE;
-    $form['allowed_values'][$delta]['vocabulary']['#empty_option'] = t('No default');
-    $form['allowed_values'][$delta]['vocabulary']['#title'] = t('Default vocabulary');
-    $form['allowed_values'][$delta]['vocabulary']['#required'] = FALSE;
+    $form['allowed_values'][$delta]['vocabulary']['#title'] = t('Vocabularies');
+    $form['allowed_values'][$delta]['vocabulary']['#multiple'] = TRUE;
+    $form['allowed_values'][$delta]['vocabulary']['#required'] = TRUE;
   }
   return $form;
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This is a copy of the taxonomy.module's hook_field_validate function, but
+ * with the change to check against an array of vocabulary names, rather than a
+ * string.
+ */
+function anytaxonomyfield_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
+  // Build an array of existing term IDs so they can be loaded with
+  // taxonomy_term_load_multiple();
+  foreach($items as $delta => $item){
+    if(!empty($item['tid']) && $item['tid'] != 'autocreate'){
+      $tids[] = $item['tid'];
+    }
+  }
+  if(!empty($tids)){
+    $terms = taxonomy_term_load_multiple($tids);
+    // Check each existing item to ensure it can be found in the
+    // allowed values for this field.
+    foreach($items as $delta => $item){
+      $validate = TRUE;
+      if(!empty($item['tid']) && $item['tid'] != 'autocreate'){
+        $validate = FALSE;
+        foreach($field['settings']['allowed_values'] as $settings){
+          // If no parent is specified, check if the term is in the vocabulary.
+          if(isset($settings['vocabulary']) && empty($settings['parent'])){
+            if(in_array($terms[$item['tid']]->vocabulary_machine_name, $settings['vocabulary'])){
+              $validate = TRUE;
+              break;
+            }
+          }elseif(!empty($settings['parent'])){
+            $ancestors = taxonomy_get_parents_all($item['tid']);
+            foreach($ancestors as $ancestor){
+              if($ancestor->tid == $settings['parent']){
+                $validate = TRUE;
+                break 2;
+              }
+            }
+          }
+        }
+      }
+      if(!$validate){
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'taxonomy_term_reference_illegal_value',
+          'message' => t('%name: illegal value.', array(
+            '%name' => $instance['label']
+          ))
+        );
+      }
+    }
+  }
 }
 
 /**
@@ -54,15 +106,15 @@ function anytaxonomyfield_field_update($entity_type, $entity, $field, $instance,
  * Implementation of hook_field_presave().
  */
 function anytaxonomyfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items){
-  $a = $items;
+  return taxonomy_field_presave($entity_type, $entity, $field, $instance, $langcode, $items);
 }
 
 /**
  * Implementation of hook_field_is_empty().
  */
 function anytaxonomyfield_field_is_empty($item, $field){
-  $is_empty = taxonomy_field_is_empty($item, $field);
-  return $is_empty;
+  if(is_array($item) && isset($item['vocabulary_select'])){return TRUE;}
+  return taxonomy_field_is_empty($item, $field);
 }
 
 /**
@@ -90,8 +142,15 @@ function anytaxonomyfield_options_list($field){
  */
 function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $context){
   if($context['field']['type'] == 'anytaxonomy_term_reference'){
-    if(isset($form_state['input'][$context['field']['field_name']][$context['langcode']]['vocabulary_select'])){
-      $context['field']['settings']['allowed_values'][0]['vocabulary'] = $form_state['input'][$context['field']['field_name']][$context['langcode']]['vocabulary_select'];
+    if(isset($form_state['input'][$context['field']['field_name'] . '_anytaxonomyfield_select'])){
+      $context['field']['settings']['allowed_values'][0]['vocabulary'] = $form_state['input'][$context['field']['field_name'] . '_anytaxonomyfield_select'];
+    }else{
+      // We're loading the form for the first time, lets check what terms we
+      // already have, and set the vocabulary based on those.
+      if(isset($context['items']) && is_array($context['items']) && count($context['items'])){
+        $term = taxonomy_term_load($context['items'][0]['tid']);
+        $context['field']['settings']['allowed_values'][0]['vocabulary'] = $term->vocabulary_machine_name;
+      }
     }
     $callback = "{$context['instance']['widget']['module']}_field_widget_form";
     if(function_exists(($callback)) && $context['field']['settings']['allowed_values'][0]['vocabulary']){
@@ -99,7 +158,7 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
       $term_field = array(
         '#required' => isset($element['#required']) ? $element['#required'] : FALSE
       );
-      $term_field = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $term_field);
+      $element = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $term_field);
     }else{
       $term_field = array(
         '#markup' => ''
@@ -111,32 +170,57 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
     foreach($vocabularies as $vocabulary){
       $options[$vocabulary->machine_name] = $vocabulary->name;
     }
-    $element = array(
-      '#type' => 'fieldset',
-      '#title' => $element['#title'],
-      '#prefix' => '<div class="anytaxonomyfield">',
-      '#suffix' => '</div>',
-      'vocabulary_select' => array(
+    $element['#prefix'] = '<div class="anytaxonomyfield">';
+    $element['#suffix'] = '</div>';
+    $select_element = array(
+      $context['field']['field_name'] . '_anytaxonomyfield_select' => array(
         '#title' => '',
         '#type' => 'select',
         '#options' => $options,
-        '#empty_option' => t('Select a vocabulary'),
         '#default_value' => $context['field']['settings']['allowed_values'][0]['vocabulary'],
-        '#required' => FALSE,
         '#ajax' => array(
           'callback' => 'anytaxonomyfield_ajax_callback'
         )
-      ),
-      'term_field' => $term_field
+      )
     );
+    if(!isset($form_state['anytaxonomyfield'])){
+      $form_state['anytaxonomyfield'] = array();
+    }
+    $form_state['anytaxonomyfield'][$context['field']['field_name']] = $select_element;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function anytaxonomyfield_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form_state['anytaxonomyfield'])){
+    foreach($form_state['anytaxonomyfield'] as $key => $field){
+      $new_form = array();
+      foreach($form as $form_key => $value){
+        //dpm(substr($key, 0, strlen($form_key)) . ":" . $form_key);
+        if(substr($key, 0, strlen($form_key)) == $form_key){
+          foreach($field as $select_field_key => $select_field){
+            $new_form[$select_field_key] = $select_field;
+            if($value['#weight']){
+              $new_form[$select_field_key]['#weight'] = $value['#weight'];
+            }
+          }
+        }
+        $new_form[$form_key] = $value;
+      }
+      $form = $new_form;
+    }
+    unset($form_state['anytaxonomyfield']);
   }
 }
 
 function anytaxonomyfield_ajax_callback($form, $form_state){
+  $form_item_to_replace = substr($form_state['triggering_element']['#name'], 0, strpos($form_state['triggering_element']['#name'], '_anytaxonomyfield_select'));
   return array(
     '#type' => 'ajax',
     '#commands' => array(
-      ajax_command_replace('#' . str_replace("_", "-", $form_state['input']['form_id']) . ' .anytaxonomyfield', drupal_render($form[$form_state['triggering_element']['#parents'][0]]))
+      ajax_command_replace('.anytaxonomyfield', drupal_render($form[$form_item_to_replace]))
     )
   );
 }
