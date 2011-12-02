@@ -35,15 +35,13 @@ function darwincore_field_group_default_field_groups() {
       12 => 'field_min_elevation',
       13 => 'field_state_province',
     ),
-    'format_type' => 'htab',
+    'format_type' => 'tab',
     'format_settings' => array(
-      'label' => 'Extra fields',
-      'instance_settings' => array(
-        'required_fields' => 0,
-        'classes' => '',
-        'description' => '',
-      ),
       'formatter' => 'closed',
+      'instance_settings' => array(
+        'classes' => '',
+        'required_fields' => 1,
+      ),
     ),
   );
 
@@ -59,15 +57,13 @@ function darwincore_field_group_default_field_groups() {
     'children' => array(
       0 => 'field_map',
     ),
-    'format_type' => 'htab',
+    'format_type' => 'tab',
     'format_settings' => array(
-      'label' => 'Map',
+      'formatter' => 'closed',
       'instance_settings' => array(
-        'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'required_fields' => 1,
       ),
-      'formatter' => 'open',
     ),
   );
 
@@ -81,10 +77,10 @@ function darwincore_field_group_default_field_groups() {
     'label' => 'Tabs',
     'weight' => '1',
     'children' => array(
-      0 => 'group_map',
-      1 => 'group_extra_fields',
+      0 => 'group_extra_fields',
+      1 => 'group_map',
     ),
-    'format_type' => 'htabs',
+    'format_type' => 'tabs',
     'format_settings' => array(
       'formatter' => NULL,
       'instance_settings' => array(
