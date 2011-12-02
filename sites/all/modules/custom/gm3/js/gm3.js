@@ -15,14 +15,10 @@
     try {
       $('#' + this.id).height(this.settings['height']);
       $('#' + this.id).width(this.settings['width']);
-      // Set the width of the parent wrapper class.
-      var parent_width = $('#' + this.id).outerWidth();
-      var parent_height = $('#' + this.id).outerHeight();
-      if($('#' + this.id).siblings('.gm3-tools')) {
-        var parent_width = parent_width + $('#' + this.id).siblings('.gm3-tools').first().outerWidth()
+      if($('#' + this.id).parent().width() > $('#' + this.id).width()) {
+        // Set the width of the parent wrapper class.
+        $('#' + this.id).parent().width($('#' + this.id).width());
       }
-      $('#' + this.id).parent().width(parent_width);
-      $('#' + this.id).parent().height(parent_height);
       this.default_settings();
       // Create the map
       this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
