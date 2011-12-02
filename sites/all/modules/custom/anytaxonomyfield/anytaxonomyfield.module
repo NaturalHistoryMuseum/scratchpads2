@@ -184,13 +184,14 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
     $element['#suffix'] = '</div>';
     $select_element = array(
       $context['field']['field_name'] . '_anytaxonomyfield_select' => array(
-        '#title' => '',
+        '#title' => $context['instance']['label'],
         '#type' => 'select',
         '#options' => $options,
         '#default_value' => $context['field']['settings']['allowed_values'][0]['vocabulary'],
         '#ajax' => array(
           'callback' => 'anytaxonomyfield_ajax_callback'
-        )
+        ),
+        '#suffix' => '<div class="anytaxonomyfield"></div>'
       )
     );
     if(!isset($form_state['anytaxonomyfield'])){
@@ -220,8 +221,16 @@ function _anytaxonomyfield_add_select_field_to_tab(&$form, $select_key){
   if(isset($form['#groups'])){
     foreach($form['#groups'] as $group_key => $group){
       if(is_object($group) && isset($group->children) && in_array($select_key, $group->children)){
-        $form['#groups'][$group_key]->children[] = $select_key . '_anytaxonomyfield_select';
+        $new_children = array();
+        foreach($group->children as $child){
+          $new_children[] = $child;
+          if($child == $select_key){
+            $new_children[] = $select_key . '_anytaxonomyfield_select';
+          }
+        }
+        $form['#groups'][$group_key]->children = $new_children;
         $form['#group_children'][$select_key . '_anytaxonomyfield_select'] = $group_key;
+        dpm($form['#groups'][$group_key]);
       }
     }
   }
