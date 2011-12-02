@@ -67,8 +67,7 @@ function itis_term_field_default_fields(){
         'active' => 0,
         'module' => 'taxonomy',
         'settings' => array(
-          'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60
+          'autocomplete_path' => 'taxonomy/autocomplete'
         ),
         'type' => 'taxonomy_autocomplete',
         'weight' => '11'
@@ -128,9 +127,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '13'
       )
@@ -189,9 +186,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '15'
       )
@@ -748,9 +743,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '2'
       )
@@ -809,9 +802,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '3'
       )
@@ -870,9 +861,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '4'
       )
@@ -931,9 +920,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '5'
       )
@@ -1053,9 +1040,7 @@ function itis_term_field_default_fields(){
       'widget' => array(
         'active' => 1,
         'module' => 'text',
-        'settings' => array(
-          'size' => '60'
-        ),
+        'settings' => array(),
         'type' => 'text_textfield',
         'weight' => '16'
       )
