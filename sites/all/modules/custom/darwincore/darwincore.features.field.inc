@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * @file
+ * darwincore.features.field.inc
+ */
+/**
  * Implementation of hook_field_default_fields().
  */
 function darwincore_field_default_fields(){
@@ -16,7 +20,7 @@ function darwincore_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -97,7 +101,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -224,7 +228,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -291,7 +295,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -358,7 +362,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -425,7 +429,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -490,7 +494,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -557,7 +561,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -601,6 +605,66 @@ function darwincore_field_default_fields(){
         ),
         'type' => 'text_textarea',
         'weight' => '1'
+      )
+    )
+  );
+  // Exported field: 'node-location-field_map'
+  $fields['node-location-field_map'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_map',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'latitude' => array(
+          0 => 'latitude'
+        ),
+        'longitude' => array(
+          0 => 'longitude'
+        )
+      ),
+      'module' => 'gm3_field',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'gm3_point'
+    ),
+    'field_instance' => array(
+      'bundle' => 'location',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'gm3_field',
+          'settings' => array(
+            'display_convex_hull' => FALSE
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => 15
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_map',
+      'label' => 'Map',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'gm3_field',
+        'settings' => array(),
+        'type' => 'gm3_point_gm3',
+        'weight' => '15'
       )
     )
   );
@@ -862,7 +926,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -922,7 +986,7 @@ function darwincore_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -997,7 +1061,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1064,7 +1128,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1131,18 +1195,18 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'uid' => array(
-          '0' => 'uid'
+          0 => 'uid'
         )
       ),
       'module' => 'user_reference',
       'settings' => array(
         'referenceable_roles' => array(
-          '2' => 0,
-          '3' => 0
+          2 => 0,
+          3 => 0
         ),
         'referenceable_status' => array(
-          '0' => 0,
-          '1' => 0
+          0 => 0,
+          1 => 0
         )
       ),
       'translatable' => '1',
@@ -1202,7 +1266,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1489,7 +1553,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1556,7 +1620,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1623,18 +1687,18 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'uid' => array(
-          '0' => 'uid'
+          0 => 'uid'
         )
       ),
       'module' => 'user_reference',
       'settings' => array(
         'referenceable_roles' => array(
-          '2' => 0,
-          '3' => 0
+          2 => 0,
+          3 => 0
         ),
         'referenceable_status' => array(
-          '0' => 0,
-          '1' => 0
+          0 => 0,
+          1 => 0
         )
       ),
       'translatable' => '1',
@@ -1694,7 +1758,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1761,7 +1825,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1828,7 +1892,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'nid' => array(
-          '0' => 'nid'
+          0 => 'nid'
         )
       ),
       'module' => 'node_reference',
@@ -1897,7 +1961,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -1962,7 +2026,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -2029,7 +2093,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -2094,7 +2158,7 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -2152,7 +2216,7 @@ function darwincore_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -2226,16 +2290,16 @@ function darwincore_field_default_fields(){
       ),
       'indexes' => array(
         'tid' => array(
-          '0' => 'tid'
+          0 => 'tid'
         )
       ),
-      'module' => 'taxonomy',
+      'module' => 'anytaxonomyfield',
       'settings' => array(
         'allowed_values' => array(
-          '0' => array(
+          0 => array(
             'parent' => '0',
             'vocabulary' => array(
-              'anytaxonomyfield_anytaxonomyfield'
+              0 => 'anytaxonomyfield_anytaxonomyfield'
             )
           )
         )
@@ -2293,7 +2357,7 @@ function darwincore_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -2385,6 +2449,7 @@ function darwincore_field_default_fields(){
   t('Lifestage');
   t('Locality');
   t('Location');
+  t('Map');
   t('Maximum depth');
   t('Maximum elevation');
   t('Minimum depth');
