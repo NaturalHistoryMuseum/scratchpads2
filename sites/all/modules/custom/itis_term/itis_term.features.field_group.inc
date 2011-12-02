@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * itis_term.features.field_group.inc
+ */
 
 /**
  * Implementation of hook_field_group_default_field_groups().
@@ -16,15 +20,16 @@ function itis_term_field_group_default_field_groups() {
     'label' => 'Reference',
     'weight' => '10',
     'children' => array(
-      '0' => 'field_authors',
-      '1' => 'field_page_number',
-      '2' => 'field_reference',
+      0 => 'field_authors',
+      1 => 'field_page_number',
+      2 => 'field_reference',
     ),
-    'format_type' => 'tab',
+    'format_type' => 'htab',
     'format_settings' => array(
-      'formatter' => 'open',
+      'formatter' => 'closed',
       'instance_settings' => array(
         'classes' => '',
+        'required_fields' => 1,
       ),
     ),
   );
@@ -39,22 +44,22 @@ function itis_term_field_group_default_field_groups() {
     'label' => 'Scientific name',
     'weight' => '8',
     'children' => array(
-      '0' => 'field_rank',
-      '1' => 'field_unit_name1',
-      '2' => 'field_unit_name2',
-      '3' => 'field_unit_name3',
-      '4' => 'field_unit_name4',
-      '5' => 'field_unit_indicator1',
-      '6' => 'field_unit_indicator2',
-      '7' => 'field_unit_indicator3',
-      '8' => 'field_unit_indicator4',
-      '9' => 'group_unit_indicators',
+      0 => 'field_rank',
+      1 => 'field_unit_indicator1',
+      2 => 'field_unit_indicator2',
+      3 => 'field_unit_indicator3',
+      4 => 'field_unit_indicator4',
+      5 => 'field_unit_name1',
+      6 => 'field_unit_name2',
+      7 => 'field_unit_name3',
+      8 => 'field_unit_name4',
     ),
-    'format_type' => 'tab',
+    'format_type' => 'htab',
     'format_settings' => array(
-      'formatter' => 'open',
+      'formatter' => 'closed',
       'instance_settings' => array(
         'classes' => '',
+        'required_fields' => 1,
       ),
     ),
   );
@@ -69,15 +74,16 @@ function itis_term_field_group_default_field_groups() {
     'label' => 'Usage',
     'weight' => '9',
     'children' => array(
-      '0' => 'field_usage',
-      '1' => 'field_associated_accepted_name',
-      '2' => 'field_unacceptability_reason',
+      0 => 'field_associated_accepted_name',
+      1 => 'field_unacceptability_reason',
+      2 => 'field_usage',
     ),
-    'format_type' => 'tab',
+    'format_type' => 'htab',
     'format_settings' => array(
-      'formatter' => 'open',
+      'formatter' => 'closed',
       'instance_settings' => array(
         'classes' => '',
+        'required_fields' => 1,
       ),
     ),
   );
@@ -92,13 +98,14 @@ function itis_term_field_group_default_field_groups() {
     'label' => 'Vernacular names',
     'weight' => '11',
     'children' => array(
-      '0' => 'field_vernacular_names',
+      0 => 'field_vernacular_names',
     ),
-    'format_type' => 'tab',
+    'format_type' => 'htab',
     'format_settings' => array(
-      'formatter' => 'open',
+      'formatter' => 'closed',
       'instance_settings' => array(
         'classes' => '',
+        'required_fields' => 1,
       ),
     ),
   );
@@ -113,14 +120,14 @@ function itis_term_field_group_default_field_groups() {
     'label' => 'Vertical tabs',
     'weight' => '8',
     'children' => array(
-      '0' => 'group_scientific_name',
-      '1' => 'group_usage',
-      '2' => 'group_reference',
-      '3' => 'group_vernacular_names',
+      0 => 'group_reference',
+      1 => 'group_scientific_name',
+      2 => 'group_usage',
+      3 => 'group_vernacular_names',
     ),
-    'format_type' => 'tabs',
+    'format_type' => 'htabs',
     'format_settings' => array(
-      'formatter' => '',
+      'formatter' => NULL,
       'instance_settings' => array(
         'classes' => '',
       ),

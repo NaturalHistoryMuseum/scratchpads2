@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * @file
+ * itis_term.features.field.inc
+ */
+/**
  * Implementation of hook_field_default_fields().
  */
 function itis_term_field_default_fields(){
@@ -23,13 +27,13 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'tid' => array(
-          '0' => 'tid'
+          0 => 'tid'
         )
       ),
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          '0' => array(
+          0 => array(
             'parent' => '0',
             'vocabulary' => 'itis_vocabulary'
           )
@@ -89,7 +93,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -150,7 +154,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -204,7 +208,7 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -334,7 +338,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'nid' => array(
-          '0' => 'nid'
+          0 => 'nid'
         )
       ),
       'module' => 'node_reference',
@@ -388,45 +392,45 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
           'Animalia & Monera' => array(
-            'junior synonym' => 'junior synonym',
-            'original name/combination' => 'original name/combination',
-            'subsequent name/combination' => 'subsequent name/combination',
-            'junior homonym' => 'junior homonym',
             'homonym & junior synonym' => 'homonym & junior synonym',
+            'junior homonym' => 'junior homonym',
+            'junior synonym' => 'junior synonym',
+            'misapplied' => 'misapplied',
+            'nomen dubium' => 'nomen dubium',
+            'nomen oblitum' => 'nomen oblitum',
+            'original name/combination' => 'original name/combination',
+            'other' => 'other',
+            'pro parte' => 'pro parte',
+            'subsequent name/combination' => 'subsequent name/combination',
             'unavailable, database artifact' => 'unavailable, database artifact',
-            'unavailable, literature misspelling' => 'unavailable, literature misspelling',
             'unavailable, incorrect original spelling' => 'unavailable, incorrect original spelling',
-            'unavailable, suppressed by ruling' => 'unavailable, suppressed by ruling',
+            'unavailable, literature misspelling' => 'unavailable, literature misspelling',
             'unavailable, nomen nudum' => 'unavailable, nomen nudum',
             'unavailable, other' => 'unavailable, other',
+            'unavailable, suppressed by ruling' => 'unavailable, suppressed by ruling',
             'unjustified emendation' => 'unjustified emendation',
-            'unnecessary replacement' => 'unnecessary replacement',
-            'nomen oblitum' => 'nomen oblitum',
-            'misapplied' => 'misapplied',
-            'pro parte' => 'pro parte',
-            'other' => 'other',
-            'nomen dubium' => 'nomen dubium'
+            'unnecessary replacement' => 'unnecessary replacement'
           ),
           'Plantae & Fungi' => array(
-            'synonym' => 'synonym',
+            'database artifact' => 'database artifact',
             'homonym (illegitimate)' => 'homonym (illegitimate)',
-            'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
-            'rejected name' => 'rejected name',
+            'horticultural' => 'horticultural',
             'invalidly published, nomen nudum' => 'invalidly published, nomen nudum',
             'invalidly published, other' => 'invalidly published, other',
             'misapplied' => 'misapplied',
-            'pro parte' => 'pro parte',
-            'horticultural' => 'horticultural',
-            'database artifact' => 'database artifact',
             'orthographic variant (misspelling)' => 'orthographic variant (misspelling)',
-            'other' => 'other'
+            'other' => 'other',
+            'pro parte' => 'pro parte',
+            'rejected name' => 'rejected name',
+            'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
+            'synonym' => 'synonym'
           )
         ),
         'allowed_values_function' => ''
@@ -475,7 +479,7 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -529,7 +533,7 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -583,7 +587,7 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -643,7 +647,7 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
@@ -709,7 +713,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -770,7 +774,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -831,7 +835,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -892,7 +896,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
@@ -946,19 +950,19 @@ function itis_term_field_default_fields(){
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value'
+          0 => 'value'
         )
       ),
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
+          'Animals and Monerans' => array(
+            'invalid' => 'invalid',
+            'valid' => 'valid'
+          ),
           'Plants and Fungi' => array(
             'accepted' => 'accepted',
             'not accepted' => 'not accepted'
-          ),
-          'Animals and Monerans' => array(
-            'valid' => 'valid',
-            'invalid' => 'invalid'
           )
         ),
         'allowed_values_function' => ''
@@ -1014,7 +1018,7 @@ function itis_term_field_default_fields(){
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format'
+          0 => 'format'
         )
       ),
       'module' => 'text',
