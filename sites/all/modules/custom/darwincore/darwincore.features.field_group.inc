@@ -10,6 +10,89 @@
 function darwincore_field_group_default_field_groups() {
   $field_groups = array();
 
+  // Exported field_group: 'node-location-form-group_extra_fields'
+  $field_groups['node-location-form-group_extra_fields'] = array(
+    'group_name' => 'group_extra_fields',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'form',
+    'parent_name' => 'group_tabs',
+    'label' => 'Extra fields',
+    'weight' => '18',
+    'children' => array(
+      0 => 'field_continent_or_ocean',
+      1 => 'field_coordinate_system',
+      2 => 'field_coordinate_uncertainty',
+      3 => 'field_county',
+      4 => 'field_geodetic_datum',
+      5 => 'field_georeference_protocol',
+      6 => 'field_georeference_remarks',
+      7 => 'field_island',
+      8 => 'field_locality',
+      9 => 'field_max_depth',
+      10 => 'field_max_elevation',
+      11 => 'field_min_depth',
+      12 => 'field_min_elevation',
+      13 => 'field_state_province',
+    ),
+    'format_type' => 'htab',
+    'format_settings' => array(
+      'label' => 'Extra fields',
+      'instance_settings' => array(
+        'required_fields' => 0,
+        'classes' => '',
+        'description' => '',
+      ),
+      'formatter' => 'closed',
+    ),
+  );
+
+  // Exported field_group: 'node-location-form-group_map'
+  $field_groups['node-location-form-group_map'] = array(
+    'group_name' => 'group_map',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'form',
+    'parent_name' => 'group_tabs',
+    'label' => 'Map',
+    'weight' => '17',
+    'children' => array(
+      0 => 'field_map',
+    ),
+    'format_type' => 'htab',
+    'format_settings' => array(
+      'label' => 'Map',
+      'instance_settings' => array(
+        'required_fields' => 0,
+        'classes' => '',
+        'description' => '',
+      ),
+      'formatter' => 'open',
+    ),
+  );
+
+  // Exported field_group: 'node-location-form-group_tabs'
+  $field_groups['node-location-form-group_tabs'] = array(
+    'group_name' => 'group_tabs',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'form',
+    'parent_name' => '',
+    'label' => 'Tabs',
+    'weight' => '1',
+    'children' => array(
+      0 => 'group_map',
+      1 => 'group_extra_fields',
+    ),
+    'format_type' => 'htabs',
+    'format_settings' => array(
+      'formatter' => NULL,
+      'instance_settings' => array(
+        'classes' => '',
+      ),
+    ),
+  );
+
   // Exported field_group: 'node-specimen_observation-form-group_collection'
   $field_groups['node-specimen_observation-form-group_collection'] = array(
     'group_name' => 'group_collection',
