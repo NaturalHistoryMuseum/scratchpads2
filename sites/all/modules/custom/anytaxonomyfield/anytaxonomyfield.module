@@ -230,7 +230,6 @@ function _anytaxonomyfield_add_select_field_to_tab(&$form, $select_key){
         }
         $form['#groups'][$group_key]->children = $new_children;
         $form['#group_children'][$select_key . '_anytaxonomyfield_select'] = $group_key;
-        dpm($form['#groups'][$group_key]);
       }
     }
   }
