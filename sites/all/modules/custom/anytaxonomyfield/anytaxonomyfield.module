@@ -149,7 +149,7 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
       if(isset($context['items']) && is_array($context['items']) && count($context['items'])){
         $term = taxonomy_term_load($context['items'][0]['tid']);
         $context['field']['settings']['allowed_values'][0]['vocabulary'] = $term->vocabulary_machine_name;
-      } else {
+      }else{
         // No items already loaded.  We'll set the drop down to "empty".
         $context['field']['settings']['allowed_values'][0]['vocabulary'] = FALSE;
       }
@@ -206,24 +206,64 @@ function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $cont
 function anytaxonomyfield_form_alter(&$form, &$form_state, $form_id){
   if(isset($form_state['anytaxonomyfield'])){
     foreach($form_state['anytaxonomyfield'] as $key => $field){
-      $new_form = array();
-      foreach($form as $form_key => $value){
-        if(substr($key, 0, strlen($form_key)) == $form_key){
-          foreach($field as $select_field_key => $select_field){
-            $new_form[$select_field_key] = $select_field;
-            if(isset($value['#weight'])){
-              $new_form[$select_field_key]['#weight'] = $value['#weight'];
-            }
-          }
-        }
-        $new_form[$form_key] = $value;
-      }
-      $form = $new_form;
+      $form = _anytaxonomyfield_add_select_field($form, $key, $field);
+      _anytaxonomyfield_add_select_field_to_tab($form, $key);
     }
     unset($form_state['anytaxonomyfield']);
   }
 }
 
+/**
+ * Similar function to below that adds the field to a tab if required.
+ */
+function _anytaxonomyfield_add_select_field_to_tab(&$form, $select_key){
+  if(isset($form['#groups'])){
+    foreach($form['#groups'] as $group_key => $group){
+      if(is_object($group) && isset($group->children) && in_array($select_key, $group->children)){
+        $form['#groups'][$group_key]->children[] = $select_key . '_anytaxonomyfield_select';
+        $form['#group_children'][$select_key . '_anytaxonomyfield_select'] = $group_key;
+      }
+    }
+  }
+}
+
+/**
+ * Recursive function used to add a "select_element" to a form in the right place
+ * 
+ * Wouldn't it be easier just to have something like:
+ * 
+ * array(
+ * select_element
+ * term_element
+ * )
+ * YES, YES IT WOULD, BUT SADLY THAT CAUSES ISSUES.
+ */
+function _anytaxonomyfield_add_select_field($element, $select_key, $select_field){
+  if(is_array($element)){
+    foreach($element as $child_key => $child_value){
+      if($child_key === $select_key){
+        // Found it.  Check if we're a container, because if we are, we may need
+        // to loop through the #groups form attribute, and simply add this field.
+        $new_element = array();
+        foreach($element as $key => $value){
+          if($key == $select_key){
+            $new_element = array_merge($new_element, $select_field);
+          }
+          $new_element[$key] = $value;
+        }
+        $element = $new_element;
+      }
+      if(is_array($element)){
+        $element[$child_key] = _anytaxonomyfield_add_select_field($element[$child_key], $select_key, $select_field);
+      }
+    }
+  }
+  return $element;
+}
+
+/**
+ * AJAX MAGIC!
+ */
 function anytaxonomyfield_ajax_callback($form, $form_state){
   $form_item_to_replace = substr($form_state['triggering_element']['#name'], 0, strpos($form_state['triggering_element']['#name'], '_anytaxonomyfield_select'));
   return array(
