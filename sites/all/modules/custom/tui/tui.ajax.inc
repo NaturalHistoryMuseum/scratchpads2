@@ -22,6 +22,8 @@ function tui_ajax_form_callback(){
 
 /**
  * Callback function to return HTML
+ * 
+ * FIXME - We need to reload part of the tree too.
  */
 function tui_ajax_form_callback_callback(&$form, &$form_state){
   return array(
