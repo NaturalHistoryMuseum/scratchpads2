@@ -29,7 +29,7 @@ function views_data_export_drush_command() {
     'drupal dependencies' => array (
       'views_data_export',
     ),
-    'core' => array('6'),
+    'core' => array('7'),
   );
 
   return $items;
@@ -240,8 +240,8 @@ function _drush_views_data_export_clone_display(&$view, $display_id, $settings =
   
   // Create the new display
   $new_display_id = _drush_views_data_export_generate_display_id($view, 'views_data_export');
-  $view->display[$new_display_id] = drupal_clone($view->display[$display_id]);
-  
+  $view->display[$new_display_id] = clone $view->display[$display_id];
+
   // Ensure we have settings we'll need for our display
   $default_settings = array (
     'id' => $new_display_id,
