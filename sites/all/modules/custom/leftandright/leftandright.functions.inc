@@ -17,7 +17,7 @@ function leftandright_previous_term($term){
     $previous_term = current($term->parent) ? taxonomy_term_load(current($term->parent)) : FALSE;
   }else{
     $query = db_select('taxonomy_term_data', 't');
-    $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');    
+    $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
     $query->fields('t', array(
       'tid'
     ));
@@ -71,11 +71,13 @@ function leftandright_save_term($term){
   // If we don't already have a left and right, then saving is easy.
   if(!$current_landr){
     // Punch the hole!
-    db_query('UPDATE {taxonomy_leftandright} SET lft = lft+2 WHERE lft >= :lft', array(
-      ':lft' => $term->lft
+    db_query('UPDATE {taxonomy_leftandright} SET lft = lft+2 WHERE lft >= :lft AND vid = :vid', array(
+      ':lft' => $term->lft,
+      ':vid' => $term->vid
     ));
-    db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt+2 WHERE rgt >= :lft', array(
-      ':lft' => $term->lft
+    db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt+2 WHERE rgt >= :lft AND vid = :vid', array(
+      ':lft' => $term->lft,
+      ':vid' => $term->vid
     ));
     // Do the insert
     db_insert('taxonomy_leftandright')->fields(array(
@@ -229,10 +231,12 @@ function leftandright_delete($term){
     'rgt'
   ))->condition('tid', $term->tid)->execute()->fetch();
   db_delete('taxonomy_leftandright')->condition('tid', $term->tid)->execute();
-  db_query('UPDATE {taxonomy_leftandright} SET lft = lft-2 WHERE lft > :lft', array(
-    ':lft' => $leftandright->lft
+  db_query('UPDATE {taxonomy_leftandright} SET lft = lft-2 WHERE lft > :lft AND vid = :vid', array(
+    ':lft' => $leftandright->lft,
+    ':vid' => $term->vid
   ));
-  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt-2 WHERE rgt > :lft', array(
-    ':lft' => $leftandright->lft
+  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt-2 WHERE rgt > :lft AND vid = :vid', array(
+    ':lft' => $leftandright->lft,
+    ':vid' => $term->vid
   ));
 }
