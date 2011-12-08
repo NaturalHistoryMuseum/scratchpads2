@@ -40,10 +40,11 @@ function leftandright_rebuild_tree_form($form, &$form_state, $edit = array()){
  * Submit function for the above form
  */
 function leftandright_rebuild_tree_form_submit($form, &$form_state){
-  $result = @db_query('CALL rebuild_tree('.$form_state['values']['vid'].')')->execute();
-  if($result){
+  try{
+    db_query(sprintf('CALL rebuild_tree(%u)',$form_state['values']['vid']))->execute();
     drupal_goto('admin/structure/taxonomy');
-  }else{
+  }
+  catch(Exception $e){
     $batch = array(
       'title' => t('Rebuilding'),
       'operations' => array(
