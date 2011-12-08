@@ -41,7 +41,7 @@ function leftandright_rebuild_tree_form($form, &$form_state, $edit = array()){
  */
 function leftandright_rebuild_tree_form_submit($form, &$form_state){
   try{
-    db_query(sprintf('CALL rebuild_tree(%u)',$form_state['values']['vid']))->execute();
+    db_query(sprintf('CALL rebuild_tree(%u)', $form_state['values']['vid']))->execute();
     drupal_goto('admin/structure/taxonomy');
   }
   catch(Exception $e){
@@ -146,13 +146,12 @@ function leftandright_rebuild_tree($vid, &$context){
       }
     }
     $time_taken = time() - $context['sandbox']['starttime'];
-    $interval_guess = ($context['sandbox']['max'] / $context['sandbox']['progress']) * (time() - $context['sandbox']['starttime']);
-    //$interval_guess = ($context['sandbox']['max'] - $context['sandbox']['progress']) * ((time() - $context['sandbox']['starttime']/$context['sandbox']['progress']));
+    $interval_guess = $context['sandbox']['progress'] ? ($context['sandbox']['max'] / $context['sandbox']['progress']) * (time() - $context['sandbox']['starttime']) : FALSE;
     $context['message'] = '<p>' . t('Assigned !progress of !total left and right values (Number of terms &times; 2)', array(
       '!progress' => $context['sandbox']['progress'] + 1,
       '!total' => $context['sandbox']['max']
     )) . '</p><p>' . t('Approximate time remaining: !time', array(
-      '!time' => format_interval($interval_guess - $time_taken, 2)
+      '!time' => $interval_guess ? format_interval($interval_guess - $time_taken, 2) : t('too soon to guess')
     )) . '</p><p>' . t('Time taken: !timetaken', array(
       '!timetaken' => format_interval($time_taken)
     )) . '</p>';
