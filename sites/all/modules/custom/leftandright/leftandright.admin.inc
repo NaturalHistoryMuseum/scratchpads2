@@ -40,25 +40,30 @@ function leftandright_rebuild_tree_form($form, &$form_state, $edit = array()){
  * Submit function for the above form
  */
 function leftandright_rebuild_tree_form_submit($form, &$form_state){
-  $batch = array(
-    'title' => t('Rebuilding'),
-    'operations' => array(
-      array(
-        'leftandright_rebuild_tree',
+  $result = @db_query('CALL rebuild_tree('.$form_state['values']['vid'].')')->execute();
+  if($result){
+    drupal_goto('admin/structure/taxonomy');
+  }else{
+    $batch = array(
+      'title' => t('Rebuilding'),
+      'operations' => array(
         array(
-          $form_state['values']['vid']
+          'leftandright_rebuild_tree',
+          array(
+            $form_state['values']['vid']
+          )
+        ),
+        array(
+          'leftandright_rebuild_tree_merge',
+          array(
+            $form_state['values']['vid']
+          )
         )
       ),
-      array(
-        'leftandright_rebuild_tree_merge',
-        array(
-          $form_state['values']['vid']
-        )
-      )
-    ),
-    'file' => drupal_get_path('module', 'leftandright') . '/leftandright.admin.inc'
-  );
-  batch_set($batch);
+      'file' => drupal_get_path('module', 'leftandright') . '/leftandright.admin.inc'
+    );
+    batch_set($batch);
+  }
 }
 
 /**

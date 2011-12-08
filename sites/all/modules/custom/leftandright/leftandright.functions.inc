@@ -3,6 +3,9 @@
 /**
  * Get the previous term to one being inserted or updated.  This is a simple
  * helper function that makes calculating left and right values a little easier.
+ * 
+ * FIXME - This is not working as expected.  This needs testing with all terms
+ * from a tree to ensure that it returns the previous term expected in all cases.
  */
 function leftandright_previous_term($term){
   // Here we need to get the siblings of a term.  We'll get all the children
@@ -13,7 +16,18 @@ function leftandright_previous_term($term){
     $children = taxonomy_get_children(current($term->parent), $term->vid);
     $previous_term = current($term->parent) ? taxonomy_term_load(current($term->parent)) : FALSE;
   }else{
-    $children = taxonomy_get_tree($term->vid, 0, 1);
+    $query = db_select('taxonomy_term_data', 't');
+    $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');    
+    $query->fields('t', array(
+      'tid'
+    ));
+    $query->condition('parent', 0)->condition('vid', $term->vid);
+    $results = $query->execute();
+    $tids = array();
+    foreach($results as $row){
+      $tids[] = $row->tid;
+    }
+    $children = taxonomy_term_load_multiple($tids);
     $previous_term = FALSE;
   }
   foreach($children as $child){

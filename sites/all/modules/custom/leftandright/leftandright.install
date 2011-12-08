@@ -8,6 +8,12 @@ function leftandright_install(){
   drupal_set_message(t('Please go and <a href="!rebuild_url">rebuild</a> all of your taxonomies', array(
     '!rebuild_url' => url('admin/structure/taxonomy')
   )));
+  // If we're using MySQL, give a message stating that the rebuild_tree procedure
+  // can be loaded from the rebuild_tree.sql file.
+  if(db_driver() == 'mysql'){
+    drupal_set_message('As you are using MySQL, you can take advantage of the "rebuild_tree" procedure.  This unfortunately needs loading manually into your database.  Please copy the SQL below, or from the rebuild_tree.sql file PHPMyAdmin or a mysql command line client and execute it on this site\'s database.');
+    drupal_set_message('<pre>'.file_get_contents(dirname(__FILE__).'/rebuild_tree.sql').'</pre>');
+  }
 }
 
 /**
@@ -63,8 +69,7 @@ function leftandright_schema(){
           'not null' => TRUE
         ),
         'rgt' => array(
-          'type' => 'int',
-          'not null' => TRUE
+          'type' => 'int'
         ),
         'tid' => array(
           'type' => 'int',

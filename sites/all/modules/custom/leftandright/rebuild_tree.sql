@@ -3,10 +3,9 @@ DELIMITER $$
 CREATE PROCEDURE recursivesubtree( i_vid INT, i_root INT, i_depth INT, INOUT i_index INT)
 BEGIN
   DECLARE i_rows,i_tid,done INT DEFAULT 0;
-  SET i_rows = ( SELECT COUNT(*) FROM taxonomy_term_hierarchy WHERE parent=i_root );
+  SET i_rows = ( SELECT COUNT(*) FROM `taxonomy_term_hierarchy` WHERE parent=i_root );
   IF i_depth = 0 THEN
     SET @i_index = 0;
-    DELETE FROM taxonomy_leftandright WHERE vid = i_vid;
   END IF;
   IF i_rows > 0 THEN
     BEGIN
@@ -14,7 +13,7 @@ BEGIN
         SELECT
           t.tid
         FROM 
-          taxonomy_term_data t INNER JOIN taxonomy_term_hierarchy h ON h.tid = t.tid
+          `taxonomy_term_data` t INNER JOIN `taxonomy_term_hierarchy` h ON h.tid = t.tid
         WHERE parent = i_root
         AND vid = i_vid
         ORDER BY name;
@@ -24,10 +23,10 @@ BEGIN
         FETCH cur INTO i_tid;
         IF NOT done THEN
           SET i_index = i_index + 1;
-          INSERT INTO taxonomy_leftandright_temp (tid, vid, lft, depth) VALUES (i_tid, i_vid, i_index, i_depth);
+          INSERT INTO `taxonomy_leftandright_temp` (tid, vid, lft, depth) VALUES (i_tid, i_vid, i_index, i_depth);
           CALL recursivesubtree( i_vid, i_tid, i_depth + 1, i_index);
           SET i_index = i_index + 1;
-          UPDATE taxonomy_leftandright_temp SET rgt = i_index WHERE tid = i_tid;
+          UPDATE `taxonomy_leftandright_temp` SET rgt = i_index WHERE tid = i_tid;
         END IF;
       END WHILE;
       CLOSE cur;
@@ -38,11 +37,15 @@ $$
 DELIMITER ;
 DROP PROCEDURE IF EXISTS rebuild_tree;
 DELIMITER $$
-CREATE PROCEDURE rebuild_tree(vid INT)
+CREATE PROCEDURE rebuild_tree(i_vid INT)
 BEGIN
 	SET @lft = 0;
 	SET @@SESSION.max_sp_recursion_depth=100;
-	CALL recursivesubtree(vid, 0, 0, @lft);
+  DELETE FROM `taxonomy_leftandright` WHERE vid = i_vid;
+  DELETE FROM `taxonomy_leftandright_temp` WHERE vid = i_vid;
+	CALL recursivesubtree(i_vid, 0, 0, @lft);
+	INSERT INTO `taxonomy_leftandright` SELECT * FROM `taxonomy_leftandright_temp` WHERE vid = i_vid;
+  DELETE FROM `taxonomy_leftandright_temp` WHERE vid = i_vid;
 END
 $$
 DELIMITER ;
