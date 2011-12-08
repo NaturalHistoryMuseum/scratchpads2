@@ -16,7 +16,7 @@ BEGIN
           `taxonomy_term_data` t INNER JOIN `taxonomy_term_hierarchy` h ON h.tid = t.tid
         WHERE parent = i_root
         AND vid = i_vid
-        ORDER BY name;
+        ORDER BY weight, name;
       DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = 1;
       OPEN cur;
       WHILE NOT done DO
