@@ -1,242 +1,122 @@
 <?php
+// Set the internal encoding first, before we do anything else!
+mb_internal_encoding('UTF-8');
 
 /**
- * Get the previous term to one being inserted or updated.  This is a simple
- * helper function that makes calculating left and right values a little easier.
- * 
- * FIXME - This is not working as expected.  This needs testing with all terms
- * from a tree to ensure that it returns the previous term expected in all cases.
+ * Helper function to convert an integer to a UTF-8 string.  Note, we will never
+ * need to go in the reverse to this function, so this is nice and simple!
  */
-function leftandright_previous_term($term){
-  // Here we need to get the siblings of a term.  We'll get all the children
-  // of the parent of this term, ordered correctly, and parse through.  If the
-  // first term is the term passed, then we return the parent.
-  if(current($term->parent)){
-    // We have a parent set, we'll use taxonomy_get_children
-    $children = taxonomy_get_children(current($term->parent), $term->vid);
-    $previous_term = current($term->parent) ? taxonomy_term_load(current($term->parent)) : FALSE;
-  }else{
+function _leftandright_int_to_utf8_char($index){
+  return mb_convert_encoding('&#x' . dechex($index) . ';', 'UTF-8', 'HTML-ENTITIES');
+}
+
+/**
+ * Insert a term
+ */
+function leftandright_insert($term){
+  // Get the parent term(s), get the child terms and work out where this term
+  // is in that
+  foreach($term->parent as $parent_tid){
+    // We have a parent term, we load it to get its path, and also load the
+    // siblings to work out where we need to be (and also to punch a hole if
+    // required).
+    if(!$parent_tid){
+      $parent_term = new stdClass();
+      $parent_term->paths = array(
+        ''
+      );
+    }else{
+      $parent_term = taxonomy_term_load($parent_tid);
+    }
     $query = db_select('taxonomy_term_data', 't');
-    $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
     $query->fields('t', array(
       'tid'
     ));
-    $query->condition('parent', 0)->condition('vid', $term->vid);
-    $results = $query->execute();
-    $tids = array();
-    foreach($results as $row){
-      $tids[] = $row->tid;
+    $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
+    $query->condition('parent', $parent_tid);
+    $result = $query->execute();
+    $siblings = array();
+    foreach($result as $sibling){
+      $siblings[] = $sibling->tid;
     }
-    $children = taxonomy_term_load_multiple($tids);
-    $previous_term = FALSE;
-  }
-  foreach($children as $child){
-    if($child->tid == $term->tid){return $previous_term;}
-    $previous_term = $child;
+    // Load the terms.
+    $siblings = taxonomy_term_load_multiple($siblings);
+    $index = 0;
+    foreach($siblings as $sibling){
+      if(!isset($sibling->paths) || !in_array($parent_term->paths[0] . _leftandright_int_to_utf8_char($index), $sibling->paths)){
+        // The path has changed for this term.  We need to pull out all of the
+        // paths based on this parent, and then save.  This should leave other
+        // paths that are not based on this terms parent unaffected.
+        // Last char.  This will be the same for all paths for this term.
+        $last_char = _leftandright_int_to_utf8_char($index);
+        if(isset($sibling->paths)){
+          // We already have paths. This is not a new term.
+          $new_term = FALSE;
+        }else{
+          $sibling->paths = array();
+          $new_term = TRUE;
+        }
+        foreach($parent_term->paths as $parent_path){
+          if(!$new_term){
+            $parent_str_length = mb_strlen($parent_path);
+            foreach($sibling->paths as $key => $path){
+              // If this path is like the parent path, then we remove it and add
+              // the new one with the new ending!
+              if(mb_substr($path, 0, $parent_str_length) == $parent_path){
+                unset($sibling->paths[$key]);
+              }
+            }
+          }
+          $sibling->paths[] = $parent_path . $last_char;
+        }
+        // Save the terms new paths
+        _leftandright_save_term($sibling);
+      }
+      // Increase the index for the next sibling.
+      $index++;
+    }
   }
 }
 
 /**
- * Get next sibling
+ * Helper function to save a term and its paths
  */
-function leftandright_get_next_sibling($term){
-  // Get the parent from the taxonomy_term_hierarchy table first.
-  $parent = db_select('taxonomy_term_hierarchy', 't')->fields('t', array(
-    'parent'
-  ))->condition('tid', $term->tid)->execute()->fetchField();
-  $query = db_select('taxonomy_term_data', 't')->fields('t');
-  $query->join('taxonomy_term_hierarchy', 'h', 't.tid = h.tid');
-  $results = $query->condition('vid', $term->vid)->condition('parent', $parent)->orderBy('t.weight')->orderBy('t.name')->orderBy('t.tid', 'DESC')->fields('t')->execute();
-  $found_me = FALSE;
-  foreach($results as $sibling){
-    if($found_me){return $sibling;}
-    if($sibling->tid == $term->tid){
-      $found_me = TRUE;
-    }
-  }
-  return FALSE;
-}
-
-/**
- * Save the term
- */
-function leftandright_save_term($term){
-  // Get the current left and right for this term - if they're not set, then
-  // saving is simply punching a hole.  If they are set, then we need to close
-  // a hole, and open one!
-  $current_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-    'lft',
-    'rgt'
-  ))->condition('tid', $term->tid)->execute()->fetch();
-  // If we don't already have a left and right, then saving is easy.
-  if(!$current_landr){
-    // Punch the hole!
-    db_query('UPDATE {taxonomy_leftandright} SET lft = lft+2 WHERE lft >= :lft AND vid = :vid', array(
-      ':lft' => $term->lft,
-      ':vid' => $term->vid
-    ));
-    db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt+2 WHERE rgt >= :lft AND vid = :vid', array(
-      ':lft' => $term->lft,
-      ':vid' => $term->vid
-    ));
-    // Do the insert
-    db_insert('taxonomy_leftandright')->fields(array(
-      'lft' => $term->lft,
-      'rgt' => $term->rgt,
-      'vid' => $term->vid,
+function _leftandright_save_term($term){
+  // First delete the term's paths
+  db_delete('taxonomy_path')->condition('tid', $term->tid)->execute();
+  $query = db_insert('taxonomy_path')->fields(array(
+    'tid',
+    'vid',
+    'depth',
+    'path'
+  ));
+  foreach($term->paths as $path){
+    $query->values(array(
       'tid' => $term->tid,
-      'depth' => $term->depth
-    ))->execute();
-  }else{
-    // Do nothing if the lft and rgt match
-    if($term->lft == $current_landr->lft && $term->rgt == $current_landr->rgt){return;}
+      'vid' => $term->vid,
+      'depth' => mb_strlen($path),
+      'path' => $path
+    ));
   }
+  $query->execute();
 }
 
 /**
- * Do an insert
+ * Load terms
  */
-function leftandright_insert($term){
-  // We need to get the previous sibling and get the right value for it. If
-  // there is no previous sibling, we get the left value of the parent.  If
-  // there is no parent, then this is the first term at the root, and receives
-  // the left value of 1.
-  module_load_include('functions.inc', 'leftandright');
-  // Set the left, right and depth.
-  leftandright_set_left_and_depth($term);
-  // Set the right
-  $term->rgt = $term->lft + 1;
-  // We should now save the term in to the table.
-  leftandright_save_term($term);
-}
-
-/**
- * Set the leftandright for a term
- */
-function leftandright_set_left_and_depth(&$term){
-  // Get the previous term
-  $previous_term = leftandright_previous_term($term);
-  if($previous_term){
-    // We have a previous term, we need to check if this is the parent, else
-    // it's a sibling
-    $previous_term_landr = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-      'lft',
-      'rgt',
-      'depth'
-    ))->condition('tid', $previous_term->tid)->execute()->fetch();
-    if(!$previous_term_landr){return leftandright_insert_error($previous_term);}
-    if($previous_term->tid == current($term->parent)){
-      // Previous is the parent, left is parent left + 1.
-      $term->lft = $previous_term_landr->lft + 1;
-      $term->depth = $previous_term_landr->depth + 1;
-    }else{
-      // Previous is a sibling, left is sibling right +1.
-      $term->lft = $previous_term_landr->rgt + 1;
-      // Depth is same as sibling
-      $term->depth = $previous_term_landr->depth;
+function leftandright_load($terms){
+  $result = db_query('SELECT tid, path FROM {taxonomy_path} WHERE tid IN (:tids)', array(
+    ':tids' => array_keys($terms)
+  ));
+  foreach($result as $record){
+    if(!isset($terms[$record->tid]->path)){
+      $terms[$record->tid]->paths = array();
     }
-  }else{
-    // No previous term, we're the first one!
-    $term->lft = 1;
-    $term->depth = 0;
+    $terms[$record->tid]->paths[] = $record->path;
   }
 }
 
 /**
- * Insert fuck up!
+ * Delete a term
  */
-function leftandright_insert_error($previous_term){
-  // PANIC!
-  $vocabulary = taxonomy_vocabulary_load($previous_term->vid);
-  drupal_set_message(t('The vocabulary @vocabulary_name needs to be <a href="!rebuild_url">rebuilt</a> immediately', array(
-    '@vocabulary_name' => $vocabulary->name,
-    '!rebuild_url' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/rebuild'
-  )));
-  return watchdog('Left and right error', 'Missing left and right values for <a href="!term_link">@term_name</a>.', array(
-    '!term_link' => url('taxonomy/term/' . $previous_term->tid),
-    '@term_name' => $previous_term->name
-  ));
-}
-
-/**
- * Do an update.  Note, this is a little more complicated due to the fact that
- * branch terms can be updated.
- */
-function leftandright_update($term){
-  // We only need to do this if we have actually moved the term.  We test for
-  // that first.
-  // Get what we would like the left to be  
-  leftandright_set_left_and_depth($term);
-  // We start by getting the left and right values of the term that we're moving
-  // We then move that term (and its children) to a temporary table.  The gap
-  // is then closed, and then we punch a hole, and move the terms back to where
-  // they should be.
-  $leftandright = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-    'lft',
-    'rgt',
-    'depth'
-  ))->condition('tid', $term->tid)->execute()->fetch();
-  // Now we can check to see if the already set lft value is the same as what
-  // we want it to be.  If it is, we can simply return
-  if($term->lft == $leftandright->lft){return;}
-  $temporary_table = db_query_temporary('SELECT * FROM {taxonomy_leftandright} WHERE lft >= :lft AND rgt <= :rgt AND vid = :vid', array(
-    ':vid' => $term->vid,
-    ':lft' => $leftandright->lft,
-    ':rgt' => $leftandright->rgt
-  ));
-  // Delete the entries from the leftandright table
-  db_delete('taxonomy_leftandright')->condition('lft', $leftandright->lft, '>=')->condition('vid', $term->vid)->condition('rgt', $leftandright->rgt, '<=')->execute();
-  // Close up the hole
-  $reduce_by = ($leftandright->rgt - $leftandright->lft) + 1;
-  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt - :reduce_by WHERE vid = :vid AND rgt > :rgt', array(
-    ':reduce_by' => $reduce_by,
-    ':vid' => $term->vid,
-    ':rgt' => $leftandright->rgt
-  ));
-  db_query('UPDATE {taxonomy_leftandright} SET lft = lft - :reduce_by WHERE vid = :vid AND lft > :rgt', array(
-    ':reduce_by' => $reduce_by,
-    ':vid' => $term->vid,
-    ':rgt' => $leftandright->rgt
-  ));
-  // Open a hole for where the term is going
-  // Unfortunately, we need to get the previous term's left again as they may 
-  // have changed (depending on the direction of the move). 
-  leftandright_set_left_and_depth($term);
-  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt + :increase_by WHERE vid = :vid AND rgt >= :lft', array(
-    ':increase_by' => $reduce_by,
-    ':vid' => $term->vid,
-    ':lft' => $term->lft
-  ));
-  db_query('UPDATE {taxonomy_leftandright} SET lft = lft + :increase_by WHERE vid = :vid AND lft >= :lft', array(
-    ':increase_by' => $reduce_by,
-    ':vid' => $term->vid,
-    ':lft' => $term->lft
-  ));
-  // Move the terms in the table back, updating the depth, lft and rgt values
-  // as we do.
-  db_query('INSERT INTO {taxonomy_leftandright} (lft, rgt, tid, vid, depth) SELECT lft - :alter_by, rgt - :alter_by, tid, vid, depth - :alter_depth_by FROM ' . $temporary_table, array(
-    ':alter_by' => $leftandright->lft - $term->lft,
-    ':alter_depth_by' => $leftandright->depth - $term->depth
-  ));
-}
-
-/**
- * Delete the term.  Note, this works if deleting branches as this is called
- * multiple times.
- */
-function leftandright_delete($term){
-  // Get the left and right values first so that we can close up the table.
-  $leftandright = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-    'lft',
-    'rgt'
-  ))->condition('tid', $term->tid)->execute()->fetch();
-  db_delete('taxonomy_leftandright')->condition('tid', $term->tid)->execute();
-  db_query('UPDATE {taxonomy_leftandright} SET lft = lft-2 WHERE lft > :lft AND vid = :vid', array(
-    ':lft' => $leftandright->lft,
-    ':vid' => $term->vid
-  ));
-  db_query('UPDATE {taxonomy_leftandright} SET rgt = rgt-2 WHERE rgt > :lft AND vid = :vid', array(
-    ':lft' => $leftandright->lft,
-    ':vid' => $term->vid
-  ));
-}
+function leftandright_delete($term){}

@@ -5,9 +5,9 @@
  */
 function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $start = 0, $max_terms = 1000){
   // Only use this function if the leftandright module is installed.
-  if(!module_exists('leftandright')){
+  //if(!module_exists('leftandright')){
     return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
-  }
+  //}
   // We need to prepare the lft and rgt values for the query, and also calculate
   // the max depth if required.
   if(!$parent){
