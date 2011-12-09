@@ -40,31 +40,19 @@ function leftandright_rebuild_tree_form($form, &$form_state, $edit = array()){
  * Submit function for the above form
  */
 function leftandright_rebuild_tree_form_submit($form, &$form_state){
-  try{
-    db_query(sprintf('CALL rebuild_tree(%u)', $form_state['values']['vid']))->execute();
-    drupal_goto('admin/structure/taxonomy');
-  }
-  catch(Exception $e){
-    $batch = array(
-      'title' => t('Rebuilding'),
-      'operations' => array(
+  $batch = array(
+    'title' => t('Rebuilding'),
+    'operations' => array(
+      array(
+        'leftandright_rebuild_tree',
         array(
-          'leftandright_rebuild_tree',
-          array(
-            $form_state['values']['vid']
-          )
-        ),
-        array(
-          'leftandright_rebuild_tree_merge',
-          array(
-            $form_state['values']['vid']
-          )
+          $form_state['values']['vid']
         )
-      ),
-      'file' => drupal_get_path('module', 'leftandright') . '/leftandright.admin.inc'
-    );
-    batch_set($batch);
-  }
+      )
+    ),
+    'file' => drupal_get_path('module', 'leftandright') . '/leftandright.admin.inc'
+  );
+  batch_set($batch);
 }
 
 /**
@@ -100,6 +88,13 @@ function leftandright_rebuild_tree($vid, &$context){
   // plenty of feedback to the user.
   $number_of_terms_processed = 0;
   while($number_of_terms_processed < 1000 && $context['sandbox']['progress'] < $context['sandbox']['max']){
+  }
+  if($context['sandbox']['progress'] != $context['sandbox']['max']){
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+}
+
+/* 
     // Set the left for this term if it needs setting
     $context['sandbox']['leftorright']++;
     if(empty($context['sandbox']['current_term']->lft)){
@@ -157,21 +152,4 @@ function leftandright_rebuild_tree($vid, &$context){
     )) . '</p>';
     $number_of_terms_processed++;
     $context['sandbox']['progress']++;
-  }
-  if($context['sandbox']['progress'] != $context['sandbox']['max']){
-    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
-  }
-}
-
-/**
- * Merge the data into the main table.
- */
-function leftandright_rebuild_tree_merge($vid, &$context){
-  db_delete('taxonomy_leftandright')->condition('vid', $vid)->execute();
-  db_query('INSERT INTO {taxonomy_leftandright} (lft, rgt, tid, vid, depth) SELECT lft, rgt, l.tid, l.vid, depth FROM {leftandright_rebuild_left} l INNER JOIN {leftandright_rebuild_right} r ON l.tid = r.tid AND l.vid = r.vid AND l.vid = :vid', array(
-    ':vid' => $vid
-  ));
-  db_delete('leftandright_rebuild_right')->condition('vid', $vid)->execute();
-  db_delete('leftandright_rebuild_left')->condition('vid', $vid)->execute();
-  $context['finished'] = 1;
-}
+*/

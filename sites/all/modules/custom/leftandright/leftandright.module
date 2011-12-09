@@ -27,7 +27,7 @@ function leftandright_menu(){
  */
 function leftandright_taxonomy_term_load($terms){
   module_load_include('functions.inc', 'leftandright');
-  leftandright_load($terms);
+  return leftandright_load($terms);
 }
 
 /**
@@ -45,7 +45,7 @@ function leftandright_taxonomy_term_update($term){
   // Note, we can't just call delete then update, as that doesn't work with
   // branches.
   module_load_include('functions.inc', 'leftandright');
-  leftandright_insert($term);
+  leftandright_update($term);
 }
 
 /**

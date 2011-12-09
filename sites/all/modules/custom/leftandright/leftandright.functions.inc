@@ -11,11 +11,10 @@ function _leftandright_int_to_utf8_char($index){
 }
 
 /**
- * Insert a term
+ * Helper for the insert and update functions.
  */
-function leftandright_insert($term){
-  // Get the parent term(s), get the child terms and work out where this term
-  // is in that
+function _leftandright_get_new_paths($term){
+  $new_paths = array();
   foreach($term->parent as $parent_tid){
     // We have a parent term, we load it to get its path, and also load the
     // siblings to work out where we need to be (and also to punch a hole if
@@ -43,39 +42,108 @@ function leftandright_insert($term){
     $siblings = taxonomy_term_load_multiple($siblings);
     $index = 0;
     foreach($siblings as $sibling){
-      if(!isset($sibling->paths) || !in_array($parent_term->paths[0] . _leftandright_int_to_utf8_char($index), $sibling->paths)){
-        // The path has changed for this term.  We need to pull out all of the
-        // paths based on this parent, and then save.  This should leave other
-        // paths that are not based on this terms parent unaffected.
-        // Last char.  This will be the same for all paths for this term.
-        $last_char = _leftandright_int_to_utf8_char($index);
-        if(isset($sibling->paths)){
-          // We already have paths. This is not a new term.
-          $new_term = FALSE;
+      $last_char = _leftandright_int_to_utf8_char($index);
+      foreach($parent_term->paths as $parent_path){
+        if($sibling->tid == $term->tid){
+          // Add this path to the $term
+          $new_paths[] = $parent_path . $last_char;
         }else{
-          $sibling->paths = array();
-          $new_term = TRUE;
-        }
-        foreach($parent_term->paths as $parent_path){
-          if(!$new_term){
-            $parent_str_length = mb_strlen($parent_path);
-            foreach($sibling->paths as $key => $path){
-              // If this path is like the parent path, then we remove it and add
-              // the new one with the new ending!
-              if(mb_substr($path, 0, $parent_str_length) == $parent_path){
-                unset($sibling->paths[$key]);
+          // Add this path to the sibling
+          if(!in_array($parent_path . $last_char, $sibling->paths)){
+            // The path has changed. We need to find what it was.
+            $parent_path_length = mb_strlen($parent_path);
+            foreach($sibling->paths as $sibling_path){
+              if(mb_substr($sibling_path, 0, $parent_path_length) == $parent_path){
+                // Change this path in the database, and all other paths that 
+                // start like it to the new path.
+                _leftandright_move_path($term->vid, $sibling_path, $parent_path . $last_char);
               }
             }
           }
-          $sibling->paths[] = $parent_path . $last_char;
         }
-        // Save the terms new paths
-        _leftandright_save_term($sibling);
       }
       // Increase the index for the next sibling.
       $index++;
     }
   }
+  return $new_paths;
+}
+
+/**
+ * Insert a term
+ */
+function leftandright_insert($term){
+  $term->paths = _leftandright_get_new_paths($term);
+  _leftandright_save_term($term);
+}
+
+/**
+ * Update a term.
+ */
+function leftandright_update($term){
+  $new_paths = _leftandright_get_new_paths($term);
+  // Work out how many we need to change/add/remove.
+  $paths_to_add = array();
+  $paths_to_remove = array();
+  foreach($new_paths as $new_path){
+    if(!in_array($new_path, $term->paths)){
+      $paths_to_add[] = $new_path;
+    }
+  }
+  foreach($term->paths as $old_path){
+    if(!in_array($old_path, $new_paths)){
+      $paths_to_remove[] = $old_path;
+    }
+  }
+  if(count($paths_to_add) == count($paths_to_remove)){
+    // Spot on - easy.
+    for($i = 0; $i < count($paths_to_add); $i++){
+      _leftandright_move_path($term->vid, $paths_to_remove[$i], $paths_to_add[$i]);
+    }
+  }elseif(count($paths_to_add) > count($paths_to_remove)){
+    // Extra to add, a little tricky
+    // Create a temporary table first with the data to copy.  We'll use the first
+    // path from the term.
+    db_query('CREATE TEMPORARY TABLE leftandright_temp AS SELECT tid, vid, depth, SUBSTR(path, :path_start) AS path FROM {taxonomy_path} WHERE vid = :vid AND path LIKE :path', array(
+      ':path_start' => mb_strlen($term->paths[0]) + 1,
+      ':vid' => $term->vid,
+      ':path' => $term->paths[0]
+    ));
+    $i = 0;
+    for(; $i < count($paths_to_remove); $i++){
+      _leftandright_move_path($term->vid, $paths_to_remove[$i], $paths_to_add[$i]);
+    }
+    // Add the extra
+    for(; $i < count($paths_to_add); $i++){
+      db_query('INSERT INTO {taxonomy_path} SELECT tid, vid, depth, CONCAT(:new_path, path) FROM leftandright_temp', array(
+        ':new_path' => $paths_to_add[$i]
+      ));
+    }
+    // Drop the table once we're done with it.
+    db_drop_table('leftandright_temp');
+  }else{
+    // Extra to remove - easy!
+    $i = 0;
+    for(; $i < count($paths_to_add); $i++){
+      _leftandright_move_path($term->vid, $paths_to_remove[$i], $paths_to_add[$i]);
+    }
+    // Remove the extra
+    for(; $i < count($paths_to_remove); $i++){
+      db_delete('taxonomy_path')->condition('vid', $term->vid)->condition('path', $paths_to_remove[$i] . '%', 'LIKE')->execute();
+    }
+  }
+}
+
+/**
+ * Helper function to alter a path.
+ */
+function _leftandright_move_path($vid, $old_path, $new_path){
+  db_query('UPDATE {taxonomy_path} SET path = CONCAT(:new_path, SUBSTR(path, :path_start)) WHERE path LIKE :old_path AND vid = :vid', array(
+    ':vid' => $vid,
+    ':new_path' => $new_path,
+    ':path_start' => mb_strlen($old_path) + 1,
+    ':old_path' => $old_path . '%'
+  ));
 }
 
 /**
@@ -109,14 +177,22 @@ function leftandright_load($terms){
     ':tids' => array_keys($terms)
   ));
   foreach($result as $record){
-    if(!isset($terms[$record->tid]->path)){
+    if(!isset($terms[$record->tid]->paths)){
       $terms[$record->tid]->paths = array();
     }
     $terms[$record->tid]->paths[] = $record->path;
   }
+  return $terms;
 }
 
 /**
  * Delete a term
  */
-function leftandright_delete($term){}
+function leftandright_delete($term){
+  // Get this term's paths
+  if(isset($term->paths)){
+    foreach($term->paths as $path){
+      db_delete('taxonomy_path')->condition('vid', $term->vid)->condition('path', "$path%", 'LIKE')->execute();
+    }
+  }
+}
