@@ -443,7 +443,7 @@ function biblio_build_query($arg_list) {
           if (is_numeric($value)) {
             $cids = db_query('SELECT cid FROM {biblio_contributor_data}
                               WHERE cid = :cid OR
-                              (aka = (SELECT aka FROM {biblio_contributor_data} WHERE cid = :cdid) AND aka != 0)',
+                              (aka = (SELECT aka FROM {biblio_contributor_data} WHERE cid = :cdid AND aka != 0))',
                               array(':cid' => $value, ':cdid' => $value));
 
             $cid_count = 0;
@@ -495,7 +495,8 @@ function biblio_build_query($arg_list) {
               $query->innerJoin('biblio_keyword_data', 'bkd', 'bkd.kid = bk.kid');
             }
             if (strlen($value) == 1) {
-              $query->condition('',  $value, 'SUBSTR(bkd.word, 1, 1) =');
+             // $query->condition('',  $value, 'SUBSTR(bkd.word, 1, 1) =');
+              $query->where(" UPPER(substring(bkd.word,1,1)) = :letter ", array(':letter' => $value));
             }
             else {
               $query->condition('bkd.word', "[[:<:]]" . $value . "[:>:]]", 'LIKE');
@@ -1236,11 +1237,11 @@ function _biblio_get_authors($filter = NULL) {
                                      bd.initials, bd.affiliation, bd.md5, bd.literal
                             HAVING COUNT(*) > 0
                             ORDER BY  lastname ASC, SUBSTRING(firstname,1,1) ASC,
-                            initials ASC', array(':filter' => $filter), array('fetch' => PDO::FETCH_ASSOC));
+                            initials ASC', array(':filter' => $filter));
 
   foreach ($db_result as $author) {
-    if (array_search($author['lastname'], $suspects) !== FALSE) {
-      $author['#suspect'] = TRUE;
+    if (array_search($author->lastname, $suspects) !== FALSE) {
+      $author->suspect = TRUE;
     }
     $authors[] = $author;
   }
@@ -1287,14 +1288,36 @@ function _biblio_format_author_page($path, $filter, $authors) {
  * Helper function to format the authors and add edit links if required
  */
 function _biblio_format_author($author) {
-  static $author_options = array();
-  $format = biblio_format_authors(array($author));
-  $format .= ' (' . $author['cnt'] . ') ' . ((biblio_access('edit_author'))?_biblio_author_edit_links($author):'');
-  if (biblio_access('edit_author') && isset($author['#suspect'])) {
-    $format = '<div class="suspect">' . $format . '</div>';
+  if ($author->literal) {
+    $name = $author->name;
+  }
+  else {
+    $name = $author->lastname;
+    $name .= (!empty($author->firstname)) ? ', ' . drupal_substr($author->firstname, 0, 1) . '.' :
+             (!empty($author->initials) ? ', ' . $author->initials : '');
   }
 
-  return $format;
+  $uri['path'] = variable_get('biblio_base', 'biblio');
+  $uri['query']['f']['author'] = $author->cid;
+  $uri['attributes'] = array();
+
+  if (isset($author->drupal_uid) && $author->drupal_uid > 0) {
+    $uri['attributes'] += array('class' => array('biblio-local-author'));
+  }
+  if (variable_get('biblio_links_target_new_window', null)){
+    $uri['attributes'] +=  array('target'=>'_blank');
+    $uri['html'] = TRUE;
+  }
+
+  $name = l(trim($name), $uri['path'], $uri );
+
+ // $format = biblio_format_authors(array($author));
+  $name .= ' (' . $author->cnt . ') ' . ((biblio_access('edit_author'))?_biblio_author_edit_links($author):'');
+  if (biblio_access('edit_author') && isset($author->suspect)) {
+    $name = '<div class="suspect">' . $name . '</div>';
+  }
+
+  return $name;
 }
 
 function _biblio_author_edit_links($author) {
@@ -1304,7 +1327,7 @@ function _biblio_author_edit_links($author) {
     $path =  (ord(substr($_GET['q'], -1)) > 97) ? $_GET['q'] . "/" : substr($_GET['q'], 0, -1);
     $path = (strpos($path, 'list/')) ? str_replace('list/', '', $path) : $path;
   }
-  return l(' [' . t('edit') . ']', $path . $author['cid'] . "/edit", array('query' => $destination) );
+  return l(' [' . t('edit') . ']', $path . $author->cid . "/edit", array('query' => $destination) );
 }
 
 function biblio_keyword_page() {

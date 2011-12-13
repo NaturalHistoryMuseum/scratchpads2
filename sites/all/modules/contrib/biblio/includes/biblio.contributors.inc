@@ -254,11 +254,13 @@ function _biblio_contributor_usort($a, $b) {
 function _save_contributors(&$contributors, $nid, $vid, $update = FALSE) {
   $md5 = _loadMD5();
   $rank = 0;
-  //  db_query('DELETE FROM {biblio_contributor} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid));
+
   db_delete('biblio_contributor')
-  ->condition(db_and()->condition('nid', $nid)->condition('vid', $vid))
-  ->execute();
+      ->condition(db_and()->condition('nid', $nid)->condition('vid', $vid))
+      ->execute();
+
   _biblio_contributor_sort($contributors);// re-sort the authors by rank because the rank may have changed due to tabledrag on the input form
+
   foreach ($contributors as  $key => $author) {
  //   foreach ($authors as $key => $author) {
       if (!empty($author['name'])) {

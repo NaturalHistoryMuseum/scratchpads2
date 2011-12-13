@@ -56,11 +56,12 @@ function theme_biblio_citeproc_style($variables) {
   global $language;
   $cached = NULL;
   $node = $variables['node'];
+  $style = isset($variables['style_name']) ? $variables['style_name'] : NULL;
 
   module_load_include('inc', 'biblio_citeproc', 'CSL');
 
   if (!$citeproc) {
-    $csl_id = biblio_get_style();
+    $csl_id = ($style) ? $style : biblio_get_style();
 
     $csl = db_query('SELECT parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $csl_id))->fetchObject();
     if (!isset($csl->csl)) {
