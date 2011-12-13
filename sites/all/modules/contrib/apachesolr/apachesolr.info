@@ -2,6 +2,7 @@ name = Apache Solr framework
 description = Framework for searching with Solr
 package = Search Toolkit
 core = 7.x
+configure = admin/config/search/apachesolr/settings
 
 files[] = apachesolr.install
 files[] = apachesolr.module
@@ -18,9 +19,9 @@ files[] = tests/Dummy_Solr.php
 files[] = tests/solr_index_and_search.test
 files[] = tests/solr_base_query.test
 
-; Information added by drupal.org packaging script on 2011-12-11
+; Information added by drupal.org packaging script on 2011-12-13
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "apachesolr"
-datestamp = "1323561749"
+datestamp = "1323777699"
 

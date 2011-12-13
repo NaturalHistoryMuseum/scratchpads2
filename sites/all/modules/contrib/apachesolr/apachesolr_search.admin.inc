@@ -139,7 +139,9 @@ function apachesolr_search_page_list_blocks() {
     $environment = apachesolr_environment_load($search_block['mlt_env_id']);
     $row[] = $environment ? check_plain($environment['name']) : check_plain(t('<Disabled>'));
     // Operations
-    $row[] = array('data' => l(t('Edit'), 'admin/config/search/apachesolr/search-pages/block/' . $search_block_id . '/edit'));
+    if (module_exists('block')) {
+      $row[] = array('data' => l(t('Configure'), 'admin/structure/block/manage/apachesolr_search/' . $search_block_id . '/configure', array('query' => array('destination' => current_path()))));
+    }
     $row[] = array('data' => l(t('Delete'), 'admin/config/search/apachesolr/search-pages/block/' . $search_block_id . '/delete'));
     $rows[$search_block_id] = $row;
   }
@@ -914,29 +916,10 @@ function apachesolr_search_mlt_add_block_form() {
   return $form;
 }
 
-/**
- * MoreLikeThis administration and utility functions.
- */
-function apachesolr_search_mlt_edit_block_form($form, $form_state, $block) {
-  $form = apachesolr_search_mlt_block_form($block['delta']);
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => '5',
-  );
-  return $form;
-}
-
 function apachesolr_search_mlt_add_block_form_submit($form, &$form_state) {
   apachesolr_search_mlt_save_block($form_state['values']);
   $block_message = t('New More like this block created. <a href="!configure">Configure</a> this block in the Block administration', array('!configure' => url('admin/structure/block')));
   drupal_set_message($block_message);
-  $form_state['redirect'] = 'admin/config/search/apachesolr/search-pages';
-}
-
-function apachesolr_search_mlt_edit_block_form_submit($form, &$form_state) {
-  apachesolr_search_mlt_save_block($form_state['values'], $form_state['values']['delta']);
-  drupal_set_message(t('More like this block saved.'));
   $form_state['redirect'] = 'admin/config/search/apachesolr/search-pages';
 }
 

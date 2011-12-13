@@ -41,31 +41,24 @@ function apachesolr_menu() {
 
   $settings_path = 'admin/config/search/apachesolr/settings/';
 
-  $items[$settings_path . '%apachesolr_environment'] = array(
-    'title'              => 'Apache Solr search environment edit',
-    'page callback'      => 'apachesolr_index_page',
-    'page arguments'     => array(5),
-    'access arguments'   => array('administer search'),
-    'file'               => 'apachesolr.admin.inc',
-  );
-
   $items[$settings_path . '%apachesolr_environment/index'] = array(
     'title'              => 'Index',
     'page callback'      => 'apachesolr_index_page',
     'page arguments'     => array(5),
     'access arguments'   => array('administer search'),
-    'weight'             => 2,
+    'weight'             => 5,
     'file'               => 'apachesolr.admin.inc',
     'type'               => MENU_LOCAL_TASK,
   );
-
   $items[$settings_path . '%apachesolr_environment/edit'] = array(
     'title'              => 'Edit',
     'page callback'      => 'drupal_get_form',
     'page arguments'     => array('apachesolr_environment_edit_form', 5),
     'description'        => 'Edit Apache Solr search environment.',
     'access arguments'   => array('administer search'),
+    'weight'             => 10,
     'file'               => 'apachesolr.admin.inc',
+    'type'               => MENU_LOCAL_TASK,
   );
   $items[$settings_path . '%apachesolr_environment/clone'] = array(
     'title'              => 'Apache Solr search environment clone',
@@ -91,7 +84,6 @@ function apachesolr_menu() {
     'file'               => 'apachesolr.admin.inc',
     'type'               => MENU_LOCAL_ACTION,
   );
-
   $items['admin/config/search/apachesolr/index/confirm/clear'] = array(
     'title'              => 'Confirm the re-indexing of all content',
     'page callback'      => 'drupal_get_form',
@@ -148,7 +140,7 @@ function apachesolr_menu() {
           'title'            => 'Facets',
           'page callback'    => 'apachesolr_enabled_facets_page',
           'page arguments'   =>  array($realm_name, 5),
-          'weight'           => 3,
+          'weight'           => -5,
           'access arguments' => array('administer search'),
           'file path'        => $file_path,
           'file'             => 'facetapi.admin.inc',
@@ -161,7 +153,7 @@ function apachesolr_menu() {
           'title'            => $realm['label'],
           'page callback'    => 'apachesolr_enabled_facets_page',
           'page arguments'   => array($realm_name, 5),
-          'weight'           => 3,
+          'weight'           => -5,
           'access arguments' => array('administer search'),
           'type'             => MENU_LOCAL_TASK,
           'context'          => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,

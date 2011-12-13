@@ -2,8 +2,11 @@
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 ------------------------------
 
-Apache Solr integration 7.x-1.0-beta12, 2011-12-xx
+Apache Solr integration 7.x-1.0-beta12, 2011-12-12
 ------------------------------
+#1369208 by pwolanin: Add configure links in .info files.
+#1369184 by pwolanin: Restore MLT block edit use of block module configure form.
+#1369144 by pwolanin: Fix for cleanup settings table and restore cron index operation.
 #1353422 by Nick_vh | Marty2081: Added Using view modes in 'more like this" block.
 #1212610 by Nick_vh | jeff.maes: Fixed Notice: Undefined index: module in apachesolr_search_form_search_form_alter(). - follow up
 #1365304 by brianV: Fixed Date field minimum/maximum range callbacks don't handle some cases; cause Solr exceptions.

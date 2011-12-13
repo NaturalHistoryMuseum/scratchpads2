@@ -64,14 +64,6 @@ function apachesolr_search_menu() {
     'file'               => 'apachesolr_search.admin.inc',
     'type'               => MENU_CALLBACK,
   );
-  $items['admin/config/search/apachesolr/search-pages/block/%apachesolr_search_mlt_block/edit'] = array(
-    'page callback'      => 'drupal_get_form',
-    'page arguments'     => array('apachesolr_search_mlt_edit_block_form', 6),
-    'access arguments'   => array('administer search'),
-    'file'               => 'apachesolr_search.admin.inc',
-    'type'               => MENU_CALLBACK,
-  );
-
 
   // Environment specific settings
   $settings_path = 'admin/config/search/apachesolr/settings/';
@@ -400,7 +392,6 @@ function apachesolr_search_form_block_admin_display_form_alter(&$form) {
  * Implements hook_block_configure().
  */
 function apachesolr_search_block_configure($delta = '') {
-  dsm($delta);
   if ($delta != 'sort') {
     require_once(drupal_get_path('module', 'apachesolr') . '/apachesolr_search.admin.inc');
     return apachesolr_search_mlt_block_form($delta);

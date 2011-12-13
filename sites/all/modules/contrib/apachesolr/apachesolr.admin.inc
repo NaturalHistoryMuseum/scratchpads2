@@ -279,7 +279,13 @@ function apachesolr_settings($form, &$form_state) {
         ),
       );
     }
-
+    $confs['index'] = array(
+      'class' => 'operation',
+      'data' => l(t('Index'),
+        'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/index',
+         array('query' => array('destination' => current_path()))
+      ),
+    );
     $ops['edit'] = array(
       'class' => 'operation',
       'data' => l(t('Edit'),
@@ -287,6 +293,7 @@ function apachesolr_settings($form, &$form_state) {
          array('query' => array('destination' => current_path()))
       ),
     );
+
     $ops['clone'] = array(
       'class' => 'operation',
       'data' => l(t('Clone'),
@@ -294,7 +301,7 @@ function apachesolr_settings($form, &$form_state) {
         array('query' => array('destination' => $_GET['q']))
       ),
     );
-    $env_name = l(check_plain($data['name']), 'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/index', array('query' => array('destination' => $_GET['q'])));
+    $env_name = l(check_plain($data['name']), 'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/edit', array('query' => array('destination' => $_GET['q'])));
     // Is this row our default environment?
     if ($environment_id == $default_environment) {
       $env_name = t('!environment <em>(Default)</em>', array('!environment' => $env_name));
@@ -421,7 +428,7 @@ function apachesolr_index_page($environment = NULL) {
 
   // Check for availability
   if (!apachesolr_server_status($environment['url'])) {
-    drupal_set_message(t('The server seems to be unavailable. Please verify the server settings at the <a href="!settings_page">settings page</a>', array('!settings_page' => url('admin/config/search/apachesolr/settings/' . $environment['env_id'], array('query' =>  drupal_get_destination())))), 'warning');
+    drupal_set_message(t('The server seems to be unavailable. Please verify the server settings at the <a href="!settings_page">settings page</a>', array('!settings_page' => url("admin/config/search/apachesolr/settings/{$environment['env_id']}/edit", array('query' =>  drupal_get_destination())))), 'warning');
     return '';
   }
 
@@ -504,7 +511,7 @@ function apachesolr_index_page($environment = NULL) {
     );
   }
   else {
-    drupal_set_message(t('Options for deleting and re-indexing are not available. This could be because the index is read-only or you are not viewing the default environment. This can be changed on the <a href="!settings_page">settings page</a>', array('!settings_page' => url('admin/config/search/apachesolr/settings/' . $env_id, array('query' =>  drupal_get_destination())))), 'warning');
+    drupal_set_message(t('Options for deleting and re-indexing are not available. This could be because the index is read-only or you are not viewing the default environment. This can be changed on the <a href="!settings_page">settings page</a>', array('!settings_page' => url("admin/config/search/apachesolr/settings/{$env_id}/edit", array('query' =>  drupal_get_destination())))), 'warning');
   }
 
   return $output;
@@ -593,7 +600,11 @@ function apachesolr_index_action_form($form, &$form_state, $status) {
   $form = array();
   // Jump through some forms hoops to get a description under each radio button.
   $actions = array(
-    'remaining' => array(
+    'cron' => array(
+      'title' => t('Index queued content (@items Items)', array('@items' => variable_get('apachesolr_cron_limit', 50))),
+      'description' => t('Index as much as is configured for one invocation of Drupal cron.'),
+    ),
+   'remaining' => array(
       'title' => t('Index all queued content (@items Items)', array('@items' => $status['remaining'])),
       'description' => t('Starts a batch job which could take a long time and could put an increased load on your server.'),
     ),
@@ -602,7 +613,7 @@ function apachesolr_index_action_form($form, &$form_state, $status) {
     ),
     'delete' => array(
       'title' => t('Delete the Solr index'),
-      'description' => t('Useful with a corrupt index or a new schema.xml.'),
+      'description' => t('Useful if the index is corrupt or a new schema.xml has been installed.'),
     ),
   );
   foreach ($actions as $key => $action) {
@@ -611,7 +622,7 @@ function apachesolr_index_action_form($form, &$form_state, $status) {
     $form['action'][$key] = array(
       '#type' => 'radio',
       '#title' => check_plain($action['title']),
-      '#default_value' => 'remaining',
+      '#default_value' => 'cron',
       '#return_value' => $key,
       '#parents' => array('action'),
       '#description' => (!empty($action['description'])) ? check_plain($action['description']) : '',
@@ -633,14 +644,15 @@ function apachesolr_index_action_form($form, &$form_state, $status) {
  */
 function apachesolr_index_action_form_submit($form, &$form_state) {
   switch ($form_state['values']['action']) {
+    case 'cron':
+      apachesolr_cron();
+      break;
     case 'remaining':
       apachesolr_batch_index_remaining();
       break;
-
     case 'reindex':
       $form_state['redirect'] = 'admin/config/search/apachesolr/index/confirm/clear';
       break;
-
     case 'delete':
       $form_state['redirect'] = 'admin/config/search/apachesolr/index/confirm/delete';
       break;
