@@ -68,11 +68,11 @@
 ?>
 <div id="file-<?php print $file->fid ?>" class="<?php print $classes ?>"<?php print $attributes; ?>>
 
-  <?php print render($title_prefix); ?>
   <?php if (!$page): ?>
+    <?php print render($title_prefix); ?>
     <h2<?php print $title_attributes; ?>><a href="<?php print $file_url; ?>"><?php print $label; ?></a></h2>
+    <?php print render($title_suffix); ?>
   <?php endif; ?>
-  <?php print render($title_suffix); ?>
 
   <?php if ($display_submitted): ?>
     <div class="submitted">

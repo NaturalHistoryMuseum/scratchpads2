@@ -41,7 +41,7 @@ function file_entity_test_add_form_submit($form, &$form_state) {
  * Page callback; view a file.
  */
 function file_entity_test_view_page($file) {
-  return file_view($file, 'default');
+  return file_view($file, 'full');
 }
 
 /**

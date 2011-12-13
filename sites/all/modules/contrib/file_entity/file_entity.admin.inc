@@ -1,9 +1,167 @@
 <?php
 
+require_once dirname(__FILE__) . '/file_entity.pages.inc';
+
 /**
  * @file
  * Administrative interface for file type configuration.
  */
+
+/**
+ * Administrative form for browsing files and performing operations on them.
+ */
+function file_entity_admin_files($form, &$form_state) {
+  if (!empty($form_state['values']['operation'])) {
+    // The form is being rebuilt because an operation requiring confirmation
+    // was selected.  Hand off to the callback of the operation at this point
+    // which should return a confirm form.
+    $operation = $form_state['values']['operation'];
+    $files = array_keys(array_filter($form_state['values']['files']));
+    return call_user_func_array($operation['callback'], array($files));
+  }
+
+  $limit = variable_get('file_entity_admin_files_limit', 50);
+
+  // Build the 'Update options' form.
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update options'),
+    '#attributes' => array('class' => array('container-inline')),
+  );
+
+  $options = array();
+  $form['#operations'] = module_invoke_all('file_operations_info');
+  drupal_alter('file_entity_file_operations', $form['#operations']);
+
+  foreach ($form['#operations'] as $operation => $array) {
+    $options[$operation] = $array['label'];
+  }
+  $form['options']['operation'] = array(
+    '#type' => 'select',
+    '#title' => t('Operation'),
+    '#title_display' => 'invisible',
+    '#options' => $options,
+  );
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+  );
+
+  // Build the sortable table header.
+  $header = array(
+    'title' => array('data' => t('Title'), 'field' => 'f.filename'),
+    'type' => array('data' => t('Type'), 'field' => 'f.filemime'),
+    'size' => array('data' => t('Size'), 'field' => 'f.filesize'),
+    'author' => array('data' => t('Author'), 'field' => 'u.name'),
+    'timestamp' => array('data' => t('Updated'), 'field' => 'f.timestamp', 'sort' => 'desc'),
+    'operations' => array('data' => t('Operations')),
+  );
+
+  $query = db_select('file_managed', 'f')->extend('PagerDefault')->extend('TableSort');
+  $query->join('users', 'u', 'f.uid = u.uid');
+  $query->fields('f', array('fid'));
+  $query->fields('u', array('uid'));
+  $query->condition('f.status', FILE_STATUS_PERMANENT);
+  $query->limit($limit);
+  $query->orderByHeader($header);
+
+  foreach (array_keys(file_entity_get_hidden_stream_wrappers()) as $name) {
+    $query->condition('f.uri', $name . '%', 'NOT LIKE');
+  }
+
+  $result = $query->execute()->fetchAllKeyed();
+  $files = file_load_multiple(array_keys($result));
+  $form['#files'] = $files;
+
+  // This is used to add usernames to the table below.
+  $accounts = user_load_multiple(array_values($result));
+
+  $destination = drupal_get_destination();
+  $options = array();
+  foreach ($files as $file) {
+    $options[$file->fid] = array(
+      'title' => theme('file_entity_file_link', array('file' => $file)),
+      'type' =>  check_plain($file->filemime),
+      'size' => format_size($file->filesize),
+      'author' => theme('username', array('account' => $accounts[$file->uid])),
+      'timestamp' => format_date($file->timestamp, 'short'),
+    );
+
+    $options[$file->fid]['operations'] = array(
+      'data' => array(
+        '#theme' => 'links__file_operations',
+        '#links' => array(),
+        '#attributes' => array('class' => array('links', 'inline')),
+      ),
+    );
+
+    $options[$file->fid]['operations']['data']['#links']['edit'] = array(
+      'title' => t('Edit'),
+      'href' => 'file/' . $file->fid . '/edit',
+      'query' => $destination,
+    );
+
+    $options[$file->fid]['operations']['data']['#links']['delete'] = array(
+      'title' => t('Delete'),
+      'href' => 'file/' . $file->fid . '/delete',
+      'query' => $destination,
+    );
+  }
+
+  $form['files'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $options,
+    '#empty' => t('No files available.'),
+    '#attributes' => array('class' => array('file-display-table', 'clear')),
+  );
+  $form['pager'] = array('#markup' => theme('pager', array('tags' => NULL)));
+
+  return $form;
+}
+
+
+/**
+ * Validate file_entity_admin_files form submissions.
+ *
+ * Check if any files have been selected to perform the chosen
+ * 'Update option' on.
+ */
+function file_entity_admin_files_validate($form, &$form_state) {
+  $files = array_filter($form_state['values']['files']);
+  if (count($files) == 0) {
+    form_set_error('', t('Update operation failed: no files were selected.'));
+  }
+}
+
+/**
+ * Submit handler for file_entity_admin_files.
+ */
+function file_entity_admin_files_submit($form, &$form_state) {
+  $operations = $form['#operations'];
+  $operation = $operations[$form_state['values']['operation']];
+
+  // In the case of an operation which needs confirmation, rebuild the form.
+  if (!empty($operation['confirm'])) {
+    $form_state['rebuild'] = TRUE;
+    $form_state['values']['operation'] = $operation;
+    return;
+  }
+
+  // Filter out unchecked nodes
+  $files = array_filter($form_state['values']['files']);
+  if ($function = $operation['callback']) {
+    // Add in callback arguments if present.
+    if (isset($operation['callback arguments'])) {
+      $args = array_merge(array($files), $operation['callback arguments']);
+    }
+    else {
+      $args = array($files);
+    }
+    call_user_func_array($function, $args);
+    cache_clear_all();
+  }
+}
 
 /**
  * Displays the file type admin overview page.
@@ -53,7 +211,7 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
   $formatters = file_info_formatter_types();
   foreach ($formatters as $name => $formatter) {
     if (isset($formatter['file types']) && !in_array($file_type, $formatter['file types'])) {
-      unset ($formatters[$name]);
+      unset($formatters[$name]);
     }
   }
   $current_displays = file_displays_load($file_type, $view_mode, TRUE);
@@ -72,11 +230,11 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
   foreach ($formatters as $name => $formatter) {
     $form['displays']['status'][$name] = array(
       '#type' => 'checkbox',
-      '#title' => $formatter['label'],
+      '#title' => check_plain($formatter['label']),
       '#default_value' => !empty($current_displays[$name]['status']),
-      '#description' => isset($formatter['description']) ? $formatter['description'] : NULL,
+      '#description' => isset($formatter['description']) ? filter_xss($formatter['description']) : NULL,
       '#parents' => array('displays', $name, 'status'),
-      '#weight' => $formatter['weight'] + $i/1000,
+      '#weight' => (isset($formatter['weight']) ? $formatter['weight'] : 0) + ($i / 1000),
     );
     $i++;
   }
@@ -120,10 +278,10 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
       if (!empty($settings_form)) {
         $form['displays']['settings'][$name] = array(
           '#type' => 'fieldset',
-          '#title' => $formatter['label'],
+          '#title' => check_plain($formatter['label']),
           '#parents' => array('displays', $name, 'settings'),
           '#group' => 'display_settings',
-          '#weight' => $formatter['weight'] + $i/1000,
+          '#weight' => (isset($formatter['weight']) ? $formatter['weight'] : 0) + ($i / 1000),
         ) + $settings_form;
       }
     }

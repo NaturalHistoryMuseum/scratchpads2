@@ -27,15 +27,10 @@ function file_entity_field_formatter_settings_form($field, $instance, $view_mode
   $element = array();
 
   if ($display['type'] == 'file_rendered') {
-    $entity_info = entity_get_info('file');
-    $options = array('default' => t('Default'));
-    foreach ($entity_info['view modes'] as $machine_name => $mode) {
-      $options[$machine_name] = $mode['label'];
-    }
     $element['file_view_mode'] = array(
       '#title'   => t('View mode'),
       '#type'    => 'select',
-      '#options' => $options,
+      '#options' => file_entity_view_mode_labels(),
       '#default_value' => $settings['file_view_mode'],
       // Never empty, so no #empty_option
     );
@@ -53,11 +48,8 @@ function file_entity_field_formatter_settings_summary($field, $instance, $view_m
   $summary = NULL;
 
   if ($display['type'] === 'file_rendered') {
-    $entity_info = entity_get_info('file');
-    $modes = $entity_info['view modes'];
-    $modes['default'] = t('Default');
-    $mode = $entity_info['view modes'][$settings['file_view_mode']]['label'];
-    $summary = t('View mode: %mode', array('%mode' => $mode));
+    $view_mode_label = file_entity_view_mode_label($settings['file_view_mode'], t('Unknown'));
+    $summary = t('View mode: %mode', array('%mode' => $view_mode_label));
   }
 
   return $summary;
@@ -91,6 +83,9 @@ function file_entity_field_formatter_view($entity_type, $entity, $field, $instan
       list($id) = entity_extract_ids($entity_type, $entity);
       $recursion_queue[$id] = $id;
     }
+
+    // Prevent 'empty' fields from causing a WSOD.
+    $items = array_filter($items);
 
     // Check the recursion queue to determine which nodes should be fully
     // displayed, and which nodes will only be displayed as a title.

@@ -31,7 +31,7 @@ class views_plugin_row_file_view extends views_plugin_row {
 
     $form['view_mode'] = array(
       '#type' => 'select',
-      '#options' => $this->options_form_summary_options(),
+      '#options' => file_entity_view_mode_labels(),
       '#title' => t('View mode'),
       '#default_value' => $this->options['view_mode'],
     );
@@ -42,23 +42,9 @@ class views_plugin_row_file_view extends views_plugin_row {
     );
   }
 
-  /**
-   * Return the main options, which are shown in the summary title.
-   */
-  function options_form_summary_options() {
-    $entity_info = entity_get_info('file');
-    $options = array('default' => t('Default'));
-    if (!empty($entity_info['view modes'])) {
-      foreach ($entity_info['view modes'] as $mode => $settings) {
-        $options[$mode] = $settings['label'];
-      }
-    }
-    return $options;
-  }
-
   function summary_title() {
-    $options = $this->options_form_summary_options();
-    return check_plain($options[$this->options['view_mode']]);
+    $view_mode_label = file_entity_view_mode_label($this->options['view_mode'], t('Unknown'));
+    return check_plain($view_mode_label);
   }
 
   function pre_render($values) {
