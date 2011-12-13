@@ -7,6 +7,7 @@ mb_internal_encoding('UTF-8');
  * need to go in the reverse to this function, so this is nice and simple!
  */
 function _leftandright_int_to_utf8_char($index){
+  return $index;
   return mb_convert_encoding('&#x' . dechex($index) . ';', 'UTF-8', 'HTML-ENTITIES');
 }
 
@@ -15,6 +16,11 @@ function _leftandright_int_to_utf8_char($index){
  */
 function _leftandright_get_new_paths($term){
   $new_paths = array();
+  if(!isset($term->parent)){
+    $term->parent = array(
+      0
+    );
+  }
   foreach($term->parent as $parent_tid){
     // We have a parent term, we load it to get its path, and also load the
     // siblings to work out where we need to be (and also to punch a hole if
@@ -33,12 +39,16 @@ function _leftandright_get_new_paths($term){
     ));
     $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
     $query->condition('parent', $parent_tid);
+    $query->condition('vid', $term->vid);
+    $query->orderBy('weight');
+    $query->orderBy('name');
     $result = $query->execute();
     $siblings = array();
     foreach($result as $sibling){
       $siblings[] = $sibling->tid;
     }
     // Load the terms.
+    $paths_to_change = array();
     $siblings = taxonomy_term_load_multiple($siblings);
     $index = 0;
     foreach($siblings as $sibling){
@@ -56,7 +66,11 @@ function _leftandright_get_new_paths($term){
               if(mb_substr($sibling_path, 0, $parent_path_length) == $parent_path){
                 // Change this path in the database, and all other paths that 
                 // start like it to the new path.
-                _leftandright_move_path($term->vid, $sibling_path, $parent_path . $last_char);
+                $paths_to_change[] = array(
+                  'old' => $sibling_path,
+                  'new' => $parent_path . $last_char,
+                  'vid' => $term->vid
+                );
               }
             }
           }
@@ -66,6 +80,7 @@ function _leftandright_get_new_paths($term){
       $index++;
     }
   }
+  _leftandright_move_paths($paths_to_change);
   return $new_paths;
 }
 
@@ -95,10 +110,49 @@ function leftandright_update($term){
       $paths_to_remove[] = $old_path;
     }
   }
+  $paths_to_change = array();
+  while($old_path = next($paths_to_remove)){
+    $new_path = next($paths_to_add);
+    $paths_to_change[] = array(
+      'old' => $old_path,
+      'new' => $new_path,
+      'tid' => $term->tid,
+      'vid' => $term->vid
+    );
+  }
+  while($new_path = next($paths_to_add)){
+    $paths_to_change[] = array(
+      'old' => FALSE,
+      'new' => $new_path,
+      'tid' => $term->tid,
+      'vid' => $term->vid
+    );
+  }
+  _leftandright_move_paths($paths_to_change);
+}
+
+/**
+ * Helper function to alter a path.
+ */
+function _leftandright_move_paths($paths){
+  foreach($paths as $path){
+    if(isset($path['old']) && $path['old'] && isset($path['new']) && $path['new']){
+      $temp_table = db_query_temporary('SELECT tid, vid, depth, CONCAT(:new_path, SUBSTRING(path, :old_path_length)) as path FROM {taxonomy_path} WHERE vid = :vid AND path LIKE :old_path', array(
+        ':new_path' => $path['new'],
+        ':old_path' => $path['old'],
+        ':vid' => $path['vid'],
+        ':old_path_length' => mb_strlen($path['old']) + 1
+      ));
+      // Delete the data from the 
+    }
+  }
+  // We create a temporary table, inserting the new data into
   if(count($paths_to_add) == count($paths_to_remove)){
     // Spot on - easy.
     for($i = 0; $i < count($paths_to_add); $i++){
-      _leftandright_move_path($term->vid, $paths_to_remove[$i], $paths_to_add[$i]);
+      _leftandright_move_paths($term->vid, array(
+        $paths_to_remove[$i] => $paths_to_add[$i]
+      ));
     }
   }elseif(count($paths_to_add) > count($paths_to_remove)){
     // Extra to add, a little tricky
@@ -132,12 +186,6 @@ function leftandright_update($term){
       db_delete('taxonomy_path')->condition('vid', $term->vid)->condition('path', $paths_to_remove[$i] . '%', 'LIKE')->execute();
     }
   }
-}
-
-/**
- * Helper function to alter a path.
- */
-function _leftandright_move_path($vid, $old_path, $new_path){
   db_query('UPDATE {taxonomy_path} SET path = CONCAT(:new_path, SUBSTR(path, :path_start)) WHERE path LIKE :old_path AND vid = :vid', array(
     ':vid' => $vid,
     ':new_path' => $new_path,
@@ -162,7 +210,7 @@ function _leftandright_save_term($term){
     $query->values(array(
       'tid' => $term->tid,
       'vid' => $term->vid,
-      'depth' => mb_strlen($path),
+      'depth' => mb_strlen($path) - 1,
       'path' => $path
     ));
   }

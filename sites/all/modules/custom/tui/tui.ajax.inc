@@ -193,13 +193,18 @@ function tui_sort_callback(){
     foreach($tids as $tid){
       $term = taxonomy_term_load($tid);
       if($term){
+        db_update('taxonomy_term_data')->fields(array('weight' => $weight))->condition('tid', $term->tid)->execute();
         $term->weight = $weight;
-        taxonomy_term_save($term);
         $weight++;
       }else{
         $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('One of the terms being sorted appears to have been deleted.  Please reload the page.') . '</div>');
         watchdog('femail', 'Attempted to move a nonexistent term');
       }
+    }
+    // Save the final term if the leftandright module is installed, just for
+    // neatness.
+    if(module_exists('leftandright')){
+      taxonomy_term_save($term);
     }
   }
   print ajax_render($results);

@@ -3,82 +3,98 @@
 /**
  * Replacement function for taxonomy_get_tree!
  */
-function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $start = 0, $max_terms = 1000){
+function taxonomy_get_tree($vid, $parent = 0, $max_depth = 256, $load_entities = FALSE, $start = 0, $max_terms = 1000){
+  //return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
+  // Here we check for a parent.  If it is null, we simply return an empty array.
+  // Why that is, I DO NOT KNOW!
+  if($parent === NULL){return array();}
   // Only use this function if the leftandright module is installed.
-  //if(!module_exists('leftandright')){
-    return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
-  //}
-  // We need to prepare the lft and rgt values for the query, and also calculate
-  // the max depth if required.
-  if(!$parent){
-    $lft = 0;
-    $rgt = (2 * current(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
-      ':vid' => $vid
-    ))->fetchCol())) + 1;
-    $depth_diff = 0;
-  }else{
-    // We have a parent set, lets get the lft and rgt
-    $row = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-      'lft',
-      'rgt',
+  if(!module_exists('leftandright')){return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);}
+  // If we have been passed a parent, we need to handle it!
+  $path = '';
+  $min_depth = 0;
+  if($parent){
+    $result = array_pop(db_select('taxonomy_path', 'p')->fields('p', array(
+      'path',
       'depth'
-    ))->condition('tid', $parent)->execute()->fetch();
-    $lft = $row->lft;
-    $rgt = $row->rgt;
-    $depth_diff = $row->depth + 1;
-  }
-  $query = db_select('taxonomy_term_data', 't');
-  $query->fields('t')->fields('l', array(
-    'depth'
-  ))->fields('h', array(
-    'parent'
-  ));
-  $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
-  $query->join('taxonomy_leftandright', 'l', 'l.tid = t.tid');
-  $query->range($start, $max_terms);
-  $query->addTag('translatable')->addTag('term_access');
-  $query->condition('l.lft', $lft, '>')->condition('l.rgt', $rgt, '<')->condition('t.vid', $vid);
-  if($max_depth){
-    $query->condition('depth', $depth_diff + $max_depth, '<');
-  }
-  $query->orderBy('l.lft');
-  $result = $query->execute();
-  $terms = array();
-  foreach($result as $term){
-    $parents[$vid][$term->tid][] = $term->parent;
-    $terms[$vid][$term->tid] = $term;
-    unset($terms[$vid][$term->tid]->parent);
-    $terms[$vid][$term->tid]->parents = $parents[$vid][$term->tid];
-    $terms[$vid][$term->tid]->depth -= $depth_diff;
-  }
-  // Load full entities, if necessary.
-  if($load_entities){
-    if(isset($terms[$vid])){
-      $term_entities = taxonomy_term_load_multiple(array_keys($terms[$vid]));
+    ))->condition('vid', $vid)->condition('tid', $parent)->execute()->fetchAll());
+    $min_depth = $result->depth + 1;
+    $path = $result->path;
+    if($max_depth){
+      $max_depth += $min_depth;
     }
   }
-  $tree = array();
-  if(isset($terms[$vid])){
-    foreach($terms[$vid] as $tid => $term){
-      $tree[] = $load_entities ? $term_entities[$tid] : $term;
+  if($load_entities){
+    // Nice and easy, just get the tids and the depths from the taxonomy_path
+    // table, and then do a load on each term.  Note, we limit this query to the
+    // max_terms variable for safety.
+    // Need to do our own query here, as the Drupal PDO stuff does not support 
+    // binary sort.  This may therefore break other database implementations.
+    $results = db_query_range("SELECT tid FROM {taxonomy_path} WHERE vid = :vid AND path LIKE :path AND depth >= :min_depth AND depth < :max_depth ORDER BY BINARY path", 0, $max_terms, array(
+      ':vid' => $vid,
+      ':path' => "$path%",
+      ':min_depth' => $min_depth,
+      ':max_depth' => $max_depth
+    ));
+    $tree = array();
+    foreach($results as $row){
+      $tree[] = $row->tid;
+    }
+    $terms = taxonomy_term_load_multiple($tree);
+    foreach($tree as $key => $tid){
+      $tree[$key] = $terms[$tid];
+    }
+  }else{
+    // Need to do our own query here, as the Drupal PDO stuff does not support 
+    // binary sort.  This may therefore break other database implementations.
+    $results = db_query_range("SELECT t.*, parent, depth FROM {taxonomy_path} p INNER JOIN {taxonomy_term_data} t ON t.tid = p.tid INNER JOIN {taxonomy_term_hierarchy} h ON h.tid = t.tid WHERE t.vid = :vid AND path LIKE :path AND depth >= :min_depth AND depth < :max_depth ORDER BY BINARY path", 0, $max_terms, array(
+      ':vid' => $vid,
+      ':path' => "$path%",
+      ':min_depth' => $min_depth,
+      ':max_depth' => $max_depth
+    ));
+    $tree = array();
+    foreach($results as $row){
+      if(count($tree) && $row->tid == $tree[count($tree) - 1]->tid){
+        $tree[count($tree) - 1]->parents[] = $row->parent;
+      }else{
+        $row->parents = array(
+          $row->parent
+        );
+        unset($row->parent);
+        $tree[] = $row;
+      }
     }
   }
   return $tree;
 }
 
+/*
+
+$tree =taxonomy_get_tree(3, 112234, NULL, TRUE);
+dpm($tree);
+
+$tree =taxonomy_get_tree(3);
+dpm($tree);
+
+
+$tree =taxonomy_get_tree(3, 0, NULL, TRUE);
+dpm($tree);
+
+
+ */
 /**
  * Ensure that we always have consistent ordering of terms with the same name
  * and weight
  */
-function taxonomy_get_children($tid, $vid = 0) {
+function taxonomy_get_children($tid, $vid = 0){
   $children = &drupal_static(__FUNCTION__, array());
-
-  if ($tid && !isset($children[$tid])) {
+  if($tid && !isset($children[$tid])){
     $query = db_select('taxonomy_term_data', 't');
     $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
     $query->addField('t', 'tid');
     $query->condition('h.parent', $tid);
-    if ($vid) {
+    if($vid){
       $query->condition('t.vid', $vid);
     }
     $query->addTag('term_access');
@@ -89,6 +105,5 @@ function taxonomy_get_children($tid, $vid = 0) {
     $tids = $query->execute()->fetchCol();
     $children[$tid] = taxonomy_term_load_multiple($tids);
   }
-
   return isset($children[$tid]) ? $children[$tid] : array();
 }
