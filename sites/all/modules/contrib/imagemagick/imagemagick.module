@@ -43,12 +43,21 @@ function image_imagemagick_settings() {
     '#collapsible' => FALSE,
     '#description' => t('ImageMagick is a stand-alone program for image manipulation. It must be installed on the server and you need to know where it is located. Consult your server administrator or hosting provider for details.'),
   );
+  $form['imagemagick']['imagemagick_gm'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable <a href="@gm-url">GraphicsMagick</a> support', array(
+      '@gm-url' => 'http://graphicsmagick.org',
+    )),
+    '#default_value' => variable_get('imagemagick_gm', 0),
+    '#weight' => -5,
+  );
   $form['imagemagick']['imagemagick_convert'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to the "convert" binary'),
     '#default_value' => variable_get('imagemagick_convert', 'convert'),
     '#required' => TRUE,
     '#element_validate' => array('imagemagick_element_validate_path'),
+    '#weight' => -10,
     '#description' => t('The complete path and filename of the ImageMagick <kbd>convert</kbd> binary. For example: <kbd>/usr/bin/convert</kbd> or <kbd>C:\Program Files\ImageMagick-6.3.4-Q16\convert.exe</kbd>'),
   );
   // Prepare sub-element to output version or errors.
@@ -142,7 +151,7 @@ function _imagemagick_check_path($file) {
 
   // If only the name of the executable is given, we only check whether it is in
   // the path and can be invoked.
-  if ($file != 'convert') {
+  if ($file != 'convert' && $file != 'gm') {
     // Check whether the given file exists.
     if (!is_file($file)) {
       $status['errors'][] = t('The specified ImageMagick file path %file does not exist.', array('%file' => $file));
@@ -220,19 +229,17 @@ function image_imagemagick_resize(stdClass $image, $width, $height) {
  */
 function image_imagemagick_rotate(stdClass $image, $degrees, $background = NULL) {
   if (!isset($background)) {
-    $image->ops[] = ' -rotate ' . (float) $degrees;
+    $background = 'transparent';
+  }
+  // image_rotate_effect() converts the #hexadecimal color representation into
+  // a decimal value (integer). Convert it back into a hexadecimal color.
+  elseif (is_int($background)) {
+    $background = '#' . str_pad(dechex($background), 6, 0, STR_PAD_LEFT);
   }
   else {
-    // image_rotate_effect() converts the #hexadecimal color representation into
-    // a decimal value (integer). Convert it back into a hexadecimal color.
-    if (is_int($background)) {
-      $background = '#' . str_pad(dechex($background), 6, 0, STR_PAD_LEFT);
-    }
-    else {
-      $background = strtr($background, array('0x' => '#'));
-    }
-    $image->ops[] = '-background ' . escapeshellarg($background) . ' -rotate ' . (float) $degrees;
+    $background = strtr($background, array('0x' => '#'));
   }
+  $image->ops[] = '-background ' . escapeshellarg($background) . ' -rotate ' . (float) $degrees;
   return TRUE;
 }
 
@@ -391,12 +398,24 @@ function _imagemagick_convert($source, $destination, $args) {
     $destination_format = $destination;
   }
 
-  // To make use of ImageMagick 6's parenthetical command grouping we need to make
-  // the $source image the first parameter and $dest the last.
+  // GraphicsMagick arguments:
+  // gm convert [options] input output
+  // @see http://www.graphicsmagick.org/GraphicsMagick.html
+  if (variable_get('imagemagick_gm', 0)) {
+    array_unshift($args, 'convert');
+    $args[] = escapeshellarg($source);
+    $args[] = escapeshellarg($destination_format);
+  }
+  // ImageMagick arguments:
+  // convert input [options] output
   // @see http://www.imagemagick.org/Usage/basics/#cmdline
-  $command = escapeshellarg($source) . ' ' . implode(' ', $args) . ' ' . escapeshellarg($destination_format);
+  else {
+    array_unshift($args, escapeshellarg($source));
+    $args[] = escapeshellarg($destination_format);
+  }
+  $command_args = implode(' ', $args);
 
-  if (_imagemagick_convert_exec($command, $output, $error) !== TRUE) {
+  if (_imagemagick_convert_exec($command_args, $output, $error) !== TRUE) {
     return FALSE;
   }
   return file_exists($destination);

@@ -49,6 +49,7 @@ function imagemagick_uninstall() {
   variable_del('imagemagick_quality');
   variable_del('imagemagick_convert');
   variable_del('imagemagick_debug');
+  variable_del('imagemagick_gm');
 }
 
 /**
