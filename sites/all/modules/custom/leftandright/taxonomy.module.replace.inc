@@ -3,8 +3,8 @@
 /**
  * Replacement function for taxonomy_get_tree!
  */
-function taxonomy_get_tree($vid, $parent = 0, $max_depth = 256, $load_entities = FALSE, $start = 0, $max_terms = 1000){
-  if(!$parent && array_pop(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $max_terms = 1000){
+  if($parent == 0 && $max_depth == NULL && array_pop(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
     ':vid' => $vid
   ))->fetchCol()) > $max_terms){
     watchdog('taxonomy', 'Attempted to get a large tree.', WATCHDOG_NOTICE);
