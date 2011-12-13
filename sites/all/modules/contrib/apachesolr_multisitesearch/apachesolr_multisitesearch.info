@@ -2,5 +2,5 @@ name = Apache Solr Multisite Search
 description = Search across multiple sites with Solr
 dependencies[] = apachesolr
 dependencies[] = apachesolr_search
-package = Apache Solr
+package = Search Toolkit
 core = "7.x"

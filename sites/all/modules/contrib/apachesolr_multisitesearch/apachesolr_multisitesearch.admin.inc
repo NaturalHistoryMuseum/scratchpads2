@@ -7,7 +7,7 @@
 
 function apachesolr_multisitesearch_metadata() {
   $document = new ApacheSolrDocument();
-  $document->id = apachesolr_document_id(0, 'multisite_metadata');
+  $document->id = apachesolr_document_id(1, 'multisite_metadata');
   $document->site = url(NULL, array('absolute' => TRUE));
   $document->hash = apachesolr_site_hash();
   $document->entity_id = 1;
