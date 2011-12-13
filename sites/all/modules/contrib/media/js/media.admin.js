@@ -1,4 +1,3 @@
-
 /**
  * @file
  * Javascript for the interface at admin/content/media and also for interfaces
@@ -10,23 +9,20 @@
 (function ($) {
 
 /**
- * Functionality for the thumbnail display
+ * Functionality for the administrative file listings.
  */
 Drupal.behaviors.mediaAdmin = {
   attach: function (context) {
-    var show_confirm_if_existing_selections = function () {
-      if ($(':checkbox:checked', $('form#media-admin')).length != 0) {
+    // Show a javascript confirmation dialog if a user has files selected and
+    // they try to switch between the "Thumbnail" and "List" local tasks.
+    $('.tabs.secondary a').bind('click', function () {
+      if ($(':checkbox:checked', $('.file-entity-admin-files-form')).length != 0) {
         return confirm(Drupal.t('If you switch views, you will lose your selection.'));
       }
-    }
+    });
 
-    $('.media-display-switch a').bind('click', show_confirm_if_existing_selections)
     // Configure the "Add file" link to fire the media browser popup.
-    $('ul.action-links li', context).remove();
-    if ($('form.media-list-operation', context).length != 0) {
-      return;
-    }
-    var $launcherLink = $('<a class="media-launcher" href="#"></a>').html('Add file');
+    var $launcherLink = $('<a class="media-launcher" href="#"></a>').html(Drupal.t('Add file'));
     $launcherLink.bind('click', function () {
       // This option format needs *serious* work.
       // Not even bothering documenting it because it needs to be thrown.
@@ -43,10 +39,9 @@ Drupal.behaviors.mediaAdmin = {
         return false;
       }, options);
     });
-    $('ul.action-links', context).append($('<li></li>').append($launcherLink));
 
-
-    if ($('body.page-admin-content-media-thumbnails').length != 0) {
+    $('ul.action-links', context).prepend($('<li></li>').append($launcherLink));
+    if ($('body.page-admin-content-file-thumbnails').length != 0) {
       // Implements 'select all/none' for thumbnail view.
       // @TODO: Support grabbing more than one page of thumbnails.
       var allLink = $('<a href="#">' + Drupal.t('all') + '</a>')
@@ -64,7 +59,7 @@ Drupal.behaviors.mediaAdmin = {
         .append(allLink)
         .append(', ')
         .append(noneLink)
-        .prependTo('#media-admin > div')
+        .prependTo('.media-display-thumbnails')
       // If the media item is clicked anywhere other than on the image itself
       // check the checkbox. For the record, JS thinks this is wonky.
       $('.media-item').bind('click', function (e) {
@@ -96,29 +91,8 @@ Drupal.behaviors.mediaAdmin = {
         });
       });
     }
-
-    // When any checkboxes are clicked on this form check to see if any are checked.
-    // If any checkboxes are checked, show the edit options (@todo rename to edit-actions).
-    $('#media-admin :checkbox').bind('change', function () {
-      Drupal.behaviors.mediaAdmin.showOrHideEditOptions();
-    });
-
-    Drupal.behaviors.mediaAdmin.showOrHideEditOptions();
-  },
-
-  // Checks if any checkboxes on the form are checked, if so it will show the
-  // edit-options panel.
-  showOrHideEditOptions: function() {
-    var fieldset = $('#edit-options');
-    if (!$('#media-admin input[type=checkbox]:checked').size()) {
-      fieldset.slideUp('fast');
-    }
-    else {
-      fieldset.slideDown('fast');
-    }
   }
 };
-
 
 /**
  * JavaScript for the Media types administrative form.
@@ -142,8 +116,6 @@ Drupal.behaviors.mediaTypesAdmin = {
     });
   }
 };
-
-
 
 })(jQuery);
 

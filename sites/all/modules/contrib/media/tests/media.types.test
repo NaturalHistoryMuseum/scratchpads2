@@ -15,6 +15,7 @@ class MediaTypeTest extends MediaTestHelper {
       'name' => 'Media types',
       'description' => 'Tests media types',
       'group' => 'Media',
+      'dependencies' => array('file_entity'),
     );
   }
 

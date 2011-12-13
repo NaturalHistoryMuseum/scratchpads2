@@ -1,9 +1,8 @@
-name = Media Internet Sources
-description = Provides an API for accessing media on various internet services
+name = Media Field
+description = "Provides a field type that stores media-specific data. <em>Deprecated by the core File field type.</em>"
 package = Media
 core = 7.x
 dependencies[] = media
-files[] = includes/MediaBrowserInternet.inc
 
 ; Information added by drupal.org packaging script on 2011-12-07
 version = "7.x-2.x-dev"

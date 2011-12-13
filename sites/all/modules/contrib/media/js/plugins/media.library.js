@@ -5,7 +5,7 @@ namespace('Drupal.media.browser');
 Drupal.behaviors.mediaLibrary = {
   attach: function (context, settings) {
     var library = new Drupal.media.browser.library(Drupal.settings.media.browser.library);
-    $('#media-browser-tabset').bind('tabsselect', function (event, ui) {
+    $('#media-browser-tabset').bind('tabsshow', function (event, ui) {
       if (ui.tab.hash === '#media-tab-library') {
         // Grab the parameters from the Drupal.settings object
         var params = {};
@@ -32,7 +32,7 @@ Drupal.media.browser.library = function (settings) {
 
 Drupal.media.browser.library.getDefaults = function () {
   return {
-    emtpyMessage: "There is nothing in your media library.  Select the Upload tab above to add a file.",
+    emtpyMessage: Drupal.t('There is nothing in your media library. Select the Upload tab above to add a file.'),
     limit: 15
   };
 };
@@ -54,7 +54,7 @@ Drupal.media.browser.library.prototype.start = function (renderElement, params) 
  */
 Drupal.media.browser.library.prototype.loadMedia = function () {
   var that = this;
-  $('#status').text('Loading...').show();
+  $('#status').text(Drupal.t('Loading...')).show();
   $.extend(this.params, {start: this.cursor, limit: this.settings.limit});
 
   var gotMedia = function (data, status) {

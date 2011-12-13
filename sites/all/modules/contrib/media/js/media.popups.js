@@ -46,6 +46,9 @@ Drupal.media.popups.mediaBrowser = function (onSelect, globalOptions, pluginOpti
 
   // Create it as a modal window.
   var browserSrc = options.widget.src;
+  if ($.isArray(browserSrc) && browserSrc.length) {
+    browserSrc = browserSrc[browserSrc.length - 1];
+  }
   // Params to send along to the iframe.  WIP.
   var params = {};
   $.extend(params, options.global);

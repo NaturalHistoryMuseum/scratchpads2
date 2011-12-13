@@ -7,23 +7,10 @@
  * Theming functions for the Media module.
  */
 
-/**
- * Display the media file browser.
- * @TODO this is depreciated I think
- * @param array $element
- *   The form element.
- * @return string
- */
-function theme_media_file_browser($element) {
-  // Add the CSS for our display.
-  $output = '<div class="media browser">' . $element . '</div>';
-
-  return $output;
-}
 
 /**
  * Display a media file list.
- * @TODO this is depreciated I think
+ *
  * @param array $element
  *   The form element.
  * @return string
@@ -34,37 +21,11 @@ function theme_media_file_list($element) {
 }
 
 /**
- * Display a browser pane.
- * @TODO this is depreciated I think
- *
- * @param array $form
- *   The form element.
- * @return string
- */
-function theme_media_browser_pane($form) {
-  return;
-  $output   = array();
-
-  // render the drawers
-  $output[] = '<div' . drupal_attributes($form['#attributes']) . '>';
-
-  // render the drawer list
-  $output[] = '  <div class="browser drawers">';
-  $output[] = drupal_render_form(null, $form['drawers']);
-  $output[] = ' </div>';
-
-  // render the drawer displays
-  $output[] = drupal_render_form(null, $form);
-  $output[] = '</div>';
-
-  return implode("\n", $output);
-}
-
-
-/**
  * Default theming function for creating the browser frame.
+ *
  * Assumes an array of file objects as $files and an
  * array of $parameters
+ *
  * @param $variables
  *   array of variables
  * @return unknown_type
@@ -96,8 +57,6 @@ function theme_media_browser_content_frame($variables) {
   }
   return implode("\n", $html);
 }
-
-
 
 /**
  * Display a item list of files as thumbnails. Implements
@@ -181,7 +140,7 @@ function theme_media_admin_thumbnail($variables) {
 function theme_media_admin_thumbnail_operations($variables) {
   $destination = drupal_get_destination();
   $file = $variables['file'];
-  $output = l(t('edit'), 'media/' . $file->fid . '/edit', array('query' => $destination));
+  $output = l(t('edit'), 'file/' . $file->fid . '/edit', array('query' => $destination));
   return $output;
 }
 
@@ -209,15 +168,17 @@ function theme_media_browser_control_result_limit($variables) {
   // Pull out all the variables into a usable form
   extract($variables);
 
-  if (! isset($limits)) {
+  if (!isset($limits)) {
     $limits = array(10, 30, 50);
   }
+
   // @NOTE these do not need to be aware of the current
   //       page because clicking them will reset the
   //       display to 1 -> $limit
   $parameters['page'] = 0;
   // save the active limit
   $current_limit = $parameters['limit'];
+  $per_display = array();
   foreach ($limits as $limit) {
     if ($limit == $current_limit) {
       $class = 'active';
@@ -230,7 +191,7 @@ function theme_media_browser_control_result_limit($variables) {
     $per_display[] = l($limit, $limit, array('query' => $parameters, 'attributes' => array('class' => $class)));
   }
 
-  return theme('item_list', array('items'  => $per_display, 'attributes' => array('class' => 'result_limit')));
+  return theme('item_list', array('items' => $per_display, 'attributes' => array('class' => 'result_limit')));
 }
 
 
@@ -244,7 +205,7 @@ function theme_media_browser_control_result_limit($variables) {
 function theme_media_link($variables) {
   $file = $variables['file'];
 
-  $url = 'media/' . $file->fid;
+  $url = 'file/' . $file->fid;
   $icon = theme('file_icon', array('file' => $file));
 
   // Set options as per anchor format described at
@@ -283,7 +244,7 @@ function theme_media_thumbnail($variables) {
 
   // Arguments for the thumbnail link
   $thumb = $element['#children'];
-  $target = 'media/' . $element['#file']->fid . '/edit';
+  $target = 'file/' . $element['#file']->fid . '/edit';
   $options = array('query' => $destination, 'html' => TRUE, 'attributes' => array('title' => t('Click to edit details')));
 
   // Element should be a field renderable array... This is a little wonky - admitted.
@@ -321,5 +282,10 @@ function theme_media_formatter_large_icon($variables) {
   $icon_dir = media_variable_get('icon_base_directory') . '/' . media_variable_get('icon_set');
   $icon = file_icon_path((object)$file, $icon_dir);
   $variables['path'] = $icon;
+  // theme_image() requires the 'alt' attribute passed as its own variable.
+  // @see http://drupal.org/node/999338
+  if (!isset($variables['alt']) && isset($variables['attributes']['alt'])) {
+    $variables['alt'] = $variables['attributes']['alt'];
+  }
   return theme('image', $variables);
 }

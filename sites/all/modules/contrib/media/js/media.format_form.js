@@ -15,9 +15,14 @@ Drupal.behaviors.mediaFormatForm = {
     // Add "Submit" and "Cancel" buttons inside the IFRAME that trigger the
     // behavior of the hidden "OK" and "Cancel" buttons that are outside the
     // IFRAME. See Drupal.media.browser.validateButtons() for more details.
-    $('<a class="button fake-ok">Submit</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
-    $('<a class="button fake-cancel">Cancel</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
 
+    // @note I think this should be handled in media.browser.js in
+    //       Drupal.media.browser.validateButtons but I'm not sure how crufty
+    //       this particular functionality is. We should evaluate if it is still
+    //       needed.
+
+    $('<a class="button fake-ok">' + Drupal.t('Submit') + '</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
+    $('<a class="button fake-cancel">' + Drupal.t('Cancel') + '</a>').appendTo($('#media-format-form')).bind('click', Drupal.media.formatForm.submit);
     if (Drupal.settings.media_format_form.autosubmit) {
       $('.button.fake-ok').click();
     }

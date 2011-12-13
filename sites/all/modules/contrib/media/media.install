@@ -70,12 +70,6 @@ function media_install() {
     $bundle_settings['extra_fields']['display']['file']['media_small'] = array('weight' => 0, 'visible' => FALSE);
     field_bundle_settings('file', $name, $bundle_settings);
   }
-
-  // Set permissions.
-  $roles = user_roles();
-  foreach ($roles as $rid => $role) {
-    user_role_grant_permissions($rid, array('view media'));
-  }
 }
 
 /**
@@ -130,37 +124,6 @@ function media_schema() {
   $schema['media_filter_usage'] = _media_update_7012_schema_media_filter_usage();
 
   return $schema;
-}
-
-
-/**
- * Implements hook_field_schema().
- */
-function media_field_schema($field) {
-  return array(
-    'columns' => array(
-      'fid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-      ),
-      'title' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-      ),
-      'data' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-        'size' => 'big',
-        'serialize' => TRUE,
-        //'description' => 'Used for storing additional information.  Can be harnessed by widgets',
-      ),
-    ),
-    'indexes' => array(
-      'fid' => array('fid'),
-    ),
-  );
 }
 
 /**
@@ -275,7 +238,7 @@ function media_update_7003() {
  * Removed /media from the menu.
  */
 function media_update_7004() {
-  menu_rebuild();
+  // Do nothing. Running an update function will trigger a menu rebuild.
 }
 
 /**
@@ -313,13 +276,9 @@ function media_update_7007() {
 }
 
 /**
- * Give all users view media perm by default
+ * Intentionally left blank.
  */
 function media_update_7008() {
-  $roles = user_roles();
-  foreach ($roles as $rid => $role) {
-    user_role_grant_permissions($rid, array('view media'));
-  }
 }
 
 /**
@@ -350,7 +309,7 @@ function media_update_7010() {
  * Allows video as a type of media in the WYSIWYG
  */
 function media_update_7011() {
-  media_variable_set('wysiwyg_allowed_types', array('image', 'video'));
+  // Do nothing - default variables automatically update.
 }
 
 /**
@@ -427,7 +386,7 @@ function media_update_7014() {
  * Rebuild the registry to locate class files in new location.
  */
 function media_update_7015() {
-  registry_rebuild();
+  // Do nothing. Running an update function will trigger a registry rebuild.
 }
 
 /**
@@ -566,7 +525,7 @@ function media_update_7017() {
  * Rebuild the menu to fix access for WYSIWYG.
  */
 function media_update_7018() {
-  menu_rebuild();
+  // Do nothing. Running an update function will trigger a menu rebuild.
 }
 
 /**
@@ -591,4 +550,81 @@ function media_update_7019() {
       field_update_instance($instance);
     }
   }
+}
+
+/**
+ * Delete the wysiwyg_allowed_types variable if it is the same as default.
+ */
+function media_update_7020() {
+  if (variable_get('media__wysiwyg_allowed_types') == array('image', 'video')) {
+    variable_del('media__wysiwyg_allowed_types');
+  }
+}
+
+/**
+ * Replace 'view media' perm from all users having the role with 'view file'.
+ */
+function media_update_7200() {
+  $perms = user_permission_get_modules();
+  if (!isset($perms['view file'])) {
+    throw new DrupalUpdateException('The File Entity module needs to be upgraded before continuing.');
+  }
+  else {
+    $roles = user_roles(FALSE, 'view media');
+    $permissions = array(
+      'view media' => FALSE,
+      'view file' => TRUE,
+    );
+    foreach ($roles as $rid => $role) {
+      user_role_change_permissions($rid, $permissions);
+    }
+    $roles = user_roles(FALSE, 'edit media');
+    $permissions = array(
+      'edit media' => FALSE,
+      'edit file' => TRUE,
+    );
+    foreach ($roles as $rid => $role) {
+      user_role_change_permissions($rid, $permissions);
+    }
+    $roles = user_roles(FALSE, 'administer media');
+    $permissions = array(
+      'administer media' => FALSE,
+      'administer files' => TRUE,
+    );
+    foreach ($roles as $rid => $role) {
+      user_role_change_permissions($rid, $permissions);
+    }
+  }
+}
+
+/**
+ * Enable the new Media Field module if this site uses "media" fields. File fields are now preferred for storing media.
+ */
+function media_update_7201() {
+  $fields = field_info_fields();
+  foreach ($fields as $field) {
+    if ($field['type'] == 'media') {
+      // This update function may run even if Media is not enabled. Don't enable
+      // Media Field if its dependencies aren't already enabled.
+      module_enable(array('mediafield'), FALSE);
+
+      // Update entries in file_usage so that they are associated with Media
+      // Field rather than Media.
+      // @TODO This update function may conflict with http://drupal.org/node/1268116
+      db_update('file_usage')
+        ->condition('module', 'media')
+        ->fields(array('module' => 'mediafield'))
+        ->execute();
+
+      return t('The "Media" field type has been moved to the new "Media Field" module. This site uses media fields, so the Media Field module has been enabled.');
+    }
+  }
+  return t('The "Media" field type has been moved to the new "Media Field" module. File fields can be used to store media.');
+}
+
+/**
+ * Enable the Views module if it is not already enabled.
+ */
+function media_update_7202() {
+  module_enable(array('views'));
 }

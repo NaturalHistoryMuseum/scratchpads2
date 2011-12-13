@@ -2,72 +2,34 @@
 
 /**
  * @file
- * Hook provided by the media module.
+ * Hooks provided by the Media module.
  */
-
-/**
- * Return an array of plugins for the media browser.
- *
- * Implementors are expected to return a renderable element.
- *
- * Each element will be a jQuery tab on the media browser.
- *
- * Some elements are special:
- *  - #title: The title that goes on the tab
- *  - #settings: Drupal.settings.media.browser.$key (where key is the array key).
- *  - #callback: If provided, will make the tab an "ajax" tab.
- *
- * Example:
- *   $plugins['library'] = array(
- *  '#title' => t('Library'),
- *  '#attached' => array(
- *    'js' => array(
- *       $path . '/js/plugins/media.library.js',
- *     ),
- *   ),
- *   '#settings' => array(
- *     'viewMode' => 'thumbnails',
- *     'getMediaUrl' => url('media/browser/list'),
- *   ),
- *   '#markup' => '<div> Library goes here</div>',
- * );
- *
- * @param $plugin_name
- *  The name of the plugin to view
- *
- * @param $params
- *  An array of parameters which came in is $_GET['params'].
- *  The expected parameters is still being defined.
- *   - types: Array of media types to support
- *   - multiselect: Boolean enabling or disabling multiselect
- *
- * @return
- *  Renderable array.
- */
-function hook_media_browser_plugin_view($plugin_name, $params) {
-
-}
 
 /**
  * Returns a list of plugins for the media browser.
  *
- * Plugins are defined in a multi-dimensional associative
- * array format with the following keys:
- *
- * - #weight (optional): Weight of the plugin in relation to other plugins
- *  when being displayed, e.g. tabs in the browser.
- *
- * @example
- * <code>
- * array(
- *  'unique_plugin_name' => array(
- *     '#weight' => 42,
- *   ),
- * );
- * </code>
+ * Media provides a CTools plugin API; this is one of those hooks. It should
+ * return a nested array of plugin information, keyed by plugin name. Each
+ * plugin info array may have the following keys:
+ * - title (required): A name for the tab in the media browser.
+ * - handler (required): The class name of the handler. This class must
+ *   implement a view() method, and may (should) extend the
+ *   @link MediaBrowserPlugin MediaBrowserPlugin @endlink class.
+ * - weight (optional): Integer to determine the tab order. Defaults to 0.
+ * - access callback (optional): A callback for user access checks.
+ * - access arguments (optional): An array of arguments for the user access
+ *   check.
+ * Additional custom keys may be provided for use by the handler.
  */
 function hook_media_browser_plugin_info() {
-
+  $plugins['media_upload'] = array(
+    'title' => t('Upload'),
+    'handler' => 'MediaBrowserUpload',
+    'weight' => -10,
+    'access callback' => 'user_access',
+    'access arguments' => array('create files'),
+  );
+  return $plugins;
 }
 
 /**

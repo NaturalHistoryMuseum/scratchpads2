@@ -210,22 +210,6 @@ function media_is_type($file, $args) {
 }
 
 /**
- * Implements hook_media_format_form_prepare_alter().
- */
-function media_media_format_form_prepare_alter(&$form, &$form_state, $file) {
-  switch ($file->type) {
-    case 'image':
-      $form['options']['alt'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Description'),
-        '#default_value' => $file->filename,
-        '#description' => t('Alternate text a user will see if the image is not available'),
-      );
-      break;
-  }
-}
-
-/**
  * Implements hook_file_default_displays().
  *
  * Provides default display configurations for media types.

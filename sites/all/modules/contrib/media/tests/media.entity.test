@@ -14,6 +14,7 @@ class MediaEntityTest extends MediaTestHelper {
       'name' => 'Media entity',
       'description' => 'Tests media entity handling',
       'group' => 'Media',
+      'dependencies' => array('file_entity'),
     );
   }
 
@@ -25,6 +26,7 @@ class MediaEntityTest extends MediaTestHelper {
     $images = $this->drupalGetTestFiles('image');
     // Moves serveral images to public://
     foreach (array_merge($text_files, $images) as $file) {
+      $file = file_uri_to_object($file->uri);
       file_save($file);
     }
 
@@ -32,7 +34,6 @@ class MediaEntityTest extends MediaTestHelper {
     $query->entityCondition('entity_type', 'file');
     $query->propertyCondition('uri', 'public://%', 'LIKE');
     $result = $query->execute();
-    $this->verbose(dpr($result, 1));
     $this->assertEqual(count($result['file']), count($images) + count($text_files), "Returned results as expected for like % condition");
 
     $query = new EntityFieldQuery();

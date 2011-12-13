@@ -20,6 +20,12 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
     return $this->parameters;
   }
 
+  // As part of the inode protection mode returned by stat(), identifies the
+  // file as a regular file, as opposed to a directory, symbolic link, or other
+  // type of "file".
+  // @see http://linux.die.net/man/2/stat
+  const S_IFREG = 0100000;
+
   /**
    * "Template" for stat calls. All elements must be initialized.
    * @var array
@@ -29,8 +35,10 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
     'dev' => 0,
     1 => 0, // inode number
     'ino' => 0,
-    2 => 0, // inode protection mode
-    'mode' => 0,
+    // inode protection mode. file_unmanaged_delete() requires is_file() to
+    // return TRUE.
+    2 => self::S_IFREG,
+    'mode' => self::S_IFREG,
     3 => 0, // number of links
     'nlink' => 0,
     4 => 0, // userid of owner
@@ -463,7 +471,9 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
    */
 
   public function unlink($uri) {
-    return FALSE;
+    // Although the remote file itself can't be deleted, return TRUE so that
+    // file_delete() can remove the file record from the database.
+    return TRUE;
   }
   public function rename($from_uri, $to_uri) {
     return FALSE;

@@ -283,7 +283,7 @@ function media_format_form($form, $form_state, $file) {
   $view_modes = $entity_info['view modes'];
   drupal_alter('media_wysiwyg_allowed_view_modes', $view_modes, $file);
 
-  $options = array();
+  $formats = $options = array();
   foreach ($view_modes as $view_mode => $view_mode_info) {
     // Don't present the user with an option to choose a view mode in which the
     // file is hidden.
@@ -388,6 +388,17 @@ function media_get_file_without_label($file, $view_mode, $settings = array()) {
   // element attributes.
   if (!isset($element['#attributes']) && isset($settings['attributes'])) {
     $element['#attributes'] = $settings['attributes'];
+
+    // While this function may be called for any file type, images are a common
+    // use-case. theme_image() and theme_image_style() require the 'alt'
+    // attribute to be passed separately from the 'attributes' array (see
+    // http://drupal.org/node/999338). Until that's fixed, implement this
+    // special-case logic. Image formatters using other theme functions are
+    // responsible for their own 'alt' attribute handling. See
+    // theme_media_formatter_large_icon() for an example.
+    if (isset($settings['attributes']['alt']) && !isset($element['#alt']) && isset($element['#theme']) && in_array($element['#theme'], array('image', 'image_style'))) {
+      $element['#alt'] = $settings['attributes']['alt'];
+    }
   }
 
   return $element;

@@ -7,7 +7,7 @@ Drupal.media.browser.plugin.upload = function (mediaBrowser, options) {
     /* Abstract */
     init: function () {
       tabset = mediaBrowser.getTabset();
-      tabset.tabs('add', '#upload', 'Upload');
+      tabset.tabs('add', '#upload', Drupal.t('Upload'));
       mediaBrowser.listen('tabs.show', function (e, id) {
         if (id == 'upload') {
           // We only need to set this once.

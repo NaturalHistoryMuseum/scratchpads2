@@ -165,15 +165,19 @@ Drupal.wysiwyg.plugins.media = {
    * Detach function, called when a rich text editor detaches
    */
   detach: function (content, settings, instanceId) {
-    var content = $('<div>' + content + '</div>');
-    $('img.media-image',content).each(function (elem) {
-      var tag = Drupal.wysiwyg.plugins.media.createTag($(this));
-      $(this).replaceWith(tag);
-      var newContent = content.html();
-      var tagContent = $('<div></div>').append($(this)).html();
-      Drupal.settings.tagmap[tag] = tagContent;
-    });
-    return content.html();
+    // Replace all Media placeholder images with the appropriate inline json
+    // string. Using a regular expression instead of jQuery manipulation to
+    // prevent <script> tags from being displaced.
+    // @see http://drupal.org/node/1280758.
+    if (matches = content.match(/<img[^>]+class=([\'"])media-image[^>]*>/gi)) {
+      for (var i = 0; i < matches.length; i++) {
+        var imageTag = matches[i];
+        var inlineTag = Drupal.wysiwyg.plugins.media.createTag($(imageTag));
+        Drupal.settings.tagmap[inlineTag] = imageTag;
+        content = content.replace(imageTag, inlineTag);
+      }
+    }
+    return content;
   },
 
   /**
@@ -251,6 +255,22 @@ Drupal.wysiwyg.plugins.media = {
         delete mediaAttributes['height'];
       }
     }
+
+   // Convert style-based floating of images to classes. Note we leave the
+   // the attribute so that the WYSIWYG editor will remember the setting.
+   // First, remove any previous left/right classes, note that class will
+   // contain at least 'media-image'
+   mediaAttributes['class'] = mediaAttributes['class'].replace(/\s*media-image-(left|right)\s*/g, ' ');
+
+   // Add appropriate left/right class to the <img> tag.
+   if (mediaAttributes['style']) {
+     if (-1 != mediaAttributes['style'].indexOf('float: right;')) {
+       mediaAttributes['class'] += ' media-image-right';
+    }
+    if (-1 != mediaAttributes['style'].indexOf('float: left;')) {
+      mediaAttributes['class'] += ' media-image-left';
+     }
+   }
 
     // Remove elements from attribs using the blacklist
     for (var blackList in Drupal.settings.media.blacklist) {

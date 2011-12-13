@@ -119,7 +119,7 @@ function media_variable_default($name = NULL) {
       //@todo: We should do this per type actually.  For "other" it should be a link.
       'wysiwyg_default_view_mode' => 'media_large',
       // Types which can be selected when embedding media vs wysiwyg.
-      'wysiwyg_allowed_types' => array('image', 'video'),
+      'wysiwyg_allowed_types' => array('audio', 'image', 'video'),
       // Attributes which can be modified via the wysiwyg and persist.
       'wysiwyg_allowed_attributes' => array('height', 'width', 'hspace', 'vspace', 'border', 'align', 'style', 'alt', 'title', 'class', 'id'),
 
