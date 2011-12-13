@@ -1,4 +1,4 @@
-name = Taxonomy (Left and Right replacement)
+name = Taxonomy (No taxonomy_get_tree for large trees)
 description = Enables the categorization of content.
 package = Core
 version = VERSION
