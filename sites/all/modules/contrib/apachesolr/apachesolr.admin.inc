@@ -6,24 +6,18 @@
  */
 
 /**
- * Form builder for adding/editing a Solr server used as a menu callback.
+ * Form to delete a search environment
+ * @param $environment
+ *   The environment to delete
  */
-function apachesolr_server_delete_page($server) {
-  $is_default = $server['server_id'] == variable_get('apachesolr_default_server', 'solr');
-  if ($is_default) {
-    return MENU_ACCESS_DENIED;
-  }
-  return drupal_get_form('apachesolr_server_delete_form', $server);
-}
-
-function apachesolr_server_delete_form($form, &$form_state, $server) {
-  $form['server_id'] = array(
+function apachesolr_environment_delete_form($form, &$form_state, $environment) {
+  $form['env_id'] = array(
     '#type' => 'value',
-    '#value' => $server['server_id'],
+    '#value' => $environment['env_id'],
   );
   return confirm_form(
     $form,
-    t('Are you sure you want to delete server %name?', array('%name' => $server['name'])),
+    t('Are you sure you want to delete search environment %name?', array('%name' => $environment['name'])),
     'admin/config/search/apachesolr',
     t('This action cannot be undone.'),
     t('Delete'),
@@ -31,90 +25,161 @@ function apachesolr_server_delete_form($form, &$form_state, $server) {
   );
 }
 
-function apachesolr_server_delete_form_submit($form, &$form_state) {
-  if (apachesolr_server_delete($form_state['values']['server_id'])) {
-    drupal_set_message(t('The server was deleted'));
+function apachesolr_environment_delete_form_submit($form, &$form_state) {
+  if (apachesolr_environment_delete($form_state['values']['env_id'])) {
+    drupal_set_message(t('The search environment was deleted'));
   }
-  $form_state['redirect'] = 'admin/config/search/apachesolr';
+  $form_state['redirect'] = 'admin/config/search/apachesolr/settings';
+}
+
+function apachesolr_environment_edit_delete_submit($form, &$form_state) {
+  $form_state['redirect'] = 'admin/config/search/apachesolr/settings/' . $form_state['values']['env_id'] . '/delete';
+
+  // Regardlessly of the destination parameter we want to go to another page
+  unset($_GET['destination']);
+  drupal_static_reset('drupal_get_destination');
+  drupal_get_destination();
+}
+
+function apachesolr_environment_settings_page($environment = NULL) {
+  if (empty($environment)) {
+    $env_id = apachesolr_default_environment();
+    $environment = apachesolr_environment_load($env_id);
+  }
+  $env_id = $environment['env_id'];
+
+ // Initializes output with information about which environment's setting we are
+  // editing, as it is otherwise not transparent to the end user.
+  $output = array(
+    'apachesolr_environment' => array(
+      '#theme' => 'apachesolr_settings_title',
+      '#env_id' => $env_id,
+    ),
+  );
+  $output['form'] = drupal_get_form('apachesolr_environment_edit_form', $environment);
+  return $output;
+}
+
+function apachesolr_environment_clone_form($form, &$form_state, $environment) {
+  $form['env_id'] = array(
+    '#type' => 'value',
+    '#value' => $environment['env_id'],
+  );
+  return confirm_form(
+    $form,
+    t('Are you sure you want to clone search environment %name?', array('%name' => $environment['name'])),
+    'admin/config/search/apachesolr',
+    '',
+    t('Clone'),
+    t('Cancel')
+  );
+}
+
+function apachesolr_environment_clone_form_submit($form, &$form_state) {
+  if (apachesolr_environment_clone($form_state['values']['env_id'])) {
+    drupal_set_message(t('The search environment was cloned'));
+  }
+  $form_state['redirect'] = 'admin/config/search/apachesolr/settings';
+}
+
+function apachesolr_environment_clone_submit($form, &$form_state) {
+  $form_state['redirect'] = 'admin/config/search/apachesolr/settings/' . $form_state['values']['env_id'] . '/clone';
 }
 
 /**
- * Form builder for adding/editing a Solr server used as a menu callback.
+ * Form builder for adding/editing a Solr environment used as a menu callback.
  */
-function apachesolr_server_edit_form($form, &$form_state, $server = NULL) {
-  
-  if (empty($server)) {
-    $server = array();
+function apachesolr_environment_edit_form($form, &$form_state, $environment = NULL) {
+  if (empty($environment)) {
+    $environment = array();
   }
-  $server += array('server_id' => '', 'name' => '', 'url' => '', 'service_class' => '');
+  $environment += array('env_id' => '', 'name' => '', 'url' => '', 'service_class' => '', 'conf' => array());
 
-  $form['original_server_id'] = array(
-    '#type' => 'value',
-    '#value' => $server['server_id'],
-  );
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => t('Solr server URL'),
-    '#default_value' => $server['url'],
-    '#description' => t('URL that identifies the Solr server and request path to be used. E.g. http://localhost:8983/solr'),
+    '#default_value' => $environment['url'],
+    '#description' => t('Example: http://localhost:8983/solr'),
     '#required' => TRUE,
   );
-  $is_default = $server['server_id'] == variable_get('apachesolr_default_server', 'solr');
+  $is_default = $environment['env_id'] == apachesolr_default_environment();
   $form['make_default'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Make this Solr server the default'),
+    '#title' => t('Make this Solr search environment the default'),
     '#default_value' => $is_default,
     '#disabled' => $is_default,
-    '#description' => $is_default ? t('Select this option for a different server to make this one non-default.') : '',
   );
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Description'),
-    '#default_value' => $server['name'],
-    '#description' => t('Short description of your Solr server.'),
+    '#default_value' => $environment['name'],
     '#required' => TRUE,
   );
-  $form['server_id'] = array(
+  $form['env_id'] = array(
     '#type' => 'machine_name',
-    '#title' => t('Server id'),
+    '#title' => t('Environment id'),
     '#machine_name' => array(
-      'exists' => 'apachesolr_server_load',
+      'exists' => 'apachesolr_environment_load',
     ),
-    '#default_value' => $server['server_id'],
-    '#description' => t('Unique, machine-readable identifier Solr server.'),
+    '#default_value' => $environment['env_id'],
+    '#disabled' => !empty($environment['env_id']), // Cannot change it once set.
+    '#description' => t('Unique, machine-readable identifier for this Solr environment.'),
     '#required' => TRUE,
   );
   $form['service_class'] = array(
     '#type' => 'value',
-    '#value' => $server['service_class'],
+    '#value' => $environment['service_class'],
   );
-  $form['save'] = array(
+  $form['conf'] = array(
+    '#tree' => TRUE,
+  );
+  $form['conf']['apachesolr_read_only'] = array(
+    '#type' => 'radios',
+    '#title' => t('Index write access'),
+    '#default_value' => isset($environment['conf']['apachesolr_read_only']) ? $environment['conf']['apachesolr_read_only'] : APACHESOLR_READ_WRITE,
+    '#options' => array(APACHESOLR_READ_WRITE => t('Read and write (normal)'), APACHESOLR_READ_ONLY => t('Read only')),
+    '#description' => t('<em>Read only</em> stops this site from sending updates to this search environment. Useful for development sites.'),
+  );
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['save'] = array(
     '#type' => 'submit',
-    '#validate' => array('apachesolr_server_save_validate'),
-    '#submit' => array('apachesolr_server_save_submit'),
+    '#validate' => array('apachesolr_environment_edit_validate'),
+    '#submit' => array('apachesolr_environment_edit_submit'),
     '#value' => t('Save'),
   );
-  $form['test'] = array(
+  $form['actions']['test'] = array(
     '#type' => 'submit',
-    '#validate' => array('apachesolr_server_save_validate'),
-    '#submit' => array('apachesolr_server_test_submit'),
+    '#validate' => array('apachesolr_environment_edit_validate'),
+    '#submit' => array('apachesolr_environment_edit_test_submit'),
     '#value' => t('Test connection'),
   );
-  if (!empty($server['server_id']) && !$is_default) {
-    $form['delete'] = array(
+  if (!empty($environment['env_id']) && !$is_default) {
+    $form['actions']['delete'] = array(
       '#type' => 'submit',
-      '#submit' => array('apachesolr_server_delete_submit'),
+      '#submit' => array('apachesolr_environment_edit_delete_submit'),
       '#value' => t('Delete'),
     );
   }
+
+  // Ensures destination is an internal URL, builds "cancel" link.
+  if (isset($_GET['destination']) && !url_is_external($_GET['destination'])) {
+    $destination = $_GET['destination'];
+  }
+  else {
+    $destination = 'admin/config/search/apachesolr';
+  }
+  $form['actions']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => $destination,
+  );
+
   return $form;
 }
 
-function apachesolr_server_delete_submit($form, &$form_state) {
-  $form_state['redirect'] = 'admin/config/search/apachesolr/server/' . $form_state['values']['original_server_id'] . '/delete';
-}
-
-function apachesolr_server_test_submit($form, &$form_state) {
+function apachesolr_environment_edit_test_submit($form, &$form_state) {
   $ping = apachesolr_server_status($form_state['values']['url'], $form_state['values']['service_class']);
   if ($ping) {
     drupal_set_message(t('Your site has contacted the Apache Solr server.'));
@@ -125,7 +190,7 @@ function apachesolr_server_test_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
-function apachesolr_server_save_validate($form, &$form_state) {
+function apachesolr_environment_edit_validate($form, &$form_state) {
   $parts = parse_url($form_state['values']['url']);
   foreach (array('scheme', 'host', 'path') as $key) {
     if (empty($parts[$key])) {
@@ -144,13 +209,34 @@ function apachesolr_server_save_validate($form, &$form_state) {
   }
 }
 
-function apachesolr_server_save_submit($form, &$form_state) {
-  apachesolr_server_save($form_state['values'], $form_state['values']['original_server_id']);
+function apachesolr_environment_edit_submit($form, &$form_state) {
+  apachesolr_environment_save($form_state['values']);
   if (!empty($form_state['values']['make_default'])) {
-    variable_set('apachesolr_default_server', $form_state['values']['server_id']);
-  }  
-  cache_clear_all('apachesolr:servers', 'cache_apachesolr');
-  $form_state['redirect'] = 'admin/config/search/apachesolr';
+    variable_set('apachesolr_default_environment', $form_state['values']['env_id']);
+  }
+  cache_clear_all('apachesolr:environments', 'cache_apachesolr');
+  drupal_set_message(t('The %name search environment has been saved.', array('%name' => $form_state['values']['name'])));
+  $form_state['redirect'] = 'admin/config/search/apachesolr/settings';
+}
+
+/**
+ * Check to see if the facetapi module is installed, and if not put up
+ * a message.
+ *
+ * Only call this function if the user is already in a position for this to
+ * be useful.
+ */
+function apachesolr_check_facetapi() {
+  if (!module_exists('facetapi')) {
+    $filename = db_query_range("SELECT filename FROM {system} WHERE type = 'module' AND name = 'facetapi'", 0, 1)
+      ->fetchField();
+    if ($filename && file_exists($filename)) {
+      drupal_set_message(t('If you <a href="@modules">enable the facetapi module</a>, Apache Solr Search will provide you with configurable facets.', array('@modules' => url('admin/modules'))));
+    }
+    else {
+      drupal_set_message(t('If you install the facetapi module from !href, Apache Solr Search will provide you with configurable facets.', array('!href' => l('http://drupal.org/project/facetapi', 'http://drupal.org/project/facetapi'))));
+    }
+  }
 }
 
 /**
@@ -158,66 +244,105 @@ function apachesolr_server_save_submit($form, &$form_state) {
  */
 function apachesolr_settings($form, &$form_state) {
   $form = array();
-  $collapse_host = TRUE;
-
-  // Perform a check to ensure the server is there
-  if (empty($_POST)) {
-    module_load_install('apachesolr');
-    foreach (apachesolr_requirements('runtime') as $requirement) {
-      $status = $requirement['severity'] == REQUIREMENT_ERROR ? 'error' : 'status';
-      if ($status == 'error') {
-        drupal_set_message($requirement['title'] . ': ' . $requirement['value'], $status);
-        $collapse_host = FALSE;
-      }
-    }
-  }
-  // Add a link to add more mlt blocks.
-  $form['mlt_link'] = array(
-    '#type' => 'item',
-    '#description' => format_plural(count(apachesolr_mlt_list_blocks()), 'You currently have 1 block.', 'You currenly have @count blocks.'),
-  );
-  $form['apachesolr_host_settings'] = array(
-    '#title' => t('Solr host settings'),
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => $collapse_host,
-  );
-  $id = variable_get('apachesolr_default_server', 'solr');
-  $servers = apachesolr_load_all_servers();
   $rows = array();
-  $headers = array(
-    t('Default'),
-    array('data' => t('Operations'), 'colspan' => 2),
-    t('Name'),
-    t('URL'),
-  );
-  foreach ($servers as $server_id => $data) {
-    $is_default = $server_id == variable_get('apachesolr_default_server', 'solr');
-    if ($is_default) {
-      $type = 'selected';
-      $delete_link = '';
+
+  // Environment settings
+  $id = apachesolr_default_environment();
+  $environments = apachesolr_load_all_environments();
+  $default_environment = apachesolr_default_environment();
+  apachesolr_check_facetapi();
+
+  // Reserve a row for the default one
+  $rows[$default_environment] = array();
+
+  foreach ($environments as $environment_id => $data) {
+    // Define all the Operations
+    $confs = array();
+    $ops = array();
+    // Whenever facetapi is enabled we also enable our operation link
+    if (module_exists('facetapi')) {
+      $confs['facets'] = array(
+        'class' => 'operation',
+        'data' => l(t('Facets'),
+          'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/facets',
+          array('query' => array('destination' => current_path()))
+        ),
+     );
+    }
+    // These are our result and bias settings
+    if (module_exists('apachesolr_search')) {
+      $confs['result_bias'] = array(
+        'class' => 'operation',
+        'data' => l(t('Bias'),
+          'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/bias',
+          array('query' => array('destination' => current_path()))
+        ),
+      );
+    }
+
+    $ops['edit'] = array(
+      'class' => 'operation',
+      'data' => l(t('Edit'),
+        'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/edit',
+         array('query' => array('destination' => current_path()))
+      ),
+    );
+    $ops['clone'] = array(
+      'class' => 'operation',
+      'data' => l(t('Clone'),
+        'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/clone',
+        array('query' => array('destination' => $_GET['q']))
+      ),
+    );
+    $env_name = l(check_plain($data['name']), 'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/index', array('query' => array('destination' => $_GET['q'])));
+    // Is this row our default environment?
+    if ($environment_id == $default_environment) {
+      $env_name = t('!environment <em>(Default)</em>', array('!environment' => $env_name));
+      $env_class_row = 'default-environment';
+      $ops['delete'] = '';
     }
     else {
-      $type = 'none';
-      $delete_link = array('class' => 'operation', 'data' => l(t('delete'), 'admin/config/search/apachesolr/server/' . $data['server_id'] . '/delete'));
+      $env_class_row = '';
+      // For every non-default we add a delete link
+      $ops['delete'] = array(
+        'class' => 'operation',
+        'data' => l(t('Delete'), 'admin/config/search/apachesolr/settings/' . $data['env_id'] . '/delete'),
+      );
     }
-    $rows[] = array('data' =>
+
+    // When we are receiving a http POST (so the page does not show) we do not
+    // want to check the statusses of any environment
+    $class = '';
+    if (empty($form_state['input'])) {
+      $class = apachesolr_server_status($data['url']) ? 'ok' : 'error';
+    }
+
+    $headers = array(
+      array('data' => t('Name'), 'colspan' => 2),
+      t('URL'),
+      array('data' => t('Configuration'), 'colspan' => count($confs)),
+      array('data' => t('Operations'), 'colspan' => count($ops)),
+    );
+
+    $rows[$environment_id] = array('data' =>
       array(
         // Cells
-        array('class' => 'icon'),
-        array('class' => 'operation', 'data' => l(t('edit'), 'admin/config/search/apachesolr/server/' . $data['server_id'] . '/edit')),
-        $delete_link,
-        check_plain($data['name']),
+        array(
+          'class' => 'status-icon',
+          'data' => '<div title="' . $class . '"><span class="element-invisible">' . $class . '</span></div>',
+        ),
+        array(
+          'class' => $env_class_row,
+          'data' => $env_name,
+        ),
         check_plain($data['url']),
       ),
-      // Attributes for tr
-      'class' => array(drupal_html_class('apachesolr-' . $type)),
+      'class' => array(drupal_html_class($class)),
     );
+    // Add the links to the page
+    $rows[$environment_id]['data'] = array_merge($rows[$environment_id]['data'], $confs);
+    $rows[$environment_id]['data'] = array_merge($rows[$environment_id]['data'], $ops);
   }
-  $actions[] = array(
-    '#theme' => 'menu_local_action',
-    '#link' => array('title' => t('Add new server'), 'href' => 'admin/config/search/apachesolr/server/add', 'options' => array()),
-  );
 
   $form['apachesolr_host_settings']['actions'] = array(
     '#markup' => '<ul class="action-links">' . drupal_render($actions) . '</ul>',
@@ -225,54 +350,8 @@ function apachesolr_settings($form, &$form_state) {
   $form['apachesolr_host_settings']['table'] = array(
     '#theme' => 'table',
     '#header' => $headers,
-    '#rows' => $rows,
+    '#rows' => array_values($rows),
     '#attributes' => array('class' => array('admin-apachesolr')),
-  );
-  
-  $numbers = drupal_map_assoc(array(1, 5, 10, 20, 50, 100, 200));
-  $default_cron_limit = variable_get('apachesolr_cron_limit', 50);
-  // apachesolr_cron_limit may be overridden in settings.php. If its current
-  // value is not among the default set of options, add it.
-  if (!isset($numbers[$default_cron_limit])) {
-    $numbers[$default_cron_limit] = $default_cron_limit;
-  }
-  $form['apachesolr_cron_limit'] = array(
-    '#type' => 'select',
-    '#title' => t('Number of items to index per cron run'),
-    '#default_value' => $default_cron_limit,
-    '#options' => $numbers,
-    '#description' => t('The maximum number of items indexed in each pass of a <a href="@cron">cron maintenance task</a>. If necessary, reduce the number of items to prevent timeouts and memory errors while indexing.', array('@cron' => url('admin/reports/status')))
-  );
-
-  $form['apachesolr_rows'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Results per page'),
-    '#default_value' => variable_get('apachesolr_rows', 10),
-    '#description' => t('The number of results that will be shown per page.'),
-  );
-  $form['apachesolr_facetstyle'] = array(
-    '#type' => 'radios',
-    '#title' => t('Style of facet links'),
-    '#default_value' => variable_get('apachesolr_facetstyle', 'checkboxes'),
-    '#options' => array('links' => t('Links only'), 'checkboxes' => t('Links with checkboxes')),
-  );
-
-  $options = array('apachesolr:show_error' => t('Show error message'));
-  $system_info = system_get_info('module');
-  foreach (search_get_info() as $module => $search_info) {
-    // Don't allow apachesolr to return results on failure of apachesolr.
-    if ($module == 'apachesolr_search') {
-      continue;
-    }
-    $options[$module] = t('Show @name search results', array('@name' => $system_info[$module]['name']));
-  }
-  $options['apachesolr:show_no_results'] = t('Show no results');
-  $form['apachesolr_failure'] = array(
-    '#type' => 'select',
-    '#title' => t('On failure'),
-    '#options' => $options,
-    '#default_value' => variable_get('apachesolr_failure', 'apachesolr:show_error'),
-    '#description' => t('What to display if Apache Solr search is not available.'),
   );
 
   $form['advanced'] = array(
@@ -284,41 +363,70 @@ function apachesolr_settings($form, &$form_state) {
   $form['advanced']['apachesolr_set_nodeapi_messages'] = array(
     '#type' => 'radios',
     '#title' => t('Extra help messages for administrators'),
+    '#description' => t('Adds notices to a page whenever Drupal changed content that needs reindexing'),
     '#default_value' => variable_get('apachesolr_set_nodeapi_messages', 1),
     '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
   );
-  $form['advanced']['apachesolr_read_only'] = array(
-    '#type' => 'radios',
-    '#title' => t('Index write access'),
-    '#default_value' => apachesolr_server_variable_get(apachesolr_default_server(), 'apachesolr_read_only', APACHESOLR_READ_WRITE),
-    '#options' => array(APACHESOLR_READ_WRITE => t('Read and write (normal)'), APACHESOLR_READ_ONLY => t('Read only')),
-    '#description' => t('<em>Read only</em> stops this site from sending updates to your search index. Useful for development sites.'),
-  );
-  return system_settings_form($form);
-}
 
-/**
- * Validation function for the apachesolr_settings() form.
- */
-function apachesolr_settings_validate($form, &$form_state) {
-  $intval = intval($form_state['values']['apachesolr_rows']);
-  // TODO: does the max need to be variable?
-  $max = 200;
-  if (!is_numeric($form_state['values']['apachesolr_rows']) || $intval < 0 || $intval > $max) {
-    form_set_error('apachesolr_rows', t('Results per page should be non-negative integer less than @max.', array('@max' => $max)));
+  // Number of Items to index
+  $numbers = drupal_map_assoc(array(1, 5, 10, 20, 50, 100, 200));
+  $default_cron_limit = variable_get('apachesolr_cron_limit', 50);
+
+  // apachesolr_cron_limit may be overridden in settings.php. If its current
+  // value is not among the default set of options, add it.
+  if (!isset($numbers[$default_cron_limit])) {
+    $numbers[$default_cron_limit] = $default_cron_limit;
   }
-  else {
-    // Set the integer value as the one we are saving to the variable.
-    $form_state['values']['apachesolr_rows'] = $intval;
+  $form['advanced']['apachesolr_cron_limit'] = array(
+    '#type' => 'select',
+    '#title' => t('Number of items to index per cron run'),
+    '#default_value' => $default_cron_limit,
+    '#options' => $numbers,
+    '#description' => t('Reduce the number of items to prevent timeouts and memory errors while indexing.', array('@cron' => url('admin/reports/status')))
+  );
+
+  $options = array('apachesolr:show_error' => t('Show error message'));
+  $system_info = system_get_info('module');
+  foreach (search_get_info() as $module => $search_info) {
+    // Don't allow apachesolr to return results on failure of apachesolr.
+    if ($module == 'apachesolr_search') {
+      continue;
+    }
+    $options[$module] = t('Show @name search results', array('@name' => $system_info[$module]['name']));
   }
+
+  $options['apachesolr:show_no_results'] = t('Show no results');
+  $form['advanced']['apachesolr_failure'] = array(
+    '#type' => 'select',
+    '#title' => t('On failure'),
+    '#options' => $options,
+    '#default_value' => variable_get('apachesolr_failure', 'apachesolr:show_error'),
+  );
+
+  return system_settings_form($form);
 }
 
 /**
  * Gets information about the fields already in solr index.
  */
-function apachesolr_index_page($server_id = NULL) {
+function apachesolr_index_page($environment = NULL) {
+
+  if (empty($environment)) {
+    $env_id = apachesolr_default_environment();
+    $environment = apachesolr_environment_load($env_id);
+  }
+  else {
+    $env_id = $environment['env_id'];
+  }
+
+  // Check for availability
+  if (!apachesolr_server_status($environment['url'])) {
+    drupal_set_message(t('The server seems to be unavailable. Please verify the server settings at the <a href="!settings_page">settings page</a>', array('!settings_page' => url('admin/config/search/apachesolr/settings/' . $environment['env_id'], array('query' =>  drupal_get_destination())))), 'warning');
+    return '';
+  }
+
   try {
-    $solr = apachesolr_get_solr($server_id);
+    $solr = apachesolr_get_solr($environment["env_id"]);
     // TODO: possibly clear this every page view if we are running multi-site.
     if (apachesolr_index_get_last_updated()) {
       $solr->clearCache();
@@ -332,50 +440,83 @@ function apachesolr_index_page($server_id = NULL) {
     $data->fields = array();
   }
 
-  if (empty($server_id)) {
-    $server_id = apachesolr_default_server();
+  $messages = array();
+  // Add a read-only notification
+  if (apachesolr_environment_variable_get(apachesolr_default_environment(), 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
+    $messages['readonly'] = t('Operating in read-only mode; updates are disabled.');
   }
 
-  $output = array();
-  $status_header = '';
   if (isset($data->index->numDocs)) {
-    $pending_docs = $delay_msg = $delete_msg = '';
     try {
+      // Collect the stats
       $stats_summary = $solr->getStatsSummary();
-      $solr_msg = '<p>' . t('Using schema.xml version: <strong>@schema_version</strong>', $stats_summary);
-      if ($stats_summary['@core_name']) {
-        $solr_msg .= '<br />' . t('Solr core name: <strong>@core_name</strong>', $stats_summary);
+      // We need a schema version greater than beta3. This is mostly to catch
+      // people using the Drupal 6 schema.
+      if (version_compare($stats_summary['@schema_version'], 'drupal-3.0-beta3', '<=')) {
+        drupal_set_message(t('Your schema.xml version is too old. You must update it and re-index your content.'), 'error');
       }
-      $delay_msg = '<br />' . t('<em>The server has a @autocommit_time delay before updates are processed.</em>', $stats_summary) . "</p>\n";
-      $delete_msg = '<p>' . t('Number of pending deletions: @deletes_total', $stats_summary) . "</p>\n";
+      $pending_msg = $stats_summary['@pending_docs'] ? t('(@pending_docs sent but not yet processed)', $stats_summary) : '';
+      $status = apachesolr_index_status('apachesolr');
+      $indexed_message = t('@num Items !pending', array(
+        '@num' => $data->index->numDocs,
+        '!pending' => $pending_msg,
+      ));
+      $messages[] = array('Indexed', $indexed_message);
+
+      $remaining_message = t('@items (@percentage% has been sent to the server)', array(
+          '@items' => format_plural($status['remaining'], t('1 item'), t('@count items')),
+          '@percentage' => ((int)min(100, 100 * ($status['total'] - $status['remaining']) / max(1, $status['total']))),
+        )
+      );
+      $messages[] = array('Remaining', $remaining_message);
+
+      $messages[] = array('Schema', t('@schema_version', $stats_summary));
+      if (!empty($stats_summary['@core_name'])) {
+        $messages[] = array('Solr Core Name', t('@core_name', $stats_summary));
+      }
+      $messages[] = array('Delay', t('@autocommit_time before updates are processed.', $stats_summary));
+      $messages[] = array('Pending Deletions', t('@deletes_total', $stats_summary));
     }
     catch (Exception $e) {
       watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     }
-    $status_header .= $solr_msg . $delay_msg;
-    $pending_msg = $stats_summary['@pending_docs'] ? t('(@pending_docs sent but not yet processed)', $stats_summary) : '';
-    $status_header .= '<p>' . t('Number of documents in index: @num !pending', array('@num' => $data->index->numDocs, '!pending' => $pending_msg)) . "</p>\n";
-    $status_header .= $delete_msg;
   }
-  $status_header .= '<p>' . l(t('View more details on the search index contents'), 'admin/reports/apachesolr') . "</p>\n";
-  if (apachesolr_server_variable_get($server_id, 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_WRITE) {
-    $output['apachesolr_index_action_status_header'] = array('#markup' => $status_header);
+  // Initializes output with information about which server's setting we are
+  // editing, as it is otherwise not transparent to the end user.
+  $output['apachesolr_index_action_status'] = array(
+    '#prefix' => '<h3>' . t('@environment: Search Index Content', array('@environment' => $environment['name'])) . '</h3>',
+    '#theme' => 'table',
+    '#header' => array('type', 'value'),
+    '#rows' => $messages,
+  );
+
+  $output['viewmore'] = array(
+    '#markup' => l(t('View more details on the search index contents'), 'admin/reports/apachesolr'),
+  );
+
+  $write_status = apachesolr_environment_variable_get($env_id, 'apachesolr_read_only', APACHESOLR_READ_WRITE);
+  $default_env_id = apachesolr_default_environment();
+  if (($write_status == APACHESOLR_READ_WRITE) && ($env_id == $default_env_id)) {
     // Display the Delete Index form.
-    $output['apachesolr_index_action_form'] = drupal_get_form('apachesolr_index_action_form');
+    $output['apachesolr_index_action_form'] = array(
+      '#prefix' => '<h3>' . t('Search Index Actions') . '</h3>',
+      'form' => drupal_get_form('apachesolr_index_action_form', $status),
+    );
   }
   else {
-    drupal_set_message(t('The index is in read-only mode. Options for deleting and re-indexing are therefore not available. The index mode can be changed on the !settings_page', array('!settings_page' => l(t('settings page'), 'admin/config/search/apachesolr'))), 'warning');
+    drupal_set_message(t('Options for deleting and re-indexing are not available. This could be because the index is read-only or you are not viewing the default environment. This can be changed on the <a href="!settings_page">settings page</a>', array('!settings_page' => url('admin/config/search/apachesolr/settings/' . $env_id, array('query' =>  drupal_get_destination())))), 'warning');
   }
 
   return $output;
 }
 
-function apachesolr_index_report($server_id = NULL) {
-  if (empty($server_id)) {
-    $server_id = apachesolr_default_server();
+function apachesolr_index_report($env_id = NULL) {
+
+  if (empty($env_id)) {
+    $env_id = apachesolr_default_environment();
   }
   try {
-    $solr = apachesolr_get_solr($server_id);
+    $solr = apachesolr_get_solr($env_id);
     // TODO: possibly clear this every page view if we are running multi-site.
     if (apachesolr_index_get_last_updated()) {
       $solr->clearCache();
@@ -398,7 +539,7 @@ function apachesolr_index_report($server_id = NULL) {
   elseif (isset($data->index->numDocs)) {
     $not_found = t('Not indexed');
     try {
-      $solr = apachesolr_get_solr($server_id);
+      $solr = apachesolr_get_solr($env_id);
       // Note: we use 2 since 1 fails on Ubuntu Hardy.
       $data = $solr->getLuke(2);
       $output .= '<p>' . t('Number of terms in index: @num', array('@num' => $data->index->numTerms)) . "</p>\n";
@@ -412,14 +553,32 @@ function apachesolr_index_report($server_id = NULL) {
   $fields = (array)$data->fields;
   if ($fields) {
     $output .= '<p>' . t('Number of fields in index: @num', array('@num' => count($fields))) . "</p>\n";
+
+    // Initializes table header.
+    $header = array(
+      'name' => t('Field name'),
+      'type' => t('Index type'),
+      'terms' => t('Distinct terms'),
+    );
+
+    // Builds table rows.
     $rows = array();
     foreach ($fields as $name => $field) {
       // TODO: try to map the name to something more meaningful.
-      $rows[$name] = array($name, $field->type, isset($field->distinct) ? $field->distinct : $not_found);
+      $rows[$name] = array(
+        'name' => $name,
+        'type' => $field->type,
+        'terms' => isset($field->distinct) ? $field->distinct : $not_found
+      );
     }
     ksort($rows);
-    // Display the table of Field names, Index Types, and term counts.
-    $output .= theme('table', array(t('Field name'), t('Index type'), t('Distinct terms')), $rows);
+
+    // Display the table of field names, index types, and term counts.
+    $variables = array(
+      'header' => $header,
+      'rows' => $rows,
+    );
+    $output .= theme('table', $variables);
   }
   else {
     $output .= '<p>' . t('No data on indexed fields.') . "</p>\n";
@@ -428,140 +587,22 @@ function apachesolr_index_report($server_id = NULL) {
 }
 
 /**
- * Indicates what order the specified facets should be listed in.  This function is used in a usort
- * invocation.
- * @param $a
- *   The first facet.
- * @param $b
- *   The second facet.
- * @return
- *   A signed integer that indicates which of the specified facets should come first.
- */
-function apachesolr_sort_facets($a, $b) {
-  return strcasecmp($a['info'], $b['info']);
-}
-
-/**
- * This is the submit handler for the active facets form.
- *
- * The form values for each module are array filtereed to remove non-enabled items and
- * stored in the variable table with the name 'apachesolr_enabled_facets'.
- *
- * @see apachesolr_enabled_facets_form()
- */
-function apachesolr_enabled_facets_form_submit($form, &$form_state) {
-  $enabled = array();
-  foreach ($form_state['values']['apachesolr_enabled_facets'] as $module => $facets) {
-    $enabled[$module] = array_filter($facets);
-  }
-  apachesolr_save_enabled_facets($form['#server_id'], $enabled);
-  // This cache being stale can prevent new facet filters from working.
-  apachesolr_clear_cache($form['#server_id']);
-  $msg = t('The Apache Solr filters settings were changed.  To arrange the blocks for your enabled filters, visit the <a href="@url">blocks administration page</a>.', array('@url' => url('admin/structure/block')));
-  drupal_set_message($msg, 'warning');
-}
-
-/**
- * Creates the form that allows the user to select which facets will be enabled.
- *
- * Only enabled facets are sent to solr.  Fewer enabled facets can reduce the
- * load on the search server.  Blocks are only offered for enabled facets, so
- * this also reduces the clutter on the blocks admin page.
- */
-function apachesolr_enabled_facets_form($form, &$form_state, $server_id = NULL) {
-  if (empty($server_id)) {
-    $server_id = apachesolr_default_server();
-  }
-  $facets = array();
-  $module_facets = array();
-  $module_list = array();
-  foreach (module_implements('apachesolr_facets') as $module) {
-    $return = module_invoke($module, 'apachesolr_facets');
-    if (!empty($return)) {
-      $module_facets[$module] = $return;
-      uasort($module_facets[$module], 'apachesolr_sort_facets');
-      $module_list[$module] = $module;
-    }
-  }
-
-  $enabled_facets = apachesolr_get_enabled_facets($server_id);
-  $form = array();
-  $form['#server_id'] = $server_id;
-  $form['apachesolr_enabled_facets']['help'] = array(
-    '#type' => 'item',
-    '#markup' => t('You can use this screen to select which search filter blocks should be created by enabling the corresponding filters on this page. For performance reasons, you should only enable filters that you intend to have available to users on the search page.  After selecting which filter blocks to create, you will be sent to the blocks page where you can choose which of those blocks should be enabled when your users search by placing each block in a region.'),
-  );
-  if ($module_list) {
-    $result = db_select('system')
-      ->fields('system', array('name', 'info'))
-      ->condition('name', $module_list, 'IN')
-      ->condition('type', 'module')
-      ->execute();
-    foreach ($result as $item) {
-      $module_list[$item->name] = unserialize($item->info);
-    }
-  }
-  foreach ($module_facets as $module => $facets) {
-    $form['apachesolr_enabled_facets'][$module] = array(
-      '#type' => 'fieldset',
-      '#title' => check_plain($module_list[$module]['name']),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-    // We must use module + delta as the keys since that combination is
-    // guaranteed to be unique.  A single module could, for example, have
-    // two different blocks that expose different faceting on the same
-    // field in the index.
-    foreach ($facets as $delta => $data) {
-      $form['apachesolr_enabled_facets'][$module][$delta] = array(
-        '#type' => 'checkbox',
-        '#title' => $data['info'],
-        '#return_value' => $data['facet_field'],
-        '#default_value' => isset($enabled_facets[$module][$delta]) ? $data['facet_field'] : 0,
-      );
-    }
-  }
-
-  $has_facets = (bool)$module_facets;
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#access' => $has_facets,
-  );
-  $form['no-facets-message'] = array(
-    '#markup' => t('<em>No filters are available from your currently enabled modules</em>'),
-    '#access' => !$has_facets,
-  );
-
-  $form['#tree'] = TRUE;
-
-  return $form;
-}
-
-/**
  * Create a form for deleting the contents of the Solr index.
  */
-function apachesolr_index_action_form() {
+function apachesolr_index_action_form($form, &$form_state, $status) {
   $form = array();
-
-  $form['action'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Index Actions'),
-  );
   // Jump through some forms hoops to get a description under each radio button.
   $actions = array(
     'remaining' => array(
-      'title' => t('Index queued content'),
-      'description' => t('Any content that is queued for indexing will be submitted to Solr immediately. Depending on amount of content on the site, it may take a long time to complete, and may place an increased load on your server.'),
+      'title' => t('Index all queued content (@items Items)', array('@items' => $status['remaining'])),
+      'description' => t('Starts a batch job which could take a long time and could put an increased load on your server.'),
     ),
     'reindex' => array(
-      'title' => t('Queue content for reindexing'),
-      'description' => t('All content on the site will be queued for indexing. The documents currently in the Solr index will remain searchable. The content will be gradually resubmitted to Solr during cron runs.'),
+      'title' => t('Queue all content for reindexing'),
     ),
     'delete' => array(
-      'title' => t('Delete the index'),
-      'description' => t('All documents in the Solr index will be deleted. This is rarely necessary unless your index is corrupt or you have installed a new schema.xml. After doing this your content will need to be resubmitted for indexing.'),
+      'title' => t('Delete the Solr index'),
+      'description' => t('Useful with a corrupt index or a new schema.xml.'),
     ),
   );
   foreach ($actions as $key => $action) {
@@ -569,18 +610,18 @@ function apachesolr_index_action_form() {
     // unique id for each radio button.
     $form['action'][$key] = array(
       '#type' => 'radio',
-      '#title' => $action['title'],
+      '#title' => check_plain($action['title']),
       '#default_value' => 'remaining',
       '#return_value' => $key,
       '#parents' => array('action'),
-      '#description' => $action['description'],
+      '#description' => (!empty($action['description'])) ? check_plain($action['description']) : '',
       '#id' => drupal_clean_css_identifier('edit-' . implode('-', array('action', $key))),
     );
   }
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Begin'),
+    '#value' => t('Run'),
     '#submit' => array('apachesolr_index_action_form_submit'),
   );
 
@@ -680,53 +721,67 @@ function apachesolr_delete_index($type = NULL) {
 }
 
 /**
- * MoreLikeThis administration and utility functions.
- */
-
-function apachesolr_mlt_add_block_form() {
-  $form = apachesolr_mlt_block_form();
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => '5',
-  );
-  return $form;
-}
-
-function apachesolr_mlt_add_block_form_submit($form, &$form_state) {
-  apachesolr_mlt_save_block($form_state['values']);
-  drupal_set_message(t('New content recommendation block created. Drag it into a region to enable it'));
-  $form_state['redirect'] = 'admin/structure/block';
-}
-
-/**
  * Page callback to show available conf files.
  */
 function apachesolr_config_files_overview() {
-  $output = array();
   $xml = NULL;
   try {
     $solr = apachesolr_get_solr();
-    $response = $solr->makeServletRequest('admin/file');
+    $response = $solr->makeServletRequest('admin/file', array('wt' => 'xml'));
     $xml = simplexml_load_string($response->data);
   }
   catch (Exception $e) {
     watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
   }
+
   if ($xml) {
-    $files = $xml->xpath('//lst[@name="files"]/lst');
-    $items = array();
-    foreach ($files as $file) {
-      $atr = $file->attributes();
-      $name = (string) $atr[0];
-      $str = l($name, 'admin/reports/apachesolr/conf/' . $name);
-      $str .= '<br />' . format_date(strtotime((string) $file->date));
-      $str .= '<br />' . t('Size (bytes): @bytes', array('@bytes' => (string) $file->long));
-      $items[$name] = $str;
+    // Retrieve our items from the xml using xpath
+    $items = $xml->xpath('//lst[@name="files"]/lst');
+
+    // Add all the data of the file in a files array
+    $files = array();
+    foreach ($items as $item_id => $item) {
+      // Do not list directories. Always a bool
+      if (isset($item->bool)) {
+        break;
+      }
+      // Get data from the files.
+      $name =  $item->attributes();
+      $name = ((string)$item->attributes()) ? (string)$item->attributes() : t('No name found');
+      $files[$item_id]['name'] = l($name, 'admin/reports/apachesolr/conf/' . $name);
+
+      // Retrieve the date attribute
+      if (isset($item->date)) {
+        $modified = ((string)$item->date->attributes() == 'modified') ? (string) $item->date : t('No date found');
+        $files[$item_id]['modified'] = format_date(strtotime($modified));
+      }
+
+      // Retrieve the size attribute
+      if (isset($item->long)) {
+        $size = ((string)$item->long->attributes() == 'size') ? (string) $item->long : t('No size found');
+        $files[$item_id]['size'] = t('Size (bytes): @bytes', array('@bytes' => $size));
+      }
     }
-    ksort($items);
-    $output = theme('item_list', array('items' => array_values($items)));
+    // Sort our files alphabetically
+    ksort($files);
+
+    // Initializes table header.
+    $header = array(
+      'name' => t('File name'),
+      'date' => t('Modified'),
+      'size' => t('Size'),
+    );
+
+    // Display the table of field names, index types, and term counts.
+    $variables = array(
+      'header' => $header,
+      'rows' => $files,
+    );
+    $output = theme('table', $variables);
+  }
+  else {
+    $output = '<p>' . t('No data about any file found.') . "</p>\n";
   }
   return $output;
 }
@@ -748,230 +803,6 @@ function apachesolr_config_file($name) {
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
   }
   return $output;
-}
-
-/**
- * Form to edit moreLikeThis block settings.
- *
- * @param int $delta If editing, the id of the block to edit.
- *
- * @return array The form used for editing.
- * TODO:
- *   Add term boost settings.
- *   Enable the user to specify a query, rather then forcing suggestions based
- *     on the node id.
- *
- */
-function apachesolr_mlt_block_form($delta = NULL) {
-  if (isset($delta)) {
-    $block = apachesolr_mlt_load_block($delta);
-    if (!$block) {
-      return array();
-    }
-  }
-  else {
-    $block = apachesolr_mlt_block_defaults();
-  }
-
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Block name'),
-    '#description' => t('The block name displayed to site users.'),
-    '#required' => TRUE,
-    '#default_value' => $block['name'],
-    '#weight' => '-2',
-  );
-  $form['num_results'] = array(
-    '#type' => 'select',
-    '#title' => t('Maximum number of related items to display'),
-    '#default_value' => $block['num_results'],
-    '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)),
-    '#weight' => -1,
-    );
-  $form['mlt_fl'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Fields for finding related content'),
-    '#description' => t('Choose the fields to be used in calculating similarity. The default combination of %taxonomy_names and %title will provide relevant results for typical sites.', array("%taxonomy_names" => apachesolr_field_name_map("taxonomy_names"), "%title" => apachesolr_field_name_map("label"))),
-    '#options' => apachesolr_mlt_get_fields(),
-    '#required' => TRUE,
-    '#default_value' => $block['mlt_fl'],
-  );
-  $form['advanced'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Advanced configuration'),
-    '#weight' => '1',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $options = drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7));
-  $form['advanced']['mlt_mintf'] = array(
-    '#type' => 'select',
-    '#title' => t('Minimum term frequency'),
-    '#description' => t('A word must appear this many times in any given document before the document is considered relevant for comparison.'),
-    '#default_value' => $block['mlt_mintf'],
-    '#options' => $options,
-  );
-  $form['advanced']['mlt_mindf'] = array(
-    '#type' => 'select',
-    '#title' => t('Minimum document frequency'),
-    '#description' => t('A word must occur in at least this many documents before it will be used for similarity comparison.'),
-    '#default_value' => $block['mlt_mindf'],
-    '#options' => $options,
-  );
-  $form['advanced']['mlt_minwl'] = array(
-    '#type' => 'select',
-    '#title' => t('Minimum word length'),
-    '#description' => 'You can use this to eliminate short words such as "the" and "it" from similarity comparisons. Words must be at least this number of characters or they will be ignored.',
-    '#default_value' => $block['mlt_minwl'],
-    '#options' => $options,
-  );
-  $form['advanced']['mlt_maxwl'] = array(
-    '#type' => 'select',
-    '#title' => t('Maximum word length'),
-    '#description' => t('You can use this to eliminate very long words from similarity comparisons. Words of more than this number of characters will be ignored.'),
-    '#default_value' => $block['mlt_maxwl'],
-    '#options' => drupal_map_assoc(array(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)),
-  );
-  $form['advanced']['mlt_maxqt'] = array(
-    '#type' => 'select',
-    '#title' => t('Maximum number of query terms'),
-    '#description' => t('The maximum number of query terms that will be included in any query. Lower numbers will result in fewer recommendations but will get results faster. If a content recommendation is not returning any recommendations, you can either check more "Comparison fields" checkboxes or increase the maximum number of query terms here.'),
-    '#options' => drupal_map_assoc(array(3, 5, 7, 10, 12, 15, 20, 25, 30, 35, 40)),
-    '#default_value' => $block['mlt_maxqt'],
-  );
-
-  $form['restrictions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Filters'),
-    '#weight' => '1',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  $type_options = array();
-  foreach (node_type_get_types() as $key => $type) {
-    $type_options[$key] = $type->name;
-  }
-
-  $form['restrictions']['mlt_type_filters'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Content Types'),
-    '#default_value' => is_array($block['mlt_type_filters']) ? $block['mlt_type_filters'] : array_keys($type_options),
-    '#options' => $type_options,
-    '#description' => t('Select the content types that similarity suggestions should be restricted to. Multiple types are joined with an OR query, so selecting more types results in more recommendations.'),
-    '#weight' => '-2',
-  );
-
-  $form['restrictions']['mlt_custom_filters'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Additional Query'),
-    '#description' => t("An additional query, in Lucene syntax, which will further filter the similarity suggestions. Ex. 'label:strategy' will filter related content further to only those with strategy in the title. Likewise 'content:HDTV^3' will boost the term HDTV by a factor of 3. Here are some more examples:") .
-                        '<ul>
-                            <li>ss_language:fr</li>
-                            <li>tid:5 OR tid 7</li>
-                            <li>ds_created:[2009-05-01T23:59:59Z TO 2009-07-28T12:30:00Z]</li>
-                            <li>-is_uid:0 AND -is_uid:1</li>
-                        </ul>',
-    '#required' => FALSE,
-    '#default_value' => $block['mlt_custom_filters'],
-    '#weight' => '-1',
-  );
-
-  return $form;
-}
-
-/**
- * Merge supplied settings with the standard defaults..
- */
-function apachesolr_mlt_block_defaults($block = array()) {
-  return $block + array(
-    'name' => '',
-    'num_results' => '5',
-    'mlt_fl' => array(
-      'label' => 'label',
-      'taxonomy_names' => 'taxonomy_names',
-    ),
-    'mlt_mintf' => '1',
-    'mlt_mindf' => '1',
-    'mlt_minwl' => '3',
-    'mlt_maxwl' => '15',
-    'mlt_maxqt' => '20',
-    'mlt_type_filters' => array_keys(node_type_get_types()),
-    'mlt_custom_filters' => '',
-  );
-}
-
-/**
- * Constructs a list of field names used on the settings form.
- *
- * @return array An array containing a the fields in the solr instance.
- */
-function apachesolr_mlt_get_fields() {
-  $solr = apachesolr_get_solr();
-  $fields = $solr->getFields();
-  $rows = array();
-  foreach ($fields as $field_name => $field) {
-    if ($field->schema{4} == 'V') {
-      $rows[$field_name] = apachesolr_field_name_map($field_name);
-    }
-  }
-  ksort($rows);
-  return $rows;
-}
-
-/**
- * A helper function to save MLT block data.
- *
- * If passed a block delta, the function will update block settings. If it is
- * not passed a block delta, the function will create a new block.
- *
- * @param array $block_settings An array containing the settings required to form
- * a moreLikeThis request.
- *
- * @param int $delta The id of the block you wish to update.
- */
-function apachesolr_mlt_save_block($block_settings = array(), $delta = NULL) {
-  $blocks = variable_get('apachesolr_mlt_blocks', array());
-  if (is_null($delta)) {
-    $count = 0;
-    ksort($blocks);
-    // Construct a new array key.
-    if (end($blocks)) {
-      list(, $count) = explode('-', key($blocks));
-    }
-    $delta = sprintf('mlt-%03d', 1 + $count);
-  }
-  $defaults = apachesolr_mlt_block_defaults();
-  // Remove stray form values.
-  $blocks[$delta] = array_intersect_key($block_settings, $defaults) + $defaults;
-  // Eliminate non-selected fields.
-  $blocks[$delta]['mlt_fl'] = array_filter($blocks[$delta]['mlt_fl']);
-  $blocks[$delta]['mlt_type_filters'] = array_filter($blocks[$delta]['mlt_type_filters']);
-  $blocks[$delta]['mlt_custom_filters'] = trim($blocks[$delta]['mlt_custom_filters']);
-  variable_set('apachesolr_mlt_blocks', $blocks);
-}
-
-function apachesolr_mlt_delete_block_form($form_state, $delta) {
-  if ($block = apachesolr_mlt_load_block($delta)) {
-    $form['delta'] = array(
-      '#type' => 'value',
-      '#value' => $delta
-    );
-
-    return confirm_form($form,
-      t('Are you sure you want to delete the Apache Solr content recommendation block %name?', array('%name' => $block['name'])),
-      'admin/structure/block',
-      t('The block will be deleted. This action cannot be undone.'),
-      t('Delete'), t('Cancel'));
-  }
-}
-
-function apachesolr_mlt_delete_block_form_submit($form, &$form_state) {
-  $blocks = variable_get('apachesolr_mlt_blocks', array());
-  unset($blocks[$form_state['values']['delta']]);
-  variable_set('apachesolr_mlt_blocks', $blocks);
-  drupal_set_message(t('The block has been deleted.'));
-  $form_state['redirect'] = 'admin/structure/block';
 }
 
 /**
@@ -1014,7 +845,7 @@ function apachesolr_batch_index_nodes(&$context) {
       return FALSE;
     }
 
-    $status = apachesolr_index_status('apachesolr_search');
+    $status = apachesolr_index_status('apachesolr');
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = $status['remaining'];
   }
@@ -1024,8 +855,8 @@ function apachesolr_batch_index_nodes(&$context) {
   $limit = variable_get('apachesolr_cron_limit', 50);
 
   // With each pass through the callback, retrieve the next group of nids.
-  $rows = apachesolr_get_nodes_to_index('apachesolr_search', $limit);
-  $pos = apachesolr_index_nodes($rows, 'apachesolr_search');
+  $rows = apachesolr_get_nodes_to_index('apachesolr', $limit);
+  $pos = apachesolr_index_nodes($rows, 'apachesolr');
 
   $context['sandbox']['progress'] += $pos['nodes_processed'];
   $context['message'] = t('Indexed @current of @total nodes', array('@current' => $context['sandbox']['progress'], '@total' => $context['sandbox']['max']));
@@ -1059,5 +890,5 @@ function apachesolr_batch_index_finished($success, $results, $operations) {
     $message .= ' ' . t('An error occurred while processing @num with arguments :', array('@num' => $error_operation[0])) . print_r($error_operation[0], TRUE);
     $type = 'error';
   }
-  drupal_set_message($message, $type);
+  drupal_set_message(check_plain($message), $type);
 }

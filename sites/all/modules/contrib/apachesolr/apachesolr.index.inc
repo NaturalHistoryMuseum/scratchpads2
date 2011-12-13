@@ -20,37 +20,7 @@ function apachesolr_node_to_document($node, $namespace) {
   }
 
   if ($build_document) {
-    // Build the node body.
-    $build = node_view($node, 'search_index');
-    // Why do we need this?
-    unset($build['#theme']);
-    $text = drupal_render($build);
-
-    $node->title = apachesolr_clean_text($node->title);
-    // Fetch extra data normally not visible, including comments.
-    // We do this manually (with module_implements instead of node_invoke_nodeapi)
-    // because we want a keyed array to come back. Only in this way can we decide
-    // whether to index comments or not.
-    $extra = array();
-    $excludes = variable_get('apachesolr_exclude_nodeapi_types', array());
-    $exclude_nodeapi = isset($excludes[$node->type]) ? $excludes[$node->type] : array();
-    foreach (module_implements('node_update_index') as $module) {
-      // Invoke nodeapi if this module has not been excluded, for example,
-      // exclude 'comment' for a type to skip indexing its comments.
-      if (empty($exclude_nodeapi[$module])) {
-        $function = $module . '_node_update_index';
-        if ($output = $function($node)) {
-          $extra[$module] = $output;
-        }
-      }
-    }
-    if (!variable_get('apachesolr_index_comments_with_node', TRUE)) {
-      unset($extra['comment']);
-    }
-
-    $text .= "\n\n" . implode(' ', $extra);
-
-    $document = new Apache_Solr_Document();
+    $document = new ApacheSolrDocument();
     $document->id = apachesolr_document_id($node->nid);
     $document->site = url(NULL, array('absolute' => TRUE));
     $document->hash = apachesolr_site_hash();
@@ -58,10 +28,22 @@ function apachesolr_node_to_document($node, $namespace) {
     $document->entity_id = $node->nid;
     $document->bundle = $node->type;
     $document->bundle_name = node_type_get_name($node);
-    $document->label = $node->title;
+    $document->label = apachesolr_clean_text($node->title);
     $path = 'node/' . $node->nid;
     $document->url = url($path, array('absolute' => TRUE));
     $document->path = $path;
+    // Build the node body.
+    $build = node_view($node, 'search_index');
+    // Why do we need this?
+    unset($build['#theme']);
+    $text = drupal_render($build);
+    $document->content = apachesolr_clean_text($text);
+    if (isset($node->teaser)) {
+      $document->teaser = apachesolr_clean_text($node->teaser);
+    }
+    else {
+      $document->teaser = truncate_utf8($document->content, 300, TRUE);
+    }
     // Path aliases can have important information about the content.
     // Add them to the index as well.
     if (function_exists('drupal_get_path_alias')) {
@@ -92,20 +74,16 @@ function apachesolr_node_to_document($node, $namespace) {
     else {
       $document->ss_language = $node->language;
     }
-    $document->content = apachesolr_clean_text($text);
-    if (isset($node->teaser)) {
-      $document->teaser = apachesolr_clean_text($node->teaser);
-    }
-    else {
-      $document->teaser = truncate_utf8($document->content, 300, TRUE);
-    }
     $document->ds_created = apachesolr_date_iso($node->created);
     $document->ds_changed = apachesolr_date_iso($node->changed);
-    $last_change = (isset($node->last_comment_timestamp) && $node->last_comment_timestamp > $node->changed) ? $node->last_comment_timestamp : $node->changed;
-    $document->ds_last_comment_or_change = apachesolr_date_iso($last_change);
+    if (isset($node->last_comment_timestamp) && !empty($node->comment_count)) {
+      $document->ds_last_comment_timestamp = apachesolr_date_iso($node->last_comment_timestamp);
+      $document->ds_last_comment_or_change = apachesolr_date_iso(max($node->last_comment_timestamp, $node->changed));
+    }
+    else {
+      $document->ds_last_comment_or_change = apachesolr_date_iso($node->changed);
+    }
     $document->is_comment_count = isset($node->comment_count) ? $node->comment_count : 0;
-
-
 
     // Handle fields including taxonomy.
     $indexed_fields = apachesolr_entity_fields('node');
@@ -115,7 +93,7 @@ function apachesolr_node_to_document($node, $namespace) {
       if (isset($node->{$field_name})) {
         // Got a field.
         $function = $field_info['indexing_callback'];
-        if ($function && function_exists($function)) {
+        if ($function && is_callable($function)) {
           // NOTE: This function should always return an array.  One
           // node field may be indexed to multiple Solr fields.
           $fields = $function($node, $field_name, $index_key, $field_info);
@@ -134,6 +112,33 @@ function apachesolr_node_to_document($node, $namespace) {
     }
     apachesolr_add_tags_to_document($document, $text);
 
+    // Fetch extra data normally not visible, including comments.
+    // We do this manually (with module_implements instead of node_invoke_nodeapi)
+    // because we want a keyed array to come back. Only in this way can we decide
+    // whether to index comments or not.
+    $extra = array();
+    $excludes = variable_get('apachesolr_exclude_nodeapi_types', array());
+    $exclude_nodeapi = isset($excludes[$node->type]) ? $excludes[$node->type] : array();
+    foreach (module_implements('node_update_index') as $module) {
+      // Invoke nodeapi if this module has not been excluded, for example,
+      // exclude 'comment' for a type to skip indexing its comments.
+      if (empty($exclude_nodeapi[$module])) {
+        $function = $module . '_node_update_index';
+        if ($output = $function($node)) {
+          $extra[$module] = $output;
+        }
+      }
+    }
+    if (isset($extra['comment'])) {
+      $comments = $extra['comment'];
+      unset($extra['comment']);
+      $document->ts_comments = apachesolr_clean_text($comments);
+      // @todo: do we want to reproduce apachesolr_add_tags_to_document() for comments?
+    }
+    // Use an omit-norms text field since this is generally going to be short; not
+    // really a full-text field.
+    $document->tos_content_extra = apachesolr_clean_text(implode(' ', $extra));
+
     // Let modules add to the document.
     foreach (module_implements('apachesolr_update_index') as $module) {
       $function = $module . '_apachesolr_update_index';
@@ -148,7 +153,7 @@ function apachesolr_node_to_document($node, $namespace) {
  */
 function apachesolr_term_reference_indexing_callback($node, $field_name, $index_key, $field_info) {
   // Keep ancestors cached
-  static $ancestors = array();
+  $ancestors = &drupal_static(__FUNCTION__, array());
 
   $fields = array();
   $vocab_names = array();
@@ -208,7 +213,7 @@ function apachesolr_term_reference_indexing_callback($node, $field_name, $index_
  * Helper function - return a safe (PHP identifier) vocabulary name.
  */
 function apachesolr_vocab_name($vid) {
-  static $names = array();
+  $names = &drupal_static(__FUNCTION__, array());
 
   if (!isset($names[$vid])) {
     $vocab_name = db_query('SELECT v.name FROM {taxonomy_vocabulary} v WHERE v.vid = :vid', array(':vid' => $vid))->fetchField();
@@ -225,29 +230,106 @@ function apachesolr_vocab_name($vid) {
 /**
  * Callback that converts list module field into an array
  */
-function apachesolr_fields_list_indexing_callback($entity, $field_name, $index_key, $field_info) {
+function apachesolr_fields_default_indexing_callback($entity, $field_name, $index_key, $field_info) {
   $fields = array();
   if (!empty($entity->{$field_name})) {
     $field = $entity->$field_name;
     list($lang, $values) = each($field);
+    switch ($field_info['index_type']) {
+      case 'integer':
+      case 'half-int':
+      case 'sint':
+      case 'tint':
+      case 'thalf-int':
+      case 'boolean':
+        $function = 'intval';
+        break;
+      case 'float':
+      case 'double':
+      case 'sfloat':
+      case 'sdouble':
+      case 'tfloat':
+      case 'tdouble':
+        $function = 'apachesolr_floatval';
+        break;
+      default:
+        $function = 'apachesolr_clean_text';
+    }
     foreach ($values as $fval) {
       $fields[] = array(
         'key' => $index_key,
-        'value' => apachesolr_clean_text($fval['value']),
+        'value' => $function($fval['value']),
       );
     }
   }
   return $fields;
 }
 
-function apachesolr_cck_nodereference_indexing_callback($node, $field_name, $index_key, $cck_info) {
+/**
+ * This function is used during indexing to normalize the DATE and DATETIME
+ * fields into the appropriate format for Apache Solr.
+ */
+function apachesolr_date_default_indexing_callback($entity, $field_name, $index_key, $field_info) {
   $fields = array();
-  if (!empty($node->{$field_name})) {
-    $index_key = apachesolr_index_key($cck_info);
-    foreach ($node->$field_name as $field) {
-      if ($index_value = (isset($field['nid']) && strlen($field['nid'])) ? $field['nid'] : FALSE) {
+  if (!empty($entity->{$field_name})) {
+    $field = $entity->$field_name;
+    list($lang, $values) = each($field);
+    // Construct a Solr-ready date string in UTC time zone based on the field's date string and time zone.
+    $tz = new DateTimeZone(isset($field['timezone']) ? $field['timezone'] : 'UTC');
+
+    // $fields may end up having two values; one for the start date
+    // and one for the end date.
+    foreach ($values as $value) {
+      if ($date = date_create($value['value'], $tz)) {
+        $index_value = apachesolr_date_iso($date->format('U'));
         $fields[] = array(
           'key' => $index_key,
+          'value' => $index_value,
+        );
+      }
+
+      if (isset($value['value2'])) {
+        if ($date = date_create($value['value2'], $tz)) {
+          $index_value = apachesolr_date_iso($date->format('U'));
+          $fields[] = array(
+            // The value2 element is the end date. Therefore it gets indexed
+            // into its own Solr field.
+            'key' => $index_key . '_end',
+            'value' => $index_value,
+          );
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * This function is used during indexing to normalize the DATESTAMP fields
+ * into the appropriate format for Apache Solr.
+ */
+function apachesolr_datestamp_default_indexing_callback($entity, $field_name, $index_key, $field_info) {
+  $fields = array();
+  if (!empty($entity->{$field_name})) {
+    // $fields may end up having two values; one for the start date
+    // and one for the end date.
+    $field = $entity->$field_name;
+    list($lang, $values) = each($field);
+
+    foreach ($values as $value) {
+      if (isset($value['value']) && $value['value'] != 0) {
+        $index_value = apachesolr_date_iso($value['value']);
+        $fields[] = array(
+          'key' => $index_key,
+          'value' => $index_value,
+        );
+      }
+      if (isset($value['value2']) && $value['value'] != 0) {
+        $index_value = apachesolr_date_iso($value['value2']);
+        $fields[] = array(
+          // The value2 element is the end date. Therefore it gets indexed
+          // into its own Solr field.
+          'key' => $index_key . '_end',
           'value' => $index_value,
         );
       }
@@ -256,16 +338,48 @@ function apachesolr_cck_nodereference_indexing_callback($node, $field_name, $ind
   return $fields;
 }
 
-function apachesolr_cck_userreference_indexing_callback($node, $field_name, $index_key, $cck_info) {
+function apachesolr_floatval($value) {
+  return sprintf('%0.20f', $value);
+}
+
+/**
+ *  Indexing callback for the node_reference module
+ *  by the references module
+ */
+function apachesolr_nodereference_indexing_callback($entity, $field_name, $index_key, $field_info) {
   $fields = array();
-  if (!empty($node->$field_name)) {
-    $index_key = apachesolr_index_key($cck_info);
-    foreach ($node->{$field_name} as $field) {
-      if ($index_value = (isset($field['uid']) && strlen($field['uid'])) ? $field['uid'] : FALSE) {
-        $fields[] = array(
-          'key' => $index_key,
-          'value' => $index_value,
-        );
+  if (!empty($entity->{$field_name})) {
+    $index_key = apachesolr_index_key($field_info);
+    foreach ($entity->$field_name as $field_references) {
+      foreach ($field_references as $reference) {
+        if ($index_value = (!empty($reference['nid'])) ? $reference['nid'] : FALSE) {
+          $fields[] = array(
+            'key' => $index_key,
+            'value' => $index_value,
+          );
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ *  Indexing callback for the user_reference module
+ *  by the references module
+ */
+function apachesolr_userreference_indexing_callback($entity, $field_name, $index_key, $field_info) {
+  $fields = array();
+  if (!empty($entity->$field_name)) {
+    $index_key = apachesolr_index_key($field_info);
+    foreach ($entity->$field_name as $field_references) {
+      foreach ($field_references as $reference) {
+        if ($index_value = (isset($reference['uid']) && strlen($reference['uid'])) ? $reference['uid'] : FALSE) {
+          $fields[] = array(
+            'key' => $index_key,
+            'value' => $index_value,
+          );
+        }
       }
     }
   }
@@ -277,7 +391,7 @@ function apachesolr_cck_userreference_indexing_callback($node, $field_name, $ind
  *
  * $text must be stripped of control characters before hand.
  */
-function apachesolr_add_tags_to_document(&$document, $text) {
+function apachesolr_add_tags_to_document($document, $text) {
   $tags_to_index = variable_get('apachesolr_tags_to_index', array(
     'h1' => 'tags_h1',
     'h2' => 'tags_h2_h3',
@@ -315,31 +429,19 @@ function apachesolr_add_tags_to_document(&$document, $text) {
 
 /**
  * hook_cron() helper to try to make {apachesolr_search_node} consistent with {node}.
- * TODO: this function is never used
  */
 function apachesolr_cron_check_node_table() {
   // Check for unpublished content that wasn't deleted from the index.
   $query = db_select('apachesolr_search_node', 'asn')
     ->fields('n', array('nid', 'status'))
-    ->condition('asn.status', 'n.status', '<>');
+    ->where('asn.status <> n.status');
   $query->innerJoin('node', 'n', 'n.nid = asn.nid');
-  $result = $query->execute();
+  $nodes = $query->execute()->fetchAllAssoc('nid');
 
-  $node_lists = array();
-  $nodes = array();
   // Update or delete at most this many in each Solr query.
   $limit = variable_get('apachesolr_cron_mass_limit', 500);
-  foreach ($result as $node) {
-    $nodes[$node->nid] = $node;
-    if (count($nodes) == $limit) {
-      $node_lists[] = $nodes;
-      $nodes = array();
-    }
-  }
-  // Any remaning ones if the limit is not reached.
-  if (count($nodes)) {
-    $node_lists[] = $nodes;
-  }
+  $node_lists = array_chunk($nodes, $limit, TRUE);
+
   foreach ($node_lists as $nodes) {
     watchdog('Apache Solr', 'On cron running apachesolr_nodeapi_mass_update() on nids @nids', array('@nids' => implode(',', array_keys($nodes))), WATCHDOG_WARNING);
     if (!apachesolr_nodeapi_mass_update($nodes)) {
@@ -352,21 +454,9 @@ function apachesolr_cron_check_node_table() {
     ->fields('asn', array('nid'))
     ->isNull('n.nid');
   $query->leftJoin('node', 'n', 'n.nid = asn.nid');
-  $result = $query->execute();
+  $nodes = $query->execute()->fetchAllAssoc('nid');
+  $node_lists = array_chunk($nodes, $limit, TRUE);
 
-  $node_lists = array();
-  $nodes = array();
-  foreach ($result as $node) {
-    $nodes[$node->nid] = $node;
-    if (count($nodes) == $limit) {
-      $node_lists[] = $nodes;
-      $nodes = array();
-    }
-  }
-  // Any remaning ones if the limit is not reached.
-  if (count($nodes)) {
-    $node_lists[] = $nodes;
-  }
   foreach ($node_lists as $nodes) {
     watchdog('Apache Solr', 'On cron running apachesolr_nodeapi_mass_delete() on nids @nids', array('@nids' => implode(',', array_keys($nodes))), WATCHDOG_WARNING);
     if (!apachesolr_nodeapi_mass_delete($nodes)) {
@@ -381,7 +471,7 @@ function apachesolr_nodeapi_mass_update($nodes) {
     return TRUE;
   }
 
-  if (apachesolr_server_variable_get(apachesolr_default_server(), 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
+  if (apachesolr_environment_variable_get(apachesolr_default_environment(), 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
     return TRUE;
   }
 
@@ -420,7 +510,7 @@ function apachesolr_nodeapi_mass_delete($nodes) {
     return TRUE;
   }
 
-  if (apachesolr_server_variable_get(apachesolr_default_server(), 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
+  if (apachesolr_environment_variable_get(apachesolr_default_environment(), 'apachesolr_read_only', APACHESOLR_READ_WRITE) == APACHESOLR_READ_ONLY) {
     return TRUE;
   }
 

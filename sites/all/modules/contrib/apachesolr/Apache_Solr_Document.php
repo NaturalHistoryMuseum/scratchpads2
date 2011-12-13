@@ -75,7 +75,7 @@
  * }
  * </code>
  */
-class Apache_Solr_Document implements IteratorAggregate {
+class ApacheSolrDocument implements IteratorAggregate {
 
   /**
    * Document boost value
@@ -143,7 +143,7 @@ class Apache_Solr_Document implements IteratorAggregate {
    * on field values - this is similar to SolrJ's functionality.
    *
    * <code>
-   * $doc = new Apache_Solr_Document();
+   * $doc = new ApacheSolrDocument();
    *
    * $doc->addField('foo', 'bar', 2.0);
    * $doc->addField('foo', 'baz', 3.0);
@@ -345,11 +345,11 @@ class Apache_Solr_Document implements IteratorAggregate {
   }
 
   /**
-   * Create an XML fragment from a Apache_Solr_Document instance appropriate for use inside a Solr add call
+   * Create an XML fragment from a ApacheSolrDocument instance appropriate for use inside a Solr add call
    *
    * @return string
    */
-  public static function documentToXml(Apache_Solr_Document $document) {
+  public static function documentToXml(ApacheSolrDocument $document) {
     $xml = '<doc';
 
     if ($document->getBoost() !== FALSE) {
