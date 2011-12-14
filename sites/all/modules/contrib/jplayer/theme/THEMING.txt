@@ -1,0 +1,16 @@
+The jPlayer default output uses a lot of CSS to get the player looking
+respectable. This default set of CSS is based on the demonstration skin provided
+at http://www.happyworm.com/jquery/jplayer/latest/demos.htm.
+
+- THEMING -
+If you want to override jpalyer.css or jplayer.js place your files under
+'your_theme_directory/jplayer/'. 
+
+! IMPORTANT !
+jplayer.css and jplayer.jpg have to be in the same folder, so if you want to 
+override one of them copy also the other one.  
+
+Note that the default HTML output of jPlayer module is a standard template that
+other "skins" may work with. It is highly suggest to not override the
+jplayer.tpl.php file and instead build all your custom theming on top of the
+default HTML through CSS.

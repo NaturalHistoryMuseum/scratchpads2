@@ -1,0 +1,505 @@
+<?php
+/**
+ * @file
+ * Provides an HTML5-compatible with Flash-fallback audio player.
+ *
+ * This module provides functionality for loading the jPlayer library and
+ * formatters for File Fields.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function jplayer_menu() {
+  $items = array();
+
+  $items['admin/config/media/jplayer'] = array(
+    'title' => 'jPlayer',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('jplayer_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'description' => 'Configure the settings for the jPlayer module.',
+    'file' => 'includes/jplayer.admin.inc',
+  );
+
+  $items['admin/reports/jplayer'] = array(
+    'title' => 'jPlayer content protection statistics',
+    'page callback' => 'jplayer_protection_statistics',
+    'access arguments' => array('access site reports'),
+    'description' => 'View statistics related to content protection for jPlayer.',
+    'file' => 'jplayer.admin.inc',
+    'file path' => drupal_get_path('module', 'jplayer') . '/includes',
+  );
+
+  $items['jplayer/authorize'] = array(
+    'title' => 'jPlayer content authorization',
+    'page callback' => 'jplayer_authorize',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments' => array('access content'),
+    'description' => 'jPlayer callback to authorize a sound file to be accessed.',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback to authorize access to a file.
+ */
+function jplayer_authorize($filepath, $timestamp) {
+  $filepath = base64_decode($filepath);
+  $timestamp = (int)base64_decode($timestamp);
+
+  if (!isset($_SESSION['jplayer_protect'])) {
+    $_SESSION['jplayer_protect'] = array();
+  }
+
+  if ($timestamp < (REQUEST_TIME + variable_get('jplayer_access_time', 30))) {
+    $_SESSION['jplayer_protect'][$filepath] = $timestamp;
+  }
+
+  return drupal_json_encode(REQUEST_TIME + variable_get('jplayer_access_time', 30));
+}
+
+/**
+ * Implements hook_cron().
+ */
+function jplayer_cron() {
+  // Delete records older than a week.
+  // TODO Needs dbtng.
+  db_query("DELETE FROM {jplayer_denied} WHERE timestamp < :time", array(':time' => time() - 604800));
+}
+
+/**
+ * Implements hook_file_download().
+ */
+function jplayer_file_download($uri) {
+  if (!variable_get('jplayer_protected', FALSE)) {
+    return NULL;
+  }
+
+  // We need to determine if we are responsible for this file.
+  // TODO dbtng.
+  // TODO use EntityFieldQuery.
+  $result = db_query("SELECT fid FROM {file_managed} WHERE uri = :uri", array(':uri' => $uri));
+  $file = file_load($result->fetchField());
+
+  // If the file is not found in the database, we're not responsible for it.
+  if (empty($file)) {
+    return NULL;
+  }
+
+  // Find out if any file field contains this file, and if so, which field
+  // and node it belongs to. Required for later access checking.
+  $instances = array();
+  $entities = array();
+  foreach (field_info_fields() as $field_name => $field) {
+    if ($field['type'] == 'file') {
+      $query = new EntityFieldQuery();
+      $query->fieldCondition($field_name, 'fid', $file->fid, '=');
+      $entities = $query->execute();
+      if (empty($entities)) {
+        continue;
+      }
+
+      foreach ($entities as $entity_type => $entity_list) {
+        foreach ($entity_list as $entity) {
+          $bundle_name = $entity->type;
+          $instances[$field_name] = field_info_instance($entity_type, $field_name, $bundle_name);
+        }
+      }
+    }
+  }
+
+  // If any of the displays for this field are for jPlayer, then we need to
+  // protect the file.
+  $display_found = FALSE;
+  foreach ($instances as $field_name => $instance) {
+    foreach ($instance['display'] as $display_mode => $display) {
+      // Neither the teaser or the full formatter for this field is a jPlayer
+      // display.
+      if ($display['type'] == 'jplayer_player') {
+        $display_found = TRUE;
+        break;
+      }
+    }
+  }
+  if (!$display_found) {
+    return NULL;
+  }
+
+  $access_key = file_create_url($uri);
+  $filepath = str_replace($GLOBALS['base_url'], '', $access_key);
+
+  if (isset($_SESSION['jplayer_protect'][$access_key])) {
+    $started = (int)$_SESSION['jplayer_protect'][$access_key];
+  }
+  else {
+    // We need to figure out how the browser would have URL-encoded the file
+    // name. If mod_rewrite is modifying the URL, it will decode URL-encoded
+    // characters, so we need to check both.
+    $encoded = str_replace($file->filename, rawurlencode($file->filename), $filepath);
+    // TODO replace this with the path to the files directory?
+    $encoded = str_replace('sites/default/files', 'system/files', $encoded);
+    // For some reason ampersands are encoded twice by the browser.
+    $encoded = str_replace("%26", "%2526", $encoded);
+    $encoded_access_key = $GLOBALS['base_url'] . '/' . $encoded;
+
+    if (isset($_SESSION['jplayer_protect'][$encoded_access_key])) {
+      $access_key = $encoded_access_key;
+      $started = (int)$_SESSION['jplayer_protect'][$access_key];
+    }
+  }
+
+  // Now we know that content protection is enabled, at least one display for
+  // the field uses jPlayer, and we know when the player last started to access
+  // the file.
+  if (isset($started) && $started) {
+    if (time() <= ($started + variable_get('jplayer_access_time', 30))) {
+      // Allow access, and immediately expire access to the file. Some browsers
+      // (such as Chrome) send multiple HTTP requests for an <audio> element,
+      // so if the RANGE header is set we continue to allow access. Also,
+      // AppleCoreMedia in OS X 10.7 makes multiple requests in an attempt to
+      // fetch metadata about the audio. So, we ignore those requests until the
+      // agent indicates that the connection can be closed.
+      if (!isset($_SERVER['HTTP_RANGE']) && !(strpos($_SERVER['HTTP_USER_AGENT'], 'AppleCoreMedia') !== FALSE && strpos($_SERVER['HTTP_CONNECTION'], "keep-alive") !== FALSE)) {
+        unset($_SESSION['jplayer_protect'][$access_key]);
+      }
+      return NULL;
+    }
+  }
+
+  // Otherwise, deny access as the last played time is too far in the past.
+  $denied = new stdClass();
+  $denied->uid = $GLOBALS['user']->uid;
+  $denied->fid = $file->fid;
+  $denied->hostname = ip_address();
+  $denied->timestamp = REQUEST_TIME;
+  drupal_write_record('jplayer_denied', $denied);
+  return -1;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function jplayer_theme() {
+  return array(
+    'jplayer' => array(
+      'template' => 'jplayer',
+      'variables' => array(
+        'entity_type' => NULL,
+        'entity' => NULL,
+        'field_name' => NULL,
+        'items' => array(),
+        'settings' => array(),
+        'type' => '',
+        'playlist' => '',
+      ),
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+    'jplayer_item_list' => array(
+      'render element' => 'element',
+      'file' => 'includes/jplayer.theme.inc',
+      'variables' => array(
+        'items' => array(),
+        'title' => NULL,
+        'type' => 'ul',
+        'attributes' => array(),
+      ),
+    ),
+    'jplayer_view_playlist' => array(
+      'template' => 'jplayer',
+      'arguments' => array('view' => NULL, 'items' => NULL),
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function jplayer_field_formatter_info() {
+  return array(
+    'jplayer_player' => array(
+      'label' => t('jPlayer - Player'),
+      'field types' => array('file'),
+      'description' => t('Display file fields as an HTML5-compatible with Flash-fallback media player.'),
+      'settings' => array(
+        'autoplay' => 0,
+        'solution' => 'html, flash',
+        'preload' => 'metadata',
+        'volume' => 80,
+        'muted' => FALSE,
+        'repeat' => 'none',
+        'backgroundColor' => '000000',
+        'mode' => 'playlist',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    case 'jplayer_player':
+      $output = theme(
+        'jplayer',
+        array(
+          'entity_type' => $entity_type,
+          'entity' => $entity,
+          'field_name' => $instance['field_name'],
+          'items' => $items,
+          'settings' => $display['settings'],
+        )
+      );
+
+      $element[0] = array(
+        '#markup' => $output,
+      );
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $form = array();
+
+  if ($display['type'] == 'jplayer_player') {
+    $form['mode'] = array(
+      '#title' => t('Kind'),
+      '#type' => 'select',
+      '#options' => array(
+        'single' => t('Single'),
+        'playlist' => t('Playlist'),
+      ),
+      '#default_value' => $settings['mode'],
+    );
+
+    $form['autoplay'] = array(
+      '#title' => t('Autoplay'),
+      '#type' => 'select',
+      '#options' => array(
+        0 => t('No'),
+        1 => t('Yes'),
+      ),
+      '#default_value' => $settings['autoplay'],
+    );
+
+    $form['solution'] = array(
+      '#title' => t('Preferred solution'),
+      '#type' => 'select',
+      '#options' => array(
+        'html, flash' => t('HTML5'),
+        'flash, html' => t('Flash'),
+      ),
+      '#default_value' => $settings['solution'],
+    );
+
+    $form['preload'] = array(
+      '#title' => t('Preload media'),
+      '#type' => 'select',
+      '#options' => array(
+        'metadata' => t('No'),
+        'auto' => t('Yes'),
+      ),
+      '#description' => t("Preloading media before it's requested isn't available in all browsers."),
+      '#default_value' => $settings['preload'],
+    );
+
+    $form['volume'] = array(
+      '#title' => t('Initial volume'),
+      '#type' => 'textfield',
+      '#field_suffix' => '%',
+      '#maxlength' => 3,
+      '#size' => 3,
+      '#default_value' => $settings['volume'],
+      '#element_validate' => array('jplayer_volume_check'),
+    );
+
+    $form['muted'] = array(
+      '#title' => t('Initially muted'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['muted'],
+    );
+
+    $form['repeat'] = array(
+      '#title' => t('Repeat'),
+      '#type' => 'select',
+      '#options' => array(
+        'all' => t('All'),
+        'single' => t('Single'),
+        'none' => t('None'),
+      ),
+      '#default_value' => $settings['repeat'],
+    );
+
+    $form['backgroundColor'] = array(
+      '#title' => t('Background color'),
+      '#type' => 'textfield',
+      '#field_preffix' => '#',
+      '#maxlength' => 6,
+      '#size' => 6,
+      '#default_value' => $settings['backgroundColor'],
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Element validation to check volume is between 0 and 100.
+ */
+function jplayer_volume_check($element, &$form_state) {
+  $value = $element['#value'];
+
+  if ($value < 0 || $value > 100) {
+    form_set_error($element, t('Volume must be a percentage between 0% and 100%.'));
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function jplayer_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = '';
+
+  if ($display['type'] == 'jplayer_player') {
+    if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
+      $summary = t('Single jPlayer instance which autoplays.');
+    }
+    else {
+      $summary = t('Single jPlayer instance.');
+    }
+  }
+
+  return $summary;
+}
+
+/**
+ * Implements hook_library().
+ */
+function jplayer_library() {
+  $path = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+  $libraries = array();
+  $libraries['jplayer'] = array(
+    'title' => 'jPlayer',
+    'website' => 'http://www.jplayer.org',
+    'version' => '2.0',
+    'js' => array(
+      $path . '/jquery.jplayer.min.js' => array(),
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Return the version of jPlayer installed.
+ *
+ * @param $directory
+ *   The directory to check for a jPlayer installation.
+ *
+ * @return
+ *   An array containing 'version', 'major, and 'minor' keys representing the
+ *   version of jPlayer installed, or FALSE if a valid version number was not
+ *   found.
+ */
+function jplayer_get_version($directory = NULL) {
+  $version = 0;
+
+  if (!isset($directory)) {
+    $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+  }
+
+  if (file_exists($directory . '/jquery.jplayer.min.js')) {
+    $contents = file_get_contents($directory . '/jquery.jplayer.min.js');
+  }
+  elseif (file_exists($directory . '/jquery.jplayer.js')) {
+    $contents = file_get_contents($directory . '/jquery.jplayer.js');
+  }
+  else {
+    return false;
+  }
+
+  $matches = array();
+  preg_match('/Version:?[ ]*([\d.]+)/i', $contents, $matches);
+
+  if (isset($matches[1])) {
+    $version = $matches[1];
+  }
+
+  $parts = explode('.', $version);
+
+  // Though other parts of the module may check for a specific version,
+  // checking for a positive integer is more of a sanity check here.
+  if ($version < 1 || !isset($parts[0]) || !isset($parts[1])) {
+    return FALSE;
+  }
+
+  return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
+}
+
+/**
+ * Add core JS and CSS needed for jPlayer instances
+ */
+function jplayer_add_core_js() {
+  // Add global settings
+  $settings = array(
+    'jPlayer' => array(
+      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+      'showHour' => (boolean)variable_get('jplayer_showHour', FALSE),
+      'showMin' => (boolean)variable_get('jplayer_showMin', TRUE),
+      'showSec' => (boolean)variable_get('jplayer_showSec', TRUE),
+      'padHour' => (boolean)variable_get('jplayer_padHour', FALSE),
+      'padMin' => (boolean)variable_get('jplayer_padMin', TRUE),
+      'padSec' => (boolean)variable_get('jplayer_padSec', TRUE),
+      'protected' => variable_get('jplayer_protected', ''),
+      'sepHour' => variable_get('jplayer_sepHour', ':'),
+      'sepMin' => variable_get('jplayer_sepMin', ':'),
+      'sepSec' => variable_get('jplayer_sepSec', ''),
+    ),
+  );
+  drupal_add_js($settings, array('type' => 'setting'));
+
+  return array(
+    '#attached' => array(
+      'library' => array(
+        array('jplayer', 'jplayer'),
+      ),
+      'js' => array(
+        drupal_get_path('module', 'jplayer') . '/theme/jplayer.js' => array('type' => 'file', 'scope' => 'footer', 'group' => JS_DEFAULT),
+      ),
+      'css' => array(
+        drupal_get_path('module', 'jplayer') . '/theme/jplayer.css' => array('type' => 'file', 'group' => CSS_DEFAULT),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function jplayer_views_api() {
+  return array(
+    'path' => drupal_get_path('module', 'jplayer') . '/includes',
+    'api' => 3.0,
+  );
+}
+

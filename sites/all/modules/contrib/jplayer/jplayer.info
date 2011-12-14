@@ -1,0 +1,21 @@
+name = jPlayer
+description = Provides an HTML5-compatible with Flash-fallback audio player.
+package = Media
+core = 7.x
+dependencies[] = file
+
+files[] = jplayer.install
+files[] = jplayer.module
+files[] = includes/jplayer.admin.inc
+files[] = includes/jplayer.theme.inc
+files[] = includes/jplayer.views.inc
+files[] = includes/jplayer_style_plugin.inc
+files[] = theme/jplayer.tpl.php
+
+
+; Information added by drupal.org packaging script on 2011-11-03
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "jplayer"
+datestamp = "1320279406"
+

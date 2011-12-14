@@ -1,0 +1,130 @@
+<?php
+/**
+ * @file
+ * Installation file for jPlayer module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function jplayer_schema() {
+  $schema = array();
+  $schema['jplayer_denied'] = array(
+    'description' => 'Contains user statistics for when a user is blocked from downloading a file.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The user ID of the user.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'fid' => array(
+        'description' => 'The file ID that was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'hostname' => array(
+        'description' => 'The hostname of the user that was denied access.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'timestamp' => array(
+        'description' => 'The last time this user was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid', 'fid', 'timestamp'),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'fid' => array('fid'),
+      'hostname' => array('hostname'),
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function jplayer_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $requirements['jplayer']['title'] = t('jPlayer');
+    if ($jplayer_version = jplayer_get_version()) {
+      $requirements['jplayer']['value'] = $jplayer_version['version'];
+      $requirements['jplayer']['severity'] = REQUIREMENT_OK;
+    }
+    else {
+      $requirements['jplayer']['value'] = t('Not found');
+      $requirements['jplayer']['description'] = t('Missing the jPlayer library. Please !download and extract it into the %directory directory.', array('!download' => l('download jPlayer library', 'http://www.jplayer.org/download/'), '%directory' => variable_get('jplayer_directory', '/sites/all/libraries/jplayer')));
+      $requirements['jplayer']['severity'] = REQUIREMENT_ERROR;
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function jplayer_uninstall() {
+  variable_del('jplayer_protected');
+  variable_del('jplayer_access_time');
+}
+
+/**
+ * Add a table to track when direct file downloads are denied.
+ */
+function jplayer_update_7001() {
+  $schema = array();
+  $schema['jplayer_denied'] = array(
+    'description' => 'Contains user statistics for when a user is blocked from downloading a file.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The user ID of the user.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'fid' => array(
+        'description' => 'The file ID that was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'hostname' => array(
+        'description' => 'The hostname of the user that was denied access.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'timestamp' => array(
+        'description' => 'The last time this user was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid', 'fid', 'timestamp'),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'fid' => array('fid'),
+      'hostname' => array('hostname'),
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
+  // If the site is being upgraded from a 6.x release, this table might exist.
+  if (!db_table_exists('jplayer_denied')) {
+    db_create_table('jplayer_denied', $schema['jplayer_denied']);
+  }
+}
