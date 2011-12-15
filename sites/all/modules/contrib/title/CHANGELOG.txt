@@ -1,0 +1,46 @@
+
+Title 7.x-1.x, xxxx-xx-xx
+-------------------------
+
+
+Title 7.x-1.0-alpha2, 2011-09-09
+--------------------------------
+Issue #1229892 by plach | chrisdolby: Fixed Strict warning: Only variables
+  should be assigned by reference in title_field_attach_submit() - line 482 of
+  title.module.
+Issue #1219860 by plach, claudiu.cristea: Fixed Undefined index 'format'.
+Issue #1210670 by claudiu.cristea, das-peter | vasike: Fixed Entity translation
+  errors for Taxonomies entities.
+
+
+Title 7.x-1.0-alpha1, 2011-09-07
+--------------------------------
+Issue #1200320 by das-peter: Fixed Call field_attach_presave() before
+  field_attach_update() in field replacement batch.
+Issue #1155128 by das-peter | Dave Reid, plach: Enhanced support for tokens.
+Issue #1169394 by plach: Synchronized code after core fixes.
+Issue #1146724 by plach | das-peter, joostvdl: Fixed Replacing field values are
+  not initialized.
+Issue #1157438 by das-peter: Fixed Reset sync cache on entitycache reset.
+Issue #1116586 by plach | tte: Fixed Exception when a node's title is not
+  converted immediately.
+Issue #1138646 by plach | joostvdl, sun: Fixed Notice: Undefined index: label in
+  entity_get_info().
+Issue #1141674 by plach | manveru: Fixed Notices about missing $description.
+Issue #924968 by plach: Updated the change log.
+Issue #924968 by plach: Improved comments/PHP docs.
+Issue #924968 by plach: Introduced tests for field replacement UI.
+Issue #924968 by plach: Fixed field replacement checkbox broken.
+Issue #924968 by plach: Polished API as title_field_replacement_toggle does not
+  belong to title.admin.inc.
+Issue #924968 by plach: Fixed comments/PHP docs.
+Issue #924968 by plach: Disabled entity_label() support until #1096446 is fixed.
+Issue #924968 by plach: Introduced tests for field replacement workflow.
+Issue #924968 by plach: Moved administration code into title.admin.inc.
+Issue #924968 by plach: Added entity_label() support.
+Issue #924968 by plach: Fixed resave needed if field values altered before save.
+Issue #924968 by plach: Fixed entity forms to support nested subforms.
+Issue #924968 by plach: Added PHP docs.
+Issue #924968 by plach, das-peter, sun, fago, klonos: Introduced field
+  replacement API and UI.
+by sun: Initial baseline of module files.
