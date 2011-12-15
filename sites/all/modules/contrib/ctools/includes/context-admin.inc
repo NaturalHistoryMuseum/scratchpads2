@@ -345,7 +345,7 @@ function ctools_context_ajax_item_add($mechanism = NULL, $type = NULL, $cache_ke
   // Set up the $conf array for this plugin
   if (empty($step) || empty($object->temporary)) {
     // Create the basis for our new context.
-    $conf = ctools_context_get_defaults($plugin_definition);
+    $conf = ctools_context_get_defaults($plugin_definition, $object, $type);
     $object->temporary = &$conf;
   }
   else {
@@ -614,7 +614,22 @@ function ctools_context_ajax_item_edit($mechanism = NULL, $type = NULL, $cache_k
   exit;
 }
 
-function ctools_context_get_defaults($plugin_definition) {
+/**
+ * Get the defaults for a new instance of a context plugin.
+ *
+ * @param $plugin_definition
+ *   The metadata definition of the plugin from ctools_get_plugins().
+ * @param $object
+ *   The object the context plugin will be added to.
+ * @param $type
+ *   The type of context plugin. i.e, context, requiredcontext, relationship
+ */
+function ctools_context_get_defaults($plugin_definition, $object, $type) {
+  // Fetch the potential id of the plugin so we can append
+  // title and keyword information for new ones.
+  $type_info = ctools_context_info($type);
+  $id = ctools_context_next_id($object->{$type_info['key']}, $plugin_definition['name']);
+
   $conf = array(
     'identifier' => $plugin_definition['title'] . ($id > 1 ? ' ' . $id : ''),
     'keyword' => ctools_get_keyword($object, $plugin_definition['keyword']),
@@ -652,7 +667,6 @@ function ctools_edit_context_form_defaults($form, &$form_state) {
   $object            = $form_state['object'];
   $plugin_definition = $form_state['plugin'];
   $type_info         = $form_state['type info'];
-  $position          = $form_state['position'];
   $contexts          = $form_state['contexts'];
   $conf             = $form_state['conf'];
 
@@ -796,7 +810,7 @@ function ctools_get_keyword($page, $word) {
   }
 
   $keyword = $word;
-  $count = 0;
+  $count = 1;
   while (!empty($keywords[$keyword])) {
     $keyword = $word . '_' . ++$count;
   }

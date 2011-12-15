@@ -505,7 +505,8 @@ function ctools_context_convert_context($context, $converter) {
   }
 
   $value = $context->argument;
-  if ($function = ctools_plugin_load_function('ctools', 'contexts', $context->plugin, 'convert')) {
+  $plugin = ctools_get_context($context->plugin);
+  if ($function = ctools_plugin_get_function($plugin, 'convert')) {
     $value = $function($context, $converter);
   }
 
@@ -572,7 +573,8 @@ function _ctools_context_select($contexts, $required, $context) {
 function ctools_context_create($type, $data = NULL, $conf = FALSE) {
   ctools_include('plugins');
   $plugin = ctools_get_context($type);
-  if ($function = ctools_plugin_load_function('ctools', 'contexts', $type, 'context')) {
+
+  if ($function = ctools_plugin_get_function($plugin, 'context')) {
     return $function(FALSE, $data, $conf, $plugin);
   }
 }
@@ -1003,8 +1005,23 @@ function ctools_context_get_context_from_relationships($relationships, &$context
  *   An array with information about the requested panel context.
  */
 function ctools_get_context($context) {
+  static $gate = array();
   ctools_include('plugins');
-  return ctools_get_plugins('ctools', 'contexts', $context);
+  $plugin = ctools_get_plugins('ctools', 'contexts', $context);
+  if (empty($gate['context']) && !empty($plugin['superceded by'])) {
+    // This gate prevents infinite loops.
+    $gate[$context] = TRUE;
+    $new_plugin = ctools_get_plugins('ctools', 'contexts', $plugin['superceded by']);
+    $gate[$context] = FALSE;
+
+    // If a new plugin was returned, return it. Otherwise fall through and
+    // return the original we fetched.
+    if ($new_plugin) {
+      return $new_plugin;
+    }
+  }
+
+  return $plugin;
 }
 
 /**

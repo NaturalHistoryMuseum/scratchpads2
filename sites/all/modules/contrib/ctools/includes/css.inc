@@ -556,7 +556,7 @@ function ctools_css_flush_caches() {
   // @see http://drupal.org/node/573292
   // file_unmanaged_delete_recursive('public://render');
   $filedir = file_default_scheme() . '://ctools/css';
-  if (drupal_realpath($filedir)) {
+  if (drupal_realpath($filedir) && file_exists($filedir)) {
     // We use the @ because it's possible that files created by the webserver
     // cannot be deleted while using drush to clear the cache. We don't really
     // care that much about that, to be honest, so we use the @ to suppress

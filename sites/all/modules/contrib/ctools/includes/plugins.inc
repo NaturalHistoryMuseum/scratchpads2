@@ -143,10 +143,10 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
   foreach ($info as $module => $plugin_info) {
     if (!isset($already_done[$owner][$api][$module])) {
       if (isset($plugin_info["$api file"])) {
-        $file = isset($plugin_info["$api file"]);
+        $file = $plugin_info["$api file"];
       }
       else if (isset($plugin_info['file'])) {
-        $file = isset($plugin_info['file']);
+        $file = $plugin_info['file'];
       }
       else {
         $file = "$module.$api.inc";
@@ -388,6 +388,7 @@ function ctools_plugin_get_plugin_type_info($flush = FALSE) {
  * Reset all static caches that affect the result of ctools_get_plugins().
  */
 function ctools_get_plugins_reset() {
+  drupal_static_reset('ctools_plugins');
   drupal_static_reset('ctools_plugin_setup');
   drupal_static_reset('ctools_plugin_load_includes');
   drupal_static_reset('ctools_plugin_api_info');

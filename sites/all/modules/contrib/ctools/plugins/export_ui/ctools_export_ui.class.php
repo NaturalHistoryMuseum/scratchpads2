@@ -1076,11 +1076,11 @@ class ctools_export_ui {
    */
   function edit_finish_validate(&$form, &$form_state) {
     if ($form_state['op'] != 'edit') {
-      // Validate the name. Fake an element for form_error().
+      // Validate the export key. Fake an element for form_error().
       $export_key = $this->plugin['export']['key'];
       $element = array(
         '#value' => $form_state['item']->{$export_key},
-        '#parents' => array('name'),
+        '#parents' => array($export_key),
       );
       $form_state['plugin'] = $this->plugin;
       ctools_export_ui_edit_name_validate($element, $form_state);

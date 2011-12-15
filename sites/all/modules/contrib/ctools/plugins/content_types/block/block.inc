@@ -78,16 +78,66 @@ function _ctools_block_content_type_content_type($module, $delta, $block) {
 }
 
 /**
+ * Load block info from the database.
+ *
+ * This is copied from _block_load_blocks(). It doesn't use that
+ * function because _block_load_blocks sorts by region, and it
+ * doesn't cache its results anyway.
+ */
+function _ctools_block_load_blocks() {
+  $blocks = &drupal_static(__FUNCTION__, NULL);
+  if (!isset($blocks)) {
+    global $theme_key;
+
+    $query = db_select('block', 'b');
+    $result = $query
+      ->fields('b')
+      ->condition('b.theme', $theme_key)
+      ->orderBy('b.region')
+      ->orderBy('b.weight')
+      ->orderBy('b.module')
+      ->addTag('block_load')
+      ->addTag('translatable')
+      ->execute();
+
+    $block_info = $result->fetchAllAssoc('bid');
+    // Allow modules to modify the block list.
+    drupal_alter('block_list', $block_info);
+
+    $blocks = array();
+    foreach ($block_info as $block) {
+      $blocks["{$block->module}_{$block->delta}"] = $block;
+    }
+  }
+
+  return $blocks;
+}
+
+/**
+ * Fetch the stored info for a block.
+ *
+ * The primary reason to use this is so that modules which perform alters
+ * can have their alters make it to the block.
+ */
+function _ctools_get_block_info($module, $delta) {
+  $blocks = _ctools_block_load_blocks();
+
+  $key = $module . '_' . $delta;
+  if (isset($blocks[$key])) {
+    return $blocks[$key];
+  }
+}
+
+/**
  * Output function for the 'block' content type. Outputs a block
  * based on the module and delta supplied in the configuration.
  */
 function ctools_block_content_type_render($subtype, $conf) {
   list($module, $delta) = _ctools_block_get_module_delta($subtype, $conf);
-  $info = (object) array(
-    'module' => $module,
-    'delta' => $delta,
-  );
+
+  $info = _ctools_get_block_info($module, $delta);
   $block = module_invoke($module, 'block_view', $delta);
+
   // Allow modules to modify the block before it is viewed, via either
   // hook_block_view_alter() or hook_block_view_MODULE_DELTA_alter().
   drupal_alter(array('block_view', "block_view_{$module}_{$delta}"), $block, $info);
@@ -104,18 +154,10 @@ function ctools_block_content_type_render($subtype, $conf) {
   // Block module adds the title in block_list() instead), so we look it up
   // manually, unless the title is overridden and does not use the %title
   // placeholder.
-  if ($module == 'block' && (empty($conf['override_title']) || strpos($conf['override_title_text'], '%title') !== FALSE)) {
-    // {block}.title is plain text, but this hook should return an HTML title.
-    global $theme_key;
-    $result = db_query("SELECT title FROM {block}
-      WHERE module = :module AND delta = :delta AND theme = :theme", array(
-          ':module' => 'block', ':delta' => $delta, ':theme' => $theme_key
-      )
-    );
-    $block->subject = check_plain($result->fetchObject()->title);
+  if ($module == 'block') {
+    $block->title = $info->title;
   }
-
-  if (isset($block->subject)) {
+  else if (isset($block->subject)) {
     $block->title = $block->subject;
   }
   else {
