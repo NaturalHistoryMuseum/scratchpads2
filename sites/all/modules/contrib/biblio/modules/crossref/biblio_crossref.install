@@ -40,10 +40,10 @@ function _reset_crossref_map($type) {
   $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='crossref'")->fetchField();
   if ($count && $type) { //update
     $function = '_get_crossref_' . $type;
+    if (!function_exists($function)) return;
     $map = $function();
-    drupal_write_record('biblio_type_maps', $map, 'format');
     db_update('biblio_type_maps')
-      ->fields($maps)
+      ->fields($map)
       ->condition('format', 'crossref')
       ->execute();
   }

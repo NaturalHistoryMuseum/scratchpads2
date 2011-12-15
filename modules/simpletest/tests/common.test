@@ -56,6 +56,14 @@ class DrupalAlterTestCase extends DrupalWebTestCase {
     $this->assertEqual($array_copy, $array_expected, t('First argument to drupal_alter() was altered.'));
     $this->assertEqual($entity_copy, $entity_expected, t('Second argument to drupal_alter() was altered.'));
     $this->assertEqual($array2_copy, $array2_expected, t('Third argument to drupal_alter() was altered.'));
+
+    // Verify alteration order when passing an array of types to drupal_alter().
+    // common_test_module_implements_alter() places 'block' implementation after
+    // other modules.
+    $array_copy = $array;
+    $array_expected = array('foo' => 'Drupal block theme');
+    drupal_alter(array('drupal_alter', 'drupal_alter_foo'), $array_copy);
+    $this->assertEqual($array_copy, $array_expected, t('hook_TYPE_alter() implementations ran in correct order.'));
   }
 }
 
@@ -2333,8 +2341,10 @@ class DrupalJSONTest extends DrupalUnitTestCase {
       $str .= chr($i);
     }
     // Characters that must be escaped.
-    $html_unsafe = array('<', '>', '&');
-    $html_unsafe_escaped = array('\u003c', '\u003e', '\u0026');
+    // We check for unescaped " separately.
+    $html_unsafe = array('<', '>', '\'', '&');
+    // The following are the encoded forms of: < > ' & "
+    $html_unsafe_escaped = array('\u003C', '\u003E', '\u0027', '\u0026', '\u0022');
 
     // Verify there aren't character encoding problems with the source string.
     $this->assertIdentical(strlen($str), 128, t('A string with the full ASCII table has the correct length.'));
@@ -2345,6 +2355,11 @@ class DrupalJSONTest extends DrupalUnitTestCase {
     // Verify that JSON encoding produces a string with all of the characters.
     $json = drupal_json_encode($str);
     $this->assertTrue(strlen($json) > strlen($str), t('A JSON encoded string is larger than the source string.'));
+
+    // The first and last characters should be ", and no others.
+    $this->assertTrue($json[0] == '"', t('A JSON encoded string begins with ".'));
+    $this->assertTrue($json[strlen($json) - 1] == '"', t('A JSON encoded string ends with ".'));
+    $this->assertTrue(substr_count($json, '"') == 2, t('A JSON encoded string contains exactly two ".'));
 
     // Verify that encoding/decoding is reversible.
     $json_decoded = drupal_json_decode($json);

@@ -119,9 +119,10 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
       'callback' => 'tui_ajax_form_callback_callback',
       'wrapper' => 'taxonomy-form-term'
     );
-    if(isset($_POST['tid']) && isset($form['relations']['parent']['#options'][$_POST['tid']])){
+    if(isset($_POST['tid']) && is_array($form['relations']['parent']['#options'])){
       $parent_term = taxonomy_term_load($_POST['tid']);
       $form['relations']['parent']['#default_value'] = $_POST['tid'];
+      $form['relations']['parent']['#options'][$_POST['tid']] = $_POST['tid'];
       $form['parent_message'] = array(
         '#weight' => -1000,
         '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>' . t('This term will be added as a child of "@term_name"', array(

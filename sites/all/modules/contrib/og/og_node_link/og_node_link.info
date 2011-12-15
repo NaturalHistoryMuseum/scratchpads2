@@ -1,0 +1,14 @@
+; $Id:$
+name = Organic groups node link
+description = "Add content creation links field."
+package = "Organic groups"
+dependencies[] = og
+core = 7.x
+files[] = og_node_link.module
+
+; Information added by drupal.org packaging script on 2011-03-17
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "og"
+datestamp = "1300320996"
+

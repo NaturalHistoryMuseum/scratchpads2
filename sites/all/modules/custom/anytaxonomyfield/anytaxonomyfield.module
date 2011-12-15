@@ -1,0 +1,283 @@
+<?php
+
+/**
+ * Implementation of hook_field_info().
+ */
+function anytaxonomyfield_field_info(){
+  return array(
+    'anytaxonomy_term_reference' => array(
+      'label' => t('Term reference (flexible)'),
+      'description' => t('Identical to the "Term reference" field, but allows a user to select the vocabulary referenced during input.'),
+      'default_widget' => 'options_select',
+      'default_formatter' => 'taxonomy_term_reference_link',
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => '',
+            'parent' => '0'
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function anytaxonomyfield_field_settings_form($field, $instance, $has_data){
+  $form = taxonomy_field_settings_form($field, $instance, $has_data);
+  foreach($field['settings']['allowed_values'] as $delta => $tree){
+    $form['allowed_values'][$delta]['vocabulary']['#options'] = array_merge(array(
+      'anytaxonomyfield_anytaxonomyfield' => '-- Any --'
+    ), $form['allowed_values'][$delta]['vocabulary']['#options']);
+    $form['allowed_values'][$delta]['vocabulary']['#title'] = t('Vocabularies');
+    $form['allowed_values'][$delta]['vocabulary']['#multiple'] = TRUE;
+    $form['allowed_values'][$delta]['vocabulary']['#required'] = TRUE;
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This is a copy of the taxonomy.module's hook_field_validate function, but
+ * with the change to check against an array of vocabulary names, rather than a
+ * string.
+ */
+function anytaxonomyfield_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
+  foreach($items as $delta => $item){
+    if(!empty($item['tid']) && $item['tid'] != 'autocreate'){
+      $tids[] = $item['tid'];
+    }
+  }
+  if(!empty($tids)){
+    $terms = taxonomy_term_load_multiple($tids);
+    foreach($items as $delta => $item){
+      $validate = TRUE;
+      if(!empty($item['tid']) && $item['tid'] != 'autocreate'){
+        $validate = FALSE;
+        foreach($field['settings']['allowed_values'] as $settings){
+          // SDRycroft - Here is the change from the taxonomy.module file.
+          if(isset($settings['vocabulary']) && empty($settings['parent'])){
+            if(isset($settings['vocabulary']['anytaxonomyfield_anytaxonomyfield']) || in_array($terms[$item['tid']]->vocabulary_machine_name, $settings['vocabulary'])){
+              $validate = TRUE;
+              break;
+            }
+          }elseif(!empty($settings['parent'])){
+            $ancestors = taxonomy_get_parents_all($item['tid']);
+            foreach($ancestors as $ancestor){
+              if($ancestor->tid == $settings['parent']){
+                $validate = TRUE;
+                break 2;
+              }
+            }
+          }
+        }
+      }
+      if(!$validate){
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'taxonomy_term_reference_illegal_value',
+          'message' => t('%name: illegal value.', array(
+            '%name' => $instance['label']
+          ))
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_field_insert().
+ */
+function anytaxonomyfield_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  return taxonomy_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function anytaxonomyfield_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
+  return taxonomy_field_update($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implementation of hook_field_presave().
+ */
+function anytaxonomyfield_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items){
+  return taxonomy_field_presave($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implementation of hook_field_is_empty().
+ */
+function anytaxonomyfield_field_is_empty($item, $field){
+  if(is_array($item) && isset($item['vocabulary_select'])){return TRUE;}
+  return taxonomy_field_is_empty($item, $field);
+}
+
+/**
+ * Implementation of hook_field_widget_info_alter().
+ */
+function anytaxonomyfield_field_widget_info_alter(&$info){
+  // Update the widgets that are compatible with the "Term reference" field to 
+  // also mark them as being compatible with this field.
+  foreach($info as $key => $value){
+    if(in_array('taxonomy_term_reference', $value['field types'])){
+      $info[$key]['field types'][] = 'anytaxonomy_term_reference';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_options_list().
+ */
+function anytaxonomyfield_options_list($field){
+  return taxonomy_options_list($field);
+}
+
+/**
+ * Implementation of hook_field_widget_form_alter().
+ */
+function anytaxonomyfield_field_widget_form_alter(&$element, &$form_state, $context){
+  if($context['field']['type'] == 'anytaxonomy_term_reference'){
+    if(isset($form_state['input'][$context['field']['field_name'] . '_anytaxonomyfield_select'])){
+      $context['field']['settings']['allowed_values'][0]['vocabulary'] = $form_state['input'][$context['field']['field_name'] . '_anytaxonomyfield_select'];
+    }else{
+      // We're loading the form for the first time, lets check what terms we
+      // already have, and set the vocabulary based on those.
+      if(isset($context['items']) && is_array($context['items']) && count($context['items'])){
+        $term = taxonomy_term_load($context['items'][0]['tid']);
+        $context['field']['settings']['allowed_values'][0]['vocabulary'] = $term->vocabulary_machine_name;
+      }else{
+        // No items already loaded.  We'll set the drop down to "empty".
+        $context['field']['settings']['allowed_values'][0]['vocabulary'] = FALSE;
+      }
+    }
+    $callback = "{$context['instance']['widget']['module']}_field_widget_form";
+    if(function_exists(($callback)) && $context['field']['settings']['allowed_values'][0]['vocabulary']){
+      $form = array();
+      $term_field = array(
+        '#required' => isset($element['#required']) ? $element['#required'] : FALSE
+      );
+      $element = $callback($form, $form_state, $context['field'], $context['instance'], $context['langcode'], $context['items'], $context['delta'], $term_field);
+    }else{
+      $element = array(
+        '#markup' => ''
+      );
+    }
+    // Set the options for the taxonomy drop down.
+    $vocabularies = taxonomy_get_vocabularies();
+    $options = array();
+    foreach($vocabularies as $vocabulary){
+      $options[$vocabulary->machine_name] = $vocabulary->name;
+    }
+    if(!$context['field']['settings']['allowed_values'][0]['vocabulary']){
+      $options = array_merge(array(
+        '0' => '-- Select a vocabulary --'
+      ), $options);
+      $element = array(
+        '#markup' => ''
+      );
+    }
+    $element['#prefix'] = '<div class="anytaxonomyfield">';
+    $element['#suffix'] = '</div>';
+    $select_element = array(
+      $context['field']['field_name'] . '_anytaxonomyfield_select' => array(
+        '#title' => $context['instance']['label'],
+        '#type' => 'select',
+        '#options' => $options,
+        '#default_value' => $context['field']['settings']['allowed_values'][0]['vocabulary'],
+        '#ajax' => array(
+          'callback' => 'anytaxonomyfield_ajax_callback'
+        ),
+        '#suffix' => '<div class="anytaxonomyfield"></div>'
+      )
+    );
+    if(!isset($form_state['anytaxonomyfield'])){
+      $form_state['anytaxonomyfield'] = array();
+    }
+    $form_state['anytaxonomyfield'][$context['field']['field_name']] = $select_element;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function anytaxonomyfield_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form_state['anytaxonomyfield'])){
+    foreach($form_state['anytaxonomyfield'] as $key => $field){
+      $form = _anytaxonomyfield_add_select_field($form, $key, $field);
+      _anytaxonomyfield_add_select_field_to_tab($form, $key);
+    }
+    unset($form_state['anytaxonomyfield']);
+  }
+}
+
+/**
+ * Similar function to below that adds the field to a tab if required.
+ */
+function _anytaxonomyfield_add_select_field_to_tab(&$form, $select_key){
+  if(isset($form['#groups'])){
+    foreach($form['#groups'] as $group_key => $group){
+      if(is_object($group) && isset($group->children) && in_array($select_key, $group->children)){
+        $new_children = array();
+        foreach($group->children as $child){
+          $new_children[] = $child;
+          if($child == $select_key){
+            $new_children[] = $select_key . '_anytaxonomyfield_select';
+          }
+        }
+        $form['#groups'][$group_key]->children = $new_children;
+        $form['#group_children'][$select_key . '_anytaxonomyfield_select'] = $group_key;
+      }
+    }
+  }
+}
+
+/**
+ * Recursive function used to add a "select_element" to a form in the right place
+ * 
+ * Wouldn't it be easier just to have something like:
+ * 
+ * array(
+ * select_element
+ * term_element
+ * )
+ * YES, YES IT WOULD, BUT SADLY THAT CAUSES ISSUES.
+ */
+function _anytaxonomyfield_add_select_field($element, $select_key, $select_field){
+  if(is_array($element)){
+    foreach($element as $child_key => $child_value){
+      if($child_key === $select_key){
+        // Found it.  Check if we're a container, because if we are, we may need
+        // to loop through the #groups form attribute, and simply add this field.
+        $new_element = array();
+        foreach($element as $key => $value){
+          if($key == $select_key){
+            $new_element = array_merge($new_element, $select_field);
+          }
+          $new_element[$key] = $value;
+        }
+        $element = $new_element;
+      }
+      if(is_array($element)){
+        $element[$child_key] = _anytaxonomyfield_add_select_field($element[$child_key], $select_key, $select_field);
+      }
+    }
+  }
+  return $element;
+}
+
+/**
+ * AJAX MAGIC!
+ */
+function anytaxonomyfield_ajax_callback($form, $form_state){
+  $form_item_to_replace = substr($form_state['triggering_element']['#name'], 0, strpos($form_state['triggering_element']['#name'], '_anytaxonomyfield_select'));
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      ajax_command_replace('.anytaxonomyfield', drupal_render($form[$form_item_to_replace]))
+    )
+  );
+}

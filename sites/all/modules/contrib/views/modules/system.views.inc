@@ -33,19 +33,12 @@ function system_views_data() {
       'field' => 'filename'
     ),
   );
+  $data['file_managed']['table']['entity type'] = 'file';
+
 
   // The file table does not inherently join to the node table,
   // but may things (such as upload.module) can add relationships
   // that allow file fields to be used.
-
-  // For other base tables, explain how we join
-  $data['file_managed']['table']['join'] = array(
-    'users' => array(
-      // direct join to the users table via 'uid' field.
-      'left_field' => 'uid',
-      'field' => 'uid',
-     ),
-  );
 
   // fid
   $data['file_managed']['fid'] = array(

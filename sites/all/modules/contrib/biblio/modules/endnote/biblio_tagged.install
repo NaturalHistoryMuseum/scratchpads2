@@ -163,6 +163,7 @@ function _reset_tagged_map($type) {
   $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='tagged'")->fetchField();
   if ($count && $type) { //update
     $function = '_get_tagged_' . $type;
+    if (!function_exists($function)) return;
     $map = $function();
     db_update('biblio_type_maps')
       ->fields($map)

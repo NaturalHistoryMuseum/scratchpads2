@@ -1,10 +1,16 @@
 <?php
 
+/**
+ * @file
+ *   Unit tests for subquery object methods.
+ */
 class DrupalSolrSubQueryTests extends DrupalWebTestCase {
-  function getInfo() {
-    return array('name' => 'Subquery handling',
+  public static function getInfo() {
+    return array(
+      'name' => 'Subquery handling',
       'description' => 'Tests for subqueries.',
-      'group' => 'ApacheSolr');
+      'group' => 'ApacheSolr',
+    );
   }
 
   function setUp() {

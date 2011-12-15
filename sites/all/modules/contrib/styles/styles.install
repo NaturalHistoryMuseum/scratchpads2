@@ -1,0 +1,370 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Styles module.
+ */
+
+/**
+ * Implement hook_install().
+ */
+function styles_install() {
+  return array();
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function styles_uninstall() {
+  foreach (styles_variable_default() as $variable => $value) {
+    styles_variable_del($variable);
+  }
+  return array(array('success' => TRUE, 'query' => "Deleted all variables in the Styles namespace."));
+}
+
+/**
+ * Implement hook_schema().
+ */
+function styles_schema() {
+  $schema = array();
+
+  $schema['cache_styles'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_styles']['description'] = 'Cache table used to store information display manipulations that are in-progress.';
+
+  $schema['styles'] = array(
+    'description' => 'Stores configuration options for styles.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The primary identifier for a style.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'field_type' => array(
+        'description' => 'The field type.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The style name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'The style description.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('sid'),
+    'indexes' => array(
+      'field_type' => array('field_type'),
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['styles_presets'] = array(
+    'description' => 'Stores configuration options for styles presets.',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'The primary identifier for a style preset.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'field_type' => array(
+        'description' => 'The field type.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'container_name' => array(
+        'description' => 'The container name',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The preset name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('pid'),
+    'indexes' => array(
+      'field_type' => array('field_type'),
+      'container_name' => array('container_name'),
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['styles_preset_instances'] = array(
+    'description' => 'Stores the settings for each container/style preset.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The primary identifier for a style.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'pid' => array(
+        'description' => 'The primary identifier for a style preset.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'foreign keys' => array(
+      'sid' => array(
+        'table' => 'styles',
+        'columns' => array('sid' => 'sid'),
+      ),
+      'pid' => array(
+        'table' => 'styles_presets',
+        'columns' => array('pid' => 'pid'),
+      ),
+    ),
+    'indexes' => array(
+      'sid' => array('sid'),
+      'pid' => array('pid'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Add new theme functions.
+ */
+function styles_update_7200() {
+  drupal_theme_rebuild();
+  return array();
+}
+
+/**
+ * Clear old cache table of any styles data.
+ */
+function styles_update_7201() {
+  cache_clear_all('styles_', 'cache', TRUE);
+  return array();
+}
+
+/**
+ * Add the field_type column to the {styles} table.
+ */
+function styles_update_7202() {
+  db_add_field('styles', 'field_type', array(
+    'description' => 'The field type.',
+    'type' => 'varchar',
+    'length' => 128,
+    'not null' => TRUE,
+  ));
+  db_add_index('styles', 'field_type', array('field_type'));
+}
+
+/**
+ * Add the label & description columns to the {styles} table.
+ */
+function styles_update_7204() {
+  db_add_field('styles', 'label', array(
+    'description' => 'The human readable label for the style.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
+  db_add_field('styles', 'description', array(
+    'description' => 'The style description.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
+  db_add_index('styles', 'label', array('label'));
+}
+
+/**
+ * Drop the label column from the {styles} table; alter the description column.
+ */
+function styles_update_7206() {
+  db_drop_field('styles', 'label');
+  db_drop_index('styles', 'label');
+  db_change_field('styles', 'description', 'description',
+    array(
+      'description' => 'The style description.',
+      'type' => 'text',
+      'not null' => TRUE,
+      'size' => 'big',
+    )
+  );
+}
+
+/**
+ * Clear style and preset caches.
+ */
+function styles_update_7208() {
+  return array();
+}
+
+/**
+ * Ensure we catch included file Styles.inc.
+ */
+function styles_update_7209() {
+  return array();
+}
+
+/**
+ * Drop style_effects table.
+ */
+function styles_update_7211() {
+  db_drop_table('style_effects');
+}
+
+/**
+ * Create the styles_presets and styles_preset_instances tables.
+ */
+function styles_update_7212() {
+  $schema = array();
+
+  $schema['styles_presets'] = array(
+    'description' => 'Stores configuration options for styles presets.',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'The primary identifier for a style preset.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'field_type' => array(
+        'description' => 'The field type.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'container_name' => array(
+        'description' => 'The container name',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The preset name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'The preset description.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('pid'),
+    'indexes' => array(
+      'field_type' => array('field_type'),
+      'container_name' => array('container_name'),
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['styles_preset_instances'] = array(
+    'description' => 'Stores the settings for each container/style preset.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The primary identifier for a style.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'pid' => array(
+        'description' => 'The primary identifier for a style preset.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'foreign keys' => array(
+      'sid' => array(
+        'table' => 'styles',
+        'columns' => array('sid' => 'sid'),
+      ),
+      'pid' => array(
+        'table' => 'styles_presets',
+        'columns' => array('pid' => 'pid'),
+      ),
+    ),
+    'indexes' => array(
+      'sid' => array('sid'),
+      'pid' => array('pid'),
+    ),
+  );
+
+  if (!db_table_exists('styles_presets')) {
+    db_create_table('styles_presets', $schema['styles_presets']);
+  }
+  if (!db_table_exists('styles_preset_instances')) {
+    db_create_table('styles_preset_instances', $schema['styles_preset_instances']);
+  }
+}
+
+/**
+ * Remove the description from styles_presets.
+ */
+function styles_update_7213() {
+  db_drop_field('styles_presets', 'description');
+}
+
+/**
+ * Update old File Style formatters on Image fields to the Image formatter.
+ */
+function styles_update_7214() {
+  $instances = array();
+  $fields = field_read_fields(array('type' => 'image'), array('include_inactive' => TRUE));
+  foreach ($fields as $field) {
+    $instances = array_merge($instances, field_read_instances(array('field_id' => $field['id']), array('include_inactive' => TRUE)));
+  }
+  foreach ($instances as $instance) {
+    $update_instance = FALSE;
+    foreach ($instance['display'] as $view_mode => $display) {
+      if (strpos($display['type'], 'styles_image_') === 0) {
+        $update_instance = TRUE;
+        $image_style = substr($display['type'], strlen('styles_image_'));
+        $instance['display'][$view_mode]['type'] = 'image';
+        $instance['display'][$view_mode]['settings'] = array('image_style' => $image_style, 'image_link' => FALSE);
+      }
+    }
+    if ($update_instance) {
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Delete duplicate entries from the styles table.
+ */
+function styles_update_7215() {
+  $names = db_query("SELECT name FROM {styles} GROUP BY name HAVING COUNT(*) > 1")->fetchCol();
+  foreach ($names as $name) {
+    $sids = db_select('styles')
+      ->fields('styles', array('sid', 'name'))
+      ->condition('name', $name)
+      ->orderBy('sid', 'DESC')
+      ->execute()
+      ->fetchCol();
+    array_shift($sids);
+    foreach ($sids as $sid) {
+      db_delete('styles')
+        ->condition('sid', $sid)
+        ->execute();
+    }
+  }
+}

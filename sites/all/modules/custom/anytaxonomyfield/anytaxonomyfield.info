@@ -1,0 +1,5 @@
+name = Any Taxonomy Field
+description = Adds an additional field type, almost identical to the taxonomy field type, but that allows selecting of a taxonomy via a drop down.
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = field

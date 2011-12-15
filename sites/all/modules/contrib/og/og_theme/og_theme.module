@@ -1,0 +1,86 @@
+<?php
+
+
+/**
+ * @file
+ * Associate theme to a group.
+ */
+/**
+ * Group theme field.
+ */
+define('OG_THEME_FIELD', 'group_theme');
+
+/**
+ * Implement og_fields_info().
+ */
+function og_theme_og_fields_info() {
+  $items[OG_THEME_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Associate theme to a group.'),
+    'field' => array(
+      'field_name' => OG_THEME_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_text',
+      'cardinality' => 1,
+      'settings' => array('allowed_values' => array(), 'allowed_values_function' => 'og_theme_field_allowed_values'),
+    ),
+    'instance' => array(
+      'label' => t('Groups theme'),
+      'widget_type' => 'options_select',
+      'required' => TRUE,
+      // Use default theme as default value.
+      'default_value' => array(0 => array('value' => '__default')),
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'list_default',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_custom_theme().
+ *
+ * Change the theme, based on a group context.
+ */
+function og_theme_custom_theme() {
+  if ($group = og_context()) {
+    // Load the entity.
+    $entity = $group->getEntity();
+
+    // Check if a theme field exists, and it isn't defined as "default"
+    // (i.e. use the default site theme).
+    if (!empty($entity->{OG_THEME_FIELD}[LANGUAGE_NONE][0]['value']) && $entity->{OG_THEME_FIELD}[LANGUAGE_NONE][0]['value'] != '__default') {
+      return $entity->{OG_THEME_FIELD}[LANGUAGE_NONE][0]['value'];
+    }
+  }
+}
+
+
+/**
+ * Return all enabled themes.
+ */
+function og_theme_field_allowed_values() {
+  $return = array('__default' => t('Use site-wide theme definition'));
+
+  module_load_include('inc', 'system', 'system.admin');
+  $themes = list_themes();
+  uasort($themes, 'system_sort_modules_by_info_name');
+
+  foreach ($themes as $key => $value) {
+    if ($value->status) {
+      $return[$key] = check_plain($value->info['name']);
+    }
+  }
+
+  return $return;
+}
+

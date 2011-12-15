@@ -77,6 +77,7 @@ class DrupalApacheSolrService {
   const UPDATE_SERVLET = 'update';
   const SEARCH_SERVLET = 'select';
   const LUKE_SERVLET = 'admin/luke';
+  const SYSTEM_SERVLET = 'admin/system';
   const STATS_SERVLET = 'admin/stats.jsp';
 
   /**
@@ -99,9 +100,11 @@ class DrupalApacheSolrService {
    * var float
    */
   protected $_defaultTimeout;
-  protected $server_id;
+  protected $env_id;
   protected $luke;
   protected $stats;
+  protected $system_info;
+
 
   /**
    * Call the /admin/ping servlet, to test the connection to the server.
@@ -135,13 +138,51 @@ class DrupalApacheSolrService {
   }
 
   /**
+   * Call the /admin/system servlet
+   *
+   * @return
+   *   (array) With all the system info
+   */
+  public function setSystemInfo() {
+    $url = $this->_constructUrl(self::SYSTEM_SERVLET, array('wt' => 'json'));
+    if ($this->env_id) {
+      $this->system_info_cid = $this->env_id . ":system:" . drupal_hash_base64($url);
+      $cache = cache_get($this->system_info_cid, 'cache_apachesolr');
+      if (isset($cache->data)) {
+        $this->system_info = json_decode($cache->data);
+      }
+    }
+    // Second pass to populate the cache if necessary.
+    if (empty($this->system_info)) {
+      $response = $this->_sendRawGet($url);
+      $this->system_info = json_decode($response->data);
+      if ($this->env_id) {
+        cache_set($this->system_info_cid, $response->data, 'cache_apachesolr');
+      }
+    }
+  }
+
+  /**
+   * Get information about the Solr Core.
+   *
+   * @return
+   *   (string) system info encoded in json
+   */
+  public function getSystemInfo() {
+    if (!isset($this->system_info)) {
+      $this->setSystemInfo();
+    }
+    return $this->system_info;
+  }
+
+  /**
    * Sets $this->luke with the meta-data about the index from admin/luke.
    */
   protected function setLuke($num_terms = 0) {
     if (empty($this->luke[$num_terms])) {
       $url = $this->_constructUrl(self::LUKE_SERVLET, array('numTerms' => "$num_terms", 'wt' => 'json'));
-      if ($this->server_id) {
-        $cid = $this->server_id . ":luke:" . drupal_hash_base64($url);
+      if ($this->env_id) {
+        $cid = $this->env_id . ":luke:" . drupal_hash_base64($url);
         $cache = cache_get($cid, 'cache_apachesolr');
         if (isset($cache->data)) {
           $this->luke = $cache->data;
@@ -151,7 +192,7 @@ class DrupalApacheSolrService {
     // Second pass to populate the cache if necessary.
     if (empty($this->luke[$num_terms])) {
       $this->luke[$num_terms] = $this->_sendRawGet($url);
-      if ($this->server_id) {
+      if ($this->env_id) {
         cache_set($cid, $this->luke, 'cache_apachesolr');
       }
     }
@@ -182,8 +223,8 @@ class DrupalApacheSolrService {
     // Only try to get stats if we have connected to the index.
     if (empty($this->stats) && isset($data->index->numDocs)) {
       $url = $this->_constructUrl(self::STATS_SERVLET);
-      if ($this->server_id) {
-        $this->stats_cid = $this->server_id . ":stats:" . drupal_hash_base64($url);
+      if ($this->env_id) {
+        $this->stats_cid = $this->env_id . ":stats:" . drupal_hash_base64($url);
         $cache = cache_get($this->stats_cid, 'cache_apachesolr');
         if (isset($cache->data)) {
           $this->stats = simplexml_load_string($cache->data);
@@ -193,7 +234,7 @@ class DrupalApacheSolrService {
       if (empty($this->stats)) {
         $response = $this->_sendRawGet($url);
         $this->stats = simplexml_load_string($response->data);
-        if ($this->server_id) {
+        if ($this->env_id) {
           cache_set($this->stats_cid, $response->data, 'cache_apachesolr');
         }
       }
@@ -264,9 +305,9 @@ class DrupalApacheSolrService {
   }
 
   protected function _clearCache() {
-    if ($this->server_id) {
-      cache_clear_all($this->server_id . ":stats:", 'cache_apachesolr', TRUE);
-      cache_clear_all($this->server_id . ":luke:", 'cache_apachesolr', TRUE);
+    if ($this->env_id) {
+      cache_clear_all($this->env_id . ":stats:", 'cache_apachesolr', TRUE);
+      cache_clear_all($this->env_id . ":luke:", 'cache_apachesolr', TRUE);
     }
     $this->luke = array();
     $this->stats = NULL;
@@ -278,12 +319,12 @@ class DrupalApacheSolrService {
    * @param $url
    *   The URL to the Solr server, possibly including a core name.  E.g. http://localhost:8983/solr/
    *   or https://search.example.com/solr/core99/
-   * @param $server_id
+   * @param $env_id
    *   The machine name of a corresponding saved configuration used for loading
-   *    data like which facets are enabled.
+   *   data like which facets are enabled.
    */
-  public function __construct($url, $server_id = NULL) {
-    $this->server_id = $server_id;
+  public function __construct($url, $env_id = NULL) {
+    $this->env_id = $env_id;
     $this->setUrl($url);
 
     // determine our default http timeout from ini settings
@@ -295,8 +336,8 @@ class DrupalApacheSolrService {
     }
   }
 
-  function getServerId() {
-    return $this->server_id;
+  function getId() {
+    return $this->env_id;
   }
 
   /**
@@ -412,7 +453,7 @@ class DrupalApacheSolrService {
   /**
    * Escape a value for special query characters such as ':', '(', ')', '*', '?', etc.
    *
-   * NOTE: inside a phrase fewer characters need escaped, use {@link Apache_Solr_Service::escapePhrase()} instead
+   * NOTE: inside a phrase fewer characters need escaped, use {@link DrupalApacheSolrService::escapePhrase()} instead
    *
    * @param string $value
    * @return string
@@ -507,6 +548,9 @@ class DrupalApacheSolrService {
     if (!isset($parsed_url['user'])) {
       $parsed_url['user'] = '';
     }
+    else {
+      $parsed_url['host'] = '@' . $parsed_url['host'];
+    }
     $parsed_url['pass'] = isset($parsed_url['pass']) ? ':' . $parsed_url['pass'] : '';
     $parsed_url['port'] = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
 
@@ -553,7 +597,7 @@ class DrupalApacheSolrService {
   /**
    * Add an array of Solr Documents to the index all at once
    *
-   * @param array $documents Should be an array of Apache_Solr_Document instances
+   * @param array $documents Should be an array of ApacheSolrDocument instances
    * @param boolean $allowDups
    * @param boolean $overwritePending
    * @param boolean $overwriteCommitted
@@ -574,7 +618,9 @@ class DrupalApacheSolrService {
 
     $rawPost = "<add{$attr}>";
     foreach ($documents as $document) {
-      $rawPost .= Apache_Solr_Document::documentToXml($document);
+      if (is_object($document) && ($document instanceof ApacheSolrDocument)) {
+        $rawPost .= ApacheSolrDocument::documentToXml($document);
+      }
     }
     $rawPost .= '</add>';
 
@@ -645,7 +691,7 @@ class DrupalApacheSolrService {
    *
    * @param string $rawQuery Expected to be utf-8 encoded
    * @param float $timeout Maximum expected duration of the delete operation on the server (otherwise, will throw a communication exception)
-   * @return Apache_Solr_Response
+   * @return stdClass response object
    *
    * @throws Exception If an error occurs during the service call
    */
@@ -726,7 +772,12 @@ class DrupalApacheSolrService {
     }
     // PHP's built in http_build_query() doesn't give us the format Solr wants.
     $queryString = $this->httpBuildQuery($params);
-    // @todo - switch to POST if this is too long.
+    // Check string length of the query string, change method to POST
+    // if longer than 4000 characters (typical server handles 4096 max).
+    // @todo - make this a per-server setting.
+    if (strlen($queryString) > variable_get('apachesolr_search_post_threshold', 4000)) {
+      $method = 'POST';
+    }
 
     if ($method == 'GET') {
       $searchUrl = $this->_constructUrl(self::SEARCH_SERVLET, array(), $queryString);
@@ -735,7 +786,7 @@ class DrupalApacheSolrService {
     else if ($method == 'POST') {
       $searchUrl = $this->_constructUrl(self::SEARCH_SERVLET);
       $options['data'] = $queryString;
-      $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded';
+      $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
       return $this->_sendRawPost($searchUrl, $options);
     }
     else {

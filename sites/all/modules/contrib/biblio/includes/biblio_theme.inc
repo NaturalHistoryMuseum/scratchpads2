@@ -219,18 +219,17 @@ function theme_biblio_tabular($variables) {
     array('data' => $node->biblio_type_name)
   );
 
-  if ($node->biblio_url) {
-    $attrib = (variable_get('biblio_links_target_new_window', FALSE)) ? array('target' => '_blank') : array();
-    $node->biblio_url = l($node->biblio_url, $node->biblio_url, $attrib);
-  }
-  if ($node->biblio_doi) {
+  $attrib = (variable_get('biblio_links_target_new_window', FALSE)) ? array('target' => '_blank') : array();
+
+  $doi = '';
+  if (!empty($node->biblio_doi)) {
     $doi_url = '';
-    $attrib = (variable_get('biblio_links_target_new_window', FALSE)) ? array('target' => '_blank') : array();
     if ( ($doi_start = strpos($node->biblio_doi, '10.')) !== FALSE) {
       $doi = substr($node->biblio_doi, $doi_start);
       $doi_url .= 'http://dx.doi.org/' . $doi;
+      $doi = l($doi, $doi_url, $attrib);
     }
-    $node->biblio_doi = l($node->biblio_doi, $doi_url, $attrib);
+
   }
 
   foreach ($fields as $key => $row) {
@@ -247,15 +246,14 @@ function theme_biblio_tabular($variables) {
          $data = _biblio_keyword_links($node->$row['name'], $base);
           break;
         case 'biblio_url' :
+          $data = l($node->$row['name'], $node->$row['name'], $attrib);
+          break;
         case 'biblio_doi' :
-          // check_plain is not need on these since they have gone through
-          // the l() function which does a check_plain
-          $data = $node-> $row['name'];
+           $data = $doi;
           break;
         default:
-          if ($row['type'] == 'textarea') {
-//FIXME where is format stored now???
-            $data = check_markup($node->$row['name']);
+          if ($row['type'] == 'text_format') {
+            $data = check_markup($node->$row['name'], $node->biblio_formats[$row['name']]);
           }
           else {
             $data = check_plain($node->$row['name']);
@@ -438,77 +436,78 @@ function theme_biblio_format_authors($variables) {
 
   foreach ($contributors as $rank => $author) {
     if (empty($author['name'])) continue;
-    if (!isset($author['lastname'])) {
+    if (!isset($author['lastname']) && empty($author['literal'])) {
       module_load_include('inc', 'biblio', '/includes/biblio.contributors');
       $author = biblio_parse_author($author, $author['auth_type']); // this is needed for form preview to fill in all fields
     }
-
-    if (!empty($author['firstname'])) {
-      if ($options['shortenGivenNames']) {// if we're supposed to abbreviate given names
-        // within initials, reduce all full first names (-> defined by a starting uppercase character, followed by one ore more lowercase characters)
-        // to initials, i.e., only retain their first character
-        $author['firstname'] = preg_replace("/([$upper])[$lower]+/$patternModifiers", '\\1', $author['firstname']);
-        //$author['firstname'] = drupal_substr($author['firstname'], 0, 1);
-        // the next line caused extra betweenInitialsDelim to appear in some circumstances
-        //$author['firstname'] = preg_replace("/($space|$dash)?/$patternModifier", $options['betweenInitialsDelim'], $author['firstname']);
-      }
-    }
-    if (isset($author['initials'])) {
-      // within initials, remove any dots:
-      $author['initials'] = preg_replace("/([$upper])\.+/$patternModifiers", "\\1", $author['initials']);
-      //$author['initials'] = str_replace('.', '',  $author['initials']);
-
-      // within initials, remove any spaces *between* initials:
-      $author['initials'] = preg_replace("/(?<=[-$upper]) +(?=[-$upper])/$patternModifiers", "", $author['initials']);
-      //$author['initials'] = str_replace(' ', '',  $author['initials']);
-
-      // within initials, add a space after a hyphen, but only if ...
-      if (preg_match('/ $/', $options['betweenInitialsDelim'])) { // ... the delimiter that separates initials ends with a space
-        $author['initials'] = preg_replace("/-(?=[$upper])/$patternModifiers", "- ", $author['initials']);
-      }
-      // then, separate initials with the specified delimiter:
-      $delim = $options['betweenInitialsDelim'];
-      $author['initials'] = preg_replace("/([$upper])(?=[^$lower]+|$)/$patternModifiers", "\\1$delim", $author['initials']);
-
-      $shortenInitials = (isset($options['numberOfInitialsToKeep'])) ? $options['numberOfInitialsToKeep'] : FALSE;
-      if ($shortenInitials) $author['initials'] = drupal_substr($author['initials'], 0, $shortenInitials);
-
-      if ($options['shortenGivenNames'] && !empty($author['firstname'])) {
-        $author['firstname'] = $author['firstname'] . $options['betweenInitialsDelim'] . $author['initials'];
-        if ($shortenInitials) $author['firstname'] = drupal_substr($author['firstname'], 0, $shortenInitials);
-      }
-      elseif (!empty($author['firstname'])) {
-        $author['firstname'] = $author['firstname'] . ' ' . $author['initials'];
-      }
-      elseif (empty($author['firstname'])) {
-        $author['firstname'] = $author['initials'];
-      }
-    }
-
-    // if there is a surname prefix like "van", "von" etc, stick it back before the last name.
-    if (!empty($author['prefix'])) $author['lastname'] = $author['prefix'] . ' ' . $author['lastname'];
-    if (!empty($author['suffix'])) $author['lastname'] = $author['lastname'] . ', ' . $author['suffix'];
-
-    if (!empty($author['firstname'])) {
-      if ($rank == 0) { // -> first author
-        if ($options['initialsBeforeAuthorFirstAuthor']) {
-          $author['name'] = $author['firstname'] . $options['AuthorsInitialsDelimFirstAuthor'] . $author['lastname'];
-        }
-        else{
-          $author['name'] = $author['lastname'] . $options['AuthorsInitialsDelimFirstAuthor'] . $author['firstname'];
+    if (empty($author['literal'])) {
+      if (!empty($author['firstname'])) {
+        if ($options['shortenGivenNames']) {// if we're supposed to abbreviate given names
+          // within initials, reduce all full first names (-> defined by a starting uppercase character, followed by one ore more lowercase characters)
+          // to initials, i.e., only retain their first character
+          $author['firstname'] = preg_replace("/([$upper])[$lower]+/$patternModifiers", '\\1', $author['firstname']);
+          //$author['firstname'] = drupal_substr($author['firstname'], 0, 1);
+          // the next line caused extra betweenInitialsDelim to appear in some circumstances
+          //$author['firstname'] = preg_replace("/($space|$dash)?/$patternModifier", $options['betweenInitialsDelim'], $author['firstname']);
         }
       }
-      else { // $rank > 0 // -> all authors except the first one
-        if ($options['initialsBeforeAuthorStandard']) {
-          $author['name'] = $author['firstname'] . $options['AuthorsInitialsDelimStandard'] . $author['lastname'];
+      if (isset($author['initials'])) {
+        // within initials, remove any dots:
+        $author['initials'] = preg_replace("/([$upper])\.+/$patternModifiers", "\\1", $author['initials']);
+        //$author['initials'] = str_replace('.', '',  $author['initials']);
+
+        // within initials, remove any spaces *between* initials:
+        $author['initials'] = preg_replace("/(?<=[-$upper]) +(?=[-$upper])/$patternModifiers", "", $author['initials']);
+        //$author['initials'] = str_replace(' ', '',  $author['initials']);
+
+        // within initials, add a space after a hyphen, but only if ...
+        if (preg_match('/ $/', $options['betweenInitialsDelim'])) { // ... the delimiter that separates initials ends with a space
+          $author['initials'] = preg_replace("/-(?=[$upper])/$patternModifiers", "- ", $author['initials']);
         }
-        else{
-          $author['name'] = $author['lastname'] . $options['AuthorsInitialsDelimStandard'] . $author['firstname'];
+        // then, separate initials with the specified delimiter:
+        $delim = $options['betweenInitialsDelim'];
+        $author['initials'] = preg_replace("/([$upper])(?=[^$lower]+|$)/$patternModifiers", "\\1$delim", $author['initials']);
+
+        $shortenInitials = (isset($options['numberOfInitialsToKeep'])) ? $options['numberOfInitialsToKeep'] : FALSE;
+        if ($shortenInitials) $author['initials'] = drupal_substr($author['initials'], 0, $shortenInitials);
+
+        if ($options['shortenGivenNames'] && !empty($author['firstname'])) {
+          $author['firstname'] = $author['firstname'] . $options['betweenInitialsDelim'] . $author['initials'];
+          if ($shortenInitials) $author['firstname'] = drupal_substr($author['firstname'], 0, $shortenInitials);
+        }
+        elseif (!empty($author['firstname'])) {
+          $author['firstname'] = $author['firstname'] . ' ' . $author['initials'];
+        }
+        elseif (empty($author['firstname'])) {
+          $author['firstname'] = $author['initials'];
         }
       }
-    }
-    else {
-      $author['name'] = $author['lastname'];
+
+      // if there is a surname prefix like "van", "von" etc, stick it back before the last name.
+      if (!empty($author['prefix'])) $author['lastname'] = $author['prefix'] . ' ' . $author['lastname'];
+      if (!empty($author['suffix'])) $author['lastname'] = $author['lastname'] . ', ' . $author['suffix'];
+
+      if (!empty($author['firstname'])) {
+        if ($rank == 0) { // -> first author
+          if ($options['initialsBeforeAuthorFirstAuthor']) {
+            $author['name'] = $author['firstname'] . $options['AuthorsInitialsDelimFirstAuthor'] . $author['lastname'];
+          }
+          else{
+            $author['name'] = $author['lastname'] . $options['AuthorsInitialsDelimFirstAuthor'] . $author['firstname'];
+          }
+        }
+        else { // $rank > 0 // -> all authors except the first one
+          if ($options['initialsBeforeAuthorStandard']) {
+            $author['name'] = $author['firstname'] . $options['AuthorsInitialsDelimStandard'] . $author['lastname'];
+          }
+          else{
+            $author['name'] = $author['lastname'] . $options['AuthorsInitialsDelimStandard'] . $author['firstname'];
+          }
+        }
+      }
+      else {
+        $author['name'] = $author['lastname'];
+      }
     }
     if ($author_links) {
       $author['name'] = theme('biblio_author_link', array('author' => $author));
@@ -570,7 +569,7 @@ function theme_biblio_author_link($variables) {
     $uri['html'] = TRUE;
   }
 
-  if (variable_get('biblio_author_link_profile', 0) && $author['drupal_uid'] ) {
+  if (variable_get('biblio_author_link_profile', 0) && isset($author['drupal_uid']) &&  $author['drupal_uid'] > 0) {
     $profile_path = 'user/' . $author['drupal_uid'] . '/' . $uri['path'];
     if ($path != '/' . $profile_path) {  // we only create links to the profile page if we are not already on it.
       $uri['path'] = $profile_path;
@@ -789,58 +788,55 @@ function theme_biblio_form_filter($variables) {
   return $output;
 }
 
+function theme_biblio_field_tab($variables) {
+  $form = $variables['form'];
+  $rows = array();
+  $headers = $form['#header'];
+  drupal_add_tabledrag($form['#id'], 'order', 'sibling', 'weight');
+
+  foreach (element_children($form['rows']) as $key) {
+    // No need to print the field title every time.
+//    unset($form[$key]['name']['#title'], $form[$key]['auth_type']['#title'], $form[$key]['auth_category']['#title']);
+    // Add class to group weight fields for drag and drop.
+    $form['rows'][$key]['weight']['#attributes']['class'] = array('weight');
+
+    // Build the table row.
+    $row = array('');
+    $row[] = array('data' => drupal_render($form['rows'][$key]['name']));
+    $row[] = array('data' => drupal_render($form['rows'][$key]['title']));
+    $row[] = array('data' => drupal_render($form['rows'][$key]['hint']));
+    foreach (element_children($form['rows'][$key]['checkboxes']) as $oid) {
+      if (is_array($form['rows'][$key]['checkboxes'])) {
+        $row[] = array(
+          'data' => drupal_render($form['rows'][$key]['checkboxes'][$oid]),
+          'title' => $oid);
+      }
+    }
+
+
+    $row[] = drupal_render($form['rows'][$key]['weight']);
+    $rows[] = array('data' => $row, 'class' => array('draggable'));
+  }
+  $output = theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => array('id' => $form['#id'])));
+  $output .= drupal_render_children($form);
+  return $output;
+
+}
 /**
  * @param $form
  * @return unknown_type
  */
 function theme_biblio_admin_types_edit_form($variables) {
   $form = $variables['form'];
-  drupal_add_tabledrag('field-table', 'order', 'sibling', 'weight', NULL, NULL, FALSE);
-  $base = variable_get('biblio_base', 'biblio');
-  $tid = (!empty ($form['#parameters'][2])) ? $form['#parameters'][2] : FALSE;
-  //  drupal_set_title($form['type_name'] ? $form['type_name']['#value'] : t('Common'));
+  $output = '';
 
-  // build the table with all the fields if no $tid is given, or only the common
-  // and customized fields if $tid is given
-  $conf_table = array();
-  foreach (element_children($form['configured_flds']) as $fld) {
-    $form['configured_flds'][$fld]['weight']['#attributes']['class'] = array('weight');
-
-    $conf_row = array();
-    $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['name']));
-    $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['title']));
-    if (isset($form['configured_flds'][$fld]['auth_type'])) {
-      $form['configured_flds'][$fld]['hint']['#size'] = 15;
-      $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['hint']));
-      $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['auth_type']));
-    }
-    else {
-      $form['configured_flds'][$fld]['hint']['#size'] = ($tid ? 38: 36);
-      $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['hint']), 'colspan' => array(2));
-    }
-    foreach (element_children($form['configured_flds'][$fld]['checkboxes']) as $oid) {
-      if (is_array($form['configured_flds'][$fld]['checkboxes'])) {
-        $conf_row[] = array(
-          'data' => drupal_render($form['configured_flds'][$fld]['checkboxes'][$oid]),
-          'title' => $oid);
-      }
-    }
-    $conf_row[] = array('data' => drupal_render($form['configured_flds'][$fld]['weight']));
-    $conf_table[] = array('data' => $conf_row, 'class' => array('draggable'));
-  }
-  if ($tid) {
-    $header = array(t('Field Name'), t('Title'), t('Hint'), '', t('Visible'), t('Required'), t('Weight'));
-  }
-  else {
-    $header = array(t('Field Name'), t('Default Title'), t('Hint'), '', t('Common'), t('Required'), t('Autocomplete'), t('Weight'));
-  }
-  $output = '<h2>' . drupal_render($form['top_message']) . '</h2>';
   $output .= drupal_render($form['help']);
-  $output .= drupal_render($form['type_name']);
-  $output .= drupal_render($form['options']);
-
-  $output .= theme('table', array('header' => $header, 'rows' => $conf_table, 'attributes' => array('id' => 'field-table')));
-  $output .= '<p><center>' . drupal_render($form['submit']) . '</center></p>';
+  $output .= drupal_render($form['pub_type']);
+  $output .= drupal_render($form['change_type']);
+  if (isset($form['type_name'])) {
+    $output .= drupal_render($form['type_name']);
+  }
+  $output .= drupal_render($form['biblio_tabs']);
   $output .= drupal_render_children($form);
   return $output;
 }
@@ -855,7 +851,7 @@ function theme_biblio_download_links($variables) {
 
   $fields = field_attach_view('node', $node, 'full', $langcode);
   foreach (element_children($fields) as $field) {
-    if($fields[$field]['#field_type'] == 'file') {
+    if($fields[$field]['#access']  && $fields[$field]['#field_type'] == 'file') {
       foreach ($fields[$field]['#items'] as $delta => $item) {
         if (module_exists('filefield_paths')) {
           $alias =  drupal_get_path_alias('filefield_paths/alias/' . $item['fid']);

@@ -294,17 +294,17 @@ class csl_format extends csl_rendering_element {
     if (isset($this->{'text-case'})) {
       switch ($this->{'text-case'}) {
         case 'uppercase':
-          $text = mb_strtoupper($text);
+          $text =  drupal_strtoupper($text);
           break;
         case 'lowercase':
-          $text = mb_strtolower($text);
+          $text = drupal_strtolower($text);
           break;
         case 'capitalize-all':
         case 'title':
           $text = mb_convert_case($text, MB_CASE_TITLE);
           break;
         case 'capitalize-first':
-          $text[0] = mb_strtoupper($text[0]);
+          $text = drupal_ucfirst($text);
           break;
       }
     }
@@ -321,7 +321,7 @@ class csl_format extends csl_rendering_element {
     }
     if (!empty($suffix)) { // gaurd against repeaded suffixes...
       $no_tags = strip_tags($text);
-      if (($no_tags[(strlen($no_tags) - 1)] == $suffix[0]) ) {
+      if (strlen($no_tags) && ($no_tags[(strlen($no_tags) - 1)] == $suffix[0]) ) {
         $suffix = substr($suffix, 1);
       }
     }
@@ -500,16 +500,16 @@ class csl_name extends csl_format {
     if (isset($this->{$part}['text-case'])) {
       switch ($this->{$part}['text-case']) {
         case 'uppercase':
-          $text = mb_strtoupper($text);
+          $text =  drupal_strtoupper($text);
           break;
         case 'lowercase':
-          $text = mb_strtolower($text);
+          $text = drupal_strtolower($text);
           break;
         case 'capitalize-all':
           $text = mb_convert_case($text, MB_CASE_TITLE);
           break;
         case 'capitalize-first':
-          $text[0] = mb_strtoupper($text[0]);
+          $text = drupal_ucfirst($text);
           break;
       }
     }
@@ -551,80 +551,77 @@ class csl_name extends csl_format {
     if (!$this->attr_init || $this->attr_init != $mode) $this->init_attrs($mode);
 
     foreach ($names as $rank => $name) {
-      if (!isset($name['lastname'])) {
-        module_load_include('inc', 'biblio', '/includes/biblio.contributors');
-        $name = biblio_parse_author($name); // this is needed for form preview to fill in all fields
-      }
-      $count++;
-      //$given = (!empty($name['firstname'])) ? $name['firstname'] : '';
-      if (!empty($name['firstname']) && isset($initialize_with)) {
-        $name['firstname'] = preg_replace("/([$this->upper])[$this->lower]+/$this->patternModifiers", '\\1', $name['firstname']);
-        $name['firstname'] = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $name['firstname']);
-        $name['initials'] = $name['firstname'] . $name['initials'];
-      }
-      if (isset($name['initials'])) {
-        // within initials, remove any dots:
-        $name['initials'] = preg_replace("/([$this->upper])\.+/$this->patternModifiers", "\\1", $name['initials']);
-        // within initials, remove any spaces *between* initials:
-        $name['initials'] = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $name['initials']);
-        if (isset($this->citeproc->style)  && $this->citeproc->style->{'initialize-with-hyphen'} == 'false') {
-          $name['initials'] = preg_replace("/-/", '', $name['initials']);
+      if (empty($name['literal'])) {
+        if (!isset($name['lastname'])) {
+          module_load_include('inc', 'biblio', '/includes/biblio.contributors');
+          $name = biblio_parse_author($name); // this is needed for form preview to fill in all fields
         }
-        // within initials, add a space after a hyphen, but only if ...
-        if (preg_match("/ $/", $initialize_with)) {// ... the delimiter that separates initials ends with a space
-          $name['initials'] = preg_replace("/-(?=[$this->upper])/$this->patternModifiers", "- ", $name['initials']);
+        $count++;
+        if (!empty($name['firstname']) && isset($initialize_with)) {
+          $name['firstname'] = preg_replace("/([$this->upper])[$this->lower]+/$this->patternModifiers", '\\1', $name['firstname']);
+          $name['firstname'] = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $name['firstname']);
+          $name['initials'] = $name['firstname'] . $name['initials'];
         }
-        // then, separate initials with the specified delimiter:
-        $name['initials'] = preg_replace("/([$this->upper])(?=[^$this->lower]+|$)/$this->patternModifiers", "\\1$initialize_with", $name['initials']);
-
-        //      $shortenInitials = (isset($options['numberOfInitialsToKeep'])) ? $options['numberOfInitialsToKeep'] : FALSE;
-        //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
-
-        if (isset($initialize_with)) {
-          $name['firstname'] = $name['initials'];
-         // if ($shortenInitials) $name['firstname'] = drupal_substr($name['firstname'], 0, $shortenInitials);
-        }
-        elseif (!empty($name['firstname'])) {
-          $name['firstname'] = $name['firstname'] . ' ' . $name['initials'];
-        }
-        elseif (empty($name['firstname'])) {
-          $name['firstname'] = $name['initials'];
-        }
-      }
-
-
-      $given = $this->format($name['firstname'], 'given');
-      if (isset($name['lastname'])) {
-        if (!empty($name['prefix'])) {
-          $name['lastname'] = $name['prefix'] . ' ' . $name['lastname'];
-        }
-        if (!empty($name['suffix'])) {
-          $name['lastname'] = $name['lastname'] . ', ' . $name['suffix'];
-        }
-
-        $name['lastname'] = $this->format($name['lastname'], 'family');
-        if ($this->form == 'short') {
-          $text = $name['lastname'];
-        }
-        else {
-          switch ($this->{'name-as-sort-order'}) {
-            case 'first':
-            case 'all':
-              $text = $name['lastname'] . $this->sort_separator . $given;
-              break;
-            default:
-              $text = $given . ' ' . $name['lastname'] ;
+        if (isset($name['initials'])) {
+          // within initials, remove any dots:
+          $name['initials'] = preg_replace("/([$this->upper])\.+/$this->patternModifiers", "\\1", $name['initials']);
+          // within initials, remove any spaces *between* initials:
+          $name['initials'] = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $name['initials']);
+          if (isset($this->citeproc->style)  && $this->citeproc->style->{'initialize-with-hyphen'} == 'false') {
+            $name['initials'] = preg_replace("/-/", '', $name['initials']);
+          }
+          // within initials, add a space after a hyphen, but only if ...
+          if (preg_match("/ $/", $initialize_with)) {// ... the delimiter that separates initials ends with a space
+            $name['initials'] = preg_replace("/-(?=[$this->upper])/$this->patternModifiers", "- ", $name['initials']);
+          }
+          // then, separate initials with the specified delimiter:
+          $name['initials'] = preg_replace("/([$this->upper])(?=[^$this->lower]+|$)/$this->patternModifiers", "\\1$initialize_with", $name['initials']);
+          //      $shortenInitials = (isset($options['numberOfInitialsToKeep'])) ? $options['numberOfInitialsToKeep'] : FALSE;
+          //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
+          if (isset($initialize_with)) {
+            $name['firstname'] = $name['initials'];
+            // if ($shortenInitials) $name['firstname'] = drupal_substr($name['firstname'], 0, $shortenInitials);
+          }
+          elseif (!empty($name['firstname'])) {
+            $name['firstname'] = $name['firstname'] . ' ' . $name['initials'];
+          }
+          elseif (empty($name['firstname'])) {
+            $name['firstname'] = $name['initials'];
           }
         }
-        $name['name'] = $text;
-        if (variable_get('biblio_author_links', 1)) {
-          $text = theme('biblio_author_link', array('author' => $name));
-          //$text = $this->author_link($name);
+        $given = $this->format($name['firstname'], 'given');
+        if (isset($name['lastname'])) {
+          if (!empty($name['prefix'])) {
+            $name['lastname'] = $name['prefix'] . ' ' . $name['lastname'];
+          }
+          if (!empty($name['suffix'])) {
+            $name['lastname'] = $name['lastname'] . ', ' . $name['suffix'];
+          }
+
+          $name['lastname'] = $this->format($name['lastname'], 'family');
+          if ($this->form == 'short') {
+            $text = $name['lastname'];
+          }
+          else {
+            switch ($this->{'name-as-sort-order'}) {
+              case 'first':
+              case 'all':
+                $text = $name['lastname'] . $this->sort_separator . $given;
+                break;
+              default:
+                $text = $given . ' ' . $name['lastname'] ;
+            }
+          }
+          $name['name'] = $text;
         }
-
-        $authors[] = $this->format($text);
-
       }
+      if (variable_get('biblio_author_links', 1)) {
+        $text = theme('biblio_author_link', array('author' => $name));
+        //$text = $this->author_link($name);
+      }
+
+      $authors[] = $this->format($text);
+
       if (isset($this->{'et-al-min'}) && $count >= $this->{'et-al-min'}) break;
     }
     if (isset($this->{'et-al-min'}) &&
@@ -806,7 +803,7 @@ class csl_names extends csl_format {
     $variables  = explode(' ', $this->variable);
     foreach ($variables as $var) {
       list($contributor, $category) = explode(':', $var);
-      if ($this->_get_category($data->{$contributor}, $category) ) {
+      if (!empty($contributor) && $this->_get_category($data->{$contributor}, $category) ) {
         $matches++;
         break;
       }
@@ -819,7 +816,7 @@ class csl_names extends csl_format {
             $variables  = explode(' ', $element->variable);
             foreach ($variables as $var) {
               list($contributor, $category) = explode(':', $var);
-              if ($this->_get_category($data->{$contributor}, $category)) {
+              if (!empty($contributor) && $this->_get_category($data->{$contributor}, $category)) {
                 $matches++;
                 break;
               }
@@ -835,7 +832,7 @@ class csl_names extends csl_format {
     foreach ($variables as $var) {
       $text = '';
       list($contributor, $category) = explode(':', $var);
-      if ($authors = $this->_get_category($data->{$contributor}, $category)) {
+      if (!empty($contributor) && $authors = $this->_get_category($data->{$contributor}, $category)) {
         foreach ($this->elements as $element) {
           if (is_a($element, 'csl_label')) {
             $data->{$var}['variable'] = $var;
@@ -1109,9 +1106,9 @@ class csl_text extends csl_format {
 
     switch ($this->source) {
       case 'variable':
-        if (!isset($data->{$this->variable})) return;
+        if (!isset($data->{$this->variable}) || empty($data->{$this->variable})) return;
         if ($this->variable == 'biblio_url') {
-          $text = l('URL...',  $data->{$this->variable});
+          $text = l($data->{$this->variable},  $data->{$this->variable});
         }
         else {
           $text = $data->{$this->variable}; //$this->data[$this->var];  // include the contents of a variable
@@ -1213,22 +1210,33 @@ class csl_group extends csl_format{
     $text = '';
     $text_parts = array();
 
-    $terms=0;
+    $terms = $variables = $have_variables = 0;
     foreach ($this->elements as $element) {
       if (($element instanceof csl_text) &&
           ($element->source == 'term' ||
-           $element->source == 'value' ||
-           $element->source == 'variable')) {
+           $element->source == 'value' )) {
         $terms++;
       }
+      if (($element instanceof csl_label)) $terms++;
+      if ($element->source == 'variable' &&
+          isset($element->variable) &&
+          !empty($data->{$element->variable})
+         ) {
+        $variables++;
+      }
+
       $text = $element->render($data, $mode);
+
       if (!empty($text)) {
         $text_parts[] = $text;
+        if ($element->source == 'variable' || isset($element->variable)) $have_variables++;
+        if ($element->source == 'macro') $have_variables++;
       }
     }
 
     if (empty($text_parts)) return;
-    if ($terms && count($text_parts) <= $terms) return; // there has to be at least one other none empty value before the term is output
+    if ($variables  && !$have_variables ) return; // there has to be at least one other none empty value before the term is output
+    if (count($text_parts) == $terms) return; // there has to be at least one other none empty value before the term is output
 
     $delimiter = $this->delimiter;
     $text = implode($delimiter, $text_parts); // insert the delimiter if supplied.
@@ -1375,20 +1383,20 @@ class csl_if extends csl_rendering_element {
           if ($data->biblio_type == $type) $matches++;
         }
       }
-      if ($match == 'all' && $matches = count($types)) return TRUE;
-      if ($match == 'none' && $matches = 0) return TRUE;
+      if ($match == 'all' && $matches == count($types)) return TRUE;
+      if ($match == 'none' && $matches == 0) return TRUE;
       return FALSE;
     }
     if (($variables = $this->variable)) {
       $variables  = explode(' ', $variables);
       $matches = 0;
       foreach ($variables as $var) {
-        if (isset($data->$var) && $match == 'any') return TRUE;
-        if (!isset($data->$var) && $match == 'all') return FALSE;
-        if (isset($data->$var)) $matches++;
+        if (isset($data->$var) && !empty($data->$var) && $match == 'any') return TRUE;
+        if ((!isset($data->$var) || empty($data->$var)) && $match == 'all') return FALSE;
+        if (isset($data->$var) && !empty($data->$var)) $matches++;
       }
-      if ($match == 'all' && $matches = count($variables)) return TRUE;
-      if ($match == 'none' && $matches = 0) return TRUE;
+      if ($match == 'all' && $matches == count($variables)) return TRUE;
+      if ($match == 'none' && $matches == 0) return TRUE;
       return FALSE;
     }
     if (($is_numeric = $this->{'is-numeric'})) {
@@ -1511,15 +1519,19 @@ class csl_locale  {
         $form = $arg2 ? " and @form='$arg2'" : '';
         $plural = $arg3 ? "/cs:$arg3" : '';
         if ($this->style_locale) {
-          $term = $this->style_locale->xpath("//locale[@xml:lang='en']/terms/term[@name='$arg1'$form]$plural");
+          $term = @$this->style_locale->xpath("//locale[@xml:lang='en']/terms/term[@name='$arg1'$form]$plural");
           if (!$term) {
-            $term = $this->style_locale->xpath("//locale/terms/term[@name='$arg1'$form]$plural");
+            $term = @$this->style_locale->xpath("//locale/terms/term[@name='$arg1'$form]$plural");
           }
         }
         if (!$term) {
           $term = $this->locale->xpath("//cs:term[@name='$arg1'$form]$plural");
         }
-        if (isset($term[0])) return (string)$term[0];
+        if (isset($term[0])){
+          if (isset($arg3) && isset($term[0]->{$arg3})) return (string)$term[0]->{$arg3};
+          if (!isset($arg3) && isset($term[0]->single)) return (string)$term[0]->single;
+          return (string)$term[0];
+        }
         break;
       case 'date_option':
         $attribs = array();
@@ -1591,72 +1603,16 @@ class csl_mapper {
 
   function map_field($field) {
     if (!isset($this->field_map)) {
-      $this->field_map = array('title' => 'title',
-                                'container-title' => 'biblio_secondary_title',
-                                'collection-title' => 'biblio_secondary_title',
-                                'original-title' => 'biblio_alternate_title',
-                                'publisher' => 'biblio_publisher',
-                                'publisher-place' => 'biblio_place_published',
-                                'original-publisher' => 'no_match',
-                                'original-publisher-place' => 'no_match',
-                                'archive' => 'no_match',
-                                'archive-place' => 'no_match',
-                                'authority' => 'no_match',
-                                'archive_location' => 'no_match',
-                                'event' => 'biblio_secondary_title',
-                                'event-place' => 'biblio_place_published',
-                                'page' => 'biblio_pages',
-                                'page-first' => 'no_match',
-                                'locator' => 'no_match',
-                                'version' => 'biblio_edition',
-                                'volume' => 'biblio_volume',
-                                'number-of-volumes' => 'biblio_number_of_volumes',
-                                'number-of-pages' => 'no_match',
-                                'issue' => 'biblio_issue',
-                                'chapter-number' => 'biblio_section',
-                                'medium' => 'no_match',
-                                'status' => 'no_match',
-                                'edition' => 'biblio_edition',
-                                'section' => 'biblio_section',
-                                'genre' => 'no_match',
-                                'note' => 'biblio_notes',
-                                'annote' => 'no_match',
-                                'abstract'  => 'biblio_abst_e',
-                                'keyword' => 'biblio_keywords',
-                                'number' => 'biblio_number',
-                                'references' => 'no_match',
-                                'URL' => 'biblio_url',
-                                'DOI' => 'biblio_doi',
-                                'ISBN' => 'biblio_isbn',
-                                'call-number' => 'biblio_call_number',
-                                'citation-number' => 'no_match',
-                                'citation-label' => 'biblio_citekey',
-                                'first-reference-note-number' => 'no_match',
-                                'year-suffix' => 'no_match',
-                                'jurisdiction' => 'no_match',
-
-      //Date Variables'
-
-                                'issued' => 'biblio_year',
-                                'event' => 'biblio_date',
-                                'accessed' => 'biblio_accessed',
-                                'container' => 'biblio_date',
-                                'original-date' => 'biblio_date',
-
-      //Name Variables'
-
-                                'author' => 'biblio_contributors:1',
-                                'editor' => 'biblio_contributors:2',
-                                'translator' => 'biblio_contributors:3',
-                                'recipient' => 'no_match',
-                                'interviewer' => 'biblio_contributors:1',
-                                'publisher' => 'biblio_publisher',
-                                'composer' => 'biblio_contributors:1',
-                                'original-publisher' => '',
-                                'original-author' => '',
-                                'container-author' => '',
-                                'collection-editor' => '',
-      );
+      $this->field_map = biblio_get_map('field_map', 'csl');
+      $this->field_map = array_merge($this->field_map, array(
+          'author'                      => 'biblio_contributors:1',
+          'editor'                      => 'biblio_contributors:2',
+          'translator'                  => 'biblio_contributors:3',
+          'recipient'                   => ':',
+          'interviewer'                 => ':',
+          'publisher'                   => 'biblio_publisher:',
+          'composer'                    => ':',
+      ));
     }
     $vars = explode(' ', $field);
     foreach ($vars as $key => $value) {
@@ -1668,42 +1624,7 @@ class csl_mapper {
 
   function map_type($types) {
     if (!isset($this->type_map)) {
-      $this->type_map = array(
-                        'article' => '',
-                        'article-magazine'  => 106,
-                        'article-newspaper' => 105,
-                        'article-journal' => 102,
-                        'bill' => 117,
-                        'book'  => 100,
-                        'broadcast' => 111,
-                        'chapter' => 101,
-                        'entry' => '',
-                        'entry-dictionary'  => '',
-                        'entry-encyclopedia'  => '',
-                        'figure'  => '',
-                        'graphic'  => '',
-                        'interview'  => '',
-                        'legislation' => 118,
-                        'legal_case' => 128,
-                        'manuscript' => 121,
-                        'map' => 122,
-                        'motion_picture' => 110,
-                        'musical_score'  => '',
-                        'pamphlet'  => '',
-                        'paper-conference' => 103,
-                        'patent' => 119,
-                        'post'  => '',
-                        'post-weblog'  => '',
-                        'personal\_communication' => 120,
-                        'report' => 109,
-                        'review'  => '',
-                        'review-book'  => '',
-                        'song'  => '',
-                        'speech'  => '',
-                        'thesis' => 108,
-                        'treaty'  => '',
-                        'webpage' => 107,
-      );
+      $this->type_map = biblio_get_map('type_map', 'csl');
     }
     $vars = explode(' ', $types);
     foreach ($vars as $key => $value) {

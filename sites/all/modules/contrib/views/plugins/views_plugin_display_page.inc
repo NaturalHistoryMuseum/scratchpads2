@@ -167,7 +167,7 @@ class views_plugin_display_page extends views_plugin_display {
               'page arguments' => $page_arguments,
               // Default access check (per display)
               'access callback' => 'views_access',
-              'access arguments' => array($access_plugin->get_access_callback()),
+              'access arguments' => $access_arguments,
               // Identify URL embedded arguments and correlate them to a handler
               'load arguments'  => array($this->view->name, $this->display->id, '%index'),
               'title' => $tab_options['title'],
@@ -212,11 +212,14 @@ class views_plugin_display_page extends views_plugin_display {
 
     $this->view->get_breadcrumb(TRUE);
 
-    // And the title, which is much easier.
-    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
 
     // And now render the view.
-    return $this->view->render();
+    $render = $this->view->render();
+
+    // First execute the view so it's possible to get tokens for the title.
+    // And the title, which is much easier.
+    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
+    return $render;
   }
 
   /**

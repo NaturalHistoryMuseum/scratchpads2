@@ -4,18 +4,28 @@ function biblio_citeproc_style_manager_form($form, &$form_state) {
   $options = array();
 
   if ($has_curl = function_exists('curl_init')) {
-    module_load_include('php', 'biblio_citeproc', '/Github/Autoloader');
-    Github_Autoloader::register();
-    $github = new Github_Client();
-    $branches = $github->getRepoApi()->getRepoBranches('citation-style-language', 'styles');
-    $tree = $github->getObjectApi()->listBlobs('citation-style-language', 'styles', $branches['master']);
+    $cache = cache_get('github_csl_repo');
+    if (!$cache || $cache->expire < time()) {
+      module_load_include('php', 'biblio_citeproc', '/Github/Autoloader');
+      Github_Autoloader::register();
+      $github = new Github_Client();
+      $branches = $github->getRepoApi()->getRepoBranches('citation-style-language', 'styles');
+      $tree = $github->getObjectApi()->listBlobs('citation-style-language', 'styles', $branches['master']);
 
-    $tree = array_flip($tree);
-    $options = array();
-    foreach ($tree as $sha => $file) {
-      if (strstr($file, '.csl')) {
-        $options[$sha] =  basename($file);
+      $tree = array_flip($tree);
+      $options = array();
+      foreach ($tree as $sha => $file) {
+        if (strstr($file, '.csl')) {
+          $options[$sha] =  basename($file);
+        }
       }
+      if (!empty($options)) {
+        $expire = time()+86400; //one day from now
+        cache_set('github_csl_repo', $options, 'cache', $expire);
+      }
+    }
+    else {
+      $options = $cache->data;
     }
   }
 
@@ -98,15 +108,21 @@ function theme_biblio_citeproc_style_manager_form($variables) {
   $form = $variables['form'];
   $rows = array();
   $rows[] = array(
+            array('data' => t('Current default style')),
+            array('data' => '<b>' . drupal_render($form['current_default']) . '</b>'),
+            );
+  $rows[] = array(
+            array('data' => t('Example citation:')),
+            array('data' => biblio_citeproc_example_citation()));
+  $output = theme('table', array('rows' => $rows));
+  $rows = array();
+  $rows[] = array(
             array('data' => drupal_render($form['installed_styles']) . '<br>' . drupal_render($form['default'])),
             array('data' => drupal_render($form['install']) . '<br>' . drupal_render($form['remove'])),
             array('data' => drupal_render($form['avialable_styles']) . '<br>' . drupal_render($form['install_all'])),
             );
-  $rows[] = array(
-            array('data' => t('Current default style') . ': <b>' . drupal_render($form['current_default']) . '</b>', 'colspan' => array(3)),
+  $output .= theme('table', array('rows' => $rows));
 
-            );
-  $output = theme('table', array('rows' => $rows));
   $output .= drupal_render_children($form);
   return $output;
 
@@ -160,12 +176,12 @@ function biblio_citeproc_style_manager_form_submit($form, &$form_state) {
       'file' => './' . drupal_get_path('module', 'biblio_citeproc') . '/biblio_citeproc.admin.inc'
     );
     batch_set($batch_op);
-    batch_process('admin/config/biblio/styles');
+    batch_process('admin/config/content/biblio/styles');
 
   }
 
 }
-function _install_csl($name, $csl, $sha = NULL) {
+function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
   static  $installed = array();
 
   if (empty($installed)) {
@@ -189,13 +205,19 @@ function _install_csl($name, $csl, $sha = NULL) {
       $parent = (string)$attrs['href'];
     }
   }
+  if (!$all && !empty($parent)) {
+    $csl_file_contents = db_query("SELECT csl FROM biblio_citeproc_styles WHERE id = :parent", array(':parent' => $parent))->fetchField();
+    if (!$csl_file_contents) {
+      drupal_set_message(t('You do not have the parent style file: !parent_id installed. You must install !parent_id before you can use !csl_id', array('!parent_id' => basename($parent), '!csl_id' => $name)), 'error');
+    }
+  }
 
   $sha1 = (isset($sha)) ? $sha : sha1($csl);
 
   $record  = array(
     'filename' => $name,
     'parent'   => $parent,
-    'title'    => (string)$xml->info->title,
+    'title'    => trim((string)$xml->info->title),
     'summary'  => (string)$xml->info->summary,
     'csl'      => $csl,
     'sha1'     => $sha1,
@@ -248,7 +270,7 @@ function _install_from_zip(&$context = NULL) {
       $name = basename($name);
       if (strstr($name, '.csl')) {
         $csl = $za->getFromIndex($i);
-        _install_csl($name, $csl);
+        _install_csl($name, $csl, NULL, TRUE);
         $context['results']['install_count']++;
       }
       $context['sandbox']['progress']++;
@@ -260,8 +282,48 @@ function _install_from_zip(&$context = NULL) {
     }
   }
 }
+
 function _csl_import_batch_finished($success, $results, $operations) {
   $destination = variable_get('github_zip', '');
   file_unmanaged_delete($destination);
   variable_del('github_zip');
+}
+function biblio_citeproc_example_citation() {
+  global $language;
+  $contributors = array(
+    0 => array(
+      'lastname' => 'Oneauth',
+      'firstname' => 'Joe',
+      'initials' => 'A',
+      'auth_category' => 1,
+      'cid' => -1),
+    1 => array(
+      'lastname' => 'Twoauth',
+      'firstname' => 'John',
+      'initials' => 'B',
+      'auth_category' => 1,
+      'cid' => -2),
+  );
+  $node = new stdClass();
+  $node->nid = -1;
+  $node->title                  = 'This is a fantasic title.';
+  $node->biblio_contributors    = $contributors;
+  $node->biblio_type            = 102;
+  $node->biblio_year            = 2010;
+  $node->biblio_volume          = 1;
+  $node->biblio_issue           = 2;
+  $node->biblio_secondary_title = 'Journal of Fantastic Articles';
+  $node->biblio_pages           = '	424-31';
+  $node->biblio_coins           = '';
+  return theme_biblio_citeproc_style(array('node' => $node));
+
+}
+function biblio_citeproc_csl_editor() {
+//  <script type="text/javascript" src="js/ext/jquery-1.4.js"></script>
+  drupal_add_js(drupal_get_path('module', 'biblio_citeproc') . 'js/ext/jquery-color.js');
+  drupal_add_js(drupal_get_path('module', 'biblio_citeproc') . '/js/ext/GLR/GLR.js');
+  drupal_add_js(drupal_get_path('module', 'biblio_citeproc') . '/js/ext/GLR/GLR.messenger.js');
+  drupal_add_js(drupal_get_path('module', 'biblio_citeproc') . '/js/loc/xmlEditor.js');
+  drupal_add_css(drupal_get_path('module', 'biblio_citeproc') . '/css/main.css');
+
 }

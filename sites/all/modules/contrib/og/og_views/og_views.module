@@ -1,0 +1,129 @@
+<?php
+
+
+/**
+ * @file
+ * Views integration for the Organic groups module.
+ */
+
+/**
+ * Group register field.
+ */
+define('OG_VIEWS_FIELD', 'og_views');
+
+/**
+ * Implements hook_menu().
+ */
+function og_views_menu() {
+  $items = array();
+
+  $items['admin/config/group/group-views'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_views_settings'),
+    'title' => 'Group views settings',
+    'access arguments' => array('administer site configuration'),
+    'description' => 'Configure group views.',
+    'file' => 'og_views.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements of hook_views_api().
+ */
+function og_views_views_api() {
+  return array(
+    'api' => 2,
+  );
+}
+
+/**
+ * Implement hook_field_formatter_info().
+ */
+function og_views_field_formatter_info() {
+  return array(
+    'og_views_default' => array(
+      'label' => t('Group Views'),
+      'field types' => array('list_text'),
+    ),
+  );
+}
+
+/**
+ * Implement og_fields_info().
+ */
+function og_views_og_fields_info() {
+  $items[OG_VIEWS_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Add Group Views field to fieldable entities that are groups.'),
+    'field' => array(
+      'field_name' => OG_VIEWS_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_text',
+      'cardinality' => 1,
+      'settings' => array('allowed_values' => array(), 'allowed_values_function' => 'og_views_field_allowed_values'),
+    ),
+    'instance' => array(
+      'label' => t('Groups views'),
+      'widget_type' => 'options_select',
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'og_views_default',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'og_views_default',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+
+/**
+ * Get all the Views.
+ *
+ * @param $include_global
+ *   TRUE if the "global" option should be added to the Views list.
+ */
+function og_views_field_allowed_values($include_global = TRUE) {
+  $return = array();
+
+  // Add "global" views option.
+  if ($include_global) {
+    $return['__global'] = t('Use site-wide Views definition');
+  }
+  foreach (views_get_all_views() as $view_id => $view) {
+    if (empty($view->disabled)) {
+      $view_name = check_plain($view->name);
+      foreach($view->display as $display) {
+        $return[$view_id . ' ' .$display->id] = $view_name . ' (' . check_plain($display->display_title) .')';
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function og_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  if ($field['field_name'] == OG_VIEWS_FIELD && !empty($entity->{OG_VIEWS_FIELD}[LANGUAGE_NONE][0]['value'])) {
+    $view = $entity->{OG_VIEWS_FIELD}[LANGUAGE_NONE][0]['value'] == '__global' ? variable_get('og_views_global_view', 'og_nodes') : $entity->{OG_VIEWS_FIELD}[LANGUAGE_NONE][0]['value'];
+    if ($view = explode(' ', $view)) {
+      list($etid) = entity_extract_ids($entity_type, $entity);
+      $group = og_get_group($entity_type, $etid);
+      $element[0] = array('#markup' => views_embed_view($view[0], !empty($view[1]) ? $view[1] : 'default', !empty($group) ? $group->gid : ''));
+    }
+  }
+
+  return $element;
+}

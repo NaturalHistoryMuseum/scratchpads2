@@ -125,7 +125,7 @@ function gm3_region_get_points($region_ids){
       if($row){
         $polygons = $wkb_reader->read($row->binary_polygons, TRUE);
         $polygons = $polygons->out('json');
-        $polygons = '{"' . $region_id . '":' . $polygons . '}';
+        $polygons = '{"' . $region_id . '":{"name":"'.$row->name.'","shape":' . $polygons . '}}';
       }
       cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{

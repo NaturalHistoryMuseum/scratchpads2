@@ -126,6 +126,7 @@ function _reset_bibtex_map($type) {
   $count = db_query("SELECT COUNT(*)  FROM {biblio_type_maps} WHERE format='bibtex'")->fetchField();
   if ($count && $type) { //update
     $function = '_get_bibtex_' . $type;
+    if (!function_exists($function)) return;
     $map = $function();
     db_update('biblio_type_maps')
       ->fields($map)
@@ -145,8 +146,20 @@ function biblio_bibtex_schema() {
   $schema['biblio_bibtex'] = array(
     'fields' => array(
       'nid'       => array('type' => 'int', 'not null' => TRUE),
-      'biblio_bibtex_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE)),
+      'biblio_bibtex_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
+      'biblio_bibtex_id' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
+  ),
   'primary key' => array('nid'),
   );
   return $schema;
 }
+
+function biblio_bibtex_update_7001() {
+  if (!db_field_exists('biblio_bibtex', 'biblio_bibtex_id')) {
+    $spec = array('type' => 'varchar', 'length' => 255, 'not null' => FALSE);
+    db_add_field('biblio_bibtex', 'biblio_bibtex_id', $spec);
+  }
+}
+
+
+

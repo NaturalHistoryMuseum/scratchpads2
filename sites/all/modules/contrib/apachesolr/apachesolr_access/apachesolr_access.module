@@ -4,7 +4,7 @@
  * Implements apachesolr_update_index
  */
 function apachesolr_access_apachesolr_update_index(&$document, $node, $namespace) {
-  static $account;
+  $account = &drupal_static(__FUNCTION__);
 
   if (!isset($account)) {
     // Load the anonymous user.
@@ -15,7 +15,8 @@ function apachesolr_access_apachesolr_update_index(&$document, $node, $namespace
     // Get node access grants.
     $result = db_query('SELECT * FROM {node_access} WHERE (nid = 0 OR nid = :nid) AND grant_view = 1', array(':nid' => $node->nid));
     foreach ($result as $grant) {
-      $key = 'access_node_' . apachesolr_site_hash() . '_' . $grant->realm;
+      $grant_realm = apachesolr_access_clean_realm_name($grant->realm);
+      $key = 'access_node_' . apachesolr_site_hash() . '_' . $grant_realm;
       $document->setMultiValue($key, $grant->gid);
     }
   }
@@ -38,38 +39,38 @@ function apachesolr_access_build_subquery($account) {
   if (!user_access('access content', $account)) {
     throw new Exception('No access');
   }
-  $node_access_query = apachesolr_drupal_query();
+  $node_access_query = new SolrFilterSubQuery();
   if (user_access('bypass node access', $account)) {
     // Access all content from the current site, or public content.
-    $node_access_query->add_filter('access__all', 0);
-    $node_access_query->add_filter('hash', apachesolr_site_hash());
+    $node_access_query->addFilter('access__all', 0);
+    $node_access_query->addFilter('hash', apachesolr_site_hash());
   }
   else {
     // Get node access grants.
     $grants = node_access_grants('view', $account);
     foreach ($grants as $realm => $gids) {
+      $realm = apachesolr_access_clean_realm_name($realm);
       foreach ($gids as $gid) {
-        $node_access_query->add_filter('access_node_' . apachesolr_site_hash() . '_' . $realm, $gid);
+        $node_access_query->addFilter('access_node_' . apachesolr_site_hash() . '_' . $realm, $gid);
       }
     }
-    $node_access_query->add_filter('access__all', 0);
+    $node_access_query->addFilter('access__all', 0);
   }
   return $node_access_query;
 }
 
 /**
- * Implements hook_apachesolr_modify_query().
+ * Implements hook_apachesolr_query_alter().
  */
-function apachesolr_access_apachesolr_modify_query(DrupalSolrQueryInterface $query, $caller = 'apachesolr_search') {
+function apachesolr_access_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
   global $user;
   try {
     $subquery = apachesolr_access_build_subquery($user);
-    $query->add_subquery($subquery, 'OR');
+    $query->addFilterSubQuery($subquery);
   }
   catch (Exception $e) {
     watchdog("apachesolr_access", 'User %name (UID:!uid) cannot search: @message', array('%name' => $user->name, '!uid' => $user->uid, '@message' => $e->getMessage()));
-    // Returning TRUE aborts the search.
-    return TRUE;
+    $query->abort_search = TRUE;
   }
 }
 
@@ -125,4 +126,11 @@ function apachesolr_access_rebuild_nodeaccess(&$form, $form_state) {
 
 function apachesolr_access_enable() {
   drupal_set_message(t('Your content <a href="@url">must be re-indexed</a> before Apache Solr Access will be functional on searches.', array('@url' => url('admin/config/search/apachesolr/index'))), 'warning');
+}
+
+/**
+ * Helper function - return a safe (PHP identifier) realm name.
+ */
+function apachesolr_access_clean_realm_name($realm) {
+  return preg_replace('/[^a-zA-Z0-9_\x7f-\xff]/', '_', $realm);
 }

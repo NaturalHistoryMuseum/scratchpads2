@@ -35,16 +35,16 @@ files packaged with this module in that directory.
 This module will auto-install the required database tables the first time you 
 enable it on the admin/modules page.   This will also setup a number of pre-defined 
 publication types.  These types can be changed or deleted on the 
-admin/config/biblio/types page.
+admin/config/content/biblio/types page.
 
 
 Settings:
 =========
-A number of settings are available at admin/config/biblio.  They control how 
+A number of settings are available at admin/config/content/biblio.  They control how 
 the author names are displayed, whether export links are added to pages and the
 number of entries per page to display.
 
-The admin/config/biblio/types page allows the the site administrator to set
+The 'admin/config/content/biblio/fields' page allows the the site administrator to set
 the default field titles and set which fields are common to all publication 
 types.  When a new publication type is added, it will contain all the common 
 fields and any that are specifically activated (custom is checked).  This also
@@ -59,10 +59,9 @@ import from file.
 Adding/importing records:
 =========================
 Bibliographic entries can be added to the database in one of two ways, individualy
-from the node/add/biblio link, or by importing records from Endnote in "Tagged" or
-XML file format, also BibTex files can be imported on this page.  Administrators 
-can go to admin/config/biblio/import and fill in the form to upload and import 
-of an Endnote and BibTex files.
+from the node/add/biblio link, or by importing records from one of the supported file 
+formats.  Administrators can go to 'admin/config/content/biblio/import' and fill in 
+the form to upload and import publication data from files.
 
 
 Features:

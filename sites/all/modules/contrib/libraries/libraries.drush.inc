@@ -54,36 +54,31 @@ function libraries_drush_list() {
   }
 
   else {
-    $header = array('Name', 'Status', 'Version', 'Variants');
     $rows = array();
+    // drush_print_table() automatically treats the first row as the header, if
+    // $header is TRUE.
+    $rows[] = array(dt('Name'), dt('Status'), dt('Version'), dt('Variants'), dt('Dependencies'));
     foreach ($libraries as $name => $library) {
-      // Status and version
-      if ($library['installed']) {
-        $status = 'OK';
-        $version = $library['version'];
-      }
-      else {
-        $status = drupal_ucfirst($library['error']);
-        $version = (empty($library['version']) ? '-' : $library['version']);
-      }
-      // Variants
+      $status = ($library['installed'] ? dt('OK') : drupal_ucfirst($library['error']));
+      $version = (($library['installed'] && !empty($library['version'])) ? $library['version'] : '-');
+
+      // Only list installed variants.
       $variants = array();
       foreach ($library['variants'] as $variant_name => $variant) {
         if ($variant['installed']) {
           $variants[] = $variant_name;
         }
       }
-      if (empty($variants)) {
-        $variants = '-';
-      }
-      else {
-        $variants = implode(', ', $variants);
-      }
+      $variants = (empty($variants) ? '-' : implode(', ', $variants));
 
-      $rows[] = array($name, $status, $version, $variants);
+      $dependencies = (!empty($library['dependencies']) ? implode(', ', $library['dependencies']) : '-');
+
+      $rows[] = array($name, $status, $version, $variants, $dependencies);
     }
-    $table = new Console_Table();
-    drush_print($table->fromArray($header, $rows));
+    // Make the possible values for the 'Status' column and the 'Version' header
+    // wrap nicely.
+    $widths = array(0, 12, 7, 0, 0);
+    drush_print_table($rows, TRUE, $widths);
   }
 }
 

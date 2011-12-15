@@ -14,7 +14,7 @@ if($last_modified > variable_get('leftandright_' . $filename . '_last_modified',
   // them (this allows them to be used if still required).
   $functions_to_replace = array(
     'taxonomy_get_tree',
-    'taxonomy_get_children'
+    //'taxonomy_get_children'
   );
   foreach($functions_to_replace as $function){
     $taxonomy_module_string = str_replace('function ' . $function . '(', 'function ' . $function . '_original(', $taxonomy_module_string);

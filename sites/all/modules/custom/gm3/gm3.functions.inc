@@ -19,7 +19,7 @@ function gm3_convert_polygon_string($poly_string){
       $poly_string = str_replace(")", "", $poly_string);
       $lat_longs = explode(",", $poly_string);
       foreach($lat_longs as $index => $lat_long){
-        $lat_long_parts = explode(" ", $lat_long);
+        $lat_long_parts = explode(" ", trim($lat_long));
         $lat_longs[$index] = array(
           $lat_long_parts[0],
           $lat_long_parts[1]

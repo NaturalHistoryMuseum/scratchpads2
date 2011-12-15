@@ -1,6 +1,17 @@
 
 Libraries 7.x-2.x, xxxx-xx-xx
 -----------------------------
+#1323530 by tstoeckler: Document libraries_get_version() pattern matching.
+#1325524 by sun, Rob Loach, tstoeckler: Statically cache libraries_detect().
+#1321372 by Rob Loach: Provide a 'post-load' callback group.
+#1205854 by tstoeckler, sun: Test library caching.
+
+
+Libraries 7.x-2.0-ALPHA1, 2011-10-01
+------------------------------------
+#1268342 by tstoeckler: Clean up drush libraries-list command.
+#962214 by tstoeckler, sun: Add support for library dependencies.
+#1224838 by sun, mjpa: Fix library path not being prepended to JS/CSS files.
 #1023258 by tstoeckler: Make 'files' consistently keyed by filename.
 #958162 by sun, tstoeckler: Add pre-detect callback group.
 #958162 by sun, tstoeckler: Make tests debuggable and provide libraries_info_defaults().

@@ -22,13 +22,62 @@
  * FIXME - Drag'n'dropped points are not updated.
  */
 /**
+ * Implementation of hook_theme().
+ */
+function gm3_field_theme(){
+  return array(
+    'gm3_point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'gm3_rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'point_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polygon_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'polyline_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    ),
+    'rectangle_text' => array(
+      'variables' => array(
+        'data' => array()
+      )
+    )
+  );
+}
+
+/**
  * Implementation of hook_field_info().
  */
 function gm3_field_field_info(){
   $options = array(
     'gm3_point' => 'Point',
     'gm3_polygon' => 'Polygon',
-    'gm3_polyline' => 'Polyline'
+    'gm3_polyline' => 'Polyline',
+    'gm3_rectangle' => 'Rectangle'
   );
   drupal_alter('gm3_combination_field_options', $options);
   return array(
@@ -50,6 +99,12 @@ function gm3_field_field_info(){
       'default_widget' => 'gm3_polyline_gm3',
       'default_formatter' => 'gm3_entity_map'
     ),
+    'gm3_rectangle' => array(
+      'label' => t('Geo: Rectangle'),
+      'description' => t('This field stores a rectangle.'),
+      'default_widget' => 'gm3_rectangle_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    ),
     'gm3_combination' => array(
       'label' => t('Geo: Super-combo'),
       'description' => t('Allows for the storage of any geographical data. Including points, lines, areas, lists of regions, and addresses'),
@@ -69,7 +124,8 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
       $options = array(
         'gm3_point' => 'Point',
         'gm3_polygon' => 'Polygon',
-        'gm3_polyline' => 'Polyline'
+        'gm3_polyline' => 'Polyline',
+        'gm3_rectangle' => 'Rectangle'
       );
       drupal_alter('gm3_combination_field_options', $options);
       return array(
@@ -93,36 +149,44 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
   switch($field['type']){
     case 'gm3_point':
       $new_items = array();
-      _gm3_field_get_array_from_points_string($items[0], $new_items);
+      if(count($items)){
+        _gm3_field_get_array_from_points_string($items[0], $new_items);
+      }
       $items = $new_items;
       break;
+    case 'gm3_rectangle':
     case 'gm3_polygon':
     case 'gm3_polyline':
       $new_items = array();
-      _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      if(count($items)){
+        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      }
       $items = $new_items;
       break;
     case 'gm3_combination':
       $new_items = array();
-      foreach($items[0]['children'] as $type => $value){
-        switch($type){
-          case 'gm3_point':
-            _gm3_field_get_array_from_points_string($value, $new_items, 'point');
-            break;
-          case 'gm3_polygon':
-          case 'gm3_polyline':
-            _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
-            break;
-          default:
-            // Here we have a field that was not defined by this module, we use the 
-            // name of the module, plus the name of the type plus view to get the name
-            // of the function to call
-            // "{$field['module']}_{$field['type']}_view()"
-            if(function_exists("{$type}_gm3_combination_insert")){
-              $function_name = "{$type}_gm3_combination_insert";
-              $function_name($new_items, $value);
-            }
-            break;
+      if(count($items)){
+        foreach($items[0]['children'] as $type => $value){
+          switch($type){
+            case 'gm3_point':
+              _gm3_field_get_array_from_points_string($value, $new_items, 'point');
+              break;
+            case 'gm3_rectangle':
+            case 'gm3_polygon':
+            case 'gm3_polyline':
+              _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
+              break;
+            default:
+              // Here we have a field that was not defined by this module, we use the 
+              // name of the module, plus the name of the type plus view to get the name
+              // of the function to call
+              // "{$field['module']}_{$field['type']}_view()"
+              if(function_exists("{$type}_gm3_combination_insert")){
+                $function_name = "{$type}_gm3_combination_insert";
+                $function_name($new_items, $value);
+              }
+              break;
+          }
         }
       }
       $items = $new_items;
@@ -131,7 +195,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
 }
 
 /**
- * Helper function to get values from a polygon/polyline string
+ * Helper function to get values from a polygon/polyline/rectangle string
  */
 function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $type = FALSE){
   if(strlen(trim($value))){
@@ -215,6 +279,22 @@ function gm3_field_library(){
         )
       )
     ),
+    'field_rectangle' => array(
+      'title' => t('Google Maps Javascript API V3: Rectangle field'),
+      'website' => 'http://code.google.com/apis/maps/',
+      'version' => '3',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_rectangle$min.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.rectangle'
+        )
+      )
+    ),
     'field_polyline' => array(
       'title' => t('Google Maps Javascript API V3: Polyline field'),
       'website' => 'http://code.google.com/apis/maps/',
@@ -275,6 +355,24 @@ function gm3_field_field_widget_info(){
         'gm3_polygon'
       )
     ),
+    'gm3_rectangle_gm3' => array(
+      'label' => t('Geo: Rectangle Google Map'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a Google map.'),
+      'field types' => array(
+        'gm3_rectangle'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_rectangle_text' => array(
+      'label' => t('Geo: Rectangle text'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered in a text box.'),
+      'field types' => array(
+        'gm3_rectangle'
+      )
+    ),
     'gm3_polyline_gm3' => array(
       'label' => t('Geo: Polyline Google Map'),
       'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a Google map.'),
@@ -329,6 +427,7 @@ function gm3_field_field_is_empty($item, $field){
     case 'gm3_point':
     case 'gm3_polygon':
     case 'gm3_polyline':
+    case 'gm3_rectangle':
       return !strlen(trim($item));
     case 'gm3_combination':
       foreach($item['children'] as $type => $value){
@@ -358,6 +457,9 @@ function gm3_field_field_formatter_info(){
         'gm3_polygon',
         'gm3_polyline',
         'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
       )
     ),
     'gm3_field_map' => array(
@@ -368,6 +470,9 @@ function gm3_field_field_formatter_info(){
         'gm3_polygon',
         'gm3_polyline',
         'gm3_combination'
+      ),
+      'settings' => array(
+        'display_convex_hull' => FALSE
       )
     ),
     'gm3_text' => array(
@@ -380,6 +485,103 @@ function gm3_field_field_formatter_info(){
       )
     )
   );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function gm3_field_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      return array(
+        'display_convex_hull' => array(
+          '#title' => t('Display convex hull of points.'),
+          '#type' => 'radios',
+          '#required' => TRUE,
+          '#default_value' => isset($instance['display'][$view_mode]['settings']['display_convex_hull']) ? $instance['display'][$view_mode]['settings']['display_convex_hull'] : 0,
+          '#options' => array(
+            t('NO'),
+            t('YES')
+          )
+        )
+      );
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function gm3_field_field_formatter_settings_summary($field, $instance, $view_mode){
+  switch($instance['display'][$view_mode]['type']){
+    case 'gm3_entity_map':
+    case 'gm3_field_map':
+      $summary = array();
+      if(!isset($instance['display'][$view_mode]['settings']['display_convex_hull']) || $instance['display'][$view_mode]['settings']['display_convex_hull']){
+        $summary[] = t('Display convex hull of points on the map.');
+      }else{
+        $summary[] = t('No convex hull will be displayed.');
+      }
+      return implode('<br />', $summary);
+  }
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_point_text($variables){
+  return array(
+    '#markup' => t('Longitude: %longitude, Latitude: %latitude', array(
+      '%longitude' => $variables['data']['longitude'],
+      '%latitude' => $variables['data']['latitude']
+    ))
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polygon_text($variables){
+  return array(
+    '#markup' => $variables['data']['polygon']
+  );
+}
+
+/**
+ * Themes for field types.
+ */
+function theme_gm3_polyline_text($variables){
+  return array(
+    '#markup' => $variables['data']['polyline']
+  );
+}
+
+/**
+ * Themes for field types.
+ * 
+ * Note, this is A LOT simpler than renaming every instance of "polygon" to
+ * "gm3_polygon", although I may do that in the future.
+ */
+function theme_gm3_rectangle_text($variables){
+  return array(
+    '#markup' => $variables['data']['rectangle']
+  );
+}
+
+function theme_point_text($variables){
+  return theme('gm3_point_text', $variables);
+}
+
+function theme_polygon_text($variables){
+  return theme('gm3_polygon_text', $variables);
+}
+
+function theme_polyline_text($variables){
+  return theme('gm3_polyline_text', $variables);
+}
+
+function theme_rectangle_text($variables){
+  return theme('gm3_rectangle_text', $variables);
 }
 
 /**
@@ -401,31 +603,56 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       break;
     case 'gm3_text':
     default:
-      // We return the element here!
-      break;
+      $elements = array();
+      switch($field['type']){
+        case 'gm3_combination':
+          foreach($items as $item){
+            $elements[] = theme($item['gm3_type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+        default:
+          foreach($items as $item){
+            $elements[] = theme($field['type'] . '_text', array(
+              'data' => $item
+            ));
+          }
+          break;
+      }
+      return $elements;
   }
   switch($field['type']){
     case 'gm3_point':
       if(count($items)){
+        // Set the items as not being editable.
+        foreach($items as $key => $item){
+          $items[$key]['editable'] = FALSE;
+        }
         $element = theme('gm3_map', array(
           'map' => array(
             'id' => $id,
             'libraries' => array(
               'point' => array(
-                'points' => $items
+                'points' => $items,
+                'convexhull' => $display['settings']['display_convex_hull']
               )
             )
           )
         ));
       }
       break;
+    case 'gm3_rectangle':
     case 'gm3_polyline':
     case 'gm3_polygon':
       module_load_include('functions.inc', 'gm3');
       if(count($items)){
         $polys = array();
         foreach($items as $key => $item){
-          $polys = array_merge($polys, gm3_convert_polygon_string($item[substr($field['type'], 4)]));
+          $polys[] = array(
+            substr($field['type'], 4) => array_pop(gm3_convert_polygon_string($item[substr($field['type'], 4)])),
+            'editable' => FALSE
+          );
         }
         $element = theme('gm3_map', array(
           'map' => array(
@@ -444,13 +671,17 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         'id' => $id,
         'libraries' => array(
           'point' => array(
-            'points' => array()
+            'points' => array(),
+            'convexhull' => $display['settings']['display_convex_hull']
           ),
           'polygon' => array(
             'polygons' => array()
           ),
           'polyline' => array(
             'polylines' => array()
+          ),
+          'rectangle' => array(
+            'rectangles' => array()
           )
         )
       );
@@ -458,15 +689,20 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       module_load_include('functions.inc', 'gm3');
       foreach($items as $item){
         switch($item['gm3_type']){
+          case 'rectangle':
           case 'polygon':
           case 'polyline':
-            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'] = array_merge($map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'], gm3_convert_polygon_string($item[$item['gm3_type']]));
+            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
+              $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
+              'editable' => FALSE
+            );
             $display_map = TRUE;
             break;
           case 'point':
             $map['libraries']['point']['points'][] = array(
               'latitude' => $item['latitude'],
-              'longitude' => $item['longitude']
+              'longitude' => $item['longitude'],
+              'editable' => FALSE
             );
             $display_map = TRUE;
             break;
@@ -568,6 +804,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       break;
     case 'gm3_polyline_gm3':
     case 'gm3_polygon_gm3':
+    case 'gm3_rectangle_gm3':
       $poly_type = explode("_", $instance['widget']['type']);
       $poly_type = $poly_type[1];
       $polys = array();
@@ -632,17 +869,20 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         $default_values = array(
           'point' => array(),
           'polygon' => array(),
-          'polyline' => array()
+          'polyline' => array(),
+          'rectangle' => array()
         );
         $default_values_string = array(
           'polygon' => '',
-          'polyline' => ''
+          'polyline' => '',
+          'rectangle' => ''
         );
         foreach($items as $item){
           if(isset($item['gm3_type'])){
             switch($item['gm3_type']){
               case 'polygon':
               case 'polyline':
+              case 'rectangle':
                 module_load_include('functions.inc', 'gm3');
                 if($default_values_string[$item['gm3_type']] != ''){
                   $default_values_string[$item['gm3_type']] .= "\n";
@@ -681,6 +921,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             break;
           case 'gm3_polygon':
           case 'gm3_polyline':
+          case 'gm3_rectangle':
             $poly_type = explode("_", $field_type);
             $poly_type = $poly_type[1];
             $map['libraries'][$poly_type][$poly_type . 's'] = $default_values[$poly_type];

@@ -16,7 +16,7 @@
  border-color:rgb(103, 138, 199);
  vertical-align:middle;	
 }
-.gm3_information p{
+.gm3_infobubble p, .gm3_information p{
  padding:0;
  margin:0;
 }

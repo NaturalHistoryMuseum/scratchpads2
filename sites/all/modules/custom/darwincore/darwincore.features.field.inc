@@ -1,11 +1,14 @@
 <?php
 
 /**
+ * @file
+ * darwincore.features.field.inc
+ */
+/**
  * Implementation of hook_field_default_fields().
  */
-function darwincore_field_default_fields() {
+function darwincore_field_default_fields(){
   $fields = array();
-
   // Exported field: 'node-location-field_continent_or_ocean'
   $fields['node-location-field_continent_or_ocean'] = array(
     'field_config' => array(
@@ -17,8 +20,8 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
@@ -37,12 +40,12 @@ function darwincore_field_default_fields() {
           'Pacific' => 'Pacific',
           'South-Central Pacific' => 'South-Central Pacific',
           'Southern America' => 'Southern America',
-          'Southwestern Pacific' => 'Southwestern Pacific',
+          'Southwestern Pacific' => 'Southwestern Pacific'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '1',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -55,32 +58,31 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => 2,
+          'weight' => 2
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_continent_or_ocean',
       'label' => 'Continent/Ocean',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '17'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_coordinate_system'
   $fields['node-location-field_coordinate_system'] = array(
     'field_config' => array(
@@ -92,22 +94,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -120,14 +122,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 6,
+          'weight' => 6
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_coordinate_system',
@@ -135,20 +137,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '7',
-      ),
-    ),
+        'weight' => '21'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_coordinate_uncertainty'
   $fields['node-location-field_coordinate_uncertainty'] = array(
     'field_config' => array(
@@ -162,7 +163,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -177,17 +178,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 8,
+          'weight' => 8
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_coordinate_uncertainty',
@@ -198,18 +199,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => ' m',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '9',
-      ),
-    ),
+        'weight' => '23'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_county'
   $fields['node-location-field_county'] = array(
     'field_config' => array(
@@ -221,22 +221,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -249,14 +249,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 4,
+          'weight' => 4
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_county',
@@ -264,20 +264,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '5',
-      ),
-    ),
+        'weight' => '19'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_geodetic_datum'
   $fields['node-location-field_geodetic_datum'] = array(
     'field_config' => array(
@@ -289,22 +288,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -317,14 +316,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 5,
+          'weight' => 5
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_geodetic_datum',
@@ -332,20 +331,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '6',
-      ),
-    ),
+        'weight' => '20'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_georeference_protocol'
   $fields['node-location-field_georeference_protocol'] = array(
     'field_config' => array(
@@ -357,22 +355,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -385,14 +383,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 10,
+          'weight' => 10
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_georeference_protocol',
@@ -400,20 +398,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '8',
-      ),
-    ),
+        'weight' => '22'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_georeference_remarks'
   $fields['node-location-field_georeference_remarks'] = array(
     'field_config' => array(
@@ -425,20 +422,20 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -451,14 +448,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 9,
+          'weight' => 9
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_georeference_remarks',
@@ -466,20 +463,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '10',
-      ),
-    ),
+        'weight' => '24'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_island'
   $fields['node-location-field_island'] = array(
     'field_config' => array(
@@ -491,22 +487,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -519,14 +515,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 3,
+          'weight' => 3
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_island',
@@ -534,20 +530,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '4',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_locality'
   $fields['node-location-field_locality'] = array(
     'field_config' => array(
@@ -559,20 +554,20 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -585,14 +580,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_locality',
@@ -600,20 +595,79 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '1',
-      ),
-    ),
+        'weight' => '15'
+      )
+    )
   );
-
+  // Exported field: 'node-location-field_map'
+  $fields['node-location-field_map'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_map',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'latitude' => array(
+          0 => 'latitude'
+        ),
+        'longitude' => array(
+          0 => 'longitude'
+        )
+      ),
+      'module' => 'gm3_field',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'gm3_point'
+    ),
+    'field_instance' => array(
+      'bundle' => 'location',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'gm3_field',
+          'settings' => array(
+            'display_convex_hull' => FALSE
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => 15
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_map',
+      'label' => 'Map',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'gm3_field',
+        'settings' => array(),
+        'type' => 'gm3_point_gm3',
+        'weight' => '1'
+      )
+    )
+  );
   // Exported field: 'node-location-field_max_depth'
   $fields['node-location-field_max_depth'] = array(
     'field_config' => array(
@@ -627,7 +681,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -642,17 +696,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 14,
+          'weight' => 14
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_max_depth',
@@ -663,18 +717,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => ' m',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '14',
-      ),
-    ),
+        'weight' => '27'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_max_elevation'
   $fields['node-location-field_max_elevation'] = array(
     'field_config' => array(
@@ -688,7 +741,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -703,17 +756,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 12,
+          'weight' => 12
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_max_elevation',
@@ -724,18 +777,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => ' m',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '12',
-      ),
-    ),
+        'weight' => '26'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_min_depth'
   $fields['node-location-field_min_depth'] = array(
     'field_config' => array(
@@ -749,7 +801,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -764,17 +816,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 13,
+          'weight' => 13
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_min_depth',
@@ -785,18 +837,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => ' m',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '13',
-      ),
-    ),
+        'weight' => '28'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_min_elevation'
   $fields['node-location-field_min_elevation'] = array(
     'field_config' => array(
@@ -810,7 +861,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -825,17 +876,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 11,
+          'weight' => 11
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_min_elevation',
@@ -846,18 +897,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => ' m',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '11',
-      ),
-    ),
+        'weight' => '25'
+      )
+    )
   );
-
   // Exported field: 'node-location-field_state_province'
   $fields['node-location-field_state_province'] = array(
     'field_config' => array(
@@ -869,22 +919,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'location',
@@ -897,14 +947,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
+          'weight' => 1
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_state_province',
@@ -912,20 +962,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '16'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_basis_of_record'
   $fields['node-specimen_observation-field_basis_of_record'] = array(
     'field_config' => array(
@@ -937,8 +986,8 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
@@ -951,12 +1000,12 @@ function darwincore_field_default_fields() {
           'Other Specimen' => 'Other Specimen',
           'Preserved Specimen' => 'Preserved Specimen',
           'Sound Recording' => 'Sound Recording',
-          'Still Image' => 'Still Image',
+          'Still Image' => 'Still Image'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '1',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -969,32 +1018,31 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => 1,
+          'weight' => 1
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_basis_of_record',
       'label' => 'Basis of record',
       'required' => 1,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '3'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_catalogue_number'
   $fields['node-specimen_observation-field_catalogue_number'] = array(
     'field_config' => array(
@@ -1006,22 +1054,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1034,14 +1082,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 4,
+          'weight' => 4
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_catalogue_number',
@@ -1049,20 +1097,19 @@ function darwincore_field_default_fields() {
       'required' => 1,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '6',
-      ),
-    ),
+        'weight' => '6'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_collection_code'
   $fields['node-specimen_observation-field_collection_code'] = array(
     'field_config' => array(
@@ -1074,22 +1121,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1102,14 +1149,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 3,
+          'weight' => 3
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_collection_code',
@@ -1117,20 +1164,19 @@ function darwincore_field_default_fields() {
       'required' => 1,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '5',
-      ),
-    ),
+        'weight' => '5'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_collector'
   $fields['node-specimen_observation-field_collector'] = array(
     'field_config' => array(
@@ -1142,29 +1188,29 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          '0' => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
         'referenceable_roles' => array(
-          '2' => 0,
-          '3' => 0,
+          2 => 0,
+          3 => 0
         ),
         'referenceable_status' => array(
-          '0' => 0,
-          '1' => 0,
-        ),
+          0 => 0,
+          1 => 0
+        )
       ),
       'translatable' => '1',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1177,32 +1223,31 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => 11,
+          'weight' => 11
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_collector',
       'label' => 'Collector',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '9',
-      ),
-    ),
+        'weight' => '9'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_collector_number'
   $fields['node-specimen_observation-field_collector_number'] = array(
     'field_config' => array(
@@ -1214,22 +1259,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1242,14 +1287,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 9,
+          'weight' => 9
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_collector_number',
@@ -1257,20 +1302,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '7',
-      ),
-    ),
+        'weight' => '7'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_count'
   $fields['node-specimen_observation-field_count'] = array(
     'field_config' => array(
@@ -1284,7 +1328,7 @@ function darwincore_field_default_fields() {
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'number_integer',
+      'type' => 'number_integer'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1299,17 +1343,17 @@ function darwincore_field_default_fields() {
             'decimal_separator' => '.',
             'prefix_suffix' => TRUE,
             'scale' => 0,
-            'thousand_separator' => ' ',
+            'thousand_separator' => ' '
           ),
           'type' => 'number_integer',
-          'weight' => 16,
+          'weight' => 16
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_count',
@@ -1320,18 +1364,17 @@ function darwincore_field_default_fields() {
         'min' => '',
         'prefix' => '',
         'suffix' => '',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '14',
-      ),
-    ),
+        'weight' => '14'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_date_collected'
   $fields['node-specimen_observation-field_date_collected'] = array(
     'field_config' => array(
@@ -1347,15 +1390,15 @@ function darwincore_field_default_fields() {
         'granularity' => array(
           'day' => 'day',
           'month' => 'month',
-          'year' => 'year',
+          'year' => 'year'
         ),
         'repeat' => 0,
         'timezone_db' => '',
         'todate' => 'optional',
-        'tz_handling' => 'none',
+        'tz_handling' => 'none'
       ),
       'translatable' => '1',
-      'type' => 'date',
+      'type' => 'date'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1371,17 +1414,17 @@ function darwincore_field_default_fields() {
             'multiple_from' => '',
             'multiple_number' => '',
             'multiple_to' => '',
-            'show_repeat_rule' => 'show',
+            'show_repeat_rule' => 'show'
           ),
           'type' => 'date_default',
-          'weight' => 12,
+          'weight' => 12
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_date_collected',
@@ -1393,7 +1436,7 @@ function darwincore_field_default_fields() {
         'default_value2' => 'blank',
         'default_value_code' => '',
         'default_value_code2' => '',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1405,14 +1448,13 @@ function darwincore_field_default_fields() {
           'label_position' => 'above',
           'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '-3:+3'
         ),
         'type' => 'date_text',
-        'weight' => '10',
-      ),
-    ),
+        'weight' => '10'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_date_identified'
   $fields['node-specimen_observation-field_date_identified'] = array(
     'field_config' => array(
@@ -1428,15 +1470,15 @@ function darwincore_field_default_fields() {
         'granularity' => array(
           'day' => 'day',
           'month' => 'month',
-          'year' => 'year',
+          'year' => 'year'
         ),
         'repeat' => 0,
         'timezone_db' => '',
         'todate' => 'optional',
-        'tz_handling' => 'none',
+        'tz_handling' => 'none'
       ),
       'translatable' => '1',
-      'type' => 'date',
+      'type' => 'date'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1452,17 +1494,17 @@ function darwincore_field_default_fields() {
             'multiple_from' => '',
             'multiple_number' => '',
             'multiple_to' => '',
-            'show_repeat_rule' => 'show',
+            'show_repeat_rule' => 'show'
           ),
           'type' => 'date_default',
-          'weight' => 8,
+          'weight' => 8
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_date_identified',
@@ -1474,7 +1516,7 @@ function darwincore_field_default_fields() {
         'default_value2' => 'blank',
         'default_value_code' => '',
         'default_value_code2' => '',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
@@ -1486,14 +1528,13 @@ function darwincore_field_default_fields() {
           'label_position' => 'above',
           'repeat_collapsed' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '-3:+3'
         ),
         'type' => 'date_text',
-        'weight' => '6',
-      ),
-    ),
+        'weight' => '6'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_genbank_number'
   $fields['node-specimen_observation-field_genbank_number'] = array(
     'field_config' => array(
@@ -1505,22 +1546,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1533,14 +1574,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 17,
+          'weight' => 17
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_genbank_number',
@@ -1548,20 +1589,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '15',
-      ),
-    ),
+        'weight' => '15'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_identification_qualifier'
   $fields['node-specimen_observation-field_identification_qualifier'] = array(
     'field_config' => array(
@@ -1573,22 +1613,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1601,14 +1641,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 6,
+          'weight' => 6
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_identification_qualifier',
@@ -1616,20 +1656,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '4',
-      ),
-    ),
+        'weight' => '4'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_identified_by'
   $fields['node-specimen_observation-field_identified_by'] = array(
     'field_config' => array(
@@ -1641,29 +1680,29 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          '0' => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
         'referenceable_roles' => array(
-          '2' => 0,
-          '3' => 0,
+          2 => 0,
+          3 => 0
         ),
         'referenceable_status' => array(
-          '0' => 0,
-          '1' => 0,
-        ),
+          0 => 0,
+          1 => 0
+        )
       ),
       'translatable' => '1',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1676,32 +1715,31 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => 7,
+          'weight' => 7
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_identified_by',
       'label' => 'Identified by',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '5',
-      ),
-    ),
+        'weight' => '5'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_institution_code'
   $fields['node-specimen_observation-field_institution_code'] = array(
     'field_config' => array(
@@ -1713,22 +1751,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1741,14 +1779,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 2,
+          'weight' => 2
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_institution_code',
@@ -1756,20 +1794,19 @@ function darwincore_field_default_fields() {
       'required' => 1,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '4',
-      ),
-    ),
+        'weight' => '4'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_lifestage'
   $fields['node-specimen_observation-field_lifestage'] = array(
     'field_config' => array(
@@ -1781,22 +1818,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1809,14 +1846,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 15,
+          'weight' => 15
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_lifestage',
@@ -1824,20 +1861,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '13',
-      ),
-    ),
+        'weight' => '13'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_location'
   $fields['node-specimen_observation-field_location'] = array(
     'field_config' => array(
@@ -1849,15 +1885,15 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
-            'nid' => 'nid',
+            'nid' => 'nid'
           ),
-          'table' => 'node',
-        ),
+          'table' => 'node'
+        )
       ),
       'indexes' => array(
         'nid' => array(
-          '0' => 'nid',
-        ),
+          0 => 'nid'
+        )
       ),
       'module' => 'node_reference',
       'settings' => array(
@@ -1865,11 +1901,11 @@ function darwincore_field_default_fields() {
           'article' => 0,
           'location' => 'location',
           'page' => 0,
-          'specimen_observation' => 0,
-        ),
+          'specimen_observation' => 0
+        )
       ),
       'translatable' => '1',
-      'type' => 'node_reference',
+      'type' => 'node_reference'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1882,32 +1918,31 @@ function darwincore_field_default_fields() {
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 21,
+          'weight' => 21
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_location',
       'label' => 'Location',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '18',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_notes'
   $fields['node-specimen_observation-field_notes'] = array(
     'field_config' => array(
@@ -1919,20 +1954,20 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -1945,14 +1980,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 13,
+          'weight' => 13
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_notes',
@@ -1960,20 +1995,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '11',
-      ),
-    ),
+        'weight' => '11'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_number'
   $fields['node-specimen_observation-field_number'] = array(
     'field_config' => array(
@@ -1985,22 +2019,22 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '1',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2013,14 +2047,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 10,
+          'weight' => 10
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_number',
@@ -2028,20 +2062,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '8',
-      ),
-    ),
+        'weight' => '8'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_other_catalogue_numbers'
   $fields['node-specimen_observation-field_other_catalogue_numbers'] = array(
     'field_config' => array(
@@ -2053,20 +2086,20 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2079,14 +2112,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 18,
+          'weight' => 18
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_other_catalogue_numbers',
@@ -2094,20 +2127,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '16',
-      ),
-    ),
+        'weight' => '16'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_remarks'
   $fields['node-specimen_observation-field_remarks'] = array(
     'field_config' => array(
@@ -2119,20 +2151,20 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2145,14 +2177,14 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 19,
+          'weight' => 19
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_remarks',
@@ -2160,20 +2192,19 @@ function darwincore_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '17',
-      ),
-    ),
+        'weight' => '17'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_sex'
   $fields['node-specimen_observation-field_sex'] = array(
     'field_config' => array(
@@ -2185,8 +2216,8 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
@@ -2198,12 +2229,12 @@ function darwincore_field_default_fields() {
           'Multiple' => 'Multiple',
           'Transitional' => 'Transitional',
           'Undetermined' => 'Undetermined',
-          'Unknown' => 'Unknown',
+          'Unknown' => 'Unknown'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '1',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2216,32 +2247,31 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => 14,
+          'weight' => 14
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_sex',
       'label' => 'Sex',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '12',
-      ),
-    ),
+        'weight' => '12'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_taxonomic_name'
   $fields['node-specimen_observation-field_taxonomic_name'] = array(
     'field_config' => array(
@@ -2253,27 +2283,29 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
-            'tid' => 'tid',
+            'tid' => 'tid'
           ),
-          'table' => 'taxonomy_term_data',
-        ),
+          'table' => 'taxonomy_term_data'
+        )
       ),
       'indexes' => array(
         'tid' => array(
-          '0' => 'tid',
-        ),
+          0 => 'tid'
+        )
       ),
-      'module' => 'taxonomy',
+      'module' => 'anytaxonomyfield',
       'settings' => array(
         'allowed_values' => array(
-          '0' => array(
+          0 => array(
             'parent' => '0',
-            'vocabulary' => 'tags',
-          ),
-        ),
+            'vocabulary' => array(
+              0 => 'anytaxonomyfield_anytaxonomyfield'
+            )
+          )
+        )
       ),
       'translatable' => '1',
-      'type' => 'taxonomy_term_reference',
+      'type' => 'anytaxonomy_term_reference'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2286,35 +2318,34 @@ function darwincore_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 5,
+          'weight' => 5
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'taxonomy',
         'settings' => array(
           'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60,
+          'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '3'
+      )
+    )
   );
-
   // Exported field: 'node-specimen_observation-field_type_status'
   $fields['node-specimen_observation-field_type_status'] = array(
     'field_config' => array(
@@ -2326,8 +2357,8 @@ function darwincore_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
@@ -2340,12 +2371,12 @@ function darwincore_field_default_fields() {
           'Not Provided' => 'Not Provided',
           'Paralectotype' => 'Paralectotype',
           'Paratype' => 'Paratype',
-          'Syntype' => 'Syntype',
+          'Syntype' => 'Syntype'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '1',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
@@ -2358,32 +2389,31 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => 20,
+          'weight' => 20
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_type_status',
       'label' => 'Type status',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('A description of the locality from which the catalogued item was collected, sans geographic information provided in other geographic fields.');
@@ -2419,6 +2449,7 @@ function darwincore_field_default_fields() {
   t('Lifestage');
   t('Locality');
   t('Location');
+  t('Map');
   t('Maximum depth');
   t('Maximum elevation');
   t('Minimum depth');
@@ -2452,6 +2483,5 @@ function darwincore_field_default_fields() {
   t('The number of individuals present in the lot or container. Not to be used for observations.');
   t('Type status');
   t('Verbatim Coordinate System');
-
   return $fields;
 }

@@ -8,7 +8,7 @@ function _endnote8_XML_export($node, $part = 'record') {
       break;
     case 'record':
       $xml = "<record>";
-      $xml .= '<source-app name="Biblio" version="6.x">Drupal-Biblio</source-app>';
+      $xml .= '<source-app name="Biblio" version="7.x">Drupal-Biblio</source-app>';
       $xml .= "<ref-type>" . _endnote8_type_map($node->biblio_type) . "</ref-type>";
       unset($node->biblio_type);
       //<!-- Author information -->

@@ -14,7 +14,13 @@
     // Add Polygons sent from server.
     if(this.GM3.libraries.polygon.polygons) {
       for( var i in this.GM3.libraries.polygon.polygons) {
-        this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
+        if(typeof (this.GM3.libraries.polygon.polygons[i]['polygon']) == 'undefined') {
+          this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
+        } else {
+          var content = typeof (this.GM3.libraries.polygon.polygons[i]['content']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['content'] : '';
+          var title = typeof (this.GM3.libraries.polygon.polygons[i]['title']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['title'] : '';
+          this.add_polygon(this.GM3.libraries.polygon.polygons[i]['polygon'], this.GM3.libraries.polygon.polygons[i]['editable'], content);
+        }
       }
     }
     this.add_transfer_listeners();
@@ -27,14 +33,14 @@
     this.followline1.setMap(this.GM3.google_map);
     this.followline2.setMap(this.GM3.google_map);
   }
-  Drupal.GM3.polygon.prototype.add_polygon = function(points, editable){
+  Drupal.GM3.polygon.prototype.add_polygon = function(points, editable, content, title){
     editable = typeof (editable) != 'undefined' ? editable : true;
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
-      if(points[i]['lat'] == undefined){
+      if(points[i]['lat'] == undefined) {
         // We have a string rather than an array, split it
-        if(typeof points[i] == 'object'){
-          points[i] = String(points[i]);          
+        if(typeof points[i] == 'object') {
+          points[i] = String(points[i]);
         }
         points[i] = points[i].split(",");
         path_points[i] = new google.maps.LatLng(points[i][1], points[i][0]);
@@ -43,10 +49,17 @@
       }
     }
     if(editable) {
+      // We don't add a popup to an editable polygon.
       this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
     } else {
+      // Add the popup also if we have content!
+      content = typeof (content) != 'undefined' ? content : '';
+      title = typeof (title) != 'undefined' ? title : '';
       var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
       this.GM3.add_listeners_helper(polygon);
+      if(content) {
+        this.GM3.add_popup(polygon, content, title);
+      }
       // Return the polygon so that it can be saved elsewhere.
       return polygon;
     }
@@ -59,6 +72,9 @@
             this.polygons[this.polygons.length - 1].stopEdit();
             this.polygons[this.polygons.length - 1].getPath().push(event.latLng);
             this.polygons[this.polygons.length - 1].runEdit(true);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'mousemove':
             var pathLength = this.polygons[this.polygons.length - 1].getPath().getLength();
@@ -75,6 +91,9 @@
             this.GM3.set_active_class('default');
             this.followline1.setMap(null);
             this.followline2.setMap(null);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
         }
         break;
@@ -99,6 +118,9 @@
                 this.polygons[j].stopEdit();
               }
             }
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'rightclick':
             if(event_object.getClass && event_object.getClass() != 'Polygon') {
@@ -106,6 +128,9 @@
               for( var j = 0; j < this.polygons.length; j++) {
                 this.polygons[j].stopEdit();
               }
+            }
+            if(this.update_field) {
+              this.update_field();
             }
             break;
         }

@@ -38,6 +38,7 @@ class BiblioEntrezPubmedArticle
   {
     $this->biblio = array();
     $this->article = $pubmedArticle->MedlineCitation;
+    $this->pubmeddata = $pubmedArticle->PubmedData;
     $this->id = (int)$pubmedArticle->MedlineCitation->PMID;
     $this->md5 = md5($pubmedArticle->asXML());
     return $this;
@@ -99,9 +100,9 @@ class BiblioEntrezPubmedArticle
         'biblio_lang'     => $this->lang(),
       );
 
-      $doi = $this->article->xpath('//ELocationID[@EIdType="doi"]/text()');
+      $doi = $this->article->xpath('.//ELocationID[@EIdType="doi"]/text()');
       if (empty($doi)) {
-        $doi = $this->article->xpath('//ArticleId[@IdType="doi"]/text()');
+        $doi = $this->pubmeddata->xpath('.//ArticleId[@IdType="doi"]/text()');
       }
       if (!empty($doi)) {
         $this->biblio['biblio_doi'] = (string)$doi[0];

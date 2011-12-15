@@ -22,22 +22,31 @@ function tui_ajax_form_callback(){
 
 /**
  * Callback function to return HTML
+ * 
+ * FIXME - We need to reload part of the tree too.
  */
 function tui_ajax_form_callback_callback(&$form, &$form_state){
-  return array(
+  // Unset the parent message, as it doesn't make sense once the term has been
+  // created.
+  if(isset($form['parent_message'])){
+    unset($form['parent_message']);
+  }
+  $ajax = array(
     '#type' => 'ajax',
-    '#commands' => array(
-      ajax_command_insert(NULL, drupal_render($form)),
-      ajax_command_prepend(NULL, theme('status_messages')),
-      ajax_command_replace('.tui-form-display', theme('tui_term_name', array(
-        'vocabulary' => $form['#vocabulary'],
-        'term' => taxonomy_term_load($form['#term']['tid']),
-        'highlight_tids' => array(
-          $form['#term']['tid']
-        )
-      )))
-    )
+    '#commands' => array()
   );
+  foreach($form_state['values']['parent'] as $parent_tid){
+    $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"]', 'removeClass', array(
+      'tui-no-children tui-open'
+    ));
+    $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"]', 'addClass', array(
+      'tui-has-children tui-closed tui-never-opened'
+    ));
+    $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"] div span', 'click');
+  }
+  $ajax['#commands'][] = ajax_command_insert(NULL, drupal_render($form));
+  $ajax['#commands'][] = ajax_command_prepend(NULL, theme('status_messages'));
+  return $ajax;
 }
 
 /**
@@ -62,7 +71,6 @@ function tui_ajax_blank(&$form, &$form_state){
  * AJAX Callback to get a term form
  */
 function tui_form_callback($vocabulary, $action, $tids = ''){
-  //sleep(100);
   switch($action){
     case 'edit-form':
       // We can only show one form
@@ -185,13 +193,18 @@ function tui_sort_callback(){
     foreach($tids as $tid){
       $term = taxonomy_term_load($tid);
       if($term){
+        db_update('taxonomy_term_data')->fields(array('weight' => $weight))->condition('tid', $term->tid)->execute();
         $term->weight = $weight;
-        taxonomy_term_save($term);
         $weight++;
       }else{
         $results[] = ajax_command_html('#tui-tree-form', '<div class="messages error"><h2 class="element-invisible">Error message</h2>' . t('One of the terms being sorted appears to have been deleted.  Please reload the page.') . '</div>');
         watchdog('femail', 'Attempted to move a nonexistent term');
       }
+    }
+    // Save the final term if the leftandright module is installed, just for
+    // neatness.
+    if(module_exists('leftandright')){
+      taxonomy_term_save($term);
     }
   }
   print ajax_render($results);

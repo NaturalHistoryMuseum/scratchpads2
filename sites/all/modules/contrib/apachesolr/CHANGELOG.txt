@@ -1,12 +1,180 @@
 
-Apache Solr integration x.x-x.x, xxxx-xx-xx
-------------------------------
-
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 ------------------------------
 
-Apache Solr integration 7.x-1.0-BETA4, xxxx-xx-xx
+Apache Solr integration 7.x-1.0-beta12, 2011-12-12
 ------------------------------
+#1369208 by pwolanin: Add configure links in .info files.
+#1369184 by pwolanin: Restore MLT block edit use of block module configure form.
+#1369144 by pwolanin: Fix for cleanup settings table and restore cron index operation.
+#1353422 by Nick_vh | Marty2081: Added Using view modes in 'more like this" block.
+#1212610 by Nick_vh | jeff.maes: Fixed Notice: Undefined index: module in apachesolr_search_form_search_form_alter(). - follow up
+#1365304 by brianV: Fixed Date field minimum/maximum range callbacks don't handle some cases; cause Solr exceptions.
+#1365940 by Nick_vh: Fixed Move all indexing functions to apachesolr.module.
+#1364564 by Nick_vh, pwolanin: Clarify % on the index page.
+#1357820 by Nick_vh | vrc3: Fixed Titles for taxonomy pages are double encoded.
+#1358730 by Nick_vh | rooby: Fixed Facet only searching isn't working.
+#1362294 by pwolanin: Fix for undefined variable: title in apachesolr_get_user_title().
+#1059372 by jpmckinney, Georgique, Nick_vh: Fixed References integration is broken.
+#1323676 by Nick_vh: Global functions should be context driven.
+#1359294 by Nick_vh: Follow-up : Fixed Test is not enabling the correct modules.
+#1359386 by Nick_vh: Replace all instances of $_GET['q'] with current_path().
+#1359294 by Nick_vh: Fixed Test is not enabling the correct modules.
+#1358158 by pwolanin | SangersDrupalDude: Fixed Schema issues on update to D7.
+#1351908 by Nick_vh: Added UI comments and improvements.
+#1349532 by Nick_vh: Added UI remake of the bias pages.
+#1357548 by Nick_vh: Make the unit tests for solr succeed if there is no solr environment available.
+#1356038 by Nick_vh: Added More like this / Blocks Admin UI rework.
+#1356018 by Nick_vh: Fixed Remove admin/system from solrconfig.xlm.
+#1344690 by Nick_vh: Added Search page should be cloneable.
+#1333904 by Nick_vh | vrc3: Added Please restore flexible 'results per page" option - follow up.
+#1292364 by Nick_vh, scor: Added UI redesign.
+#1336324 by Nick_vh | tinker: Added Get Solr version number to determine feature sets like facet ranges and location search.
+#1347092 by Nick_vh | cfuller12: Fixed Solrsort appears to be broken in beta11.
+#1344576 by Nick_vh: Fixed More like this should be environment dependent.
+#1344570 by Nick_vh: Fixed When installing solr the 'visit the admin page" link is not working.
+
+Apache Solr integration 7.x-1.0-beta11, 2011-11-16
+------------------------------
+#1328886 by drasgardian, Nick_vh, pwolanin: fix for access module fails for realm names with spaces.
+#1340232 by milesw, Nick_vh: Added Did You Mean suggestions should be broken out from core search form.
+#1343646 by Nick_vh: Fixed Empty Search behavior is not working.
+#1301646 by Nick_vh: Fixed Coder Review + Drupal coding standard.
+#1097976 by Nick_vh, jpmckinney: Fixed Use ShowFileRequestHandler, gettableFiles is deprecated.
+#1342134 by Nick_vh: Fixed 'Creating default object from empty value" Notice in node access and indexing test.
+#1341860 by pwolanin: Fixed Notice: Undefined index: fq in apachesolr_search_conditions_default() (line 401 of apachesolr_search().module).
+#1053126 by jpmckinney, Nick_vh | pwolanin: Remove duplicate sort hooks in 7.x? follow-up.
+#1053126 by jpmckinney, Nick_vh | pwolanin: Remove duplicate sort hooks in 7.x?.
+#1341854 by pwolanin: Pass the query object into hooks altering search results.
+#1340552 by pwolanin: Make facet generation more flexible/overrideable.
+#1341840 by pwolanin: Fix for undefined index 'core_search' while running tests.
+#1271964 by Nick_vh | wmostrey: Fix for no way to delete content recommendation blocks.
+#1314406 by Nick_vh, scor: Fixed De-duplication of the apachesolr_search_execute() and apachesolr_search_user_defined_search_page().
+#1161538 by Nick_vh, pwolanin | domidc: Fixed The numeric field id should not be used for Solr index field names.
+#1333904 by Nick_vh | vrc3: Restore flexible 'results per page' option.
+#1161444 by Nick_vh | cpliakas: Modify Facet API field definitions to reflect API change for the 'query type" key.
+#1334216 by Nick_vh: Fixed Convert all static parameters to drupal_static().
+#1328854 by Josh Waihi: Added Tag cron database queries to allow modules to alter conditions of updating index table.
+#1323758 by Nick_vh | Frippuz: Fixed hook_apachesolr_process_results() make no impact on results.
+#1265124 by InternetDevels.Com: Fixed Not output pager in search results.
+#1324842 by Nick_vh: Added setAvailableSorts to the api.
+#1000532 by craigmc, jpmckinney: Fixed Non-current/valid Node Types not excluded from index.
+#1320906 by Nick_vh | brianV: Fixed Taxonomy Search page title should be dynamic based on term.
+#1320076 by Nick_vh | egarias: Fixed Results per page should be non-negative integer less than 200.
+#1320634 by Nick_vh | jummonk: Fixed Search pages saved in static array before they are created in DB => PDO exception on creation of menu_router() records.
+#1319542 by jgalletta: Fixed Undefined index: get in apachesolr_search_user_defined_search_form_submit().
+#1313698 by Nick_vh, denikin: Fixed Support for search of date content in facets/fields
+#1316578 by Nick_vh | rooby: Added some documentation somewhere that says you need the facetapi module for facets.
+
+
+Apache Solr integration 7.x-1.0-beta10, 2011-10-19
+------------------------------
+#1312718 by pwolanin: fix for menu rebuild problems when installing apachesolr_search.
+#1134610 by pcambra, JoeMcGuire, Ravi.J: schema support for ctools export of settings.
+#1314664 by Nick_vh, brianV: fix for Search pages completely ignore the title set in the configuration.
+#1314260 by Nick_vh: Fixed hook_apachesolr_query_prepare() not also correctly documented.
+#1313698 by Nick_vh, denikin: Fixed Support for search of multiword content in facets/fields .
+#1309572 by Nick_vh: Fixed Creating new search page gives error when trying to find the search page variable.
+#1204480 by Nick_vh | chriscalip: Fixed Please update apachesolr.api.php naming convention from HOOK_ to hook_.
+#1212610 by Nick_vh: Fixed Notice: Undefined index: module in apachesolr_search_form_search_form_alter().
+#1309564 by Nick_vh: Fixed Simplifying syntax between isset and empty for search_box() in custom page.
+
+Apache Solr integration 7.x-1.0-beta9, 2011-10-13
+------------------------------
+#1307526 by pwolanin, Nick_vh: Fixes for update path, core search functionality.
+#1264786 by grndlvl: fix for double ellipses on search snippets.
+#1305282 by pwolanin, Nick_vh: Fixed Search pages problems.
+#1283924 by rjmackay, lazysoundsystem, jweowu: fix for notice undefined index errors.
+#1305052 by cpliakas: fix for Negative facets not displayed when the mincount is 0.
+#1279164 by pwolanin, fix for 'bundle' is not a required field, but apachesolr treats it as such.
+#1300380 by Nick_vh, pwolanin: Search environments not clear about being active or online.
+#1294846 by Nick_vh: Added Refactoring of the search pages.
+#1188824 by pwolanin: fix for very large watchdog entries when index is in read-only mode.
+#1270826 by pwolanin, brianV: fix for search page regex fails for complex queries.
+#989398  by pwolanin, Nick_vh: Fix tests after moving conf files.
+#1167136 by cpliakas: fix for fields attached to nodes added as facets regardless off the collection type.
+#1225554 by pwolanin: fix for pagination missing in the search page administration.
+#817286  by pfrenssen: API docs cleanup.
+#901376  by LiuShaz, pwolanin: insure UTF-8 encoding is used for POST searches.
+#1288080 by Nick_vh, brianV: make facets based on date fields work.
+#1201534 by BrianV, pwolanin: restore date field indexing.
+#1230380 by Shawn_Smiley: fix for Undefined index: 'facet mincount allowed'.
+#1292328 by Nick_vh: add clone environment feature, tweak the UI.
+#1187888 by pwolanin: move conf to a subdirectory and start supporting solr 3.3+.
+#1237472 by DeFr, sfyn: Fix for _constructURL method misforms urls with username/password.
+#1258658 by pwolanin: Fix failing node access test due to core 7.3 change.
+#1248366 by Dave Reid: Fix declaration of getInfo() test functions.
+#1219178 by cpliakas: Added support for customizable minimum facet counts.
+#1216184 by cpliakas: remove unneeded static variable.
+#1204450 by blazey: fix for parameter error in apachesolr_taxonomy module.
+#1150174 by mr.andrey, pwolanin: Strip content of script and similar tags when indexing.
+#1183742 by MrHaroldA, pwolanin: Index all numeric field API fields by default.
+#1188614 by ASupinski: Expand Hook_Hook_Info to include other hooks.
+
+Apache Solr integration 7.x-1.0-beta8, 2011-06-13
+------------------------------
+#1174960 by pwolanin: fix critical indexing bug from DBTNG error in apachesolr_cron_check_node_table().
+#1148612 by pwolanin: fix regression; Clicking "Relevancy" has no effect after choosing another sort.
+
+Apache Solr integration 7.x-1.0-beta7, 2011-05-24
+------------------------------
+#1162600 by pwolanin: Display an error if the schema version in use is incompatible.
+#1162078 by jpmckinney: fix for Undefined variable: stats_summary.
+#1159172 by jpmckinney: Remove unused facet functions.
+#1167172 by cpliakas: Improve the breadcrumb handling for facet settings forms.
+#1157864 by cpliakas: Integrate with Facet API's depencency plugin system.
+#912758  by pwolanin: use Facet API's support for faceting missing values.
+#1098860 by jpmckinney: Add apachesolr_cron_check_node_table back to cron.
+#1159172 by cpliakas: Remove unused facet functions.
+#926564  by jpmckinney: Add get_subqueries().
+#1064972 by jpmckinney: Use is_callable not function_exists, where applicable.
+#1097988 by pwolanin: Add omitHeader to save on bandwidth.
+#1154770 by jpmckinney, pwolanin: Must double quote filter query values if containing space or colon.
+#1152382 by cpliakas, pwolanin: Modify Facet API adapter for api changes.
+#1131288 by jpmckinney: Fix install and other follow-ups for renaming "server" to "search environment".
+#1150988 by pwolanin: Fix for facet blocks based on custom fields displaying field keys instead of labels.
+#1150220 by pwolanin: Fix for MLT requests are not going through query alter.
+#1150306 by pwolanin: fix for double URL encoding of plus sign (+) on search, after changing sort filters.
+
+Apache Solr integration 7.x-1.0-beta6, 2011-05-06
+------------------------------
+#1148768 by pwolanin: move the read-only index setting to the environment edit page.
+#1146976 by pwolanin: Rename hook_apachesolr_modify_query to hook_apachesolr_query_alter and other API clean up.
+#1146296 by pwolanin: integrate with Facet API current search block code.
+#1145036 by slip, pwolanin: Add support for facet browsing to custom search pages.
+#1131288 by pwolanin: Rename "server" to "search environment" for better conceptual clarity.
+#1122186 by slip, pwolanin: Allow custom user-specified search pages, supporting API changes.
+#1127520 by cpliakas, pwolanin: make the breadcrumb look reasonable on facet form.
+#1127302 by Janusman: some variables were not removed on uninstall.
+#1126806 by pwolanin, Janusman: restore facet browsing functionality.
+#1126488 by cpliakas: Implemented hierarchical taxonomy facets.
+#1126284 by pwolanin: add enabled filters tab on every server edit page.
+#1126282 by pwolanin: fix facet mincount param.
+#1124844 by pwolanin: Port over facet API adapter and hooks.
+#1121170 by pwolanin: remove facet-related code to prep for Facet API integration.
+#1122348 by pwolanin: Rework query class to provide uniform methods of getting and setting params.
+
+Apache Solr integration 7.x-1.0-beta-5, 2011-04-07
+------------------------------
+#799970  by pwolanin: update README for config changes.
+#1118646 by cpliakas, pwolanin: Fields now displayed on search index report page.
+#1117152 by cpliakas: Added a cancel link to the server edit page.
+#1117606 by cpliakas: Resolved inconsistencies with the caller parameter.
+#1118508 by pwolanin: Make the Apache Solr config link show up next to Search module.
+#1117128 by jpmckinney: Follow-up to #1088208
+
+Apache Solr integration 7.x-1.0-beta4, 2011-04-04
+------------------------------
+#1116030 by cpliakas, pwolanin: Added titles to settings pages to add transparency as to which server's settings are being edited.
+#1112022 by pwolanin, elliotttf: index node last_comment_timestamp too.
+#1114798 by pwolanin: enhancements to config based on Solr 3.1 examples.
+#1108618 by pwolanin: make numeric fields in 7.x use a sortable data type by default.
+#1103602 by pwolanin: prevent PHP Notice when there is an invalid term reference field.
+#1097988 by jpmckinney: avoid 'using default converter' warning on Solr startup.
+#920482  by jpmckinney: $info_split['date'] template variable should contain changed, not created, date.
+#379512  by pwolanin: separate schema field for indexing comments and "extra" information.
+#871440  by jpmckinney: Solr taxonomy page displays search form and blocks when the user has no access.
+#761990  by jhedstrom, pwolanin: switch to POST for long search ULRs.
 #1112362 by pwolanin: cleanup following #1107502 to better use drupal_http_request.
 #1107502 by pwolanin: Merge relevant parts of php client into DrupalApacheSolrService.
 #899590  by jpmckinney, elliotttf: Support indexing of attached fields that are not facets.
@@ -51,7 +219,7 @@ Apache Solr integration 7.x-1.0-BETA4, xxxx-xx-xx
 #878996  by pwolanin | weri: Added Don't break the loop.
 #1050044 by pwolanin: hook_theme API fix, and revert to using core theme('search_results').
 #1026916 by dmitry_bezer: apachesolr_get_enabled_facets() mandatory parameter was omitted.
-#528086  by pwolanin: Fix for special html entity search and display bugs. 
+#528086  by pwolanin: Fix for special html entity search and display bugs.
 #1020780 by pwolanin: Store variable settings per server for better flexibility.
 #891962  by jurcello, pwolanin: avoid incorrect filter substring matches, emit correct query string.
 #1018768 by pwolanin: fix notices during failed search request.
@@ -74,7 +242,7 @@ Apache Solr integration 7.x-1.0-BETA2, 2010-12-18
 ------------------------------
 #983458  by craig_ : mass update and mass delete ignore setting apachesolr_read_only.
 #996976  by scor: list item class should be an array, not a string.
-#995526  by pwolanin: Alter server schema so we don't exceed the MyISAM key size limit.	
+#995526  by pwolanin: Alter server schema so we don't exceed the MyISAM key size limit.
 #1000396 by dmitry_bezer: Edit server form ignored "Make this server the default" checkbox.
 #997240  by VladGh: fix parameters for apachesolr_server_edit_form for PHP 5.3.
 #993448  by pwolanin, scor: get Solr result docs as stdClass instead of Apache_Solr_Document.
@@ -90,7 +258,7 @@ Apache Solr integration 7.x-1.0-BETA1, 2010-12-09
 #983892 by pwolanin: update schema to use long instead of int, plus tdate fields.
 #983894 by pwolanin: add a set of conf files that can be used to create a test core.
 #983572 by amateescu, pwolanin: fix for empty filter values causing Solr error.
-#795912 by pwolanin patch 64: fixes various settings forms and variables, avoids a notice, removes use of md5() in favor of drupal_hash_base64(). 
+#795912 by pwolanin patch 64: fixes various settings forms and variables, avoids a notice, removes use of md5() in favor of drupal_hash_base64().
 #982846 by pwolanin: split out (and deprecate) the taxonomy path hijack feature.
 #982840 by pwolanin: OO cleanup for Drupal 7 coding standards.
 #982490 by pwolanin: rip out Drupal 6.x update functions, update README.
@@ -150,7 +318,7 @@ http://drupal.org/cvs?commit=309746 by robertDouglass, add entity='comment' to c
 #657648 by kcoop: Added Add Smaller Limit Options to Apache Solr Cron Indexing.
 
 Apache Solr integration 6.x-2.0-ALPHA1, 2009-12-26
-------------------------------  
+------------------------------
 #664818 by robertDouglass, pounard, pwolanin | Scott Reynolds: Fixed Wrong watchdog() usage.
 #662232 by pwolanin | anarchivist: Changed Use language-neutral code like D7.
 #666648 by pwolanin: Changed Make hook_apachesolr_update_index() more generic by taking a namespace param also.
@@ -300,7 +468,7 @@ Apache Solr integration 6.x-1.0-beta8, 2009-04-16
 Apache Solr integration 6.x-1.0-beta7, 2009-04-03
 ------------------------------
 #410330 by pwolanin and bhuga, return more information for error 0.
-#293989 by bjaspan and vladimir.dolgopolov, add date facets for created and changed dates. 
+#293989 by bjaspan and vladimir.dolgopolov, add date facets for created and changed dates.
 #420290 by mkalkbrenner and pwolanin, add spaces around tags to avoid running words together.
 #368688 by hurleyit and pwolanin, send MLT docs instead of processed links to theme function.
 #383478 by pwolanin and JacobSingh, provide more information about autocommit lag, pending deletes.
@@ -313,7 +481,7 @@ Apache Solr integration 6.x-1.0-beta6, 2009-03-20
 #392978 by pwolanin and ncameron, workaround for those using php 5.1, update README.
 #402984 by JacobSingh and pwolanin, put MLT menu under the general ApacheSolr settings.
 #401442 by Janusman and pwolanin, no sort block when 0 results.
-#405732 by JacobSingh, pwolanin: Update to new SolrPhpClient (r6) and make ping() use drupal_http_request. 
+#405732 by JacobSingh, pwolanin: Update to new SolrPhpClient (r6) and make ping() use drupal_http_request.
 #405722 by JacobSingh, increase ping timeout and make it variable.
 #400882 by mkalkbrenner, fix faceting bug due to static counter in method add_field.
 #382358 by pwolanin, use tokenizer solr.CharStreamAwareWhitespaceTokenizerFactory to fix highlighting.
@@ -328,10 +496,10 @@ Apache Solr integration 6.x-1.0-beta5, 2009-02-27
 Apache Solr integration 6.x-1.0-beta4, 2009-02-23
 ------------------------------
 #380670 by pwolanin, only add a bq param for a node-type boost > 'Normal'.
-#379518 by pwolanin, correct mismatch in default boost between 
+#379518 by pwolanin, correct mismatch in default boost between
         solrconfig.xml and apachesolr_search.
 #380594 by pwolanin, empty the spellcheck dictionary if the index is deleted.
-#380644 by JacobSingh, Backwards compatability for old sort fields. 
+#380644 by JacobSingh, Backwards compatability for old sort fields.
 #380538 by pwolanin, fix code to find vid for taxonomy facet blocks.
 
 Apache Solr integration 6.x-1.0-beta3, 2009-02-20
@@ -341,7 +509,7 @@ Apache Solr integration 6.x-1.0-beta3, 2009-02-20
 #378270 by pwolanin, suppress MLT admin link when there is no block content.
 #378196 by pwolanin, remove PHP client from CVS per Drupal.org policy.
 #231200 by janusman and pwolanin, turn on mapping of accented to non-accented
-        ISO characters for indexing and search. 
+        ISO characters for indexing and search.
 #377494 by pwolanin, Update text type in schema to new example.
 #376270 by pwolanin, also add option to bias on recent comments/changes.
 #337879 by pwolanin and blackdog, Store relative not absolute paths.

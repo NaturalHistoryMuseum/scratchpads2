@@ -54,12 +54,25 @@ class BiblioCrossRefClient
 
   public function fetch() {
     $this->query = $this->url . '?pid=' . $this->pid . '&noredirect=true&format=unixref&id=doi%3A' . $this->doi;
-    if (!($xml = file_get_contents($this->query))) {
-      drupal_set_message(t('Could not open crossref.org for XML input'),'error');
+
+    $request_options = array('method' => 'POST');
+    $result = drupal_http_request($this->query, $request_options);
+
+    if ($result->code != 200) {
+      drupal_set_message(t('HTTP error: !error when trying to contact crossref.org for XML input', array('!error' => $result->code)),'error');
+      return;
+    }
+    if (empty($result->data)) {
+      drupal_set_message(t('Did not get any data from crossref.org'),'error');
+      return;
+    }
+    $sxml = @simplexml_load_string($result->data);
+    if ($error = (string)$sxml->doi_record->crossref->error) {
+      drupal_set_message($error,'error');
       return;
     }
     $this->nodes = array();
-    $this->parser = drupal_xml_parser_create($xml);
+    $this->parser = drupal_xml_parser_create($result->data);
     // use case-folding so we are sure to find the tag in
     xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
     xml_parser_set_option($this->parser, XML_OPTION_SKIP_WHITE, TRUE);
@@ -68,7 +81,7 @@ class BiblioCrossRefClient
     xml_set_element_handler($this->parser, 'unixref_startElement', 'unixref_endElement');
     xml_set_character_data_handler($this->parser, 'unixref_characterData');
 
-    if(!xml_parse($this->parser, $xml)){
+    if(!xml_parse($this->parser, $result->data)){
       drupal_set_message(sprintf("XML error: %s at line %d",
       xml_error_string(xml_get_error_code($this->parser)),
       xml_get_current_line_number($this->parser)),'error');

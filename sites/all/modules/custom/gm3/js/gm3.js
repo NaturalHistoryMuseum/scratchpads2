@@ -10,9 +10,15 @@
     this.added_zoom_changed_listener = false;
     this.map_events = ["click", "dblclick", "mousemove", "rightclick", "zoom_changed", "bounds_changed", "center_changed"];
     this.other_events = ["click", "dblclick", "mousemove", "rightclick"];
+    this.popups = new Array();
+    this.info_window = false;
     try {
       $('#' + this.id).height(this.settings['height']);
       $('#' + this.id).width(this.settings['width']);
+      if($('#' + this.id).parent().width() > $('#' + this.id).width()) {
+        // Set the width of the parent wrapper class.
+        $('#' + this.id).parent().width($('#' + this.id).width());
+      }
       this.default_settings();
       // Create the map
       this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
@@ -27,11 +33,41 @@
       this.add_toolbar_listeners();
       this.add_map_moved_listener();
     } catch(err) {
-      $('#' + this.id).html(Drupal.t('There has been an error with your map. Please contact an administrator.'));
+      $('#' + this.id).html(Drupal.t('There has been an error generating your map. Please contact an administrator.'));
     }
     // Set the active class to default
     this.set_active_class('default');
     return this;
+  }
+  Drupal.GM3.prototype.add_popup = function(object, content, title){
+    // There appears to be a small bug with the infobubble code that calculates
+    // the height/width of the content before it is added as a child of the
+    // "backgroundClassName" resulting in incorrect results.
+    if(typeof content == 'string') {
+      content = '<div class="gm3_infobubble">' + content + '</div>';
+    } else {
+      for( var i in content) {
+        content[i]['content'] = '<div class="gm3_infobubble">' + content[i]['content'] + '</div>';
+      }
+    }
+    this.popups[this.popups.length] = {'object': object, 'content': content};
+    self = this;
+    // FIXME - May have the type of event an option.
+    google.maps.event.addListener(object, "click", function(event){
+      if(self.info_window) {
+        self.info_window.close();
+        self.info_window = false;
+      }
+      self.info_window = new InfoBubble({map: self.google_map, position: event.latLng, disableAutoPan: true, borderRadius: 4, borderWidth: 2, backgroundColor: '#f5f5f5', borderColor: '#6261d8', arrowStyle: 0});
+      if(typeof content == 'string') {
+        self.info_window.setContent(content);
+      } else {
+        for( var i in content) {
+          self.info_window.addTab(content[i]['title'], content[i]['content']);
+        }
+      }
+      self.info_window.open();
+    });
   }
   Drupal.GM3.prototype.add_toolbar_listeners = function(){
     // Click the stuff!
@@ -100,7 +136,7 @@
       // child listeners.
       if(events_array[i] != 'zoom_changed') {
         eval('google.maps.event.clearListeners(map_object, "' + events_array[i] + '");' + 'google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
-      } else if(!this.added_zoom_changed_listener){
+      } else if(!this.added_zoom_changed_listener) {
         eval('google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
         this.added_zoom_changed_listener = true;
       }
