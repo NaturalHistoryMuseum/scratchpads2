@@ -26,10 +26,13 @@
 
                   var relationType = $(this).attr("data-relation-type");
 
+                  
                   // Make the list sortable
-                  $(this).sortable({
-                    placeholder: 'rs-placeholder'
-                  });
+                  if($(this).attr("data-relation-arity") > 2){
+                    $(this).sortable({
+                      placeholder: 'rs-placeholder'
+                    });                    
+                  }
 
                   relationSelectItems[$(this).attr("id")] = {
                     element: $(this), // Cache a copy to speed up access
@@ -61,15 +64,15 @@
 
       }
 
-      function addRowEventHandlers(context){
+      function addRowEventHandlers(context){        
         // Check selected & add event handler: row clicked
-        $('tr:not(.processed)', context).each(
+        $('.views-view-relation-select tr:not(.processed)', context).each(
             function(){
               id = $(this).parents('.relation-select-views-output').siblings(
                   '.relation-select-entities').attr("id");
               var entitydata = $(this).attr('data-entity');
               if(getInput(id, entitydata).length) {
-                selectRow($(this));
+                selectItem($(this), id, entitydata);
               }
               $(this).click(function(){
                 handleRowClick(id, $(this));
@@ -125,7 +128,10 @@
       // Event Handlers
 
       function handleRemoveClick(){
-        $(this).parents('.rs-wrapper').remove();
+        $input = $('input', $(this).parents('.rs-wrapper'));
+        id = $(this).parents('.relation-select-entities').attr("id");
+        entitydata = $input.val();
+        deselectItem($input, id, entitydata);
         return false;
       }
 
@@ -142,7 +148,7 @@
         // Is it in the selectedItems array
         if($input.length) {
           // Already in the array so item is being toggled off
-          deselectRow($row, $input);
+          deselectItem($input, id, entitydata. $row);
         } else {
 
           // Can anymore be selected?
@@ -152,18 +158,17 @@
             // item
             if(relationSelectItems[id]['maxArity'] == 2) {
               // Deselect original
-              deselectRow($row.parents('.view-content').find('tr.selected'), $(
-                  'input', relationSelectItems[id]['element']));
+              deselectItem($(
+                  'input', relationSelectItems[id]['element']), id, entitydata, $row.parents('.view-content').find('tr.selected'));
               // Select new row
               addInput($row, id, entitydata);
-              selectRow($row);
+              selectItem($row, id, entitydata);              
             }
 
           } else {
             addInput($row, id, entitydata);
-            selectRow($row);
+            selectItem($row, id, entitydata);
           }
-
           // If max arity has been reached, close the popup
           if(countArity(id) == relationSelectItems[id]['maxArity']) {
             close();
@@ -211,18 +216,23 @@
       /**
        * Select a row
        */
-      function selectRow($row){
+      function selectItem($row, id, entitydata){         
+        // Trigger custom event
+        relationSelectItems[id]['element'].trigger('selectItem', [id, entitydata]);
         $row.addClass('selected');
       }
 
       /**
        * De-select a row
        */
-      function deselectRow($row, $input){
-        // Remove selected class
-        $row.removeClass('selected');
+      function deselectItem($input, id, entitydata, $row){
+        // Remove selected class if this is for a row
+        if(typeof $row != 'undefined'){
+          $row.removeClass('selected');
+        }
         // Destroy the form element
         $input.parents('.rs-wrapper').remove();
+        relationSelectItems[id]['element'].trigger('deselectItem', [id, entitydata]);
       }
 
       function themeValue($row, entitydata){

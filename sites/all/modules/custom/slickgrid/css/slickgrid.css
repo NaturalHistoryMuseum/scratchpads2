@@ -180,6 +180,10 @@ input.editor-text {
   border-color: #CE0020!important;
 }
 
+.slick-cell p{
+  white-space: normal!important;
+}
+
 /* Rows */
 
 div.odd{
@@ -362,9 +366,6 @@ ul.slickgrid-messages li.error .item-list{
   color: #000;
 }
 
-
-
-
 ul.slickgrid-messages li ul{
   margin-top: 0!important;
 }
@@ -402,5 +403,30 @@ ul.slickgrid-messages li ul li{
 /* Dialog */
 .bt-content{
   background-color: #fff;
-  border: 1px solid #A5A5A5;
+  border-top: 1px solid #A5A5A5;
+  border-left: 1px solid #A5A5A5;
 }
+
+/* Modal popup (edit and add) */
+
+.ctools-slickgrid-modal-content .modal-header{
+  background: #DCDCDC url("../images/header-bg.png") bottom repeat-x!important; 
+  line-height: 30px;
+  border-bottom: 1px solid #949494;
+}
+
+.ctools-slickgrid-modal-content .modal-header .modal-title{
+  color: #333333!important;  
+  font-size: 1em!important
+}
+
+div.ctools-modal-content a.close img{
+  left: 34px!important;
+  bottom: 0!important;
+  margin-top: -2px;
+}
+
+div.ctools-modal-content{
+  border-color: #949494!important;
+}
+ 

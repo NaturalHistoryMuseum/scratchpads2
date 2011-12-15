@@ -76,7 +76,8 @@ class views_data_export_plugin_style_export extends views_plugin_style {
     // General token replacement.
     $output = t('<p>The following substitution patterns are available for this display. Use the pattern shown on the left to display the value indicated on the right.</p>');
     $items = array(
-      '%view == ' . t('view name'),
+      '%view == ' . t('View name'),
+      '%display == ' . t('Display name'),
     );
 
     $output .= theme('item_list', array('items' => $items));
@@ -104,7 +105,7 @@ class views_data_export_plugin_style_export extends views_plugin_style {
       'dd' => 'd',
       'ddd' => 'D',
       'hh' => 'H',
-      'mm' => 'i',
+      'ii' => 'i',
       'ss' => 's',
     );
     foreach ($parts as $part => $format) {
@@ -123,17 +124,14 @@ class views_data_export_plugin_style_export extends views_plugin_style {
         }
       }
     }
-    // This construct uses 'hidden' and not markup because process doesn't
-    // run. It also has an extra div because the dependency wants to hide
-    // the parent in situations like this, so we need a second div to
-    // make this work.
     $form['help'] = array(
-      '#type' => 'hidden',
-      '#id' => 'views-tokens-help',
-      '#prefix' => '<div><fieldset id="views-tokens-help"><legend>' . t('Replacement patterns') . '</legend>' . $output . '</fieldset></div>',
-      '#process' => array('ctools_dependent_process'),
+      '#type' => 'fieldset',
+      '#title' => t('Replacement patterns'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => $output,
       '#dependency' => array(
-        'edit-style-options-provide-file' => array(TRUE),
+        'edit-style-options-provide-file' => array(1),
       ),
     );
     $form['parent_sort'] = array(
@@ -307,6 +305,7 @@ class views_data_export_plugin_style_export extends views_plugin_style {
       // General tokens.
       $tokens = array(
         '%view' => check_plain($view->name),
+        '%display' => check_plain($view->current_display),
       );
       // Argument tokens.
       $count = 0;
@@ -329,6 +328,9 @@ class views_data_export_plugin_style_export extends views_plugin_style {
       if (!empty($exposed)) {
         $tokens['%exposed'] = implode('-', $exposed);
       }
+      else {
+        $tokens['%exposed'] = 'default' ;
+      }
 
       // Timestamp token.
       $time = REQUEST_TIME;
@@ -341,7 +343,7 @@ class views_data_export_plugin_style_export extends views_plugin_style {
         'dd' => 'd',
         'ddd' => 'D',
         'hh' => 'H',
-        'mm' => 'i',
+        'ii' => 'i',
         'ss' => 's',
       );
       foreach ($parts as $part => $format) {

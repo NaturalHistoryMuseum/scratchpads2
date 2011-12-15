@@ -76,7 +76,6 @@ function entity_type_supports($entity_type, $op) {
     return TRUE;
   }
 }
-
 /**
  * Menu loader function: load an entity from its path.
  *
@@ -390,7 +389,7 @@ function entity_id($entity_type, $entity) {
  *   for which the entity name is used if existing - see entity_id(). If there
  *   is no information on how to view an entity, FALSE is returned.
  */
-function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL) {
+function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL) {	
   $info = entity_get_info($entity_type);
   if (isset($info['view callback'])) {
     $entities = entity_key_array_by_property($entities, $info['entity keys']['id']);
@@ -896,7 +895,7 @@ function template_preprocess_entity(&$variables) {
   $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle . '__' . $variables['view_mode'];
   if ($id = entity_id($entity_type, $entity)) {
     $variables['theme_hook_suggestions'][] = $entity_type . '__' . $id;
-  }
+  }  
 }
 
 /**

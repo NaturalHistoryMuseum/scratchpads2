@@ -18,7 +18,8 @@ $plugin = array(
   ),
   'field_types' => array_keys(field_info_formatter_types()), // Works for all fields
   'process' => 'slickgrid_plugin_modal_form_process',
-  'error' => 'slickgrid_plugin_modal_form_error'
+  'error' => 'slickgrid_plugin_modal_form_error',
+  'form_id' => 'slickgrid_editor_form'
 ); // No specified field_types, so this plugin can be used for all fields
 
 
@@ -41,7 +42,7 @@ function slickgrid_plugin_modal_form_process($editor){
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
-  $output = ctools_modal_form_wrapper('slickgrid_editor_form', $form_state);
+  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $form_state);
   if(!empty($form_state['executed'])){ // Form has succesfully completed  	
     // We're going to exit the process, so get editor result manually
     $result = $form_state['editor']->get_result();

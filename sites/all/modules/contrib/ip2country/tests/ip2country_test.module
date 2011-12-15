@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Determination of user's Country based on IP
+ *
+ * This module uses the IP Address that a user is connected from to deduce
+ * the Country where the user is located.  This method is not foolproof,
+ * because a user may connect through an anonymizing proxy, or may be in
+ * an unusual case, such as getting service from a neighboring country,
+ * or using an IP block leased from a company in another country.
+ * Additionaly, users accessing a server on a local network may be using
+ * an IP that is not assigned to any country (e.g. 192.168.x.x).
+ *
+ * @author Tim Rohaly.    <http://drupal.org/user/202830>
+ */
+
+
+/** Utility functions for loading IP/Country DB from external sources */
+module_load_include('inc', 'ip2country', 'ip2country');
+
+
+/******************************************************************************
+ * Drupal Hooks                                                               *
+ ******************************************************************************/
+
+
+/**
+ * Implements hook_ip2country_alter().
+ */
+function ip2country_test_ip2country_alter($path, $arg) {
+  drupal_set_message('hook_ip2country_alter() executed.');
+  // actually do something here!
+  // should have a little testing database of IP addresses,
+  // replace the array in ip2country.test,
+  // mini DB can be used in place of real DB for testing, plus
+  // it validates hook.
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function ip2country_test_menu() {
+  $items = array();
+
+  $items['admin/config/location/ip2country'] = array(
+    'title'            => 'IP to Country Settings',
+    'description'      => 'Configure the IP/Country settings',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('ip2country_admin_settings'),
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'ip2country.admin.inc',
+  );
+  $items['admin/config/location/ip2country/update'] = array(
+    'title'            => 'Update Database',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => '_ip2country_update',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'ip2country.admin.inc',
+  );
+  $items['admin/config/location/ip2country/lookup'] = array(
+    'title'            => 'Lookup IP Address in Database',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => '_ip2country_lookup',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'ip2country.admin.inc',
+  );
+
+  return $items;
+}

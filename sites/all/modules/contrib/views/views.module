@@ -452,6 +452,9 @@ function views_page() {
 
   // Load the view and render it.
   if ($view = views_get_view($name)) {
+  	
+  	
+  	
     return $view->execute_display($display_id, $args);
   }
 

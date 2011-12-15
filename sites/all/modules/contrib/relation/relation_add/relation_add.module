@@ -7,7 +7,7 @@ function relation_add_menu() {
   $items['relation_add/autocomplete/%'] = array(
     'access callback' => TRUE,
     'page callback' => 'relation_add_autocomplete',
-    'page arguments' => array(2, 3),
+    'page arguments' => array(2, 3, 4),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -28,7 +28,9 @@ function relation_add_block_info() {
  * Implements hook_block_view().
  */
 function relation_add_block_view() {
-
+  if(!(user_access('create relations') || user_access('create relations'))) {
+    return NULL;
+  };
   $block['subject'] = t('Relation Add');
   $block['content'] = drupal_get_form('relation_add_block_form');
   return $block;
@@ -42,62 +44,85 @@ function relation_add_block_form($form, &$form_state) {
     drupal_get_path('module', 'relation_add') . '/relation_add.css',
   );
 
-  // Get the entity for the current page. This fails for taxonomy entities.
-  // Need a better way. Also, this will never really work for comments, or
-  // files, or other entities that don't have their own page.
-  $all_entities = array_keys(entity_get_info());
-  $path = menu_get_item();
+  if (!isset($form_state['triggering_element']['#ajax'])) {
+    // This stuff is only relevant if we're NOT in an AJAX call.
 
-  if (count($path['map']) >= 2 && in_array($path['map'][0], $all_entities) && is_object($path['map'][1])) {
-    $entity_type = $path['map'][0];
-    $current_entity = $path['map'][1];
-  }
-  elseif (count($path['map']) >= 3 && $path['map'][0] == 'taxonomy' && is_object($path['map'][2])) {
-    $entity_type = 'taxonomy_term';
-    $current_entity = $path['map'][2];
-  }
+    // Get the entity for the current page. This fails for taxonomy entities.
+    // Need a better way. Also, this will never really work for comments, or
+    // files, or other entities that don't have their own page.
+    $all_entities = array_keys(entity_get_info());
+    $path = menu_get_item();
 
-  // Act as helper block if no relation types are defined.
-  $relation_types = relation_get_types();
-  if (empty($relation_types)) {
-    $form['explanation']['#markup'] = t('Before you can create relations, you need to create one or more !link. Once you\'ve done that, visit any page displays an entity, and use this block to add  a new relation from that entity.', array('!link' => l('relation types', 'admin/structure/relation')));
-    return $form;
-  }
+    if (count($path['map']) >= 2 && in_array($path['map'][0], $all_entities) && is_object($path['map'][1])) {
+      $entity_type = $path['map'][0];
+      $entity = $path['map'][1];
+    }
+    elseif (count($path['map']) >= 3 && $path['map'][0] == 'taxonomy' && is_object($path['map'][2])) {
+      $entity_type = 'taxonomy_term';
+      $entity = $path['map'][2];
+    }
 
-  //if (!isset($form_state['triggering_element']['#ajax']) && !isset($current_entity)) {
+    if (!isset($entity)) {
+      $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
+      return $form;
+    }
+    else {
+      // If we have an $entity, then we have an $entity_type.
+      $entity_label = entity_label($entity_type, $entity);
+      list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+      $label = $entity_label . ' [' . $entity_type . ':' . $id . ']';
+      $relation_types = relation_get_available_types($entity_type, $bundle);
+      $reverse_types = relation_get_available_types($entity_type, $bundle, 'target');
+      $form_state['relation_add'] = $label;
+    }
 
-  if (isset($form_state['values']['current_entity'])) {
-    $value = $form_state['values']['current_entity'];
-  }
-  elseif (isset($current_entity)) {
-    $current_label = entity_label($entity_type, $current_entity);
-    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $current_entity);
-    $value = $current_label . ' [' . $entity_type . ':' . $id . ']';
-  }
-  else {
-    $form['explanation']['#markup'] = t('No entity found, can\'t create a relation!');
-    return $form;
-  }
+    if (empty($relation_types) && empty($reverse_types)) {
+      // Act as helper block if no relation types are defined.
+      $form['explanation']['#markup'] = t(
+        'Before you can create relations from entities of this bundle type (!bundle), you need to create one or more !link that include the bundle in the allowed bundles list.
+        Once you\'ve done that, visit any page displays an entity, and use this block to add  a new relation from that entity.',
+        array(
+          '!bundle' => $entity_type . ':' . $bundle,
+          '!link' => l('relation types', 'admin/structure/relation'),
+        )
+      );
+      return $form;
+    }
 
-  $form['current_entity'] = array(
-    '#type'           => 'textfield',
-    '#title'          => t('Create a relation from'),
-    '#value'          => $value,
-    '#disabled'       => TRUE,
-  );
+    $form['current_entity'] = array(
+      '#type'           => 'textfield',
+      '#title'          => t('Create a relation from'),
+      '#value'          => $label,
+      '#disabled'       => TRUE,
+    );
 
-  // Relation type selector. On change, rest of form is loaded via ajax.
-  $relation_types = relation_get_available_types();
-  $types = array();
-  foreach ($relation_types as $relation_type) {
-    $types[$relation_type->relation_type] = $relation_type->label;
+    // Relation type selector. On change, rest of form is loaded via ajax.
+    $types = array();
+    foreach ($relation_types as $relation_type) {
+      $types[$relation_type->relation_type] = $relation_type->label;
+    }
+    foreach ($reverse_types as $relation_type) {
+      if ($relation_type->directional  && $relation_type->max_arity==2) { // Directional n-ary relations are f@*#ing stupid.
+        // Machine name doesn't have colons, so we add a suffix for reverse relations, which we explode off later.
+        $types[$relation_type->relation_type . ':reverse'] = $relation_type->reverse_label ? $relation_type->reverse_label : 'reverse ' . $relation_type->reverse_label;
+      }
+    }
+    ksort($types);
+    $form_state['types'] = $types;
+  } // End non-AJAX part
+
+  $type = '';
+  if (!empty($form_state['values']['relation_type'])) {
+    // Remove ':reverse' suffix if it exists, and set reverse flag
+    $type_array = explode(':', $form_state['values']['relation_type']);
+    $type = $type_array[0];
+    $form_state['relation_reverse'] = (isset($type_array[1])  && $type_array[1] == 'reverse');
   }
-  $default = !empty($form_state['values']['relation_type']) ? $form_state['values']['relation_type'] : '';
   $form['relation_type'] = array(
     '#type'          => 'select',
     '#title'         => t('Relation type'),
-    '#default_value' => $default,
-    '#options'       => $types,
+    '#default_value' => $type,
+    '#options'       => $form_state['types'],
     '#empty_value'   => '',
     '#empty_option'  => t('Select a relation type'),
     '#ajax' => array(
@@ -107,6 +132,7 @@ function relation_add_block_form($form, &$form_state) {
       'effect' => 'fade',
     ),
   );
+
   $form['relation_options'] = array(
 //    '#type'           => 'fieldset',
 //    '#title'          => t('Relation options'),
@@ -116,15 +142,16 @@ function relation_add_block_form($form, &$form_state) {
 
   // AJAXification.
   if (!empty($form_state['values']['relation_type'])) {
-    $type = $form_state['values']['relation_type'];
     $relation_type = relation_type_load($type);
     $relation = (object) relation_create($type, array());
 
+    // Create one autocomplete for each endpoint beyond the first
+    $direction = $form_state['relation_reverse'] ? '/source' : '/target';
     for ($i = 2; $i <= $relation_type->max_arity; $i++ ) {
       $form['relation_options']['targets']['target_' . $i] = array(
         '#type' => 'textfield',
         '#title' => t('Endpoint ' . $i),
-        '#autocomplete_path' => 'relation_add/autocomplete/' . $type,
+        '#autocomplete_path' => 'relation_add/autocomplete/' . $type . $direction,
       );
     }
     field_attach_form('relation', $relation, $form['relation_options'], $form_state);
@@ -171,8 +198,12 @@ function relation_add_ajax($form, $form_state) {
  * Submit handler for the save button.
  */
 function relation_add_save($form, &$form_state) {
-  $type = $form_state['values']['relation_type'];
-  $entity_strings = array($form_state['values']['current_entity']);
+  $type_array = explode(':', $form_state['values']['relation_type']);
+  $type = $type_array[0];
+  // entity_form_submit_build_entity() uses this later, so set it to the correct value
+  $form_state['values']['relation_type'] = $type;
+  // Gather all the endpoint entities into one array
+  $entity_strings = array();
   for ($i = 2; $i; $i++) {
     if (isset($form_state['values']['target_' . $i])) {
       $entity_strings[] = $form_state['values']['target_' . $i];
@@ -181,6 +212,16 @@ function relation_add_save($form, &$form_state) {
       $i = FALSE; // break loop.
     }
   }
+  // Add the current entity to the endpoints array.
+  if ($form_state['relation_reverse']) {
+     // For reverse relations, add the "current entity" to the end of the array, else to the start.
+     array_push($entity_strings, $form_state['relation_add']);
+  }
+  else {
+    array_unshift($entity_strings, $form_state['relation_add']);
+  }
+
+  // Convert all entity_strings to proper entity_keys.
   $entity_keys = array();
   foreach ($entity_strings as $r_index => $entity_string) {
     $matches = array();
@@ -195,7 +236,6 @@ function relation_add_save($form, &$form_state) {
     }
   }
   // TODO: IF count(entity_keys) != count (entity_strings), FAIL.
-
   $relation = relation_create($type, $entity_keys);
   entity_form_submit_build_entity('relation', $relation, $form['relation_options'], $form_state);
   $rid = relation_save($relation);
@@ -222,18 +262,20 @@ function relation_add_save($form, &$form_state) {
  *
  * @param $type
  *   The relation type to search for endpoints for.
+ * @param $direction
+ *   The direction for which to allow endpoint bundles.
  * @param $string
  *   The string for which the search through entity labels will be run.
  */
-function relation_add_autocomplete($type = '', $string = '') {
-  // Would be nice to make a way for this to work for the source bundles of directional relations
-  if (empty($type) || empty($string)) {
+function relation_add_autocomplete($type = '', $direction = 'target', $string = '') {
+  if (empty($type) || empty($direction) || empty($string)) {
     exit();
   }
   $entity_infos = entity_get_info();
   $relation_type = relation_type_load($type);
   $entity_bundles = array();
-  $direction = $relation_type->directional ? 'target_bundles' : 'source_bundles';
+  // Use source bundles unless relation type is directional and we're looking in the forward direction
+  $direction = ($relation_type->directional && $direction == 'target') ? 'target_bundles' : 'source_bundles';
   foreach ($relation_type->$direction as $entity_bundle) {
     list($entity_type, $bundle) = explode(':', $entity_bundle, 2);
     $entity_bundles[$entity_type][] = $bundle;

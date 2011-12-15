@@ -131,7 +131,6 @@ function scratchpads_user_admin_account(){
   $roles = array_map('check_plain', user_roles(TRUE));
   $accounts = array();
   foreach($result as $account){
-    dd($account);
     $users_roles = array();
     $roles_result = db_query('SELECT rid FROM {users_roles} WHERE uid = :uid', array(
       ':uid' => $account->uid
@@ -230,6 +229,11 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
       $form['create_user_account']['#disabled'] = true;
     }
   }
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $form['actions']['submit']['#submit'] = array(
+      'user_register_submit',
+    );
+  }
 }
 
 /**
@@ -272,7 +276,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
         );
       }
     }
-  }
+  }  
 }
 
 /**

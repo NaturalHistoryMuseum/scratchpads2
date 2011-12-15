@@ -4,7 +4,7 @@
  * hook_menu callback; 
  * Universal json callback - builds function name and returns error = true 
  */
-function slickgrid_callback($op){
+function slickgrid_callback($op){	
   $func = 'slickgrid_callback_' . $op;
   // Get any additonal arguments passed to the callback function & shift off the first one (the $op)  
   $args = func_get_args();
@@ -78,8 +78,8 @@ function slickgrid_callback_log(){
  */
 function slickgrid_callback_update(){
   ctools_include('plugins');
-  $plugin_definition = ctools_get_plugins('slickgrid', 'editor', $_POST['plugin']);
-  require_once DRUPAL_ROOT . '/' . $plugin_definition['path'] . "/handler.class.php";
+  $plugin_definition = ctools_get_plugins('slickgrid', 'editor', $_POST['plugin']);  
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', $plugin_definition['plugin module']) . "/plugins/editors/handler.class.php";
   $class = ctools_plugin_get_class($plugin_definition, 'handler');
   if($class){
     $editor_plugin = new $class($plugin_definition);
@@ -123,44 +123,41 @@ function slickgrid_callback_clone(){
 function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display_id){
   global $user;
   $entity_info = entity_get_info($entity_type);
-  // We've defined add settings for this in slickgrid_entity_info_alter()
-  $form_id = $entity_info['bundles'][$bundle_type]['add']['callback'];
-  if($entity_info['bundles'][$bundle_type]['add']['file']){
-    require_once ($entity_info['bundles'][$bundle_type]['add']['file']);
-  }
+  $args = array_slice(func_get_args(), 4);
   ctools_include('modal');
   ctools_include('ajax');
-  $form_state = array(
-    'title' => t('Add @label', array(
-      '@label' => $entity_info['bundles'][$bundle_type]['label']
-    )),
-    'ajax' => TRUE
-  );
+  $form_callback_func = $entity_info['form callback'];
   if(function_exists($entity_info['creation callback'])){
     $entity = call_user_func($entity_info['creation callback'], array(
       'type' => $bundle_type,
       'name' => $user->name
-    ));
-    $form_state['build_info']['args'] = array(
-      $entity
-    );
+    ), $entity_type);
+    $form = $form_callback_func($entity);
+  }else{
+    $form = $form_callback_func();
   }
-  $output = ctools_modal_form_wrapper($form_id, $form_state);
-  if(!empty($form_state['executed'])){
-    // We'll just overwrite the form output if it was successful.
+  $form_state = $_POST + array(
+    'title' => t('Add @label', array(
+      '@label' => $entity_info['label']
+    ))
+  );
+  if($form['#validated'] && !form_get_errors()){
     $output = array();
     $output[] = ctools_modal_command_dismiss();
     $result = array();
     slickgrid_callback_get_messages($result);
     // Reload the view
-    $view = slickgrid_get_view($view_name, $display_id);
+    $view = slickgrid_get_view($view_name, $display_id, array(), $args);
     $result['data'] = $view->data;
+    $result['columns'] = slickgrid_encode_columns($view->columns);
     $output[] = array(
       'command' => 'slickgrid',
       'response' => array(
         'result' => $result
       )
     );
+  }else{
+    $output = ctools_modal_form_render($form_state, $form);
   }
   print ajax_render($output);
   exit();

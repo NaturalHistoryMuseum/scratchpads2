@@ -9,8 +9,8 @@
 
         function init()
         {
+            
             constructUI();
-
         }
 
         function confirmDialog() {
@@ -33,6 +33,7 @@
 
         function constructUI()
         {
+            console.log($('a', $('.feed-icon')));
             $container.empty();
             $control = $("<span title='Export' class='slickgrid-control-button enabled' />").click(confirmDialog).appendTo($container);            
             $form = $('<form method="post" />');            

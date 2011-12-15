@@ -1,0 +1,11 @@
+/* $Id$ */
+
+-- REQUIREMENTS --
+
+* Drupal 6.
+
+
+-- INSTALLATION --
+
+* Install as usual, see
+http://www.michaelbarton.name/2010/07/09/drupal-module-status-messages-alter/

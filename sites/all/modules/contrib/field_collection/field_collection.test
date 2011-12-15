@@ -1,5 +1,4 @@
 <?php
-// $Id: field_collection.test,v 1.1.2.7 2011/02/01 15:12:16 fago Exp $
 
 /**
  * @file
@@ -14,7 +13,7 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Field collection',
-      'description' => 'Tests creating and using field-collections.',
+      'description' => 'Tests creating and using field collections.',
       'group' => 'Field types',
     );
   }
@@ -75,7 +74,31 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
     // Make sure field_collections are removed during deletion of the host.
     node_delete($node->nid);
-    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
+    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'Field collections are deleted when the host is deleted.');
+
+    // Try deleting nodes with collections without any values.
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    node_delete($node->nid);
+    $this->assertTrue(node_load($node->nid, NULL, TRUE) == FALSE, 'Node without collection values deleted.');
+
+    // Test creating a field collection entity with a not-yet saved host entity.
+    $node = entity_create('node', array('type' => 'article'));
+    $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
+    $entity->setHostEntity('node', $node);
+    $entity->save();
+    // Now the node should have been saved with the collection and the link
+    // should have been established.
+    $this->assertTrue(!empty($node->nid), 'Node has been saved with the collection.');
+    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'Link has been established.');
+
+    // Again, test creating a field collection with a not-yet saved host entity,
+    // but this time save both entities via the host.
+    $node = entity_create('node', array('type' => 'article'));
+    $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
+    $entity->setHostEntity('node', $node);
+    node_save($node);
+    $this->assertTrue(!empty($entity->item_id), 'Collection has been saved with the host.');
+    $this->assertTrue(count($node->{$this->field_name}[LANGUAGE_NONE]) == 1 && !empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'Link has been established.');
   }
 
   /**
@@ -148,14 +171,14 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
 
 /**
- * Test using field-collection with Rules.
+ * Test using field collection with Rules.
  */
 class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
       'name' => 'Field collection Rules integration',
-      'description' => 'Tests using field-collections with rules.',
+      'description' => 'Tests using field collections with rules.',
       'group' => 'Field types',
       'dependencies' => array('rules'),
     );
@@ -163,9 +186,13 @@ class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp(array('field_collection', 'rules'));
+    variable_set('rules_debug_log', 1);
+  }
+
+  protected function createFields($cardinality = 4) {
     // Create a field_collection field to use for the tests.
     $this->field_name = 'field_test_collection';
-    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => 4);
+    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => $cardinality);
     $this->field = field_create_field($this->field);
     $this->field_id = $this->field['id'];
 
@@ -208,6 +235,8 @@ class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
    * Test creation field collection items.
    */
   function testCreation() {
+    $this->createFields();
+
     $node = $this->drupalCreateNode(array('type' => 'article'));
     // Create a field collection.
     $action_set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
@@ -223,13 +252,39 @@ class FieldCollectionRulesIntegrationTestCase extends DrupalWebTestCase {
     $this->assertTrue(!empty($node->{$this->field_name}[LANGUAGE_NONE][0]['value']), 'A field_collection has been successfully created.');
     $item_id = $node->{$this->field_name}[LANGUAGE_NONE][0]['value'];
 
-    // Now try making use of the field-collection in rules.
+    // Now try making use of the field collection in rules.
     $action_set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
     $action_set->action('drupal_message', array('message:select' => 'node:field-test-collection:0:field-text'));
     $action_set->execute($node);
 
     $msg = drupal_get_messages();
-    $this->assertEqual(array_pop($msg['status']), 'foo', 'Field-collection can be used.');
+    $this->assertEqual(array_pop($msg['status']), 'foo', 'Field collection can be used.');
+    RulesLog::logger()->checkLog();
+  }
+
+  /**
+   * Test using field collection items via the host while they are being created.
+   */
+  function testUsageDuringCreation() {
+    // Test using a single-cardinality field collection.
+    $this->createFields(1);
+
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
+    $entity->setHostEntity('node', $node);
+    // Now the field collection is linked to the host, but not yet saved.
+
+    // Test using the wrapper on it.
+    $wrapper = entity_metadata_wrapper('node', $node);
+    $wrapper->get($this->field_name)->field_text->set('foo');
+    $this->assertEqual($entity->field_text[LANGUAGE_NONE][0]['value'], 'foo', 'Field collection item used during creation via the wrapper.');
+
+    // Now test it via Rules, which should save our changes.
+    $set = rules_action_set(array('node' => array('type' => 'node', 'bundle' => 'article')));
+    $set->action('data_set', array('data:select' => 'node:' . $this->field_name . ':field-text', 'value' => 'bar'));
+    $set->execute($node);
+    $this->assertEqual($entity->field_text[LANGUAGE_NONE][0]['value'], 'bar', 'Field collection item used during creation via Rules.');
+    $this->assertTrue(!empty($entity->item_id), 'Field collection item has been saved by Rules and the host entity.');
     RulesLog::logger()->checkLog();
   }
 }

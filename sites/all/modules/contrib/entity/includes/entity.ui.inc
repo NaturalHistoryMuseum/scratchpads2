@@ -12,7 +12,6 @@ class EntityDefaultUIController {
 
   protected $entityType;
   protected $entityInfo, $path;
-
   public function __construct($entity_type, $entity_info) {
     $this->entityType = $entity_type;
     $this->entityInfo = $entity_info;
@@ -495,6 +494,7 @@ function entity_ui_form_defaults($form, &$form_state, $entity_type, $entity = NU
   if (isset($op)) {
     drupal_set_title(entity_ui_get_page_title($op, $entity_type, $entity));
   }
+  
   // Add in handlers pointing to the controller for the forms implemented by it.
   if (isset($form_state['build_info']['base_form_id']) && $form_state['build_info']['base_form_id'] != $entity_type . '_form') {
     $form['#validate'][] = 'entity_ui_controller_form_validate';

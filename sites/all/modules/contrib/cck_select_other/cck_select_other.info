@@ -1,0 +1,21 @@
+name = "Select Other"
+description = "Adds a new select widget for CCK text (and related field types) that allows users to input either with a select list or a text input box."
+package = "Fields"
+dependencies[] = list
+files[] = cck_select_other.module
+files[] = cck_select_other.js
+files[] = cck_select_other.install
+files[] = tests/cck_select_other.test
+files[] = views/cck_select_other.views.inc
+files[] = views/cck_select_other_handler_field.inc
+files[] = views/cck_select_other_handler_filter.inc
+core = 7.x
+php = 5.x
+
+
+; Information added by drupal.org packaging script on 2011-04-22
+version = "7.x-1.0"
+core = "7.x"
+project = "cck_select_other"
+datestamp = "1303438614"
+

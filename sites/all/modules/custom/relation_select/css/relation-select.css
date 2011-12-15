@@ -40,16 +40,21 @@
   min-height: 400px;
 }
 
+.rs-wrapper{
+  background-color: #eee;
+  padding: 3px 10px 3px 6px;
+}
+
 .rs-wrapper,
 .rs-placeholder{
   width: 300px;
-  padding: 3px 10px 3px 25px;
   margin: 1px 0;
   height: 20px;
   border: 1px solid #CBCBCB;
 }
 
-.rs-wrapper{
+.sortable .rs-wrapper{
+  padding-left: 25px;
   background: #eee url("/misc/draggable.png") no-repeat 5px 7px;
   cursor: move;
 }
@@ -67,6 +72,41 @@
 }
 
 /* CSS for the relation select view style */
+
+/* Exposed filter */
+
+#edit-relation-select-exposed-filters .views-exposed-form{
+  margin-top: 15px;
+}
+
+#edit-relation-select-exposed-filters .views-exposed-form .views-exposed-widget label{
+  width: auto;
+  display: inline-block;
+  padding-right: 20px;
+}
+
+
+#edit-relation-select-exposed-filters .views-exposed-form .views-exposed-widget .views-widget{
+  display: inline-block;
+}
+
+#edit-relation-select-exposed-filters .views-exposed-form{
+  border: 1px solid #eee;
+  background: #eee;
+  display: inline-block;
+  -moz-border-radius: 15px;
+  border-radius: 20px;
+  padding: 0 9px 0 15px;
+}
+
+#edit-relation-select-exposed-filters .views-submit-button{
+  padding-right: 0;
+}
+
+#edit-relation-select-exposed-filters .views-submit-button input{
+  margin-right: 0;
+  margin-top: 0;
+}
 
 .views-view-relation-select{
   border: 1px solid #ccc;

@@ -334,7 +334,7 @@ class views_handler_field extends views_handler {
    *   Optional name of the field where the value is stored.
    */
   function get_value($values, $field = NULL) {
-    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;
+    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;    
     if (isset($values->{$alias})) {
       return $values->{$alias};
     }
@@ -926,6 +926,9 @@ If you would like to have the characters %5B and %5D please use the html entity 
    * text-replacement rendering is necessary.
    */
   function advanced_render($values) {
+  	
+
+  	
     if ($this->allow_advanced_render() && method_exists($this, 'render_item')) {
       $raw_items = $this->get_items($values);
     }
@@ -937,10 +940,17 @@ If you would like to have the characters %5B and %5D please use the html entity 
       $this->last_render = $value;
       $this->original_value = $value;
     }
+    
+
+    
+    
 
     if ($this->allow_advanced_render()) {
+    	
+
+    	
       $tokens = NULL;
-      if (method_exists($this, 'render_item')) {
+      if (method_exists($this, 'render_item')) {      	
         $items = array();
         foreach ($raw_items as $count => $item) {
           $value = $this->render_item($count, $item);
@@ -975,8 +985,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
         $alter['text'] = $this->options['empty'];
         $this->last_render = $this->render_text($alter);
       }
-    }
-
+    }    
     return $this->last_render;
   }
 

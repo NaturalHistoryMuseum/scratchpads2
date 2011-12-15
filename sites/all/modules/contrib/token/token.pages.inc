@@ -35,7 +35,6 @@ function theme_tree_table($variables) {
 function theme_token_tree($variables) {
   $token_types = $variables['token_types'];
   $info = token_get_info();
-
   if ($token_types == 'all') {
     $token_types = array_keys($info['types']);
   }

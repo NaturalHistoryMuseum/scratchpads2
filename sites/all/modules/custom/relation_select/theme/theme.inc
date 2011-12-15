@@ -72,9 +72,9 @@ function relation_select_preprocess_relation_select_item_value(&$variables){
 function relation_select_preprocess_relation_select_field(&$variables){
   $variables['list_type'] = 'ul';
   $variables['items'] = array();
-  foreach($variables['entities'] as $entity){
-    $link = entity_uri($entity->entity_type, $entity);
-    $variables['items'][] = l(entity_label($entity->entity_type, $entity), $link['path']);
+  foreach($variables['related_entities'] as $related_entity){
+    $link = entity_uri($related_entity->entity_type, $related_entity);
+    $variables['items'][] = l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
 }
 

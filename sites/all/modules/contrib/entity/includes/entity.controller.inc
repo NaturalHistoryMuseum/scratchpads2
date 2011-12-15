@@ -438,7 +438,7 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
       module_invoke_all($this->entityType . '_view', $entity, $view_mode, $langcode);
     }
     module_invoke_all('entity_view', $entity, $this->entityType, $view_mode, $langcode);
-    $build = $entity->content;
+    $build = $entity->content;    
     unset($entity->content);
     return $build;
   }

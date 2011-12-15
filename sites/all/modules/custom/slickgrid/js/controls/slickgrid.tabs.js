@@ -10,9 +10,7 @@
           function init()
           {
               constructUI();
-              
               grid.onHeaderContextMenu.subscribe(onHeaderContextMenu);
-
           }
 
           function onHeaderContextMenu(e, ui){
@@ -45,6 +43,11 @@
               }
             });      
             grid.setColumns(cols);
+            
+            if(typeof slickgrid !== 'undefined'){
+              $(slickgrid.getContainer()).trigger('onSlickgridTabChanged');
+            }
+            
           }
 
           function constructUI()
@@ -65,6 +68,15 @@
               showTab(tabs[0]);
               
           }
+          
+          function rebuild(){
+            constructUI();
+          }
+          
+          $.extend(this, {
+             // Methods
+             "rebuild": rebuild,
+          });
 
           init();
       }

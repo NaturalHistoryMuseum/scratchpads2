@@ -17,8 +17,8 @@ function relation_views_data() {
     'field' => 'rid',
     'title' => t('Relation'),
     'weight' => -10,
-    'entity type' => 'relation',
   );
+  $data['relation']['table']['entity type'] = 'relation';
   $data['relation']['rid'] = array(
     'title' => t('Rid'),
     'help' => t('The relation ID.'),
@@ -189,8 +189,8 @@ function relation_views_data_alter(&$data) {
         '@left' => $entity_type_left,
         '@relation_type_label' => $relation_type->label,
       );
-      $data[$base_table_left]['relation_base' . $type] = array(
-        'title' => t('Relation: @relation_type_label (@left <-> relation)', $t_arguments),
+      $data[$base_table_left]['relation_base_left_' . $type] = array(
+        'title' => t('Relation: @relation_type_label (@left -> relation)', $t_arguments),
         'help' => t('Provides a relationship from @left to the relation table via the relation @relation_type_label', $t_arguments),
         'relationship' => array(
           // relation_handler_relationship::options_form() relies on this check_plain().
@@ -203,7 +203,7 @@ function relation_views_data_alter(&$data) {
           'entity_type_left' => $entity_type_left,
           'entity_type_right' => 'relation',
           'directional' => $relation_type->directional,
-          'join_handler' => 'relation_handler_base_join',
+          'join_handler' => 'relation_handler_base_left_join',
         ),
       );
       foreach ($relation_type->$target_index as $target_bundle) {
@@ -226,6 +226,23 @@ function relation_views_data_alter(&$data) {
             'entity_type_right' => $entity_type_right,
             'directional' => $relation_type->directional,
             'join_handler' => 'relation_handler_join',
+          ),
+        );
+        $data['relation']['relation_base_right_' . $entity_type_right] = array(
+          'title' => t('Relation: @relation_type_label (relation -> @right)', $t_arguments),
+          'help' => t('Provides a relationship from the relation table to @right via the relation @relation_type_label', $t_arguments),
+          'relationship' => array(
+            // relation_handler_relationship::options_form() relies on this check_plain().
+            'label' => check_plain($relation_type->label),
+            'base' => $base_table_right,
+            'base field' => $entity_infos[$entity_type_right]['entity keys']['id'],
+            'relationship field' => $relationship_field,
+            'handler' => 'views_handler_relationship',
+            'relation_type' => $type,
+            'entity_type_left' => 'relation',
+            'entity_type_right' => $entity_type_right,
+            'directional' => $relation_type->directional,
+            'join_handler' => 'relation_handler_base_right_join',
           ),
         );
       }

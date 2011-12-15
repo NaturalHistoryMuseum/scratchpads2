@@ -21,7 +21,8 @@ $plugin = array(
   'error' => 'slickgrid_plugin_inline_cell_error',
   'handler' => array(
     'class' => 'slickgrid_editors'
-  )
+  ),
+  'form_id' => 'slickgrid_editor_form'
 );
 
 /**
@@ -47,5 +48,5 @@ function slickgrid_plugin_inline_cell_process($editor){
   $form_state['re_render'] = true;
   $form_state['no_redirect'] = true;
   // Build & submit the form
-  drupal_build_form('slickgrid_editor_form', $form_state);
+  drupal_build_form($editor->plugin['form_id'], $form_state);
 }

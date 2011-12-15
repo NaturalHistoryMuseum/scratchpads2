@@ -143,6 +143,11 @@ function views_data_export_garbage_collect($expires = NULL, $chunk = NULL) {
  * Handles all batching operations by executing the appropriate view.
  */
 function _views_data_export_batch_process($export_id, $display_id, &$context) {
+  // Don't show the admin menu on batch page, some people don't like it.
+  if (module_exists('admin_menu')) {
+    module_invoke('admin_menu', 'suppress');
+  }
+  
   // Fetch the view in question from our cache
   $view = views_data_export_view_retrieve($export_id);
   $view->set_display($display_id);

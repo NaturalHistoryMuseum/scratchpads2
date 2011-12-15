@@ -1,0 +1,122 @@
+<?php
+// $Id: demo.module,v 1.39 2010/09/25 17:06:05 sun Exp $
+
+/**
+ * @file
+ * Demonstration site API Drupal integration functions.
+ */
+
+/**
+ * Implements hook_perm().
+ */
+function demo_permission() {
+  return array(
+    'administer demo settings' => array(
+      'title' => t('Create snapshots and reset the site'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function demo_menu() {
+  $admin_access = array('administer demo settings');
+
+  $items['admin/structure/demo'] = array(
+    'title' => 'Snapshots',
+    'description' => 'Create snapshots and reset the site.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('demo_manage_form'),
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+  );
+  $items['admin/structure/demo/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/structure/demo/dump'] = array(
+    'title' => 'Create snapshot',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('demo_dump_form'),
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/structure/demo/reset'] = array(
+    'title' => 'Reset',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('demo_reset_confirm'),
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+  $items['admin/structure/demo/delete/%'] = array(
+    'title' => 'Delete snapshot',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('demo_delete_confirm', 4),
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  );
+  $items['admin/structure/demo/settings'] = array(
+    'title' => 'Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('demo_admin_settings'),
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+
+  $items['demo/autocomplete'] = array(
+    'page callback' => 'demo_autocomplete',
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['demo/download'] = array(
+    'page callback' => 'demo_download',
+    'access arguments' => $admin_access,
+    'file' => 'demo.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Create a new snapshot.
+ *
+ * @param $options
+ *   A structured array of snapshot options:
+ *   - filename: The base output filename, without extension.
+ *   - default: Whether to set this dump as new default snapshot.
+ *   - description: A description for the snapshot. If a snapshot with the same
+ *     name already exists and this is left blank, the new snapshot will reuse
+ *     the existing description.
+ *   - tables: An array of tables to dump, keyed by table name (including table
+ *     prefix, if any). The value is an array of dump options:
+ *     - schema: Whether to dump the table schema.
+ *     - data: Whether to dump the table data.
+ */
+function demo_dump($options) {
+  module_load_include('inc', 'demo', 'demo.admin');
+  return _demo_dump($options);
+}
+
+/**
+ * Reset site using snapshot.
+ *
+ * @param $filename
+ *   Base snapshot filename, without extension.
+ * @param $verbose
+ *   Whether to output status messages.
+ */
+function demo_reset($filename, $verbose = TRUE) {
+  module_load_include('inc', 'demo', 'demo.admin');
+  return _demo_reset($filename, $verbose);
+}
+

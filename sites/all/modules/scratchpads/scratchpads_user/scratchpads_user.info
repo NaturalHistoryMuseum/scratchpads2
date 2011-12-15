@@ -1,6 +1,7 @@
 core = "7.x"
 dependencies[] = "cck_select_other"
 dependencies[] = "features"
+dependencies[] = "countries"
 description = "Scratchpads user settings"
 features[field][] = "user-user-field_user_family_name"
 features[field][] = "user-user-field_user_given_names"

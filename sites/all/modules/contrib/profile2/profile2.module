@@ -1,0 +1,759 @@
+<?php
+
+/**
+ * @file
+ * Support for configurable user profiles.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function profile2_entity_info() {
+  $return = array(
+    'profile2' => array(
+      'label' => t('Profile'),
+      'entity class' => 'Profile',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'profile',
+      'fieldable' => TRUE,
+      'view modes' => array(
+        'account' => array(
+          'label' => t('User account'),
+          'custom settings' => FALSE,
+        ),
+      ),
+      'entity keys' => array(
+        'id' => 'pid',
+        'bundle' => 'type',
+      ),
+      'bundles' => array(),
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'access callback' => 'profile2_access',
+      'module' => 'profile2',
+      'metadata controller class' => 'Profile2MetadataController'
+    ),
+  );
+  $return['profile2_type'] = array(
+    'label' => t('Profile type'),
+    'entity class' => 'ProfileType',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'profile_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'profile2',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label',
+    ),
+    'access callback' => 'profile2_type_access',
+    'module' => 'profile2',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/profiles',
+      'file' => 'profile2.admin.inc',
+      'controller class' => 'Profile2TypeUIController',
+    ),
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * Use this hook to specify profile bundles to avoid a recursion, as loading
+ * the profile types needs the entity info too.
+ */
+function profile2_entity_info_alter(&$entity_info) {
+  foreach (profile2_get_types() as $type => $info) {
+    $entity_info['profile2']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/profiles/manage/%profile2_type',
+        'real path' => 'admin/structure/profiles/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer profiles'),
+      ),
+    );
+  }
+}
+
+/**
+ * Menu argument loader; Load a profile type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a profile type to load.
+ * @return
+ *   A profile type array or FALSE if $type does not exist.
+ */
+function profile2_type_load($type) {
+  return profile2_get_types($type);
+}
+
+/**
+ * Implements hook_permission().
+ */
+function profile2_permission() {
+  $permissions = array(
+    'administer profile types' =>  array(
+      'title' => t('Administer profile types'),
+      'description' => t('Create and delete fields on user profiles, and set their permissions.'),
+    ),
+    'administer profiles' =>  array(
+      'title' => t('Administer profiles'),
+      'description' => t('Edit and view all user profiles.'),
+    ),
+  );
+  // Generate per profile type permissions.
+  foreach (profile2_get_types() as $type) {
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit own $type_name profile" => array(
+        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->label)),
+      ),
+      "edit any $type_name profile" => array(
+        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->label)),
+      ),
+      "view own $type_name profile" => array(
+        'title' => t('%type_name: View own profile', array('%type_name' => $type->label)),
+      ),
+      "view any $type_name profile" => array(
+        'title' => t('%type_name: View any profile', array('%type_name' => $type->label)),
+      ),
+    );
+  }
+  return $permissions;
+}
+
+/**
+ * Gets an array of all profile types, keyed by the type name.
+ *
+ * @param $type_name
+ *   If set, the type with the given name is returned.
+ * @return ProfileType[]
+ *   Depending whether $type isset, an array of profile types or a single one.
+ */
+function profile2_get_types($type_name = NULL) {
+  $types = entity_load_multiple_by_name('profile2_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Fetch a profile object.
+ *
+ * @param $pid
+ *   Integer specifying the profile id.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded $profile object or FALSE if it cannot be loaded.
+ *
+ * @see profile2_load_multiple()
+ */
+function profile2_load($pid, $reset = FALSE) {
+  $profiles = profile2_load_multiple(array($pid), array(), $reset);
+  return reset($profiles);
+}
+
+/**
+ * Load multiple profiles based on certain conditions.
+ *
+ * @param $pids
+ *   An array of profile IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {profile} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of profile objects, indexed by pid.
+ *
+ * @see entity_load()
+ * @see profile2_load()
+ * @see profile2_load_by_user()
+ */
+function profile2_load_multiple($pids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('profile2', $pids, $conditions, $reset);
+}
+
+/**
+ * Fetch profiles by account.
+ *
+ * @param $account
+ *   The user account to load profiles for, or its uid.
+ * @param $type_name
+ *   To load a single profile, pass the type name of the profile to load.
+ * @return
+ *   Either a single profile or an array of profiles keyed by profile type.
+ *
+ * @see profile2_load_multiple()
+ * @see profile2_profile2_delete()
+ * @see Profile::save()
+ */
+function profile2_load_by_user($account, $type_name = NULL) {
+  // Use a separate query to determine all profile ids per user and cache them.
+  // That way we can look up profiles by id and benefit from the static cache
+  // of the entity loader.
+  $cache = &drupal_static(__FUNCTION__, array());
+  $uid = is_object($account) ? $account->uid : $account;
+
+  if (!isset($cache[$uid])) {
+    if (empty($type_name)) {
+      $profiles = profile2_load_multiple(FALSE, array('uid' => $uid));
+      // Cache ids for further lookups.
+      $cache[$uid] = array();
+      foreach ($profiles as $pid => $profile) {
+        $cache[$uid][$profile->type] = $pid;
+      }
+      return $profiles ? array_combine(array_keys($cache[$uid]), $profiles) : array();
+    }
+    $cache[$uid] = db_select('profile', 'p')
+      ->fields('p', array('type', 'pid'))
+      ->condition('uid', $uid)
+      ->execute()
+      ->fetchAllKeyed();
+  }
+  if (isset($type_name)) {
+    return isset($cache[$uid][$type_name]) ? profile2_load($cache[$uid][$type_name]) : FALSE;
+  }
+  // Return an array containing profiles keyed by profile type.
+  return $cache[$uid] ? array_combine(array_keys($cache[$uid]), profile2_load_multiple($cache[$uid])) : $cache[$uid];
+}
+
+/**
+ * Implements hook_profile2_delete().
+ */
+function profile2_profile2_delete($profile) {
+  // Clear the static cache from profile2_load_by_user().
+  $cache = &drupal_static('profile2_load_by_user', array());
+  unset($cache[$profile->uid][$profile->type]);
+}
+
+/**
+ * Deletes a profile.
+ */
+function profile2_delete(Profile $profile) {
+  $profile->delete();
+}
+
+/**
+ * Delete multiple profiles.
+ *
+ * @param $pids
+ *   An array of profile IDs.
+ */
+function profile2_delete_multiple(array $pids) {
+  entity_get_controller('profile2')->delete($pids);
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function profile2_user_delete($account) {
+  foreach (profile2_load_by_user($account) as $profile) {
+    profile2_delete($profile);
+  }
+}
+
+/**
+ * Create a new profile object.
+ */
+function profile_create(array $values) {
+  return new Profile($values);
+}
+
+/**
+ * Saves a profile to the database.
+ *
+ * @param $profile
+ *   The profile object.
+ */
+function profile2_save(Profile $profile) {
+  return $profile->save();
+}
+
+/**
+ * Saves a profile type to the db.
+ */
+function profile2_type_save(ProfileType $type) {
+  $type->save();
+}
+
+/**
+ * Deletes a profile type from.
+ */
+function profile2_type_delete(ProfileType $type) {
+  $type->delete();
+}
+
+/**
+ * Implements hook_profile2_load()
+ */
+function profile2_profile2_load($profiles) {
+  $types = profile2_get_types();
+  // Load the profile's label.
+  foreach ($profiles as $profile) {
+    if (isset($types[$profile->type])) {
+      $profile->label = $types[$profile->type]->label;
+    }
+  }
+}
+
+/**
+ * Implements hook_profile2_type_delete()
+ */
+function profile2_profile2_type_delete($type) {
+  // Delete all profiles of this type.
+  if ($pids = array_keys(profile2_load_multiple(FALSE, array('type' => $type->type)))) {
+    profile2_delete_multiple($pids);
+  }
+  // Rebuild the menu as any (user-category) menu items should be gone now.
+  menu_rebuild();
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function profile2_user_view($account) {
+  foreach (profile2_get_types() as $type => $profile_type) {
+    if ($profile_type->userView && $profile = profile2_load_by_user($account, $type)) {
+      if (profile2_access('view', $profile)) {
+        $account->content['profile_' . $type] = array(
+          '#type' => 'user_profile_category',
+          '#title' => $profile->label,
+          '#prefix' => '<a id="profile-' . $profile->type . '"></a>',
+        );
+        $account->content['profile_' . $type]['view'] = $profile->view('account');
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the user edit form.
+ *
+ * @see profile2_form_validate_handler
+ * @see profile2_form_submit_handler
+ */
+function profile2_form_user_profile_form_alter(&$form, &$form_state) {
+  if (($type = profile2_get_types($form['#user_category'])) && $type->userCategory) {
+    if (empty($form_state['profiles'])) {
+      $profile = profile2_load_by_user($form['#user'], $form['#user_category']);
+      if (empty($profile)) {
+        $profile = profile_create(array('type' => $form['#user_category'], 'uid' => $form['#user']->uid));
+      }
+      $form_state['profiles'][$profile->type] = $profile;
+    }
+    profile2_attach_form($form, $form_state);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the registration form.
+ */
+function profile2_form_user_register_form_alter(&$form, &$form_state) {
+  foreach (profile2_get_types() as $type_name => $profile_type) {
+    if (!empty($profile_type->data['registration'])) {
+      if (empty($form_state['profiles'][$type_name])) {
+        $form_state['profiles'][$type_name] = profile_create(array('type' => $type_name));
+      }
+      profile2_attach_form($form, $form_state);
+      // Wrap each profile form in a fieldset.
+      $form['profile_' . $type_name] += array(
+        '#type' => 'fieldset',
+        '#title' => check_plain($profile_type->label),
+      );
+    }
+  }
+}
+
+/**
+ * Attaches the profile forms of the profiles set in
+ * $form_state['profiles'].
+ *
+ * Modules may alter the profile2 entity form regardless to which form it is
+ * attached by making use of hook_form_profile2_form_alter().
+ *
+ * @param $form
+ *   The form to which to attach the profile2 form. For each profile the form
+ *   is added to @code $form['profile_' . $profile->type] @endcode. This helper
+ *   also adds in a validation and a submit handler caring for the attached
+ *   profile forms.
+ *
+ * @see hook_form_profile2_form_alter()
+ * @see profile2_form_validate_handler()
+ * @see profile2_form_submit_handler()
+ */
+function profile2_attach_form(&$form, &$form_state) {
+  foreach ($form_state['profiles'] as $type => $profile) {
+    $form['profile_' . $profile->type]['#tree'] = TRUE;
+    $form['profile_' . $profile->type]['#parents'] = array('profile_' . $profile->type);
+    field_attach_form('profile2', $profile, $form['profile_' . $profile->type], $form_state);
+
+    if (count(field_info_instances('profile2', $profile->type)) == 0) {
+      $form['profile_' . $profile->type]['message'] = array(
+        '#access' => user_access('administer profile types'),
+        '#markup' => t('No fields have been associated with this profile type. Go to the <a href="!url">Profile types</a> page to add some fields.', array('!url' => url('admin/structure/profiles'))),
+      );
+    }
+
+    // Provide a central place for modules to alter the profile forms, but
+    // skip that in case the caller cares about invoking the hooks.
+    // @see profile2_form().
+    if (!isset($form_state['profile2_skip_hook'])) {
+      $hooks[] = 'form_profile2_edit_' . $type . '_form';
+      $hooks[] = 'form_profile2_form';
+      drupal_alter($hooks, $form, $form_state);
+    }
+  }
+  $form['#validate'][] = 'profile2_form_validate_handler';
+  $form['#submit'][] = 'profile2_form_submit_handler';
+}
+
+/**
+ * Validation handler for the profile form.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_validate_handler(&$form, &$form_state) {
+  foreach ($form_state['profiles'] as $type => $profile) {
+    if (isset($form_state['values']['profile_' . $profile->type])) {
+      // @see entity_form_field_validate()
+      $pseudo_entity = (object) $form_state['values']['profile_' . $profile->type];
+      $pseudo_entity->type = $type;
+      field_attach_form_validate('profile2', $pseudo_entity, $form['profile_' . $profile->type], $form_state);
+    }
+  }
+}
+
+/**
+ * Submit handler that builds and saves all profiles in the form.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_handler(&$form, &$form_state) {
+  profile2_form_submit_build_profile($form, $form_state);
+  // This is needed as some submit callbacks like user_register_submit() rely on
+  // clean form values.
+  profile2_form_submit_cleanup($form, $form_state);
+
+  foreach ($form_state['profiles'] as $type => $profile) {
+    // During registration set the uid field of the newly created user.
+    if (empty($profile->uid) && isset($form_state['user']->uid)) {
+      $profile->uid = $form_state['user']->uid;
+    }
+    profile2_save($profile);
+  }
+}
+
+/**
+ * Submit builder. Extracts the form values and updates the profile entities.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_build_profile(&$form, &$form_state) {
+  foreach ($form_state['profiles'] as $type => $profile) {
+    // @see entity_form_submit_build_entity()
+    if (isset($form['profile_' . $type]['#entity_builders'])) {
+      foreach ($form['profile_' . $type]['#entity_builders'] as $function) {
+        $function('profile2', $profile, $form['profile_' . $type], $form_state);
+      }
+    }
+    field_attach_submit('profile2', $profile, $form['profile_' . $type], $form_state);
+  }
+}
+
+/**
+ * Cleans up the form values as the user modules relies on clean values.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_cleanup(&$form, &$form_state) {
+  foreach ($form_state['profiles'] as $type => $profile) {
+    unset($form_state['values']['profile_' . $type]);
+  }
+}
+
+/**
+ * Implements hook_user_categories().
+ */
+function profile2_user_categories() {
+  $data = array();
+  foreach (profile2_get_types() as $type => $info) {
+    if ($info->userCategory) {
+      $data[] = array(
+        'name' => $type,
+        'title' => $info->label,
+        // Add an offset so a weight of 0 appears right of the account category.
+        'weight' => $info->weight + 3,
+        'access callback' => 'profile2_category_access',
+        'access arguments' => array(1, $type)
+      );
+    }
+  }
+  return $data;
+}
+
+/**
+ * Menu item access callback - check if a user has access to a profile category.
+ */
+function profile2_category_access($account, $type_name) {
+  // As there might be no profile yet, create a new object for being able to run
+  // a proper access check.
+  $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
+  return ($account->uid > 0 && $profile->type()->userCategory && profile2_access('edit', $profile));
+}
+
+/**
+ * Determines whether the given user has access to a profile.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ * @param $profile
+ *   (optional) A profile to check access for. If nothing is given, access for
+ *   all profiles is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ *
+ * @see hook_profile2_access()
+ * @see profile2_profile2_access()
+ */
+function profile2_access($op, $profile = NULL, $account = NULL) {
+  if (user_access('administer profiles', $account)) {
+    return TRUE;
+  }
+  if ($op == 'create' || $op == 'update') {
+    $op = 'edit';
+  }
+  // Allow modules to grant / deny access.
+  $access = module_invoke_all('profile2_access', $op, $profile, $account);
+
+  // Only grant access if at least one module granted access and no one denied
+  // access.
+  if (in_array(FALSE, $access, TRUE)) {
+    return FALSE;
+  }
+  elseif (in_array(TRUE, $access, TRUE)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_profile2_access().
+ */
+function profile2_profile2_access($op, $profile = NULL, $account = NULL) {
+  // Don't grant access for users to delete their profile.
+  if (isset($profile) && ($type_name = $profile->type) && $op != 'delete') {
+    if (user_access("$op any $type_name profile", $account)) {
+      return TRUE;
+    }
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    if (isset($profile->uid) && $profile->uid == $account->uid && user_access("$op own $type_name profile", $account)) {
+      return TRUE;
+    }
+  }
+  // Do not explicitly deny access so others may still grant access.
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function profile2_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer profile types', $account);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function profile2_theme() {
+  return array(
+    'profile2_admin_type' => array(
+      'variables' => array('label' => NULL, 'type' => NULL),
+    ),
+    'profile2' => array(
+      'render element' => 'elements',
+      'template' => 'profile2',
+    ),
+  );
+}
+
+/**
+ * The class used for profile entities.
+ */
+class Profile extends Entity {
+
+  public function __construct($values = array()) {
+    if (isset($values['user'])) {
+      $this->setUser($values['user']);
+      unset($values['user']);
+    }
+    if (isset($values['type']) && is_object($values['type'])) {
+      $values['type'] = $values['type']->type;
+    }
+    parent::__construct($values, 'profile2');
+  }
+
+  /**
+   * Returns the user owning this profile.
+   */
+  public function user() {
+    return user_load($this->uid);
+  }
+
+  /**
+   * Sets a new user owning this profile.
+   *
+   * @param $account
+   *   The user account object or the user account id (uid).
+   */
+  public function setUser($account) {
+    $this->uid = is_object($account) ? $account->uid : $account;
+  }
+
+  /**
+   * Gets the associated profile type object.
+   *
+   * @return ProfileType
+   */
+  public function type() {
+    return profile2_get_types($this->type);
+  }
+
+  public function defaultLabel() {
+    return isset($this->label) ? $this->label : (isset($this->type) ? $this->type()->label : '');
+  }
+
+  /**
+   * Returns the full url() for the profile.
+   */
+  public function url() {
+    $uri = $this->uri();
+    return url($uri['path'], $uri);
+  }
+
+  /**
+   * Returns the drupal path to this profile.
+   */
+  public function path() {
+    $uri = $this->uri();
+    return $uri['path'];
+  }
+
+  public function defaultUri() {
+    return array(
+      'path' => 'user/' . $this->uid,
+      'options' => array('fragment' => 'profile-' . $this->type),
+    );
+  }
+
+  public function buildContent($view_mode = 'full', $langcode = NULL) {
+    $content = array();
+    // Assume newly create objects are still empty.
+    if (!empty($this->is_new)) {
+      $content['empty']['#markup'] = '<em class="profile2-no-data">' . t('There is no profile data yet.') . '</em>';
+    }
+    return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
+  }
+
+  public function save() {
+    parent::save();
+    // Update the static cache from profile2_load_by_user().
+    $cache = &drupal_static('profile2_load_by_user', array());
+    if (isset($cache[$this->uid])) {
+      $cache[$this->uid][$this->type] = $this->pid;
+    }
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class ProfileType extends Entity {
+
+  /**
+   * Whether the profile type appears in the user categories.
+   */
+  public $userCategory = TRUE;
+
+  /**
+   * Whether the profile is displayed on the user account page.
+   */
+  public $userView = TRUE;
+
+  public $type;
+  public $label;
+  public $weight = 0;
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'profile2_type');
+  }
+
+  /**
+   * Returns whether the profile type is locked, thus may not be deleted or renamed.
+   *
+   * Profile types provided in code are automatically treated as locked, as well
+   * as any fixed profile type.
+   */
+  public function isLocked() {
+    return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
+  }
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Adds a checkbox for controlling field view access to fields added to
+ * profiles.
+ */
+function profile2_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if ($form['instance']['entity_type']['#value'] == 'profile2') {
+    $form['field']['settings']['profile2_private'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Make the content of this field private.'),
+      '#default_value' => !empty($form['#field']['settings']['profile2_private']),
+      '#description' => t('If checked, the content of this field is only shown to the profile owner and administrators.'),
+    );
+  }
+  else {
+    // Add the value to the form so it isn't lost.
+    $form['field']['settings']['profile2_private'] = array(
+      '#type' => 'value',
+      '#value' => !empty($form['#field']['settings']['profile2_private']),
+    );
+  }
+}
+
+/**
+ * Implements hook_field_access().
+ */
+function profile2_field_access($op, $field, $entity_type, $profile = NULL, $account = NULL) {
+  if ($entity_type == 'profile2' && $op == 'view' && !empty($field['settings']['profile2_private']) && !user_access('administer profiles', $account)) {
+    // For profiles, deny general view access for private fields.
+    if (!isset($profile)) {
+      return FALSE;
+    }
+    // Also deny view access, if someone else views a private field.
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    if ($account->uid != $profile->uid) {
+      return FALSE;
+    }
+  }
+}
+
+/**
+ * Entity metadata callback to load profiles for the given user account.
+ */
+function profile2_user_get_properties($account, array $options, $name) {
+  // Remove the leading 'profile_' from the property name to get the type name.
+  $profile = profile2_load_by_user($account, substr($name, 8));
+  return $profile ? $profile : NULL;
+}
+

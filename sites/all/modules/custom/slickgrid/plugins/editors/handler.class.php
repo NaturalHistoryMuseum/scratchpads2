@@ -35,7 +35,7 @@ class slickgrid_editors{
     $this->plugin = $plugin;
     // Entity variables
     $this->entity_type = $_POST['entity_type'];
-    // Load all the entities
+    // Load all the entities    
     $this->entities = entity_load($this->entity_type, $_POST['entity_ids']);
     // Field variables
     $this->field_name = $_POST['field_name'];
@@ -53,7 +53,7 @@ class slickgrid_editors{
    * 
    * Do the actual update - passes the update to the plugin's process functions
    */
-  function update(){
+  function update(){  	
     if(function_exists($this->plugin['process'])){
       $this->plugin['process']($this);
     }

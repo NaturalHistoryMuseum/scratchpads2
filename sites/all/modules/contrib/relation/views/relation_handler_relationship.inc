@@ -80,7 +80,7 @@ class relation_handler_join extends views_join {
   }
 }
 
-class relation_handler_base_join extends views_join {
+class relation_handler_base_left_join extends views_join {
   /**
    * Build the SQL for the join this object represents.
    */
@@ -93,13 +93,31 @@ class relation_handler_base_join extends views_join {
     // Join the left table with the entity type to the relation table.
     $left = $view_query->get_table_info($this->left_table);
     $entity_type_left = $this->definition['entity_type_left'];
-    $conditions = "$left[alias].$this->left_field = %alias.$entity_id_field_name AND %alias.$entity_type_field_name = '$entity_type_left'";
+    $conditions = "$left[alias].$this->left_field = %alias.$entity_id_field_name AND %alias.$entity_type_field_name = '$entity_type_left' AND %alias.$r_index_field_name = 0";
     // Left join alias.
     $l = $select_query->addJoin($this->type, $relation_data_table_name, NULL, $conditions);
-    // Execute a self-join.
     // entity_id here is the ID of the relation entity.
     $relation_type = $this->definition['relation_type'];
     $conditions = "%alias.rid = $l.entity_id AND %alias.relation_type = '$relation_type'";
-    $select_query->addJoin($this->type, 'relation', $table['alias'], $conditions);
+    $select_query->addJoin($this->type, $table['table'], $table['alias'], $conditions);
+  }
+}
+
+class relation_handler_base_right_join extends views_join {
+  /**
+   * Build the SQL for the join this object represents.
+   */
+  function build_join($select_query, $table, $view_query) {
+    $field = field_info_field('endpoints');
+    $relation_table = $view_query->get_table_info($this->left_table);
+    $relation_data_table_name = _field_sql_storage_tablename($field);
+    $entity_id_field_name = _field_sql_storage_columnname('endpoints', 'entity_id');
+    $entity_type_field_name = _field_sql_storage_columnname('endpoints', 'entity_type');
+    $r_index_field_name = _field_sql_storage_columnname('endpoints', 'r_index');
+    $conditions = "$relation_table[alias].rid = %alias.entity_id AND %alias.$r_index_field_name = 1";
+    $l = $select_query->addJoin($this->type, $relation_data_table_name, NULL, $conditions);
+    $entity_type_right = $this->definition['entity_type_right'];
+    $conditions = "$l.$entity_type_field_name = '$entity_type_right' AND %alias.$this->field = $l.$entity_id_field_name";
+    $select_query->addJoin($this->type, $table['table'], $table['alias'], $conditions);
   }
 }

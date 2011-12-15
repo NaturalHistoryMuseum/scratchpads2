@@ -1,0 +1,14 @@
+name = Profile2
+description = Supports configurable user profiles.
+core = 7.x
+files[] = profile2.admin.inc
+files[] = profile2.info.inc
+files[] = profile2.test
+dependencies[] = entity
+configure = admin/structure/profiles
+; Information added by drupal.org packaging script on 2011-08-18
+version = "7.x-1.0"
+core = "7.x"
+project = "profile2"
+datestamp = "1313678524"
+

@@ -36,7 +36,7 @@
    html += '    <div class="popups-container">';
    html += '     <div class="modal-header popups-title">';
    html += '       <span id="modal-title" class="modal-title"></span>';
-   html += '       <span class="popups-close"><a class="close" href="#">' + Drupal.CTools.Modal.currentSettings.closeText + '</a></span>';
+   html += '       <span class="popups-close"><a class="close" href="#">' + Drupal.CTools.Modal.currentSettings.closeImage + '</a></span>';
    html += '       <div class="clear-block"></div>';   html += '     </div>';
    html += '     <div id="modal-content" class="modal-content popups-body"></div>';
    html += '   </div>';
