@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Implementation of hook_views_plugins()
  */
@@ -14,8 +15,8 @@ function character_editor_views_plugins(){
         'parent' => 'slickgrid',
         'handler' => 'character_editor_views_plugin',
         'theme file' => 'theme.inc',
-        'theme path' => "$path/theme",
-        'theme' => 'views_view_character_editor',
+        'theme path' => "$slickgrid_path/theme",
+        'theme' => 'views_view_slickgrid',
         'uses fields' => TRUE,
         'uses options' => TRUE,
         'uses grouping' => FALSE,
@@ -24,4 +25,18 @@ function character_editor_views_plugins(){
       )
     )
   );
+}
+
+/**
+ * Implements hook_views_data()
+ */
+function character_editor_views_data(){
+  $data['views']['character_field'] = array(
+    'title' => t('Character field'),
+    'help' => t('Display a character editor field.'),
+    'field' => array(
+      'handler' => 'character_editor_views_handler_field'
+    )
+  );
+  return $data;
 }
