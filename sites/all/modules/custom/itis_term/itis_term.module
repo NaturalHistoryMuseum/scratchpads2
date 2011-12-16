@@ -68,10 +68,80 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
       if($biological_type){
         switch($biological_type){
           case 1:
+            return array(
+              'Kingdom' => 'Kingdom',
+              'Subkingdom' => 'Subkingdom',
+              'Phylum' => 'Phylum',
+              'Subphylum' => 'Subphylum',
+              'Superclass' => 'Superclass',
+              'Class' => 'Class',
+              'Subclass' => 'Subclass',
+              'Infraclass' => 'Infraclass',
+              'Superorder' => 'Superorder',
+              'Order' => 'Order',
+              'Suborder' => 'Suborder',
+              'Infraorder' => 'Infraorder',
+              'Superfamily' => 'Superfamily',
+              'Family' => 'Family',
+              'Subfamily' => 'Subfamily',
+              'Tribe' => 'Tribe',
+              'Subtribe' => 'Subtribe',
+              'Genus' => 'Genus',
+              'Subgenus' => 'Subgenus',
+              'Species' => 'Species',
+              'Subspecies' => 'Subspecies'
+            );
             break;
           case 2:
+            return array(
+              'Kingdom' => 'Kingdom',
+              'Subkingdom' => 'Subkingdom',
+              'Division' => 'Division',
+              'Subdivision' => 'Subdivision',
+              'Class' => 'Class',
+              'Subclass' => 'Subclass',
+              'Order' => 'Order',
+              'Suborder' => 'Suborder',
+              'Family' => 'Family',
+              'Subfamily' => 'Subfamily',
+              'Tribe' => 'Tribe',
+              'Subtribe' => 'Subtribe',
+              'Genus' => 'Genus',
+              'Subgenus' => 'Subgenus',
+              'Section' => 'Section',
+              'Subsection' => 'Subsection',
+              'Species' => 'Species',
+              'Subspecies' => 'Subspecies',
+              'Variety' => 'Variety',
+              'Subvariety' => 'Subvariety',
+              'Form' => 'Form',
+              'Subform' => 'Subform'
+            );
             break;
           case 3:
+            return array(
+              'Kingdom' => 'Kingdom',
+              'Subkingdom' => 'Subkingdom',
+              'Phylum' => 'Phylum',
+              'Subphylum' => 'Subphylum',
+              'Superclass' => 'Superclass',
+              'Class' => 'Class',
+              'Subclass' => 'Subclass',
+              'Infraclass' => 'Infraclass',
+              'Superorder' => 'Superorder',
+              'Order' => 'Order',
+              'Suborder' => 'Suborder',
+              'Infraorder' => 'Infraorder',
+              'Superfamily' => 'Superfamily',
+              'Family' => 'Family',
+              'Subfamily' => 'Subfamily',
+              'Tribe' => 'Tribe',
+              'Subtribe' => 'Subtribe',
+              'Genus' => 'Genus',
+              'Subgenus' => 'Subgenus',
+              'Species' => 'Species',
+              'Subspecies' => 'Subspecies'
+            );
             break;
         }
       }else{
@@ -108,6 +178,8 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
         );
       }
       break;
+    case 'field_rank':
+      break;
   }
 }
 
@@ -118,7 +190,11 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
   if($form_id == 'taxonomy_form_term'){
     $vids = variable_get('biological_vids', array());
     if(isset($vids[$form['vid']['#value']])){
-      $form['field_rank'][$form['field_rank']['#language']]['#options'] = $form['field_rank'][$form['field_rank']['#language']]['#options'][$vids[$form['vid']['#value']]];
+      // WHAT A FUCKING CLUDGE!
+      $form['field_rank'][$form['field_rank']['#language']]['#options'] = itis_term_allowed_values(array(
+        'field_name' => 'field_rank'
+      ), $vids[$form['vid']['#value']]);
+      // Set fields to hide/appear depending on values in other fields.
       $form['field_unit_name2']['#states'] = array(
         'visible' => array(
           ':input[name="field_unit_name1[und][0][value]"]' => array(

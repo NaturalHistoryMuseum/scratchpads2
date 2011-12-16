@@ -140,7 +140,7 @@ function itis_term_groups(){
  */
 function itis_term_fields(){
   return array(
-    array(
+    'field_associated_accepted_name' => array(
       'field_config' => array(
         'active' => '1',
         'cardinality' => '1',
@@ -445,8 +445,7 @@ function itis_term_fields(){
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => '',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
@@ -496,8 +495,7 @@ function itis_term_fields(){
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => 'x',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
@@ -547,8 +545,7 @@ function itis_term_fields(){
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => 'x',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
@@ -598,14 +595,7 @@ function itis_term_fields(){
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => 'f.
-ssp.
-subf.
-subsp.
-subvar.
-var.
-x',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
@@ -655,13 +645,7 @@ x',
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => 'f.
-ssp.
-subf.
-subsp.
-subvar.
-var.',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
@@ -943,11 +927,7 @@ var.',
         ),
         'module' => 'list',
         'settings' => array(
-          'allowed_values' => 'invalid
-valid
-accepted
-not accepted',
-          'allowed_values_function' => ''
+          'allowed_values_function' => 'itis_term_allowed_values'
         ),
         'translatable' => '1',
         'type' => 'list_text'
