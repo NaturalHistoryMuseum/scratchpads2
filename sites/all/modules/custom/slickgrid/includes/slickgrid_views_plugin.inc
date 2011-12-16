@@ -524,8 +524,8 @@ class slickgrid_views_plugin extends views_plugin_style{
   function list_addable_entities(){
     $entities = array();
     foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
-      foreach($entity_info['bundles'] as $bundle_name => $bundle){
-        if(isset($bundle['add']) && $bundle['add']){
+      if(isset($entity_info['form callback'])){
+        foreach($entity_info['bundles'] as $bundle_name => $bundle){
           $entities[$entity_type . '/' . $bundle_name] = $entity_info['label'] . ': ' . $bundle['label'];
         }
       }

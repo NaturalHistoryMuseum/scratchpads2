@@ -27,6 +27,7 @@ var dataView;
         
         // Controls
         var undoControl;
+        var tabs;
 
         function init() {
           
@@ -75,8 +76,8 @@ var dataView;
                 var deleteControl = new Slick.Controls.Delete(dataView, grid, $("#slickgrid-delete"));
             }
             
-            // export control (requires row selection checkbox)                   
-            if (options['export'] && options['row_selection_checkbox']) {
+            // export control                  
+            if (options['export']) {
                 var exportControl = new Slick.Controls.Export(dataView, grid, $("#slickgrid-export"));
             }
 
@@ -110,7 +111,7 @@ var dataView;
             
             // Add tabs control (Needs to come after columnpicker control & hidden columns is added)  
             if (options['tabs']) {
-                var tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"));
+                tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"));
             }
             
             // Does the grid have filters that need adding?
@@ -166,9 +167,6 @@ var dataView;
             
             }
 
-
-            
-            
             dataView.endUpdate();
             
             addGridEventHandlers();
@@ -178,6 +176,8 @@ var dataView;
             if (options['filterable']) {
                 dataView.setFilter(filter);
             }
+            
+            $(container).trigger('onSlickgridInit');
 
         }
 
@@ -394,7 +394,7 @@ var dataView;
             }
           
           });
-          
+
           return entityIDs;
           
         }
@@ -644,6 +644,7 @@ var dataView;
 
           updateStatus(true, errorMessage);
           
+          
         }
         
         function callbackSuccess(response, status){
@@ -734,14 +735,26 @@ var dataView;
             }
 
             updateStatus(status, response.messages);
-            
+          
             
             // If the callback has returned a new data array (which will happen on node clone & node add) reload the data
             if(typeof response.data === 'object'){
               reload(response.data);
             }
             
+            // If the callback has returned a column array, update the columns
+             if(typeof response.columns === 'string'){
+               
+               updateColumns(response.columns);
+               
+             }
+            
           }
+          
+          $(container).trigger('onSlickgridCallback', {
+            status: status,
+            response: response 
+          });
 
         }
         
@@ -855,8 +868,18 @@ var dataView;
           dataView.refresh();
         }
         
+        function updateColumns(updatedColumns){
+          columns = eval('(' + updatedColumns + ')');
+          grid.setColumns(columns);
+          tabs.rebuild();          
+        }
+        
         function setColumnFilter(field, value){
           columnFilters[field] = value;  
+        }
+        
+        function getContainer(){
+          return container;
         }
                 
         
@@ -867,12 +890,13 @@ var dataView;
            "getViewName":            getViewName,
            "getViewDisplayID":       getViewDisplayID,
            "getEntityIDs":           getEntityIDs,
+           "getContainer":           getContainer,
            "openDialog":             openDialog,
            "closeDialog":            closeDialog,
            "getCallbackPath":        getCallbackPath,
            "reload":                 reload,
            'setColumnFilter':        setColumnFilter,
-            'updateFilters':         updateFilters
+           'updateFilters':         updateFilters
         });
 
         init();

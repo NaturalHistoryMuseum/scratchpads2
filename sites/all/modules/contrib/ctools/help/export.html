@@ -160,6 +160,9 @@ function mymodule_schema() {
 <dt>load callback</dt>
 <dd>CRUD callback to use to load a single item. If not provided, the default load function will be used. The callback will accept a single argument which should be an identifier of the export key.</dd>
 
+<dt>load multiple callback</dt>
+<dd>CRUD callback to use to load multiple items. If not provided, the default multiple load function will be used. The callback will accept an array which should be the identifiers of the export key.</dd>
+
 <dt>load all callback</dt>
 <dd>CRUD callback to use to load all items, usually for administrative purposes. If not provided, the default load function will be used. The callback will accept a single argument to determine if the load cache should be reset or not.</dd>
 
@@ -179,7 +182,7 @@ function mymodule_schema() {
 <dd>CRUD callback to use for updating the status of an object. If the status is TRUE the object will be disabled. If the status is FALSE the object will be enabled.</dd>
 
 <dt>api</dt>
-<dd>The 'api' key can optionally contain some information for the plugin API definition. This means that the imports can be tied to an API name which is used to have automatic inclusion of files, and can be used to prevent dangerous objects from older versions from being loaded, causing a loss of functionality rather than site crashes or security loopholes. 
+<dd>The 'api' key can optionally contain some information for the plugin API definition. This means that the imports can be tied to an API name which is used to have automatic inclusion of files, and can be used to prevent dangerous objects from older versions from being loaded, causing a loss of functionality rather than site crashes or security loopholes.
 
 If not present, no additional files will be loaded and the default hook will always be a simple hook that must be either part of the .module file or loaded during normal operations.
 
@@ -241,20 +244,29 @@ Exportable objects have several reserved keys that are used by the CTools export
 </dl>
 
 <h3>The load callback</h3>
-Calling ctools_export_crud_load($table, $name) will invoke your load callback, and calling ctools_export_crud_load_all($table, $reset) will invoke your load all callback. The default handlers should be sufficient for most uses.
+Calling ctools_export_crud_load($table, $name) will invoke your load callback, calling ctools_export_crud_load_multiple($table, $names) will invoke your load multiple callback, and calling ctools_export_crud_load_all($table, $reset) will invoke your load all callback. The default handlers should be sufficient for most uses.
 
-Typically, there will be two load functions. A 'single' load, to load just one object, and an 'all' load, to load all of the objects for use in administrating the objects or utilizing the objects when you need all of them. Using ctools_export_load_object() you can easily do both, as well as quite a bit in between. This example duplicates the default functionality for loading one myobj.
+Typically, there will be three load functions. A 'single' load, to load just one object, a 'multiple' load to load multiple objects, and an 'all' load, to load all of the objects for use in administrating the objects or utilizing the objects when you need all of them. Using ctools_export_load_object() you can easily do both, as well as quite a bit in between. This example duplicates the default functionality for loading one myobj.
 
 <pre>
 /**
-* Load a single myobj.
-*/
+ * Implements 'load callback' for myobj exportables.
+ */
 function mymodule_myobj_load($name) {
   ctools_include('export');
   $result = ctools_export_load_object('mymodule_myobjs', 'names', array($name));
   if (isset($result[$name])) {
     return $result[$name];
   }
+}
+
+/**
+ * Implements 'load multiple callback' for myobj exportables.
+ */
+function mymodule_myobj_load_multiple(array $names) {
+  ctools_include('export')
+  $results = ctools_export_load_object('mymodule_myobjs', 'names', $names);
+  return array_filter($results);
 }
 </pre>
 

@@ -1118,6 +1118,7 @@ function field_group_attach_groups(&$element, $view_mode) {
   $bundle = $element['#bundle'];
 
   $element['#groups'] = field_group_info_groups($entity_type, $bundle, $view_mode);
+
   $element['#fieldgroups'] = $element['#groups'];
 
   // Create a lookup array.

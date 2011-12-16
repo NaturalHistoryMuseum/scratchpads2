@@ -132,3 +132,138 @@ function ctools_field_label($field_name) {
   $label_counter = array_keys($label_counter);
   return $label_counter[0];
 }
+
+/**
+ * Replacement for core _field_invoke() to invoke on a single field.
+ *
+ * Core only allows invoking field hooks via a private function for all fields
+ * on an entire entity. However, we very often need to invoke our hooks on
+ * a single field as we take things apart and only use little bits.
+ *
+ * @param $field_name
+ *   Either a field instance object or the name of the field.
+ * @param $op
+ *   Possible operations include:
+ *   - form
+ *   - validate
+ *   - presave
+ *   - insert
+ *   - update
+ *   - delete
+ *   - delete revision
+ *   - view
+ *   - prepare translation
+ * @param $entity_type
+ *   The type of $entity; e.g. 'node' or 'user'.
+ * @param $entity
+ *   The fully formed $entity_type entity.
+ * @param $a
+ *   - The $form in the 'form' operation.
+ *   - The value of $view_mode in the 'view' operation.
+ *   - Otherwise NULL.
+ * @param $b
+ *   - The $form_state in the 'submit' operation.
+ *   - Otherwise NULL.
+ * @param $options
+ *   An associative array of additional options, with the following keys:
+ *  - 'field_name': The name of the field whose operation should be
+ *    invoked. By default, the operation is invoked on all the fields
+ *    in the entity's bundle. NOTE: This option is not compatible with
+ *    the 'deleted' option; the 'field_id' option should be used
+ *    instead.
+ *  - 'field_id': The id of the field whose operation should be
+ *    invoked. By default, the operation is invoked on all the fields
+ *    in the entity's' bundles.
+ *  - 'default': A boolean value, specifying which implementation of
+ *    the operation should be invoked.
+ *    - if FALSE (default), the field types implementation of the operation
+ *      will be invoked (hook_field_[op])
+ *    - If TRUE, the default field implementation of the field operation
+ *      will be invoked (field_default_[op])
+ *    Internal use only. Do not explicitely set to TRUE, but use
+ *    _field_invoke_default() instead.
+ *  - 'deleted': If TRUE, the function will operate on deleted fields
+ *    as well as non-deleted fields. If unset or FALSE, only
+ *    non-deleted fields are operated on.
+ *  - 'language': A language code or an array of language codes keyed by field
+ *    name. It will be used to narrow down to a single value the available
+ *    languages to act on.
+ *
+ * @see _field_invoke()
+ */
+function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a = NULL, &$b = NULL, $options = array()) {
+  if (is_array($field_name)) {
+    $instance = $field_name;
+    $field_name = $instance['field_name'];
+  }
+  else {
+    list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+    $instance = field_info_instance($entity_type, $field_name, $bundle);
+  }
+
+  if (empty($instance)) {
+    return;
+  }
+
+  // Merge default options.
+  $default_options = array(
+    'default' => FALSE,
+    'deleted' => FALSE,
+    'language' => NULL,
+  );
+  $options += $default_options;
+
+  $return = array();
+
+  // Everything from here is unmodified code from _field_invoke() formerly
+  // inside a foreach loop over the instances.
+  $field = field_info_field($field_name);
+  $function = $options['default'] ? 'field_default_' . $op : $field['module'] . '_field_' . $op;
+  if (function_exists($function)) {
+    // Determine the list of languages to iterate on.
+    $available_languages = field_available_languages($entity_type, $field);
+    $languages = _field_language_suggestion($available_languages, $options['language'], $field_name);
+
+    foreach ($languages as $langcode) {
+      if (isset($entity->{$field_name})) {
+        $items = isset($entity->{$field_name}[$langcode]) ? $entity->{$field_name}[$langcode] : array();
+      }
+      else {
+        $items = array();
+      }
+      $result = $function($entity_type, $entity, $field, $instance, $langcode, $items, $a, $b);
+      if (isset($result)) {
+        // For hooks with array results, we merge results together.
+        // For hooks with scalar results, we collect results in an array.
+        if (is_array($result)) {
+          $return = array_merge($return, $result);
+        }
+        else {
+          $return[] = $result;
+        }
+      }
+
+      // Populate $items back in the field values, but avoid replacing missing
+      // fields with an empty array (those are not equivalent on update).
+      if (isset($entity->{$field_name})) {
+        if ($items !== array() || isset($entity->{$field_name}[$langcode])) {
+          $entity->{$field_name}[$langcode] = $items;
+        }
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Replacement for core _field_invoke_default() to invoke on a single field.
+ *
+ * @see ctools_field_invoke_field()
+ * @see _field_invoke_default()
+ */
+function ctools_field_invoke_field_default($field_name, $op, $entity_type, $entity, &$a = NULL, &$b = NULL, $options = array()) {
+  $options['default'] = TRUE;
+  return ctools_field_invoke_field($field_name, $op, $entity_type, $entity, $a, $b, $options);
+}
+

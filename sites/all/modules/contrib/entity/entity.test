@@ -6,9 +6,45 @@
  */
 
 /**
+ * Common parent class containing common helpers.
+ */
+abstract class EntityWebTestCase extends DrupalWebTestCase {
+
+  /**
+   * Creates a new vocabulary.
+   */
+  protected function createVocabulary() {
+    $vocab = entity_create('taxonomy_vocabulary', array(
+      'name' => $this->randomName(),
+      'machine_name' => drupal_strtolower($this->randomName()),
+      'description' => $this->randomName(),
+    ));
+    entity_save('taxonomy_vocabulary', $vocab);
+    return $vocab;
+  }
+
+  /**
+   * Creates a random file of the given type.
+   */
+  protected function createFile($file_type = 'text') {
+    // Create a managed file.
+    $file = current($this->drupalGetTestFiles($file_type));
+
+    // Set additional file properties and save it.
+    $file->filemime = file_get_mimetype($file->filename);
+    $file->uid = 1;
+    $file->timestamp = REQUEST_TIME;
+    $file->filesize = filesize($file->uri);
+    $file->status = 0;
+    file_save($file);
+    return $file;
+  }
+}
+
+/**
  * Test basic API.
  */
-class EntityAPITestCase extends DrupalWebTestCase {
+class EntityAPITestCase extends EntityWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -265,12 +301,70 @@ class EntityAPITestCase extends DrupalWebTestCase {
     // The entity class adds the user name to the output. Verify it is there.
     $this->assertTrue(strpos($output, format_username($user1)) !== FALSE, 'Entity has been rendered');
   }
+
+  /**
+   * Test uninstall of the entity_test module.
+   */
+  function testUninstall() {
+    // Add a test type and add a field instance, uninstall, then re-install and
+    // make sure the field instance can be re-created.
+    $test_type = entity_create('entity_test_type', array(
+      'name' => 'test',
+      'label' => 'label',
+      'weight' => 0,
+    ));
+    $test_type->save();
+
+    $field = array(
+      'field_name' => 'field_test_fullname',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'entity_type' => 'entity_test',
+      'field_name' => 'field_test_fullname',
+      'bundle' => 'test',
+      'label' => 'Full name',
+      'description' => 'Specify your first and last name.',
+      'widget' => array(
+        'type' => 'text_textfield',
+        'weight' => 0,
+      ),
+    );
+    field_create_instance($instance);
+
+    // Uninstallation has to remove all bundles, thus also field instances.
+    module_disable(array('entity_test'));
+    require_once DRUPAL_ROOT . '/includes/install.inc';
+    drupal_uninstall_modules(array('entity_test'));
+
+    // Make sure the instance has been deleted.
+    $instance_read = field_read_instance('entity_test', 'field_test_fullname', 'test', array('include_inactive' => 1));
+    $this->assertFalse((bool) $instance_read, 'Field instance has been deleted.');
+
+    // Ensure re-creating the same instance now works.
+    module_enable(array('entity_test'));
+    $test_type = entity_create('entity_test_type', array(
+      'name' => 'test',
+      'label' => 'label',
+      'weight' => 0,
+    ));
+    $test_type->save();
+    field_create_field($field);
+    field_create_instance($instance);
+
+    $instance_read = field_info_instance('entity_test', 'field_test_fullname', 'test');
+    $this->assertTrue((bool) $instance_read, 'Field instance has been re-created.');
+  }
 }
 
 /**
  * Test the generated Rules integration.
  */
-class EntityAPIRulesIntegrationTestCase extends DrupalWebTestCase {
+class EntityAPIRulesIntegrationTestCase extends EntityWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -322,7 +416,7 @@ class EntityAPIRulesIntegrationTestCase extends DrupalWebTestCase {
 /**
  * Tests metadata wrappers.
  */
-class EntityMetadataTestCase extends DrupalWebTestCase {
+class EntityMetadataTestCase extends EntityWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -642,6 +736,7 @@ class EntityMetadataTestCase extends DrupalWebTestCase {
    * Tests using entity_property_query().
    */
   function testEntityQuery() {
+    // Creat a test node.
     $title = '<b>Is it bold?<b>';
     $values[LANGUAGE_NONE][0] = array('value' => 'foo');
     $node = $this->drupalCreateNode(array($this->field_name => $values, 'title' => $title, 'uid' => $GLOBALS['user']->uid));
@@ -657,6 +752,25 @@ class EntityMetadataTestCase extends DrupalWebTestCase {
 
     $results = entity_property_query('node', 'author', $GLOBALS['user']);
     $this->assertEqual($results, array($node->nid), 'Queried nodes with a given auhtor.');
+
+    // Create another test node and try querying for tags.
+    $tag = entity_property_values_create_entity('taxonomy_term', array(
+          'name' => $this->randomName(),
+          'vocabulary' => 1,
+    ))->save();
+    $field_tag_value[LANGUAGE_NONE][0]['tid'] = $tag->getIdentifier();
+    $node = $this->drupalCreateNode(array('type' => 'article', 'field_tags' => $field_tag_value));
+
+    // Try query-ing with a single value.
+    $results = entity_property_query('node', 'field_tags', $tag->getIdentifier());
+    $this->assertEqual($results, array($node->nid), 'Queried nodes with a given term id.');
+
+    $results = entity_property_query('node', 'field_tags', $tag->value());
+    $this->assertEqual($results, array($node->nid), 'Queried nodes with a given term object.');
+
+    // Try query-ing with a list of possible values.
+    $results = entity_property_query('node', 'field_tags', array($tag->getIdentifier()));
+    $this->assertEqual($results, array($node->nid), 'Queried nodes with a list of term ids.');
   }
 
   /**
@@ -679,20 +793,16 @@ class EntityMetadataTestCase extends DrupalWebTestCase {
     $s = serialize($wrapper2);
     node_delete($node->nid);
     $this->assertFalse(node_load($node->nid), 'Node deleted.');
-    try {
-      unserialize($s)->value();
-      $this->fail("Loading hasn't created an exception.");
-    }
-    catch (EntityMetadataWrapperException $e) {
-      $this->pass("Exception was thrown: ". $e->getMessage());
-    }
+
+    $value = unserialize($s)->value();
+    $this->assertNull($value, 'Tried to load not existing node.');
   }
 }
 
 /**
  * Tests provided entity property info of the core modules.
  */
-class EntityTokenTestCase extends DrupalWebTestCase {
+class EntityTokenTestCase extends EntityWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -710,6 +820,7 @@ class EntityTokenTestCase extends DrupalWebTestCase {
    * Tests whether token support is basically working.
    */
   function testTokenSupport() {
+    // Test basic tokens.
     $node = $this->drupalCreateNode(array('sticky' => TRUE, 'promote' => FALSE));
     $text = "Sticky: [node:sticky] Promote: [node:promote] User: [site:current-user:name]";
     $true = t('true');
@@ -718,13 +829,47 @@ class EntityTokenTestCase extends DrupalWebTestCase {
     $target = "Sticky: $true Promote: $false User: $user_name";
     $replace = token_replace($text, array('node' => $node));
     $this->assertEqual($replace, $target, 'Provided tokens basically work.');
+
+    // Test multiple-value tokens using the tags field of articles.
+    for ($i = 0; $i < 4; $i++) {
+      $tags[$i] = entity_property_values_create_entity('taxonomy_term', array(
+        'name' => $this->randomName(),
+        'vocabulary' => 1,
+      ))->save();
+      $field_value[LANGUAGE_NONE][$i]['tid'] = $tags[$i]->getIdentifier();
+      $labels[$i] = $tags[$i]->label();
+    }
+    $node = $this->drupalCreateNode(array('title' => 'foo', 'type' => 'article', 'field_tags' => $field_value));
+
+    $text = "Tags: [node:field-tags] First: [node:field-tags:0] 2nd name: [node:field-tags:1:name] 1st vocab [node:field-tags:0:vocabulary]";
+    $tag_labels = implode(', ', $labels);
+    $target = "Tags: $tag_labels First: $labels[0] 2nd name: $labels[1] 1st vocab {$tags[0]->vocabulary->label()}";
+    $replace = token_replace($text, array('node' => $node));
+    $this->assertEqual($replace, $target, 'Multiple-value token replacements have been replaced.');
+
+    // Make sure not existing values are not handled.
+    $replace = token_replace("[node:field-tags:43]", array('node' => $node));
+    $this->assertEqual($replace, "[node:field-tags:43]", 'Not existing values are not replaced.');
+
+    // Test data-structure tokens like [site:current-page:url].
+    $replace = token_replace("[site:current-page:url]", array());
+    $this->assertEqual($replace, $GLOBALS['base_root'] . request_uri(), 'Token replacements of data structure properties replaced.');
+
+    // Test chaining of data-structure tokens using an image-field.
+    $file = $this->createFile('image');
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    $wrapper = entity_metadata_wrapper('node', $node);
+
+    $wrapper->field_image = array('fid' => $file->fid);
+    $replace = token_replace("[node:field-image:file:name]", array('node' => $node));
+    $this->assertEqual($replace, $wrapper->field_image->file->name->value(), 'Token replacements of an image field have been replaced.');
   }
 }
 
 /**
  * Tests provided entity property info of the core modules.
  */
-class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
+class EntityMetadataIntegrationTestCase extends EntityWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -833,7 +978,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
    * Tests properties provided by the taxonomy module.
    */
   function testTaxonomyProperties() {
-    $vocab = $this->createVocab();
+    $vocab = $this->createVocabulary();
     $term_parent = entity_property_values_create_entity('taxonomy_term', array(
       'name' => $this->randomName(),
       'vocabulary' => $vocab,
@@ -923,6 +1068,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
   function testUserProperties() {
     $account = $this->drupalCreateUser();
     $account->login = time();
+    $account->access = time();
     $wrapper = entity_metadata_wrapper('user', $account);
     foreach ($wrapper as $key => $value) {
       $this->assertValue($wrapper, $key);
@@ -1156,7 +1302,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
    * Test making use of an image field.
    */
   function testImageFields() {
-    $file = $this->createFile();
+    $file = $this->createFile('image');
 
     // Just use the image field on the article node.
     $node = $this->drupalCreateNode(array('type' => 'article'));
@@ -1199,7 +1345,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
     if (!isset($this->node)) {
       $this->node = $this->drupalCreateNode(array('type' => 'page'));
       $this->user = $this->drupalCreateUser();
-      $this->taxonomy_vocabulary = $this->createVocab();
+      $this->taxonomy_vocabulary = $this->createVocabulary();
     }
 
     if ($options = $wrapper->optionsList()) {
@@ -1235,31 +1381,4 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
         return $this->{$wrapper->type()};
     }
   }
-
-  protected function createVocab() {
-    $vocab = entity_create('taxonomy_vocabulary', array(
-      'name' => $this->randomName(),
-      'machine_name' => drupal_strtolower($this->randomName()),
-      'description' => $this->randomName(),
-    ));
-    entity_save('taxonomy_vocabulary', $vocab);
-    return $vocab;
-  }
-
-  protected function createFile() {
-    $filepath = file_destination('temporary://' . $this->randomName(), FILE_EXISTS_REPLACE);
-    file_put_contents($filepath, "content");
-    $this->assertTrue(is_file($filepath), t('The test file exists on the disk.'), 'Create test file');
-    $file = new stdClass();
-    $file->uri = $filepath;
-    $file->filename = basename($file->uri);
-    $file->filemime = 'text/plain';
-    $file->uid = 1;
-    $file->timestamp = REQUEST_TIME;
-    $file->filesize = filesize($file->uri);
-    $file->status = 0;
-    file_save($file);
-    return $file;
-  }
 }
-

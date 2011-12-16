@@ -17,9 +17,15 @@ function relation_entity_collector_block_info() {
  * Implements hook_block_view().
  */
 function relation_entity_collector_block_view() {
-  $block['subject'] = t('Entity Collector');
-  $block['content']['#pre_render'] = array('relation_entity_collector_pre_render');
-  return $block;
+  if (relation_entity_collector_user_has_access()) {
+    $block['subject'] = t('Entity Collector');
+    $block['content']['#pre_render'] = array('relation_entity_collector_pre_render');
+    return $block;
+  }
+}
+
+function relation_entity_collector_user_has_access() {
+  return user_access('administer relations') || user_access('create relations');
 }
 
 /**
@@ -35,30 +41,8 @@ function relation_entity_collector_pre_render($element) {
  */
 function relation_entity_collector_entity_load($entities, $type) {
   $entities_store = &drupal_static('relation_entities', array());
-  $enabled = &drupal_static(__FUNCTION__);
-  // Recursion protection.
-  if ($enabled === -1) {
-    return;
-  }
-  if (!isset($enabled)) {
-    $enabled = -1;
-    // This can fire entity_load() so we need to protect from recursion: will
-    // try to get the theme from the menu which will, in turn, load the objects
-    // in the router path.
-    drupal_theme_initialize();
-    $block_info = _block_load_blocks();
-    $enabled = FALSE;
-    foreach ($block_info as $region => $blocks) {
-      if (isset($blocks['relation_entity_collector_block'])) {
-        $enabled = TRUE;
-        break;
-      }
-    }
-  }
-  if ($enabled) {
-    $entities_store += array($type => array());
-    $entities_store[$type] += $entities;
-  }
+  $entities_store += array($type => array());
+  $entities_store[$type] += $entities;
 }
 
 /**
@@ -100,12 +84,10 @@ function relation_entity_collector($form, &$form_state) {
   );
   $form['entity_key'] = array(
     '#type'           => 'select',
-    '#title'          => t('Entity'),
+    '#title'          => t('Select an entity'),
     '#options'        => $form_state['relation_entities_options'],
     '#default_value'  => '',
-    '#empty_value'    => '',
-    '#empty_option'   => t('Select an entity'),
-    '#description'     => t('Selector shows all entities loaded on this page.'),
+    '#description'     => t('Selector shows all !entities loaded on this page.', array('!entities' => l(t('entities'), 'http://drupal.org/glossary#entity', array('absolute' => TRUE, 'external' => TRUE)))),
   );
   $form['pick'] = array(
     '#type' => 'submit',
@@ -255,4 +237,52 @@ function relation_entity_collector_save($form, $form_state) {
 function relation_entity_collector_clear($form, &$form_state) {
   unset($_SESSION['relation_type'], $_SESSION['relation_entity_keys']);
   $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Implements hook_views_post_execute().
+ *
+ * Make sure entities are loaded even if only fields are used.
+ */
+function relation_entity_collector_views_post_execute($view) {
+  if (relation_entity_collector_user_has_access()) {
+    foreach (entity_get_info() as $entity_type => $entity_info) {
+      $map[$entity_info['base table']] = array(
+        'id' => $entity_info['entity keys']['id'],
+        'entity_type' => $entity_type,
+      );
+    }
+    foreach ($view->query->fields as $alias => $field) {
+      if (isset($field['table'])) {
+        $table_name = $view->query->table_queue[$field['table']]['table'];
+        if (isset($map[$table_name]) && $map[$table_name]['id'] == $field['field']) {
+          $collect[$map[$table_name]['entity_type']] = $alias;
+        }
+      }
+    }
+    $ids = array();
+    foreach ($view->result as $row) {
+      foreach ($collect as $entity_type => $alias) {
+        $ids[$entity_type][] = $row->$alias;
+      }
+    }
+    foreach ($ids as $entity_type => $entity_ids) {
+      entity_load($entity_type, $entity_ids);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_username().
+ *
+ * We capture every user printed this way.
+ */
+function relation_entity_collector_preprocess_username($variables) {
+  if (relation_entity_collector_user_has_access() && isset($variables['account']->nid)) {
+    // This looks like a node passed to theme('username') in
+    // template_preprocess_node() and user_node_load() doesn't load the user
+    // so we do instead. It does not work with modules using render arrays
+    // because it is called too late but Views renders early.
+    user_load($variables['account']->uid);
+  }
 }

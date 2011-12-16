@@ -344,7 +344,6 @@ class view extends views_db_object {
     // If we have not already initialized the display, do so. But be careful.
     if (empty($this->current_display)) {
       $this->init_display();
-
       // If handlers were not initialized, and no argument was sent, set up
       // to the default display.
       if (empty($display_id)) {
@@ -1068,6 +1067,8 @@ class view extends views_db_object {
    * Render a specific field via the field ID and the row #.
    */
   function render_field($field, $row) {
+
+  	
     if (isset($this->field[$field]) && isset($this->result[$row])) {
       return $this->field[$field]->advanced_render($this->result[$row]);
     }
@@ -1145,7 +1146,7 @@ class view extends views_db_object {
       $this->set_arguments($args);
     }
 
-//    $this->attach_displays();
+    $this->attach_displays();
 
     // Allow the display handler to set up for execution
     $this->display_handler->pre_execute();

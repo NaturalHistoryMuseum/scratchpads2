@@ -25,6 +25,7 @@ class RelationTestCase extends DrupalWebTestCase {
       'create article content',
       'create page content',
       'administer relation types',
+      'access relations',
       'create relations',
       'edit relations',
       'delete relations',

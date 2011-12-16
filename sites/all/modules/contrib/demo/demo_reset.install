@@ -1,0 +1,15 @@
+<?php
+// $Id: demo_reset.install,v 1.1 2009/11/10 05:37:52 sun Exp $
+
+/**
+ * @file
+ * Demonstration site reset module installation functions.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function demo_reset_uninstall() {
+  variable_del('demo_dump_cron');
+}
+

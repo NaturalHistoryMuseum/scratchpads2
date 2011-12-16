@@ -86,6 +86,36 @@ function ctools_export_crud_load($table, $name) {
 }
 
 /**
+ * Load multiple exportable objects.
+ *
+ * @param $table
+ *   The name of the table to use to retrieve $schema values. This table
+ *   must have an 'export' section containing data or this function
+ *   will fail.
+ * @param $names
+ *   An array of unique IDs to load. The field for these IDs will be specified
+ *   by the export key, which normally defaults to 'name'.
+ *
+ * @return
+ *   An array of the loaded objects.
+ */
+function ctools_export_crud_load_multiple($table, array $names) {
+  $schema = ctools_export_get_schema($table);
+  $export = $schema['export'];
+
+  $results = array();
+  if (!empty($export['load multiple callback']) && function_exists($export['load multiple callback'])) {
+    $results = $export['load multiple callback']($names);
+  }
+  else {
+    $results = ctools_export_load_object($table, 'names', $names);
+  }
+
+  // Ensure no empty results are returned.
+  return array_filter($results);
+}
+
+/**
  * Load all exportable objects of a given type.
  *
  * @param $table
@@ -776,7 +806,7 @@ function _ctools_export_unpack_object($schema, $data, $object = 'stdClass') {
       $object->$field = empty($info['serialize']) ? $data->$field : unserialize($data->$field);
     }
     else {
-      $data->$field = NULL;
+      $object->$field = NULL;
     }
   }
 
@@ -834,7 +864,7 @@ function ctools_var_export($var, $prefix = '') {
     // magic method __set_state() leaving the export broken. This
     // workaround avoids this by casting the object as an array for
     // export and casting it back to an object when evaluated.
-    $output .= '(object) ' . ctools_var_export((array) $var, $prefix);
+    $output = '(object) ' . ctools_var_export((array) $var, $prefix);
   }
   else if (is_bool($var)) {
     $output = $var ? 'TRUE' : 'FALSE';
@@ -973,6 +1003,7 @@ function ctools_export_get_schema($table) {
     //
     // create callback
     // load callback
+    // load multiple callback
     // load all callback
     // save callback
     // delete callback
@@ -1164,7 +1195,7 @@ function ctools_export_default_to_hook_code($schema, $table, $names, $name) {
   $objects = ctools_export_load_object($table, 'names', $names);
   if ($objects) {
     $output = "/**\n";
-    $output .= " * Implementation of hook_{$export['default hook']}()\n";
+    $output .= " * Implements hook_{$export['default hook']}().\n";
     $output .= " */\n";
     $output .= "function " . $name . "_{$export['default hook']}() {\n";
     $output .= "  \${$export['identifier']}s = array();\n\n";

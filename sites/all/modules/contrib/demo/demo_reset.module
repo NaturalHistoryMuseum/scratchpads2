@@ -1,0 +1,183 @@
+<?php
+// $Id: demo_reset.module,v 1.2 2010/09/25 17:06:05 sun Exp $
+
+/**
+ * @file
+ * Demonstration site reset module.
+ *
+ * This module is supposed to be used on public Drupal demonstration sites only.
+ * Use at your own risk.
+ */
+
+/**
+ * Implements hook_form_FORMID_alter().
+ */
+function demo_reset_form_demo_admin_settings_alter(&$form, &$form_state) {
+  $intervals = array(
+    // 0, 5, 10, 15, 30 minutes
+    0, 300, 600, 900, 1800,
+    // 1-6, 9, 12 hours
+    3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 5, 3600 * 6, 3600 * 9, 3600 * 12,
+    // 1-3 days
+    86400, 86400 * 2, 86400 * 3,
+    // 1, 2, 3 weeks
+    604800, 604800 * 2, 604800 * 3,
+    // 1, 3 months
+    86400 * 30, 86400 * 90,
+  );
+  $intervals = drupal_map_assoc($intervals, 'format_interval');
+  $form['demo_reset_interval'] = array(
+    '#type' => 'select',
+    '#title' => t('Automatic reset interval'),
+    '#required' => FALSE,
+    '#default_value' => variable_get('demo_reset_interval', 0),
+    '#options' => $intervals,
+    '#empty_value' => 0,
+    '#description' => t('Requires a <a href="@snapshots-url">default snapshot</a> and <a href="@cron-url">cron</a> to run in the configured interval.', array(
+      '@snapshots-url' => url('admin/structure/demo'),
+      '@cron-url' => url('admin/config/system/cron'),
+    )),
+  );
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ */
+function demo_reset_form_demo_manage_form_alter(&$form, &$form_state) {
+  $form['status']['demo_reset_default'] = array(
+    '#type' => 'item',
+    '#title' => t('Default snapshot'),
+    '#markup' => check_plain(variable_get('demo_dump_cron', t('- None -'))),
+  );
+
+  $demo_dump_cron = variable_get('demo_dump_cron', 'demo_site');
+  foreach ($form['dump'] as $name => $option) {
+    if ($name == $demo_dump_cron) {
+      $form['dump'][$name]['#value'] = $name;
+      break;
+    }
+  }
+  $form['actions']['cron'] = array(
+    '#type' => 'submit',
+    '#value' => t('Use for cron runs'),
+    '#submit' => array('demo_reset_demo_manage_form_submit'),
+  );
+}
+
+/**
+ * Form submit handler for demo_manage_form().
+ */
+function demo_reset_demo_manage_form_submit($form, &$form_state) {
+  demo_reset_set_default($form_state['values']['filename']);
+}
+
+/**
+ * Sets a specific snapshot as default for cron runs or the site reset block.
+ *
+ * @param $filename
+ *   The filename of the snapshot.
+ */
+function demo_reset_set_default($filename) {
+  variable_set('demo_dump_cron', $filename);
+  drupal_set_message(t('Snapshot %title will be used for cron runs.', array('%title' => $filename)));
+}
+
+function demo_reset_form_demo_dump_form_alter(&$form, &$form_state) {
+  $form['dump']['default'] = array(
+    '#title' => t('Use as default snapshot for cron runs'),
+    '#type' => 'checkbox',
+  );
+}
+
+/**
+ * Implements hook_demo_dump().
+ */
+function demo_reset_demo_dump($options, $info, $fileconfig) {
+  // Set as new default snapshot.
+  if (!empty($options['default'])) {
+    demo_reset_set_default($info['filename']);
+  }
+}
+
+/**
+ * Implements hook_demo_reset().
+ */
+function demo_reset_demo_reset($filename, $info, $fileconfig) {
+  // Reset default dump to load on cron. Normally, this should be the same as
+  // the original value, but whenever we reset the site to a different snapshot,
+  // it's very unlikely that we want to reset to the previous snapshot.
+  variable_set('demo_dump_cron', $info['filename']);
+}
+
+/**
+ * Implements hook_block_list().
+ */
+function demo_reset_block_info() {
+  $blocks['reset'] = array(
+    'info' => t('Demonstration site reset'),
+    'status' => 1,
+    'region' => 'sidebar_second',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function demo_reset_block_view($delta = '') {
+  if (!variable_get('demo_dump_cron', '')) {
+    return array();
+  }
+  $block = array(
+    'subject' => t('Reset demo'),
+    'content' => drupal_get_form('demo_reset_block_form'),
+  );
+  return $block;
+}
+
+/**
+ * Form builder to reset site to configured snapshot.
+ *
+ * No access permission check or any condition here. By design.
+ */
+function demo_reset_block_form($form, &$form_state) {
+  $form['redirect'] = array(
+    '#type' => 'value',
+    '#value' => $_GET['q'],
+  );
+  $filename = variable_get('demo_dump_cron', '');
+  $form['filename'] = array(
+    '#type' => 'value',
+    '#value' => $filename,
+  );
+  $form['snapshot'] = array(
+    '#markup' => t('Active snapshot: @snapshot', array('@snapshot' => $filename)),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset now'),
+  );
+  return $form;
+}
+
+/**
+ * Form submit handler for demo_reset_block_form().
+ */
+function demo_reset_block_form_submit($form, &$form_state) {
+  demo_reset($form_state['values']['filename']);
+  $form_state['redirect'] = $form_state['values']['redirect'];
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function demo_reset_cron() {
+  if ($interval = variable_get('demo_reset_interval', 0)) {
+    // See if it's time for a reset.
+    if ((REQUEST_TIME - $interval) >= variable_get('demo_reset_last', 0)) {
+      demo_reset(variable_get('demo_dump_cron', 'demo_site'), FALSE);
+    }
+  }
+}
+

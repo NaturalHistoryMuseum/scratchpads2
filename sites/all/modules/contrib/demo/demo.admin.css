@@ -1,0 +1,6 @@
+/* $Id: demo.admin.css,v 1.1 2010/09/25 17:06:05 sun Exp $ */
+
+.demo-status label {
+  float: left;
+  width: 13em;
+}

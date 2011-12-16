@@ -5,9 +5,9 @@ package = Relation
 dependencies[] = relation
 files[] = tests/relation_dummy_field.test
 
-; Information added by drupal.org packaging script on 2011-09-27
+; Information added by drupal.org packaging script on 2011-11-25
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "relation"
-datestamp = "1317126061"
+datestamp = "1322224124"
 

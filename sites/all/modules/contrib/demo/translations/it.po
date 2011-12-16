@@ -1,0 +1,236 @@
+# $Id: it.po,v 1.2 2008/03/27 18:58:03 smk Exp $
+# 
+# Italian translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+# database_pgsql_dump.inc,v 1.1.2.2 2007/09/13 20:30:45 smk
+# demo.module,v 1.1.2.15 2007/09/24 16:56:32 smk
+# demo.info,v 1.1.2.4 2007/09/13 19:09:32 smk
+# 
+#, fuzzy
+msgid ""
+""
+msgstr "Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2005-11-17 15:59+0100\n"
+"PO-Revision-Date: 2005-11-17 15:59+0100\n"
+"Last-Translator: TheClue <theclue@reloadmagazine.net>\n"
+"Language-Team: Italian <theclue@reloadmagazine.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: database_pgsql_dump.inc:11
+msgid "PostgreSQL support not implemented yet."
+msgstr "Supporto per PostgreSQL non ancora implementato."
+
+#: demo.module:41
+msgid "Demonstration site"
+msgstr "Sito di dimostrazione"
+
+#: demo.module:42
+msgid "Administer reset interval, create new dumps and manually reset this site."
+msgstr "Amministra l'intervallo di inizializzazione, crea nuove immagini ed "
+"inizializza manualmente il sito."
+
+#: demo.module:49
+msgid "Status"
+msgstr "Stato"
+
+#: demo.module:55
+msgid "Manage snapshots"
+msgstr "Gestione istantanee"
+
+#: demo.module:64
+msgid "Create snapshot"
+msgstr "Crea istantanea"
+
+#: demo.module:73
+msgid "Reset site"
+msgstr "Inizializza sito"
+
+#: demo.module:82
+msgid "Demo Site autocomplete"
+msgstr "Autocompletamento sito dimostrativo"
+
+#: demo.module:96
+msgid "Demo site reset"
+msgstr "Inizializzazione sito dimostrativo"
+
+#: demo.module:105
+msgid "Reset demo"
+msgstr "Inizializzazione demo"
+
+#: demo.module:124
+msgid "Never"
+msgstr "Mai"
+
+#: demo.module:127
+msgid "<p><strong>Last reset:</strong> !date</p>"
+msgstr "<p><strong>Ultima inizializzazione:</strong> !date</p>"
+
+#: demo.module:130
+msgid "<p><strong>Default snapshot:</strong> !snapshot</p>"
+msgstr "<p><strong>Istantanea di default:</strong> !snapshot</p>"
+
+#: demo.module:130
+msgid "None"
+msgstr "Nessuna"
+
+#: demo.module:137
+msgid "Dump settings"
+msgstr "Impostazioni immagini sito"
+
+#: demo.module:142
+msgid "disabled"
+msgstr "disabilitato"
+
+#: demo.module:145
+msgid "Automatically reset site every"
+msgstr "Inizializza sito automaticamente ogni"
+
+#: demo.module:148
+msgid "Select how often this demonstration site is automatically reset. Ensure that you have chosen a snapshot for cron runs in <a href=\"!manage\">Manage snapshots</a> first. <strong>Note:</strong> This requires cron to run at least within this interval."
+msgstr "Selezionare quanto spesso il sito dimostrativo è automaticamente inizializzato. Assicurati di aver scelto una istantanea per gli eventi cron in <a href=\"!manage\">Gestione istantanee</a> prima di continuare. <strong>Nota:</strong> Richiede almeno una esecuzione di eventi cron in questo intervallo."
+
+#: demo.module:153
+msgid "Dump path"
+msgstr "Percorso salvataggio immagini"
+
+#: demo.module:156
+msgid "Enter a writable directory where dump files of this demonstration site are stored, f.e. %files. The name of this site (e.g. %confpath) is automatically appended to this directory.<br /><br /><strong>Note: For security reasons you should store site dumps outside of the document root of your webspace!</strong>"
+msgstr "Inserisci una directory scrivibile dove il file immagine verrà salvato, ad esempio %files. Il percorso del sito (al "
+"momento %confpath) è automaticamente prefisso.<br "
+"/><br /><strong>Nota: Per ragioni di sicurezza dovresti salvare i file immagine "
+"fuori dalla document root!</strong>"
+
+#: demo.module:160
+msgid "Save"
+msgstr "Salva"
+
+#: demo.module:168
+msgid "Dump could not be created. The directory %directory has not been properly configured."
+msgstr "L'immagine non può essere creata. La directory %directory non è stata "
+"adeguatamente configurata."
+
+#: demo.module:179
+msgid "Available snapshots"
+msgstr "Istantanee disponibili"
+
+#: demo.module:184
+msgid "Set as default snapshot for cron"
+msgstr "Seleziona come istantanea predefinita per eventi cron"
+
+#: demo.module:188
+msgid "Delete selected snapshot"
+msgstr "Cancella istantanea selezionata"
+
+#: demo.module:198
+msgid "Snapshot %title will be used for upcoming cron runs."
+msgstr "L'istantanea %title verrà utilizzata per i prossimi eventi cron."
+
+#: demo.module:206
+msgid "Snapshot %title has been deleted."
+msgstr "L'istantanea %title è stata eliminata."
+
+#: demo.module:214
+msgid "File name"
+msgstr "Nome file"
+
+#: demo.module:219
+msgid "Enter the snapshot file name without file extension. Allowed characters are a-z, 0-9, dashes (\"-\"), underscores (\"_\") and dots."
+msgstr "Inserisci il nome del file dell'istantanea senza estensione. Caratteri ammessi sono a-z, 0-9, trattini (\"-\"), underscore (\"_\") e punti."
+
+#: demo.module:222
+msgid "Description"
+msgstr "Descrizione"
+
+#: demo.module:225
+msgid "Optionally enter a description for this snapshot here. If no description is given and a snapshot with the same filename already exists, the previous description is used."
+msgstr "Inserisci eventualmente una descrizione per l'istantanea. Se non "
+"verrà fornita una descrizione ed una istantanea con lo stesso nome è "
+"già esistente, verrà preservata la precedente descrizione."
+
+#: demo.module:227
+msgid "Are you sure you want to create a new snapshot?"
+msgstr "Sei sicuro di voler creare una istantanea?"
+
+#: demo.module:227
+msgid "If the above filename already exists, creating a new snapshot will overwrite the existing snapshot. This action cannot be undone."
+msgstr "Se il file esiste già, la nuova istantanea "
+"sovrascriverà quella precedente. L'operazione non può essere "
+"annullata."
+
+#: demo.module:227
+msgid "Create"
+msgstr "Crea"
+
+#: demo.module:227
+msgid "Cancel"
+msgstr "Cancella"
+
+#: demo.module:265
+msgid "Are you sure you want to reset the site?"
+msgstr "Sei sicuro di voler inizializzare il sito?"
+
+#: demo.module:265
+msgid "Resetting the site will overwrite all changes that have been made to this Drupal installation since the chosen snapshot.<br /><br /><div style=\"color: red; font-weight: bold; font-size: 18px;\"><center>THIS ACTION CANNOT BE UNDONE!</center><br /></div>"
+msgstr "L'inizializzazione del sito sovrascriverà tutti i cambiamenti effettuati su questa istallazione di Drupal dopo l'istantanea selezionata.<br /><br /><div style=\"color: red; font-weight: bold; font-size: 18px;\"><center>L'OPERAZIONE NON PUÒ ESSERE ANNULLATA!</center><br /></div>"
+
+#: demo.module:265
+msgid "Reset"
+msgstr "Inizializza"
+
+#: demo.module:292
+msgid "Active snapshot: !snapshot"
+msgstr "Istantanea attiva: !snapshot"
+
+#: demo.module:296
+msgid "Reset now"
+msgstr "Inizializza adesso"
+
+#: demo.module:340
+msgid "Succesfully restored database from %filename."
+msgstr "Database riportato allo stadio di %filename con successo."
+
+#: demo.module:343
+msgid "Failed restoring database from %filename."
+msgstr "Impossibile riportare lo stato del database come imposto da %filename"
+
+#: demo.module:354
+msgid "Unable to open dump file %filename."
+msgstr "Impossibile aprire l'immagine %filename."
+
+#: demo.module:415
+msgid "Snapshot"
+msgstr "Istantanea"
+
+#: demo.module:440
+msgid "Modules: "
+msgstr "Moduli:"
+
+#: demo.module:483
+msgid "Dump filename %title must contain alphanumeric characters, dots, dashes and underscores only. Other characters, including blanks (spaces), are not allowed."
+msgstr "Il nome del file immagine %title deve contenere solo caratteri "
+"alfanumerici, punti, trattini e underscore. Differenti caratteri, "
+"compresi gli spazi, non sono consentiti."
+
+#: demo.module:348
+msgid "demo"
+msgstr "sito dimostrativo"
+
+#: demo.module:28
+msgid "administer demo settings"
+msgstr "amministra settaggi sito dimostrativo"
+
+#: demo.info:0
+msgid "Demo Site"
+msgstr "Sito dimostrativo"
+
+#: demo.info:0
+msgid "Create snapshots and reset the site for demonstration or testing purposes."
+msgstr "Crea istantanee ed inizializza il sito per dimostrazioni o a scopi di "
+"test."
+
+#: demo.info:0
+msgid "Development"
+msgstr "Sviluppo"

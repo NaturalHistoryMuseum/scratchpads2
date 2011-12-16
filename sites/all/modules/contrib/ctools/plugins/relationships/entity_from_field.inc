@@ -25,6 +25,12 @@ function ctools_entity_from_field_get_child($plugin, $parent, $child) {
 }
 
 function ctools_entity_from_field_get_children($parent_plugin, $parent) {
+  $cid = $parent_plugin['name'] . ':' . $parent;
+  $cache = &drupal_static(__FUNCTION__);
+  if (!empty($cache[$cid])) {
+    return $cache[$cid];
+  }
+
   ctools_include('fields');
   $entities = entity_get_info();
   $plugins = array();
@@ -154,6 +160,7 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
   }
   drupal_alter('ctools_entity_contexts', $plugins);
 
+  $cache[$cid] = $plugins;
   return $plugins;
 }
 

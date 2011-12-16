@@ -729,7 +729,6 @@ class views_plugin_display extends views_plugin {
     if ($this->is_defaulted($option)) {
       return $this->default_display->get_option($option);
     }
-
     if (array_key_exists($option, $this->options)) {
       return $this->options[$option];
     }

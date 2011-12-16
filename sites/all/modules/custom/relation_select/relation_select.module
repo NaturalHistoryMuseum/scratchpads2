@@ -34,7 +34,9 @@ function relation_select_menu(){
       'relation_select_add_relation_form',
       2,
       3,
-      4
+      4,
+      5,
+      6
     ),
     'access callback' => TRUE,
     'description' => 'Add a relation.',
@@ -120,14 +122,16 @@ function relation_select_theme($existing, $type, $theme, $path){
     ),
     'relation_select_field' => array(
       'variables' => array(
-        'entities' => NULL,
+        'entity' => NULL,
+        'related_entities' => NULL,
         'entity_type' => NULL,
         'bundle' => NULL,
         'field_name' => NULL,
         'items' => NULL,
         'suffix' => NULL,
         'prefix' => NULL,
-    		'list_type' => NULL,
+        'list_type' => NULL,
+        'relation' => NULL
       ),
       'template' => 'relation-select-field',
       'file' => 'theme.inc',
@@ -197,7 +201,7 @@ function relation_select_element_process(&$element, &$form_state, $form){
   $element['#tree'] = true;
   if($view = views_get_view($element['#view']['name'])){
     // If there's exposed view filters, embed the form as a subform 
-    $view->set_display($element['#view']['display']);
+    $view->set_display((isset($element['#view']['display']) ? $element['#view']['display'] : 'default'));
     $style = $view->display_handler->get_plugin('style');
     if($relation_type = relation_type_load($element['#relation_type'])){
       $element['#target_bundles'] = relation_select_get_target_bundles($relation_type);
@@ -243,13 +247,17 @@ function relation_select_element_process(&$element, &$form_state, $form){
         '#type' => 'container',
         '#attributes' => array(
           'class' => array(
-            'relation-select-entities'
+            'relation-select-entities',
+            ($relation_type->max_arity > 2 ? 'sortable' : '')
           ),
           'data-field-name' => array(
             $element['#name'] . '[endpoints]'
           ),
           'data-relation-type' => array(
             $relation_type->relation_type
+          ),
+          'data-relation-arity' => array(
+            $relation_type->max_arity
           )
         ),
         '#weight' => 10
@@ -342,7 +350,7 @@ function relation_select_element_validate(&$element, &$form_state){
       }
     }
     // If this is a new relation, check if it already exists
-    if(!isset($element['relation_id'])){
+    if($relation_type->r_unique && !isset($element['relation_id'])){
       $entity_keys = relation_select_build_entity_keys($element['#entity_type'], $element['#entity_id'], $endpoints);
       if(relation_relation_exists($entity_keys, $element['#relation_type'])){
         $errors[] = t('This relation already exists.');
@@ -460,9 +468,7 @@ function relation_select_field_load($entity_type, $entities, $field, $instances,
   $items = array();
   foreach($entities as $entity_id => $entity){
     $instance = $instances[$entity_id];
-    $items[$entity_id] = array_values(relation_select_entity_get_relations($entity_type, $entity_id, $instance['settings']['relation_type'])) + array(
-      'entity_id' => $entity_id
-    );
+    $items[$entity_id] = array_values(relation_select_entity_get_relations($entity_type, $entity_id, $instance['settings']['relation_type']));
   }
   return $items;
 }
@@ -470,7 +476,7 @@ function relation_select_field_load($entity_type, $entities, $field, $instances,
 /**
  * Implements hook_field_prepare_view().
  */
-function relation_select_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays){
+function relation_select_field_prepare_view($entity_type, $entities, &$field, &$instances, $langcode, &$items, $displays){
   foreach($entities as $entity_id => $entity){
     $relation_type = $instances[$entity_id]['settings']['relation_type'];
     $query = relation_query($entity_type, $entity_id);
@@ -485,7 +491,7 @@ function relation_select_field_prepare_view($entity_type, $entities, $field, $in
  * Implements hook_field_widget_form().
  * Define the actual field input element
  */
-function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){	
   if(isset($instance['settings']['relation_view'])){
     list($view, $display) = explode(':', $instance['settings']['relation_view']);
   }else{
@@ -519,7 +525,7 @@ function _relation_select_field_widget_form(&$form, &$form_state, $field, $insta
     '#type' => 'relation_select',
     '#entity_type' => $instance['entity_type'],
     '#bundle' => $instance['bundle'],
-    '#entity_id' => isset($items['entity_id']) ? $items['entity_id'] : NULL,
+    '#entity_id' => isset($items[$delta]['entity_id']) ? $items[$delta]['entity_id'] : NULL,
     '#view' => array(
       'name' => $view,
       'display' => $display
@@ -657,24 +663,27 @@ function relation_select_field_update($entity_type, $entity, $field, $instance, 
  * Implements hook_field_insert().
  */
 function relation_select_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
-  $relation_type = relation_type_load($instance['settings']['relation_type']);
-  list($entity_id) = entity_extract_ids($entity_type, $entity);
-  // Delete exisiting relations of this type
-  $relations = relation_select_entity_get_relations($entity_type, $entity_id, $relation_type->relation_type);
-  $relation_entities = relation_load_multiple(array_keys($relations));
-  foreach($items as $delta => $item){
-    if(isset($item['endpoints']) && count($item['endpoints'])){
-      $entity_keys = relation_select_build_entity_keys($entity_type, $entity_id, $item['endpoints']);
-      // If there's a VID we're are editing an existing relation 
-      if(isset($item['relation_id'])){
-        $relation = $relation_entities[$item['relation_id']];
-        $relation->endpoints[LANGUAGE_NONE] = $entity_keys;
-      }else{
-        $relation = relation_create($relation_type->relation_type, $entity_keys);
+  // If the widget type is relation select, save the content
+  if($instance['widget']['type'] == 'relation_select'){
+    $relation_type = relation_type_load($instance['settings']['relation_type']);
+    list($entity_id) = entity_extract_ids($entity_type, $entity);
+    // Delete exisiting relations of this type
+    $relations = relation_select_entity_get_relations($entity_type, $entity_id, $relation_type->relation_type);
+    $relation_entities = relation_load_multiple(array_keys($relations));
+    foreach($items as $delta => $item){
+      if(isset($item['endpoints']) && count($item['endpoints'])){
+        $entity_keys = relation_select_build_entity_keys($entity_type, $entity_id, $item['endpoints']);
+        // If there's a VID we're are editing an existing relation 
+        if(isset($item['relation_id'])){
+          $relation = $relation_entities[$item['relation_id']];
+          $relation->endpoints[LANGUAGE_NONE] = $entity_keys;
+          relation_save($relation);
+        }else{
+          $relation = relation_create($relation_type->relation_type, $entity_keys);
+        }
+      }elseif(isset($item['relation_id'])){ // If there's no endpoints & a VID, delete the relation
+        relation_delete($item['relation_id']);
       }
-      relation_save($relation);
-    }elseif(isset($item['relation_id'])){ // If there's no endpoints & a VID, delete the relation
-      relation_delete($item['relation_id']);
     }
   }
 }
@@ -702,10 +711,12 @@ function relation_select_field_formatter_view($entity_type, $entity, $field, $in
         }
         $element[$delta]['relation'] = array(
           '#theme' => 'relation_select_field',
-          '#entities' => $related_entities,
+          '#related_entities' => $related_entities,
           '#entity_type' => $entity_type,
           '#bundle' => $instance['bundle'],
-          '#field_name' => $instance['field_name']
+          '#entity' => $entity,
+          '#field_name' => $instance['field_name'],
+          '#relation' => $item
         );
       }
       break;
@@ -760,9 +771,10 @@ function relation_select_entity_get_relations($entity_type, $entity_id, $relatio
     'endpoints_entity_id',
     'endpoints_entity_type',
     'endpoints_r_index',
-    'revision_id'
+    'entity_id',
+  	'revision_id'
   ));
-  $query->condition('fde.revision_id', $relation_ids, 'IN');
+  $query->condition('fde.entity_id', $relation_ids, 'IN');
   $query->where('!(fde.endpoints_entity_type = :entity_type AND fde.endpoints_entity_id = :entity_id)', array(
     ':entity_type' => $entity_type,
     ':entity_id' => $entity_id
@@ -772,8 +784,9 @@ function relation_select_entity_get_relations($entity_type, $entity_id, $relatio
   while($record = $result->fetchObject()){
     if(!array_key_exists($record->revision_id, $relations)){
       $relations[$record->revision_id] = array(
-        'relation_id' => $record->revision_id,
-        'endpoints' => array()
+        'endpoints' => array(),
+        'entity_id' => $entity_id,
+        'relation_id' => $record->entity_id
       );
     }
     $relations[$record->revision_id]['endpoints'][$record->endpoints_r_index] = $record->endpoints_entity_type . ':' . $record->endpoints_entity_id;

@@ -6,7 +6,7 @@
  */
 
 /**
- * Implement hook_entity_info().
+ * Implements hook_entity_info().
  */
 function entity_test_entity_info() {
   $return = array(
@@ -44,21 +44,26 @@ function entity_test_entity_info() {
       ),
     ),
   );
-  return $return;
-}
 
-/**
- * Implement hook_entity_info_alter().
- *
- * Use this hook to specify entity test bundles to avoid a recursion, as loading
- * the entity test types needs the entity info too.
- */
-function entity_test_entity_info_alter(&$entity_info) {
-  foreach (entity_test_get_types() as $name => $info) {
-    $entity_info['entity_test']['bundles'][$name] = array(
-      'label' => $info->label,
+  // Add bundle info but bypass entity_load() as we cannot use it here.
+  $types = db_select('entity_test_type', 'et')
+    ->fields('et')
+    ->execute()
+    ->fetchAllAssoc('name');
+
+  foreach ($types as $name => $type) {
+    $return['entity_test']['bundles'][$name] = array(
+      'label' => $type->label,
     );
   }
+
+  // Support entity cache module.
+  if (module_exists('entitycache')) {
+    $return['entity_test']['field cache'] = FALSE;
+    $return['entity_test']['entity cache'] = TRUE;
+  }
+
+  return $return;
 }
 
 /**

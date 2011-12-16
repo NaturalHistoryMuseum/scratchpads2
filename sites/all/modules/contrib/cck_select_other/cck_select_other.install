@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * Implementation of hook_update_N().
+ * This will update all cck_select_other widget fields to include
+ * a select_list_options_php option. Without this each field will
+ * return an undefined warning or error until updated by an admin.
+ * @return $ret the status of the update
+ */
+function cck_select_other_update_6001(&$sandbox) {
+  $ret = array();
+  $allfields = content_fields();
+  $fields = array();
+  $i = 0;
+  foreach ($allfields as $field) {
+    if ($field['widget']['type'] == 'cck_select_other' && !isset($fields[$sandbox['progress']]['widget']['select_list_options_php'])) {
+      $fields[] = $field;
+      $i++;
+    }
+  }
+
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['current_field'] = $fields[0]['field_name'];
+    $sandbox['max'] = $i;
+  }
+
+  module_load_include('inc', 'content', 'includes/content.crud');
+
+  $fields[$sandbox['progress']]['widget']['select_list_options_php'] = '';
+  _content_field_write($fields[$sandbox['progress']], 'update');
+  _content_field_instance_write($fields[$sandbox['progress']], 'update');
+
+  drupal_set_message(t('Updated field, %field_name, to include select_list_options_php widget option.', array('%field_name' => $sandbox['current_field'])));
+
+  $sandbox['progress']++;
+  $sandbox['current_field'] = $fields[$sandbox['progress']]['field_name'];
+
+  $ret['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+
+  return $ret;
+}

@@ -7,6 +7,7 @@
 
 /**
  * Implements hook_entity_property_info() on top of taxonomy module.
+ *
  * @see entity_entity_property_info()
  */
 function entity_metadata_taxonomy_entity_property_info() {
@@ -48,17 +49,18 @@ function entity_metadata_taxonomy_entity_property_info() {
     'type' => 'integer',
     'description' => t("The number of nodes tagged with the taxonomy term."),
     'getter callback' => 'entity_metadata_taxonomy_term_get_properties',
+    'computed' => TRUE,
   );
   $properties['url'] = array(
     'label' => t("URL"),
     'description' => t("The URL of the taxonomy term."),
     'getter callback' => 'entity_metadata_entity_get_properties',
     'type' => 'uri',
+    'computed' => TRUE,
   );
   $properties['vocabulary'] = array(
     'label' => t("Vocabulary"),
     'description' => t("The vocabulary the taxonomy term belongs to."),
-    'getter callback' => 'entity_metadata_taxonomy_term_get_properties',
     'setter callback' => 'entity_metadata_taxonomy_term_setter',
     'type' => 'taxonomy_vocabulary',
     'required' => TRUE,
@@ -70,6 +72,13 @@ function entity_metadata_taxonomy_entity_property_info() {
     'getter callback' => 'entity_metadata_taxonomy_term_get_properties',
     'setter callback' => 'entity_metadata_taxonomy_term_setter',
     'type' => 'list<taxonomy_term>',
+  );
+  $properties['parents_all'] = array(
+    'label' => t("All parent terms"),
+    'description' => t("Ancestors of the term, i.e. parent of all above hierarchy levels."),
+    'getter callback' => 'entity_metadata_taxonomy_term_get_properties',
+    'type' => 'list<taxonomy_term>',
+    'computed' => TRUE,
   );
 
   // Add meta-data about the basic vocabulary properties.
@@ -109,6 +118,7 @@ function entity_metadata_taxonomy_entity_property_info() {
     'type' => 'integer',
     'description' => t("The number of terms belonging to the taxonomy vocabulary."),
     'getter callback' => 'entity_metadata_taxonomy_vocabulary_get_properties',
+    'computed' => TRUE,
   );
   return $info;
 }
