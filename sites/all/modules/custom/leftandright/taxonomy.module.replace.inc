@@ -7,7 +7,7 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   if($parent == 0 && $max_depth == NULL && array_pop(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
     ':vid' => $vid
   ))->fetchCol()) > $max_terms){
-    watchdog('taxonomy', 'Attempted to get a large tree.', WATCHDOG_NOTICE);
+    watchdog('taxonomy', 'Attempted to get a large tree.', array(), WATCHDOG_ERROR);
     return array();
   }
   return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
