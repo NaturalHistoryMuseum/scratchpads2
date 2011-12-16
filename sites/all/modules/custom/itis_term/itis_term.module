@@ -62,13 +62,51 @@ function itis_term_taxonomy_vocabulary_delete($vocabulary){
 /**
  * Get an array of terms for a vocabulary
  */
-function itis_term_allowed_values($field){
+function itis_term_allowed_values($field, $biological_type = FALSE){
   switch($field['field_name']){
     case 'field_rank':
-      return array(
-        'Species' => 'Species',
-        'Genus' => 'Genus'
-      );
+      if($biological_type){
+        switch($biological_type){
+          case 1:
+            break;
+          case 2:
+            break;
+          case 3:
+            break;
+        }
+      }else{
+        return array(
+          'Class' => 'Class',
+          'Division' => 'Division',
+          'Family' => 'Family',
+          'Form' => 'Form',
+          'Genus' => 'Genus',
+          'Infraclass' => 'Infraclass',
+          'Infraorder' => 'Infraorder',
+          'Kingdom' => 'Kingdom',
+          'Order' => 'Order',
+          'Phylum' => 'Phylum',
+          'Section' => 'Section',
+          'Species' => 'Species',
+          'Subclass' => 'Subclass',
+          'Subdivision' => 'Subdivision',
+          'Subfamily' => 'Subfamily',
+          'Subform' => 'Subform',
+          'Subgenus' => 'Subgenus',
+          'Subkingdom' => 'Subkingdom',
+          'Suborder' => 'Suborder',
+          'Subphylum' => 'Subphylum',
+          'Subsection' => 'Subsection',
+          'Subspecies' => 'Subspecies',
+          'Subtribe' => 'Subtribe',
+          'Subvariety' => 'Subvariety',
+          'Superclass' => 'Superclass',
+          'Superfamily' => 'Superfamily',
+          'Superorder' => 'Superorder',
+          'Tribe' => 'Tribe',
+          'Variety' => 'Variety'
+        );
+      }
       break;
   }
 }
@@ -78,56 +116,58 @@ function itis_term_allowed_values($field){
  */
 function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if($form_id == 'taxonomy_form_term'){
-    dpm($form);
-    $form['field_rank']['und']['#options']['Genus'] = 'Genus';
-    $form['field_unit_name2']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name1[und][0][value]"]' => array(
-          'filled' => TRUE
+    $vids = variable_get('biological_vids', array());
+    if(isset($vids[$form['vid']['#value']])){
+      $form['field_rank'][$form['field_rank']['#language']]['#options'] = $form['field_rank'][$form['field_rank']['#language']]['#options'][$vids[$form['vid']['#value']]];
+      $form['field_unit_name2']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name1[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_name3']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name2[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_name3']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name2[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_name4']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name3[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_name4']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name3[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_indicator1']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name1[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_indicator1']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name1[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_indicator2']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name2[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_indicator2']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name2[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_indicator3']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name3[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_indicator3']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name3[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
-    $form['field_unit_indicator4']['#states'] = array(
-      'visible' => array(
-        ':input[name="field_unit_name4[und][0][value]"]' => array(
-          'filled' => TRUE
+      );
+      $form['field_unit_indicator4']['#states'] = array(
+        'visible' => array(
+          ':input[name="field_unit_name4[und][0][value]"]' => array(
+            'filled' => TRUE
+          )
         )
-      )
-    );
+      );
+    }
   }
 }
