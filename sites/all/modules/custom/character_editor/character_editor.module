@@ -714,7 +714,8 @@ function character_editor_character_form_after_build(&$form, &$form_state){
  * TODO - hook into views default
  */
 function character_editor_get_default_view(){
-  return reset(array_keys(character_editor_views_default_views()));
+  module_load_include('inc', 'character_editor', 'includes/character_editor.views_default');
+  return key(character_editor_views_default_views());
 }
 
 /**
