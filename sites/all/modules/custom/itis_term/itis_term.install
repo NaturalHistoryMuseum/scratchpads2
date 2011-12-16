@@ -8,8 +8,6 @@
 function itis_term_install(){
   foreach(itis_term_fields() as $field){
     field_create_field($field['field_config']);
-    // For debugging purposes, we're adding all fields to the tags vocabulary.
-    field_create_instance($field['field_instance']);
   }
 }
 
@@ -77,7 +75,7 @@ function itis_term_groups(){
       'label' => 'Usage',
       'weight' => '9',
       'children' => array(
-        0 => 'field_associated_accepted_name',
+        0 => 'field_aan',
         1 => 'field_unacceptability_reason',
         2 => 'field_usage'
       ),
@@ -136,17 +134,17 @@ function itis_term_groups(){
 }
 
 /**
- * Simply returns an array of fields
+ * Additional fields that are unique per vocabulary
  */
-function itis_term_fields(){
+function itis_term_fields_per_vocabulary(){
   return array(
-    'field_associated_accepted_name' => array(
+    array(
       'field_config' => array(
         'active' => '1',
         'cardinality' => '1',
         'deleted' => '0',
         'entity_types' => array(),
-        'field_name' => 'field_associated_accepted_name',
+        'field_name' => 'field_aan',
         'foreign keys' => array(
           'tid' => array(
             'columns' => array(
@@ -187,7 +185,7 @@ function itis_term_fields(){
           )
         ),
         'entity_type' => 'taxonomy_term',
-        'field_name' => 'field_associated_accepted_name',
+        'field_name' => 'field_aan',
         'label' => 'Associated accepted name',
         'required' => 0,
         'settings' => array(
@@ -203,7 +201,15 @@ function itis_term_fields(){
           'weight' => '11'
         )
       )
-    ),
+    )
+  );
+}
+
+/**
+ * Simply returns an array of fields
+ */
+function itis_term_fields(){
+  return array(
     array(
       'field_config' => array(
         'active' => '1',

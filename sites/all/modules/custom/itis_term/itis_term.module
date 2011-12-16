@@ -37,12 +37,29 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
       variable_set('biological_vids', $vids);
       // Add all the required fields to this vocabulary.
       module_load_include('install', 'itis_term');
+      // Create a new field for the associated accepted name (and possibly others)
+      $additional_fields = itis_term_fields_per_vocabulary();
+      $field_names_in_groups_to_change = array();
+      foreach($additional_fields as $field){
+        $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
+        $field['field_config']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
+        $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $form_state['vocabulary']->machine_name;
+        $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
+        $field['field_instance']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
+        field_create_field($field['field_config']);
+        field_create_instance($field['field_instance']);
+      }
       foreach(itis_term_fields() as $field){
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
         field_create_instance($field['field_instance']);
       }
       foreach(itis_term_groups() as $group){
         $group['bundle'] = $form_state['vocabulary']->machine_name;
+        foreach($group['children'] as $key => $child){
+          if(in_array($child, $field_names_in_groups_to_change)){
+            $group['children'][$key] .= "_" . $form_state['vocabulary']->machine_name;
+          }
+        }
         $group = (object)$group;
         field_group_create_field_group($group);
       }
@@ -91,7 +108,6 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'Species' => 'Species',
               'Subspecies' => 'Subspecies'
             );
-            break;
           case 2:
             return array(
               'Kingdom' => 'Kingdom',
@@ -117,7 +133,6 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'Form' => 'Form',
               'Subform' => 'Subform'
             );
-            break;
           case 3:
             return array(
               'Kingdom' => 'Kingdom',
@@ -142,43 +157,170 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
               'Species' => 'Species',
               'Subspecies' => 'Subspecies'
             );
-            break;
         }
-      }else{
-        return array(
-          'Class' => 'Class',
-          'Division' => 'Division',
-          'Family' => 'Family',
-          'Form' => 'Form',
-          'Genus' => 'Genus',
-          'Infraclass' => 'Infraclass',
-          'Infraorder' => 'Infraorder',
-          'Kingdom' => 'Kingdom',
-          'Order' => 'Order',
-          'Phylum' => 'Phylum',
-          'Section' => 'Section',
-          'Species' => 'Species',
-          'Subclass' => 'Subclass',
-          'Subdivision' => 'Subdivision',
-          'Subfamily' => 'Subfamily',
-          'Subform' => 'Subform',
-          'Subgenus' => 'Subgenus',
-          'Subkingdom' => 'Subkingdom',
-          'Suborder' => 'Suborder',
-          'Subphylum' => 'Subphylum',
-          'Subsection' => 'Subsection',
-          'Subspecies' => 'Subspecies',
-          'Subtribe' => 'Subtribe',
-          'Subvariety' => 'Subvariety',
-          'Superclass' => 'Superclass',
-          'Superfamily' => 'Superfamily',
-          'Superorder' => 'Superorder',
-          'Tribe' => 'Tribe',
-          'Variety' => 'Variety'
-        );
       }
-      break;
-    case 'field_rank':
+      return array(
+        'Class' => 'Class',
+        'Division' => 'Division',
+        'Family' => 'Family',
+        'Form' => 'Form',
+        'Genus' => 'Genus',
+        'Infraclass' => 'Infraclass',
+        'Infraorder' => 'Infraorder',
+        'Kingdom' => 'Kingdom',
+        'Order' => 'Order',
+        'Phylum' => 'Phylum',
+        'Section' => 'Section',
+        'Species' => 'Species',
+        'Subclass' => 'Subclass',
+        'Subdivision' => 'Subdivision',
+        'Subfamily' => 'Subfamily',
+        'Subform' => 'Subform',
+        'Subgenus' => 'Subgenus',
+        'Subkingdom' => 'Subkingdom',
+        'Suborder' => 'Suborder',
+        'Subphylum' => 'Subphylum',
+        'Subsection' => 'Subsection',
+        'Subspecies' => 'Subspecies',
+        'Subtribe' => 'Subtribe',
+        'Subvariety' => 'Subvariety',
+        'Superclass' => 'Superclass',
+        'Superfamily' => 'Superfamily',
+        'Superorder' => 'Superorder',
+        'Tribe' => 'Tribe',
+        'Variety' => 'Variety'
+      );
+    case 'field_unacceptability_reason':
+      if($biological_type){
+        switch($biological_type){
+          case 1:
+          case 3:
+            return array(
+              'junior synonym' => 'junior synonym',
+              'original name/combination' => 'original name/combination',
+              'subsequent name/combination' => 'subsequent name/combination',
+              'junior homonym' => 'junior homonym',
+              'homonym & junior synonym' => 'homonym & junior synonym',
+              'unavailable, database artifact' => 'unavailable, database artifact',
+              'unavailable, literature misspelling' => 'unavailable, literature misspelling',
+              'unavailable, incorrect original spelling' => 'unavailable, incorrect original spelling',
+              'unavailable, suppressed by ruling' => 'unavailable, suppressed by ruling',
+              'unavailable, nomen nudum' => 'unavailable, nomen nudum',
+              'unavailable, other' => 'unavailable, other',
+              'unjustified emendation' => 'unjustified emendation',
+              'unnecessary replacement' => 'unnecessary replacement',
+              'nomen oblitum' => 'nomen oblitum',
+              'misapplied' => 'misapplied',
+              'pro parte' => 'pro parte',
+              'other' => 'other',
+              'nomen dubium' => 'nomen dubium'
+            );
+          case 2:
+            return array(
+              'synonym' => 'synonym',
+              'homonym (illegitimate)' => 'homonym (illegitimate)',
+              'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
+              'rejected name' => 'rejected name',
+              'invalidly published, nomen nudum' => 'invalidly published, nomen nudum',
+              'invalidly published, other' => 'invalidly published, other',
+              'misapplied' => 'misapplied',
+              'pro parte' => 'pro parte',
+              'horticultural' => 'horticultural',
+              'database artifact' => 'database artifact',
+              'orthographic variant (misspelling)' => 'orthographic variant (misspelling)',
+              'other' => 'other'
+            );
+        }
+      }
+      return array(
+        'database artifact' => 'database artifact',
+        'homonym (illegitimate)' => 'homonym (illegitimate)',
+        'homonym & junior synonym' => 'homonym & junior synonym',
+        'horticultural' => 'horticultural',
+        'invalidly published, nomen nudum' => 'invalidly published, nomen nudum',
+        'invalidly published, other' => 'invalidly published, other',
+        'junior homonym' => 'junior homonym',
+        'junior synonym' => 'junior synonym',
+        'misapplied' => 'misapplied',
+        'nomen dubium' => 'nomen dubium',
+        'nomen oblitum' => 'nomen oblitum',
+        'original name/combination' => 'original name/combination',
+        'orthographic variant (misspelling)' => 'orthographic variant (misspelling)',
+        'other' => 'other',
+        'pro parte' => 'pro parte',
+        'rejected name' => 'rejected name',
+        'subsequent name/combination' => 'subsequent name/combination',
+        'superfluous renaming (illegitimate)' => 'superfluous renaming (illegitimate)',
+        'synonym' => 'synonym',
+        'unavailable, database artifact' => 'unavailable, database artifact',
+        'unavailable, incorrect original spelling' => 'unavailable, incorrect original spelling',
+        'unavailable, literature misspelling' => 'unavailable, literature misspelling',
+        'unavailable, nomen nudum' => 'unavailable, nomen nudum',
+        'unavailable, other' => 'unavailable, other',
+        'unavailable, suppressed by ruling' => 'unavailable, suppressed by ruling',
+        'unjustified emendation' => 'unjustified emendation',
+        'unnecessary replacement' => 'unnecessary replacement'
+      );
+    case 'field_unit_indicator1':
+    case 'field_unit_indicator2':
+      return array(
+        'x' => 'x'
+      );
+    case 'field_unit_indicator3':
+    case 'field_unit_indicator4':
+      if($biological_type){
+        switch($biological_type){
+          case 1:
+          case 3:
+            return array(
+              'f.' => 'f.',
+              'subf.' => 'subf.',
+              'subsp.' => 'subsp.',
+              'subvar.' => 'subvar.',
+              'var.' => 'var.'
+            );
+          case 2:
+            return array(
+              'f.' => 'f.',
+              'ssp.' => 'ssp.',
+              'subf.' => 'subf.',
+              'subvar.' => 'subvar.',
+              'var.' => 'var.',
+              'x' => 'x'
+            );
+        }
+      }
+      return array(
+        'f.' => 'f.',
+        'ssp.' => 'ssp.',
+        'subf.' => 'subf.',
+        'subsp.' => 'subsp.',
+        'subvar.' => 'subvar.',
+        'var.' => 'var.',
+        'x' => 'x'
+      );
+    case 'field_usage':
+      if($biological_type){
+        switch($biological_type){
+          case 1:
+          case 3:
+            return array(
+              'valid' => 'valid',
+              'invalid' => 'invalid'
+            );
+          case 2:
+            return array(
+              'accepted' => 'accepted',
+              'not accepted' => 'not accepted'
+            );
+        }
+      }
+      return array(
+        'accepted' => 'accepted',
+        'not accepted' => 'not accepted',
+        'valid' => 'valid',
+        'invalid' => 'invalid'
+      );
       break;
   }
 }
@@ -191,9 +333,31 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
     $vids = variable_get('biological_vids', array());
     if(isset($vids[$form['vid']['#value']])){
       // WHAT A FUCKING CLUDGE!
-      $form['field_rank'][$form['field_rank']['#language']]['#options'] = itis_term_allowed_values(array(
+      $form['field_rank'][$form['field_rank']['#language']]['#options'] = array_merge(array(
+        '_none' => $form['field_rank'][$form['field_rank']['#language']]['#options']['_none']
+      ), itis_term_allowed_values(array(
         'field_name' => 'field_rank'
-      ), $vids[$form['vid']['#value']]);
+      ), $vids[$form['vid']['#value']]));
+      $form['field_unacceptability_reason'][$form['field_unacceptability_reason']['#language']]['#options'] = array_merge(array(
+        '_none' => $form['field_unacceptability_reason'][$form['field_unacceptability_reason']['#language']]['#options']['_none']
+      ), itis_term_allowed_values(array(
+        'field_name' => 'field_unacceptability_reason'
+      ), $vids[$form['vid']['#value']]));
+      $form['field_unit_indicator3'][$form['field_unit_indicator3']['#language']]['#options'] = array_merge(array(
+        '_none' => $form['field_unit_indicator3'][$form['field_unit_indicator3']['#language']]['#options']['_none']
+      ), itis_term_allowed_values(array(
+        'field_name' => 'field_unit_indicator3'
+      ), $vids[$form['vid']['#value']]));
+      $form['field_unit_indicator4'][$form['field_unit_indicator4']['#language']]['#options'] = array_merge(array(
+        '_none' => $form['field_unit_indicator4'][$form['field_unit_indicator4']['#language']]['#options']['_none']
+      ), itis_term_allowed_values(array(
+        'field_name' => 'field_unit_indicator4'
+      ), $vids[$form['vid']['#value']]));
+      $form['field_usage'][$form['field_usage']['#language']]['#options'] = array_merge(array(
+        '_none' => $form['field_usage'][$form['field_usage']['#language']]['#options']['_none']
+      ), itis_term_allowed_values(array(
+        'field_name' => 'field_usage'
+      ), $vids[$form['vid']['#value']]));
       // Set fields to hide/appear depending on values in other fields.
       $form['field_unit_name2']['#states'] = array(
         'visible' => array(
