@@ -7,9 +7,7 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
   if(array_pop(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
     ':vid' => $vid
   ))->fetchCol()) < $max_terms){
-    $tree = taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
-    dpm($tree);
-    return $tree;
+    return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
   }
   // We've a large number of terms.  We can attempt the tree if the $max_depth 
   // is 1, which it almost always is.
