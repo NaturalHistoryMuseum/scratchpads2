@@ -1,10 +1,85 @@
 <?php
 
 /**
+ * Implementation of hook_form_FORM_ID_alter().
+ * 
+ * This allows us to add an option to specify that this is a biological
+ * classification, and the specific type (Mammals, Plants, Other).
+ */
+function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  if(!isset($form_state['confirm_delete'])){
+    $vids = variable_get('biological_vids', array());
+    $form['biological_classification'] = array(
+      '#title' => 'Biological classification',
+      '#type' => 'select',
+      '#options' => array(
+        1 => 'Animal',
+        2 => 'Plant/Fungi',
+        3 => 'Moneran'
+      ),
+      '#empty_option' => t('Not a biological classification'),
+      '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,
+      '#disabled' => isset($form['vid']) ? TRUE : FALSE
+    );
+    // Add the an additional submit function so that we can tweak the vocabulary.
+    $form['#submit'][] = 'itis_term_taxonomy_form_vocabulary_submit';
+  }
+}
+
+/**
+ * Submit function to alter a vocabulary.
+ */
+function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
+  if($form_state['values']['biological_classification']){
+    $vids = variable_get('biological_vids', array());
+    if(!isset($vids[$form_state['values']['vid']])){
+      $vids[$form_state['values']['vid']] = $form_state['values']['biological_classification'];
+      variable_set('biological_vids', $vids);
+      // Add all the required fields to this vocabulary.
+      module_load_include('install', 'itis_term');
+      foreach(itis_term_fields() as $field){
+        $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
+        field_create_instance($field['field_instance']);
+      }
+      foreach(itis_term_groups() as $group){
+        $group['bundle'] = $form_state['vocabulary']->machine_name;
+        $group = (object)$group;
+        field_group_create_field_group($group);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function itis_term_taxonomy_vocabulary_delete($vocabulary){
+  $vids = variable_get('biological_vids', array());
+  unset($vids[$vocabulary->vid]);
+  variable_set('biological_vids', $vids);
+}
+
+/**
+ * Get an array of terms for a vocabulary
+ */
+function itis_term_allowed_values($field){
+  switch($field['field_name']){
+    case 'field_rank':
+      return array(
+        'Species' => 'Species',
+        'Genus' => 'Genus'
+      );
+      break;
+  }
+}
+
+/**
  * Implementation of hook_form_alter.
  */
-function itis_term_form_alter(&$form, &$form_state, $form_id){
+function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if($form_id == 'taxonomy_form_term'){
+    dpm($form);
+    $form['field_rank']['und']['#options']['Genus'] = 'Genus';
     $form['field_unit_name2']['#states'] = array(
       'visible' => array(
         ':input[name="field_unit_name1[und][0][value]"]' => array(
