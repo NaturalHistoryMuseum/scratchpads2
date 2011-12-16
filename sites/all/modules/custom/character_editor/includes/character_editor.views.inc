@@ -27,16 +27,18 @@ function character_editor_views_plugins(){
   );
 }
 
-/**
- * Implements hook_views_data()
- */
-function character_editor_views_data(){
-  $data['views']['character_field'] = array(
-    'title' => t('Character field'),
-    'help' => t('Display a character editor field.'),
-    'field' => array(
-      'handler' => 'character_editor_views_handler_field'
-    )
-  );
-  return $data;
+class CharacterProjectViewsController extends EntityDefaultViewsController{
+
+  public function views_data(){
+    $data = parent::views_data();
+    $data['views']['character_field'] = array(
+      'title' => t('Character field'),
+      'help' => t('Display a character editor field.'),
+      'field' => array(
+        'handler' => 'character_editor_views_handler_field'
+      )
+    );
+    return $data;
+  }
 }
+

@@ -1,7 +1,5 @@
 <?php
-
-include_once('character_editor.features.inc');
-
+include_once ('character_editor.features.inc');
 /*********************************************************************************************
  * 
  * CONSTANTS
@@ -356,7 +354,8 @@ function character_editor_entity_info(){
     'admin ui' => array(
       'path' => 'admin/content/character-editor/projects',
       'controller class' => 'CharacterProjectEntityUIController'
-    )
+    ),
+    'views controller class' => 'CharacterProjectViewsController'
   );
   // The entity that holds information about the entity types	  
   $return['character_editor_project_type'] = array(
@@ -531,7 +530,6 @@ function character_editor_callback_add_character($entity_type, $bundle_type, $vi
   }
   return slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display_id, $args);
 }
-
 
 /*********************************************************************************************
  * 
@@ -716,7 +714,7 @@ function character_editor_character_form_after_build(&$form, &$form_state){
  * TODO - hook into views default
  */
 function character_editor_get_default_view(){
-  return 'character_editor';
+  return reset(array_keys(character_editor_views_default_views()));
 }
 
 /**
@@ -1058,8 +1056,6 @@ function theme_field__field_char_states(&$variables){
   }
   return $output;
 }
-
-
 
 /*********************************************************************************************
  * 
