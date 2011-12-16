@@ -7,6 +7,7 @@
 
 /**
  * Implements hook_entity_property_info() on top of node module.
+ *
  * @see entity_entity_property_info()
  */
 function entity_metadata_node_entity_property_info() {
@@ -62,20 +63,25 @@ function entity_metadata_node_entity_property_info() {
     'description' => t("The URL of the node."),
     'getter callback' => 'entity_metadata_entity_get_properties',
     'type' => 'uri',
+    'computed' => TRUE,
   );
   $properties['edit_url'] = array(
     'label' => t("Edit URL"),
     'description' => t("The URL of the node's edit page."),
     'getter callback' => 'entity_metadata_node_get_properties',
     'type' => 'uri',
+    'computed' => TRUE,
   );
   $properties['status'] = array(
-    'label' => t("Published"),
-    'description' => t("Whether the node is published."),
+    'label' => t("Status"),
+    'description' => t("Whether the node is published or unpublished."),
+    // Although the status is expected to be boolean, its schema suggests
+    // it is an integer, so we follow the schema definition.
+    'type' => 'integer',
+    'options list' => 'entity_metadata_status_options_list',
     'setter callback' => 'entity_property_verbatim_set',
     'setter permission' => 'administer nodes',
     'schema field' => 'status',
-    'type' => 'boolean',
   );
   $properties['promote'] = array(
     'label' => t("Promoted to frontpage"),
@@ -111,8 +117,7 @@ function entity_metadata_node_entity_property_info() {
     'label' => t("Author"),
     'type' => 'user',
     'description' => t("The author of the node."),
-    'getter callback' => 'entity_metadata_node_get_properties',
-    'setter callback' => 'entity_metadata_node_set_properties',
+    'setter callback' => 'entity_property_verbatim_set',
     'setter permission' => 'administer nodes',
     'required' => TRUE,
     'schema field' => 'uid',

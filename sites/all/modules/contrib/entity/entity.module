@@ -76,6 +76,7 @@ function entity_type_supports($entity_type, $op) {
     return TRUE;
   }
 }
+
 /**
  * Menu loader function: load an entity from its path.
  *
@@ -389,7 +390,7 @@ function entity_id($entity_type, $entity) {
  *   for which the entity name is used if existing - see entity_id(). If there
  *   is no information on how to view an entity, FALSE is returned.
  */
-function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL) {	
+function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL) {
   $info = entity_get_info($entity_type);
   if (isset($info['view callback'])) {
     $entities = entity_key_array_by_property($entities, $info['entity keys']['id']);
@@ -610,24 +611,24 @@ function entity_var_json_export($var, $prefix = '') {
  *   rebuilt.
  */
 function entity_defaults_rebuild($entity_types = NULL) {
-  if (isset($entity_types)) {
-    $rebuild = variable_get('entity_defaults_built', array());
-    variable_set('entity_defaults_built', array_diff_key($rebuild, array_flip($entity_types)));
+  if (!isset($entity_types)) {
+    $entity_types = array();
+    foreach (entity_crud_get_info() as $type => $info) {
+      if (!empty($info['exportable'])) {
+        $entity_types[] = $type;
+      }
+    };
   }
-  else {
-    variable_set('entity_defaults_built', array());
+  foreach ($entity_types as $type) {
+    _entity_defaults_rebuild($type);
   }
 }
 
 /**
- * Actually rebuild the defaults, triggered by entity_load().
+ * Actually rebuild the defaults of a given entity type.
  */
 function _entity_defaults_rebuild($entity_type) {
   if (lock_acquire('entity_rebuild_' . $entity_type)) {
-    $built = variable_get('entity_defaults_built', array());
-    $built[$entity_type] = TRUE;
-    variable_set('entity_defaults_built', $built);
-
     $info = entity_get_info($entity_type);
     $hook = isset($info['export']['default hook']) ? $info['export']['default hook'] : 'default_' . $entity_type;
     $keys = $info['entity keys'] + array('module' => 'module', 'status' => 'status', 'name' => $info['entity keys']['id']);
@@ -684,20 +685,8 @@ function _entity_defaults_rebuild($entity_type) {
  * Implements hook_modules_enabled().
  */
 function entity_modules_enabled($modules) {
-  $built_types = variable_get('entity_defaults_built', array());
-  if ($entity_types = _entity_modules_get_default_types($modules)) {
-    // Determining the entity types might have triggered rebuilding already, in
-    // which case we do not need to rebuild again. So we make sure to only
-    // add entity-types for rebuilding that were not marked for rebuilding
-    // *before our check* anyway.
-    foreach ($entity_types as $key => $type) {
-      if (!isset($built_types[$type])) {
-        unset($entity_types[$key]);
-      }
-    }
-    if ($entity_types) {
-      entity_defaults_rebuild($entity_types);
-    }
+  foreach (_entity_modules_get_default_types($modules) as $type) {
+    _entity_defaults_rebuild($type);
   }
 }
 
@@ -714,7 +703,7 @@ function entity_modules_disabled($modules) {
     }
 
     $keys = $info['entity keys'] + array('module' => 'module', 'status' => 'status', 'name' => $info['entity keys']['id']);
-    // Remove entities provided in code.
+    // Remove entities provided in code by one of the disabled modules.
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type, '=')
           ->propertyCondition($keys['module'], $modules, 'IN')
@@ -738,8 +727,11 @@ function entity_modules_disabled($modules) {
         entity_save($entity_type, $entity);
       }
     }
-  }
 
+    // Rebuild the remaining defaults so any alterations of the disabled modules
+    // are gone.
+    _entity_defaults_rebuild($entity_type);
+  }
 }
 
 /**
@@ -794,7 +786,13 @@ function entity_exportable_schema_fields($module_col = 'module', $status_col = '
  */
 function entity_flush_caches() {
   entity_property_info_cache_clear();
-  entity_defaults_rebuild();
+  // Re-build defaults in code, however skip it on the admin modules page. In
+  // case of enabling or disabling modules we already rebuild defaults in
+  // entity_modules_enabled() and entity_modules_disabled(), so we do not need
+  // to do it again.
+  if (current_path() != 'admin/modules/list/confirm') {
+    entity_defaults_rebuild();
+  }
 }
 
 /**
@@ -895,7 +893,7 @@ function template_preprocess_entity(&$variables) {
   $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle . '__' . $variables['view_mode'];
   if ($id = entity_id($entity_type, $entity)) {
     $variables['theme_hook_suggestions'][] = $entity_type . '__' . $id;
-  }  
+  }
 }
 
 /**
@@ -1018,7 +1016,7 @@ function entity_forms($form_id, $args) {
  * @see EntityDefaultUIController::hook_forms()
  * @see entity_ui_form_submit_build_entity()
  */
-function entity_ui_get_form($entity_type, $entity, $op = 'edit', $form_state = array()) {	
+function entity_ui_get_form($entity_type, $entity, $op = 'edit', $form_state = array()) {
   if (isset($entity)) {
     list(, , $bundle) = entity_extract_ids($entity_type, $entity);
   }

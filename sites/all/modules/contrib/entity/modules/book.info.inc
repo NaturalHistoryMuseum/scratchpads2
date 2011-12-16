@@ -7,6 +7,7 @@
 
 /**
  * Implements hook_entity_property_info_alter() on top of book module.
+ *
  * @see entity_entity_property_info_alter()
  */
 function entity_metadata_book_entity_property_info_alter(&$info) {

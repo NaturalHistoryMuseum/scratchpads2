@@ -12,6 +12,7 @@ class EntityDefaultUIController {
 
   protected $entityType;
   protected $entityInfo, $path;
+
   public function __construct($entity_type, $entity_info) {
     $this->entityType = $entity_type;
     $this->entityInfo = $entity_info;
@@ -101,7 +102,7 @@ class EntityDefaultUIController {
         $items[$this->path . $path_end]['file'] = $this->entityInfo['admin ui']['file'];
         $items[$this->path . $path_end]['file path'] = isset($this->entityInfo['admin ui']['file path']) ? $this->entityInfo['admin ui']['file path'] : drupal_get_path('module', $this->entityInfo['module']);
       }
-    }   
+    }
     return $items;
   }
 
@@ -492,9 +493,8 @@ function entity_ui_form_defaults($form, &$form_state, $entity_type, $entity = NU
   }
   $form_state += $defaults;
   if (isset($op)) {
-    drupal_set_title(entity_ui_get_page_title($op, $entity_type, $entity));
+    drupal_set_title(entity_ui_get_page_title($op, $entity_type, $entity), PASS_THROUGH);
   }
-  
   // Add in handlers pointing to the controller for the forms implemented by it.
   if (isset($form_state['build_info']['base_form_id']) && $form_state['build_info']['base_form_id'] != $entity_type . '_form') {
     $form['#validate'][] = 'entity_ui_controller_form_validate';

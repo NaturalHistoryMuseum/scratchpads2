@@ -10,10 +10,10 @@
  */
 function entity_feature_default_entity_test_type() {
   $types['main'] = entity_create('entity_test_type', array(
-      'name' => 'main',
-      'label' => t('Main test type'),
-      'weight' => 0,
-      'locked' => TRUE,
+    'name' => 'main',
+    'label' => t('Main test type'),
+    'weight' => 0,
+    'locked' => TRUE,
   ));
 
   // Types used during CRUD testing.

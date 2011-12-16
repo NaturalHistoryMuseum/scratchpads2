@@ -8,19 +8,16 @@
 /**
  * Plugin class for displaying Views results with entity_view.
  */
-class entity_plugin_row_entity_view extends views_plugin_row {
-  /**
-   * The entity type of the entity being displayed.
-   */
-  protected $entity_type, $skip_load, $entities = array();
+class entity_views_plugin_row_entity_view extends views_plugin_row {
+
+  protected $entity_type, $entities;
 
   public function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
 
+    // Initialize the entity-type used.
     $table_data = views_fetch_data($this->view->base_table);
     $this->entity_type = $table_data['table']['entity type'];
-    $this->skip_load = !empty($table_data['table']['skip entity load']);
-
     // Set base table and field information as used by views_plugin_row to
     // select the entity id if used with default query class.
     $info = entity_get_info($this->entity_type);
@@ -67,44 +64,32 @@ class entity_plugin_row_entity_view extends views_plugin_row {
         '#value' => $options ? key($options) : 'default',
       );
     }
-
     return $form;
   }
 
-  /**
-   * Use entity_load() to load all entities at once if they aren't loaded yet.
-   */
-  public function pre_render($results) {
-    $this->entities = array();
-    foreach ($results as $result) {
-      if (!isset($result->entity)) {
-        $id = entity_id($this->entity_type, $result);
-        $this->entities[$id] = $result;
-      }
-      else {
-        $id = (is_object($result->entity) ? entity_id($this->entity_type, $result->entity) : $result->entity);
-        $this->entities[$id] = $result->entity;
-      }
-      // Force loading in case there is no object at all.
-      if (!empty($id) && $id == $this->entities[$id]) {
-        $this->skip_load = FALSE;
-      }
+  public function pre_render($values) {
+    if (!empty($values)) {
+      list($this->entity_type, $this->entities) = $this->view->query->get_result_entities($values, !empty($this->relationship) ? $this->relationship : NULL, isset($this->field_alias) ? $this->field_alias : NULL);
     }
-    if (!$this->skip_load) {
-      $this->entities = entity_load($this->entity_type, array_keys($this->entities));
+    // Render the entities.
+    if ($this->entities) {
+      $render = entity_view($this->entity_type, $this->entities, $this->options['view_mode']);
+      // Remove the first level of the render array.
+      $this->rendered_content = reset($render);
     }
   }
 
-  public function render($result) {
-    if (!isset($result->entity)) {
-      $id = entity_id($this->entity_type, $result);
-    }
-    else {
-      $id = (is_object($result->entity) ? entity_id($this->entity_type, $result->entity) : $result->entity);
-    }
-    if (isset($id)) {
-      $content = entity_view($this->entity_type, array($id => $this->entities[$id]), $this->options['view_mode']);
-      return drupal_render($content);
+  /**
+   * Overridden to return the entity object.
+   */
+  function get_value($values, $field = NULL) {
+    return isset($this->entities[$this->view->row_index]) ? $this->entities[$this->view->row_index] : FALSE;
+  }
+
+  public function render($values) {
+    if ($entity = $this->get_value($values)) {
+      $render = $this->rendered_content[entity_id($this->entity_type, $entity)];
+      return drupal_render($render);
     }
   }
 }
