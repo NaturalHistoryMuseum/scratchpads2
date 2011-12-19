@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  */
 function beautytips_init() {
   if (variable_get('beautytips_always_add', 0)) {
@@ -26,7 +26,7 @@ function beautytips_init() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function beautytips_menu() {
   $items['admin/config/user-interface/beautytips'] = array(
@@ -41,7 +41,7 @@ function beautytips_menu() {
 }
 
  /**
- * Implements hook_library
+ * Implements hook_library().
  */
 function beautytips_library() {
   $libraries = array();
@@ -71,6 +71,16 @@ function beautytips_library() {
       'js' => array($expath .'/excanvas.compiled.js' => array()),
     );
   }
+
+  $libraries['beautytips-ltr'] = array(
+    'title' => 'BeautyTips Module LTR support',
+    'website' => 'http://drupal.org/project/beautytips',
+    'version' => '7.x-2.x',
+    'css' => array($path .'/css/beautytips-ltr.css' => array()),
+    'dependencies' => array(
+      array('beautytips', 'beautytips-jquery'),
+    ),
+  );
   
   return $libraries;
 }
@@ -103,15 +113,19 @@ function beautytips_add_beautytips($options = NULL) {
       // Setup the settings array for adding js
       if (is_array($content)) {
         $style = isset($content['style']) ? $content['style'] : 'default';
+        unset($content['style']);
         $settings['beautytips'][$beautytip] = array_merge(beautytips_get_style($style), $content);
-        $keys_no_add = array('cssSelect', 'style', 'list', 'text', 'preEval', 'ajaxDisableLink');
+        $keys_no_add = array('cssSelect', 'style', 'list', 'text', 'preEval', 'ajaxDisableLink', 'animate');
         foreach ($settings['beautytips'][$beautytip] as $key => $value) {
+          // Ensure that numeric options are not passed as strings.
+          $settings['beautytips'][$beautytip][$key] = is_numeric($value) ? (int) $value : $value;
           if (!in_array($key, $keys_no_add)) {
             $settings['beautytips'][$beautytip]['list'][] = $key;
           }
         }
       }
     }
+
     if ($added && !empty($settings['beautytips'])) {
       drupal_add_js($settings, 'setting');
     }
@@ -123,6 +137,9 @@ function beautytips_add_beautytips($options = NULL) {
     // Add this for ie compatibility
     drupal_add_library('beautytips', 'excanvas_r3');
     drupal_add_js($settings, 'setting');
+    if (variable_get('beautytips_ltr', FALSE)) {
+      drupal_add_library('beautytips', 'beautytips-ltr');
+    }
     $added = TRUE;
   }
 }
@@ -152,13 +169,25 @@ function beautytips_get_style($style = 'default') {
 }
 
 /**
- * Implementation of hook_define_beautytips_styles().
+ * Implements hook_define_beautytips_styles().
  */
 function beautytips_define_beautytips_styles() {
   $styles['default'] = variable_get('beautytips_defaults', array());
-  $styles['plain'] = array(
-   //'cssStyles' => array(),
-  );
+  // Cleanup any problems with defaults.
+  if (count($styles['default'])) {
+    foreach ($styles['default'] as &$value) {
+      if (!is_array($value)) {
+        $value = check_plain($value);
+      }
+      else if (count($value)) {
+        foreach ($value as &$sub_value) {
+          $sub_value = check_plain($sub_value);
+        }
+      }
+    } 
+  }
+
+  $styles['plain'] = array();
   $styles['netflix'] = array(
     'positions' => array('right', 'left'),
     'fill' => '#FFF',

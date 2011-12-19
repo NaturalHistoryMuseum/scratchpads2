@@ -11,8 +11,9 @@
       btPopup.bt(popupText, {trigger: 'none', clickAnywhereToClose: false, closeWhenOthersOpen: false, positions: 'bottom', cssClass: 'beautytips-fixed-beautytips'});
       btPopup.btOn();
 
+      
       // Add the color picker to certain textfields
-      $('#edit-custom-styles-fill, #edit-custom-styles-strokeStyle, #edit-custom-styles-shadowColor').ColorPicker({
+      $('#edit-custom-styles-fill, #edit-custom-styles-strokestyle, #edit-custom-styles-css-styles-color').ColorPicker({
         onSubmit: function(hsb, hex, rgb, el) {
           $(el).val('#' + hex);
           $(el).ColorPickerHide();
@@ -25,7 +26,6 @@
       .bind('keyup', function(){
         $(this).ColorPickerSetColor(this.value);
       });
-
 
       var themeSettings = Drupal.settings.beautytips;
       $("#beauty-default-styles input").click(function() {
