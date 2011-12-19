@@ -28,7 +28,7 @@
       }
     }
     $('[name="name"]').attr('value', $.trim(taxon_name));
-    $('.tui-form-display').html('<span>&nbsp;</span>' + taxon_name);
+    $('#tui-name-live h2').html($.trim(taxon_name));
   }
   // Attach behaviours.
   Drupal.behaviors.itis_term = {attach: function(context, settings){
@@ -36,6 +36,10 @@
     $('#edit-field-unit-name2', context).keyup(Drupal.itis_term.update_name_field);
     $('#edit-field-unit-name3', context).keyup(Drupal.itis_term.update_name_field);
     $('#edit-field-unit-name4', context).keyup(Drupal.itis_term.update_name_field);
+    $('#edit-field-unit-name1', context).change(Drupal.itis_term.update_name_field);
+    $('#edit-field-unit-name2', context).change(Drupal.itis_term.update_name_field);
+    $('#edit-field-unit-name3', context).change(Drupal.itis_term.update_name_field);
+    $('#edit-field-unit-name4', context).change(Drupal.itis_term.update_name_field);
     $('#edit-field-unit-indicator1', context).change(Drupal.itis_term.update_name_field);
     $('#edit-field-unit-indicator2', context).change(Drupal.itis_term.update_name_field);
     $('#edit-field-unit-indicator3', context).change(Drupal.itis_term.update_name_field);

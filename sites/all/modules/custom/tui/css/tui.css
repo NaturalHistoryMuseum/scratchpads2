@@ -24,7 +24,7 @@
  font-weight:700;
 }
 
-#tui-tree-container, #tui-form-container{
+#tui-tree-container, #tui-form-container, #tui-name-live{
  padding:3px;
  border:solid 1px #eee;
  margin:5px;
@@ -128,14 +128,20 @@
 
 /* FORM */
 
-.ui-tabs-panel > fieldset, #tui-tree-container, #tui-form-container, #tui-link-box{
+.ui-tabs-panel > fieldset, #tui-tree-container, #tui-form-container, #tui-link-box, #tui-name-live{
  -moz-box-shadow: 2px 2px 2px #999;
  -webkit-box-shadow: 2px 2px 2px #999;
  box-shadow: 2px 2px 2px #999;
 }
 
-
-
+/* TERM BEING EDITED */
+#tui-name-live{
+ text-align:right;
+}
+#tui-name-live h2{
+ margin:0;
+ padding:5px;
+}
 
 
 /* LINK BOX */
