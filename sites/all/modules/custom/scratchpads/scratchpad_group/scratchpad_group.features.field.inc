@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * group.features.field.inc
  */
-
 /**
  * Implementation of hook_field_default_fields().
  */
-function scratchpad_group_field_default_fields() {
+function scratchpad_group_field_default_fields(){
   $fields = array();
-
   // Exported field: 'node-group-body'
   $fields['node-group-body'] = array(
     'field_config' => array(
@@ -17,26 +16,26 @@ function scratchpad_group_field_default_fields() {
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(
-        0 => 'node',
+        0 => 'node'
       ),
       'field_name' => 'body',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_with_summary',
+      'type' => 'text_with_summary'
     ),
     'field_instance' => array(
       'bundle' => 'group',
@@ -49,17 +48,17 @@ function scratchpad_group_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
+          'weight' => 1
         ),
         'teaser' => array(
           'label' => 'hidden',
           'module' => 'text',
           'settings' => array(
-            'trim_length' => 600,
+            'trim_length' => 600
           ),
           'type' => 'text_summary_or_trimmed',
-          'weight' => 1,
-        ),
+          'weight' => 1
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'body',
@@ -68,20 +67,19 @@ function scratchpad_group_field_default_fields() {
       'settings' => array(
         'display_summary' => TRUE,
         'text_processing' => 1,
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'text',
         'settings' => array(
           'rows' => 20,
-          'summary_rows' => 5,
+          'summary_rows' => 5
         ),
         'type' => 'text_textarea_with_summary',
-        'weight' => 1,
-      ),
-    ),
+        'weight' => 1
+      )
+    )
   );
-
   // Exported field: 'node-group-group_group'
   $fields['node-group-group_group'] = array(
     'field_config' => array(
@@ -93,27 +91,27 @@ function scratchpad_group_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          0 => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'no_ui' => TRUE,
       'settings' => array(
         'allowed_values' => array(
           0 => 'Not a group',
-          1 => 'Group',
+          1 => 'Group'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '0',
-      'type' => 'list_boolean',
+      'type' => 'list_boolean'
     ),
     'field_instance' => array(
       'bundle' => 'group',
       'default_value' => array(
         0 => array(
-          'value' => 1,
-        ),
+          'value' => 1
+        )
       ),
       'deleted' => '0',
       'description' => 'Leave this box checked to ensure that this node is a \'Group\'.',
@@ -123,14 +121,14 @@ function scratchpad_group_field_default_fields() {
           'module' => 'og_ui',
           'settings' => array(),
           'type' => 'og_group_subscribe',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'display_label' => 1,
       'entity_type' => 'node',
@@ -138,113 +136,117 @@ function scratchpad_group_field_default_fields() {
       'label' => 'Group',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'view modes' => array(
         'full' => array(
           'custom settings' => FALSE,
           'label' => 'Full',
-          'type' => 'og_group_subscribe',
+          'type' => 'og_group_subscribe'
         ),
         'teaser' => array(
           'custom settings' => FALSE,
           'label' => 'Teaser',
-          'type' => 'og_group_subscribe',
-        ),
+          'type' => 'og_group_subscribe'
+        )
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(
-          'display_label' => 0,
+          'display_label' => 0
         ),
         'type' => 'options_onoff',
-        'weight' => 0,
-      ),
-    ),
+        'weight' => 0
+      )
+    )
   );
-
-  // Exported field: 'node-page-group_audience'
-  $fields['node-page-group_audience'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'group_audience',
-      'foreign keys' => array(
-        'og' => array(
-          'columns' => array(
-            'gid' => 'gid',
-          ),
-          'table' => 'og',
+  $types = node_type_get_types();
+  foreach($types as $key => $type){
+    if($key == 'group'){
+      continue;
+    }
+    // Exported field: 'node-xxx-group_audience'
+    $fields['node-'.$key.'-group_audience'] = array(
+      'field_config' => array(
+        'active' => '1',
+        'cardinality' => '-1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'group_audience',
+        'foreign keys' => array(
+          'og' => array(
+            'columns' => array(
+              'gid' => 'gid'
+            ),
+            'table' => 'og'
+          )
         ),
-      ),
-      'indexes' => array(
-        'gid' => array(
-          0 => 'gid',
+        'indexes' => array(
+          'gid' => array(
+            0 => 'gid'
+          )
         ),
-      ),
-      'module' => 'og',
-      'no_ui' => TRUE,
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'group',
-    ),
-    'field_instance' => array(
-      'bundle' => 'page',
-      'default_value' => NULL,
-      'default_value_function' => 'og_field_audience_default_value',
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'og',
-          'settings' => array(),
-          'type' => 'og_list_default',
-          'weight' => '1',
-        ),
-        'teaser' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '0',
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'group_audience',
-      'label' => 'Groups audience',
-      'required' => FALSE,
-      'settings' => array(
-        'user_register_form' => FALSE,
-      ),
-      'view modes' => array(
-        'full' => array(
-          'custom settings' => FALSE,
-          'label' => 'Full',
-          'type' => 'og_list_default',
-        ),
-        'teaser' => array(
-          'custom settings' => FALSE,
-          'label' => 'Teaser',
-          'type' => 'og_list_default',
-        ),
-      ),
-      'widget' => array(
         'module' => 'og',
-        'settings' => array(
-          'opt_group' => 'auto',
-        ),
-        'type' => 'group_audience',
-        'weight' => -3,
+        'no_ui' => TRUE,
+        'settings' => array(),
+        'translatable' => '0',
+        'type' => 'group'
       ),
-      'widget_type' => 'group_audience',
-    ),
-  );
-
-  // Exported field: 'node-page-group_content_access'
-  $fields['node-page-group_content_access'] = array(
+      'field_instance' => array(
+        'bundle' => $key,
+        'default_value' => NULL,
+        'default_value_function' => 'og_field_audience_default_value',
+        'deleted' => '0',
+        'description' => '',
+        'display' => array(
+          'default' => array(
+            'label' => 'above',
+            'module' => 'og',
+            'settings' => array(),
+            'type' => 'og_list_default',
+            'weight' => '1'
+          ),
+          'teaser' => array(
+            'label' => 'hidden',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => '0'
+          )
+        ),
+        'entity_type' => 'node',
+        'field_name' => 'group_audience',
+        'label' => 'Groups audience',
+        'required' => FALSE,
+        'settings' => array(
+          'user_register_form' => FALSE
+        ),
+        'view modes' => array(
+          'full' => array(
+            'custom settings' => FALSE,
+            'label' => 'Full',
+            'type' => 'og_list_default'
+          ),
+          'teaser' => array(
+            'custom settings' => FALSE,
+            'label' => 'Teaser',
+            'type' => 'og_list_default'
+          )
+        ),
+        'widget' => array(
+          'module' => 'og',
+          'settings' => array(
+            'opt_group' => 'auto'
+          ),
+          'type' => 'group_audience',
+          'weight' => -3
+        ),
+        'widget_type' => 'group_audience'
+      )
+    );
+  }
+  // Exported field: 'node-xxx-group_content_access'
+  $fields['node-'.$key.'-group_content_access'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
@@ -254,8 +256,8 @@ function scratchpad_group_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          0 => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'no_ui' => TRUE,
@@ -263,19 +265,19 @@ function scratchpad_group_field_default_fields() {
         'allowed_values' => array(
           0 => 'Use group defaults',
           1 => 'Public - accessible to all site users',
-          2 => 'Private - accessible only to group members',
+          2 => 'Private - accessible only to group members'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '0',
-      'type' => 'list_integer',
+      'type' => 'list_integer'
     ),
     'field_instance' => array(
-      'bundle' => 'page',
+      'bundle' => $key,
       'default_value' => array(
         0 => array(
-          'value' => 0,
-        ),
+          'value' => 0
+        )
       ),
       'deleted' => '0',
       'description' => '',
@@ -284,42 +286,41 @@ function scratchpad_group_field_default_fields() {
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '2',
+          'weight' => '2'
         ),
         'teaser' => array(
           'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '0',
-        ),
+          'weight' => '0'
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'group_content_access',
       'label' => 'Group content visibility',
       'required' => TRUE,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'view modes' => array(
         'full' => array(
           'label' => 'above',
-          'type' => 'list_default',
+          'type' => 'list_default'
         ),
         'teaser' => array(
           'label' => 'above',
-          'type' => 'list_default',
-        ),
+          'type' => 'list_default'
+        )
       ),
       'widget' => array(
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => -2,
+        'weight' => -2
       ),
-      'widget_type' => 'options_select',
-    ),
+      'widget_type' => 'options_select'
+    )
   );
-
   // Exported field: 'og_membership-og_membership_type_default-og_membership_request'
   $fields['og_membership-og_membership_type_default-og_membership_request'] = array(
     'field_config' => array(
@@ -327,26 +328,26 @@ function scratchpad_group_field_default_fields() {
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(
-        0 => 'og_membership',
+        0 => 'og_membership'
       ),
       'field_name' => 'og_membership_request',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'og_membership_type_default',
@@ -359,8 +360,8 @@ function scratchpad_group_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'og_membership',
       'field_name' => 'og_membership_request',
@@ -368,19 +369,18 @@ function scratchpad_group_field_default_fields() {
       'required' => FALSE,
       'settings' => array(
         'text_processing' => 0,
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'text',
         'settings' => array(
-          'rows' => 5,
+          'rows' => 5
         ),
         'type' => 'text_textarea',
-        'weight' => 0,
-      ),
-    ),
+        'weight' => 0
+      )
+    )
   );
-
   // Exported field: 'user-user-group_audience'
   $fields['user-user-group_audience'] = array(
     'field_config' => array(
@@ -392,21 +392,21 @@ function scratchpad_group_field_default_fields() {
       'foreign keys' => array(
         'og' => array(
           'columns' => array(
-            'gid' => 'gid',
+            'gid' => 'gid'
           ),
-          'table' => 'og',
-        ),
+          'table' => 'og'
+        )
       ),
       'indexes' => array(
         'gid' => array(
-          0 => 'gid',
-        ),
+          0 => 'gid'
+        )
       ),
       'module' => 'og',
       'no_ui' => TRUE,
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'group',
+      'type' => 'group'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -420,47 +420,46 @@ function scratchpad_group_field_default_fields() {
           'module' => 'og',
           'settings' => array(),
           'type' => 'og_list_default',
-          'weight' => '0',
+          'weight' => '0'
         ),
         'full' => array(
           'label' => 'above',
           'module' => 'og',
           'settings' => array(),
           'type' => 'og_list_default',
-          'weight' => '0',
-        ),
+          'weight' => '0'
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'group_audience',
       'label' => 'Groups audience',
       'required' => FALSE,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'view modes' => array(
         'full' => array(
           'custom settings' => FALSE,
           'label' => 'Full',
-          'type' => 'og_list_default',
+          'type' => 'og_list_default'
         ),
         'teaser' => array(
           'custom settings' => FALSE,
           'label' => 'Teaser',
-          'type' => 'og_list_default',
-        ),
+          'type' => 'og_list_default'
+        )
       ),
       'widget' => array(
         'module' => 'og',
         'settings' => array(
-          'opt_group' => 'auto',
+          'opt_group' => 'auto'
         ),
         'type' => 'group_audience',
-        'weight' => 7,
+        'weight' => 7
       ),
-      'widget_type' => 'group_audience',
-    ),
+      'widget_type' => 'group_audience'
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Body');
@@ -470,6 +469,5 @@ function scratchpad_group_field_default_fields() {
   t('Leave this box checked to ensure that this node is a \'Group\'.');
   t('Request message');
   t('This is the text a user may send to the group administrators.');
-
   return $fields;
 }
