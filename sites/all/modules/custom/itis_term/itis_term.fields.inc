@@ -86,7 +86,28 @@ function itis_term_groups(){
       'label' => 'Vernacular names',
       'weight' => '11',
       'children' => array(
-        0 => 'field_vernacular_names'
+        0 => 'field_vernacular_names',
+        1 => 'description'
+      ),
+      'format_type' => 'htab',
+      'format_settings' => array(
+        'formatter' => 'closed',
+        'instance_settings' => array(
+          'classes' => '',
+          'required_fields' => 1
+        )
+      )
+    ),
+    array(
+      'group_name' => 'group_misc',
+      'entity_type' => 'taxonomy_term',
+      'bundle' => 'itis_vocabulary',
+      'mode' => 'form',
+      'parent_name' => 'group_vertical_tabs',
+      'label' => 'Misc.',
+      'weight' => '13',
+      'children' => array(
+        0 => 'description'
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -109,7 +130,8 @@ function itis_term_groups(){
         0 => 'group_reference',
         1 => 'group_scientific_name',
         2 => 'group_usage',
-        3 => 'group_vernacular_names'
+        3 => 'group_vernacular_names',
+        4 => 'group_misc'
       ),
       'format_type' => 'htabs',
       'format_settings' => array(
