@@ -1,17 +1,6 @@
 <?php
 
 /**
- * Implementation of hook_install().
- * 
- * Here we simply create the fields that we require.
- */
-function itis_term_install(){
-  foreach(itis_term_fields() as $field){
-    field_create_field($field['field_config']);
-  }
-}
-
-/**
  * Simply returns an array of groups
  */
 function itis_term_groups(){

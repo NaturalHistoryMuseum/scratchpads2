@@ -36,7 +36,7 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
       $vids[$form_state['values']['vid']] = $form_state['values']['biological_classification'];
       variable_set('biological_vids', $vids);
       // Add all the required fields to this vocabulary.
-      module_load_include('install', 'itis_term');
+      module_load_include('fields.inc', 'itis_term');
       // Create a new field for the associated accepted name (and possibly others)
       $additional_fields = itis_term_fields_per_vocabulary();
       $field_names_in_groups_to_change = array();
@@ -49,7 +49,12 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
         field_create_field($field['field_config']);
         field_create_instance($field['field_instance']);
       }
+      // Associate all the other fields with this instance.
       foreach(itis_term_fields() as $field){
+        // Create the field if it hasn't already been created.
+        if(!field_info_field($field['field_config']['field_name'])){
+          field_create_field($field['field_config']);
+        }
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
         field_create_instance($field['field_instance']);
       }
@@ -64,27 +69,6 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
         field_group_create_field_group($group);
       }
     }
-  }
-}
-
-/**
- * Implementation of hook_taxonomy_vocabulary_delete().
- */
-function itis_term_taxonomy_vocabulary_delete($vocabulary){
-  $vids = variable_get('biological_vids', array());
-  unset($vids[$vocabulary->vid]);
-  variable_set('biological_vids', $vids);
-  module_load_include('install', 'itis_term');
-  // Create a new field for the associated accepted name (and possibly others)
-  $additional_fields = itis_term_fields_per_vocabulary();
-  foreach($additional_fields as $field){
-    $field['field_instance']['bundle'] = $vocabulary->machine_name;
-    $field['field_instance']['field_name'] .= "_" . $vocabulary->machine_name;
-    field_delete_instance($field['field_instance']);
-  }
-  foreach(itis_term_fields() as $field){
-    $field['field_instance']['bundle'] = $vocabulary->machine_name;
-    field_delete_instance($field['field_instance'], FALSE);
   }
 }
 
