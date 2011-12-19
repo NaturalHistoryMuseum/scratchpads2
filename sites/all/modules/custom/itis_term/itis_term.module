@@ -74,6 +74,18 @@ function itis_term_taxonomy_vocabulary_delete($vocabulary){
   $vids = variable_get('biological_vids', array());
   unset($vids[$vocabulary->vid]);
   variable_set('biological_vids', $vids);
+  module_load_include('install', 'itis_term');
+  // Create a new field for the associated accepted name (and possibly others)
+  $additional_fields = itis_term_fields_per_vocabulary();
+  foreach($additional_fields as $field){
+    $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    $field['field_instance']['field_name'] .= "_" . $vocabulary->machine_name;
+    field_delete_instance($field['field_instance']);
+  }
+  foreach(itis_term_fields() as $field){
+    $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    field_delete_instance($field['field_instance'], FALSE);
+  }
 }
 
 /**
