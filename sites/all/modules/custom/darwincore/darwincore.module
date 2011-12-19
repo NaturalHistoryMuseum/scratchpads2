@@ -1,1 +1,8 @@
 <?php include_once('darwincore.features.inc');
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function darwincore_taxonomy_vocabulary_insert($vocabulary){
+  dpm(variable_get('biological_vids', array()));
+}
