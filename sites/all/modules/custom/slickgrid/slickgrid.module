@@ -136,7 +136,7 @@ function slickgrid_views_pre_view(&$view, $display_id, $args){
     ));
   }
   // If there are hidden columns
-  if(isset($view->slickgrid_settings['hidden_columns'])){
+  if(isset($view->slickgrid_settings['hidden_columns']) && !empty($view->slickgrid_settings['hidden_columns'])){
     // Remove them from the exported file
     foreach($view->slickgrid_settings['hidden_columns'] as $hidden_column){
       $view->set_item($display_id, 'field', $hidden_column, null);
