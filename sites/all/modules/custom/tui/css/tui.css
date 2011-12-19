@@ -25,7 +25,7 @@
 }
 
 #tui-tree-container, #tui-form-container{
- padding:15px;
+ padding:3px;
  border:solid 1px #eee;
  margin:5px;
  text-align:justify;
@@ -34,8 +34,22 @@
  position:relative;
  top:20px;
 }
+#tui-form-container{	
+ font-size:90% !important;	
+}
+#tui-form-container .form-item{
+ padding: 2px 0;
+}
 #tui-form-container input{
  max-width:98%;
+ width:98%;
+}
+#tui-form-container input.form-submit{
+ width:auto;
+}
+#tui-form-container .horizontal-tabs-panes fieldset{
+ margin:0;
+ padding:0;
 }
 #tui-name-editing{
  position:absolute;
