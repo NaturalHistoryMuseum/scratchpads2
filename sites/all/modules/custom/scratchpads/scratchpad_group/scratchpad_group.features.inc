@@ -7,7 +7,7 @@
 /**
  * Implementation of hook_ctools_plugin_api().
  */
-function group_ctools_plugin_api() {
+function scratchpad_group_ctools_plugin_api() {
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
@@ -17,9 +17,9 @@ function group_ctools_plugin_api() {
 /**
  * Implementation of hook_node_info().
  */
-function group_node_info() {
+function scratchpad_group_node_info() {
   $items = array(
-    'sp_group' => array(
+    'group' => array(
       'name' => t('Group'),
       'base' => 'node_content',
       'description' => t('A content type to enable users to create and manage their own \'groups\'. Each group can have subscribers, and maintains a group home page where subscribers communicate amongst themselves.'),

@@ -4,4 +4,4 @@
  * Code for the Group feature.
  */
 
-include_once('group.features.inc');
+include_once('scratchpad_group.features.inc');

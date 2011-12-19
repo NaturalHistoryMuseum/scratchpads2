@@ -7,7 +7,7 @@
 /**
  * Implementation of hook_field_default_fields().
  */
-function group_field_default_fields() {
+function scratchpad_group_field_default_fields() {
   $fields = array();
 
   // Exported field: 'node-group-body'
