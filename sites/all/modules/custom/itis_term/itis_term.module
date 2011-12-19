@@ -404,6 +404,11 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
           )
         )
       );
+      // Add the JS file, and hide the term field.
+      $form['#attached']['js'] = array_merge(isset($form['#attached']['js']) ? $form['#attached']['js'] : array(), array(
+        drupal_get_path('module', 'itis_term') . '/js/itis_term.js'
+      ));
+      $form['name']['#type'] = 'hidden';
     }
   }
 }
