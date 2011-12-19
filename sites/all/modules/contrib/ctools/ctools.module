@@ -9,7 +9,7 @@
  * must be implemented in the module file.
  */
 
-define('CTOOLS_API_VERSION', '2.0.3');
+define('CTOOLS_API_VERSION', '2.0.4');
 
 /**
  * Test the CTools API version.
@@ -122,8 +122,28 @@ function ctools_include($file, $module = 'ctools', $dir = 'includes') {
  * the form_state so that cached forms will properly include things.
  */
 function ctools_form_include(&$form_state, $file, $module = 'ctools', $dir = 'includes') {
+  if (!isset($form_state['build_info']['args'])) {
+    $form_state['build_info']['args'] = array();
+  }
+
   $dir = '/' . ($dir ? $dir . '/' : '');
   form_load_include($form_state, 'inc', $module, $dir . $file);
+}
+
+/**
+ * Add an arbitrary path to the $form_state so it can work with form cache.
+ *
+ * module_load_include uses an unfortunately annoying syntax to work, making it
+ * difficult to translate the more simple $path + $file syntax.
+ */
+function ctools_form_include_file(&$form_state, $filename) {
+  if (!isset($form_state['build_info']['args'])) {
+    $form_state['build_info']['args'] = array();
+  }
+
+  // Now add this to the build info files so that AJAX requests will know to load it.
+  $form_state['build_info']['files']["$filename"] = $filename;
+  require_once DRUPAL_ROOT . '/' . $filename;
 }
 
 /**

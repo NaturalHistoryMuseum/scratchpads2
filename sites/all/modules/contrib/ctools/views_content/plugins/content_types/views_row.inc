@@ -67,7 +67,7 @@ function views_content_views_row_content_type_render($subtype, $conf, $panel_arg
     foreach ($conf['rows'] as $row) {
       $view->row_index = $row - 1;
       if (!empty($view->result[$view->row_index])) {
-        $sets[$plugin->groups[$row_index]][$view->row_index] = $plugin->row_plugin->render($view->result[$view->row_index]);
+        $sets[$plugin->groups[$row]][$view->row_index] = $plugin->row_plugin->render($view->result[$view->row_index]);
       }
       unset($view->row_index);
     }

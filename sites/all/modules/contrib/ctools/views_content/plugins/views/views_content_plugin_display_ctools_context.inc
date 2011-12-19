@@ -261,6 +261,9 @@ class views_content_plugin_display_ctools_context extends views_plugin_display {
   }
 
   function get_path() {
+    if ($this->get_option('link_display') == 'custom_url' && $override_path = $this->get_option('link_url')) {
+      return $override_path;
+    }
     if ($this->get_option('inherit_panels_path')) {
       return $_GET['q'];
     }

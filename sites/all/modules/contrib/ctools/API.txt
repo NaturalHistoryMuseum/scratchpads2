@@ -1,10 +1,12 @@
-Current API Version: 2.0.3
+Current API Version: 2.0.4
 
 Please note that the API version is an internal number and does not match release numbers. It is entirely possible that releases will not increase the API version number, and increasing this number too often would burden contrib module maintainers who need to keep up with API changes.
 
 This file contains a log of changes to the API.
+API Version 2.0.4
+  Introduce ctools_form_include_file()
 
-API Version 2.0.2
+API Version 2.0.3
   Introduce ctools_field_invoke_field() and 
 
 API Version 2.0.2

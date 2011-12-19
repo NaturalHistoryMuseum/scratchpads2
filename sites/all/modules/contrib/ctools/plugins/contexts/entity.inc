@@ -16,7 +16,7 @@ $plugin = array(
   'description' => t('Entity object.'),
   'context' => 'ctools_context_create_entity',
   'edit form' => 'ctools_context_entity_settings_form',
-  'defaults' => array('id' => ''),
+  'defaults' => array('entity_id' => ''),
   'convert list' => 'ctools_context_entity_convert_list',
   'convert' => 'ctools_context_entity_convert',
   'placeholder form' => array(
@@ -64,8 +64,12 @@ function ctools_context_create_entity($empty, $data = NULL, $conf = FALSE, $plug
     return $context;
   }
 
-  if (is_array($data) && isset($data['id'])) {
+  // Attempt to retain compatibility with broken id:
+  if (is_array($data) && !isset($data['entity_id']) && isset($data['id'])) {
     $id = $data['id'];
+  }
+  elseif (is_array($data) && isset($data['entity_id'])) {
+    $id = $data['entity_id'];
   }
   elseif (is_object($data)) {
     $ids = entity_extract_ids($entity_type, $data);
@@ -108,31 +112,31 @@ function ctools_context_entity_settings_form($form, &$form_state) {
     '#weight' => -10,
   );
 
-  if (!empty($conf['id'])) {
-    $info = entity_load($plugin['keyword'], array($conf['id']));
-    $info = $info[$conf['id']];
+  if (!empty($conf['entity_id'])) {
+    $info = entity_load($plugin['keyword'], array($conf['entity_id']));
+    $info = $info[$conf['entity_id']];
     if ($info) {
       $entity = entity_get_info($plugin['keyword']);
       $uri = entity_uri($plugin['keyword'], $info);
       if (is_array($uri) && $entity['entity keys']['label']) {
-        $link = l(t("'%title' [%type id %id]", array('%title' => $info->{$entity['entity keys']['label']}, '%type' => $plugin['keyword'], '%id' => $conf['id'])), $uri['path'], array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
+        $link = l(t("'%title' [%type id %id]", array('%title' => $info->{$entity['entity keys']['label']}, '%type' => $plugin['keyword'], '%id' => $conf['entity_id'])), $uri['path'], array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
       }
       elseif (is_array($uri)) {
-        $link = l(t("[%type id %id]", array('%type' => $plugin['keyword'], '%id' => $conf['id'])), $uri['path'], array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
+        $link = l(t("[%type id %id]", array('%type' => $plugin['keyword'], '%id' => $conf['entity_id'])), $uri['path'], array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
       }
       elseif ($entity['entity keys']['label']) {
-        $link = l(t("'%title' [%type id %id]", array('%title' => $info->{$entity['entity keys']['label']}, '%type' => $plugin['keyword'], '%id' => $conf['id'])), file_create_url($uri), array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
+        $link = l(t("'%title' [%type id %id]", array('%title' => $info->{$entity['entity keys']['label']}, '%type' => $plugin['keyword'], '%id' => $conf['entity_id'])), file_create_url($uri), array('attributes' => array('target' => '_blank', 'title' => t('Open in new window')), 'html' => TRUE));
       }
       else {
-        $link = t("[%type id %id]", array('%type' => $plugin['keyword'], '%id' => $conf['id']));
+        $link = t("[%type id %id]", array('%type' => $plugin['keyword'], '%id' => $conf['entity_id']));
       }
       $form['entity']['#description'] = t('Currently set to !link', array('!link' => $link));
     }
   }
 
-  $form['id'] = array(
+  $form['entity_id'] = array(
     '#type' => 'value',
-    '#value' => $conf['id'],
+    '#value' => $conf['entity_id'],
   );
 
   $form['entity_type'] = array(
@@ -155,7 +159,7 @@ function ctools_context_entity_settings_form($form, &$form_state) {
  */
 function ctools_context_entity_settings_form_validate($form, &$form_state) {
   // Validate the autocomplete
-  if (empty($form_state['values']['id']) && empty($form_state['values']['entity'])) {
+  if (empty($form_state['values']['entity_id']) && empty($form_state['values']['entity'])) {
     form_error($form['entity'], t('You must select an entity.'));
     return;
   }
@@ -191,21 +195,21 @@ function ctools_context_entity_settings_form_validate($form, &$form_state) {
   }
   else {
     $entity_id = entity_extract_ids($form_state['values']['entity_type'], $entity);
-    form_set_value($form['id'], $entity_id[0], $form_state);
+    form_set_value($form['entity_id'], $entity_id[0], $form_state);
   }
 }
 
 function ctools_context_entity_settings_form_submit($form, &$form_state) {
   if ($form_state['values']['set_identifier']) {
     $entity_info = entity_get_info($form_state['values']['entity_type']);
-    $entity = entity_load($form_state['values']['entity_type'], array($form_state['values']['id']));
-    $entity = $entity[$form_state['values']['id']];
+    $entity = entity_load($form_state['values']['entity_type'], array($form_state['values']['entity_id']));
+    $entity = $entity[$form_state['values']['entity_id']];
     $form_state['values']['identifier'] = $entity->{$entity_info['entity keys']['label']};
   }
 
   // This will either be the value set previously or a value set by the
   // validator.
-  $form_state['conf']['id'] = $form_state['values']['id'];
+  $form_state['conf']['entity_id'] = $form_state['values']['entity_id'];
 }
 
 /**

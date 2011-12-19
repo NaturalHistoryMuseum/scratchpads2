@@ -225,12 +225,7 @@ function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a 
     $languages = _field_language_suggestion($available_languages, $options['language'], $field_name);
 
     foreach ($languages as $langcode) {
-      if (isset($entity->{$field_name})) {
-        $items = isset($entity->{$field_name}[$langcode]) ? $entity->{$field_name}[$langcode] : array();
-      }
-      else {
-        $items = array();
-      }
+      $items = isset($entity->{$field_name}[$langcode]) ? $entity->{$field_name}[$langcode] : array();
       $result = $function($entity_type, $entity, $field, $instance, $langcode, $items, $a, $b);
       if (isset($result)) {
         // For hooks with array results, we merge results together.
@@ -245,10 +240,8 @@ function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a 
 
       // Populate $items back in the field values, but avoid replacing missing
       // fields with an empty array (those are not equivalent on update).
-      if (isset($entity->{$field_name})) {
-        if ($items !== array() || isset($entity->{$field_name}[$langcode])) {
-          $entity->{$field_name}[$langcode] = $items;
-        }
+      if ($items !== array() || isset($entity->{$field_name}[$langcode])) {
+        $entity->{$field_name}[$langcode] = $items;
       }
     }
   }
@@ -266,4 +259,3 @@ function ctools_field_invoke_field_default($field_name, $op, $entity_type, $enti
   $options['default'] = TRUE;
   return ctools_field_invoke_field($field_name, $op, $entity_type, $entity, $a, $b, $options);
 }
-

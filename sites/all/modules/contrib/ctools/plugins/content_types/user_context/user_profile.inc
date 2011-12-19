@@ -27,7 +27,7 @@ function ctools_user_profile_content_type_render($subtype, $conf, $panel_args, $
 
   // Retrieve all profile fields and attach to $account->content.
   if (!isset($account->content)) {
-    user_build_content($account);
+    user_build_content($account, isset($conf['view_mode']) ? $conf['view_mode'] : 'full');
   }
 
   $build = $account->content;
@@ -80,3 +80,8 @@ function ctools_user_profile_content_type_edit_form($form, &$form_state) {
 
   return $form;
 }
+
+function ctools_user_profile_content_type_edit_form_submit($form, &$form_state) {
+  $form_state['conf']['view_mode'] = $form_state['values']['view_mode'];
+}
+
