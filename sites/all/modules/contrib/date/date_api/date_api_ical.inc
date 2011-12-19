@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api_ical.inc,v 1.2 2011/01/18 00:37:34 karens Exp $ */
 /**
  * @file
  * Parse iCal data.
@@ -144,7 +143,8 @@ function date_ical_parse($icaldatafolded = array()) {
     // The regex is to ensure that wrapped QUOTED-PRINTABLE data
     // is kept intact.
     if (!preg_match('/([A-Z]+)[:;](.*)/', $line, $out)) {
-      $line = array_pop($icaldata) . ($line);
+      // Trim up to 1 leading space from wrapped line per iCalendar standard.
+      $line = array_pop($icaldata) . (ltrim(substr($line, 0, 1)) . substr($line, 1));
     }
     $icaldata[] = $line;
   }
@@ -211,7 +211,7 @@ function date_ical_parse($icaldatafolded = array()) {
             // is always available even when you are working with only
             // a portion of the VEVENT array, like in Feed API parsers.
             $subgroup['all_day'] = FALSE;
-            if (!empty($subgroup['DTSTART']) && (!empty($subgroup['DTSTART']['all_day']) || 
+            if (!empty($subgroup['DTSTART']) && (!empty($subgroup['DTSTART']['all_day']) ||
             (empty($subgroup['DTEND']) && empty($subgroup['RRULE']) && empty($subgroup['RRULE']['COUNT'])))) {
               // Many programs output DTEND for an all day event as the
               // following day, reset this to the same day for internal use.
@@ -348,6 +348,7 @@ function date_ical_parse($icaldatafolded = array()) {
  *   It will take more work to figure how to support that.
  */
 function date_ical_parse_date($field, $data) {
+
   $items = array('datetime' => '', 'all_day' => '', 'tz' => '');
   if (empty($data)) {
     return $items;
@@ -398,7 +399,7 @@ function date_ical_parse_date($field, $data) {
          ':' . (!empty($regs[6]) ? date_pad($regs[6]) : '00') .
          ':' . (!empty($regs[7]) ? date_pad($regs[7]) : '00'); // Time
       }
-    }  
+    }
   }
 
   // Use timezone if explicitly declared
@@ -538,13 +539,13 @@ function date_ical_parse_text($field, $data) {
 
 /**
  * Parse location elements.
- * 
+ *
  * Catch situations like the upcoming.org feed that uses
  * LOCATION;VENUE-UID="http://upcoming.yahoo.com/venue/104/":111 First Street...
  * or more normal LOCATION;UID=123:111 First Street...
  * Upcoming feed would have been improperly broken on the ':' in http://
  * so we paste the $field and $data back together first.
- * 
+ *
  * Use non-greedy check for ':' in case there are more of them in the address.
  */
 function date_ical_parse_location($field, $data) {
@@ -552,7 +553,7 @@ function date_ical_parse_location($field, $data) {
     $location = array();
     $location['UID'] = $matches[1];
     $location['DESCRIPTION'] = stripslashes($matches[2]);
-    return $location;  
+    return $location;
   }
   else {
     // Remove other escaping
@@ -572,6 +573,7 @@ function date_ical_parse_location($field, $data) {
  *    a timezone-adjusted date object
  */
 function date_ical_date($ical_date, $to_tz = FALSE) {
+
   // If the ical date has no timezone, must assume it is stateless
   // so treat it as a local date.
   if (empty($ical_date['datetime'])) {
@@ -583,7 +585,11 @@ function date_ical_date($ical_date, $to_tz = FALSE) {
   else {
     $from_tz = $ical_date['tz'];
   }
+  if (strlen($ical_date['datetime']) < 11) {
+    $ical_date['datetime'] .= ' 00:00:00';
+  }
   $date = new DateObject($ical_date['datetime'], new DateTimeZone($from_tz));
+
   if ($to_tz && $ical_date['tz'] != '' && $to_tz != $ical_date['tz']) {
     date_timezone_set($date, timezone_open($to_tz));
   }
@@ -672,24 +678,34 @@ function date_api_ical_build_rrule($form_values) {
   $RRULE .= ';INTERVAL=' . (!array_key_exists('INTERVAL', $form_values) ? 1 : $form_values['INTERVAL']);
 
   // Unset the empty 'All' values.
-  if (array_key_exists('BYDAY', $form_values)) unset($form_values['BYDAY']['']);
-  if (array_key_exists('BYMONTH', $form_values)) unset($form_values['BYMONTH']['']);
-  if (array_key_exists('BYMONTHDAY', $form_values)) unset($form_values['BYMONTHDAY']['']);
+  if (array_key_exists('BYDAY', $form_values) && is_array($form_values['BYDAY'])) unset($form_values['BYDAY']['']);
+  if (array_key_exists('BYMONTH', $form_values) && is_array($form_values['BYMONTH'])) unset($form_values['BYMONTH']['']);
+  if (array_key_exists('BYMONTHDAY', $form_values) && is_array($form_values['BYMONTHDAY'])) unset($form_values['BYMONTHDAY']['']);
 
-  if (array_key_exists('BYDAY', $form_values) && $BYDAY = implode(",", $form_values['BYDAY'])) {
+  if (array_key_exists('BYDAY', $form_values) && is_array($form_values['BYDAY']) && $BYDAY = implode(",", $form_values['BYDAY'])) {
     $RRULE .= ';BYDAY=' . $BYDAY;
   }
-  if (array_key_exists('BYMONTH', $form_values) && $BYMONTH = implode(",", $form_values['BYMONTH'])) {
+  if (array_key_exists('BYMONTH', $form_values) && is_array($form_values['BYMONTH']) && $BYMONTH = implode(",", $form_values['BYMONTH'])) {
     $RRULE .= ';BYMONTH=' . $BYMONTH;
   }
-  if (array_key_exists('BYMONTHDAY', $form_values) && $BYMONTHDAY = implode(",", $form_values['BYMONTHDAY'])) {
+  if (array_key_exists('BYMONTHDAY', $form_values) && is_array($form_values['BYMONTHDAY']) && $BYMONTHDAY = implode(",", $form_values['BYMONTHDAY'])) {
     $RRULE .= ';BYMONTHDAY=' . $BYMONTHDAY;
   }
   // The UNTIL date is supposed to always be expressed in UTC.
   // The input date values may already have been converted to a date
   // object on a previous pass, so check for that.
   if (array_key_exists('UNTIL', $form_values) && array_key_exists('datetime', $form_values['UNTIL']) && !empty($form_values['UNTIL']['datetime'])) {
-    $until = !is_object($form_values['UNTIL']['datetime']) ? date_ical_date($form_values['UNTIL'], 'UTC') : $form_values['UNTIL']['datetime'];
+    // We only collect a date for UNTIL, but we need it to be inclusive,
+    // so force it to a full datetime element at the last possible second of the day.
+    if (!is_object($form_values['UNTIL']['datetime'])) {
+      $form_values['UNTIL']['datetime'] .= ' 23:59:59';
+      $form_values['UNTIL']['granularity'] = serialize(drupal_map_assoc(array('year', 'month', 'day', 'hour', 'minute', 'second')));
+      $form_values['UNTIL']['all_day'] = 0;
+      $until = date_ical_date($form_values['UNTIL'], 'UTC');
+    }
+    else {
+      $until = $form_values['UNTIL']['datetime'];
+    }
     $RRULE .= ';UNTIL=' . date_format($until, DATE_FORMAT_ICAL) . 'Z';
   }
   // Our form doesn't allow a value for COUNT, but it may be needed by
@@ -704,7 +720,7 @@ function date_api_ical_build_rrule($form_values) {
     $RRULE .= ';WKST=' . $form_values['WKST'];
   }
   else {
-    $RRULE .= ';WKST=' . date_repeat_dow2day(variable_get('date_first_day', 1));
+    $RRULE .= ';WKST=' . date_repeat_dow2day(variable_get('date_first_day', 0));
   }
 
   // Exceptions dates go last, on their own line.
@@ -715,11 +731,11 @@ function date_api_ical_build_rrule($form_values) {
     foreach ($form_values['EXDATE'] as $value) {
       if (!empty($value['datetime'])) {
         $date = !is_object($value['datetime']) ? date_ical_date($value, 'UTC') : $value['datetime'];
-        $ex_date = !empty($date) ? $date->format(DATE_FORMAT_ICAL) : '';
+        $ex_date = !empty($date) ? $date->format(DATE_FORMAT_ICAL) . 'Z': '';
         if (!empty($ex_date)) {
           $ex_dates[] = $ex_date;
         }
-      }  
+      }
     }
     if (!empty($ex_dates)) {
       sort($ex_dates);
@@ -735,7 +751,7 @@ function date_api_ical_build_rrule($form_values) {
     $ex_dates = array();
     foreach ($form_values['RDATE'] as $value) {
       $date = !is_object($value['datetime']) ? date_ical_date($value, 'UTC') : $value['datetime'];
-      $ex_date = !empty($date) ? $date->format(DATE_FORMAT_ICAL) : '';
+      $ex_date = !empty($date) ? $date->format(DATE_FORMAT_ICAL) . 'Z': '';
       if (!empty($ex_date)) {
         $ex_dates[] = $ex_date;
       }

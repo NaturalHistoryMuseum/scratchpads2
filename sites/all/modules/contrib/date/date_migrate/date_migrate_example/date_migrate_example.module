@@ -1,0 +1,13 @@
+<?php
+
+include_once('date_migrate_example.features.inc');
+
+/*
+ * Implementation of hook_migrate_api().
+ */
+function date_migrate_example_migrate_api() {
+  $api = array(
+    'api' => 2,
+  );
+  return $api;
+}

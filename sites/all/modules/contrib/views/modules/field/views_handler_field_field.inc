@@ -290,7 +290,7 @@ class views_handler_field_field extends views_handler_field {
       'default' => array(),
     );
     $options['group_column'] = array(
-      'default' => in_array('value', $column_names) ? 'value' : $column_names[0],
+      'default' => $default_column,
     );
     $options['group_columns'] = array(
       'default' => array(),
@@ -345,7 +345,7 @@ class views_handler_field_field extends views_handler_field {
     if (count($field['columns']) == 1) {
       $form['click_sort_column'] = array(
         '#type' => 'value',
-        '#value' => $column_names[0],
+        '#value' => isset($column_names[0]) ? $column_names[0] : '',
       );
     }
     else {
@@ -689,7 +689,7 @@ class views_handler_field_field extends views_handler_field {
 
     // We are supposed to show only certain deltas.
     if ($this->limit_values && !empty($entity->{$this->definition['field_name']})) {
-      $all_values = $entity->{$this->definition['field_name']}[$langcode];
+      $all_values = !empty($entity->{$this->definition['field_name']}[$langcode]) ? $entity->{$this->definition['field_name']}[$langcode] : array();
       if ($this->options['delta_reversed']) {
         $all_values = array_reverse($all_values);
       }
@@ -788,7 +788,7 @@ class views_handler_field_field extends views_handler_field {
       }
       // Only add the raw field items (for use in tokens) if the curent user
       // has access to view the field content.
-      if (!isset($items[$count]['rendered']['#access']) || $items[$count]['rendered']['#access']) {
+      if ((!isset($items[$count]['rendered']['#access']) || $items[$count]['rendered']['#access']) && !empty($render_array['#items'][$count])) {
         $items[$count]['raw'] = $render_array['#items'][$count];
       }
     }

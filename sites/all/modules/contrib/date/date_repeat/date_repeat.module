@@ -1,5 +1,4 @@
 <?php
-// $Id: date_repeat.module,v 1.42 2011/01/18 00:37:34 karens Exp $
 /**
  * @file
  *
@@ -22,19 +21,18 @@ function date_repeat_element_info() {
     '#input' => TRUE,
     '#process' => array('date_repeat_rrule_process'),
     '#element_validate' => array('date_repeat_rrule_validate'),
-    '#value_callback' => 'date_repeat_value_callback',
     '#theme_wrappers' => array('date_repeat_rrule'),
   );
-  return $type;
-}
-
-/**
- * A value callback for the date_repeat_rrule element.
- */
-function date_repeat_value_callback($element, $input = FALSE, &$form_state) {
-  if (!$input) {
-    return array();
+  $type['date_repeat_form_element_radios'] = array(
+    '#input' => TRUE,
+    '#process' => array('date_repeat_form_element_radios_process'),
+    '#theme_wrappers' => array('radios'),
+    '#pre_render' => array('form_pre_render_conditional_form_element'),
+  );
+  if (module_exists('ctools')) {
+    $type['date_repeat_rrule']['#pre_render'] = array('ctools_dependent_pre_render');
   }
+  return $type;
 }
 
 function date_repeat_theme() {
@@ -50,22 +48,17 @@ function date_repeat_theme() {
  */
 function FREQ_options() {
   return array(
-    'NONE' => t('-- Period'),
-    'DAILY' => t('Days', array(), array('context' => 'datetime_plural')),
-    'WEEKLY' => t('Weeks', array(), array('context' => 'datetime_plural')),
-    'MONTHLY' => t('Months', array(), array('context' => 'datetime_plural')),
-    'YEARLY' => t('Years', array(), array('context' => 'datetime_plural')),
+    'DAILY' => t('Daily', array(), array('context' => 'datetime_singular')),
+    'WEEKLY' => t('Weekly', array(), array('context' => 'datetime_singular')),
+    'MONTHLY' => t('Monthly', array(), array('context' => 'datetime_singular')),
+    'YEARLY' => t('Yearly', array(), array('context' => 'datetime_singular')),
   );
 }
 
 function INTERVAL_options() {
-  $options = array(
-    0 => t('-- Frequency'),
-    1 => t('Every', array(), array('context' => 'date_order')),
-  );
-  for ($i = 2; $i < 367; $i++) {
-    $options[$i] = t('Every @number', array('@number' => $i));
-  }
+  $options = range(0, 366);
+  unset($options[0]);
+
   return $options;
 }
 
@@ -88,10 +81,44 @@ function date_repeat_dow_day_options($translated = TRUE) {
   );
 }
 
+/**
+ * Helper function for FREQ options.
+ *
+ * Translated and untranslated arrays of the iCal abbreviated day of week names.
+ */
+function date_repeat_dow_day_options_abbr($translated = TRUE, $length = 3) {
+  $return = array();
+  switch ($length) {
+    case 1:
+      $context = 'day_abbr1';
+      break;
+    case 2:
+      $context = 'day_abbr2';
+      break;
+    default:
+      $context = '';
+      break;
+  }
+  foreach (date_repeat_dow_day_untranslated() as $key => $day) {
+    $return[$key] = $translated ? t(substr($day, 0, $length), array(), array('context' => $context)) : substr($day, 0, $length);
+  }
+  return $return;
+}
+
+function date_repeat_dow_day_untranslated() {
+  static $date_repeat_weekdays;
+  if (empty($date_repeat_weekdays)) {
+    $date_repeat_weekdays = array('SU' => 'Sunday', 'MO' => 'Monday', 'TU' => 'Tuesday',
+      'WE' => 'Wednesday', 'TH' => 'Thursday', 'FR' => 'Friday',
+      'SA' => 'Saturday');
+  }
+  return $date_repeat_weekdays;
+}
+
 function date_repeat_dow_day_options_ordered($week_start) {
   $unordered = date_repeat_dow_day_options(FALSE);
-  if (variable_get('date_first_day', 1) > 0) {
-    for ($i = 1; $i <= variable_get('date_first_day', 1); $i++) {
+  if (variable_get('date_first_day', 0) > 0) {
+    for ($i = 1; $i <= variable_get('date_first_day', 0); $i++) {
       $last = array_shift($weekdays);
       array_push($weekdays, $last);
     }
@@ -165,21 +192,25 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
   module_load_include('inc', 'date_api', 'date_api_ical');
   module_load_include('inc', 'date_repeat', 'date_repeat_calc');
 
-  // Make sure there will be an empty description for any unused parts.
-  $description = array(
-    '!interval' => '', 
-    '!byday' => '', 
-    '!bymonth' => '', 
-    '!count' => '',
-    '!until' => '', 
-    '!except' => '',
-    '!additional' => '',
-    '!week_starts_on' => '',
-    );
   $parts = date_repeat_split_rrule($rrule);
   $additions = $parts[2];
   $exceptions = $parts[1];
   $rrule = $parts[0];
+  if ($rrule['FREQ'] == 'NONE') {
+    return;
+  }
+
+  // Make sure there will be an empty description for any unused parts.
+  $description = array(
+    '!interval' => '',
+    '!byday' => '',
+    '!bymonth' => '',
+    '!count' => '',
+    '!until' => '',
+    '!except' => '',
+    '!additional' => '',
+    '!week_starts_on' => '',
+    );
   $interval = INTERVAL_options();
   switch ($rrule['FREQ']) {
     case 'WEEKLY':
@@ -241,7 +272,9 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
   if ($exceptions) {
     $values = array();
     foreach ($exceptions as $exception) {
-      $values[] = date_format_date(date_ical_date($exception), 'custom', $format);
+      $except = date_ical_date($exception, 'UTC');
+      date_timezone_set($except, date_default_timezone_object());
+      $values[] = date_format_date($except, 'custom', $format);
     }
     $description['!except'] = trim(t('!repeats_every_interval except !except_dates', array('!repeats_every_interval ' => '', '!except_dates' => implode(', ', $values))));
   }
@@ -252,7 +285,9 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
   if ($additions) {
     $values = array();
     foreach ($additions as $addition) {
-      $values[] = date_format_date(date_ical_date($addition), 'custom', $format);
+      $add = date_ical_date($addition, 'UTC');
+      date_timezone_set($add, date_default_timezone_object());
+      $values[] = date_format_date($add, 'custom', $format);
     }
     $description['!additional'] = trim(t('Also includes !additional_dates.', array('!additional_dates' => implode(', ', $values))));
   }
@@ -263,7 +298,7 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
  * Parse an iCal rule into a parsed RRULE array and an EXDATE array.
  */
 function date_repeat_split_rrule($rrule) {
-  $parts = explode("\n", $rrule);
+  $parts = explode("\n", str_replace("\r\n", "\n", $rrule));
   $rrule = array();
   $exceptions = array();
   $additions = array();
@@ -291,14 +326,89 @@ function date_repeat_split_rrule($rrule) {
  * Analyze a RRULE and return dates that match it.
  */
 function date_repeat_calc($rrule, $start, $end, $exceptions = array(), $timezone = NULL, $additions = array()) {
-  module_load_include('inc', 'date_repeat', 'date_repeat_calc');  
+  module_load_include('inc', 'date_repeat', 'date_repeat_calc');
   return _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additions);
 }
 
 /**
  * Generate the repeat rule setting form.
  */
-function date_repeat_rrule_process($element, $form_state, $form) {
+function date_repeat_rrule_process($element, &$form_state, $form) {
   module_load_include('inc', 'date_repeat', 'date_repeat_form');
   return _date_repeat_rrule_process($element, $form_state, $form);
+}
+
+/**
+ * Process function for 'date_repeat_form_element_radios'.
+ */
+function date_repeat_form_element_radios_process($element) {
+  $childrenkeys = element_children($element);
+
+  if (count($element['#options']) &&
+      count($element['#options']) == count($childrenkeys)) {
+    $weight = 0;
+    $children = array();
+    $classes = isset($element['#div_classes']) ?
+      $element['#div_classes'] : array();
+    foreach ($childrenkeys as $childkey) {
+      $children[$childkey] = $element[$childkey];
+      unset($element[$childkey]);
+    }
+    foreach ($element['#options'] as $key => $choice) {
+      $currentchildkey = array_shift($childrenkeys);
+      $weight += 0.001;
+      $class = array_shift($classes);
+      $element += array($key => array());
+      $parents_for_id = array_merge($element['#parents'], array($key));
+      $element[$key] += array(
+        '#prefix' => '<div' . ($class ? " class=\"{$class}\"" : '') . '>',
+        '#type' => 'radio',
+        '#title' => $choice,
+        '#title_display' => 'invisible',
+        '#return_value' => $key,
+        '#default_value' => isset($element['#default_value']) ?
+          $element['#default_value'] : NULL,
+        '#attributes' => $element['#attributes'],
+        '#parents' => $element['#parents'],
+        '#id' => drupal_html_id('edit-' . implode('-', $parents_for_id)),
+        '#ajax' => isset($element['#ajax']) ? $element['ajax'] : NULL,
+        '#weight' => $weight,
+        '#theme_wrappers' => array(),
+        '#suffix' => ' ',
+      );
+
+      $child = $children[$currentchildkey];
+
+      $weight += 0.001;
+
+      $child['#weight'] = $weight;
+      $child['#title_display'] = 'invisible';
+      $child['#suffix'] = (!empty($child['#suffix']) ? $child['#suffix'] : '') .
+        '</div>';
+      $child['#parents'] = $element['#parents'];
+      array_pop($child['#parents']);
+      array_push($child['#parents'], $currentchildkey);
+
+      $element_prototype = element_info($child['#type']);
+      $old_wrappers = array();
+      if (isset($child['#theme_wrappers'])) {
+        $old_wrappers += $child['#theme_wrappers'];
+      }
+      if (isset($element_prototype['#theme_wrappers'])) {
+        $old_wrappers += $element_prototype['#theme_wrappers'];
+      }
+
+      $child['#theme_wrappers'] = array();
+
+      foreach ($old_wrappers as $wrapper) {
+        if ($wrapper != 'form_element') {
+          $child['#theme_wrappers'][] = $wrapper;
+        }
+      }
+
+      $element[$currentchildkey] = $child;
+    }
+  }
+
+  return $element;
 }

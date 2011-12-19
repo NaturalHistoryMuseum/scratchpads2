@@ -5,15 +5,18 @@ dependencies[] = date_api
 package = Date/Time
 core = 7.x
 configure = admin/config/content/date_popup
+
+stylesheets[all][] = themes/datepicker.1.7.css
+
 files[] = date_popup.module
 files[] = date_popup.install
 files[] = date_popup.js
 files[] = themes/calendar.css
 files[] = themes/datepicker.css
 files[] = themes/timeentry.css
-; Information added by drupal.org packaging script on January 1, 1970 - 00:00
-version = "7.x-1.0-alpha2"
+; Information added by drupal.org packaging script on 2011-12-15
+version = "7.x-2.x-dev"
 core = "7.x"
 project = "date"
-datestamp = "1295529406"
+datestamp = "1323908289"
 

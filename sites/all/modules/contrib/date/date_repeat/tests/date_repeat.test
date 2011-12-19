@@ -1,5 +1,4 @@
 <?php
-// $Id: date_repeat.test,v 1.2 2011/01/18 00:37:34 karens Exp $
 /**
  * Test Date Repeat calculations.
  */
@@ -25,6 +24,16 @@ class DateRepeatTestCase extends DrupalWebTestCase {
     require_once('./'. drupal_get_path('module', 'date_repeat') .'/date_repeat_calc.inc');
     // Examples adapted from http://www.faqs.org/rfcs/rfc2445.html and
     // http://www.kanzaki.com/docs/ical/rrule.html.
+
+    //  Invalid value:
+    $start = "1997-09-02 09:00:00";
+    $end = "1997-09-30 09:00:00";
+    $rule = "RRULE:FREQ=NONE;INTERVAL=0;COUNT=10";
+    $dates = date_repeat_calc($rule, $start, $end, array());
+    //  should be (1997 9:00 AM EDT)September 2-11
+    $shouldbe = '';
+    $result = implode(', ', $dates);
+    $this->assertEqual($result, $shouldbe, $rule .'; Starting '.$start .';  results: '. $result);
 
     //  Daily for 10 occurrences:
     $start = "1997-09-02 09:00:00";

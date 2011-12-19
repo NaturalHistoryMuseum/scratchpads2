@@ -50,22 +50,25 @@ function views_ajax() {
       // such as tablesorts, exposed filters and paging assume $_GET.
       $_GET += $_POST;
 
+      // Overwrite the destination.
+      // @see drupal_get_destination()
+      $origin_destination = $path;
+      $query = drupal_http_build_query($_REQUEST);
+      if ($query != '') {
+        $origin_destination .= '?' . $query;
+      }
+      $destination = &drupal_static('drupal_get_destination');
+      $destination = array('destination' => $origin_destination);
+
       // Override the display's pager_element with the one actually used.
       if (isset($pager_element)) {
+        $commands[] = views_ajax_command_scroll_top('.view-dom-id-' . $dom_id);
         $view->display[$display_id]->handler->set_option('pager_element', $pager_element);
       }
       // Reuse the same DOM id so it matches that in Drupal.settings.
       $view->dom_id = $dom_id;
 
-      $errors = $view->validate();
-      if ($errors === TRUE) {
-        $commands[] = ajax_command_replace('.view-dom-id-' . $dom_id, $view->preview($display_id, $args));
-      }
-      else {
-        foreach ($errors as $error) {
-          drupal_set_message($error, 'error');
-        }
-      }
+      $commands[] = ajax_command_replace('.view-dom-id-' . $dom_id, $view->preview($display_id, $args));
     }
     drupal_alter('views_ajax_data', $commands, $view);
     return array('#type' => 'ajax', '#commands' => $commands);
@@ -145,6 +148,20 @@ function views_ajax_command_add_tab($id, $title, $body) {
     'id' => $id,
     'title' => $title,
     'body' => $body,
+  );
+  return $command;
+}
+
+/**
+ * Scroll to top of the current view.
+ *
+ * @return
+ *   An array suitable for use with the ajax_render() function.
+ */
+function views_ajax_command_scroll_top($selector) {
+  $command = array(
+    'command' => 'viewsScrollTop',
+    'selector' => $selector,
   );
   return $command;
 }

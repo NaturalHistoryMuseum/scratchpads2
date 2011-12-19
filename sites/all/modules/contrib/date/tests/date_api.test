@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api.test,v 1.14 2011/01/18 00:37:35 karens Exp $
 /**
  * Test Date API functions
  */
@@ -88,7 +87,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     // Test days in year for a leap year and a non-leap year.
     $expected = 365;
     $value = date_days_in_year('2005-06-01 00:00:00');
-    $this->assertEqual($expected, $value, "Test date_days_in_year(2005-06-01): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test date_days_in_year(2005-06-01): should be $expected, found $value.");
     $expected = 366;
     $value = date_days_in_year('2004-06-01 00:00:00');
     $this->assertEqual($expected, $value, "Test date_days_in_year(2004-06-01): should be $expected, found $value.");
@@ -96,7 +95,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     // Test ISO weeks for a leap year and a non-leap year.
     $expected = 52;
     $value = date_iso_weeks_in_year('2008-06-01 00:00:00');
-    $this->assertEqual($expected, $value, "Test date_iso_weeks_in_year(2008-06-01): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test date_iso_weeks_in_year(2008-06-01): should be $expected, found $value.");
     $expected = 53;
     $value = date_iso_weeks_in_year('2009-06-01 00:00:00');
     $this->assertEqual($expected, $value, "Test date_iso_weeks_in_year(2009-06-01): should be $expected, found $value.");
@@ -104,7 +103,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     // Test day of week for March 1, the day after leap day.
     $expected = 6;
     $value = date_day_of_week('2008-03-01 00:00:00');
-    $this->assertEqual($expected, $value, "Test date_day_of_week(2008-03-01): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test date_day_of_week(2008-03-01): should be $expected, found $value.");
     $expected = 0;
     $value = date_day_of_week('2009-03-01 00:00:00');
     $this->assertEqual($expected, $value, "Test date_day_of_week(2009-03-01): should be $expected, found $value.");
@@ -112,7 +111,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     // Test day of week name for March 1, the day after leap day.
     $expected = 'Sat';
     $value = date_day_of_week_name('2008-03-01 00:00:00');
-    $this->assertEqual($expected, $value, "Test date_day_of_week_name(2008-03-01): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test date_day_of_week_name(2008-03-01): should be $expected, found $value.");
     $expected = 'Sun';
     $value = date_day_of_week_name('2009-03-01 00:00:00');
     $this->assertEqual($expected, $value, "Test date_day_of_week_name(2009-03-01): should be $expected, found $value.");
@@ -123,7 +122,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $expected = '2008-01-27 to 2008-02-03';
     $result = date_week_range(5, 2008);
     $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
-    $this->assertEqual($expected, $value, "Test calendar date_week_range(5, 2008): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test calendar date_week_range(5, 2008): should be $expected, found $value.");
     $expected = '2009-01-25 to 2009-02-01';
     $result = date_week_range(5, 2009);
     $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
@@ -135,7 +134,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $expected = '2008-01-28 to 2008-02-04';
     $result = date_week_range(5, 2008);
     $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
-    $this->assertEqual($expected, $value, "Test ISO date_week_range(5, 2008): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test ISO date_week_range(5, 2008): should be $expected, found $value.");
     $expected = '2009-01-26 to 2009-02-02';
     $result = date_week_range(5, 2009);
     $value = $result[0]->format(DATE_FORMAT_DATE) .' to '. $result[1]->format(DATE_FORMAT_DATE);
@@ -146,7 +145,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     variable_set('date_first_day', 0);
     $expected = '09';
     $value = date_week('2008-03-01');
-    $this->assertEqual($expected, $value, "Test date_week(2008-03-01): should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "Test date_week(2008-03-01): should be $expected, found $value.");
     $expected = '10';
     $value = date_week('2009-03-01');
     $this->assertEqual($expected, $value, "Test date_week(2009-03-01): should be $expected, found $value.");
@@ -212,10 +211,10 @@ class DateAPITestCase extends DrupalWebTestCase {
 
     $expected = 'UTC';
     $value = $date->getTimeZone()->getName();
-    $this->assertEqual($expected, $value, "The current timezone is $value: should be $expected.");    
+    $this->assertEqual($expected, $value, "The current timezone is $value: should be $expected.");
     $expected = 0;
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset is $value: should be $expected.");    
+    $this->assertEqual($expected, $value, "The current offset is $value: should be $expected.");
 
     $timezone = 'America/Los_Angeles';
     $date->setTimezone(new DateTimeZone($timezone));
@@ -228,7 +227,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '-28800';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
     // Convert the local version of a timestamp to UTC.
     $input = 0;
@@ -244,7 +243,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '-28800';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
     $timezone = 'UTC';
     $date->setTimezone(new DateTimeZone($timezone));
@@ -257,7 +256,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '0';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");  
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
      // Create date object from datetime string and convert it to a local date.
     $input = '1970-01-01 00:00:00';
@@ -269,10 +268,10 @@ class DateAPITestCase extends DrupalWebTestCase {
 
     $expected = 'UTC';
     $value = $date->getTimeZone()->getName();
-    $this->assertEqual($expected, $value, "The current timezone is $value: should be $expected.");    
+    $this->assertEqual($expected, $value, "The current timezone is $value: should be $expected.");
     $expected = 0;
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset is $value: should be $expected.");    
+    $this->assertEqual($expected, $value, "The current offset is $value: should be $expected.");
 
     $timezone = 'America/Los_Angeles';
     $date->setTimezone(new DateTimeZone($timezone));
@@ -285,7 +284,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '-28800';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
     // Convert the local version of a datetime string to UTC.
     $input = '1969-12-31 16:00:00';
@@ -301,7 +300,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '-28800';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");    
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
     $timezone = 'UTC';
     $date->setTimezone(new DateTimeZone($timezone));
@@ -314,7 +313,7 @@ class DateAPITestCase extends DrupalWebTestCase {
     $this->assertEqual($expected, $value, "The current timezone should be $expected, found $value.");
     $expected = '0';
     $value = $date->getOffset();
-    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");       
+    $this->assertEqual($expected, $value, "The current offset should be $expected, found $value.");
 
      // Create year-only date.
     $input = '2009';
@@ -352,12 +351,37 @@ class DateAPITestCase extends DrupalWebTestCase {
     $expected = '10:30:00';
     $this->assertEqual($expected, $value, "Test new dateObject($input, $timezone, $format): should be $expected, found $value.");
 
+    // Test date ranges.
+    $valid = array(
+      '-20:+20',
+      '-1:+0',
+      '-10:-5',
+      '2000:2020',
+      '-10:2010',
+      '1980:-10',
+      '1920:+20',
+    );
+    $invalid = array(
+      'abc',
+      'abc:+20',
+      '1920:+20a',
+      '+-20:+-30',
+      '12:12',
+      '0:+20',
+      '-20:0',
+    );
+    foreach ($valid as $range) {
+      $this->assertTrue(date_range_valid($range), "$range recognized as a valid date range.");
+    }
+    foreach ($invalid as $range) {
+      $this->assertFalse(date_range_valid($range), "$range recognized as an invalid date range.");
+    }
   }
 
   public function tearDown() {
     variable_del('date_first_day');
     variable_del('date_api_use_iso8601');
     parent::tearDown();
-  }  
+  }
 
 }

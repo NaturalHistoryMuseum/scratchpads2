@@ -1,5 +1,4 @@
 <?php
-// $Id: date_tools.module,v 1.23 2011/01/18 00:37:34 karens Exp $
 
 /**
  * Implementation of hook_help().
@@ -14,7 +13,7 @@ function date_tools_help($section, $arg) {
 
     case 'admin/structure/date/date_wizard':
 
-      $output =        
+      $output =
       t('Fill out the following form to auto-create a date content type, with a datetime field and matching pre-configured calendar. A calendar and upcoming events block will be created, an ical feed will be added to the calendar, and the mini calendar, calendar legend, and upcoming events blocks will be added to the sidebar of the default theme. Nodes created from this new content type will include a link to the calendar, and the calendar will have a link to the \'add new date\' form. You can also add new date fields to an existing content type by entering the existing content type name instead of creating a new one.') .
       '</p><p>' .
       t('Only a limited set of options are displayed here to make this easy to set up. Once the date has been created you will be able to make other changes to the date settings and add other fields to your new content type on the Manage fields screen, and make changes to the calendar on the Views edit page.') .
@@ -62,13 +61,13 @@ function date_tools_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('date_tools_wizard_form'),
     'access arguments' => array('administer date tools'),
-    'file' => 'date_tools.wizard.inc',  
+    'file' => 'date_tools.wizard.inc',
   );
   $items['admin/structure/date/remove'] = array(
     'title'    => 'Remove calendar',
     'access arguments'   => array('administer date tools'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('date_tools_remove_form', 3),
+    'page arguments' => array('date_tools_remove_form', 4),
     'type' => MENU_CALLBACK,
   );
   $items['admin/structure/date/change'] = array(
@@ -96,12 +95,12 @@ function date_tools_page() {
     $calendars = array();
     $node_types = node_type_get_names();
     foreach ($calendar_options as $key => $option) {
-      $bundle = str_replace('calendar_', '', $key);
+      $bundle = str_replace(array('calendar_', 'cal_'), '', $key);
       if (array_key_exists($bundle, $node_types)) {
         $type = $node_types[$bundle];
         $calendars[] = array(
-          l($type, 'admin/structure/types/manage/' . $bundle . '/fields'), 
-          l($key, 'admin/structure/views/edit/' . $key), 
+          l($type, 'admin/structure/types/manage/' . $bundle . '/fields'),
+          l($key, 'admin/structure/views/edit/' . $key),
           t('The calendar %view is a default calendar created for the content type %bundle. ', array('%view' => $key, '%bundle' => $type)),
           l(t('remove !view', array('!view' => $key)), 'admin/structure/date/remove/' . $key),
         );
@@ -124,7 +123,7 @@ function date_tools_page() {
 /**
  * Menu callback; present a form for removing a field from a content type.
  */
-function date_tools_remove_form(&$form_state, $view_name) {
+function date_tools_remove_form($form, &$form_state, $view_name) {
   $form = array();
   $form['view_name'] = array(
     '#type' => 'value',
@@ -146,7 +145,6 @@ function date_tools_remove_form(&$form_state, $view_name) {
 function date_tools_remove_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
   $view_name = $form_values['view_name'];
-
   if ($view_name && $form_values['confirm']) {
     calendar_remove($view_name);
     drupal_set_message(t('Removed calendar %calendar. ', array(

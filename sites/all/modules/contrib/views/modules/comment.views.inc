@@ -192,7 +192,7 @@ function comment_views_data() {
   $data['comments']['timestamp_fulldate']['moved to'] = array('comment', 'changed_fulldata');
   $data['comment']['changed_fulldata'] = array(
     'title' => t('Created date'),
-    'help' => t('In the form of CCYYMMDD.'),
+    'help' => t('Date in the form of CCYYMMDD.'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_fulldate',
@@ -202,7 +202,7 @@ function comment_views_data() {
   $data['comments']['timestamp_year_month']['moved to'] = array('comment', 'changed_year_month');
   $data['comment']['changed_year_month'] = array(
     'title' => t('Created year + month'),
-    'help' => t('In the form of YYYYMM.'),
+    'help' => t('Date in the form of YYYYMM.'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_year_month',
@@ -212,7 +212,7 @@ function comment_views_data() {
   $data['comments']['timestamp_year']['moved to'] = array('comment', 'changed_year');
   $data['comment']['changed_year'] = array(
     'title' => t('Created year'),
-    'help' => t('In the form of YYYY.'),
+    'help' => t('Date in the form of YYYY.'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_year',
@@ -222,7 +222,7 @@ function comment_views_data() {
   $data['comments']['timestamp_month']['moved to'] = array('comment', 'changed_month');
   $data['comment']['changed_month'] = array(
     'title' => t('Created month'),
-    'help' => t('In the form of MM (01 - 12).'),
+    'help' => t('Date in the form of MM (01 - 12).'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_month',
@@ -232,7 +232,7 @@ function comment_views_data() {
   $data['comments']['timestamp_day']['moved to'] = array('comment', 'changed_day');
   $data['comment']['changed_day'] = array(
     'title' => t('Created day'),
-    'help' => t('In the form of DD (01 - 31).'),
+    'help' => t('Date in the form of DD (01 - 31).'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_day',
@@ -242,7 +242,7 @@ function comment_views_data() {
   $data['comments']['timestamp_week']['moved to'] = array('comment', 'changed_week');
   $data['comment']['changed_week'] = array(
     'title' => t('Created week'),
-    'help' => t('In the form of WW (01 - 53).'),
+    'help' => t('Date in the form of WW (01 - 53).'),
     'argument' => array(
       'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_week',
@@ -350,7 +350,7 @@ function comment_views_data() {
 
   $data['comment']['uid'] = array(
     'title' => t('Author uid'),
-    'help' => t('If you need more fields then the uid add the comment: author relationship'),
+    'help' => t('If you need more fields than the uid add the comment: author relationship'),
     'relationship' => array(
       'title' => t('Author'),
       'help' => t("The User ID of the comment's author."),
@@ -484,6 +484,28 @@ function comment_views_data() {
     ),
   );
 
+  // last_comment_uid
+  $data['node_comment_statistics']['last_comment_uid'] = array(
+    'title' => t('Last comment uid'),
+    'help' => t('The User ID of the author of the last comment of a node.'),
+    'relationship' => array(
+      'title' => t('Last comment author'),
+      'base' => 'users',
+      'base field' => 'uid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('Last comment author'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_filter_user_name',
+    ),
+  );
+
   return $data;
 }
 
@@ -603,7 +625,7 @@ function template_preprocess_views_view_row_comment(&$vars) {
   // Put the view on the node so we can retrieve it in the preprocess.
   $node->view = &$view;
 
-  $build = comment_view_multiple(array($comment->cid => $comment), $node);
+  $build = comment_view_multiple(array($comment->cid => $comment), $node, $plugin->options['view_mode']);
   // If we're displaying the comments without links, remove them from the
   // renderable array. There is no way to avoid building them in the first
   // place (see comment_build_content()).
