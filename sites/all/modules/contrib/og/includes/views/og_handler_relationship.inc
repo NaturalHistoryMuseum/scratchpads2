@@ -7,11 +7,12 @@
  */
 
 /**
- * Specialized relationship handler associating flags and content.
+ * Specialized relationship handler associating groups and their entity.
  *
  * @ingroup views
  */
 class og_handler_relationship extends views_handler_relationship {
+
   /**
    * Called to implement a relationship in a query.
    */

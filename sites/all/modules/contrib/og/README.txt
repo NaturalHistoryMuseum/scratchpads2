@@ -1,5 +1,3 @@
-
-
 DESCRIPTION
 --------------------------
 The Organic Groups module (also referred to as the 'og' module), provides users
@@ -97,6 +95,17 @@ provide a quick way to get started with Organic groups.
 
 DEVELOPERS & SITE BUILDERS
 ----------------------------------------------
+- Views integration: There are some default views that ship with the module.
+  Follow those views configuration in terms of best practice (e.g. adding a
+  relationship to the group-membership entity instead of querying directly the
+  group-audience field).
+- Token integration: Enable the entity-tokens module that ships with Entity API
+  module.
+- Rules integration: Organic groups is shipped with a Rules configuration that
+  allows simple notification. You can disable it or clone and change its
+  behaviour.
+- Devel generate integration: Enable devel-generate module to create dummy
+  groups and groups content.
 - You may craft your own URLs which produce useful behavior. For example,
   node/add/group-content?gids_node[]=4 will add a select the group with node ID
   4, in the node form. The prefixed entity can change to indicate other entity
@@ -107,6 +116,26 @@ DEVELOPERS & SITE BUILDERS
   Note that the actual entity of group ID 5, 6 and 7 can be any entity (e.g.
   nodes or users).
 
+FAQ
+----
+Q: How should I update from Drupal 6?
+A: Run update.php; Enable the og-migrate module and execute all the migration
+   plugins.
+
+Q: How should I update from a previous Drupal 7 release (e.g. 7.x-1.0 to
+   7.x-1.1)?
+A: Same as updating from Drupal 6 -- Run update.php; If requested enable the
+    og-migrate module and execute all the migration plugins.
+
+Q: How do I use OG tokens with pathauto module to craft the url alias.
+A: After enabling entity-tokens module you will have some tokens exposes by
+   Organic groups. However you are not able to do something like
+   [node:og_membership(1):group:label].
+   See http://drupal.org/node/1088538#comment-4376910
+
+Q: Must I use Panels module along with Organic groups?
+A: No. However note that the maintainer of the module highly recommends using
+   it, and considers it as good practice.
 
 CREDITS
 ----------------------------

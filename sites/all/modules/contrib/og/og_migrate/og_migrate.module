@@ -1,0 +1,497 @@
+<?php
+
+/**
+ * @file
+ * Migrate and upgrade Organic groups data.
+ */
+
+/**
+ * Migrate plugin not executed.
+ */
+define('OG_MIGRATE_NOT_EXECUTED', 0);
+
+/**
+ * Migrate plugin executed successfully.
+ */
+define('OG_MIGRATE_EXECUTED', 1);
+
+/**
+ * Migrate plugin failed execution.
+ */
+define('OG_MIGRATE_FAILED', 2);
+
+/**
+ * Implements hook_menu().
+ */
+function og_migrate_menu() {
+  $items['admin/config/group/group-migrate'] = array(
+    'title' => 'Organic groups migrate',
+    'description' => 'Migrate Organic groups data.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_migrate_admin'),
+    'access arguments' => array('access administration pages'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function og_migrate_ctools_plugin_directory($module, $type) {
+  // Safety: go away if CTools is not at an appropriate version.
+  if (!module_invoke('ctools', 'api_version', OG_MIGRATE_REQUIRED_CTOOLS_API)) {
+    return;
+  }
+  if ($module == 'og_migrate' && $type == 'og_migrate') {
+    return 'plugins/og_migrate';
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function og_migrate_ctools_plugin_type() {
+  return array(
+    'og_migrate' => array(
+      'process' => 'og_migrate_process',
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function og_migrate_init() {
+  $item = menu_get_item();
+  if ($item['path'] == 'batch') {
+   // Load all the plugins, so it will work in the batch.
+   og_migrate_get_plugins();
+  }
+  elseif ((!og_needs_migrate() || !og_migrate_register_plugins())
+    && user_access('access administration pages') && flood_is_allowed('og_migrate_warning', 1)) {
+    flood_register_event('og_migrate_warning');
+    og_needs_migrate(FALSE);
+    drupal_set_message(t('There are no pending migration plugins that need to be executed. You can disable Organic groups migrate module.'));
+  }
+
+  og_migrate_register_plugins();
+}
+
+/**
+ * Get a list of plugin names by dependencies.
+ *
+ * @param $plugins_name
+ *
+ * @return
+ *   Array with the plugin names sorted, or FALSE if no plugins are accessible.
+ */
+function og_migrate_get_plugins_dependencies($plugins_name) {
+  // Get all module data so we can find dependencies and sort.
+  $plugins_data = og_migrate_build_dependencies();
+  // Create an associative array with weights as values.
+  $plugins_name = array_flip(array_values($plugins_name));
+
+  $plugins_accessible = og_migrate_get_accessible_plugins();
+
+  while (list($plugin_name) = each($plugins_name)) {
+    if (!isset($plugins_data[$plugin_name])) {
+      // This plugin is not found, abort.
+      return FALSE;
+    }
+
+    // TODO: Check access.
+    if (empty($plugins_accessible[$plugin_name])) {
+      // Skip plugin that has no access.
+      unset($plugins_name[$plugin_name]);
+    }
+
+    $plugins_name[$plugin_name] = $plugins_data[$plugin_name]['sort'];
+
+    // Add dependencies to the list, with a placeholder weight.
+    // The new modules will be processed as the while loop continues.
+    foreach (array_keys($plugins_data[$plugin_name]['requires']) as $dependency) {
+      if (!isset($plugins_name[$dependency])) {
+        $plugins_name[$dependency] = 0;
+      }
+    }
+  }
+
+  if (!$plugins_name) {
+    // Nothing to do, plugins are not accessible.
+    return FALSE;
+  }
+
+  // Sort the module list by pre-calculated weights.
+  arsort($plugins_name);
+  $plugins_name = array_keys($plugins_name);
+  return $plugins_name;
+}
+
+/**
+ * Find dependencies any level deep and fill in required by information too.
+ *
+ * @param $files
+ *   The array of filesystem objects used to rebuild the cache.
+ *
+ * @return
+ *   The same array with the new keys for each module:
+ *   - requires: An array with the keys being the modules that this module
+ *     requires.
+ *   - required_by: An array with the keys being the modules that will not work
+ *     without this module.
+ */
+function og_migrate_build_dependencies() {
+  require_once DRUPAL_ROOT . '/includes/graph.inc';
+  $plugins = og_migrate_get_plugins();
+  foreach ($plugins as $plugin_name => $plugin) {
+    $graph[$plugin_name]['edges'] = array();
+    if (isset($plugin['dependencies']) && is_array($plugin['dependencies'])) {
+      foreach ($plugin['dependencies'] as $dependency) {
+        $graph[$plugin_name]['edges'][$dependency] = $dependency;
+      }
+    }
+  }
+
+  drupal_depth_first_search($graph);
+  foreach ($graph as $plugin_name => $data) {
+    $plugins[$plugin_name]['required_by'] = isset($data['reverse_paths']) ? $data['reverse_paths'] : array();
+    $plugins[$plugin_name]['requires'] = isset($data['paths']) ? $data['paths'] : array();
+    $plugins[$plugin_name]['sort'] = $data['weight'];
+  }
+  return $plugins;
+}
+
+/**
+ * Register plugins that are not in the database yet.
+ */
+function og_migrate_register_plugins() {
+  $names = array();
+  foreach (og_migrate_get_plugins() as $name => $plugin) {
+    $names[$name] = $name;
+  }
+
+  $query = db_select('og_migrate', 'ogm');
+  $result = $query->fields('ogm', array('plugin'))
+    ->execute()
+    ->fetchAll();
+
+  foreach ($result as $row) {
+    unset($names[$row->plugin]);
+  }
+
+  if ($names) {
+    foreach ($names as $name) {
+      og_migrate_write_record($name, OG_MIGRATE_NOT_EXECUTED);
+    }
+  }
+}
+
+/**
+ * Write a plugin to the database along with its status.
+ *
+ * @param $name
+ *   The plugin name.
+ * @param $status
+ *   The plugin status. Defaults to OG_MIGRATE_EXECUTED
+ */
+function og_migrate_write_record($name, $status = OG_MIGRATE_EXECUTED) {
+  // Delete the previous record.
+  db_delete('og_migrate')
+    ->condition('plugin', $name)
+        ->execute();
+
+  // Insert the record.
+  $object = new stdClass();
+  $object->plugin = $name;
+  $object->status = $status;
+  drupal_write_record('og_migrate', $object);
+
+}
+
+/**
+ * CTools callback; Process the og-migrate plugins.
+ */
+function og_migrate_process(&$plugin, $info) {
+  $plugin += array(
+    'description' => '',
+    'access callback' => TRUE,
+  );
+}
+
+/**
+ * Get a certain organic groups migrate plugin.
+ *
+ * @param $plugin_name
+ *   The plugin name.
+ */
+function og_migrate_get_plugin($plugin_name) {
+  ctools_include('plugins');
+  return ctools_get_plugins('og_migrate', 'og_migrate', $plugin_name);
+}
+
+/**
+ * Get all organic groups migrate plugins.
+ */
+function og_migrate_get_plugins() {
+  ctools_include('plugins');
+  return ctools_get_plugins('og_migrate', 'og_migrate');
+}
+
+
+/**
+ * Get all the plugins after executing their access callback functions.
+ *
+ * @return
+ *   Array with plugins. If no plugins are valid, return empty array.
+ */
+function og_migrate_get_accessible_plugins() {
+  $plugins = array();
+  foreach (og_migrate_get_plugins() as $name => $plugin) {
+    if ($plugin['access callback'] === TRUE || call_user_func($plugin['access callback'])) {
+      $plugins[$name] = $plugin;
+    }
+  }
+
+  return $plugins;
+}
+
+/**
+ * Return TRUE if there are pending migration plugins.
+ */
+function og_migrate_is_pending() {
+  $plugins = og_migrate_get_accessible_plugins();
+
+  if (!$plugins) {
+    return FALSE;
+  }
+
+  $plugin_names = array();
+  foreach ($plugins as $name => $plugin) {
+    $plugin_names[] = $name;
+  }
+
+  // Check if the plugins are already executed.
+  $query = db_select('og_migrate', 'ogm');
+  $result = $query->fields('ogm', array('plugin'))
+    ->condition('plugin', $plugin_names, 'IN')
+    ->condition('status', OG_MIGRATE_EXECUTED, '!=')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return (bool) $result;
+}
+
+/**
+ * Access callback for og_update_7000() related migration items.
+ */
+function og_migrate_7000_access() {
+  return db_table_exists('d6_og');
+
+}
+
+/**
+ * Migration overview.
+ */
+function og_migrate_admin() {
+  $form = array();
+
+  $plugins = og_migrate_get_accessible_plugins();
+
+  if ($plugins) {
+    $header = array(
+      'name' => t('Name'),
+      'description' => t('Description'),
+      'status' => t('Status'),
+    );
+
+    $query = db_select('og_migrate', 'ogm');
+    $result = $query->fields('ogm', array('plugin', 'status'))
+      ->execute()
+      ->fetchAll();
+
+    $status_map = og_migrate_status();
+    $status = array();
+    foreach ($result as $row) {
+      $status[$row->plugin] = $row->status;
+    }
+
+    $options = array();
+    foreach ($plugins as $name => $plugin) {
+      $options[$name] = array(
+        'name' => filter_xss($plugin['name']),
+        'description' => filter_xss($plugin['description']),
+        'status' => $status_map[$status[$name]],
+      );
+    }
+
+    $form['migrate'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+    );
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Migrate'));
+  }
+  else {
+    $form['no-options'] = array('#markup' => t('There are no migration options.'));
+  }
+
+  return $form;
+}
+
+/**
+ * Submit handler.
+ *
+ * TODO: Add dependency tree.
+ */
+function og_migrate_admin_submit($form, &$form_state) {
+  if ($plugins_name = array_filter($form_state['values']['migrate'])) {
+    og_migrate_batch($plugins_name);
+  }
+}
+
+
+/**
+ * Helper function to create a batch.
+ */
+function og_migrate_batch($plugins_name) {
+  $plugins_name = og_migrate_get_plugins_dependencies($plugins_name);
+
+  if (!$plugins_name) {
+    return;
+  }
+
+  // Add the operations.
+  $plugins = og_migrate_get_plugins();
+  foreach ($plugins_name as $plugin_name) {
+    $operations[] = array($plugins[$plugin_name]['migrate callback'], array());
+  }
+
+  $batch = array(
+    'title' => t('Migrating Organic groups data'),
+    'operations' => $operations,
+    'finished' => 'og_migrate_finished',
+    'init_message' => t("Organic groups migration is starting."),
+    'progress_message' => t('Processed @current out of @total.'),
+    'error_message' => t('Organic groups migration has encountered an error.'),
+    // This is our own key, used to retrieve the list of plugins that were
+    // called.
+    'og_migrate_plugins' => $plugins_name,
+  );
+
+  batch_set($batch);
+}
+
+/**
+ * Create group, group-audience and group description fields.
+ *
+ * Helper function to help upgrade form Drupal 6.
+ */
+function og_migrate_create_fields() {
+  foreach (node_type_get_types() as $type) {
+    // check if the variable exists.
+    if ($type_usage = variable_get('og_content_type_usage_' . $type->type)) {
+      switch ($type_usage) {
+        case 'group':
+          $content_type['group'][] = $type->type;
+          break;
+
+        case 'group_post_standard':
+        case 'group_post_wiki':
+          // The type of the group content is now determined via the
+          // group permissions. We only care about adding the group content
+          // fields to the node.
+          $content_type['group content'][] = $type->type;
+          break;
+
+      }
+    }
+  }
+
+  if ($content_type) {
+
+    // Add group and group content fields to content types.
+    $fields = array(
+      'group' => OG_GROUP_FIELD,
+      'group content' => OG_AUDIENCE_FIELD,
+    );
+    foreach ($fields as $key => $field_name) {
+      foreach ($content_type[$key] as $type) {
+        og_create_field($field_name, 'node', $type);
+
+        if ($key == 'group') {
+
+          if (!field_info_field('og_description')) {
+            $field = array(
+              'field_name' => 'og_description',
+              'type' => 'text',
+              'entity_types' => array('node'),
+              'cardinality' => 1,
+            );
+            $field = field_create_field($field);
+          }
+
+          if (!field_info_instance('node', 'og_description', $type)) {
+            // Create the "description" field for the bundle.
+            $instance = array(
+              'field_name' => 'og_description',
+              'bundle' => $type,
+              'entity_type' => 'node',
+              'label' => t('Group description'),
+              'description' => t('This is description of the group.'),
+            );
+            field_create_instance($instance);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Batch finish callback.
+ */
+function og_migrate_finished($success, $results, $operations) {
+  $batch = batch_get();
+  $plugins_name = $batch['sets'][0]['og_migrate_plugins'];
+  if ($success) {
+    $message = format_plural(count($results), 'One post processed.', '@count posts processed.');
+    $status = OG_MIGRATE_EXECUTED;
+  }
+  else {
+    $message = t('Finished with an error.');
+    $status = OG_MIGRATE_FAILED;
+  }
+  drupal_set_message($message);
+
+  // TODO: This is not correct, as if there will be an error then all we be set
+  // to failed.
+  // Set the status in the database.
+  foreach ($plugins_name as $plugin_name) {
+    og_migrate_write_record($plugin_name, $status);
+  }
+
+  if (!empty($results)) {
+    foreach ($results as $result) {
+      // TODO: add results.
+      // $items[] = t('Loaded node %title.', array('%title' => $result));
+    }
+    // Providing data for the redirected page is done through $_SESSION.
+    //$_SESSION['og_migrate_results'] = $items;
+  }
+}
+
+/**
+ * Map the status to human readable name.
+ */
+function og_migrate_status() {
+  return array(
+    OG_MIGRATE_NOT_EXECUTED => t('Not executed'),
+    OG_MIGRATE_EXECUTED => t('Executed successfully'),
+    OG_MIGRATE_FAILED => t('Executed but failed'),
+  );
+}
+

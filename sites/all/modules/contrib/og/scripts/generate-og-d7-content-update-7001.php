@@ -13,7 +13,7 @@
  * - Install and enable Organic groups module.
  * - Execute script to create the content by running
  *     drush php-script generate-og-d7-content-update-7001.php
- * - Download script from http://drupal.org/node/838438#comment-4208300 and
+ * - Download script from http://drupal.org/node/838438#comment-4208914 and
  *   place in root of Drupal installation.
  * - Execute script to dump the database by running from the command line of the
  *   Drupal 7 ROOT directory
@@ -76,7 +76,7 @@ $node = entity_create('node', $values);
 $node->{OG_GROUP_FIELD}[LANGUAGE_NONE][0]['value'] = 1;
 entity_save('node', $node);
 
-// Explicetly set the created timestamp.
+// Explicitly set the created timestamp.
 $node->{OG_GROUP_FIELD}[LANGUAGE_NONE][0]['created'] = 1000000000;
 entity_save('node', $node);
 

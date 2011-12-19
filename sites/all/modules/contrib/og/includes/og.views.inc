@@ -7,216 +7,224 @@
  */
 
 /**
- * Implements hook_views_data().
+ * "Group" entity Views definition.
  */
-function og_views_data() {
-  $data = array();
+class OgViewsController extends EntityDefaultViewsController {
 
-  $data['og']['table']['group'] = t('Group');
+  /**
+   * Override views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
 
-  // Advertise this table as a possible base table
-  $data['og']['table']['base'] = array(
-    'field' => 'gid',
-    'title' => t('Group'),
-    'help' => t("Groups can be different entities that have other content associated with them."),
-  );
-
-  $data['og']['gid'] = array(
-    'title' => t('Group ID'),
-    'help' => t('The group unique ID.'),
-    'field' => array(
-      'handler' => 'views_handler_field_numeric',
-      'click sortable' => TRUE,
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_numeric',
-    ),
-    'argument' => array(
+    $data['og']['gid']['argument'] = array(
       'handler' => 'og_handler_argument_group_audience_gid',
-    ),
-  );
+    );
 
-  $data['og']['entity_type'] = array(
-    'title' => t("Group's entity type"),
-    'help' => t('The entity type of the group.'),
-    'field' => array(
-      'handler' => 'views_handler_field_xss',
-     ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_string',
-    ),
-    'argument' => array(
-      'handler' => 'views_handler_argument_string',
-    ),
-  );
+    $data['og']['etid'] = array(
+      'title' => t('Entity id'),
+      'help' => t('The numeric id of the entity.'),
+      'field' => array(
+        'handler' => 'views_handler_field_numeric',
+        'click sortable' => TRUE,
+       ),
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ),
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ),
+      'argument' => array(
+        'handler' => 'views_handler_argument_numeric',
+      ),
+    );
 
-  $data['og']['etid'] = array(
-    'title' => t("Group's entity ID"),
-    'help' => t('The entity ID of the group.'),
-    'field' => array(
-      'handler' => 'views_handler_field_numeric',
-      'click sortable' => TRUE,
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_numeric',
-    ),
-    'argument' => array(
-      'handler' => 'views_handler_argument_numeric',
-    ),
-  );
+    $data['field_data_group_audience']['user_roles'] = array(
+      'group' => t('Group'),
+      'title' => t('Group user roles'),
+      'help' => t('Show all the roles a user belongs to in a group.'),
+      // This is a dummy field, so point it to a real field that we need - the
+      // group ID
+      'real field' => 'group_audience_gid',
+      'field' => array(
+        'handler' => 'og_handler_field_user_roles',
+      ),
+    );
 
-  $data['og']['state'] = array(
-    'title' => t("Group's state"),
-    'help' => t('The state of the group.'),
-    'field' => array(
-      'handler' => 'views_handler_field_xss',
-     ),
-    'sort' => array(
-      'handler' => 'views_handler_sort',
-    ),
-    'filter' => array(
+    $data['field_data_group_audience']['og_permissions'] = array(
+      'group' => t('Group'),
+      'title' => t('Group permissions'),
+      'help' => t('Filter by group permissions.'),
+      // This is a dummy field, so point it to a real field that we need - the
+      // group ID
+      'real field' => 'group_audience_gid',
+      'field' => array(
+        'handler' => 'og_handler_field_group_permissions',
+      ),
+    );
+
+    return $data;
+  }
+}
+
+/**
+ * "OG membership" entity Views definitions.
+ */
+class OgMembershipViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Override views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+
+    $data['og_membership']['state']['filter'] = array(
       'handler' => 'og_handler_filter_group_state',
       'numeric' => TRUE,
       'allow empty' => FALSE,
       'help' => t('Select the state of the group.'),
-    ),
-    'argument' => array(
-      'handler' => 'views_handler_argument_string',
-    ),
-  );
+    );
 
-  $data['og']['created'] = array(
-    'title' => t('Group date'),
-    'help' => t('The date the group was created.'),
-    'field' => array(
-      'handler' => 'views_handler_field_date',
-      'click sortable' => TRUE,
-    ),
-    'sort' => array(
-      'handler' => 'views_handler_sort_date',
-    ),
-    'filter' => array(
-      'handler' => 'views_handler_filter_date',
-    ),
-  );
+    $data['og_membership']['etid'] = array(
+      'title' => t('Entity id'),
+      'help' => t('The numeric id of the entity.'),
+      'field' => array(
+        'handler' => 'views_handler_field_numeric',
+        'click sortable' => TRUE,
+       ),
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ),
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ),
+      'argument' => array(
+        'handler' => 'views_handler_argument_numeric',
+      ),
+    );
 
-  $data['field_data_group_audience']['user_roles'] = array(
-    'group' => t('Group'),
-    'title' => t('Group user roles'),
-    'help' => t('Show all the groups a user belongs to in a group.'),
-    // This is a dummy field, so point it to a real field that we need - the
-    // group ID
-    'real field' => 'group_audience_gid',
-    'field' => array(
-      'handler' => 'og_handler_field_user_roles',
-    ),
-  );
-
-  $data['field_data_group_audience']['og_permissions'] = array(
-    'group' => t('Group'),
-    'title' => t('Group permissions'),
-    'help' => t('Filter by group permissions.'),
-    // This is a dummy field, so point it to a real field that we need - the
-    // group ID
-    'real field' => 'group_audience_gid',
-    'field' => array(
-      'handler' => 'og_handler_field_group_permissions',
-    ),
-  );
+    // Improve relationship text.
+    $data['og']['og_membership']['title'] = t('OG membership from OG group');
+    $data['og']['og_membership']['help'] =  t('The OG membership associated with OG group via the group ID.');
+    $data['og']['og_membership']['relationship']['label'] = t('OG membership from OG group');
 
 
-  return $data;
+    return $data;
+  }
 }
-
-/**
- * Implements hook_views_handlers().
- */
-function og_views_handlers() {
-  return array(
-    // Base class field.
-    'og_handler_field_prerender_list' => array(
-     'parent' => 'views_handler_field_prerender_list',
-    ),
-    // Field
-    'og_handler_field_group_audience_state' => array(
-      'parent' => 'views_handler_field',
-    ),
-    'og_handler_field_user_roles' => array(
-      'parent' => 'og_handler_field_prerender_list',
-    ),
-    'og_handler_field_group_permissions' => array(
-      'parent' => 'og_handler_field_prerender_list',
-    ),
-    // Filter
-    'og_handler_filter_group_state' => array(
-      'parent' => 'views_handler_filter_in_operator',
-    ),
-    'og_handler_filter_group_audience_state' => array(
-      'parent' => 'views_handler_filter_in_operator',
-    ),
-    // Relationship
-    'og_handler_relationship' => array(
-      'parent' => 'views_handler_relationship',
-    ),
-    // Arguments
-    'og_handler_argument_group_audience_gid' => array(
-      'parent' => 'views_handler_argument_numeric',
-    ),
-  );
-}
-
 
 /**
  * Implements hook_views_data_alter().
  */
 function og_views_data_alter(&$data) {
-  $items = module_invoke_all('og_views_relationship');
+  $group_entities = og_get_all_group_entity();
+  $group_content_entities = og_get_all_group_content_entity();
 
-  foreach ($items as $item) {
-    $entity = entity_get_info($item['entity']);
-    $title = t('@entity group', array('@entity' => ucfirst($entity['label'])));
-    $help = t('Add information on groups that belong to the @entity entity.', array('@entity' => ucfirst($entity['label'])));
+  foreach (entity_get_info() as $entity_type => $info) {
+    if (!empty($info['fieldable'])) {
+      // OG group relationship.
+      if ($entity_type != 'group') {
+        $data[$info['base table']]['og_rel'] = array(
+          'group' => t('OG group'),
+          'title' => t('OG group from @entity', array('@entity' => ucfirst($info['label']))),
+          'help' => t('The OG group associated with the @entity entity.', array('@entity' => ucfirst($info['label']))),
+          'relationship' => array(
+            // Pass the entity to the handler.
+            'entity' => $entity_type,
+            'handler' => 'og_handler_relationship',
+            'label' => t('@entity being the OG group', array('@entity' => $entity_type)),
+            'base' => 'og',
+            'base field' => 'etid',
+            'relationship field' => $info['entity keys']['id'],
+          ),
+        );
+      }
 
-    // Add the group relationship.
-    $data[$item['views table']]['og_rel'] = array(
-      'group' => t('Group'),
-      'title' => $title,
-      'help' => $help,
-      'relationship' => array(
-        'entity' => $item['entity'],
-        'handler' => 'og_handler_relationship',
-        'label' => t('group'),
-        'base' => 'og',
-        'base field' => 'etid',
-        'relationship field' => $item['join field'],
-      ),
-    );
+      // OG group's related entity.
+      if (!empty($group_entities[$entity_type])) {
+        $data['og']['og_related_' . $entity_type] = array(
+          'group' => t('OG group'),
+          'title' => t('@entity from OG group', array('@entity' => ucfirst($info['label']))),
+          'help' => t('The @entity entity that is associated with the OG group.', array('@entity' => $info['label'])),
+          'relationship' => array(
+            'handler' => 'views_handler_relationship',
+            'label' => t('@entity from OG group', array('@entity' => $entity_type)),
+            'base' => $info['base table'],
+            'base field' => $info['entity keys']['id'],
+            'relationship field' => 'etid',
+          ),
+        );
+      }
+
+      // OG membership relationship.
+      if (!in_array($entity_type, array('group', 'og_membership'))) {
+        $data[$info['base table']]['og_membership_rel'] = array(
+          'group' => t('OG membership'),
+          'title' => t('OG membership from @entity', array('@entity' => ucfirst($info['label']))),
+          'help' => t('The OG membership associated with the @entity entity.', array('@entity' => ucfirst($info['label']))),
+          'relationship' => array(
+            // Pass the entity to the handler.
+            'entity' => $entity_type,
+            'handler' => 'og_handler_relationship',
+            'label' => t('OG membership from @entity', array('@entity' => $entity_type)),
+            'base' => 'og_membership',
+            'base field' => 'etid',
+            'relationship field' => $info['entity keys']['id'],
+          ),
+        );
+      }
+
+      // OG membership's related entity.
+      if (!empty($group_content_entities[$entity_type])) {
+        $data['og_membership']['og_membership_related_' . $entity_type] = array(
+          'group' => t('OG membership'),
+          'title' => t('@entity from OG membership', array('@entity' => ucfirst($info['label']))),
+          'help' => t('The @entity entity that is associated with the OG membership.', array('@entity' => $info['label'])),
+          'relationship' => array(
+            'handler' => 'views_handler_relationship',
+            'label' => t('@entity from OG membership', array('@entity' => $entity_type)),
+            'base' => $info['base table'],
+            'base field' => $info['entity keys']['id'],
+            'relationship field' => 'etid',
+          ),
+        );
+      }
+    }
   }
-
-  // TODO: Maybe move field overrides to field_views_data_alter().
-  // TODO: Override also field revisions table.
 
   // Override group audience - "gid" (group ID) field argument.
-  $data['field_data_group_audience']['group_audience_gid']['argument']['handler'] = 'og_handler_argument_group_audience_gid';
+  $data['og_membership']['group']['argument']['handler'] = 'og_handler_argument_group_audience_gid';
 
-  $data['field_data_group_audience']['group_audience_gid']['field']['handler'] = 'views_handler_field_numeric';
-
-  // Override group audience - "created".
-  foreach (array('field', 'filter', 'sort', 'argument') as $type) {
-    $data['field_data_group_audience']['group_audience_created'][$type]['handler'] = 'views_handler_' . $type . '_date';
+  // Override group and group membership - "state" filter and add a field.
+  foreach (array('og', 'og_membership') as $type) {
+    $data[$type]['state']['filter']['handler'] = 'og_handler_filter_group_audience_state';
+    $data[$type]['state']['field']['handler'] = 'og_handler_field_group_audience_state';
   }
 
-  // Override group audience - "state" filter and add a field.
+  // Remove group audience - "state" and "created", as they are deprecated and
+  // we have this data in the group membership entity.
+  foreach (array('state', 'created') as $type) {
+    unset($data['field_data_group_audience']['group_audience_'. $type]);
+  }
+}
 
-  $data['field_data_group_audience']['group_audience_state']['filter']['handler'] = 'og_handler_filter_group_audience_state';
-  $data['field_data_group_audience']['group_audience_state']['field']['handler'] = 'og_handler_field_group_audience_state';
+/**
+ * Implements hook_views_plugins
+ */
+function og_views_plugins() {
+  return array(
+    'argument validator' => array(
+      'og' => array(
+        'title' => t('Organic groups group'),
+        'handler' => 'og_plugin_argument_validate_group',
+        'path' => drupal_get_path('module', 'og') . '/includes/views',
+      ),
+    ),
+    'argument default' => array(
+      'og_user_groups' => array(
+        'title' => t('The OG groups of the logged in user'),
+        'handler' => 'og_plugin_argument_default_user_groups',
+      ),
+    ),
+  );
 }

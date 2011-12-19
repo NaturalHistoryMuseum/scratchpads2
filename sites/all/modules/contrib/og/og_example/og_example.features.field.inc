@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * og_example.features.field.inc
+ */
 
 /**
  * Implementation of hook_field_default_fields().
@@ -13,7 +17,7 @@ function og_example_field_default_fields() {
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(
-        '0' => 'node',
+        0 => 'node',
       ),
       'field_name' => 'body',
       'foreign keys' => array(
@@ -26,7 +30,7 @@ function og_example_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -45,7 +49,7 @@ function og_example_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
+          'weight' => '1',
         ),
         'teaser' => array(
           'label' => 'hidden',
@@ -90,15 +94,14 @@ function og_example_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          '0' => 'value',
+          0 => 'value',
         ),
       ),
       'module' => 'list',
-      'no_ui' => TRUE,
       'settings' => array(
         'allowed_values' => array(
-          '0' => 'Not a group type',
-          '1' => 'Group type',
+          0 => 'Not a group',
+          1 => 'Group',
         ),
         'allowed_values_function' => '',
       ),
@@ -108,19 +111,20 @@ function og_example_field_default_fields() {
     'field_instance' => array(
       'bundle' => 'group',
       'default_value' => array(
-        '0' => array(
+        0 => array(
           'value' => 1,
         ),
       ),
       'deleted' => '0',
-      'description' => '',
+      'description' => t('Determine if this is an OG group.'),
+      'display_label' => 1,
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'list',
+          'module' => 'og_ui',
           'settings' => array(),
-          'type' => 'list_default',
-          'weight' => 0,
+          'type' => 'og_group_subscribe',
+          'weight' => '0',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -131,8 +135,7 @@ function og_example_field_default_fields() {
       ),
       'entity_type' => 'node',
       'field_name' => 'group_group',
-      'label' => 'Group type',
-      'required' => TRUE,
+      'label' => 'Group',
       'settings' => array(
         'user_register_form' => FALSE,
       ),
@@ -151,10 +154,9 @@ function og_example_field_default_fields() {
       'widget' => array(
         'module' => 'options',
         'settings' => array(),
-        'type' => 'options_buttons',
+        'type' => 'options_onoff',
         'weight' => 0,
       ),
-      'widget_type' => 'options_select',
     ),
   );
 
@@ -165,7 +167,7 @@ function og_example_field_default_fields() {
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(
-        '0' => 'node',
+        0 => 'node',
       ),
       'field_name' => 'body',
       'foreign keys' => array(
@@ -178,7 +180,7 @@ function og_example_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -242,7 +244,7 @@ function og_example_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'gid' => array(
-          '0' => 'gid',
+          0 => 'gid',
         ),
       ),
       'module' => 'og',
@@ -306,6 +308,12 @@ function og_example_field_default_fields() {
       'widget_type' => 'group_audience',
     ),
   );
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Body');
+  t('Group type');
+  t('Groups audience');
 
   return $fields;
 }

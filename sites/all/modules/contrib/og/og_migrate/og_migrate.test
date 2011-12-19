@@ -1,0 +1,160 @@
+<?php
+
+/**
+ * Upgrade 7000 test.
+ *
+ * Load a filled installation of Drupal 6 and run the upgrade process on it.
+ */
+class OgMigrate7000TestCase extends UpgradePathTestCase {
+  public static function getInfo() {
+    return array(
+      'name'  => 'Organic groups migrate - upgrade path 7000',
+      'description'  => 'Tests the upgrade path of Organic groups from Drupal 6.',
+      'group' => 'Organic groups migrate',
+      'dependencies' => array('ctools'),
+    );
+  }
+
+  public function setUp() {
+    // Path to the database dump.
+    $this->databaseDumpFiles = array(
+      drupal_get_path('module', 'og_migrate') . '/tests/drupal-6.og.database.php',
+    );
+    parent::setUp();
+    $this->performUpgrade();
+
+    // og_update_7001 required Entity module to be enabled, so we enable the
+    // modules an re-run upgrade.
+    // TODO: Understand why this workround is needed to load all entity classes.
+    module_enable(array('entity'));
+    module_load_include('inc', 'entity' ,'includes/entity');
+    module_load_include('inc', 'entity' ,'includes/entity.controller');
+    module_enable(array('og'));
+    module_enable(array('og_migrate'));
+
+    // Rebuild menu so og-migrate items are added.
+    menu_rebuild();
+
+    // Set small batch sizes, so we can simulate upgrade with many records.
+    variable_set('og_update_batch_size', 3);
+    $this->drupalLogout();
+    $admin_user = $this->drupalCreateUser(array('access administration pages'));
+    $this->drupalLogin($admin_user);
+
+    // Make sure Organic group fields are recognized by the field system.
+    _field_info_collate_fields(TRUE);
+    _field_info_collate_types(TRUE);
+
+    // TODO: Execute programtically the batch process.
+
+  }
+
+  /**
+   * Test a successful group upgrade.
+   */
+  public function testogMigrateUpgradeGroup() {
+    // Run the required migration.
+    $edit = array(
+      'migrate[upgrade_group]' => TRUE,
+      'migrate[upgrade_group_content]' => TRUE,
+    );
+    $this->drupalPost('admin/config/group/group-migrate', $edit, t('Migrate'));
+
+    // Assert according to the scenario Drupal 6's test table dump was created.
+    // TODO: Assert OG fields.
+    $group = og_get_group('node', 1);
+    $this->assertEqual($group->state, OG_STATE_ACTIVE, t('Node ID 1 is an active group.'));
+
+    $group = og_get_group('node', 2);
+    $this->assertEqual($group->state, OG_STATE_ACTIVE, t('Node ID 2 is an active group.'));
+
+    // Test group content with NID 3 - 5 belong to the group with NID 2.
+    foreach (range(3, 5) as $nid) {
+      $node = node_load($nid);
+      $this->assertTrue(og_is_member($group->gid, 'node', $node), t('Node ID @nid is a group content of Node ID 2', array('@nid' => $nid)));
+    }
+
+    // Orphan group content (i.e. not attached to a group).
+    $group = og_get_group('node', 6);
+    $this->assertFalse($group, t('Node ID 6 is not a group.'));
+    $node = node_load(6);
+    $this->assertFalse($node->{OG_AUDIENCE_FIELD}, t('Node ID 6 is not associated with a group.'));
+
+    // Group content that shares the same group.
+    $group_alpha = og_get_group('node', 7);
+    $group_beta = og_get_group('node', 8);
+    $node = node_load(9);
+    foreach (array($group_alpha, $group_beta) as $group) {
+      $this->assertTrue(og_is_member($group->gid, 'node', $node), t('Node ID @nid is as group content associated with multiple groups.', array('@nid' => $node->nid)));
+    }
+  }
+
+  public function testogMigrateUpgradeUsers() {
+    // Run the required migration.
+    $edit = array(
+      'migrate[upgrade_group]' => TRUE,
+      'migrate[upgrade_user]' => TRUE,
+    );
+    $this->drupalPost('admin/config/group/group-migrate', $edit, t('Migrate'));
+
+    // Check user membership.
+    $group = og_get_group('node', 10);
+
+    // Assert users.
+    $values = array(
+      // Uid 3 is the group manager, so in OG6 it was marked as admin.
+      3 => array('admin' => TRUE),
+      4 => array('active' => FALSE),
+      5 => array(),
+      6 => array('active' => FALSE, 'admin' => TRUE),
+      7 => array('admin' => TRUE),
+    );
+
+    foreach ($values as $uid => $value) {
+      // Set default values.
+      $value += array('active' => TRUE, 'admin' => FALSE);
+      $roles = array();
+
+      if ($value['active']) {
+        $op = t('active');
+        $states = array(OG_STATE_ACTIVE);
+        $roles[2] = 2;
+      }
+      else {
+        $op = t('pending');
+        $states = array(OG_STATE_PENDING);
+        // If the member is pending then they have the anonymous role.
+        $roles[1] = 1;
+      }
+
+      $account = user_load($uid);
+
+      if ($value['admin']) {
+        // OG_ADMINISTRATOR_ROLE
+        $roles[3] = 3;
+      }
+
+      $this->assertTrue(og_is_member($group->gid, 'user', $account, $states), t('User @uid is @op member in group.', array('@uid' => $uid, '@op' => $op)));
+      // Pass also pending state, so we make sure that even if the user isn't
+      // active they are considered members, to check they get the correct role.
+      $this->assertEqual(og_get_user_roles($group->gid, $uid), $roles, t('User @uid has the correct roles in group.', array('@uid' => $uid)));
+    }
+  }
+
+  /**
+   * Test a group description upgrade.
+   */
+  public function testogMigrateUpgradeGroupDescription() {
+    // Run the required migration.
+    $edit = array(
+      'migrate[upgrade_group]' => TRUE,
+      'migrate[upgrade_group_description]' => TRUE,
+    );
+
+    $this->drupalPost('admin/config/group/group-migrate', $edit, t('Migrate'));
+
+    // Assert description was converted to a field.
+    $node = node_load(1);
+    $this->assertTrue($node->og_description[LANGUAGE_NONE][0]['value'] == 'description group without posts.', t('Description fields has correct data.'));
+  }
+}

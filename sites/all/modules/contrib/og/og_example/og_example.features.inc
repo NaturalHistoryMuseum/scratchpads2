@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * og_example.features.inc
+ */
 
 /**
  * Implementation of hook_ctools_plugin_api().
@@ -18,7 +22,7 @@ function og_example_node_info() {
     'group' => array(
       'name' => t('Group'),
       'base' => 'node_content',
-      'description' => '',
+      'description' => t('The group that will have members and content associated with.'),
       'has_title' => '1',
       'title_label' => t('Title'),
       'help' => '',
@@ -26,7 +30,7 @@ function og_example_node_info() {
     'post' => array(
       'name' => t('Post'),
       'base' => 'node_content',
-      'description' => '',
+      'description' => t('Content that will belong to a single or multiple groups.'),
       'has_title' => '1',
       'title_label' => t('Title'),
       'help' => '',

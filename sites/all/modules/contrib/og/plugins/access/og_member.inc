@@ -18,7 +18,7 @@ $plugin = array(
   'summary' => 'og_member_ctools_access_summary',
   'required context' => array(
     new ctools_context_required(t('User'), 'user'),
-    new ctools_context_required(t('Group'), 'group'),
+    new ctools_context_required(t('OG Group'), 'entity:group'),
   ),
 );
 
