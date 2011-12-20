@@ -1102,6 +1102,9 @@ function character_editor_nexus_import_form($form, $form_state){
     '#type' => 'submit',
     '#value' => t('Import')
   );
+  // We need a URL that the form can be accessed from here.  This will also need
+  // adding to the menu.
+  $form['#action'] = '/import';
   return $form;
 }
 
