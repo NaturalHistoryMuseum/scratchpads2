@@ -7,7 +7,7 @@
 /**
  * Implementation of hook_field_default_fields().
  */
-function scratchpad_group_field_default_fields(){
+function scratchpad_group_field_default_fields($additional_content_type = FALSE){
   $fields = array();
   // Exported field: 'node-group-body'
   $fields['node-group-body'] = array(
@@ -162,12 +162,15 @@ function scratchpad_group_field_default_fields(){
     )
   );
   $types = node_type_get_types();
+  if($additional_content_type){
+    $types[$additional_content_type] = $additional_content_type;
+  }
   foreach($types as $key => $type){
     if($key == 'group'){
       continue;
     }
     // Exported field: 'node-xxx-group_audience'
-    $fields['node-'.$key.'-group_audience'] = array(
+    $fields['node-' . $key . '-group_audience'] = array(
       'field_config' => array(
         'active' => '1',
         'cardinality' => '-1',
@@ -244,83 +247,83 @@ function scratchpad_group_field_default_fields(){
         'widget_type' => 'group_audience'
       )
     );
+    // Exported field: 'node-xxx-group_content_access'
+    $fields['node-' . $key . '-group_content_access'] = array(
+      'field_config' => array(
+        'active' => '1',
+        'cardinality' => '1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'group_content_access',
+        'foreign keys' => array(),
+        'indexes' => array(
+          'value' => array(
+            0 => 'value'
+          )
+        ),
+        'module' => 'list',
+        'no_ui' => TRUE,
+        'settings' => array(
+          'allowed_values' => array(
+            0 => 'Use group defaults',
+            1 => 'Public - accessible to all site users',
+            2 => 'Private - accessible only to group members'
+          ),
+          'allowed_values_function' => ''
+        ),
+        'translatable' => '0',
+        'type' => 'list_integer'
+      ),
+      'field_instance' => array(
+        'bundle' => $key,
+        'default_value' => array(
+          0 => array(
+            'value' => 0
+          )
+        ),
+        'deleted' => '0',
+        'description' => '',
+        'display' => array(
+          'default' => array(
+            'label' => 'above',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => '2'
+          ),
+          'teaser' => array(
+            'label' => 'hidden',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => '0'
+          )
+        ),
+        'entity_type' => 'node',
+        'field_name' => 'group_content_access',
+        'label' => 'Group content visibility',
+        'required' => TRUE,
+        'settings' => array(
+          'user_register_form' => FALSE
+        ),
+        'view modes' => array(
+          'full' => array(
+            'label' => 'above',
+            'type' => 'list_default'
+          ),
+          'teaser' => array(
+            'label' => 'above',
+            'type' => 'list_default'
+          )
+        ),
+        'widget' => array(
+          'module' => 'options',
+          'settings' => array(),
+          'type' => 'options_select',
+          'weight' => -2
+        ),
+        'widget_type' => 'options_select'
+      )
+    );
   }
-  // Exported field: 'node-xxx-group_content_access'
-  $fields['node-'.$key.'-group_content_access'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'group_content_access',
-      'foreign keys' => array(),
-      'indexes' => array(
-        'value' => array(
-          0 => 'value'
-        )
-      ),
-      'module' => 'list',
-      'no_ui' => TRUE,
-      'settings' => array(
-        'allowed_values' => array(
-          0 => 'Use group defaults',
-          1 => 'Public - accessible to all site users',
-          2 => 'Private - accessible only to group members'
-        ),
-        'allowed_values_function' => ''
-      ),
-      'translatable' => '0',
-      'type' => 'list_integer'
-    ),
-    'field_instance' => array(
-      'bundle' => $key,
-      'default_value' => array(
-        0 => array(
-          'value' => 0
-        )
-      ),
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '2'
-        ),
-        'teaser' => array(
-          'label' => 'hidden',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '0'
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'group_content_access',
-      'label' => 'Group content visibility',
-      'required' => TRUE,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'view modes' => array(
-        'full' => array(
-          'label' => 'above',
-          'type' => 'list_default'
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'type' => 'list_default'
-        )
-      ),
-      'widget' => array(
-        'module' => 'options',
-        'settings' => array(),
-        'type' => 'options_select',
-        'weight' => -2
-      ),
-      'widget_type' => 'options_select'
-    )
-  );
   // Exported field: 'og_membership-og_membership_type_default-og_membership_request'
   $fields['og_membership-og_membership_type_default-og_membership_request'] = array(
     'field_config' => array(
