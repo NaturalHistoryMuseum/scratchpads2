@@ -15,10 +15,12 @@ function darwincore_taxonomy_vocabulary_insert($vocabulary){
     $bio_vids = variable_get('biological_vids', array());
     foreach($bio_vids as $vid => $value){
       $vocabulary = taxonomy_vocabulary_load($vid);
-      $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
-        'parent' => 0,
-        'vocabulary' => $vocabulary->machine_name
-      );
+      if($vocabulary){
+        $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+          'parent' => 0,
+          'vocabulary' => $vocabulary->machine_name
+        );
+      }
     }
     if(isset($field['settings']['allowed_values'][0])){
       unset($field['settings']['allowed_values'][0]);
