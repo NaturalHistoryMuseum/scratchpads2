@@ -2,3 +2,4 @@ name = "Encyclopædia of Life"
 description = "Provides additional blocks of data for displaying on Species pages."
 package = "Scratchpads"
 core = 7.x
+dependencies[] = entity

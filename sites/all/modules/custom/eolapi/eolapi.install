@@ -24,7 +24,7 @@ function eolapi_schema(){
           'description' => 'Serialized PHP data',
           'type' => 'text',
           'size' => 'big',
-          'not null' => TRUE,
+          'not null' => TRUE
         ),
         'type' => array(
           'description' => 'The type of this EOL data item.',
@@ -69,8 +69,7 @@ function eolapi_schema(){
         'weight' => array(
           'weight'
         )
-      )// FIXME - Add unique type/label key.
-      ,
+      ), // FIXME - Add unique type/label key.
       'primary key' => array(
         'eid'
       )

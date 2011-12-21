@@ -7,7 +7,8 @@ function eolapi_entity_info(){
   return array(
     'eolapi' => array(
       'label' => 'Encyclopaedia of Life data',
-      'controller class' => 'DrupalDefaultEntityController',
+      'controller class' => 'EntityAPIController',
+      'views controller class' => 'EntityDefaultViewsController',
       'base table' => 'eolapi',
       'revision table' => 'eolapi_revision',
       'load hook' => 'eolapi_load',
