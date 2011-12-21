@@ -13,14 +13,8 @@ function eolapi_admin_page(){
 }
 
 function eolapi_overview_page(){
-  $object = new stdClass();
-  $object->type = 'eolapi_search';
-  $object->label = 'stuff';
-  //eolapi_save($object);
-  $data = eolapi_load(1);
-  dpm($data);
   module_load_include('functions.inc', 'eolapi');
-  $search_results = eolapi_search('Pediculus humanus');
+  $search_results = eolapi_search('Mus musculus', 1);
   dpm($search_results);
   return array(
     'message' => array(

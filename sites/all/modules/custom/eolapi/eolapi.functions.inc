@@ -7,14 +7,14 @@ DEFINE('EOLAPI_URL', 'http://eol.org/api/');
  * search entity already exists, then that is updated (or simply returned if
  * it is younger than $age).
  */
-function eolapi_search($search, $age = 14400){
+function eolapi_search($search, $age = 604800){ // Seconds in one week.
   $search = trim($search);
   try{
-    $row = db_select('eolapi', 'e')->condition('label', $search)->condition('type', 'eolapi_search')->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+    $row = db_select('eolapi', 'e')->condition('label', $search)->condition('type', 'search')->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
     if($row){
       // Note, we do a seperate load to ensure other modules can alter this eolapi
       // if they so wish.
-      if(REQUEST_TIME - $age < $row->changed){return eolapi_load($row->eid);}
+      if(REQUEST_TIME - $age < $row->changed){return entity_load_single('eolapi', $row->eid);}
     }
     // Check first that the service is up. Else we set a warning message.
     if(file_get_contents(EOLAPI_URL . 'ping')){
@@ -25,15 +25,15 @@ function eolapi_search($search, $age = 14400){
           // Search has worked, we should update the current $row (if set), or
           // save a new eolapi entity
           if($row){
-            $eolapi = eolapi_load($row->eid);
+            $eolapi = entity_load_single('eolapi', $row->eid);
           }else{
             // New eolapi data object
             $eolapi = new stdClass();
-            $eolapi->type = 'eolapi_search';
+            $eolapi->type = 'search';
             $eolapi->label = $search;
           }
           $eolapi->data = serialize($data);
-          eolapi_save($eolapi);
+          entity_save('eolapi', $eolapi);
           return $eolapi;
         }
       }else{
@@ -43,7 +43,7 @@ function eolapi_search($search, $age = 14400){
     }else{
       //drupal_set_message('Search failed', 'error')
       if($row){
-        return eolapi_load($row->eid);
+        return entity_load_single('eolapi', $row->eid);
       }else{
         return FALSE;
       }

@@ -89,6 +89,12 @@ function eolapi_schema(){
           'unsigned' => TRUE,
           'not null' => TRUE
         ),
+        'data' => array(
+          'description' => 'Serialized PHP data',
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => TRUE
+        ),
         'type' => array(
           'description' => 'The type of this EOL data item.',
           'type' => 'varchar',

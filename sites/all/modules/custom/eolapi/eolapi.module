@@ -12,6 +12,7 @@ function eolapi_entity_info(){
       'base table' => 'eolapi',
       'revision table' => 'eolapi_revision',
       'load hook' => 'eolapi_load',
+      'save callback' => 'eolapi_save',
       'uri callback' => 'eolapi_uri',
       'fieldable' => FALSE,
       'entity keys' => array(
@@ -23,17 +24,17 @@ function eolapi_entity_info(){
         'bundle' => 'type'
       ),
       'bundles' => array(
-        'eolapi_search' => array(
+        'search' => array(
           'label' => 'EOL API Search result'
         )
       ),
       'view modes' => array(
         'full' => array(
-          'label' => t('Full content'),
+          'label' => t('Full'),
           'custom settings' => FALSE
         ),
-        'teaser' => array(
-          'label' => t('Teaser'),
+        'list' => array(
+          'label' => t('List (teaser)'),
           'custom settings' => TRUE
         )
       )
@@ -98,6 +99,7 @@ function eolapi_menu(){
   );
 }
 
+//---- LOAD -------------------------------------------------------------------
 /**
  * Load an eolapi object from the database.
  */
@@ -108,54 +110,8 @@ function eolapi_load($eid = NULL, $erid = NULL, $reset = FALSE){
   $conditions = (isset($erid) ? array(
     'erid' => $erid
   ) : array());
-  $node = eolapi_load_multiple($eids, $conditions, $reset);
-  return $node ? reset($node) : FALSE;
-}
-
-/**
- * View an eolapi object.
- */
-function eolapi_view($eolapi, $viewmode){
-  $eolapi->content = array(
-    '#markup' => 'Stuff'
-  );
-  return array(
-    'stuff' => array(
-      '#markup' => 'stuff'
-    )
-  );
-  /*
-  // Populate $node->content with a render() array.
-  node_build_content($node, $view_mode, $langcode);
-  $build = $node->content;
-  // We don't need duplicate rendering info in node->content.
-  unset($node->content);
-  $build += array(
-    '#theme' => 'node',
-    '#node' => $node,
-    '#view_mode' => $view_mode,
-    '#language' => $langcode
-  );
-  // Add contextual links for this node, except when the node is already being
-  // displayed on its own page. Modules may alter this behavior (for example,
-  // to restrict contextual links to certain view modes) by implementing
-  // hook_node_view_alter().
-  if(!empty($node->nid) && !($view_mode == 'full' && node_is_page($node))){
-    $build['#contextual_links']['node'] = array(
-      'node',
-      array(
-        $node->nid
-      )
-    );
-  }
-  // Allow modules to modify the structured node.
-  $type = 'node';
-  drupal_alter(array(
-    'node_view',
-    'entity_view'
-  ), $build, $type);
-  return $build;
-  */
+  $eolapi = eolapi_load_multiple($eids, $conditions, $reset);
+  return $eolapi ? reset($eolapi) : FALSE;
 }
 
 /**
@@ -165,67 +121,104 @@ function eolapi_load_multiple($eids = array(), $conditions = array(), $reset = F
   return entity_load('eolapi', $eids, $conditions, $reset);
 }
 
-function eolapi_save($eolapi){
+//---- VIEW -------------------------------------------------------------------
+/**
+ * Implementation of hook_theme().
+ */
+function eolapi_theme(){
+  return array(
+    'eolapi_search_full' => array(
+      'variables' => array(
+        'entity' => array()
+      )
+    )
+  );
+}
+
+/**
+ * Theme functions
+ */
+function theme_eolapi_search_full($variables){}
+
+/**
+ * Implementation of hook_entity_view().
+ */
+function eolapi_entity_view($entity, $type, $view_mode, $langcode){
+  if($type == 'eolapi'){
+    $entity->content = array(
+      'content' => array(
+        '#markup' => theme("{$type}_{$entity->type}_{$view_mode}", array(
+          'entity' => $entity
+        ))
+      )
+    );
+  }
+}
+
+//---- SAVE -------------------------------------------------------------------
+/**
+ * Save the entity.
+ */
+function eolapi_save($entity){
   $transaction = db_transaction();
   try{
-    if(!empty($eolapi->eid) && !isset($eolapi->original)){
-      $eolapi->original = entity_load_unchanged('eolapi', $eolapi->eid);
+    if(!empty($entity->eid) && !isset($entity->original)){
+      $entity->original = entity_load_unchanged('eolapi', $entity->eid);
     }
-    field_attach_presave('eolapi', $eolapi);
-    if(!isset($eolapi->is_new)){
-      $eolapi->is_new = empty($eolapi->eid);
+    field_attach_presave('eolapi', $entity);
+    if(!isset($entity->is_new)){
+      $entity->is_new = empty($entity->eid);
     }
+    if(empty($entity->created)){
+      $entity->created = REQUEST_TIME;
+    }
+    $entity->changed = REQUEST_TIME;
+    $entity->timestamp = REQUEST_TIME;
     if(empty($eolapi->created)){
       $eolapi->created = REQUEST_TIME;
     }
     $eolapi->changed = REQUEST_TIME;
     $eolapi->timestamp = REQUEST_TIME;
-    if(empty($node->created)){
-      $node->created = REQUEST_TIME;
-    }
-    $node->changed = REQUEST_TIME;
-    $node->timestamp = REQUEST_TIME;
     $update_eolapi = TRUE;
-    module_invoke_all('eolapi_presave', $eolapi);
-    module_invoke_all('entity_presave', $eolapi, 'eolapi');
-    if($eolapi->is_new || !empty($eolapi->revision)){
-      if(!isset($eolapi->log)){
-        $eolapi->log = '';
+    module_invoke_all('eolapi_presave', $entity);
+    module_invoke_all('entity_presave', $entity, 'eolapi');
+    if($entity->is_new || !empty($entity->revision)){
+      if(!isset($entity->log)){
+        $entity->log = '';
       }
-    }elseif(!isset($eolapi->log) || $eolapi->log === ''){
-      unset($eolapi->log);
+    }elseif(!isset($entity->log) || $entity->log === ''){
+      unset($entity->log);
     }
-    if(!$eolapi->is_new && !empty($eolapi->revision) && $eolapi->erid){
-      $eolapi->old_erid = $eolapi->erid;
-      unset($eolapi->erid);
+    if(!$entity->is_new && !empty($entity->revision) && $entity->erid){
+      $entity->old_erid = $entity->erid;
+      unset($entity->erid);
     }
-    if($eolapi->is_new){
-      drupal_write_record('eolapi', $eolapi);
-      _eolapi_save_revision($eolapi);
+    if($entity->is_new){
+      drupal_write_record('eolapi', $entity);
+      _eolapi_save_revision($entity);
       $op = 'insert';
     }else{
-      drupal_write_record('eolapi', $eolapi, 'eid');
-      if(!empty($eolapi->revision)){
-        _eolapi_save_revision($eolapi);
+      drupal_write_record('eolapi', $entity, 'eid');
+      if(!empty($entity->revision)){
+        _eolapi_save_revision($entity);
       }else{
-        _eolapi_save_revision($eolapi, 'erid');
+        _eolapi_save_revision($entity, 'erid');
         $update_eolapi = FALSE;
       }
       $op = 'update';
     }
-    //dpm($eolapi);return;
     if($update_eolapi){
       db_update('eolapi')->fields(array(
-        'erid' => $eolapi->erid
-      ))->condition('eid', $eolapi->eid)->execute();
+        'erid' => $entity->erid
+      ))->condition('eid', $entity->eid)->execute();
     }
-    module_invoke_all('eolapi_' . $op, $eolapi);
-    module_invoke_all('entity_' . $op, $eolapi, 'eolapi');
+    module_invoke_all('eolapi_' . $op, $entity);
+    module_invoke_all('entity_' . $op, $entity, 'eolapi');
     $delete = $op == 'update';
-    unset($eolapi->is_new);
-    unset($eolapi->original);
+    unset($entity->is_new);
+    unset($entity->original);
     entity_get_controller('eolapi')->resetCache(array(
-      $eolapi->eid
+      $entity->eid
     ));
     db_ignore_slave();
   }
@@ -239,7 +232,7 @@ function eolapi_save($eolapi){
 /**
  * Helper function to save a revision with the uid of the current user.
  *
- * The resulting revision ID is available afterward in $node->erid.
+ * The resulting revision ID is available afterward in $eolapi->erid.
  */
 function _eolapi_save_revision($eolapi, $update = NULL){
   if(isset($update)){
