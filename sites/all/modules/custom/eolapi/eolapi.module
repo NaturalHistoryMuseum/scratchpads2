@@ -43,6 +43,16 @@ function eolapi_entity_info(){
 }
 
 /**
+ * Implementation of hook_views_api().
+ */
+function eolapi_views_api(){
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'eolapi') . '/views'
+  );
+}
+
+/**
  * Entity uri callback.
  */
 function eolapi_uri($eolapi){
@@ -138,7 +148,9 @@ function eolapi_theme(){
 /**
  * Theme functions
  */
-function theme_eolapi_search_full($variables){}
+function theme_eolapi_search_full($variables){
+  return '<p>Stuff</p>';
+}
 
 /**
  * Implementation of hook_entity_view().
