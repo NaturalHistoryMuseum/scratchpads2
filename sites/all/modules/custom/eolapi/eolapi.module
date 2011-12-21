@@ -1,0 +1,203 @@
+<?php
+
+/**
+ * Implementation of hook_entity_info().
+ */
+function eolapi_entity_info(){
+  return array(
+    'eolapi' => array(
+      'label' => 'Encyclopaedia of Life data',
+      'controller class' => 'DrupalDefaultEntityController',
+      'base table' => 'eolapi',
+      'revision table' => 'eolapi_revision',
+      'load hook' => 'eolapi_load',
+      'uri callback' => 'eolapi_uri',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'eid',
+        'revision' => 'erid',
+        'bundle' => 'type'
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type'
+      ),
+      'bundles' => array(
+        'eolapi_search' => array(
+          'label' => 'EOL API Search result'
+        )
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full content'),
+          'custom settings' => FALSE
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => TRUE
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Entity uri callback.
+ */
+function eolapi_uri($eolapi){
+  return array(
+    'path' => 'eolapi/' . $eolapi->eid
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function eolapi_menu(){
+  return array(
+    'admin/config/data-providers' => array(
+      'title' => 'Data providers',
+      'description' => 'Configurations for data providers.',
+      'position' => 'right',
+      'weight' => 10,
+      'page callback' => 'system_admin_menu_block_page',
+      'access arguments' => array(
+        'access administration pages'
+      ),
+      'file path' => drupal_get_path('module', 'system'),
+      'file' => 'system.admin.inc'
+    ),
+    'admin/config/data-providers/eolapi' => array(
+      'title' => 'Encyclopaedia of Life',
+      'description' => 'Configure how your Scratchpad interacts with EOL.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'eolapi_overview_page'
+      ),
+      'access arguments' => array(
+        'access administration pages'
+      ),
+      'file' => 'eolapi.admin.inc'
+    ),
+    'admin/config/data-providers/eolapi/%' => array(
+      'title' => 'Encyclopaedia of Life',
+      'description' => 'Configure how your Scratchpad interacts with EOL.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'eolapi_admin_page'
+      ),
+      'access arguments' => array(
+        'access administration pages'
+      ),
+      'file' => 'eolapi.admin.inc'
+    ),
+    'admin/config/data-providers/eolapi/%/edit' => array(
+      'title' => 'Edit',
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    )
+  );
+}
+
+/**
+ * Load an eolapi object from the database.
+ */
+function eolapi_load($eid = NULL, $erid = NULL, $reset = FALSE){
+  $eids = (isset($eid) ? array(
+    $eid
+  ) : array());
+  $conditions = (isset($erid) ? array(
+    'erid' => $erid
+  ) : array());
+  $node = eolapi_load_multiple($eids, $conditions, $reset);
+  return $node ? reset($node) : FALSE;
+}
+
+/**
+ * Load eolapi entities from the database.
+ */
+function eolapi_load_multiple($eids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('eolapi', $eids, $conditions, $reset);
+}
+
+function eolapi_save($eolapi){
+  $transaction = db_transaction();
+  try{
+    if(!empty($eolapi->eid) && !isset($eolapi->original)){
+      $eolapi->original = entity_load_unchanged('eolapi', $eolapi->eid);
+    }
+    field_attach_presave('eolapi', $eolapi);
+    if(!isset($eolapi->is_new)){
+      $eolapi->is_new = empty($eolapi->eid);
+    }
+    if(empty($eolapi->created)){
+      $eolapi->created = REQUEST_TIME;
+    }
+    $eolapi->changed = REQUEST_TIME;
+    $eolapi->timestamp = REQUEST_TIME;
+    if(empty($node->created)){
+      $node->created = REQUEST_TIME;
+    }
+    $node->changed = REQUEST_TIME;
+    $node->timestamp = REQUEST_TIME;
+    $update_eolapi = TRUE;
+    module_invoke_all('eolapi_presave', $eolapi);
+    module_invoke_all('entity_presave', $eolapi, 'eolapi');
+    if($eolapi->is_new || !empty($eolapi->revision)){
+      if(!isset($eolapi->log)){
+        $eolapi->log = '';
+      }
+    }elseif(!isset($eolapi->log) || $eolapi->log === ''){
+      unset($eolapi->log);
+    }
+    if(!$eolapi->is_new && !empty($eolapi->revision) && $eolapi->erid){
+      $eolapi->old_erid = $eolapi->erid;
+      unset($eolapi->erid);
+    }
+    if($eolapi->is_new){
+      drupal_write_record('eolapi', $eolapi);
+      _eolapi_save_revision($eolapi);
+      $op = 'insert';
+    }else{
+      drupal_write_record('eolapi', $eolapi, 'eid');
+      if(!empty($eolapi->revision)){
+        _eolapi_save_revision($eolapi);
+      }else{
+        _eolapi_save_revision($eolapi, 'erid');
+        $update_eolapi = FALSE;
+      }
+      $op = 'update';
+    }
+    //dpm($eolapi);return;
+    if($update_eolapi){
+      db_update('eolapi')->fields(array(
+        'erid' => $eolapi->erid
+      ))->condition('eid', $eolapi->eid)->execute();
+    }
+    module_invoke_all('eolapi_' . $op, $eolapi);
+    module_invoke_all('entity_' . $op, $eolapi, 'eolapi');
+    $delete = $op == 'update';
+    unset($eolapi->is_new);
+    unset($eolapi->original);
+    entity_get_controller('eolapi')->resetCache(array(
+      $eolapi->eid
+    ));
+    db_ignore_slave();
+  }
+  catch(Exception $e){
+    $transaction->rollback();
+    watchdog_exception('eolapi', $e);
+    throw $e;
+  }
+}
+
+/**
+ * Helper function to save a revision with the uid of the current user.
+ *
+ * The resulting revision ID is available afterward in $node->erid.
+ */
+function _eolapi_save_revision($eolapi, $update = NULL){
+  if(isset($update)){
+    drupal_write_record('eolapi_revision', $eolapi, $update);
+  }else{
+    drupal_write_record('eolapi_revision', $eolapi);
+  }
+}

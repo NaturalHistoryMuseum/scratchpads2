@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function eolapi_schema(){
+  return array(
+    'eolapi' => array(
+      'fields' => array(
+        'eid' => array(
+          'description' => 'Primary key',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'erid' => array(
+          'description' => 'Revision key',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'data' => array(
+          'description' => 'Serialized PHP data',
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => TRUE,
+        ),
+        'type' => array(
+          'description' => 'The type of this EOL data item.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'label' => array(
+          'description' => 'The label of this EOL data item.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'created' => array(
+          'description' => 'The Unix timestamp when the data item was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when the data item was most recently updated.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'weight' => array(
+          'description' => 'Allow us to order the external content.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'indexes' => array(
+        'eid' => array(
+          'eid'
+        ),
+        'erid' => array(
+          'erid'
+        ),
+        'weight' => array(
+          'weight'
+        )
+      )// FIXME - Add unique type/label key.
+      ,
+      'primary key' => array(
+        'eid'
+      )
+    ),
+    'eolapi_revision' => array(
+      'fields' => array(
+        'eid' => array(
+          'description' => 'Instances of...',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'erid' => array(
+          'description' => 'Primary key',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'type' => array(
+          'description' => 'The type of this EOL data item.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'label' => array(
+          'description' => 'The label of this EOL data item.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'timestamp' => array(
+          'description' => 'A Unix timestamp indicating when this version was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'indexes' => array(
+        'eid' => array(
+          'eid'
+        ),
+        'erid' => array(
+          'erid'
+        )
+      ),
+      'primary key' => array(
+        'erid'
+      )
+    )
+  );
+}
