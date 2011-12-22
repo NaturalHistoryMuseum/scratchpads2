@@ -1,6 +1,102 @@
 <?php
 
 /**
+ * Implementation of hook_install(). 
+ */
+function eolapi_install(){
+  // Create a new field and field instance, and connect it with all the eolapi
+  // bundles.
+  $field = array(
+    'active' => '1',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'entity_types' => array(
+      'eolapi'
+    ),
+    'field_name' => 'eolapi_taxonomy',
+    'foreign keys' => array(
+      'tid' => array(
+        'columns' => array(
+          'tid' => 'tid'
+        ),
+        'table' => 'taxonomy_term_data'
+      )
+    ),
+    'indexes' => array(
+      'tid' => array(
+        0 => 'tid'
+      )
+    ),
+    'module' => 'taxonomy',
+    'settings' => array(
+      'allowed_values' => array(
+        '0' => array(
+          'parent' => 0,
+          'vocabulary' => 'tags'
+        )
+      )
+    ),
+    'translatable' => '0',
+    'type' => 'taxonomy_term_reference'
+  );
+  $bio_vids = variable_get('biological_vids', array());
+  foreach($bio_vids as $vid => $value){
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    if($vocabulary){
+      $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+        'parent' => 0,
+        'vocabulary' => $vocabulary->machine_name
+      );
+    }
+    if(isset($field['settings']['allowed_values'][0])){
+      unset($field['settings']['allowed_values'][0]);
+    }
+  }
+  $instance = array(
+    'bundle' => '',
+    'default_value' => NULL,
+    'deleted' => '0',
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'taxonomy',
+        'settings' => array(),
+        'type' => 'taxonomy_term_reference_link',
+        'weight' => 1
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0
+      )
+    ),
+    'entity_type' => 'eolapi',
+    'field_name' => 'eolapi_taxonomy',
+    'label' => 'Taxonomy field',
+    'required' => 0, // FIXME - Should this be required?
+    'settings' => array(),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'taxonomy',
+      'settings' => array(
+        'autocomplete_path' => 'taxonomy/autocomplete',
+        'size' => 60
+      ),
+      'type' => 'taxonomy_autocomplete',
+      'weight' => '-3'
+    )
+  );
+  field_create_field($field);
+  $eolapi_entity_info = eolapi_entity_info();
+  foreach($eolapi_entity_info['eolapi']['bundles'] as $bundle => $bundle_info){
+    $instance['bundle'] = $bundle;
+    field_create_instance($instance);
+  }
+}
+
+/**
  * Implementation of hook_schema().
  */
 function eolapi_schema(){

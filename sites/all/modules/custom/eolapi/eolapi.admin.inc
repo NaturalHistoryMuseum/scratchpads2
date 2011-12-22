@@ -15,6 +15,7 @@ function eolapi_admin_page(){
 function eolapi_overview_page(){
   module_load_include('functions.inc', 'eolapi');
   $search_results = eolapi_search('Mus musculus', 1);
+  dpm($search_results);
   return array(
     'message' => array(
       '#markup' => '<p>' . t('Features coming soon!') . '</p>'

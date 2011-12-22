@@ -33,6 +33,7 @@ function eolapi_search($search, $age = 604800){ // Seconds in one week.
             $eolapi->label = $search;
           }
           $eolapi->data = serialize($data);
+          $eolapi->eolapi_taxonomy ='stfuf';// array(1 => 'Stuff');
           entity_save('eolapi', $eolapi);
           return $eolapi;
         }
