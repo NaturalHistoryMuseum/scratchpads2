@@ -4,3 +4,4 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = entity
 files[] = views/eolapi_plugin_style_eolapi.inc
+files[] = EOLAPIController.class.inc

@@ -7,7 +7,7 @@ function eolapi_entity_info(){
   return array(
     'eolapi' => array(
       'label' => 'Encyclopaedia of Life data',
-      'controller class' => 'EntityAPIController',
+      'controller class' => 'EOLAPIController',
       'views controller class' => 'EntityDefaultViewsController',
       'base table' => 'eolapi',
       'revision table' => 'eolapi_revision',
@@ -66,69 +66,27 @@ function eolapi_uri($eolapi){
  */
 function eolapi_menu(){
   return array(
-    'admin/config/data-providers' => array(
-      'title' => 'Data providers',
-      'description' => 'Configurations for data providers.',
-      'position' => 'right',
-      'weight' => 10,
-      'page callback' => 'system_admin_menu_block_page',
+    'eolapi' => array(
+      'title' => 'EOLAPI Callback',
+      'description' => 'Endpoint to enable dynamic creation of EOLAPI content.',
+      'page callback' => 'eolapi_callback',
+      'file' => 'eolapi.ajax.inc',
       'access arguments' => array(
-        'access administration pages'
-      ),
-      'file path' => drupal_get_path('module', 'system'),
-      'file' => 'system.admin.inc'
-    ),
-    'admin/config/data-providers/eolapi' => array(
-      'title' => 'Encyclopaedia of Life',
-      'description' => 'Configure how your Scratchpad interacts with EOL.',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array(
-        'eolapi_overview_page'
-      ),
-      'access arguments' => array(
-        'access administration pages'
-      ),
-      'file' => 'eolapi.admin.inc'
-    ),
-    'admin/config/data-providers/eolapi/%' => array(
-      'title' => 'Encyclopaedia of Life',
-      'description' => 'Configure how your Scratchpad interacts with EOL.',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array(
-        'eolapi_admin_page'
-      ),
-      'access arguments' => array(
-        'access administration pages'
-      ),
-      'file' => 'eolapi.admin.inc'
-    ),
-    'admin/config/data-providers/eolapi/%/edit' => array(
-      'title' => 'Edit',
-      'type' => MENU_DEFAULT_LOCAL_TASK
+        'access content'
+      )
     )
   );
 }
 
-//---- LOAD -------------------------------------------------------------------
-/**
- * Load an eolapi object from the database.
- */
-function eolapi_load($eid = NULL, $erid = NULL, $reset = FALSE){
-  $eids = (isset($eid) ? array(
-    $eid
-  ) : array());
-  $conditions = (isset($erid) ? array(
-    'erid' => $erid
-  ) : array());
-  $eolapi = eolapi_load_multiple($eids, $conditions, $reset);
-  return $eolapi ? reset($eolapi) : FALSE;
-}
-
-/**
- * Load eolapi entities from the database.
- */
-function eolapi_load_multiple($eids = array(), $conditions = array(), $reset = FALSE){
-  return entity_load('eolapi', $eids, $conditions, $reset);
+function eolapi_init(){
+  module_load_include('functions.inc', 'eolapi');
+  $search_results = eolapi_search('Mus musculus');
+  dpm($search_results);
+  return array(
+    'message' => array(
+      '#markup' => '<p>' . t('Features coming soon!') . '</p>'
+    )
+  );
 }
 
 //---- VIEW -------------------------------------------------------------------
@@ -208,6 +166,7 @@ function eolapi_save($entity){
     if($entity->is_new){
       drupal_write_record('eolapi', $entity);
       _eolapi_save_revision($entity);
+      field_attach_insert('eolapi', $entity);
       $op = 'insert';
     }else{
       drupal_write_record('eolapi', $entity, 'eid');
@@ -215,6 +174,7 @@ function eolapi_save($entity){
         _eolapi_save_revision($entity);
       }else{
         _eolapi_save_revision($entity, 'erid');
+        field_attach_update('eolapi', $entity);
         $update_eolapi = FALSE;
       }
       $op = 'update';
