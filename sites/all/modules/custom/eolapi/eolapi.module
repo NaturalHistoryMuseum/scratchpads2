@@ -80,8 +80,17 @@ function eolapi_menu(){
 
 function eolapi_init(){
   module_load_include('functions.inc', 'eolapi');
-  $search_results = eolapi_search('Mus musculus');
-  dpm($search_results);
+  $search_results = eolapi_search(3);
+  $data = unserialize($search_results->data);
+  dpm($data);
+  foreach($data->results as $result){
+    $page = eolapi_pages($result->id);
+    $data = unserialize($page->data);
+    foreach($data->dataObjects as $dataobject){
+      // We use the dataType as the bundle name, and save the entity form that.
+      
+    }
+  }
   return array(
     'message' => array(
       '#markup' => '<p>' . t('Features coming soon!') . '</p>'
@@ -94,20 +103,29 @@ function eolapi_init(){
  * Implementation of hook_theme().
  */
 function eolapi_theme(){
-  return array(
-    'eolapi_search_full' => array(
-      'variables' => array(
-        'entity' => array()
-      )
-    )
-  );
-}
-
-/**
- * Theme functions
- */
-function theme_eolapi_search_full($variables){
-  return '<p>Stuff</p>';
+  $info = eolapi_entity_info();
+  $theme = array();
+  module_load_include('theme.inc', 'eolapi');
+  foreach($info['eolapi']['bundles'] as $bundle_key => $bundle_info){
+    foreach($info['eolapi']['view modes'] as $view_mode => $view_mode_info){
+      $theme_name = "eolapi_{$bundle_key}_{$view_mode}";
+      $theme[$theme_name] = array(
+        'variables' => array(
+          'entity' => array()
+        ),
+        'file' => 'eolapi.theme.inc'
+      );
+      if(!function_exists("theme_{$theme_name}")){
+        // This function doesn't exist, we should use a default.
+        if(function_exists("theme_eolapi_{$bundle_key}")){
+          $theme[$theme_name]['function'] = "theme_eolapi_{$bundle_key}";
+        }else{
+          $theme[$theme_name]['function'] = "theme_eolapi";
+        }
+      }
+    }
+  }
+  return $theme;
 }
 
 /**

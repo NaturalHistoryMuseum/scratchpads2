@@ -31,6 +31,7 @@ class eolapi_plugin_style_eolapi extends views_plugin_style{
     if(count($this->view->result)){
       return parent::render();
     }else{
+      return kpr($this, 1);
       return "<pre>" . print_r($this, 1) . "</pre>";
     }
   }
