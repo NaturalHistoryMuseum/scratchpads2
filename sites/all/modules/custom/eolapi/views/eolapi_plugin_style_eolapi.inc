@@ -31,8 +31,24 @@ class eolapi_plugin_style_eolapi extends views_plugin_style{
     if(count($this->view->result)){
       return parent::render();
     }else{
-      return kpr($this, 1);
-      return "<pre>" . print_r($this, 1) . "</pre>";
+      return array(
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'eolapi') . '/js/eolapi.js',
+            array(
+              'data' => array(
+                'eolapi' => array(
+                  'callback' => url('eolapi')
+                )
+              ),
+              'type' => 'setting'
+            )
+          )
+        ),
+        'content' => array(
+          '#markup' => '<div class="eolapi-empty" data-view-name="' . $this->view->name . '" data-tid="' . $this->view->args[0] . '"><img src="' . base_path() . drupal_get_path('module', 'eolapi') . '/images/load.gif"/></div>'
+        )
+      );
     }
   }
 }

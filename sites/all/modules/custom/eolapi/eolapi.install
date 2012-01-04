@@ -88,11 +88,11 @@ function eolapi_install(){
       'weight' => '-3'
     )
   );
-  field_create_field($field);
+  //field_create_field($field);
   $eolapi_entity_info = eolapi_entity_info();
   foreach($eolapi_entity_info['eolapi']['bundles'] as $bundle => $bundle_info){
     $instance['bundle'] = $bundle;
-    field_create_instance($instance);
+    //field_create_instance($instance);
   }
 }
 

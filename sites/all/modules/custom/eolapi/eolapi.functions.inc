@@ -9,66 +9,52 @@ DEFINE('EOLAPI_URL', 'http://eol.org/api/');
  */
 function eolapi_search($tid, $age = 604800){ // Seconds in one week.
   $term = taxonomy_term_load($tid);
-  try{
-    $row = db_select('eolapi', 'e')->condition('label', $term->name)->condition('type', 'search')->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
-    if($row){
-      // Note, we do a seperate load to ensure other modules can alter this eolapi
-      // if they so wish.
-      if(REQUEST_TIME - $age < $row->changed){return entity_load_single('eolapi', $row->eid);}
-    }
-    // Check first that the service is up. Else we set a warning message.
-    if(file_get_contents(EOLAPI_URL . 'ping')){
-      $data = file_get_contents(EOLAPI_URL . 'search/' . fullescape(urlencode($term->name)) . '.json?exact=1');
-      if($data){
-        $data = json_decode($data);
-        if($data){
-          // Search has worked, we should update the current $row (if set), or
-          // save a new eolapi entity
-          if($row){
-            $eolapi = entity_load_single('eolapi', $row->eid);
-          }else{
-            // New eolapi data object
-            $eolapi = new stdClass();
-            $eolapi->type = 'search';
-            $eolapi->label = $term->name;
-          }
-          $eolapi->data = serialize($data);
-          $eolapi->eolapi_taxonomy = array(
-            'und' => array(
-              array(
-                'tid' => $tid
-              )
-            )
-          );
-          entity_save('eolapi', $eolapi);
-          return $eolapi;
-        }
-      }else{
-        return FALSE;
+  if($term){
+    $search_results = eolapi_get('search', $term->name, $tid, 'exact=1', 604800);
+    if($search_results){
+      $data = unserialize($search_results->data);
+      foreach($data->results as $result){
+        $page = eolapi_page($result->id, $tid);
       }
-    }else{
-      if($row){
-        return entity_load_single('eolapi', $row->eid);
-      }else{
-        return FALSE;
-      }
+      return $search_results;
     }
   }
-  catch(Exception $e){
-    watchdog('eolapi', 'Search failed for: %search', array(
-      '%search' => $term->name
-    ), WATCHDOG_ERROR);
-    return FALSE;
-  }
+  return FALSE;
 }
 
 /**
- * Get 
+ * Get an EOL API page.
  */
-function eolapi_pages($id, $age = 604800){
+function eolapi_page($id, $tid, $age = 604800){ // Seconds in one week
+  $page = eolapi_get('pages', $id, $tid, 'images=75&videos=75&text=75&subject=all&licenses=all&details=1&vetted=' . variable_get('eolapi_trusted_content', 1) . '&version=1.0', $age);
+  // We then process the page, and get all the required objects into the
+  // database.
+  $data = unserialize($page->data);
+  foreach($data->dataObjects as $dataobject){
+    // We use the dataType as the bundle name, and save the entity form that.
+    eolapi_data_objects($dataobject->identifier, $tid);
+  }
+  // And finally return the page.
+  return $page;
+}
+
+/**
+ * Gen an EOL API Data object.
+ */
+function eolapi_data_objects($id, $tid, $age = 604800){
+  return eolapi_get('data_objects', $id, $tid);
+}
+
+/**
+ * Gen an EOL API Data object.
+ */
+function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
   try{
-    // Mus musculus - 328450
-    $row = db_select('eolapi', 'e')->condition('label', $id)->condition('type', 'pages')->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+    $query = db_select('eolapi', 'e')->condition('label', $id);
+    if($type != 'data_objects'){
+      $query->condition('type', $type);
+    }
+    $row = $query->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
     if($row){
       // Note, we do a seperate load to ensure other modules can alter this eolapi
       // if they so wish.
@@ -76,8 +62,8 @@ function eolapi_pages($id, $age = 604800){
     }
     // Check first that the service is up. Else we set a warning message.
     if(file_get_contents(EOLAPI_URL . 'ping')){
-      // We get the full amount of data that we can.
-      $data = file_get_contents(EOLAPI_URL . 'pages/' . $id . '.json?images=75&videos=75&text=75&subject=all&licenses=all&details=1&vetted=' . variable_get('eolapi_trusted_content', 1) . '&version=1.0');
+      // We get the full amount of data that we can.      
+      $data = file_get_contents(EOLAPI_URL . $type . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query);
       if($data){
         $data = json_decode($data);
         if($data){
@@ -88,14 +74,17 @@ function eolapi_pages($id, $age = 604800){
           }else{
             // New eolapi data object
             $eolapi = new stdClass();
-            $eolapi->type = 'pages';
+            $eolapi->type = strtolower(($type == 'data_objects') ? $data->dataObjects[0]->dataType : $type);
+            if(substr($eolapi->type, 0, 4) == 'http'){
+              $eolapi->type = array_pop(explode("/", $eolapi->type));
+            }
             $eolapi->label = $id;
           }
           $eolapi->data = serialize($data);
           $eolapi->eolapi_taxonomy = array(
             'und' => array(
               array(
-                'tid' => 1
+                'tid' => $tid
               )
             )
           );

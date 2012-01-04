@@ -26,7 +26,19 @@ function eolapi_entity_info(){
       'bundles' => array(
         'search' => array(
           'label' => 'EOL API Search result'
-        )
+        ),
+        'pages' => array(
+          'label' => 'EOL API Page'
+        ),
+        'text' => array(
+          'label' => 'EOL API Text'
+        ),
+        'stillimage' => array(
+          'label' => 'EOL API Still image'
+        ),
+        'youtube' => array(
+          'label' => 'EOL API Youtube video'
+        ),
       ),
       'view modes' => array(
         'full' => array(
@@ -53,15 +65,6 @@ function eolapi_views_api(){
 }
 
 /**
- * Entity uri callback.
- */
-function eolapi_uri($eolapi){
-  return array(
-    'path' => 'eolapi/' . $eolapi->eid
-  );
-}
-
-/**
  * Implementation of hook_menu().
  */
 function eolapi_menu(){
@@ -73,7 +76,8 @@ function eolapi_menu(){
       'file' => 'eolapi.ajax.inc',
       'access arguments' => array(
         'access content'
-      )
+      ),
+      'type' => MENU_CALLBACK
     )
   );
 }
@@ -81,21 +85,6 @@ function eolapi_menu(){
 function eolapi_init(){
   module_load_include('functions.inc', 'eolapi');
   $search_results = eolapi_search(3);
-  $data = unserialize($search_results->data);
-  dpm($data);
-  foreach($data->results as $result){
-    $page = eolapi_pages($result->id);
-    $data = unserialize($page->data);
-    foreach($data->dataObjects as $dataobject){
-      // We use the dataType as the bundle name, and save the entity form that.
-      
-    }
-  }
-  return array(
-    'message' => array(
-      '#markup' => '<p>' . t('Features coming soon!') . '</p>'
-    )
-  );
 }
 
 //---- VIEW -------------------------------------------------------------------
