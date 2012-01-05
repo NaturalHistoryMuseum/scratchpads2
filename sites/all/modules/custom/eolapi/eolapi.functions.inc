@@ -32,7 +32,7 @@ function eolapi_page($id, $tid, $age = 604800){ // Seconds in one week
   $data = unserialize($page->data);
   foreach($data->dataObjects as $dataobject){
     // We use the dataType as the bundle name, and save the entity form that.
-    eolapi_data_objects($dataobject->identifier, $tid);
+    eolapi_data_objects($dataobject, $tid);
   }
   // And finally return the page.
   return $page;
@@ -42,7 +42,39 @@ function eolapi_page($id, $tid, $age = 604800){ // Seconds in one week
  * Gen an EOL API Data object.
  */
 function eolapi_data_objects($id, $tid, $age = 604800){
-  return eolapi_get('data_objects', $id, $tid);
+  if(is_object($id)){
+    // We have been passed an object rather than an ID.  This has most likely
+    // come from an EOL page, and therefore needs saving.
+    // We tweak this object to look IDENTICAL to the object that we would 
+    // obtain if using the eolapi_get() function.
+    $row = db_select('eolapi', 'e')->condition('label', $id->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+    if($row){
+      $eolapi = entity_load_single('eolapi', $row->eid);
+    }else{
+      // New eolapi data object
+      $eolapi = new stdClass();
+    }
+    $eolapi->type = strtolower($id->dataType);
+    if(substr($eolapi->type, 0, 4) == 'http'){
+      $eolapi->type = array_pop(explode("/", $eolapi->type));
+    }
+    $eolapi->trusted = $id->vettedStatus == 'Trusted' ? 1 : 0;
+    $eolapi->license = $id->license;
+    $eolapi->rating = $id->dataRating;
+    $eolapi->label = $id->identifier;
+    $eolapi->data = serialize($id);
+    $eolapi->eolapi_taxonomy = array(
+      'und' => array(
+        array(
+          'tid' => $tid
+        )
+      )
+    );
+    entity_save('eolapi', $eolapi);
+    return $eolapi;
+  }else{
+    return eolapi_get('data_objects', $id, $tid);
+  }
 }
 
 /**
@@ -74,13 +106,19 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
           }else{
             // New eolapi data object
             $eolapi = new stdClass();
-            $eolapi->type = strtolower(($type == 'data_objects') ? $data->dataObjects[0]->dataType : $type);
-            if(substr($eolapi->type, 0, 4) == 'http'){
-              $eolapi->type = array_pop(explode("/", $eolapi->type));
-            }
-            $eolapi->label = $id;
           }
+          $eolapi->type = strtolower(($type == 'data_objects') ? $data->dataObjects[0]->dataType : $type);
+          $eolapi->label = $id;
           $eolapi->data = serialize($data);
+          if($type == 'data_objects'){
+            $eolapi->trusted = $data->dataObjects[0]->vettedStatus == 'Trusted' ? 1 : 0;
+            $eolapi->license = $data->dataObjects[0]->license;
+            $eolapi->rating = $data->dataObjects[0]->dataRating;
+            $eolapi->data = serialize($data->dataObjects[0]);
+          }
+          if(substr($eolapi->type, 0, 4) == 'http'){
+            $eolapi->type = array_pop(explode("/", $eolapi->type));
+          }
           $eolapi->eolapi_taxonomy = array(
             'und' => array(
               array(

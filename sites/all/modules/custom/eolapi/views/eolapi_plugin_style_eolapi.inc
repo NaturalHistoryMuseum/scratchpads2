@@ -29,7 +29,18 @@ class eolapi_plugin_style_eolapi extends views_plugin_style{
 
   function render(){
     if(count($this->view->result)){
-      return parent::render();
+      $content = parent::render();
+      $content = array(
+        'content' => array(
+          '#markup' => $content
+        ),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'eolapi') . '/css/eolapi.css'
+          )
+        )
+      );
+      return $content;
     }else{
       return array(
         '#attached' => array(
@@ -43,10 +54,19 @@ class eolapi_plugin_style_eolapi extends views_plugin_style{
               ),
               'type' => 'setting'
             )
+          ),
+          'css' => array(
+            drupal_get_path('module', 'eolapi') . '/css/eolapi.css'
           )
         ),
         'content' => array(
-          '#markup' => '<div class="eolapi-empty" data-view-name="' . $this->view->name . '" data-tid="' . $this->view->args[0] . '"><img src="' . base_path() . drupal_get_path('module', 'eolapi') . '/images/load.gif"/></div>'
+          '#markup' => '<script type="text/javascript">
+	document.write(\'<div class="eolapi-empty" data-view-name="' . $this->view->name . '" data-tid="' . $this->view->args[0] . '"><img src="' . base_path() . drupal_get_path('module', 'eolapi') . '/images/load.gif"/></div>\');
+</script>
+<noscript>
+	<p class="error">' . t('Please enable Javascript, or reload the page.') . '</p>
+</noscript>
+	'
         )
       );
     }

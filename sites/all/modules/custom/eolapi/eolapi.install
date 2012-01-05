@@ -88,12 +88,19 @@ function eolapi_install(){
       'weight' => '-3'
     )
   );
-  //field_create_field($field);
+  field_create_field($field);
   $eolapi_entity_info = eolapi_entity_info();
   foreach($eolapi_entity_info['eolapi']['bundles'] as $bundle => $bundle_info){
     $instance['bundle'] = $bundle;
-    //field_create_instance($instance);
+    field_create_instance($instance);
   }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function eolapi_uninstall(){
+  field_delete_field('eolapi_taxonomy');
 }
 
 /**
@@ -135,6 +142,27 @@ function eolapi_schema(){
           'length' => 255,
           'not null' => TRUE,
           'default' => ''
+        ),
+        'trusted' => array(
+          'description' => 'The "vettedStatus" of this item of data.  Note, this is not used by the search and pages bundles.',
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'license' => array(
+          'description' => 'The type of this EOL data item.  Note, this is not used by the search and pages bundles.',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'rating' => array(
+          'description' => 'The "dataRating" of this item of data.  Note, this is not used by the search and pages bundles.',
+          'type' => 'float',
+          'size' => 'small',
+          'not null' => TRUE,
+          'default' => 0
         ),
         'created' => array(
           'description' => 'The Unix timestamp when the data item was created.',
@@ -204,6 +232,27 @@ function eolapi_schema(){
           'length' => 255,
           'not null' => TRUE,
           'default' => ''
+        ),
+        'trusted' => array(
+          'description' => 'The "vettedStatus" of this item of data.  Note, this is not used by the search and pages bundles.',
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'license' => array(
+          'description' => 'The type of this EOL data item.  Note, this is not used by the search and pages bundles.',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'rating' => array(
+          'description' => 'The "dataRating" of this item of data.  Note, this is not used by the search and pages bundles.',
+          'type' => 'float',
+          'size' => 'small',
+          'not null' => TRUE,
+          'default' => 0
         ),
         'timestamp' => array(
           'description' => 'A Unix timestamp indicating when this version was created.',
