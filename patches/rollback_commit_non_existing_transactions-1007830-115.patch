@@ -1,0 +1,257 @@
+diff --git a/includes/database/database.inc b/includes/database/database.inc
+index 33000aa..6e40b27 100644
+--- a/includes/database/database.inc
++++ b/includes/database/database.inc
+@@ -1016,9 +1016,9 @@ abstract class DatabaseConnection extends PDO {
+       throw new DatabaseTransactionNoActiveException();
+     }
+     // A previous rollback to an earlier savepoint may mean that the savepoint
+-    // in question has already been rolled back.
+-    if (!in_array($savepoint_name, $this->transactionLayers)) {
+-      return;
++    // in question has already been accidentally committed.
++    if (!isset($this->transactionLayers[$savepoint_name])) {
++      throw new DatabaseTransactionNoActiveException();
+     }
+ 
+     // We need to find the point we're rolling back to, all other savepoints
+@@ -1096,8 +1096,12 @@ abstract class DatabaseConnection extends PDO {
+     if (!$this->supportsTransactions()) {
+       return;
+     }
++    // The transaction has already been committed earlier. There is nothing we
++    // need to do. If this transaction was part of an earlier out-of-order
++    // rollback, an exception would already have been thrown by
++    // Database::rollback().
+     if (!isset($this->transactionLayers[$name])) {
+-      throw new DatabaseTransactionNoActiveException();
++      return;
+     }
+ 
+     // Mark this layer as committable.
+diff --git a/includes/database/mysql/database.inc b/includes/database/mysql/database.inc
+index 7d5d859..ca73c22 100644
+--- a/includes/database/mysql/database.inc
++++ b/includes/database/mysql/database.inc
+@@ -169,8 +169,11 @@ class DatabaseConnection_mysql extends DatabaseConnection {
+           // succeed for MySQL error code 1305 ("SAVEPOINT does not exist").
+           if ($e->errorInfo[1] == '1305') {
+             // If one SAVEPOINT was released automatically, then all were.
+-            // Therefore, we keep just the topmost transaction.
+-            $this->transactionLayers = array('drupal_transaction' => 'drupal_transaction');
++            // Therefore, clean the transaction stack.
++            $this->transactionLayers = array();
++            // We also have to explain to PDO that the transaction stack has
++            // been cleaned-up.
++            PDO::commit();
+           }
+           else {
+             throw $e;
+diff --git a/includes/database/sqlite/database.inc b/includes/database/sqlite/database.inc
+index 3e2490b..2b59f5c 100644
+--- a/includes/database/sqlite/database.inc
++++ b/includes/database/sqlite/database.inc
+@@ -59,7 +59,7 @@ class DatabaseConnection_sqlite extends DatabaseConnection {
+     $this->statementClass = NULL;
+ 
+     // This driver defaults to transaction support, except if explicitly passed FALSE.
+-    $this->transactionSupport = !isset($connection_options['transactions']) || $connection_options['transactions'] !== FALSE;
++    $this->transactionSupport = $this->transactionalDDLSupport = !isset($connection_options['transactions']) || $connection_options['transactions'] !== FALSE;
+ 
+     $this->connectionOptions = $connection_options;
+ 
+diff --git a/modules/simpletest/tests/database_test.test b/modules/simpletest/tests/database_test.test
+index 87d386a..e93dbe2 100644
+--- a/modules/simpletest/tests/database_test.test
++++ b/modules/simpletest/tests/database_test.test
+@@ -3426,35 +3426,89 @@ class DatabaseTransactionTestCase extends DatabaseTestCase {
+    */
+   function testTransactionWithDdlStatement() {
+     // First, test that a commit works normally, even with DDL statements.
+-    try {
+-      $this->transactionOuterLayer('D', FALSE, TRUE);
+-
+-      // Because we committed, the inserted rows should both be present.
+-      $saved_age = db_query('SELECT age FROM {test} WHERE name = :name', array(':name' => 'DavidD'))->fetchField();
+-      $this->assertIdentical($saved_age, '24', t('Can retrieve DavidD row after commit.'));
+-      $saved_age = db_query('SELECT age FROM {test} WHERE name = :name', array(':name' => 'DanielD'))->fetchField();
+-      $this->assertIdentical($saved_age, '19', t('Can retrieve DanielD row after commit.'));
+-      // The created table should also exist.
+-      $count = db_query('SELECT COUNT(id) FROM {database_test_1}')->fetchField();
+-      $this->assertIdentical($count, '0', t('Table was successfully created inside a transaction.'));
+-    }
+-    catch (Exception $e) {
+-      $this->fail((string) $e);
+-    }
++    $transaction = db_transaction();
++    $this->insertRow('row');
++    $this->executeDDLStatement();
++    unset($transaction);
++    $this->assertRowPresent('row');
+ 
+-    // If we rollback the transaction, an exception might be thrown.
+-    try {
+-      $this->transactionOuterLayer('E', TRUE, TRUE);
++    // Even in different order.
++    $this->cleanUp();
++    $transaction = db_transaction();
++    $this->executeDDLStatement();
++    $this->insertRow('row');
++    unset($transaction);
++    $this->assertRowPresent('row');
++
++    // Even with stacking.
++    $this->cleanUp();
++    $transaction = db_transaction();
++    $transaction2 = db_transaction();
++    $this->executeDDLStatement();
++    unset($transaction2);
++    $transaction3 = db_transaction();
++    $this->insertRow('row');
++    unset($transaction3);
++    unset($transaction);
++    $this->assertRowPresent('row');
++
++    // A transaction after a DDL statement should still work the same.
++    $this->cleanUp();
++    $transaction = db_transaction();
++    $transaction2 = db_transaction();
++    $this->executeDDLStatement();
++    unset($transaction2);
++    $transaction3 = db_transaction();
++    $this->insertRow('row');
++    $transaction3->rollback();
++    unset($transaction3);
++    unset($transaction);
++    $this->assertRowAbsent('row');
++
++    // The behavior of a rollback depends on the type of database server.
++    if (Database::getConnection()->supportsTransactionalDDL()) {
++      // For database servers that support transactional DDL, a rollback
++      // of a transaction including DDL statements should be possible.
++      $this->cleanUp();
++      $transaction = db_transaction();
++      $this->insertRow('row');
++      $this->executeDDLStatement();
++      $transaction->rollback();
++      unset($transaction);
++      $this->assertRowAbsent('row');
+ 
+-      // Because we rolled back, the inserted rows shouldn't be present.
+-      $saved_age = db_query('SELECT age FROM {test} WHERE name = :name', array(':name' => 'DavidE'))->fetchField();
+-      $this->assertNotIdentical($saved_age, '24', t('Cannot retrieve DavidE row after rollback.'));
+-      $saved_age = db_query('SELECT age FROM {test} WHERE name = :name', array(':name' => 'DanielE'))->fetchField();
+-      $this->assertNotIdentical($saved_age, '19', t('Cannot retrieve DanielE row after rollback.'));
++      // Including with stacking.
++      $this->cleanUp();
++      $transaction = db_transaction();
++      $transaction2 = db_transaction();
++      $this->executeDDLStatement();
++      unset($transaction2);
++      $transaction3 = db_transaction();
++      $this->insertRow('row');
++      unset($transaction3);
++      $transaction->rollback();
++      unset($transaction);
++      $this->assertRowAbsent('row');
+     }
+-    catch (Exception $e) {
+-      // An exception also lets the test pass.
+-      $this->assertTrue(true, t('Exception thrown on rollback after a DDL statement was executed.'));
++    else {
++      // For database servers that do not support transactional DDL,
++      // the DDL statement should commit the transaction stack.
++      $this->cleanUp();
++      $transaction = db_transaction();
++      $this->insertRow('row');
++      $this->executeDDLStatement();
++      // Rollback the outer transaction.
++      try {
++        $transaction->rollback();
++        unset($transaction);
++        // @TODO: an exception should be triggered here, but is not, because
++        // "ROLLBACK" fails silently in MySQL if there is no transaction active.
++        // $this->fail(t('Rolling back a transaction containing DDL should fail.'));
++      }
++      catch (DatabaseTransactionNoActiveException $e) {
++        $this->pass(t('Rolling back a transaction containing DDL should fail.'));
++      }
++      $this->assertRowPresent('row');
+     }
+   }
+ 
+@@ -3470,6 +3524,24 @@ class DatabaseTransactionTestCase extends DatabaseTestCase {
+   }
+ 
+   /**
++   * Execute a DDL statement.
++   */
++  protected function executeDDLStatement() {
++    static $count = 0;
++    $table = array(
++      'fields' => array(
++        'id' => array(
++          'type' => 'serial',
++          'unsigned' => TRUE,
++          'not null' => TRUE,
++        ),
++      ),
++      'primary key' => array('id'),
++    );
++    db_create_table('database_test_' . ++$count, $table);
++  }
++
++  /**
+    * Start over for a new test.
+    */
+   protected function cleanUp() {
+@@ -3513,8 +3585,8 @@ class DatabaseTransactionTestCase extends DatabaseTestCase {
+    * Test transaction stacking and commit / rollback.
+    */
+   function testTransactionStacking() {
+-    // This test won't work right if transactions are supported.
+-    if (Database::getConnection()->supportsTransactions()) {
++    // This test won't work right if transactions are not supported.
++    if (!Database::getConnection()->supportsTransactions()) {
+       return;
+     }
+ 
+@@ -3593,26 +3665,33 @@ class DatabaseTransactionTestCase extends DatabaseTestCase {
+     $this->insertRow('outer');
+     $transaction2 = db_transaction();
+     $this->insertRow('inner');
++    $transaction3 = db_transaction();
++    $this->insertRow('inner2');
+     // Rollback the outer transaction.
+     try {
+       $transaction->rollback();
+       unset($transaction);
+       $this->fail(t('Rolling back the outer transaction while the inner transaction is active resulted in an exception.'));
+     }
+-    catch (Exception $e) {
++    catch (DatabaseTransactionOutOfOrderException $e) {
+       $this->pass(t('Rolling back the outer transaction while the inner transaction is active resulted in an exception.'));
+     }
+     $this->assertFalse($database->inTransaction(), t('No more in a transaction after rolling back the outer transaction'));
+-    // Try to commit the inner transaction.
++    // Try to commit one inner transaction.
++    unset($transaction3);
++    $this->pass(t('Trying to commit an inner transaction resulted in an exception.'));
++    // Try to rollback one inner transaction.
+     try {
++      $transaction->rollback();
+       unset($transaction2);
+-      $this->fail(t('Trying to commit the inner transaction resulted in an exception.'));
++      $this->fail(t('Trying to commit an inner transaction resulted in an exception.'));
+     }
+-    catch (Exception $e) {
+-      $this->pass(t('Trying to commit the inner transaction resulted in an exception.'));
++    catch (DatabaseTransactionNoActiveException $e) {
++      $this->pass(t('Trying to commit an inner transaction resulted in an exception.'));
+     }
+     $this->assertRowAbsent('outer');
+     $this->assertRowAbsent('inner');
++    $this->assertRowAbsent('inner2');
+   }
+ }
+ 

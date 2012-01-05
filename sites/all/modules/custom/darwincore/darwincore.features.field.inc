@@ -2293,19 +2293,17 @@ function darwincore_field_default_fields(){
           0 => 'tid'
         )
       ),
-      'module' => 'anytaxonomyfield',
+      'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
           0 => array(
             'parent' => '0',
-            'vocabulary' => array(
-              0 => 'anytaxonomyfield_anytaxonomyfield'
-            )
+            'vocabulary' => ''
           )
         )
       ),
       'translatable' => '1',
-      'type' => 'anytaxonomy_term_reference'
+      'type' => 'taxonomy_term_reference'
     ),
     'field_instance' => array(
       'bundle' => 'specimen_observation',

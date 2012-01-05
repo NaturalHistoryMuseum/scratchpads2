@@ -114,11 +114,20 @@ function tui_sort_access(){
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if(arg(5) == 'form_callback'){
+    // Unset the alias field.  This should perhaps be optional, but for now, we
+    // do not need it.
+    unset($form['path']['alias']);
+    // Alter the submit.
     $form['actions']['submit']['#ajax'] = array(
       'path' => 'tui/ajax',
       'callback' => 'tui_ajax_form_callback_callback',
       'wrapper' => 'taxonomy-form-term'
     );
+    // Hide the relations fieldset.
+    $form['relations']['#attributes'] = array(
+      'style' => 'display:none'
+    );
+    // Add a parent if we have one.
     if(isset($_POST['tid']) && is_array($form['relations']['parent']['#options'])){
       $parent_term = taxonomy_term_load($_POST['tid']);
       $form['relations']['parent']['#default_value'] = $_POST['tid'];
@@ -131,6 +140,7 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
       );
     }
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
+    // Redirect to the taxonomy editor if trying to edit a single term.
     if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
       drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid']);
       exit();

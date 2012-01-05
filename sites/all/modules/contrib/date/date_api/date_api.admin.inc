@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api.admin.inc,v 1.1 2011/01/15 11:49:32 karens Exp $
 
 /**
  * @file

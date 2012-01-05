@@ -35,6 +35,39 @@ function og_context_theme() {
 }
 
 /**
+ * Implements hook_entity_property_info().
+ *
+ * Add the current-group to the system token (i.e. like current-user).
+ */
+function og_context_entity_property_info() {
+  $info = array();
+
+  $properties = &$info['site']['properties'];
+  $properties['current_group'] = array(
+    'label' => t("Current group"),
+    'description' => t("The group from context, if exists."),
+    'getter callback' => 'og_context_get_properties',
+    'type' => 'group',
+  );
+  return $info;
+}
+
+/**
+ * Property getter callback.
+ */
+function og_context_get_properties($data = array(), array $options, $name, $type) {
+  switch ($name) {
+    case 'current_group':
+      // Get the current group.
+      // @code
+      //   $wrapper = entity_metadata_site_wrapper();
+      //   wrapper->current_group->value()
+      // @endcode
+      return ($group = og_context()) ? $group : NULL;
+  }
+}
+
+/**
  * Implement hook_preprocess_html().
  *
  * HTML preprocess; Add context related templates and CSS.
@@ -103,20 +136,6 @@ function og_context_init() {
 }
 
 /**
- * Implementation of hook_ctools_plugin_directory().
- */
-function og_context_ctools_plugin_directory($module, $plugin) {
-  // Safety: go away if CTools is not at an appropriate version.
-  if (!module_invoke('ctools', 'api_version', OG_REQUIRED_CTOOLS_API)) {
-    return;
-  }
-
-  if ($module == 'ctools') {
-    return 'plugins/' . $plugin;
-  }
-}
-
-/**
  * Implements hook_views_api().
  */
 function og_context_views_api() {
@@ -145,19 +164,141 @@ function og_context_og_invalidate_cache($gids = array()) {
   }
 }
 
+/**
+ * Implements hook_ctools_entity_contexts_alter().
+ *
+ * Change the OG context plugin.
+ *
+ * @see ctools_context_entity_get_children().
+ */
+function og_context_ctools_entity_contexts_alter(&$plugins) {
+  if (empty($plugins['entity:group'])) {
+    return;
+  }
+
+  $plugin = &$plugins['entity:group'];
+  $plugin['context'] = 'og_context_create_og_group';
+  $plugin['edit form'] = 'og_context_og_group_settings_form';
+  $plugin['defaults'] = array('type' => 'select', 'gid' => '');
+}
+
+/**
+ * Return OG group form context.
+ */
+function og_context_create_og_group($empty, $data = NULL, $conf = FALSE) {
+  $context = new ctools_context(array('entity:group', 'entity', 'group'));
+  $context->plugin = 'og_group';
+
+  if ($empty) {
+    return $context;
+  }
+
+  if ($conf) {
+    if ($data['type'] == 'select') {
+      global $user;
+      $data = og_load($data->gid);
+    }
+    else {
+      $data = og_context();
+    }
+  }
+
+  // Load entity if the data provided is a numeric value. This kind of data is
+  // passed by some relationships.
+  if (!empty($data) && is_numeric($data)) {
+    $data = og_load($data);
+  }
+
+  if (!$data) {
+    return ctools_context_create_empty('entity:group', NULL);
+  }
+
+  $context->data = $data;
+  $context->argument = $data->gid;
+  $context->title = og_label($data->gid);
+  return $context;
+}
+
+/**
+ * OG group context settings form.
+ */
+function og_context_og_group_settings_form($form, &$form_state) {
+  $conf = $form_state['conf'];
+
+  $form['type'] = array(
+    '#title' => t('Enter the context type'),
+    '#type' => 'radios',
+    '#options' => array(
+      'select' => t('Select an OG group'),
+      'context' => t('OG group form context'),
+    ),
+    '#default_value' => $conf['type'],
+  );
+
+  $form['gid'] = array(
+    '#title' => t('Enter a group ID'),
+    '#type' => 'textfield',
+    '#states' => array(
+      'visible' => array(
+        ':input[name=type]' => array('value' => 'select'),
+      ),
+    ),
+    '#default_value' => $conf['gid'],
+  );
+
+  if (!empty($conf['gid'])) {
+    $group = og_load($conf['gid']);
+    if ($group) {
+      $form['gid']['#description'] = t('Currently set to %name group', array('%name' => og_label($group->gid)));
+    }
+  }
+
+  return $form;
+}
+
+/**
+ * Validate an OG group.
+ */
+function og_context_og_group_settings_form_validate($form, &$form_state) {
+  if ($form_state['values']['type'] != 'select') {
+    return;
+  }
+
+  if (empty($form_state['values']['gid'])) {
+    form_error($form['user'], t('You must select an OG group.'));
+    return;
+  }
+
+  element_validate_integer_positive($form['gid'], $form_state);
+  if (form_get_error($form['gid'])) {
+    return;
+  }
+
+  $group = og_load($form_state['values']['gid']);
+  if (!$group) {
+    form_error($form['gid'], t('Invalid OG group selected.'));
+  }
+}
+
+/**
+ * Submit handler; Save values.
+ */
+function og_context_og_group_settings_form_submit($form, &$form_state) {
+  $form_state['conf']['type'] = $form_state['values']['type'];
+  $form_state['conf']['gid'] = $form_state['values']['gid'];
+}
+
 
 /**
  * Get or set group context using the menu system.
  *
  * @param $group
  *   Optional; The group entity to set as the context.
- * @param $account
- *   Optional; The user entity to determine context form.
  *
  * @return
  *   A group entity, or FALSE if no context was found.
  */
-function og_context($group = NULL, $account = NULL) {
+function og_context($group = NULL) {
   global $user;
   $context = &drupal_static(__FUNCTION__, FALSE);
 
@@ -352,23 +493,32 @@ function og_context_handler_url() {
 }
 
 /**
- * Context handler; Get groups from existing node.
+ * Context handler; Get groups from existing node or ctools context.
  */
 function og_context_handler_node() {
-  $return = array();
-  // menu_get_object() doesn't play nicely if the path is node/%/foo, so we load
-  // it ourself.
-  $item = menu_get_item();
-  if (!empty($item['map'][1])) {
-    if (is_object($item['map'][1])) {
-      $node = $item['map'][1];
-    }
-    else {
-      $node = node_load($item['map'][1]);
-    }
-    $return = _group_context_handler_entity('node', $node);
+  $node = menu_get_object('node');
+  if ($node) {
+    return _group_context_handler_entity('node', $node);
   }
-  return $return;
+
+  // The path may not be %node, but in fact is a ctools-context, so extract the
+  // node from it. We check only the 1st position (e.g. node/%/foo).
+  $item = menu_get_item();
+  if (empty($item['map'][1]) || !is_object($item['map'][1]) || !($item['map'][1] instanceof ctools_context)) {
+    return;
+  }
+
+  // Check the context is a node type. We check only path similar to node/%/foo
+  // and don't traverse over the whole arguments, as it might be a page manager
+  // page passing multiple nodes (e.g. some/path/with/%node/%node). Implementing
+  // modules wanting to handle the above example, should implement their own
+  // context handler.
+  $context = clone $item['map'][1];
+  if (empty($context->type[0]) || $context->type[0] != 'entity:node') {
+    return;
+  }
+  return _group_context_handler_entity('node', $context->data);
+
 }
 
 /**
@@ -405,12 +555,14 @@ function _group_context_handler_entity($entity_type = 'node', $entity = NULL, $p
   if ($entity) {
     // Check if the entity is itself a group.
     list($id) = entity_extract_ids($entity_type, $entity);
-    if ($group = og_get_group($entity_type, $id)) {
-      $context = drupal_map_assoc(array($group->gid));
-    }
-
-    elseif ($gids = og_get_entity_groups($entity_type, $entity)) {
-      $context = $gids;
+    // Only proceed if it really is the entity and we got an id.
+    if (isset($id)) {
+      if ($group = og_get_group($entity_type, $id)) {
+        $context = drupal_map_assoc(array($group->gid));
+      }
+      elseif ($gids = og_get_entity_groups($entity_type, $entity)) {
+        $context = $gids;
+      }
     }
   }
 

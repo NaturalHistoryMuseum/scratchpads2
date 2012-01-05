@@ -1,5 +1,4 @@
 core = "7.x"
-dependencies[] = "anytaxonomyfield"
 dependencies[] = "auto_nodetitle"
 dependencies[] = "date"
 dependencies[] = "features"

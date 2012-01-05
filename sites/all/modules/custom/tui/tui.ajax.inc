@@ -79,7 +79,8 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
       if($term){
         module_load_include('admin.inc', 'taxonomy');
         print ajax_render(array(
-          ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term)))
+          ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term))),
+          ajax_command_html('#tui-name-live h2', $term->name)
         ));
       }else{
         print ajax_render(array(

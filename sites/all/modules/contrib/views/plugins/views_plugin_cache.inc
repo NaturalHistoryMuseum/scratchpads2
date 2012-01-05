@@ -52,7 +52,7 @@ class views_plugin_cache extends views_plugin {
    *   The cache type, either 'query', 'result' or 'output'.
    */
    function cache_expire($type) { }
-   
+
    /**
     * Determine expiration time in the cache table of the cache type
     * or CACHE_PERMANENT if item shouldn't be removed automatically from cache.
@@ -172,7 +172,7 @@ class views_plugin_cache extends views_plugin {
    */
   function cache_start() {
     $this->storage['head'] = drupal_add_html_head();
-    $this->storage['css'] = drupal_add_css();  
+    $this->storage['css'] = drupal_add_css();
     $this->storage['js'] = drupal_add_js();
   }
 
@@ -214,17 +214,7 @@ class views_plugin_cache extends views_plugin {
 
     // Special case the settings key and get the difference of the data.
     if ($settings_diff = array_diff_assoc($js['settings']['data'], $start['settings']['data'])) {
-      // Add back in all the settings options
-      $this->storage['js']['settings'] = $js['settings'];
-
-      // This is used because the data is in the wrong format when adding to
-      // drupal_add_js.  This will fix the data array so the code is nicer in
-      // restore_headers.
-      foreach ($settings_diff as $setting) {
-        foreach ($setting as $key => $value) {
-          $this->storage['js']['settings']['data'][$key] = $value;
-        }
-      }
+      $this->storage['js']['settings'] = $settings_diff;
     }
   }
 
@@ -241,8 +231,15 @@ class views_plugin_cache extends views_plugin {
       }
     }
     if (!empty($this->storage['js'])) {
-      foreach ($this->storage['js'] as $args) {
-        drupal_add_js($args['data'], $args);
+      foreach ($this->storage['js'] as $key => $args) {
+        if ($key != 'settings') {
+          drupal_add_js($args['data'], $args);
+        }
+        else {
+          foreach ($args as $setting) {
+            drupal_add_js($setting, 'setting');
+          }
+        }
       }
     }
   }
@@ -251,9 +248,9 @@ class views_plugin_cache extends views_plugin {
     global $user;
 
     if (!isset($this->_results_key)) {
-      
+
       $build_info = $this->view->build_info;
-      
+
       foreach (array('query', 'count_query') as $index) {
         $query = clone $build_info[$index];
         $query->preExecute();

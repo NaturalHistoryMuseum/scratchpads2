@@ -20,8 +20,8 @@ define('OG_REGISTER_FIELD', 'group_register');
 function og_register_form_user_register_form_alter(&$form, $form_state) {
   global $user;
   if ($gids = og_register_get_groups()) {
-    $entity = $user;
-    field_attach_form('user', $entity, $form, $form_state);
+    $account = clone $user;
+    field_attach_form('user', $account, $form, $form_state);
   }
 }
 
@@ -36,9 +36,9 @@ function og_register_og_audience_options_alter(&$options, $opt_group, $account) 
 }
 
 /**
- * Implement og_fields_info().
+ * Implements og_fields_info().
  */
-function og_register_group_fields_info() {
+function og_register_og_fields_info() {
   $allowed_values = array(
     0 => 'Do not show on registration page',
     1 => 'Show on registration page',
@@ -54,9 +54,10 @@ function og_register_group_fields_info() {
       'settings' => array('allowed_values' => $allowed_values, 'allowed_values_function' => ''),
     ),
     'instance' => array(
-      'label' => t('Groups register'),
+      'label' => t('Group register'),
       'default_value' => array(0 => array('value' => 0)),
       'widget_type' => 'options_select',
+      'required' => TRUE,
       'view modes' => array(
         'full' => array(
           'label' => 'above',
@@ -80,9 +81,6 @@ function og_register_get_groups() {
   $gids = &drupal_static(__FUNCTION__, array());
 
   if (!$gids && $field = field_info_field(OG_REGISTER_FIELD)) {
-    $conditions = array(
-      array('og_register_value', 1),
-    );
     $query = new EntityFieldQuery;
     $result = $query
       ->fieldCondition(OG_REGISTER_FIELD, 'value', 1, '=')

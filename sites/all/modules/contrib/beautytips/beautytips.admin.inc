@@ -9,7 +9,7 @@
  * Menu callback - beautytips admin settings form
  */
 function beautytips_admin() {
-
+  
   $form['beautytips_always_add'] = array(
     '#title' => t('Add beautytips js to every page'),
     '#description' => t('This allows you to give the class \'beautytips\' to any element on a page and the title attribute will popup as a beautytip.<br /> i.e. <i> &lt;p class="beautytips" title="type the text you want beautytips to display here"&gt .....&lt/p&gt</i>'),
@@ -25,17 +25,23 @@ function beautytips_admin() {
     '#default_value' => is_array($selectors) ? implode(", ", $selectors) : '',
     '#weight' => -1,
   );
+  $form['beautytips_ltr'] = array(
+    '#title' => t('Support Left to Right display'),
+    '#description' => t('Only check this if this is an ltr site.  This adds css to support it.'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('beautytips_ltr', 0),
+  );
   $form['beautytips_default_styles'] = array(
     '#type' => 'fieldset',
     '#title' => 'Styling Options',
     '#collapsible' => TRUE,
-    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
   );
   $styles = beautytips_get_styles(TRUE);
   if (count($styles)) {
     unset($styles['default']);
     foreach ($styles as $name => $style) {
-      $bt_style_options[$name]['cssSelect'] = '#edit-beautytips-default-style-' . $name;
+      $bt_style_options[$name]['cssSelect'] = '#edit-beautytips-default-style-' . str_replace('_', '-', $name);
       $bt_style_options[$name]['text'] = 'Aenean risus purus, pharetra in, blandit quis, gravida a, turpis.  Aenean risus purus, pharetra in, blandit quis, gravida a, turpis.  Aenean risus purus, pharetra in, blandit quis, gravida a, turpis.';
       $bt_style_options[$name]['width'] = isset($style['width']) ? $style['width'] : '300px';
       $bt_style_options[$name]['style'] = $name;
@@ -47,6 +53,7 @@ function beautytips_admin() {
     'text' => 'Sed justo nibh, ultrices ut gravida et, laoreet et elit. Nullam consequat lacus et dui dignissim venenatis. Curabitur quis urna eget mi interdum viverra quis eu enim. Ut sit amet nunc augue. Morbi fermentum ultricies velit sed aliquam. Etiam dui tortor, auctor sed tempus ac, auctor sed sapien.',
     'positions' => array('right'),
   );
+  // TODO: Determine what to do if default style has been removed.
   $form['beautytips_default_styles']['beautytips_default_style'] = array(
     '#type' => 'radios',
     '#title' => t('Choose a default style'),
@@ -55,7 +62,7 @@ function beautytips_admin() {
     '#suffix' => '</div>',
     '#options' => $style_options,
     '#default_value' => variable_get('beautytips_default_style', 'plain'),
-  );  
+  );
   $style_options = array(
     'fill' => t('background color (string - html color)'), 
     'strokeWidth' => t('width of border (integer)'),
@@ -86,7 +93,6 @@ function beautytips_admin() {
       '#default_value' => isset($custom_style[$option]) ? $custom_style[$option] : '',
     );
   }
-  // TODO: make this a radio (default, shadow, no-shadow)
   $form['beautytips_default_styles']['custom_styles']['bt-options-box-shadow'] = array(
     '#title' => 'shadow',
     '#description' => t('Whether or not the popup has a shadow'),
@@ -123,7 +129,6 @@ function beautytips_admin() {
   drupal_add_js($path . '/other_libs/colorpicker/js/colorpicker.js');
   drupal_add_css($path . '/other_libs/colorpicker/css/colorpicker.css');
   drupal_add_css($path .'/css/beautytips.css');
-  drupal_add_css($path .'/css/beautytips_admin.css');
   beautytips_add_beautytips($bt_style_options);
   drupal_add_js($path . '/js/bt_admin_page.js');
 
@@ -157,25 +162,11 @@ function beautytips_admin_validate($form, &$form_state) {
 
   foreach ($pixel_fields as $name) {
     if ($values[$name]) {
-      $value = str_replace(array('px', ' '), '', $values[$name]);
-      if (!is_numeric($value) || (!$value && $value != 0)) {
+      $unit = substr($values[$name], -2, 2);
+      $value = str_replace(array('px', ' ', 'em'), '', $values[$name]);
+      if (!is_numeric($value) || (!$value && $value != 0) || !in_array($unit, array('px', 'em'))) {
         form_set_error($name, t('You need to enter a numeric value for <em>@name</em>, followed by <em>px</em>', array('@name' => str_replace(array('bt-options-box-', 'bt-options-css-'), '', $name))));
       }
-      else {
-        $form_state['values'][$name] = round($values[$name]) . 'px';
-      }
-    }
-  }
-
-  foreach ($color_fields as $name) {
-    if ($values[$name]) {
-      $form_state['values'][$name] = check_plain($values[$name]);
-    }
-  }
-
-  foreach ($sanitize_strings as $name) {
-    if ($values[$name]) {
-      $form_state['values'][$name] = check_plain($values[$name]);
     }
   }
 }
@@ -235,7 +226,7 @@ function beautytips_admin_submit($form, &$form_state) {
     cache_clear_all('beautytips:beautytips-styles', 'cache');
 
     // Store array of selectors that bt will be added to on every page
-    $selectors = explode(",", check_plain($values['beautytips_added_selectors_string']));
+    $selectors = explode(",", $values['beautytips_added_selectors_string']);
     $test = serialize($selectors);
     if (count($selectors)) {
       foreach ($selectors as $key => $selector) {

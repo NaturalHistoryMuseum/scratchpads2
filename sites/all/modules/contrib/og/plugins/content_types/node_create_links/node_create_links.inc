@@ -1,13 +1,16 @@
 <?php
 
 /**
-* Plugin definition.
-*/
+ * Plugin definition.
+ */
 $plugin = array(
-  'title' => t('OG Content create links'),
+  'title' => t('Content create links'),
   'description' => t('Crafted links to create content (nodes) for a given group.'),
-  'required context' => new ctools_context_required(t('Group'), 'entity:group'),
+  'required context' => new ctools_context_required(t('OG Group'), 'entity:group'),
   'category' => t('Organic groups'),
+  'defaults' => array(
+    'types' => array(),
+  ),
 );
 
 /**
@@ -19,7 +22,7 @@ function og_node_create_links_content_type_render($subtype, $conf, $args, $conte
   }
 
   $group = $context->data;
-  $links = og_node_create_links($group->gid);
+  $links = og_node_create_links($group->gid, '', !empty($conf['types']) ? $conf['types'] : NULL);
   if (!$links) {
     return FALSE;
   }
@@ -29,17 +32,34 @@ function og_node_create_links_content_type_render($subtype, $conf, $args, $conte
   $block->module = $module;
   $block->title = t('Content create links');
 
-  $output = '';
-  $output .= '<div class="' . str_replace('_', '-', $subtype) . '-wrapper">';
-
-  $output .= drupal_render($links);
-
-  $output .= '</div>';
-  $block->content = $output;
+  $block->content = $links;
   return $block;
 }
 
+/**
+ * Edit form.
+ */
 function og_node_create_links_content_type_edit_form($form, &$form_state) {
-  // provide a blank form so we have a place to have context setting.
+  $conf = $form_state['conf'];
+
+  foreach (node_type_get_types() as $type) {
+    if (og_is_group_content_type('node', $type->type)) {
+      $options[$type->type] = check_plain($type->name);
+    }
+  }
+  $form['types'] = array(
+    '#title' => t('Restrict to content types'),
+    '#type' => 'checkboxes',
+    '#options' => $options,
+    '#default_value' => $conf['types'],
+    '#description' => t('If left empty, all possible content types are shown.'),
+  );
   return $form;
+}
+
+/**
+ * Edit form submit callback.
+ */
+function og_node_create_links_content_type_edit_form_submit($form, &$form_state) {
+  $form_state['conf']['types'] = array_filter($form_state['values']['types']);
 }

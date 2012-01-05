@@ -121,7 +121,7 @@ function views_ui_preview($view, $display_id, $args = array()) {
     $show_stats = variable_get('views_ui_show_sql_query_where', 'above');
   }
 
-  $combined = ($show_query === $show_stats);
+  $combined = $show_query && $show_stats;
 
   $rows = array('query' => array(), 'statistics' => array());
   $output = '';
@@ -843,7 +843,8 @@ function views_ui_break_lock_confirm($form, &$form_state, $view) {
   $form = array();
 
   if (empty($view->locked)) {
-    return t('There is no lock on view %view to break.', array('%name' => $view->name));
+    $form['#markup'] = t('There is no lock on view %view to break.', array('%name' => $view->name));
+    return $form;
   }
 
   $cancel = 'admin/structure/views/view/' . $view->name . '/edit';
@@ -877,7 +878,7 @@ function views_ui_break_lock_confirm_submit(&$form, &$form_state) {
  */
 function views_ui_edit_page_display($view, $display_id) {
   // Determine the displays available for editing.
-  if ($tabs = views_ui_edit_page_display_tabs($view)) {
+  if ($tabs = views_ui_edit_page_display_tabs($view, $display_id)) {
     // If a display isn't specified, use the first one.
     if (empty($display_id)) {
       foreach ($tabs as $id => $tab) {
@@ -909,12 +910,6 @@ function views_ui_edit_page_display($view, $display_id) {
  * Page callback for the Edit View page.
  */
 function views_ui_edit_page($view, $display_id = NULL) {
-  // If the user has enabled the master display, remove 'default' from the url.
-  // If the user hasn't enabled the master display redirect to the first other display.
-  if (arg(6) == 'default') {
-    drupal_goto("admin/structure/views/view/$view->name/edit");
-  }
-
   $display_id = views_ui_edit_page_display($view, $display_id);
   if (!in_array($display_id, array(MENU_ACCESS_DENIED, MENU_NOT_FOUND))) {
     $build = array();
@@ -1282,7 +1277,7 @@ function views_ui_render_display_top($view, $display_id) {
   }
 
   // Determine the displays available for editing.
-  if ($tabs = views_ui_edit_page_display_tabs($view)) {
+  if ($tabs = views_ui_edit_page_display_tabs($view, $display_id)) {
     if ($display_id) {
       $tabs[$display_id]['#active'] = TRUE;
     }
@@ -1455,8 +1450,13 @@ function views_ui_edit_form_submit_delay_destination($form, &$form_state) {
  * these tabs as secondary local tasks, or it can be called from elsewhere if
  * having them as secondary local tasks isn't desired. The caller is responsible
  * for setting the active tab's #active property to TRUE.
+ *
+ * @param $view
+ *    The view which will be edited.
+ * @param $display_id
+ *    The display_id which is edited on the current request.
  */
-function views_ui_edit_page_display_tabs($view) {
+function views_ui_edit_page_display_tabs($view, $display_id = NULL) {
   $tabs = array();
 
   // Create a tab for each display.
@@ -1478,7 +1478,7 @@ function views_ui_edit_page_display_tabs($view) {
   }
 
   // If the default display isn't supposed to be shown, don't display its tab, unless it's the only display.
-  if (!views_ui_show_default_display($view) && count($tabs) > 1) {
+  if ((!views_ui_show_default_display($view) && $display_id != 'default') && count($tabs) > 1) {
     $tabs['default']['#access'] = FALSE;
   }
 
@@ -2098,6 +2098,25 @@ function views_ui_edit_view_form_submit($form, &$form_state) {
       // Redirect the user to the renamed display to be sure that the page itself exists and doesn't throw errors.
       $form_state['redirect'] = 'admin/structure/views/view/' . $form_state['view']->name . '/edit/' . $display->new_id;
     }
+  }
+
+  // Direct the user to the right url, if the path of the display has changed.
+  if (!empty($_GET['destination'])) {
+    $destination = $_GET['destination'];
+    // Find out the first display which has a changed path and redirect to this url.
+    $old_view = views_get_view($form_state['view']->name);
+    foreach ($old_view->display as $id => $display) {
+      // Only check for displays with a path.
+      if (!isset($display->display_options['path'])) {
+        continue;
+      }
+      $old_path = $display->display_options['path'];
+      if (($display->display_plugin == 'page') && ($old_path == $destination) && ($old_path != $form_state['view']->display[$id]->display_options['path'])) {
+        $destination = $form_state['view']->display[$id]->display_options['path'];
+        unset($_GET['destination']);
+      }
+    }
+    $form_state['redirect'] = $destination;
   }
 
   $form_state['view']->save();
@@ -3909,6 +3928,7 @@ function views_ui_add_item_form($form, &$form_state) {
 
   $types = views_object_types();
   $ltitle = $types[$type]['ltitle'];
+  $section = $types[$type]['plural'];
 
   if (!empty($types[$type]['type'])) {
     $type = $types[$type]['type'];
@@ -3916,6 +3936,10 @@ function views_ui_add_item_form($form, &$form_state) {
 
   $form['#title'] = t('Add @type', array('@type' => $ltitle));
   $form['#section'] = $display_id . 'add-item';
+
+
+  // Add the display override dropdown.
+  views_ui_standard_display_dropdown($form, $form_state, $section);
 
   // Figure out all the base tables allowed based upon what the relationships provide.
   $base_tables = $view->get_base_tables();
@@ -4008,6 +4032,10 @@ function views_ui_add_item_form($form, &$form_state) {
   ctools_include('dependent');
   views_ui_standard_form_buttons($form, $form_state, 'views_ui_add_item_form', t('Add and configure @types', array('@types' => $ltitle)));
 
+  // Remove the default submit function.
+  $form['buttons']['submit']['#submit'] = array_diff($form['buttons']['submit']['#submit'], array('views_ui_standard_submit'));
+  $form['buttons']['submit']['#submit'][] = 'views_ui_add_item_form_submit';
+
   return $form;
 }
 
@@ -4017,6 +4045,26 @@ function views_ui_add_item_form($form, &$form_state) {
 function views_ui_add_item_form_submit($form, &$form_state) {
   $type = $form_state['type'];
   $types = views_object_types();
+  $section = $types[$type]['plural'];
+
+  // Handle the override select.
+  list($was_defaulted, $is_defaulted) = views_ui_standard_override_values($form, $form_state);
+  if ($was_defaulted && !$is_defaulted) {
+    // We were using the default display's values, but we're now overriding
+    // the default display and saving values specific to this display.
+    $display = &$form_state['view']->display[$form_state['display_id']];
+    // set_override toggles the override of this section.
+    $display->handler->set_override($section);
+  }
+  elseif (!$was_defaulted && $is_defaulted) {
+    // We used to have an override for this display, but the user now wants
+    // to go back to the default display.
+    // Overwrite the default display with the current form values, and make
+    // the current display use the new default values.
+    $display = &$form_state['view']->display[$form_state['display_id']];
+    // options_override toggles the override of this section.
+    $display->handler->set_override($section);
+  }
 
   if (!empty($form_state['values']['name']) && is_array($form_state['values']['name'])) {
     // Loop through each of the items that were checked and add them to the view.
@@ -4029,12 +4077,17 @@ function views_ui_add_item_form_submit($form, &$form_state) {
       $id = $form_state['view']->add_item($form_state['display_id'], $type, $table, $field);
 
       // check to see if we have group by settings
-      if ($form_state['view']->display_handler->use_group_by()) {
+      $key = $type;
+      // Footer,header and empty text have a different internal handler type(area).
+      if (isset($types[$type]['type'])) {
+        $key = $types[$type]['type'];
+      }
+      $handler = views_get_handler($table, $field, $key);
+      if ($form_state['view']->display_handler->use_group_by() && $handler->use_group_by()) {
         views_ui_add_form_to_stack('config-item-group', $form_state['view'], $form_state['display_id'], array($type, $id));
       }
 
       // check to see if this type has settings, if so add the settings form first
-      $handler = views_get_handler($table, $field, $type);
       if ($handler && $handler->has_extra_options()) {
         views_ui_add_form_to_stack('config-item-extra', $form_state['view'], $form_state['display_id'], array($type, $id));
       }
@@ -4721,8 +4774,8 @@ function views_ui_admin_settings_advanced() {
 
   $form['debug']['views_devel_output'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable views performance statistics via the Devel module'),
-    '#description' => t("Check this to enable some Views query and performance statistics <em>if Devel is installed</em>."),
+    '#title' => t('Enable views performance statistics/debug messages via the Devel module'),
+    '#description' => t("Check this to enable some Views query and performance statistics/debug messages <em>if Devel is installed</em>."),
     '#default_value' => variable_get('views_devel_output', FALSE),
   );
 
@@ -4741,10 +4794,14 @@ function views_ui_admin_settings_advanced() {
 
   $regions = system_region_list(variable_get('theme_default', 'garland'));
   $regions['watchdog'] = t('Watchdog');
+  if (module_exists('devel')) {
+    $regions['message'] = t('Devel message(dpm)');
+    $regions['drupal_debug'] = t('Devel logging (tmp://drupal_debug.txt)');
+  }
 
   $form['debug']['views_devel_region'] = array(
     '#type' => 'select',
-    '#title' => t('Page region to output performance statistics'),
+    '#title' => t('Page region to output performance statistics/debug messages'),
     '#default_value' => variable_get('views_devel_region', 'footer'),
     '#options' => $regions,
     '#dependency' => array('edit-views-devel-output' => array(1)),

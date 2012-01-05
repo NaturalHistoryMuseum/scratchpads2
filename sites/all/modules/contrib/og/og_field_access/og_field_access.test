@@ -55,6 +55,7 @@ class OgFieldAccessTestCase extends DrupalWebTestCase {
     $settings = array();
     $settings['type'] = $group_type->type;
     $settings[OG_GROUP_FIELD][LANGUAGE_NONE][0]['value'] = 1;
+    $settings['body'][LANGUAGE_NONE][0]['value'] = $this->randomName();
 
     $node = $this->drupalCreateNode($settings);
     $group = og_get_group('node', $node->nid);
@@ -66,33 +67,35 @@ class OgFieldAccessTestCase extends DrupalWebTestCase {
     // Assert user can't view the field.
     $this->drupalGet('node/' . $node->nid);
     $this->assertResponse('200', t('Non group member can view node.'));
-    $this->assertNoText($node->body[LANGUAGE_NONE][0]['value'], t('User can not view field.'));
+    $this->assertNoText($node->body[LANGUAGE_NONE][0]['value'], t('Non group member can not view field.'));
 
     // Change permissions and assert user can view the field.
     $permissions['view body field'] = 1;
     og_role_change_permissions($anon_rid, $permissions);
     $this->drupalGet('node/' . $node->nid);
-    $this->assertText($node->body[LANGUAGE_NONE][0]['value'], t('User can now view field.'));
+    $this->assertText($node->body[LANGUAGE_NONE][0]['value'], t('Non group member can now view field.'));
 
     // Assert user can't edit the field.
     $this->drupalGet('node/' . $node->nid . '/edit');
-    $this->assertResponse('200', t('Non group member can view node.'));
-    $this->assertNoText($node->body[LANGUAGE_NONE][0]['value'], t('User can not edit field.'));
+    $this->assertResponse('200', t('Non group member can edit node.'));
+    $this->assertNoText($node->body[LANGUAGE_NONE][0]['value'], t('Non group member can not edit field.'));
 
     // Change permissions and assert user can view the field.
     $permissions['update body field'] = 1;
     og_role_change_permissions($anon_rid, $permissions);
     $this->drupalGet('node/' . $node->nid . '/edit');
-    $this->assertText($node->body[LANGUAGE_NONE][0]['value'], t('User can now edit field.'));
+    $langcode = LANGUAGE_NONE;
+    $this->assertFieldByName("body[$langcode][0][value]", $node->body[LANGUAGE_NONE][0]['value'], t('Non group member can now edit field.'));
 
     // Assert field permissions on group content.
     $permissions['view body field'] = 0;
     og_role_change_permissions($anon_rid, $permissions);
 
     $settings = array();
+    $settings['uid'] = $user1->uid;
     $settings['type'] = $group_content_type->type;
     $settings[OG_AUDIENCE_FIELD][LANGUAGE_NONE][0]['gid'] = $group->gid;
-    $settings['uid'] = $user1->uid;
+    $settings['body'][LANGUAGE_NONE][0]['value'] = $this->randomString();
     $node = $this->drupalCreateNode($settings);
 
     $this->drupalLogin($user1);

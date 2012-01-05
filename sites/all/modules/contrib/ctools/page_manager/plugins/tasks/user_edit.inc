@@ -31,6 +31,7 @@ function page_manager_user_edit_page_manager_tasks() {
     // Allow this to be enabled or disabled:
     'disabled' => variable_get('page_manager_user_edit_disabled', TRUE),
     'enable callback' => 'page_manager_user_edit_enable',
+    'access callback' => 'page_manager_user_edit_access_check',
   );
 }
 
@@ -44,7 +45,7 @@ function page_manager_user_edit_menu_alter(&$items, $task) {
   if (variable_get('page_manager_user_edit_disabled', TRUE)) {
     return;
   }
- 
+
   // Override the user view handler for our purpose.
   if ($items['user/%user/edit']['page callback'] == 'drupal_get_form' || variable_get('page_manager_override_anyway', FALSE)) {
     $items['user/%user/edit']['page callback'] = 'page_manager_user_edit_page';
@@ -69,7 +70,7 @@ function page_manager_user_edit_menu_alter(&$items, $task) {
  * user edit, which is drupal_get_form('user_profile_form',$account).
  */
 function page_manager_user_edit_page($account) {
-  
+
   // Load my task plugin:
   $task = page_manager_get_task('user_edit');
 
@@ -96,8 +97,8 @@ function page_manager_user_edit_page($account) {
 
   // Otherwise, fall back.
   if ($function == 'drupal_get_form') {
-    
-    //In order to ajax fields to work we need to run form_load_include.  
+
+    //In order to ajax fields to work we need to run form_load_include.
     //Hence we eschew drupal_get_form and manually build the info and
     //call drupal_build_form.
     $form_state = array();
@@ -150,4 +151,21 @@ function page_manager_user_edit_enable($cache, $status) {
   if (!$status) {
     $GLOBALS['page_manager_enabling_user_edit'] = TRUE;
   }
+}
+
+/**
+ * Callback to determine if a page is accessible.
+ *
+ * @param $task
+ *   The task plugin.
+ * @param $subtask_id
+ *   The subtask id
+ * @param $contexts
+ *   The contexts loaded for the task.
+ * @return
+ *   TRUE if the current user can access the page.
+ */
+function page_manager_user_edit_access_check($task, $subtask_id, $contexts) {
+  $context = reset($contexts);
+  return user_edit_access($context->data);
 }

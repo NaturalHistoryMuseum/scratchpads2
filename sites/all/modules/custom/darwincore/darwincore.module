@@ -1,1 +1,30 @@
-<?php include_once('darwincore.features.inc');
+<?php
+include_once ('darwincore.features.inc');
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function darwincore_taxonomy_vocabulary_insert($vocabulary){
+  if($vocabulary->biological_classification){
+    // We have a biological classification.  We need to update the field.
+    $field = field_info_field('field_taxonomic_name');
+    $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+      'parent' => 0,
+      'vocabulary' => $vocabulary->machine_name
+    );
+    $bio_vids = variable_get('biological_vids', array());
+    foreach($bio_vids as $vid => $value){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if($vocabulary){
+        $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+          'parent' => 0,
+          'vocabulary' => $vocabulary->machine_name
+        );
+      }
+    }
+    if(isset($field['settings']['allowed_values'][0])){
+      unset($field['settings']['allowed_values'][0]);
+    }
+    field_update_field($field);
+  }
+}

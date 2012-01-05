@@ -143,6 +143,12 @@ function ctools_custom_content_type_get_conf($subtype, $conf) {
     }
   }
 
+  // Correct for an error that came in because filter format changed.
+  if (is_array($settings['body'])) {
+    $settings['format'] = $settings['body']['format'];
+    $settings['body'] = $settings['body']['value'];
+  }
+
   return $settings;
 }
 
@@ -391,6 +397,10 @@ function ctools_custom_content_type_edit_form_validate(&$form, &$form_state) {
  * The submit form stores the data in $conf.
  */
 function ctools_custom_content_type_edit_form_submit($form, &$form_state) {
+  // Because of changes in filter form, these two keys are out of position:
+  $form_state['values']['format'] = $form_state['values']['body']['format'];
+  $form_state['values']['body'] = $form_state['values']['body']['value'];
+
   if ($form_state['settings']['custom_type'] == 'fixed') {
     _ctools_custom_content_type_edit_save($form_state['settings']['content'], $form_state);
   }
@@ -404,14 +414,9 @@ function ctools_custom_content_type_edit_form_submit($form, &$form_state) {
   }
   else {
     // Otherwise, just save values into $conf normally.
-    // Because of changes in filter form, these two keys are out of position:
-    $form_state['conf']['body'] = $form_state['values']['body']['value'];
-    $form_state['conf']['format'] = $form_state['values']['body']['format'];
 
     foreach (array_keys($form_state['plugin']['defaults']) as $key) {
-      if (isset($form_state['values'][$key]) && $key != 'body' && $key != 'format') {
-        $form_state['conf'][$key] = $form_state['values'][$key];
-      }
+      $form_state['conf'][$key] = $form_state['values'][$key];
     }
   }
 }

@@ -22,6 +22,13 @@ class views_handler_field extends views_handler {
   var $aliases = array();
 
   /**
+   * @var array
+   * Stores additional fields which get's added to the query.
+   * The generated aliases are stored in $aliases.
+   */
+  var $additional_fields = array();
+
+  /**
    * Construct a new field handler.
    */
   function construct() {
@@ -330,7 +337,7 @@ class views_handler_field extends views_handler {
    *   Optional name of the field where the value is stored.
    */
   function get_value($values, $field = NULL) {
-    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;    
+    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;
     if (isset($values->{$alias})) {
       return $values->{$alias};
     }
@@ -685,10 +692,10 @@ class views_handler_field extends views_handler {
         ),
       );
       $form['alter']['alt'] = array(
-        '#title' => t('Alt text'),
+        '#title' => t('Title text'),
         '#type' => 'textfield',
         '#default_value' => $this->options['alter']['alt'],
-        '#description' => t('Text to place as "alt" text which most browsers display as a tooltip when hovering over the link.'),
+        '#description' => t('Text to place as "title" text which most browsers display as a tooltip when hovering over the link.'),
         '#dependency' => array(
           'edit-options-alter-make-link' => array(1),
         ),
@@ -889,7 +896,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
       '#type' => 'checkbox',
       '#title' => t('Hide if empty'),
       '#default_value' => $this->options['hide_empty'],
-      '#description' => t('Enable to hide this field if it is empty. Note that the field label or rewritten output may still be displayed. To hide labels, check the style or row style settings for empty fields. To hide rewritten content, check the "Do not rewrite if empty" checkbox.'),
+      '#description' => t('Enable to hide this field if it is empty. Note that the field label or rewritten output may still be displayed. To hide labels, check the style or row style settings for empty fields. To hide rewritten content, check the "Hide rewriting if empty" checkbox.'),
       '#fieldset' => 'empty_field_behavior',
     );
 
@@ -938,9 +945,6 @@ If you would like to have the characters %5B and %5D please use the html entity 
    * text-replacement rendering is necessary.
    */
   function advanced_render($values) {
-  	
-
-  	
     if ($this->allow_advanced_render() && method_exists($this, 'render_item')) {
       $raw_items = $this->get_items($values);
     }
@@ -952,17 +956,10 @@ If you would like to have the characters %5B and %5D please use the html entity 
       $this->last_render = $value;
       $this->original_value = $value;
     }
-    
-
-    
-    
 
     if ($this->allow_advanced_render()) {
-    	
-
-    	
       $tokens = NULL;
-      if (method_exists($this, 'render_item')) {      	
+      if (method_exists($this, 'render_item')) {
         $items = array();
         foreach ($raw_items as $count => $item) {
           $value = $this->render_item($count, $item);
@@ -997,7 +994,8 @@ If you would like to have the characters %5B and %5D please use the html entity 
         $alter['text'] = $this->options['empty'];
         $this->last_render = $this->render_text($alter);
       }
-    }    
+    }
+
     return $this->last_render;
   }
 
@@ -1088,12 +1086,12 @@ If you would like to have the characters %5B and %5D please use the html entity 
     // sanitize it ourselves.
     $path = $alter['path'];
 
-    // html_entity_decode removes <front>, so check whether its different to front.
+    // strip_tags() removes <front>, so check whether its different to front.
     if ($path != '<front>') {
       // Use strip tags as there should never be HTML in the path.
       // However, we need to preserve special characters like " that
       // were removed by check_plain().
-      $path = strip_tags(html_entity_decode(strtr($path, $tokens)));
+      $path = strip_tags(decode_entities(strtr($path, $tokens)));
 
       if (!empty($alter['path_case']) && $alter['path_case'] != 'none') {
         $path = $this->case_transform($path, $this->options['alter']['path_case']);
@@ -1147,7 +1145,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
     $alt = strtr($alter['alt'], $tokens);
     // Set the title attribute of the link only if it improves accessibility
     if ($alt && $alt != $text) {
-      $options['attributes']['title'] = html_entity_decode($alt, ENT_QUOTES);
+      $options['attributes']['title'] = decode_entities($alt);
     }
 
     $class = strtr($alter['link_class'], $tokens);
@@ -1233,7 +1231,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
       // Use strip tags as there should never be HTML in the path.
       // However, we need to preserve special characters like " that
       // were removed by check_plain().
-      $tokens['!' . $count] = isset($this->view->args[$count - 1]) ? strip_tags(html_entity_decode($this->view->args[$count - 1])) : '';
+      $tokens['!' . $count] = isset($this->view->args[$count - 1]) ? strip_tags(decode_entities($this->view->args[$count - 1])) : '';
     }
 
     // Now add replacements for our fields.

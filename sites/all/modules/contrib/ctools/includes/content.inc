@@ -782,3 +782,32 @@ function ctools_content_select_context($plugin, $subtype, $conf, $contexts) {
 
   return $context;
 }
+
+/**
+ * Fetch a piece of content from the addressable content system.
+ *
+ * @param $address
+ *   A string or an array representing the address of the content.
+ * @param $type
+ *   The type of content to return. The type is dependent on what
+ *   the content actually is. The default, 'content' means a simple
+ *   string representing the content. However, richer systems may
+ *   offer more options. For example, Panels might allow the
+ *   fetching of 'display' and 'pane' objects. Page Manager
+ *   might allow for the fetching of 'task_handler' objects
+ *   (AKA variants).
+ */
+function ctools_get_addressable_content($address, $type = 'content') {
+  if (!is_array($address)) {
+    $address = explode('::', $address);
+  }
+
+  if (!$address) {
+    return;
+  }
+
+  // This removes the module from the address so the
+  // implementor is not responsible for that part.
+  $module = array_shift($address);
+  return module_invoke($module, 'addressable_content', $address, $type);
+}

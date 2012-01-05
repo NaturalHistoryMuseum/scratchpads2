@@ -64,10 +64,9 @@ function og_access_node_access_records($node) {
   $gids = array();
 
   $access = FALSE;
-  if (!empty($node->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'])) {
+  if (!empty($node->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']) && $group = og_get_group('node', $node->nid)) {
     // Group or group content that is explicitly set to be unpublic.
     $access = TRUE;
-    $group = og_get_group('node', $node->nid);
     $gids[] = $group->gid;
   }
   elseif (isset($node->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'])) {

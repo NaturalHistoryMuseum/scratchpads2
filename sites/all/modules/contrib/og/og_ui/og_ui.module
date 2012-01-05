@@ -6,7 +6,7 @@
  */
 
 /**
- * Implement hook_menu().
+ * Implements hook_menu().
  */
 function og_ui_menu() {
   $items = array();
@@ -32,16 +32,6 @@ function og_ui_menu() {
     'access callback' => 'og_user_access_by_entity',
     'access arguments' => array('unsubscribe', 1, 2),
     'title' => 'Leave group',
-  );
-
-  $items['group/%/%/invite'] = array(
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('og_ui_invite_form', 1, 2),
-    'access callback' => 'og_user_access_by_entity',
-    'access arguments' => array('invite', 1, 2),
-    'title' => 'Send invitation',
-    'type' => MENU_CALLBACK,
-    'file' => 'og_ui.pages.inc',
   );
 
   $items['group/%/%/admin/people/add-user'] = array(
@@ -117,7 +107,7 @@ function og_ui_menu() {
   }
 
   $items['admin/config/group'] = array(
-    'title' => 'Group',
+    'title' => 'Organic groups',
     'description' => 'Administer the suite of Organic groups modules.',
     'position' => 'right',
     'weight' => -5,
@@ -186,6 +176,20 @@ function og_ui_menu() {
 }
 
 /**
+ * Implements hook_ctools_plugin_directory().
+ */
+function og_ui_ctools_plugin_directory($module, $plugin) {
+  // Safety: go away if CTools is not at an appropriate version.
+  if (!module_invoke('ctools', 'api_version', OG_MIGRATE_REQUIRED_CTOOLS_API)) {
+    return;
+  }
+
+  if ($module == 'ctools' || $module == 'og_migrate') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function og_ui_admin_paths() {
@@ -221,6 +225,15 @@ function og_ui_theme() {
   );
 }
 
+/**
+ * Implements hook_og_fields_info_alter().
+ *
+ * Change the default formatter of the group field.
+ */
+function og_ui_og_fields_info_alter(&$items) {
+  $items[OG_GROUP_FIELD]['instance']['display']['default']['type'] = 'og_group_subscribe';
+}
+
 
 /**
  * Implement hook_field_formatter_info().
@@ -248,22 +261,47 @@ function og_ui_field_formatter_view($entity_type, $entity, $field, $instance, $l
 }
 
 /**
- * Implements hook_mail().
+ * Implements hook_field_access().
  */
-function og_ui_mail($key, &$message, $params) {
-  $language = $message['language'];
-  $message['subject'] .= _og_mail_text($key . '_subject', $language, $params);
-  $message['body'][] = _og_mail_text($key . '_body', $language, $params);
+function og_ui_field_access($op, $field, $entity_type, $entity, $account) {
+  global $user;
+
+  if ($field['field_name'] != OG_AUDIENCE_FIELD) {
+    return;
+  }
+
+  if (!$user->uid) {
+    // User is anonymous, and user register might try to add the group-audience
+    // field.
+    return;
+  }
+
+  if ($op != 'edit') {
+    return;
+  }
+
+  if ($entity_type != 'user') {
+    return;
+  }
+
+  if (!user_access('administer group', $account)) {
+    return FALSE;
+  }
 }
 
 /**
- * Implements hook_field_attach_form().
+ * Implements hook_og_user_access_alter().
  *
- * Hide the group audience field from the user page, for non-privileged users.
+ * Add a permission to pending users to unsubscribe form group.
  */
-function og_ui_field_attach_form($entity_type, $entity, &$form, $form_state, $langcode) {
-  if ($entity_type == 'user' && !user_access('administer group')) {
-    $form[OG_AUDIENCE_FIELD][LANGUAGE_NONE]['#access'] = FALSE;
+function og_ui_og_user_access_alter(&$perms, $context) {
+  if ($context['string'] == 'unsubscribe' && empty($perm['unsubscribe'])) {
+    // Check user's state.
+    $state = og_get_entity_state($context['group']->gid, 'user', $context['account']);
+    if ($state == OG_STATE_PENDING) {
+      // Allow user to unsubscribe.
+      $perms['unsubscribe'] = TRUE;
+    }
   }
 }
 
@@ -295,19 +333,20 @@ function og_ui_subscribe_link($entity_type, $entity, $account = NULL) {
       );
     }
     else {
-      // check the user state.
-      if ($state = og_get_entity_state($group->gid, 'user', $account)) {
-
-        if ($state == OG_STATE_PENDING && og_user_access($group->gid, 'subscribe')) {
-          $links['title'] = t('Re-request group membership');
-          $links['href'] = "group/$entity_type/$id/subscribe";
-        }
-        elseif ($state == OG_STATE_ACTIVE && og_user_access($group->gid, 'unsubscribe', $account)) {
+      // Check if the user is a group member.
+      if (og_is_member($group->gid, 'user', $account, array(OG_STATE_ACTIVE, OG_STATE_PENDING))) {
+        if (og_user_access($group->gid, 'unsubscribe', $account)) {
           $links['title'] = t('Unsubscribe from group');
           $links['href'] = "group/$entity_type/$id/unsubscribe";
         }
       }
       else {
+        if (og_is_member($group->gid, 'user', $account, array(OG_STATE_BLOCKED))) {
+          // If user is blocked, they should not be able to apply for
+          // membership.
+          return;
+        }
+
         if (og_user_access($group->gid, 'subscribe without approval', $account)) {
           $links['title'] = t('Subscribe to group');
           $url = "group/$entity_type/$id/subscribe";
@@ -570,7 +609,7 @@ function _group_ui_user_operations_set_state($gid, $uids, $state) {
   $accounts = user_load_multiple($uids);
   foreach ($accounts as $account) {
     $values = array('entity' => $account, 'state' => $state);
-    og_group($gid, 'user', $values);
+    og_group($gid, $values);
   }
 }
 

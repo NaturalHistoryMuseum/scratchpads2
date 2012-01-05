@@ -50,7 +50,29 @@ class views_plugin_display extends views_plugin {
     if ($this->is_default_display() && isset($options['defaults'])) {
       unset($options['defaults']);
     }
-    $this->unpack_options($this->options, $options);
+
+    // Cache for unpack_options, but not if we are in the ui.
+    static $unpack_options = array();
+    if (empty($view->editing)) {
+      $cid = 'unpack_options:' . md5(serialize(array($this->options, $options)));
+      if (empty($unpack_options[$cid])) {
+        $cache = views_cache_get($cid, TRUE);
+        if (!empty($cache->data)) {
+          $this->options = $cache->data;
+        }
+        else {
+          $this->unpack_options($this->options, $options);
+          views_cache_set($cid, $this->options, TRUE);
+        }
+        $unpack_options[$cid] = $this->options;
+      }
+      else {
+        $this->options = $unpack_options[$cid];
+      }
+    }
+    else {
+      $this->unpack_options($this->options, $options);
+    }
 
     // Translate changed settings:
     $items_per_page = $this->get_option('items_per_page');
@@ -171,7 +193,7 @@ class views_plugin_display extends views_plugin {
       foreach ($extenders as $extender) {
         $data = views_fetch_plugin_data('display_extender', $extender);
         if (isset($data['handler']) && class_exists($data['handler'])) {
-          $this->extender[$extender] = new $data['handler']($view, $this);
+          $this->extender[$extender] = new $data['handler']($this->view, $this);
         }
         else {
           vpr('Invalid display extender @extender', array('@handler' => $extender));
@@ -729,6 +751,7 @@ class views_plugin_display extends views_plugin {
     if ($this->is_defaulted($option)) {
       return $this->default_display->get_option($option);
     }
+
     if (array_key_exists($option, $this->options)) {
       return $this->options[$option];
     }
@@ -973,7 +996,7 @@ class views_plugin_display extends views_plugin {
       // Use strip tags as there should never be HTML in the path.
       // However, we need to preserve special characters like " that
       // were removed by check_plain().
-      $tokens['!' . $count] = isset($this->view->args[$count - 1]) ? strip_tags(html_entity_decode($this->view->args[$count - 1])) : '';
+      $tokens['!' . $count] = isset($this->view->args[$count - 1]) ? strip_tags(decode_entities($this->view->args[$count - 1])) : '';
     }
 
     return $tokens;
@@ -1293,6 +1316,7 @@ class views_plugin_display extends views_plugin {
    * Provide the default form for setting options.
    */
   function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
     if ($this->defaultable_sections($form_state['section'])) {
       views_ui_standard_display_dropdown($form, $form_state, $form_state['section']);
     }
@@ -2213,12 +2237,12 @@ class views_plugin_display extends views_plugin {
         }
         break;
 
+      case 'link_display':
+        $this->set_option('link_url', $form_state['values']['link_url']);
       case 'title':
       case 'css_class':
-      case 'link_display':
       case 'display_comment':
         $this->set_option($section, $form_state['values'][$section]);
-        $this->set_option('link_url', $form_state['values']['link_url']);
         break;
       case 'field_language':
         $this->set_option('field_language', $form_state['values']['field_language']);
@@ -2275,7 +2299,7 @@ class views_plugin_display extends views_plugin {
         // if row, $style will be empty.
         $plugin = $this->get_plugin(empty($style) ? 'row' : 'style');
         if ($plugin) {
-          $plugin->options_submit($form[$section], $form_state);
+          $plugin->options_submit($form['options'][$section], $form_state);
         }
         $this->set_option($section, $form_state['values'][$section]);
         break;

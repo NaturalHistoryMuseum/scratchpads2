@@ -50,6 +50,10 @@
         }
       }
     }
+    // UPDATE THE NAME LISTENER
+    $('#edit-name', context).keyup(function(event){
+      $('#tui-name-live h2').html($('#edit-name').val());
+    });
     // THIS IS A DIRECT COPY FROM ajax.js, with the resize_frame function
     // added.
     Drupal.ajax["tui-add-link"].commands.insert = function(ajax, response, status){

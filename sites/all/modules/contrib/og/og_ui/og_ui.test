@@ -64,6 +64,78 @@ class OgUiUserPermissionsTestCase extends DrupalWebTestCase {
   }
 }
 
+class OgUiSubscribeTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Organic groups UI subscribe',
+      'description' => 'Verify the subscribe and unsubsribe functionality.',
+      'group' => 'Organic groups UI'
+    );
+  }
+
+  function setUp() {
+    parent::setUp('og_ui', 'entity_test');
+    module_enable(array('entity_feature'));
+    // Add OG group field to the entity_test's "main" bundle.
+    og_create_field(OG_GROUP_FIELD, 'node', 'article');
+  }
+
+  /**
+   * Testing adding people via group/[entity_type]/[etid]/admin/people/add-user.
+   */
+  function testOgUiAddPeople() {
+    $admin_user = $this->drupalCreateUser();
+    $this->drupalLogin($admin_user);
+
+    // Create an entity.
+    $node = entity_create('node', array('type' => 'article', 'uid' => $admin_user->uid));
+    $node->{OG_GROUP_FIELD}[LANGUAGE_NONE][0]['value'] = 1;
+    entity_save('node', $node);
+    $group = og_get_group('node', $node->nid);
+    $this->drupalGet('node/' . $node->nid);
+    $this->assertText(t('You are the group manager'), t('Group manager gets correct text.'));
+
+
+    $web_user = $this->drupalCreateUser();
+    $this->drupalLogin($web_user);
+    $this->drupalGet('node/' . $node->nid);
+    $this->assertText(t('Request group membership'), t('Non-member without "subscribe without approval" gets correct text.'));
+
+    $this->clickLink(t('Request group membership'));
+    // Assert user's request field appears.
+    $this->assertText('Request message', t('Request message does not appear.'));
+    $request = $this->randomString();
+    $edit = array();
+    $edit['membership_fields[og_membership_request][und][0][value]'] = $request;
+    $this->drupalPost(NULL, $edit , t('Join'));
+
+    $og_membership = og_get_group_membership($group->gid, 'user', $web_user->uid);
+    $this->assertEqual($request, $og_membership->og_membership_request[LANGUAGE_NONE][0]['value'], t('User request was saved in group membership.'));
+
+    $this->drupalGet('node/' . $node->nid);
+    $this->assertText(t('Unsubscribe from group'), t('Member gets correct unsubscribe text.'));
+    $this->clickLink(t('Unsubscribe from group'));
+    $this->drupalPost(NULL, array() , t('Remove'));
+
+    $this->assertFalse(og_is_member($group->gid, 'user', $web_user, array(OG_STATE_ACTIVE, OG_STATE_PENDING)), t('User unsubscribed from group.'));
+
+    // Change global permissions to allow user to subscribe without approval.
+    $roles = array_flip(og_get_global_roles());
+    $rid = $roles[OG_ANONYMOUS_ROLE];
+    $permissions = array(
+      'subscribe without approval' => 1,
+    );
+    og_role_change_permissions($rid, $permissions);
+
+    $this->drupalGet('node/' . $node->nid);
+    $this->assertText(t('Subscribe to group'), t('Non-member with "subscribe without approval" gets correct text.'));
+    $this->clickLink(t('Subscribe to group'));
+    $this->assertNoText('Request message', t('Request message does not appear.'));
+    $this->drupalPost(NULL, array() , t('Join'));
+    $this->assertTrue(og_is_member($group->gid, 'user', $web_user), t('User subscribed to group'));
+  }
+}
+
 class OgUiManagePeopleTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
@@ -136,26 +208,40 @@ class OgUiUpgradePathTestCase extends UpgradePathTestCase {
       drupal_get_path('module', 'og_ui') . '/tests/drupal-6.og-ui.database.php',
     );
     parent::setUp();
+    $this->performUpgrade();
+
+    // og_update_7001 required Entity module to be enabled, so we enable the
+    // modules an re-run upgrade.
+    // TODO: Understand why this workround is needed to load all entity classes.
+    module_enable(array('entity'));
+    module_load_include('inc', 'entity' ,'includes/entity');
+    module_load_include('inc', 'entity' ,'includes/entity.controller');
+    module_enable(array('og_migrate', 'og_ui'));
+
+    // Rebuild menu so og-migrate items are added.
+    menu_rebuild();
+
+    // Set small batch sizes, so we can simulate upgrade with many records.
+    variable_set('og_update_batch_size', 3);
+    $this->drupalLogout();
+    $admin_user = $this->drupalCreateUser(array('access administration pages'));
+    $this->drupalLogin($admin_user);
+
+    // Make sure Organic group fields are recognized by the field system.
+    _field_info_collate_fields(TRUE);
+    _field_info_collate_types(TRUE);
   }
 
   /**
    * Test a successful upgrade.
    */
   public function testOgUiUpgrade() {
-    // The upgrade should "fail" since OG won't upgrade until it's enabled.
-    $this->performUpgrade(FALSE);
-
-    // TODO: Understand why this workround is needed to load all entity classes.
-    module_enable(array('entity'));
-    module_load_include('inc', 'entity' ,'includes/entity');
-    module_load_include('inc', 'entity' ,'includes/entity.controller');
-    module_enable(array('og_ui'));
-
-    // TODO: Why is this horrible hack needed?
-    include_once DRUPAL_ROOT . '/includes/install.inc';
-    drupal_set_installed_schema_version('og_ui', 6999);
-
-    $this->performUpgrade(FALSE);
+    // Run the required migration.
+    $edit = array(
+      'migrate[upgrade_group]' => TRUE,
+      'migrate[upgrade_group_visibility]' => TRUE,
+    );
+    $this->drupalPost('admin/config/group/group-migrate', $edit, t('Migrate'));
 
     // Assert according to the scenario Drupal 6's test table dump was created.
     $nodes_info = array(

@@ -81,6 +81,7 @@ function theme_tui_page($variables){
   	</div></div>
   </div>
   <div id="tui-form">
+  	<div id="tui-name-live"><h2>&nbsp;</h2></div>
   	<div id="tui-form-container">
       <div id="tui-form-noform">' . tui_help('admin/structure/taxonomy/%', array(
       3 => $variables['vocabulary']->machine_name

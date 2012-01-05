@@ -1213,3 +1213,69 @@ function page_manager_panels_dashboard_blocks(&$vars) {
     'section' => 'right',
   );
 }
+
+/**
+ * Implement pseudo-hook to fetch addressable content.
+ *
+ * For Page Manager, the address will be an array. The first
+ * element will be the $task and the second element will be the
+ * $task_handler. The third elements will be the arguments
+ * provided.
+ */
+function page_manager_addressable_content($address, $type) {
+  if (count($address) < 3) {
+    return;
+  }
+
+  $task_name = array_shift($address);
+  $subtask_name = array_shift($address);
+  $handler_name = array_shift($address);
+  if ($address) {
+    $arguments = array_shift($address);
+  }
+
+  // Since $arguments is an array of arbitrary size, we need to implode it:
+  if (!empty($arguments)) {
+    // The only choices we have for separators since :: is already
+    // used involve ., - or _. Since - and _ are more common than .
+    // in URLs, let's try .. as an argument separator.
+    $arguments = explode('..', $arguments);
+  }
+  else {
+    // implode does not return an empty array on an empty
+    // string so do it specifically.
+    $arguments = array();
+  }
+
+  $task = page_manager_get_task($task_name);
+  if (!$task) {
+    return;
+  }
+
+  $handler = page_manager_load_task_handler($task, $subtask_name, $handler_name);
+  if (!$handler) {
+    return;
+  }
+
+  $handler_plugin = page_manager_get_task_handler($handler->handler);
+  if (!$handler_plugin) {
+    return;
+  }
+
+  // Load the contexts for the task.
+  ctools_include('context');
+  ctools_include('context-task-handler');
+  $contexts = ctools_context_handler_get_task_contexts($task, $subtask_name, $arguments);
+
+  // With contexts loaded, ensure the task is accessible. Tasks without a callback
+  // are automatically accessible.
+  $function = ctools_plugin_get_function($task, 'access callback');
+  if ($function && !$function($task, $subtask_name, $contexts)) {
+    return;
+  }
+
+  $function = ctools_plugin_get_function($handler_plugin, 'addressable callback');
+  if ($function) {
+    return $function($task, $subtask_name, $handler, $address, $contexts, $arguments, $type);
+  }
+}

@@ -17,3 +17,22 @@ function og_test_node_access($node, $op, $account) {
   }
   return $return;
 }
+
+/**
+ * Implements hook_field_access().
+ */
+function og_test_field_access($op, $field, $entity_type, $entity, $account) {
+  if (!variable_get('og_test_hide_audience', FALSE)) {
+    return;
+  }
+
+  if ($field['field_name'] != OG_AUDIENCE_FIELD) {
+    return;
+  }
+
+  if ($op != 'edit') {
+    return;
+  }
+
+  return FALSE;
+}

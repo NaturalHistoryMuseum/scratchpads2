@@ -161,7 +161,7 @@ function ctools_update_6003() {
   $result = db_query('SELECT status FROM {system} WHERE name = :name', array(':name' => 'panels_views'))->fetchField();
   if ($result) {
     db_delete('system')->condition('name', 'panels_views')->execute();
-    module_enable(array('views_content'), TRUE);  
+    module_enable(array('views_content'), TRUE);
  }
 }
 

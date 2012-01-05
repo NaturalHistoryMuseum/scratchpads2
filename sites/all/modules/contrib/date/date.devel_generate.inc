@@ -1,5 +1,4 @@
 <?php
-// $Id: date.devel_generate.inc,v 1.2 2011/01/18 00:37:34 karens Exp $
 /**
  * @file
  * Date Devel Generate code.
@@ -9,8 +8,8 @@
  *
  * Included only when needed.
  */
-function date_devel_generate($node, $field, $instance, $bundle) {
-  $node_field = array();
+function date_devel_generate($entity, $field, $instance, $bundle) {
+  $entity_field = array();
   if (isset($instance['widget']['settings']['year_range'])) {
     $split = explode(':', $instance['widget']['settings']['year_range']);
     $back = str_replace('-', '', $split[0]);
@@ -31,12 +30,12 @@ function date_devel_generate($node, $field, $instance, $bundle) {
   $increment = $instance['widget']['settings']['increment'];
   date_increment_round($start, $increment);
 
-  // Modify To date by 1 hour to 3 days, shorter for repeating dates
+  // Modify End date by 1 hour to 3 days, shorter for repeating dates
   // longer for others.
   $start2 = clone($start);
   $max = !empty($field['settings']['repeat']) ? 720 : 4320;
   $max = 240;
-  date_modify($start2, '+' . mt_rand(60, $max) . ' minutes');  
+  date_modify($start2, '+' . mt_rand(60, $max) . ' minutes');
   date_increment_round($start2, $increment);
 
   if ($field['settings']['tz_handling'] == 'date') {
@@ -66,19 +65,18 @@ function date_devel_generate($node, $field, $instance, $bundle) {
       $format = DATE_FORMAT_DATETIME;
       break;
   }
-  $node_field['value'] = date_format($start, $format);
+  $entity_field['value'] = date_format($start, $format);
   if ($field['settings']['todate']) {
-    $node_field['value2'] = date_format($start2, $format);
+    $entity_field['value2'] = date_format($start2, $format);
   }
   date_timezone_set($start, timezone_open($timezone));
-  $node_field['timezone'] = $timezone;
-  $node_field['offset'] = date_offset_get($start);
+  $entity_field['timezone'] = $timezone;
+  $entity_field['offset'] = date_offset_get($start);
   date_timezone_set($start2, timezone_open($timezone));
-  $node_field['offset2'] = date_offset_get($start2);          
+  $entity_field['offset2'] = date_offset_get($start2);
 
-  if (!empty($field['settings']['repeat'])) {
+  if (module_exists('date_repeat_field') && !empty($field['settings']['repeat'])) {
     module_load_include('inc', 'date_repeat', 'date_repeat_calc');
-    module_load_include('inc', 'date', 'date_repeat');
     module_load_include('inc', 'date_api', 'date_api_ical');
 
     // Create a repeating date.
@@ -152,14 +150,14 @@ function date_devel_generate($node, $field, $instance, $bundle) {
     $form_values['COUNT'] = $max_items;
 
     $rrule = date_api_ical_build_rrule($form_values);
-    $values = date_repeat_build_dates($rrule, $form_values, $field, $node_field);
+    $values = date_repeat_build_dates($rrule, $form_values, $field, $entity_field);
 
-    $start = $node_field;
-    $node_field = array(0 => $start);
-    $node_field[0]['rrule'] = $rrule;
-    $node_field += $values;
+    $start = $entity_field;
+    $entity_field = array(0 => $start);
+    $entity_field[0]['rrule'] = $rrule;
+    $entity_field += $values;
   }
-  return $node_field;
+  return $entity_field;
 }
 
 function date_content_generate_key($array) {

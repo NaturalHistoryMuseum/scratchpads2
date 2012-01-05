@@ -1,4 +1,3 @@
-; $Id:$
 name = Organic groups
 description = "API to allow associating content with groups."
 package = "Organic groups"
@@ -10,13 +9,15 @@ version = VERSION
 files[] = og.module
 files[] = og.admin.inc
 files[] = includes/og.views.inc
+files[] = og.rules.inc
 
 ; Test files.
 files[] = og.test
 files[] = tests/upgrade/og.upgrade.test
 
 ; Views plugins
-files[] = includes/views/og_plugin_argument_default_group_context.inc
+files[] = includes/views/og_plugin_argument_validate_group.inc
+files[] = includes/views/og_plugin_argument_default_user_groups.inc
 
 ; Views fields
 files[] = includes/views/og_handler_field_group_member_count.inc
@@ -29,23 +30,20 @@ files[] = includes/views/og_handler_field_group_permissions.inc
 files[] = includes/views/og_handler_filter_group_state.inc
 files[] = includes/views/og_handler_filter_group_audience_state.inc
 
-; Views realtionships
+; Views relationships
 files[] = includes/views/og_handler_relationship.inc
 
 ; Views arguments
 files[] = includes/views/og_handler_argument_group_audience_gid.inc
 
-; Rules integration.
-features[rules_config][] = "rules_member_subscribe"
-features[rules_config][] = "rules_member_subscribe_pending"
-features[rules_config][] = "rules_member_unsubscribe"
-
 ; Entity API controllers.
 files[] = includes/og.admin.inc
+files[] = includes/og.info.inc
+files[] = includes/og.views.inc
 
-; Information added by drupal.org packaging script on 2011-03-17
+; Information added by drupal.org packaging script on 2011-12-05
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "og"
-datestamp = "1300320996"
+datestamp = "1323088183"
 

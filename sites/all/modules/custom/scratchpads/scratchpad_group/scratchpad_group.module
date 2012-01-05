@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Code for the Group feature.
+ */
+include_once ('scratchpad_group.features.inc');
+
+/**
+ * Implementation of hook_node_type_insert().
+ * 
+ * If a new content type is created, we need to add the field to it.
+ */
+function scratchpad_group_node_type_insert($info){
+  // Load the features.field.inc file so that we can create the necessary fields
+  // and field instances.
+  module_load_include('features.field.inc', 'scratchpad_group');
+  $fields = scratchpad_group_field_default_fields($info->type);
+  foreach($fields as $field){
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    if(!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])){
+      field_create_instance($field['field_instance']);
+    }
+  }
+}

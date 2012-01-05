@@ -10,6 +10,12 @@
 class views_handler_filter_in_operator extends views_handler_filter {
   var $value_form_type = 'checkboxes';
 
+  /**
+   * @var array
+   * Stores all operations which are available on the form.
+   */
+  var $value_options = NULL;
+
   function construct() {
     parent::construct();
     $this->value_title = t('Options');
@@ -309,7 +315,12 @@ class views_handler_filter_in_operator extends views_handler_filter {
 
         $keys = $this->value;
         $value = array_shift($keys);
-        $values = check_plain($this->value_options[$value]);
+        if (isset($this->value_options[$value])) {
+          $values = check_plain($this->value_options[$value]);
+        }
+        else {
+          $values = '';
+        }
       }
       else {
         foreach ($this->value as $value) {
@@ -320,7 +331,9 @@ class views_handler_filter_in_operator extends views_handler_filter {
             $values .= '...';
             break;
           }
-          $values .= check_plain($this->value_options[$value]);
+          if (isset($this->value_options[$value])) {
+            $values .= check_plain($this->value_options[$value]);
+          }
         }
       }
     }

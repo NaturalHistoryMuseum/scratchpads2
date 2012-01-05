@@ -1,5 +1,5 @@
 <?php
-// $Id: date-views-filter-form.tpl.php,v 1.1 2011/01/16 16:14:01 karens Exp $
+// $Id$
 /**
  * @file
  * Template to display the Views date filter form.
@@ -7,41 +7,41 @@
  * Values available vary depending on the operator. The availability
  * of date vs adjustment depending on the filter settings. It can
  * be date-only, date and adjustment, or adjustment only.
- * 
+ *
  * If the operator is anything but 'Is between' or 'Is not between',
  * a single date and adjustment field is available.
- * 
+ *
  * $date
  * $adjustment
- * 
+ *
  * If the operator is 'Is between' or 'Is not between',
  * two date and adjustment fields are available.
- * 
+ *
  * $mindate
  * $minadjustment
  * $maxdate
  * $maxadjustment
- * 
+ *
  * A description field is also available.
- * 
+ *
  * $description
  */
 ?>
 <div class="date-views-filter-wrapper">
 <div class="container-inline-date date-clear">
-<?php if (!empty($date) || !empty($adjustment)) : ?> 
-  <div class="date-clear"> 
+<?php if (!empty($date) || !empty($adjustment)) : ?>
+  <div class="date-clear">
     <div class="date-views-filter"><?php print $date; ?></div>
     <div class="date-views-filter"><?php print $adjustment ?></div>
   </div>
 <?php endif; ?>
-<?php if (!empty($mindate) || !empty($minadjustment)) : ?>  
+<?php if (!empty($mindate) || !empty($minadjustment)) : ?>
   <div class="date-clear">
     <div class="date-views-filter"><?php print $mindate; ?></div>
     <div class="date-views-filter"><?php print $minadjustment; ?></div>
   </div>
 <?php endif; ?>
-<?php if (!empty($maxdate) || !empty($maxadjustment)) : ?>  
+<?php if (!empty($maxdate) || !empty($maxadjustment)) : ?>
   <div class="date-clear">
     <div class="date-views-filter"><?php print $maxdate; ?></div>
     <div class="date-views-filter"><?php print $maxadjustment; ?></div>
@@ -52,4 +52,4 @@
   <?php print $description; ?>
 </div>
 </div>
-</div>  
+</div>

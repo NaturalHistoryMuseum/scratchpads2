@@ -38,20 +38,16 @@ function beautytips_drupal_help_menu_change(&$items) {
  *  Beautytips added for the help links
  */
 function beautytips_drupal_help_main() {
+  require_once drupal_get_path('module', 'help') . '/help.admin.inc';
   //  Add in beautytips on page - admin/help
   $options['bt_drupal_help_page'] = array(
     'cssSelect' => '.help-items li a',
-    'ajaxPath' => array(0 => "$(this).attr('href')", 1 => '.clear-block p'),
-    'trigger' => array(0 => 'mouseover', 1 => 'click'),
+    'ajaxPath' => array("$(this).attr('href')", '.content'),
+    'trigger' => array('mouseover', 'click'),
     'width' => 350,
   );
   beautytips_add_beautytips($options);
-  require_once drupal_get_path('module', 'help') . '/help.admin.inc';
-  //  Add CSS
-  $help_path = drupal_get_path('module', 'help');
-  drupal_add_css($help_path .'/help.css', 'module', 'all', FALSE);
-  $output = '<h2>'. t('Help topics') .'</h2><p>'. t('Help is available on the following items:') .'</p>'. help_links_as_list();
-  return $output;
+  return help_main();
 }
 
 /**
@@ -83,7 +79,7 @@ function theme_beautytips_drupal_help_more_help_link($url) {
     'width' => 350,
   );
   beautytips_add_beautytips($options);
-  return '<div class="more-help-link">'. t('[<a href="@link">more help...</a>]', array('@link' => check_url($url))) .'</div>';
+  return theme_drupal_help_more_help_link($url);
 }
 
 /**
@@ -98,55 +94,15 @@ function theme_beautytips_drupal_help_more_help_link($url) {
  *   - 'title' to display the topic's title
  *   - any other text to display the text. Be sure to t() it!
  */
-function theme_beautytips_advanced_help_topic($module, $topic, $type = 'icon') { 
+function theme_beautytips_advanced_help_topic(&$variables) {
   // Add bt to advanced-help links
   $options['bt_advanced_help'] = array(
     'cssSelect' => 'a.advanced-help-link',
-    'ajaxPath' => array(0 => "$(this).attr('href')", 1 => '#content-content:not(#content-content.help-navigation)'),
-    'trigger' => array(0 => 'mouseover', 1 => 'click'),
+    'ajaxPath' => array("$(this).attr('href')", '#content-content:not(#content-content.help-navigation)'),
+    'trigger' => array('mouseover', 'click'),
     'width' => 380,
   );
   beautytips_add_beautytips($options);
-  
-  $info = advanced_help_get_topic($module, $topic);
-  if (!$info) {
-    return;
-  }
-
-  switch ($type) {
-    case 'icon':
-      $text = '<span>' . t('Help') . '</span>';
-      $class = 'advanced-help-link';
-      break;
-    case 'title':
-      $text = $info['title'];
-      $class = 'advanced-help-title';
-      break;
-    default:
-      $class = 'advanced-help-title';
-      $text = $type;
-      break;
-  }
-
-  if (user_access('view advanced help popup')) {
-    drupal_add_css(drupal_get_path('module', 'advanced_help') . '/help-icon.css');
-    return l($text, "help/$module/$topic", array(
-      'attributes' => array(
-        'class' => $class,
-        'onclick' => "var w=window.open(this.href, 'advanced_help_window', 'width=". $info['popup width'] .",height=". $info['popup height'] .",scrollbars,resizable'); w.focus(); return false;",
-        'title' => $info['title']
-      ),
-      'query' => array('popup' => TRUE),
-      'html' => TRUE)
-    );
-  }
-  else {
-    return l($text, "help/$module/$topic", array(
-      'attributes' => array(
-        'class' => $class,
-        'title' => $info['title']
-      ),
-      'html' => TRUE)
-    );
-  }
+  return theme_advanced_help_topic($variables);
 }
+

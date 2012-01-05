@@ -1,22 +1,33 @@
-/* Force from/to dates to float using inline-block, where it works, otherwise inline. */
+/**
+ * @file
+ * Main stylesheet for Date module.
+ */
+
+/* Force start/end dates to float using inline-block, where it works, otherwise inline. */
 .container-inline-date {
-  width:auto;
-  clear:both;
-  display: inline-block;
-  vertical-align:top;
-  margin-right: 0.5em; /* LTR */
+  clear: both;
 }
 .container-inline-date .form-item {
-  float:none;
-  padding:0;
-  margin:0;
+  float: none;
+  margin: 0;
+  padding: 0;
+}
+.container-inline-date > .form-item {
+  border: 1px #dedede solid;
+  display: inline-block;
+  margin-right: 0.5em; /* LTR */
+  margin-bottom: 10px;
+  vertical-align: top;
+}
+.views-exposed-form .container-inline-date > .form-item {
+  border:none;
 }
 .container-inline-date .form-item .form-item {
   float: left; /* LTR */
 }
 .container-inline-date .form-item,
 .container-inline-date .form-item input {
-  width:auto;
+  width: auto;
 }
 .container-inline-date .description {
   clear: both;
@@ -31,133 +42,129 @@
 .container-inline-date .date-spacer {
   margin-left: -5px; /* LTR */
 }
+
 .views-right-60 .container-inline-date div {
-  padding:0;
-  margin:0;
+  margin: 0;
+  padding: 0;
 }
 
 .container-inline-date .date-timezone .form-item {
-  float:none;
-  width:auto;
-  clear:both;
+  clear: both;
+  float: none;
+  width: auto;
+}
+
+/* The exposed Views form doesn't need some of these styles */
+.container-inline-date .date-padding {
+  padding: 10px;
+  float: left;
+}
+.views-exposed-form .container-inline-date .date-padding {
+  padding: 0;
 }
 
 /* Fixes for date popup css so it will behave in Drupal */
-#calendar_div, #calendar_div td, #calendar_div th {
-  margin:0;
-  padding:0;
+#calendar_div,
+#calendar_div td,
+#calendar_div th {
+  margin: 0;
+  padding: 0;
 }
 #calendar_div,
 .calendar_control,
 .calendar_links,
 .calendar_header,
 .calendar {
-  width: 185px;
   border-collapse: separate;
   margin: 0;
+  width: 185px;
 }
+
 .calendar td {
   padding: 0;
 }
 
-/* formatting for from/to dates in nodes and views */
+/* formatting for start/end dates in nodes and views */
 span.date-display-single {
 }
 span.date-display-start {
 }
 span.date-display-end {
 }
-span.date-display-separator {
-}
 
-.date-repeat-input {
-  float: left; /* LTR */
-  width:auto;
-  margin-right: 5px; /* LTR */
-}
-.date-repeat-input select {
-  min-width:7em;
-}
-.date-repeat fieldset {
-  clear:both;
-  float:none;
+.date-prefix-inline {
+  display: inline-block;
 }
 
 .date-views-filter-wrapper {
-  min-width:250px;
+  min-width: 250px;
 }
 .date-views-filter input {
   float: left !important; /* LTR */
   margin-right: 2px !important; /* LTR */
-  padding:0 !important;
-  width:12em;
-  min-width:12em;
+  min-width: 12em;
+  padding: 0 !important;
+  width: 12em;
 }
+
 /* Give the navigation bar a little extra padding below so it will clear the new contextual links overlay of the teasers below it. */
 .date-nav {
-  width:100%;
-  padding-bottom:1.5em;
   clear: both;
+  padding-bottom: 1.5em;
+  width: 100%;
 }
 .date-nav div.date-prev {
-  text-align: left; /* LTR */
-  width:24%;
   float: left; /* LTR */
+  text-align: left; /* LTR */
+  width: 24%;
 }
 .date-nav div.date-next {
-  text-align: right; /* LTR */
-  width:24%;
   float: right; /* LTR */
+  text-align: right; /* LTR */
+  width: 24%;
 }
 .date-nav div.date-heading {
-  text-align:center;
-  width:50%;
   float: left; /* LTR */
+  text-align: center;
+  width: 50%;
 }
 .date-nav div.date-heading h3 {
-  margin:0;
-  padding:0;
+  margin: 0;
+  padding: 0;
 }
 
 .date-clear {
-  float:none;
-  clear:both;
-  display:block;
+  clear: both;
+  display: block;
+  float: none;
 }
 
-.date-clear-block {
-  float:none;
-  width:auto;
-  clear:both;
+.date-no-float {
+  clear: both;
+  float: none;
+  width: 98%;
 }
 
-/* 	 
- ** Markup free clearing that fixes unwanted scrollbars 	 
- ** @see http://drupal.org/node/232959 	 
- */ 	 
- .date-clear-block:after { 	 
-   content: " "; 	 
-   display: block; 	 
-   height: 0; 	 
-   clear: both; 	 
-   visibility: hidden; 	 
- } 	 
- .date-clear-block { 	 
-   display: inline-block; 	 
- } 	 
- /* Hides from IE-mac \*/ 	 
- * html .date-clear-block { 	 
-   height: 1%; 	 
- } 	 
- .date-clear-block { 	 
-   display: block; 	 
- } 	 
- /* End hide from IE-mac */
+.date-float {
+  clear: none;
+  float: left;
+  width: auto;
+}
+
+/* Add space between date option checkboxes ('All day' & 'Collect End Date') */
+.date-float .form-type-checkbox{
+  padding-right: 1em;
+}
+
+/* Add space between the date and time portions of the date_select widget. */
+.form-type-date-select .form-type-select[class$=hour] {
+  margin-left: .75em; /* LTR */
+}
 
 .date-container .date-format-delete {
+  float: left;
   margin-top: 1.8em;
   margin-left: 1.5em;
-  float: left;
 }
 .date-container .date-format-name {
   float: left;
@@ -174,35 +181,49 @@ span.date-display-separator {
 
 /* Calendar day css */
 div.date-calendar-day {
-  line-height: 1;
-  width: 40px;
-  float: left;
-  margin: 6px 10px 0 0;
   background: #F3F3F3;
-  border-top: 1px solid #eee;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #bbb;
-  border-bottom: 1px solid #bbb;
+  border-top: 1px solid #EEE;
+  border-left: 1px solid #EEE;
+  border-right: 1px solid #BBB;
+  border-bottom: 1px solid #BBB;
   color: #999;
+  float: left;
+  line-height: 1;
+  margin: 6px 10px 0 0;
   text-align: center;
-  font-family: Georgia, Arial, Verdana, sans;
+  width: 40px;
 }
+
 div.date-calendar-day span {
-  display: block;  
+  display: block;
   text-align: center;
 }
 div.date-calendar-day span.month {
-  font-size: .9em;
   background-color: #B5BEBE;
   color: white;
+  font-size: .9em;
   padding: 2px;
   text-transform: uppercase;
 }
 div.date-calendar-day span.day {
-  font-weight: bold;
   font-size: 2em;
+  font-weight: bold;
 }
 div.date-calendar-day span.year {
   font-size: .9em;
   padding: 2px;
+}
+
+/* Admin styling */
+.form-item.form-item-instance-widget-settings-input-format-custom,
+.form-item.form-item-field-settings-enddate-required {
+  margin-left: 1.3em;
+}
+
+#edit-field-settings-granularity .form-type-checkbox {
+  margin-right: .6em; /* LTR */
+}
+
+.date-year-range-select {
+  margin-right: 1em;
 }

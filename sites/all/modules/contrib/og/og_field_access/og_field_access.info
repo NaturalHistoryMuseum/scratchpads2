@@ -1,4 +1,3 @@
-; $Id:$
 name = Organic groups field access
 description = "Provide field access based on group."
 package = "Organic groups"
@@ -9,9 +8,9 @@ files[] = og_field_access.module
 ; Tests
 files[] = og_field_access.test
 
-; Information added by drupal.org packaging script on 2011-03-17
+; Information added by drupal.org packaging script on 2011-12-05
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "og"
-datestamp = "1300320996"
+datestamp = "1323088183"
 

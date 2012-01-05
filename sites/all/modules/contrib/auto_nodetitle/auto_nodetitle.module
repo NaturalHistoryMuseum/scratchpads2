@@ -14,7 +14,7 @@ define('AUTO_NODETITLE_OPTIONAL', 2);
  */
 function auto_nodetitle_permission() {
   return array(
-    'Use PHP for title patterns' => array(
+    'use PHP for title patterns' => array(
       'title' => t('Use PHP for title patterns'),
       'description' => t('Use PHP for title patterns.'),
       'restrict access' => TRUE,
@@ -128,7 +128,7 @@ function auto_nodetitle_operations_update($nodes) {
   */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
-  $output = token_replace($pattern, array('node' => $node, 'sanitize' => FALSE));
+  $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE));
   // Evalute PHP.
   if (variable_get('ant_php_' . $node->type, 0)) {
     $output = auto_nodetitle_eval($output, $node);

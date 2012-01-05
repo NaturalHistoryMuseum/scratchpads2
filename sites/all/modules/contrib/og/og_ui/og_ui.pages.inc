@@ -39,20 +39,36 @@ function og_ui_subscribe($entity_type, $etid, $uid = NULL) {
     $entity = entity_load($entity_type, array($etid));
     $entity = reset($entity);
 
-    // Check user isn't already subscribed.
-    if (in_array($group->gid, og_get_entity_groups('user', $account))) {
-      $params = array(
-        '@user' => $account->name,
-        // TODO: check user has permissions to see label (e.g. node title).
-        '@group' => og_entity_label($entity_type, $entity),
-      );
+    $redirect = FALSE;
+    $params = array(
+      '@user' => format_username($account),
+      // TODO: check user has permissions to see label (e.g. node title).
+      '@group' => og_entity_label($entity_type, $entity),
+    );
+    if (og_is_member($group->gid, 'user', $account, array(OG_STATE_BLOCKED))) {
+      // User is blocked, give them access denied.
+      drupal_access_denied();
+    }
+    if (og_is_member($group->gid, 'user', $account, array(OG_STATE_PENDING))) {
+      // User is pending, return them back.
+      $message = $account->uid == $user->uid ? t('You already have a pending membership for the group @group.', $params) : t('@user already has a pending membership for the  the group @group.', $params);
+      $redirect = TRUE;
+    }
 
+    if (og_is_member($group->gid, 'user', $account, array(OG_STATE_ACTIVE))) {
+      // User is already a member, return them back.
       $message = $account->uid == $user->uid ? t('You are already a member of the group @group.', $params) : t('@user is already a member of the group @group.', $params);
-      drupal_set_message($message);
+      $redirect = TRUE;
+    }
 
+    if (!empty($message)) {
+      drupal_set_message($message);
+    }
+    if ($redirect) {
       _group_ui_redirect($entity_type, $entity);
     }
-    elseif (og_user_access($group->gid, 'subscribe', $account) || og_user_access($group->gid, 'subscribe without approval', $account)) {
+
+    if (og_user_access($group->gid, 'subscribe', $account) || og_user_access($group->gid, 'subscribe without approval', $account)) {
       // Show the user a subscription confirmation.
       return drupal_get_form('og_ui_confirm_subscribe', $group, $account);
     }
@@ -69,15 +85,43 @@ function og_ui_subscribe($entity_type, $etid, $uid = NULL) {
 function og_ui_confirm_subscribe($form, &$form_state, $group, $account) {
   $form['group'] = array('#type' => 'value', '#value' => $group);
   $form['account'] = array('#type' => 'value', '#value' => $account);
-  if (!og_user_access($group->gid, 'subscribe without approval')) {
-    $form['request'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Additional details'),
-      '#description' => t('Add any detail which will help an administrator decide whether to approve or deny your membership request.')
-    );
+
+  // Add group membership form.
+  // TODO: We need to associate a group membership with group?
+  $type = OG_MEMBERSHIP_TYPE_DEFAULT;
+  $form['membership_type'] = array('#type' => 'value', '#value' => $type);
+  $dummy_entity = og_membership_create(0, 'user', 0, array('type' => $type));
+  $form['membership_fields'] = array(
+    '#prefix' => '<div id="og-ui-membership-type">',
+    '#suffix' => '</div>',
+    '#tree' => TRUE,
+    '#parents' => array('membership_fields'),
+  );
+  field_attach_form('og_membership', $dummy_entity, $form['membership_fields'], $form_state);
+
+  if (og_user_access($group->gid, 'subscribe without approval')) {
+    // Hide the user request field.
+    if (!empty($form['membership_fields'][OG_MEMBERSHIP_REQUEST_FIELD])) {
+      $form['membership_fields'][OG_MEMBERSHIP_REQUEST_FIELD]['#access'] = FALSE;
+    }
   }
+
   $label = og_label($group->gid);
   return confirm_form($form, t('Are you sure you want to join the group %title?', array('%title' => $label)), "$group->entity_type/$group->etid", ' ', t('Join'), t('Cancel'));
+}
+
+/**
+ * Submit handler; Confirm OG membership.
+ */
+function og_ui_confirm_subscribe_validate($form, &$form_state) {
+  // @see entity_form_field_validate().
+  $dummy_entity = new stdClass();
+  if (!empty($form_state['values']['membership_fields'])) {
+    $dummy_entity = (object) $form_state['values']['membership_fields'];
+  }
+  $dummy_entity->type = $form_state['values']['membership_type'];
+
+  field_attach_form_validate('og_membership', $dummy_entity, $form['membership_fields'], $form_state);
 }
 
 /**
@@ -88,9 +132,12 @@ function og_ui_confirm_subscribe_submit($form, &$form_state) {
   $account = $form_state['values']['account'];
 
   $state = og_user_access($group->gid, 'subscribe without approval') ? OG_STATE_ACTIVE : OG_STATE_PENDING;
-  // Pass the user's request to the grouping action.
-  $form_state['values'] += array('request' => '');
-  $values = array('entity' => $account, 'state' => $state, 'user request' => $form_state['values']['request']);
+  $values = array(
+    'entity' => $account,
+    'state' => $state,
+    'membership type' => $form_state['values']['membership_type'],
+    'membership fields' => $form_state['values']['membership_fields'],
+  );
   og_group($group->gid, $values);
 
   // Redirect.
@@ -110,19 +157,19 @@ function og_ui_unsubscribe($entity_type, $etid) {
     global $user;
     $label = og_label($group->gid);
     // Check the user isn't the manager of the group.
-    $entity= entity_load($group->entity_type, array($group->etid));
-    $entity = reset($entity);
-    if (!empty($entity->uid) && $entity->uid != $user->uid) {
-      $user_groups = og_get_entity_groups('user', $user);
-      if (!empty($user_groups[$group->gid])) {
+    $manager = $group->user();
+    if ($manager->uid != $user->uid) {
+      $account = clone $user;
+      if (og_is_member($group->gid, 'user', $account, array(OG_STATE_ACTIVE, OG_STATE_PENDING))) {
         // Show the user a subscription confirmation.
-        return drupal_get_form('og_ui_confirm_unsubscribe', $group, $user);
+        return drupal_get_form('og_ui_confirm_unsubscribe', $group, $account);
       }
     }
     else {
       drupal_set_message(t('As the manager of %group, you can not leave the group.', array('%group' => $label)));
     }
-    _group_ui_redirect($entity_type, $entity);
+    $entity= $group->getEntity();
+    _group_ui_redirect($group->entity_type, $entity);
   }
   // Not a valid group.
   drupal_not_found();

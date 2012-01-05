@@ -140,8 +140,10 @@ Quite a few more fields are available in this definition:
   <dt>extra</dt>
   <dd>Either a string that's directly added, or an array of items. Each item is, itself, an array:
     <dl>
+      <dt>table</dt>
+      <dd>table should not be set in most cases, as it would be filled with the right table alias. Set it to NULL if you want to use a formular in "field"</dd>
       <dt>field</dt>
-      <dd>Field or formula</dd>
+      <dd>Field or formula, therein "%alias" can be used to reference the right table.</dd>
       <dt>operator</dt>
       <dd>Similar to filters, this is the operator, such as &gt;, &lt;, =, etc. Defaults to = or IN.</dd>
       <dt>value</dt>
@@ -239,7 +241,7 @@ For more information about what handlers need/use what data, visit <a href="http
 If you need to rename some tables/fields you can create some references in the views data to be able to continue to work.
 Therefore you create the whole table structure of the current views data.
 
-If you have to rename a single table you need to specify 
+If you have to rename a single table you need to specify
 <pre>
 $data['oldtable']['moved to'] = 'newtable';
 </pre>
