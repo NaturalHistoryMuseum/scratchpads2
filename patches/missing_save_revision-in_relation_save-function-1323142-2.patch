@@ -1,0 +1,29 @@
+diff --git a/relation.module b/relation.module
+index 654573f..f2fdf9f 100644
+--- relation.module
++++ relation.module
+@@ -589,12 +589,24 @@ function relation_save($relation) {
+   }
+   else {
+     $keys = array();
++    $relation->changed = time();
++    $relation->created = time();
+     $op = 'insert';
+   }
+   field_attach_presave('relation', $relation);
+   module_invoke_all('entity_presave', $relation, 'relation');
+   drupal_write_record('relation', $relation, $keys);
++  // for update relation, unset vid avoid duplicate vid in relation_revision table.
++  if (isset($relation->vid)) {
++    unset($relation->vid);
++  }
+   drupal_write_record('relation_revision', $relation);
++  // update vid to relation table.
++  db_update('relation')
++        ->fields(array('vid' => $relation->vid))
++        ->condition('rid', $relation->rid)
++        ->execute();
++
+   call_user_func("field_attach_$op", 'relation', $relation);
+   module_invoke_all('entity_' . $op, $relation, 'relation');
+   module_invoke('rules', 'invoke_event', 'relation_' . $op, $relation);

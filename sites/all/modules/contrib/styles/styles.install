@@ -16,6 +16,9 @@ function styles_install() {
  * Implement hook_uninstall().
  */
 function styles_uninstall() {
+  // #1147284: Manually load styles.module for styles_variable_default().
+  drupal_load('module', 'styles');
+
   foreach (styles_variable_default() as $variable => $value) {
     styles_variable_del($variable);
   }

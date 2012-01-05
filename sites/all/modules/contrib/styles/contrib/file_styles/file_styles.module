@@ -27,10 +27,21 @@ function file_styles_styles_register() {
  * Styles filter callback.
  *
  * This will determine the correct style container corresponding to media type.
+ *
+ * @param $object
+ *   A file object with a uri value specified in the $object->uri. Note: the
+ *   file object may also be sent in a wrapper (Eg, $object->file->uri).
+ * @param $element
+ *   The element parameter is ignored by this callback.
  */
 function file_styles_styles_filter($object, $element = NULL) {
+  // Remove the wrapper object from around the actual file, if provided.
+  if (isset($object->file) && is_object($object->file)) {
+    $object = $object->file;
+  }
+
   // Ensure we're working against the fully loaded file object.
-  $file = !empty($object->file) ? $object->file : file_styles_uri_to_object($object->uri, TRUE);
+  $object = file_styles_uri_to_object($object->uri, TRUE);
 
   // Allow other modules to define their own file styles.
   // In general, they'll most likely want to check against the mimetype.
@@ -46,7 +57,7 @@ function file_styles_styles_filter($object, $element = NULL) {
   // Now check the part of the mimetype before the slash.
   // Note that we can't use strstr($haystack, $needle, $before_needle)
   // < PHP 5.3, so we need a work-around.
-  $filter = file_styles_strstr($file->filemime, '/', TRUE);
+  $filter = file_styles_strstr($object->filemime, '/', TRUE);
   if (isset($containers['containers'][$filter])) {
     return $filter;
   }

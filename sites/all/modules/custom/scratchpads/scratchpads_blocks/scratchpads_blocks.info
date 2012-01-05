@@ -1,0 +1,4 @@
+name = Scratchpads blocks
+description = Custom blocks for the scratchpads theme.
+package = "Scratchpads"
+core = 7.x

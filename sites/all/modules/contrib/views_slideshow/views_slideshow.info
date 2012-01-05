@@ -1,0 +1,17 @@
+name = Views Slideshow
+description = Provides a View style that displays rows as a jQuery slideshow.  This is an API and requires Views Slideshow Cycle or another module that supports the API.
+dependencies[] = views
+package = Views
+core = 7.x
+
+files[] = views_slideshow.module
+files[] = theme/views_slideshow.theme.inc
+files[] = views_slideshow.views.inc
+files[] = views_slideshow_plugin_style_slideshow.inc
+
+; Information added by drupal.org packaging script on 2011-10-26
+version = "7.x-3.0"
+core = "7.x"
+project = "views_slideshow"
+datestamp = "1319589616"
+

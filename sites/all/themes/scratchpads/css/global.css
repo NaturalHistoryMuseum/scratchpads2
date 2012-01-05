@@ -1,0 +1,323 @@
+/* This file will hold the main styles for your website. */
+
+html,
+body{
+	margin:0;
+	padding:0;
+	height:100%;
+}
+
+#page{
+  min-height: 100%;
+  position: relative;
+}
+
+#section-content{
+  padding-bottom: 20em;
+}
+
+
+
+#section-footer{
+  position:absolute;
+  bottom: 0;
+  width: 100%;
+
+/*height: 4em;*/
+
+}
+
+/* Typography */
+
+body, h2.block-title{
+    font: 12px/1.5 Verdana,Helvetica,Arial,sans-serif;
+}
+
+h2.block-title{
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+body *{
+  font-weight: normal;
+  letter-spacing: normal;
+}
+
+/*@font-face {
+    font-family: "Fontin Sans";
+    src: url("../fonts/FontinSans_49/Fontin_Sans_R_45b.otf");
+    font-weight: normal;
+}*/
+/*@font-face {
+    font-family: "Fontin Sans";
+    src: url("../fonts/FontinSans_49/Fontin_Sans_I_45b.otf");
+    font-style: italic;
+}*/
+
+h1{
+	font-family: Georgia, serif;
+	font-weight: normal!important;
+	letter-spacing: 0.5px;
+	font-size: 3em;
+	line-height: 1.2em;
+	margin: 0 0 10px 0;
+}
+
+
+.front h1{
+  font-size: 2em;
+}
+
+body,
+#main-menu a:active, 
+#main-menu a.active,
+#main-menu a:hover,
+#main-menu a:focus,
+#main-menu a.active-trail{
+  color: #3E3E3E;
+  letter-spacing: normal;
+}
+
+.section-header .site-name a,
+.section-header h6.site-slogan{
+  color: #fff;
+}
+
+.section-header h6.site-slogan{
+  font-style: italic;
+  letter-spacing: normal;
+  font-size: 1.2em;
+  font-style: italic;
+  word-spacing: 0.1em;
+}
+
+h1,h2,h3,h4,h5,h6{
+  font-weight: normal;
+}
+
+
+
+/************************ Layout *********************/ 
+
+
+
+/* Slide top & bottom */
+
+
+#zone-slide-top-wrapper,
+#zone-slide-bottom-wrapper{
+  background: #262626;
+  text-align: right;
+}
+
+#zone-slide-top-wrapper form#user-login-form{
+  padding: 20px 0 30px 0;
+}
+
+#zone-slide-top-wrapper form#user-login-form .item-list{
+  display: block;
+  margin-top: 10px;
+}
+
+#zone-slide-top-wrapper form#user-login-form .item-list li{
+  display: inline;
+  font-size: 0.9em;
+}
+
+#zone-slide-top-wrapper a, #zone-slide-top-wrapper label{
+  color: #fff;
+}
+
+#zone-slide-top-wrapper form#user-login-form label{
+  display: inline-block;
+  margin-left: 40px;
+  margin-right: 5px;
+}
+
+#zone-slide-top-wrapper form#user-login-form #edit-actions{
+  margin-left: 20px;
+}
+
+#zone-slide-top-wrapper form#user-login-form div{
+  display: inline-block;
+}
+
+a.scratchpads-slide-toggle{
+  position: absolute;
+  right: 0;
+  padding: 0 10px;
+  text-align: center;
+  height: 20px;
+  font-size: 11px;
+  line-height: 16px;
+  background: #262626;
+  text-decoration: none;
+}
+
+#zone-slide-top-wrapper a.scratchpads-slide-toggle{ 
+  bottom: -20px;
+  -khtml-border-radius-bottomleft: 8px;
+  -khtml-border-radius-bottomright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  -moz-border-radius-bottomright: 8px;
+  -webkit-border-bottom-left-radius: 8px;
+  -webkit-border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}  
+
+#zone-slide-bottom-wrapper a.scratchpads-slide-toggle{
+  top: -20px;
+  -khtml-border-radius-topleft: 8px;
+  -khtml-border-radius-topright: 8px;
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -webkit-border-top-left-radius: 8px;
+  -webkit-border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  line-height: 14px;
+}
+
+
+/* Header */
+
+h1.site-name, 
+h2.site-name {
+  font-size: 40px;
+  margin: 30px 0 8px 0;
+}
+
+.section-header h6.site-slogan{
+  margin: 8px 0 5px 0;
+}
+
+.section-header #region-menu{
+  margin-top: 20px;
+}
+
+#region-header{
+  margin-top: 40px;
+}
+
+#region-header #search-block-form div.form-actions{
+  float: right;
+  margin: 0;
+}
+
+#region-header #search-block-form div.form-actions input{
+  margin-right: 0;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: none;
+  text-shadow: none;
+  padding: 7px 12px;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+#region-header #search-block-form .form-item{
+  margin: 0;
+}
+
+#region-header #search-block-form .form-item input{
+  width: 280px;
+  height: 26px;
+  margin-top: 1px;
+}
+
+#region-header #search-block-form .element-invisible{
+  height: 0;
+  margin: 0;
+}
+
+
+/* Footer */
+
+.zone-footer-wrapper{
+  background: #F1F1F1;
+  padding: 20px 0 30px 0  
+}
+
+/* Footer links & menu */
+
+.block-footer-menu{
+  margin-bottom: 20px;
+}
+
+.block-footer-logos{
+  margin-bottom: 10px;
+}
+
+.block-footer-menu ul,
+.block-footer-logos ul,
+.block-footer-links{
+  text-align: center;
+}
+
+.block-footer-menu ul li,
+.block-footer-logos ul li{
+  display: inline;
+  list-style: none;
+}
+
+.block-footer-logos ul li{
+  padding: 0 10px;
+}
+
+/************************ Content *********************/ 
+
+#zone-content .region{
+  margin-bottom: 30px;
+}
+
+
+/* Breadcrumb */
+.breadcrumb{
+  margin: 13px 0 10px 0;
+  color: #898A8C;
+}
+
+/* Allow for no breadcrumb on front page*/
+.front #section-content{
+  margin-top: 30px;
+}
+
+/* Sidebar */
+#region-sidebar{
+  background-color: #EDEDED;
+}
+
+#region-sidebar .region-inner{
+  padding: 15px 10px;
+}
+
+#region-sidebar ul.menu li{
+  list-style: none;
+  padding: 0;
+}
+
+#region-sidebar ul.menu li a{
+  margin-bottom: 5px;
+  display: block;
+}
+
+ul.menu li{
+  margin-left: 10px;
+}
+
+/************************ BLOCKS *********************/ 
+
+#zone-content .block{
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+
+h2.block-title{
+  line-height: 14px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+

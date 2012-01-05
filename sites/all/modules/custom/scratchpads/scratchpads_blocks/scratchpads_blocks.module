@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_blocks_block_info(){
+  $blocks['footer_menu'] = array(
+    'info' => t('Scratchpads footer menu'),
+    'region' => 'footer'
+  );
+  $blocks['footer_links'] = array(
+    'info' => t('Scratchpads footer links'),
+    'region' => 'footer'
+  );
+  $blocks['footer_logos'] = array(
+    'info' => t('Scratchpads footer logos'),
+    'region' => 'footer'
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_blocks_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'footer_menu':
+      $tree = menu_tree_page_data('main-menu', 1);
+      $block['content'] = menu_tree_output($tree);
+      break;
+    case 'footer_logos':
+      $path = drupal_get_path('module', 'scratchpads_blocks');
+      $options = array(
+        'html' => true,
+        'absolute' => true
+      );
+      // TODO - Creative commons.
+      $links = array(
+        l(theme('image', array(
+          'path' => $path . '/images/vbrant.png',
+          'alt' => 'ViBRANT logo',
+          'title' => 'ViBRANT'
+        )), 'http://vbrant.eu/', $options),
+        l(theme('image', array(
+          'path' => $path . '/images/cc.png',
+          'alt' => 'Creative Commons',
+          'title' => 'Creative Commons'
+        )), 'http://creativecommons.org/licenses/by-nc-sa/3.0/', $options),
+        l(theme('image', array(
+          'path' => $path . '/images/drupal_small.png',
+          'alt' => 'Drupal logo',
+          'title' => 'Built with Drupal'
+        )), 'http://drupal.org/', $options),
+        l(theme('image', array(
+          'path' => $path . '/images/scratchpads.png',
+          'alt' => 'Scratchpads logo',
+          'title' => 'Scratchpads'
+        )), 'http://scratchpads.eu/', $options)
+      );
+      $block['content'] = array(
+        '#theme' => 'item_list',
+        '#items' => $links
+      );
+      break;
+    case 'footer_links':
+      $block['content'] = l('Other scratchpads', '/scratchpads');
+      break;
+  }
+  return $block;
+}

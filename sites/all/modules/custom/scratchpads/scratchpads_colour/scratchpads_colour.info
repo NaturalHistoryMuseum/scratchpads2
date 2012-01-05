@@ -1,0 +1,4 @@
+name = Scratchpads colour switcher
+description = Allow user to switch colour
+package = "Scratchpads"
+core = 7.x
