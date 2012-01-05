@@ -1,0 +1,6 @@
+name = Scratchpads front page
+description = Custom front page for the scratchpads theme
+package = "Scratchpads"
+core = 7.x
+dependencies[] = views
+dependencies[] = views_slideshow

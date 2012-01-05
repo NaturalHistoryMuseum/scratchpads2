@@ -1,0 +1,329 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * CORE HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_front_permission(){
+  return array(
+    'administer front page' => array(
+      'title' => t('Administer front page')
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_front_menu(){
+  $items['scratchpads-front'] = array(
+    // The page callback also invokes drupal_set_title() in case
+    // the menu router's title is overridden by a menu link.
+    'page callback' => 'scratchpads_front_page_view',
+    'access arguments' => array(
+      'access content'
+    )
+  );
+  $items['scratchpads-front/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+  $items['scratchpads-front/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'scratchpads_front_page_edit'
+    ),
+    'access arguments' => array(
+      'administer front page'
+    ),
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_front_admin_paths(){
+  $paths = array(
+    'scratchpads-front/edit' => true
+  );
+  return $paths;
+}
+
+/**
+ * 
+ * Implements hook_form_alter().
+ * Chnage the site information settings for the default front page
+ * @param array $form
+ * @param array $form_state
+ * @param string $form_id
+ */
+function scratchpads_front_form_alter(&$form, $form_state, $form_id){
+  switch($form_id){
+    case 'system_site_information_settings':
+      unset($form['front_page']['default_nodes_main']);
+      // TODO - add this to the sign up form
+      $form['front_page']['front_page_welcome_message'] = array(
+        '#title' => t('Welcome message'),
+        '#type' => 'textarea',
+        '#description' => t('Please enter an introductory message to welcome people to your site. This will be diaplyed on your home page.'),
+        '#default_value' => variable_get('front_page_welcome_message'),
+        '#required' => true
+      );
+      break;
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * VIEWS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_front_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_front');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes'
+  );
+}
+
+/**
+ * Implements hook_views_pre_view().
+ * Pass the view front page settings as arguments
+ */
+function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
+  switch($view->name){
+    case 'front_page_blocks':
+      $var = 'front_page_' . $display_id . '_node_type';
+      $view->args[] = variable_get($var);
+      break;
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * MENU CALLBACKS
+ * 
+ ********************************************************************************************/
+/**
+ * Menu callback
+ * Display the home page
+ */
+function scratchpads_front_page_view(){
+  $path = drupal_get_path('module', 'scratchpads_front');
+  $welcome_message = '<h1 id="page-title" class="title"> ';
+  $welcome_message .= t('Welcome to @site-name', array(
+    '@site-name' => variable_get('site_name', 'Drupal')
+  ));
+  $welcome_message .= '</h1>';
+  $welcome_message .= check_markup(variable_get('front_page_welcome_message'));
+  switch(scratchpads_front_variable_get('front_page_main_block_type')){
+    case 'images':
+      $view_name = 'front_page_slideshow';
+      $args = array();
+      break;
+    case 'content':
+      $view_name = 'front_page_content';
+      $args = array(
+        scratchpads_front_variable_get('front_page_main_block_node_type')
+      );
+      break;
+  }
+  // Load the view and render it.
+  if($view = views_get_view($view_name)){
+    $block = $view->execute_display(NULL, $args);
+  }
+  return array(
+    'welcome' => array(
+      '#prefix' => '<div class="grid-4 alpha">',
+      '#markup' => $welcome_message,
+      '#suffix' => '</div>'
+    ),
+    'block' => array(
+      '#prefix' => '<div class="grid-8 omega">',
+      '#markup' => $block,
+      '#suffix' => '</div>'
+    ),
+    '#attached' => array(
+      'css' => array(
+        $path . '/css/scratchpads_front.css'
+      )
+    )
+  );
+}
+
+/**
+ * Menu callback
+ * Edit the home page
+ */
+function scratchpads_front_page_edit($form, &$form_state){
+  $node_types = scratchpads_front_node_types();
+  $form['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#description' => t('Please enter an introductory message to welcome people to your site.'),
+    '#default_value' => variable_get('front_page_welcome_message'),
+    '#required' => true
+  );
+  $form['main_block'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Main block'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  $form['main_block']['front_page_main_block_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Main block'),
+    '#default_value' => scratchpads_front_variable_get('front_page_main_block_type'),
+    '#options' => array(
+      'images' => t('Images'),
+      'content' => t('Content')
+    ),
+    '#description' => t('Please select what content type to display in the main front page block.'),
+    '#required' => true
+  );
+  $form['main_block']['front_page_main_block_node_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Content type'),
+    '#options' => array(
+      'all' => 'All content types'
+    ) + $node_types,
+    '#default_value' => scratchpads_front_variable_get('front_page_main_block_node_type'),
+    '#required' => true,
+    '#states' => array(
+      'invisible' => array(
+        'input[name="front_page_main_block_type"]' => array(
+          'value' => 'images'
+        )
+      )
+    )
+  );
+  $form['small_blocks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Small blocks'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  $view = views_get_view('front_page_blocks');
+  $count = 1;
+  $form_state['vars'] = array();
+  foreach(array_keys($view->display) as $display_id){
+    if($display_id === 'default'){
+      continue;
+    }
+    $var = 'front_page_' . $display_id . '_node_type';
+    $form_state['vars'][] = $var;
+    $form['small_blocks'][$var] = array(
+      '#type' => 'select',
+      '#title' => t('Block ' . $count),
+      '#options' => $node_types,
+      '#default_value' => scratchpads_front_variable_get($var),
+      '#description' => t('Select which node type to display in the home page block.'),
+      '#required' => true
+    );
+    $count++;
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  return $form;
+}
+
+/**
+ * Form submit
+ * Edit the home page
+ */
+function scratchpads_front_page_edit_submit($form, &$form_state){
+  variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
+  variable_set('front_page_main_block_type', $form_state['values']['front_page_main_block_type']);
+  variable_set('front_page_main_block_node_type', $form_state['values']['front_page_main_block_node_type']);
+  foreach($form_state['vars'] as $var){
+    variable_set($var, $form_state['values'][$var]);
+  }
+  $form_state['redirect'] = '<front>';
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_front_variable_get($name){
+  $default = scratchpads_front_variable_default($name);
+  return variable_get($name, $default);
+}
+
+/**
+ * 
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_front_variable_default($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'front_page_main_block_type' => 'images',
+      'front_page_main_block_node_type' => 'all'
+    );
+    $view = views_get_view('front_page_blocks');
+    foreach(array_keys($view->display) as $display_id){
+      if($display_id === 'default'){
+        continue;
+      }
+      // TODO - I need a way of working out what's the best content types to use
+      $var = 'front_page_' . $display_id . '_node_type';
+      $defaults[$var] = 'page';
+    }
+  }
+  if(!isset($name)){return $defaults;}
+  if(isset($defaults[$name])){return $defaults[$name];}
+}
+
+/**
+ * 
+ * Get a list of node types
+ */
+function scratchpads_front_node_types(){
+  static $node_types;
+  if(!isset($node_types)){
+    foreach(node_type_get_types() as $node_type => $node_info){
+      $node_types[$node_type] = $node_info->name;
+    }
+  }
+  return $node_types;
+}
+
+/*********************************************************************************************
+ * 
+ * PREPROCESSORS
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ */
+function scratchpads_front_preprocess_block(&$vars){
+  // Change the contextual links
+  $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+    'scratchpads-front/edit',
+    array()
+  );
+}
