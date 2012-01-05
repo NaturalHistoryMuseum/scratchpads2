@@ -339,7 +339,6 @@ function styles_default_presets($return_type = NULL, $reset = FALSE) {
           $styles[$style->field_type]['containers'][$style->container_name]['styles'][$style->style_name]['preset'] = $style->preset_name;
         }
       }
-
       drupal_alter('styles_default_presets', $styles);
       cache_set('styles_default_presets', $styles, 'cache_styles');
     }
@@ -733,4 +732,20 @@ function styles_style_flush($style = NULL) {
  */
 function styles_flush_caches() {
   return array('cache_styles');
+}
+
+/**
+ * Implements hook_features_api().
+ */
+function styles_features_api() {
+  $file = drupal_get_path('module', 'styles') . '/includes/styles.features.inc';
+  return array(
+    'styles_style' => array(
+      'name' => t('Styles'),
+      'feature_source' => TRUE,
+      'default_file' => FEATURES_DEFAULTS_INCLUDED_COMMON,
+      'default_hook' => 'styles_default_styles',
+      'file' => $file,
+    ),
+  );
 }
