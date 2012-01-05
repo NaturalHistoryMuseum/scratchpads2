@@ -1,0 +1,130 @@
+/* The body is handled by a default BG color, a background image, and CSS3 gradient */
+body {
+  color: #6a6a6a; /* Default Text color */
+  background: #1c5d85; /* old browsers */
+  background: -moz-linear-gradient(top, #1c5d85 0%, #02283e 100%); /* firefox */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#1c5d85), color-stop(100%,#02283e)); /* webkit */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1c5d85', endColorstr='#02283e',GradientType=0 ); /* ie */
+}
+
+/* Give default background "border" to all main elements on the page */
+#menu-outer-wrapper,
+#header-outer-wrapper,
+#preface-outer-wrapper,
+#location-outer-wrapper,
+#content-outer-wrapper,
+#status-outer-wrapper {
+  background: #0073ba; /* old browsers */
+  background: -moz-linear-gradient(left, #114667 0%, #103449 100%); /* firefox */
+  background: -webkit-gradient(linear, left top, right top, color-stop(0%,#114667), color-stop(100%,#103449)); /* webkit */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#114667', endColorstr='#103449',GradientType=1 ); /* ie */
+}
+
+/* Give white BG to "content" sections */
+#header-container,
+#preface-container,
+#location-container,
+#content-container,
+#actions-container,
+#message-container {
+  background: #ffffff;
+}
+
+h1#page-title,
+.sidebar h2.block-title,
+.node h2.node-title,
+.block h2.block-title,
+.region-content h1,
+h2.title {
+  font-size: 20px;
+  border-top: 3px solid #103449; /* Secondary Color */
+  border-bottom: 1px solid #103449; /* Secondary Color */
+  margin-bottom: 3px;
+  color: #0073ba; /* Header Color */
+}
+
+
+a, a:link, a:visited {
+  color: #00598e; /* Default Link color */
+}
+
+a:hover {
+  color: #1a1a1a; /* Default :hover Link color (pulled from secondary color) */
+}
+
+.sidebar ul li a:hover,
+#zones-below ul.menu li a:hover {
+  background: #103449; /* From secondary color */
+  color: #ffffff; /* From contentbg color */
+}
+.sidebar ul li a.active,
+#zones-below ul.menu li a.active {
+  background: #114667; /* From base color */
+  color: #ffffff; /* From contentbg color */
+}
+
+
+.comment {
+  border: 1px solid #1a1a1a;
+}
+.comment header h3 {
+  border-bottom: 1px solid #1a1a1a;
+}
+
+
+#region-menu ul.main-menu li a,
+#region-menu ul.secondary-menu li a {
+  color: #ffffff; /* From contentbg color */
+}
+#region-menu ul.main-menu li a:hover,
+#region-menu ul.secondary-menu li a:hover,
+#region-menu ul.main-menu li.active-trail a.active-trail,
+#region-menu ul.secondary-menu li.active-trail a.active-trail {
+  color: #9a9a9a; /* Slogan color */
+}
+
+
+/* Restyle Branding zone */
+h1.site-title a, h2.site-title a {
+  color: #eeeeee; /* From sitetitle color */
+}
+h1.site-title a:hover, h2.site-title a:hover {
+  color: #9a9a9a; /* Slogan color */
+}
+.site-slogan {
+  color: #9a9a9a; /* Slogan color */
+}
+
+#zones-below {
+  color: #9a9a9a; /* From sitetitle color */
+}
+#zones-below .block h2.block-title {
+  border-top: 3px solid #eeeeee; /* Secondary Color */
+  border-bottom: 1px solid #eeeeee; /* Secondary Color */
+  color: #9a9a9a; /* Header Color */
+}
+#zones-below a,
+#zones-below a:link,
+#zones-below a:visited {
+  color: #eeeeee; /* Slogan color */
+}
+#zones-below a:hover {
+  color: #9a9a9a; /* From sitetitle color */
+}
+.region-footer-second {
+  font-size: 0.8em;
+}
+
+
+/* Adjust the user bar's colors and link display for visibility */
+#user-outer-wrapper {
+  background: #02283e;
+  border-bottom: 1px solid #9a9a9a;
+}
+#user-container a {
+  color: #eeeeee;
+}
+#user-container a:hover,
+#user-container a.active {
+  color: #9a9a9a;
+}
