@@ -18,7 +18,8 @@ function scratchpads_colour_block_info(){
   // This example comes from node.module.
   $blocks['colour_switcher'] = array(
     'info' => t('Colour switcher'),
-    'region' => 'slide_bottom'
+    'region' => 'slide_bottom',
+  	'theme' => SCRATCHPADS_THEME_NAME
   );
   return $blocks;
 }

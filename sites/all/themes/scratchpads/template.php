@@ -2,27 +2,6 @@
 
 /**
  * 
- * Implentation of hook_block_info_alter
- * Adjust the blocks for this theme
- * @param array $blocks
- * @param string $theme
- * @param array $code_blocks
- */
-function scratchpads_block_info_alter(&$blocks, $theme, $code_blocks){
-  switch($theme){
-    case 'scratchpads':
-      // Turn of all the blocks we know we don't want
-      $blocks['system']['powered-by']['status'] = 0;
-      $blocks['system']['navigation']['status'] = 0;
-      $blocks['system']['user-menu']['status'] = 0;
-      // Move the search box to the top
-      $blocks['search']['form']['region'] = 'header';
-      break;
-  }
-}
-
-/**
- * 
  * Implentation of hook_block_view_alter
  * Move the view class to the container
  * @param array $blocks

@@ -122,6 +122,7 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
  * Display the home page
  */
 function scratchpads_front_page_view(){
+  $page = array();
   $path = drupal_get_path('module', 'scratchpads_front');
   $welcome_message = '<h1 id="page-title" class="title"> ';
   $welcome_message .= t('Welcome to @site-name', array(
@@ -327,3 +328,171 @@ function scratchpads_front_preprocess_block(&$vars){
     array()
   );
 }
+
+/*********************************************************************************************
+ * 
+ * CTOOLS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_front_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_front_styles_default_styles(){
+  $styles = array();
+  // Exported style: slideshow_large
+  $styles['file']['styles']['slideshow_large'] = array(
+    'label' => 'slideshow_large',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original',
+          'preset' => 'slideshow_large'
+        )
+      ),
+      'audio' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'video' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'default' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  // Exported style: slideshow_thumbnail
+  $styles['file']['styles']['slideshow_thumbnail'] = array(
+    'label' => 'slideshow_thumbnail',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original',
+          'preset' => 'slideshow_thumbnail'
+        )
+      ),
+      'audio' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'video' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'default' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_front_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['slideshow_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['slideshow_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'slideshow_large'
+    );
+    $presets['file']['containers']['audio']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+  if($styles['file']['styles']['slideshow_thumbnail']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original',
+      'preset' => 'slideshow_thumbnail'
+    );
+    $presets['file']['containers']['audio']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_image_default_styles().
+ */
+function scratchpads_front_image_default_styles(){
+  $styles = array();
+  // Exported image style: slideshow_large
+  $styles['slideshow_large'] = array(
+    'name' => 'slideshow_large',
+    'effects' => array(
+      2 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '622',
+          'height' => '463'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported image style: slideshow_thumbnail
+  $styles['slideshow_thumbnail'] = array(
+    'name' => 'slideshow_thumbnail',
+    'effects' => array(
+      1 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '155',
+          'height' => '115'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  return $styles;
+}
+
+

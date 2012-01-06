@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPADS_THEME_NAME', 'scratchpads');
 
 /**
  * Implements hook_block_info().
@@ -6,17 +7,44 @@
 function scratchpads_blocks_block_info(){
   $blocks['footer_menu'] = array(
     'info' => t('Scratchpads footer menu'),
-    'region' => 'footer'
-  );
-  $blocks['footer_links'] = array(
-    'info' => t('Scratchpads footer links'),
-    'region' => 'footer'
+    'region' => 'footer',
+    'weight' => 1,
+    'theme' => SCRATCHPADS_THEME_NAME
   );
   $blocks['footer_logos'] = array(
     'info' => t('Scratchpads footer logos'),
-    'region' => 'footer'
+    'region' => 'footer',
+    'weight' => 2,
+    'theme' => SCRATCHPADS_THEME_NAME
+  );
+  $blocks['footer_links'] = array(
+    'info' => t('Scratchpads footer links'),
+    'region' => 'footer',
+    'weight' => 3,
+    'theme' => SCRATCHPADS_THEME_NAME
   );
   return $blocks;
+}
+
+/**
+ * 
+ * Implentation of hook_block_info_alter
+ * Adjust the blocks for this theme
+ * @param array $blocks
+ * @param string $theme
+ * @param array $code_blocks
+ */
+function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
+  switch($theme){
+    case SCRATCHPADS_THEME_NAME:
+      // Turn of all the blocks we know we don't want
+      $blocks['system']['powered-by']['status'] = 0;
+      $blocks['system']['navigation']['status'] = 0;
+      $blocks['system']['user-menu']['status'] = 0;
+      // Move the search box to the top
+      $blocks['search']['form']['region'] = 'header';      
+      break;
+  }
 }
 
 /**
@@ -69,3 +97,33 @@ function scratchpads_blocks_block_view($delta = ''){
   }
   return $block;
 }
+
+/**
+ * Implements hook_themes_enabled().
+ */
+function scratchpads_blocks_themes_enabled($theme_list){
+  foreach(module_implements('block_info') as $module){
+    $module_blocks = module_invoke($module, 'block_info');
+    foreach($module_blocks as $delta => $block){
+      if(isset($block['theme']) && in_array($block['theme'], $theme_list)){
+        if($db_block = scratchpads_blocks_block_load($module, $delta)){
+          $db_block->status = 1;
+          $db_block->region = $block['region'];
+          drupal_write_record('block', $db_block, array(
+            'bid'
+          ));
+        }
+      }
+    }
+  }
+}
+
+function scratchpads_blocks_block_load($module, $delta){
+  return db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
+    ':module' => $module,
+    ':delta' => $delta,
+    ':theme' => SCRATCHPADS_THEME_NAME
+  ))->fetchObject();
+}
+
+

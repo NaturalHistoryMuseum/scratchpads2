@@ -196,17 +196,20 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_pager']['type'] = 'views_slideshow_pager_fields';
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_pager']['views_slideshow_pager_fields_fields'] = array(
     'rendered_entity' => 0,
-    'rendered_entity_1' => 0
+    'rendered_entity_1' => 0,
+    'filename' => 0
   );
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_controls']['weight'] = '1';
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_controls']['type'] = 'views_slideshow_controls_text';
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_slide_counter']['weight'] = '1';
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['enable'] = 1;
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['weight'] = '1';
+  $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['hide_on_single_slide'] = 1;
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['type'] = 'views_slideshow_pager_fields';
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['views_slideshow_pager_fields_fields'] = array(
     'rendered_entity_1' => 'rendered_entity_1',
-    'rendered_entity' => 0
+    'rendered_entity' => 0,
+    'filename' => 0
   );
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['views_slideshow_pager_fields_hover'] = 1;
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_controls']['weight'] = '1';
@@ -301,7 +304,14 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['fields']['filename']['empty_zero'] = 0;
   $handler->display->display_options['fields']['filename']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['filename']['link_to_file'] = 0;
-  /* Display: Block */
+  /* Filter criterion: File: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'image' => 'image'
+  );
+  /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
   $view = new view();
@@ -315,7 +325,7 @@ function scratchpads_front_views_default_views(){
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Front page content';
+  $handler->display->display_options['title'] = 'Home page content';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -356,6 +366,8 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['arguments']['type']['id'] = 'type';
   $handler->display->display_options['arguments']['type']['table'] = 'node';
   $handler->display->display_options['arguments']['type']['field'] = 'type';
+  $handler->display->display_options['arguments']['type']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['type']['title'] = '%1';
   $handler->display->display_options['arguments']['type']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['type']['default_argument_skip_url'] = 0;
   $handler->display->display_options['arguments']['type']['summary']['number_of_records'] = '0';
