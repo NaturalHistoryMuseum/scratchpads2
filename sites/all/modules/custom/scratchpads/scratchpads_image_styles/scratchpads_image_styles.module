@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the scratchpads_image_styles feature.
+ */
+
+include_once('scratchpads_image_styles.features.inc');

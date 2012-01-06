@@ -1,0 +1,6 @@
+core = "7.x"
+dependencies[] = "image"
+description = "Scratchpad default image styles"
+features[image][] = "sp_square_thumbnail"
+name = "scratchpads_image_styles"
+package = "Features"
