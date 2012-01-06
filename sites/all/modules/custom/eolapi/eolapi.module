@@ -54,6 +54,10 @@ function eolapi_entity_info(){
   );
 }
 
+function eolapi_init(){
+  //dpm(node_load(1));
+}
+
 /**
  * Implementation of hook_views_api().
  */
@@ -62,14 +66,6 @@ function eolapi_views_api(){
     'api' => '3',
     'path' => drupal_get_path('module', 'eolapi') . '/views'
   );
-}
-
-/**
- * INIT
- */
-function eolapi_init(){
-  module_load_include('functions.inc', 'eolapi');
-  eolapi_search(3);
 }
 
 /**

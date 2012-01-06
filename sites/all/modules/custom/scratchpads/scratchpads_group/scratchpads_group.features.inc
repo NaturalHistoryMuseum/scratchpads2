@@ -7,7 +7,7 @@
 /**
  * Implementation of hook_ctools_plugin_api().
  */
-function scratchpad_group_ctools_plugin_api() {
+function scratchpads_group_ctools_plugin_api() {
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
@@ -17,7 +17,7 @@ function scratchpad_group_ctools_plugin_api() {
 /**
  * Implementation of hook_node_info().
  */
-function scratchpad_group_node_info() {
+function scratchpads_group_node_info() {
   $items = array(
     'group' => array(
       'name' => t('Group'),

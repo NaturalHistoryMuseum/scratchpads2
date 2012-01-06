@@ -59,7 +59,7 @@ function eolapi_data_objects($id, $tid, $age = 604800){
       $eolapi->type = array_pop(explode("/", $eolapi->type));
     }
     $eolapi->trusted = $id->vettedStatus == 'Trusted' ? 1 : 0;
-    $eolapi->license = $id->license;
+    $eolapi->license = isset($id->license) ? $id->license : '';
     $eolapi->rating = $id->dataRating;
     $eolapi->label = $id->identifier;
     $eolapi->data = serialize($id);
@@ -71,10 +71,43 @@ function eolapi_data_objects($id, $tid, $age = 604800){
       )
     );
     entity_save('eolapi', $eolapi);
-    return $eolapi;
   }else{
-    return eolapi_get('data_objects', $id, $tid);
+    $eolapi = eolapi_get('data_objects', $id, $tid);
   }
+  //return $eolapi;
+  // Check to see if this is an stillimage type, and if so, download the image
+  // for it.
+  if($eolapi->type == 'stillimage' && (!isset($eolapi->eolapi_image) || !count($eolapi->eolapi_image))){
+    // Download the original image so that we can perform image_styles magic on
+    // it.
+    $data = unserialize($eolapi->data);
+    $file = file_save_data(@file_get_contents($data->mediaURL));
+    if(!$file->filesize){
+      // We failed to download a file.  We should therefore delete this file, and
+      // continue with the EOL preview.
+      file_delete($file);
+      $file = file_save_data(@file_get_contents($data->eolMediaURL));
+    }
+    $toolkit = image_get_toolkit();
+    $image = new stdClass();
+    $image->source = $file->uri;
+    $image->toolkit = $toolkit;
+    $details = image_toolkit_invoke('get_info', $image);
+    $file = file_move($file, 'public://eolapi/' . $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'], FILE_EXISTS_REPLACE);
+    $file->title = '';
+    $file->alt = '';
+    $file->width = $details['width'];
+    $file->height = $details['height'];
+    $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
+    file_save($file);
+    $eolapi->eolapi_image = array(
+      'und' => array(
+        (array)$file
+      )
+    );
+    entity_save('eolapi', $eolapi);
+  }
+  return $eolapi;
 }
 
 /**
