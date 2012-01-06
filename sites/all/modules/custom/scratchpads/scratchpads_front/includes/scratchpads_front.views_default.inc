@@ -1,6 +1,9 @@
 <?php
 
 function scratchpads_front_views_default_views(){
+  /**
+   * Front page blocks
+   */
   $view = new view();
   $view->name = 'front_page_blocks';
   $view->description = '';
@@ -140,7 +143,7 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['arguments']['type']['table'] = 'node';
   $handler->display->display_options['arguments']['type']['field'] = 'type';
   $handler->display->display_options['arguments']['type']['title_enable'] = 1;
-  $handler->display->display_options['arguments']['type']['title'] = '%1';
+  $handler->display->display_options['arguments']['type']['title'] = 'Recent %1s';
   $handler->display->display_options['arguments']['type']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['type']['default_argument_skip_url'] = 0;
   $handler->display->display_options['arguments']['type']['summary']['number_of_records'] = '0';
@@ -164,6 +167,9 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['defaults']['css_class'] = FALSE;
   $handler->display->display_options['css_class'] = 'omega grid-4';
   $views['front_page_blocks'] = $view;
+  /**
+   * Front page slideshow
+   */
   $view = new view();
   $view->name = 'front_page_slideshow';
   $view->description = '';
@@ -180,7 +186,8 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '4';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'slideshow';
   $handler->display->display_options['style_options']['slideshow_type'] = 'views_slideshow_cycle';
@@ -204,7 +211,6 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['style_options']['widgets']['top']['views_slideshow_slide_counter']['weight'] = '1';
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['enable'] = 1;
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['weight'] = '1';
-  $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['hide_on_single_slide'] = 1;
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['type'] = 'views_slideshow_pager_fields';
   $handler->display->display_options['style_options']['widgets']['bottom']['views_slideshow_pager']['views_slideshow_pager_fields_fields'] = array(
     'rendered_entity_1' => 'rendered_entity_1',
@@ -311,9 +317,24 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'image' => 'image'
   );
+  /* Filter criterion: File: Status */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = array(
+    1 => '1'
+  );
+  /* Filter criterion: File: Promote to home page (field_promote_to_home_page) */
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['id'] = 'field_promote_to_home_page_value';
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['table'] = 'field_data_field_promote_to_home_page';
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['field'] = 'field_promote_to_home_page_value';
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['operator'] = 'not empty';
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
+  /**
+   * Front page main block
+   */
   $view = new view();
   $view->name = 'front_page_content';
   $view->description = '';
