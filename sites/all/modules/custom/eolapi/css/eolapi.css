@@ -6,11 +6,26 @@
 	width:104px;
 	overflow:hidden;
 }
+.view-eol-images .view-content:after{
+	clear: both;
+	content: ".";
+	display: block;
+	height: 0;
+	visibility: hidden;
+}
 .view-eol-images .view-content div h2,.view-eol-text .view-content div h2{
 	display:none;
 }
-.view-eol-text>div>div.views-row-odd{
-  background-color:#eee;
+.view-eol-text>div>div{
+	border: solid 1px #eee;
+	padding:5px;
+	margin:5px;
+}
+.view-eol-text>div>div hr{
+  height:0px;
+  width:90%;
+  border:none;
+  border-top: dotted 1px #ddd;
 }
 .view-eol-text li, .view-eol-text ul{
   padding-top:0 !important;
@@ -22,5 +37,5 @@
 	font-size:90%;
 }
 .eolapi-text-hidden-block{
-	display:none;
+	/*display:none;*/
 }
