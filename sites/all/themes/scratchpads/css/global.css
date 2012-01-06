@@ -44,17 +44,6 @@ body *{
   letter-spacing: normal;
 }
 
-/*@font-face {
-    font-family: "Fontin Sans";
-    src: url("../fonts/FontinSans_49/Fontin_Sans_R_45b.otf");
-    font-weight: normal;
-}*/
-/*@font-face {
-    font-family: "Fontin Sans";
-    src: url("../fonts/FontinSans_49/Fontin_Sans_I_45b.otf");
-    font-style: italic;
-}*/
-
 h1{
 	font-family: Georgia, serif;
 	font-weight: normal!important;
