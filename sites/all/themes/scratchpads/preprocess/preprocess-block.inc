@@ -12,7 +12,7 @@ function scratchpads_alpha_preprocess_block(&$vars){
   }
   if($block->region == 'slide_top'){
   	if(isset($block->subject)){
-  		unset($block->subject);	
+  		$block->subject = NULL;	
   	}
     
   }
