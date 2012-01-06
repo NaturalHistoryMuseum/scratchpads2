@@ -12,8 +12,18 @@ function theme_eolapi_stillimage_full($variables){
  * Still image teaser
  */
 function theme_eolapi_stillimage_teaser($variables){
+  // Download the original image so that we can perform image_styles magic on
+  // it.
   $data = unserialize($variables['entity']->data);
-  return '<img src="' . $data->eolThumbnailURL . '"/>';
+  return theme('image_style', array(
+    'style_name' => 'square_thumbnail',
+    'path' => substr($variables['entity']->eolapi_image['und'][0]['uri'], 9),
+    'width' => $variables['entity']->eolapi_image['und'][0]['width'],
+    'height' => $variables['entity']->eolapi_image['und'][0]['height'],
+    'alt' => $data->title,
+    'title' => $data->title,
+    'attributes' => array()
+  )) . (isset($data->description) ? $data->description : '');
 }
 
 /**
