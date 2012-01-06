@@ -5,18 +5,8 @@
  */
 function theme_eolapi_stillimage_full($variables){
   $data = unserialize($variables['entity']->data);
-  return '<img src="' . $data->eolThumbnailURL . '"/>';
-}
-
-/**
- * Still image teaser
- */
-function theme_eolapi_stillimage_teaser($variables){
-  // Download the original image so that we can perform image_styles magic on
-  // it.
-  $data = unserialize($variables['entity']->data);
   return theme('image_style', array(
-    'style_name' => 'square_thumbnail',
+    'style_name' => 'large',
     'path' => substr($variables['entity']->eolapi_image['und'][0]['uri'], 9),
     'width' => $variables['entity']->eolapi_image['und'][0]['width'],
     'height' => $variables['entity']->eolapi_image['und'][0]['height'],
@@ -24,6 +14,22 @@ function theme_eolapi_stillimage_teaser($variables){
     'title' => $data->title,
     'attributes' => array()
   )) . (isset($data->description) ? $data->description : '');
+}
+
+/**
+ * Still image teaser
+ */
+function theme_eolapi_stillimage_teaser($variables){
+  $data = unserialize($variables['entity']->data);
+  return theme('image_style', array(
+    'style_name' => 'sp_square_thumbnail',
+    'path' => substr($variables['entity']->eolapi_image['und'][0]['uri'], 9),
+    'width' => $variables['entity']->eolapi_image['und'][0]['width'],
+    'height' => $variables['entity']->eolapi_image['und'][0]['height'],
+    'alt' => (isset($data->title) ? $data->title : ''),
+    'title' => (isset($data->title) ? $data->title : ''),
+    'attributes' => array()
+  ));
 }
 
 /**
@@ -39,7 +45,8 @@ function theme_eolapi_text_full($variables){
  */
 function theme_eolapi_text_teaser($variables){
   $data = unserialize($variables['entity']->data);
-  return $data->description;
+  drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
+  return '<div class="eolapi-text"><h1>' . (isset($data->title) ? $data->title : t('No title')) . '</h1><div class="eolapi-text-hidden-block">' . check_markup($data->description, 'filtered_html') . '</div></div>';
 }
 
 /**

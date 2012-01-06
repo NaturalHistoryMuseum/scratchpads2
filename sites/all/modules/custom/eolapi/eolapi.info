@@ -6,5 +6,6 @@ dependencies[] = entity
 dependencies[] = field
 dependencies[] = image
 dependencies[] = views
+dependencies[] = scratchpads_image_styles
 files[] = views/eolapi_plugin_style_eolapi.inc
 files[] = EOLAPIController.class.inc

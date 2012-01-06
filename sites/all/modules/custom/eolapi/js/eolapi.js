@@ -22,5 +22,12 @@
   }
   Drupal.behaviors.eolapi = {attach: function(context, settings){
     Drupal.eolapi.do_the_do();
+    $('.eolapi-text h1', context).click(function(event){
+      $(this).siblings().slideDown();
+      $(this).siblings().removeClass('eolapi-text-showing');
+      $('.eolapi-text-showing').slideUp();
+      $('.eolapi-text-showing').removeClass('eolapi-text-showing');
+      $(this).siblings().addClass('eolapi-text-showing');
+    });
   }};
 })(jQuery);
