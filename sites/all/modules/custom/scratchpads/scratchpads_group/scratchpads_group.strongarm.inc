@@ -7,7 +7,7 @@
 /**
  * Implementation of hook_strongarm().
  */
-function scratchpad_group_strongarm() {
+function scratchpads_group_strongarm() {
   $export = array();
 
   $strongarm = new stdClass;
