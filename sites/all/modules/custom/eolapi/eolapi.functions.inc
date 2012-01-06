@@ -26,7 +26,7 @@ function eolapi_search($tid, $age = 604800){ // Seconds in one week.
  * Get an EOL API page.
  */
 function eolapi_page($id, $tid, $age = 604800){ // Seconds in one week
-  $page = eolapi_get('pages', $id, $tid, 'images=75&videos=75&text=75&subject=all&licenses=all&details=1&vetted=' . variable_get('eolapi_trusted_content', 1) . '&version=1.0', $age);
+  $page = eolapi_get('pages', $id, $tid, 'images=75&videos=75&text=75&subject=all&licenses=all&details=1&vetted=' . variable_get('eolapi_trusted_content', 0) . '&version=1.0', $age);
   // We then process the page, and get all the required objects into the
   // database.
   $data = unserialize($page->data);
