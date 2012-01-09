@@ -4,11 +4,10 @@
  * 
  */
 function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $max_terms = 1000){
-  if(array_pop(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+  $result = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
     ':vid' => $vid
-  ))->fetchCol()) < $max_terms){
-    return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
-  }
+  ))->fetchCol();
+  if(array_pop($result) < $max_terms){return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);}
   // We've a large number of terms.  We can attempt the tree if the $max_depth 
   // is 1, which it almost always is.
   if($max_depth == 1){
