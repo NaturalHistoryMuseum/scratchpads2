@@ -1,6 +1,8 @@
 
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 ------------------------------
+#1376278 by Nick_vh: Fixed Inconsistent behavior of data facets producing unlimited filtering, inconsistent counts, or gap mismatches.
+#1372952 by pwolanin | albertosouza: Fixed Wrong variable in apachesolr.module.
 
 Apache Solr integration 7.x-1.0-beta12, 2011-12-12
 ------------------------------

@@ -2261,7 +2261,7 @@ function apachesolr_get_max_date(array $facet) {
   $query_max = $query->execute()->fetch()->max;
   // Update to unix timestamp if this is an ISO or other format.
   if (!is_int($query_max)) {
-    $return = strtotime($query_min);
+    $return = strtotime($query_max);
     if ($return === FALSE) {
       // Not a string that strtotime accepts (ex. '0000-00-00T00:00:00').
       // Return default end date of 1 year from now.

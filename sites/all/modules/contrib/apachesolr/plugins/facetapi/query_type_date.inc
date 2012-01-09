@@ -28,7 +28,11 @@ class ApacheSolrFacetapiDate extends FacetapiQueryTypeDate implements FacetapiQu
    */
   public function execute($query) {
     // Gets the data range in formats that Solr understands.
-    list($start, $end, $gap) = $this->getDateRange($query);
+    $date_range = $this->getDateRange($query);
+    if(empty($date_range)) {
+      return;
+    }
+    list($start, $end, $gap) = $date_range;
 
     $query->addParam('facet.date', $this->facet['field']);
     $query->addParam('f.' . $this->facet['field'] . '.facet.date.start', $start);
@@ -65,6 +69,7 @@ class ApacheSolrFacetapiDate extends FacetapiQueryTypeDate implements FacetapiQu
         $next_gap = facetapi_get_next_date_gap($gap, FACETAPI_DATE_MINUTE);
         if ($next_gap == $gap) {
           $next_gap = NULL;
+          return;
         }
         $return = array(
           "{$item['start']}/$next_gap",
@@ -159,18 +164,13 @@ class ApacheSolrFacetapiDate extends FacetapiQueryTypeDate implements FacetapiQu
     // as range end.  Use 'end' for the final end.
     $range_end = array();
     $previous = NULL;
-    foreach ($raw_data as $value => $count) {
-      if (isset($previous)) {
-        $range_end[$previous] = $value;
-      }
-      $previous = $value;
-    }
-    $range_end[$previous] = $end;
 
     // Builds facet counts object used by the server.
     foreach ($raw_data as $value => $count) {
       if ($count) {
-        $new_value = '[' . $value . ' TO ' . $range_end[$value] . ']';
+        $from = $value;
+        $to = facetapi_isodate(strtotime($value . $gap));
+        $new_value = '[' . $from . ' TO ' . $to . ']';
         $build[$new_value] = array('#count' => $count, '#active' => 0);
         if (NULL !== $parent) {
           $build[$parent]['#item_children'][$new_value] = &$build[$new_value];
