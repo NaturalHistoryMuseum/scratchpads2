@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * @file
+ * Provides export interface for Menu block.
+ */
+
+// Off-load the following infrequently called hooks to another file.
+function menu_block_export_menu() {
+  module_load_include('inc', 'menu_block_export', 'menu_block_export.admin');
+  return _menu_block_export_menu();
+}
