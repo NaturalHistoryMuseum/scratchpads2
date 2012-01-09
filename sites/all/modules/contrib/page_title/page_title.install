@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * @file page_title.install
+ *
+ * Handles the install, uninstall and updating of Page Title
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function page_title_schema() {
+  $schema['page_title'] = array(
+    'fields' => array(
+      'type'       => array('type' => 'varchar', 'length' => 15,  'not null' => TRUE, 'default' => 'node'),
+      'id'         => array('type' => 'int', 'unsigned' => TRUE,  'not null' => TRUE, 'default' => 0),
+      'page_title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '')
+    ),
+    'primary key' => array('type', 'id'),
+  );
+
+  return $schema;
+}
+
+
+/**
+ * Implementation of hook_update_n().
+ */
+function page_title_update_6200() {
+  $ret = array();
+
+  if (db_column_exists('page_title', 'id')) {
+    return $ret;
+  }
+
+  db_create_table($ret, 'page_title_temp', array(
+    'fields' => array(
+      'type'       => array('type' => 'varchar', 'length' => 15,  'not null' => TRUE, 'default' => 'node'),
+      'id'         => array('type' => 'int', 'unsigned' => TRUE,  'not null' => TRUE, 'default' => 0),
+      'page_title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => '')
+    ),
+    'primary key' => array('type', 'id'),
+  ));
+
+  $ret[] = update_sql('INSERT INTO {page_title_temp} (id, page_title) SELECT nid, page_title FROM {page_title}');
+
+  db_rename_table($ret, 'page_title', 'page_title_old');
+
+  db_rename_table($ret, 'page_title_temp', 'page_title');
+
+  $display_settings = variable_get('page_title_display', array());
+  foreach ($display_settings as $type) {
+    if ($type) {
+      variable_set('page_title_type_' . $type . '_showfield', 1);
+    }
+  }
+  variable_del('page_title_display');
+
+  return $ret;
+}
+
+
+/**
+ * Implementation of hook_update_n().
+ * Rename all the Vocabulary settings to reference by the new Machine Name, rather than Vocab ID.
+ */
+function page_title_update_7200() {
+  $ret = array();
+
+  // If taxonomy not enabled, do no further updates
+  if (!module_exists('taxonomy')) {
+    return $ret;
+  }
+
+  foreach (taxonomy_get_vocabularies() as $vocab) {
+    $page_title_vocab_settings = variable_get("page_title_vocab_{$vocab->vid}", FALSE);
+    $page_title_vocab_showfield = variable_get("page_title_vocab_{$vocab->vid}_showfield", FALSE);
+
+    if ($page_title_vocab_settings) {
+      variable_set("page_title_vocab_{$vocab->machine_name}", $page_title_vocab_settings);
+    }
+    if ($page_title_vocab_showfield) {
+      variable_set("page_title_vocab_{$vocab->machine_name}_showfield", $page_title_vocab_showfield);
+    }
+    variable_del("page_title_vocab_{$vocab->vid}_showfield");
+    variable_del("page_title_vocab_{$vocab->vid}");
+  }
+
+  return $ret;
+}
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function page_title_uninstall() {
+  // Clear variables
+  variable_del('page_title_default');
+  variable_del('page_title_individual');
+  variable_del('page_title_front');
+  variable_del('page_title_blog');
+  variable_del('page_title_user');
+  variable_del('page_title_user_showfield');
+  variable_del('page_title_pager_pattern');
+  variable_del('page_title_forum_root_title');
+  variable_del('page_title_comment_reply');
+  variable_del('page_title_comment_child_reply');
+
+  // Clear the node specific variables
+  $types = node_type_get_names();
+  foreach ($types as $type => $name) {
+    variable_del("page_title_type_{$type}");
+    variable_del("page_title_type_{$type}_showfield");
+  }
+
+  // Clear the vocab specific variables
+  if (module_exists('taxonomy')) {
+    $vocabs = taxonomy_get_vocabularies();
+    foreach ($vocabs as $vid => $vocab) {
+      variable_del("page_title_vocab_{$vocab->machine_name}");
+      variable_del("page_title_vocab_{$vocab->machine_name}_showfield");
+
+      // Legacy delete - just in case the uninstall is happening befoer update 7200
+      variable_del("page_title_vocab_{$vid}");
+      variable_del("page_title_vocab_{$vid}_showfield");
+    }
+  }
+}
