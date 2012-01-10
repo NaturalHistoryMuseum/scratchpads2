@@ -123,6 +123,26 @@ function scratchpads_blocks_block_view($delta = ''){
 }
 
 /**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_blocks_menu_block_blocks() {
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_blocks-1' => array(
+      'menu_name'   => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link'  => 0,
+      'admin_title' => 'Secondary menu',
+      'level'       => 2,
+      'follow'      => 0,
+      'depth'       => 0,
+      'expanded'    => 1,
+      'sort'        => 0,
+    ),
+  );
+}
+
+/**
  * Implements hook_themes_enabled().
  */
 function scratchpads_blocks_themes_enabled($theme_list){
