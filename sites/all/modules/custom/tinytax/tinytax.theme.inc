@@ -9,7 +9,8 @@
  * tinytax_
  */
 function theme_tinytax_block($variables){
-  return drupal_render(drupal_get_form('tinytax_search_form', $variables['vid'])) . '<div class="tinytax">' . theme('tinytax_branch', array(
+	$form = drupal_get_form('tinytax_search_form', $variables['vid']);
+  return drupal_render($form) . '<div class="tinytax">' . theme('tinytax_branch', array(
     'vid' => $variables['vid'],
     'open_tids' => $variables['open_tids']
   )) . '</div>';
