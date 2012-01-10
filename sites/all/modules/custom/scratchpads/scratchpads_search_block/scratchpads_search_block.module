@@ -1,0 +1,118 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  //dpm($form);
+  //search_box($form, $form_state, $form_id)
+  // Add the checkboxes for the entity types.
+  $entity_info = entity_get_info();
+  $options = array(
+    '_all' => 'All'
+  );
+  foreach($entity_info['node']['bundles'] as $key => $values){
+    $options[$key] = $values['label'];
+  }
+  $form['entity_type'] = array(
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#title' => 'Type',
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/css/scratchpads_search_block.css'
+      )
+    ),
+    'entity_type_value' => array(
+      '#title' => '',
+      '#type' => 'radios',
+      '#default_value' => '_all', // Change me depending on what page we're on.
+      '#options' => $options
+    )
+  );
+  // Alter the submit function so that we can add facet magic.
+  $form['#submit'][0] = 'scratchpads_search_block_form_submit';
+  $form['#theme'][0] = 'scratchpads_search_block_form';
+}
+
+/**
+ * Process a scratchpad search form submission.
+ */
+function scratchpads_search_block_form_submit($form, &$form_state){
+  // The search form relies on control of the redirect destination for its
+  // functionality, so we override any static destination set in the request,
+  // for example by drupal_access_denied() or drupal_not_found()
+  // (see http://drupal.org/node/292565).
+  if(isset($_GET['destination'])){
+    unset($_GET['destination']);
+  }
+  // Check to see if the form was submitted empty.
+  // If it is empty, display an error message.
+  // (This method is used instead of setting #required to TRUE for this field
+  // because that results in a confusing error message.  It would say a plain
+  // "field is required" because the search keywords field has no title.
+  // The error message would also complain about a missing #title field.)
+  if($form_state['values']['search_block_form'] == ''){
+    form_set_error('keys', t('Please enter some keywords.'));
+  }
+  $form_id = $form['form_id']['#value'];
+  $info = search_get_default_module_info();
+  if($info){
+    $query = array();
+    if($form_state['values']['entity_type_value'] != '_all'){
+      $query = array(
+        'query' => array(
+          'f[0]' => 'bundle:' . $form_state['values']['entity_type_value']
+        )
+      );
+    }
+    $form_state['redirect'] = array(
+      'search/' . $info['path'] . '/' . trim($form_state['values'][$form_id]),
+      $query
+    );
+  }else{
+    form_set_error(NULL, t('Search is currently disabled.'), 'error');
+  }
+}
+
+/**
+ * Hook theme
+ */
+function scratchpads_search_block_theme(){
+  return array(
+    'scratchpads_search_block_form' => array(
+      'render element' => 'form',
+      'template' => 'scratchpads-search-block-form'
+    )
+  );
+}
+
+/**
+ * Process variables for search-block-form.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $form
+ *
+ * @see search-block-form.tpl.php
+ */
+function template_preprocess_scratchpads_search_block_form(&$variables){
+  $variables['search'] = array();
+  $hidden = array();
+  // Provide variables named after form keys so themers can print each element independently.
+  foreach(element_children($variables['form']) as $key){
+    $type = $variables['form'][$key]['#type'];
+    if($type == 'hidden' || $type == 'token'){
+      $hidden[] = drupal_render($variables['form'][$key]);
+    }else{
+      $variables['search'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  // Hidden form elements have no value to themers. No need for separation.
+  $variables['search']['hidden'] = implode($hidden);
+  // Additional to the standard preprocess function  
+  $variables['entity_types'] = $variables['search']['entity_type'];
+  unset($variables['search']['entity_type']);
+  // Collect all form elements to make it easier to print the whole form.
+  $variables['search_form'] = implode($variables['search']);
+}
