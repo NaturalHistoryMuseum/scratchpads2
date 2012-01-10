@@ -19,7 +19,7 @@ function scratchpads_colour_block_info(){
   $blocks['colour_switcher'] = array(
     'info' => t('Colour switcher'),
     'region' => 'slide_bottom',
-  	'theme' => SCRATCHPADS_THEME_NAME
+    'theme' => SCRATCHPADS_THEME_NAME
   );
   return $blocks;
 }
@@ -219,9 +219,10 @@ function scratchpads_colour_preprocess_html(&$vars){
   $vars['colours'] = '<style>' . PHP_EOL;
   foreach(scratchpads_colour_get_colours() as $colour){
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h2.block-title{ background-color: #' . $colour . ';}' . PHP_EOL;
+    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-content h2.block-title{ background-color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}' . PHP_EOL;
+    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-sidebar h2.block-title{ color: #' . $colour . ';}' . PHP_EOL;
   }
   $vars['colours'] .= '</style>';
   $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);

@@ -10,3 +10,4 @@ dependencies[] = styles
 dependencies[] = file_styles
 dependencies[] = entity
 dependencies[] = media
+features[field][] = "file-image-field_promote_to_home_page"
