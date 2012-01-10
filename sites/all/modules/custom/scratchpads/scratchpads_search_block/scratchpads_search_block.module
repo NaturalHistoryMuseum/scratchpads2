@@ -4,15 +4,60 @@
  * Implementation of hook_form_FORM_ID_alter()
  */
 function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_state, $form_id){
-  //dpm($form);
-  //search_box($form, $form_state, $form_id)
-  // Add the checkboxes for the entity types.
-  $entity_info = entity_get_info();
   $options = array(
     '_all' => 'All'
   );
-  foreach($entity_info['node']['bundles'] as $key => $values){
-    $options[$key] = $values['label'];
+  $default_value = '_all';
+  switch(arg(0)){
+    case 'node':
+      if(is_numeric(arg(1))){
+        // We're on a node page, we should add an option (and enable it) to search
+        // by this content type.
+        $node = node_load(arg(1));
+        $entity_info = entity_get_info('node');
+        $form[$form_id]['#attributes']['placeholder'] = t('Search on "@bundle_type" nodes...', array(
+          '@bundle_type' => $entity_info['bundles'][$node->type]['label']
+        ));
+        $options['node:' . $node->type] = $entity_info['bundles'][$node->type]['label'];
+        $default_value = 'node:' . $node->type;
+      }
+      break;
+    case 'taxonomy':
+      if(arg(1) == 'term' && is_numeric(arg(2))){
+        switch(arg(3)){
+          case 'media':
+            $form[$form_id]['#attributes']['placeholder'] = t('Search media...');
+            $options['media'] = t('Media');
+            $default_value = 'media';
+            break;
+          case 'literature':
+            break;
+          case 'maps':
+            break;
+          case 'specimens':
+            break;
+          case 'phylogeny':
+            break;
+          case 'eol':
+            break;
+          case FALSE:
+          default:
+            $term = taxonomy_term_load(arg(2));
+            $vocabulary = taxonomy_vocabulary_load($term->vid);
+            $form[$form_id]['#attributes']['placeholder'] = t('Search "@vocabulary_name" and content...', array(
+              '@vocabulary_name' => $vocabulary->name
+            ));
+            $options['taxonomy_vocabulary:' . $term->vid] = $vocabulary->name;
+            $default_value = 'taxonomy_vocabulary:' . $term->vid;
+        }
+      }
+      break;
+    default:
+      $entity_info = entity_get_info();
+      foreach($entity_info['node']['bundles'] as $key => $values){
+        $options['node:' . $key] = $values['label'];
+      }
+      $form[$form_id]['#attributes']['placeholder'] = t('Search...');
   }
   $form['entity_type'] = array(
     '#type' => 'fieldset',
@@ -27,7 +72,7 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
     'entity_type_value' => array(
       '#title' => '',
       '#type' => 'radios',
-      '#default_value' => '_all', // Change me depending on what page we're on.
+      '#default_value' => $default_value,
       '#options' => $options
     )
   );
