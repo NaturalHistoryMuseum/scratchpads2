@@ -254,10 +254,15 @@ function file_entity_field_extra_fields() {
   foreach (array_keys($info['bundles']) as $bundle) {
     $return['file'][$bundle] = array(
       'form' => array(
-        'file' => array(
+        'filename' => array(
+          'label' => t('File name'),
+          'description' => t('File name'),
+          'weight' => -10,
+        ),
+        'preview' => array(
           'label' => t('File'),
           'description' => t('File preview'),
-          'weight' => 0,
+          'weight' => -5,
         ),
       ),
       'display' => array(
@@ -646,11 +651,11 @@ function file_type_get_names() {
  */
 function file_entity_file_mimetype_mapping_alter(&$mapping) {
   // Fix the mime type mapping for ogg.
-  // @todo Remove when http://drupal.org/node/1239376 is fixed in core.
+  // @todo Remove when http://drupal.org/node/1239376 is fixed in core (7.8).
   $new_mappings['ogg'] = 'audio/ogg';
 
   // Add support for m4v.
-  // @todo Remove when http://drupal.org/node/1290486 is fixed in core.
+  // @todo Remove when http://drupal.org/node/1290486 is fixed in core (7.9).
   $new_mappings['m4v'] = 'video/x-m4v';
 
   // Add support for mka and mkv.
