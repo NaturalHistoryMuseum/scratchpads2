@@ -36,7 +36,10 @@ body, h2.block-title{
 h2.block-title{
   font-size: 14px;
   text-transform: uppercase;
-  color: #fff;
+}
+
+#region-content h2.block-title{
+ color: #fff; 
 }
 
 body *{
@@ -279,7 +282,7 @@ h2.site-name {
 }
 
 #region-sidebar .region-inner{
-  padding: 15px 10px;
+  padding: 15px 15px 25px 15px;
 }
 
 #region-sidebar ul.menu li{
@@ -298,15 +301,28 @@ ul.menu li{
 
 /************************ BLOCKS *********************/ 
 
-#zone-content .block{
-  margin-top: 15px;
+/* Content */
+
+#region-content .block{
+  margin-top: 10px;
   margin-bottom: 25px;
 }
 
-h2.block-title{
+#region-content h2.block-title{
   line-height: 14px;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 10px 10px 12px 10px;
+  margin-bottom: 20px;
+}
+
+/* Sidebar */
+#region-sidebar h2.block-title{
+  padding: 0 0 10px 0;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid #D6D6D6;
+}
+
+#tinytax-search-form{
+  display: none;
 }
 
 

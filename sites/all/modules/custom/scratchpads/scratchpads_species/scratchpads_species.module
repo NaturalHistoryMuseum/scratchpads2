@@ -1,0 +1,276 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_species_menu(){
+  $weight = 1;
+  foreach(scratchpads_species_get_tabs() as $tab => $label){
+    $items['taxonomy/term/%taxonomy_term/' . $tab] = array(
+      'title' => $label,
+      'page callback' => 'scratchpads_species_term_page',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'access callback' => 'scratchpads_species_access_callback',
+      'access arguments' => array(
+        2
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => $weight++,
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    );
+  }
+  // Add the empty content toggle
+  $items['taxonomy/term/%taxonomy_term/toggle-empty-blocks'] = array(
+    'title' => 'Toggle empty blocks',
+    'page callback' => 'scratchpads_species_toggle_empty_blocks',
+    'page arguments' => array(
+      2
+    ),
+    'access arguments' => array(
+      'toggle empty blocks'
+    ),
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_species_menu_alter(&$items){
+  $items['taxonomy/term/%taxonomy_term/view']['title callback'] = 'scratchpads_species_title_callback';
+  $items['taxonomy/term/%taxonomy_term/view']['title arguments'] = array(
+    2
+  );
+  $items['taxonomy/term/%taxonomy_term']['page callback'] = 'scratchpads_species_term_page';
+  $items['taxonomy/term/%taxonomy_term/edit']['context'] = MENU_CONTEXT_INLINE;
+  if(array_key_exists('taxonomy/term/%taxonomy_term/devel', $items)){
+    $items['taxonomy/term/%taxonomy_term/devel']['context'] = MENU_CONTEXT_INLINE;
+  }
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function scratchpads_species_permission(){
+  return array(
+    'toggle empty blocks' => array(
+      'title' => t('toggle empty blocks'),
+      'description' => t('Allows user to turn on & off empty blocks.')
+    )
+  );
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
+  $type = $form['#node_type']->type;
+  $node_types = variable_get('species_page_node_types', array());
+  $form['species'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Species pages'),
+    '#weight' => 5,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  $form['species']['species_page_display'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display on species pages.'),
+    '#default_value' => (isset($node_types[$type]) ? $node_types[$type] : 0)
+  );
+  $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
+}
+
+function scratchpads_species_node_type_form_submit($form, $form_state){
+  $node_types = variable_get('species_page_node_types');
+  $node_types[$form_state['values']['type']] = $form_state['values']['species_page_display'];
+  variable_set('species_page_node_types', $node_types);
+}
+
+/*********************************************************************************************
+ * 
+ * MENU CALLBACKS
+ * 
+ ********************************************************************************************/
+function scratchpads_species_title_callback($term){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    return t("Overview");
+  }else{
+    return t("View");
+  }
+}
+
+function scratchpads_species_access_callback($term){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    return user_access('access content');
+  }else{
+    return false;
+  }
+}
+
+function scratchpads_species_term_page($term, $op = 'overview'){	
+  if(scratchpads_species_term_is_biological_classification($term)){
+    // Copied from context_entity_prepare_view()
+    // Trigger the taxonomy viewing condition 
+    if($plugin = context_get_plugin('condition', 'taxonomy_term')){
+      $plugin->execute($term, 'view');
+    }
+    // Trigger the species tab condition
+    if($plugin = context_get_plugin('condition', 'species')){
+      $plugin->execute($op);
+    }
+    // Return a blank page contextual links
+    $build = array(
+      '#theme' => 'page',
+      '#type' => 'page',
+      'content' => array(
+        ''
+      ),
+      '#contextual_links' => array(
+        'taxonomy' => array(
+          'taxonomy',
+          array(
+            'term',
+            $term->tid
+          )
+        )
+      )
+    );
+  }else{
+    $build = taxonomy_term_page($term);
+  }
+  return $build;
+}
+
+function scratchpads_species_toggle_empty_blocks($term){
+  drupal_set_message(t('You have turned on empty blocks on the species pages.'));
+  // Return to the original page
+  drupal_goto(drupal_get_destination());
+}
+
+/*********************************************************************************************
+ * 
+ * CONTEXT
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_species_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_species_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_species_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_species_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/plugins',
+      'file' => 'scratchpads_species_context_condition.inc',
+      'class' => 'scratchpads_species_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_species_context_registry(){
+  return array(
+    'conditions' => array(
+      'species' => array(
+        'title' => t('Species page'),
+        'plugin' => 'scratchpads_species_context_condition'
+      )
+    )
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Check if a term is a biological classification
+ */
+function scratchpads_species_term_is_biological_classification($term){
+  global $conf;
+  if(property_exists($term, 'field_unit_name1')){
+    if(array_key_exists($term->vid, $conf['biological_vids'])){return true;}
+  }
+  return false;
+}
+
+/**
+ * Return a list of node types to display on the species page
+ */
+function scratchpads_species_get_node_types(){
+  $node_types = array();
+  $node_info = node_type_get_names();
+  foreach(array_keys(array_filter(variable_get('species_page_node_types', array()))) as $node_type){
+    $node_types[$node_type] = $node_info[$node_type];
+  }
+  return $node_types;
+}
+
+/**
+ * Return a list of default species tabs
+ */
+function scratchpads_species_get_default_tabs(){
+  $tabs = array(
+    'media' => t('Media'),
+    'literature' => t('Literature'),
+    'maps' => t('Maps'),
+    'specimens' => t('Specimens'),
+    'phylogeny' => t('Phylogeny'),
+    'eol' => t('EOL')
+  );
+  return $tabs;
+}
+
+/**
+ * Return a list of species tabs
+ */
+function scratchpads_species_get_tabs(){
+  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_types());
+}
+
+
+
