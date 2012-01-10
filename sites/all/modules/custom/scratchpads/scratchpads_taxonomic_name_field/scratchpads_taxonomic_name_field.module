@@ -26,3 +26,10 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
     field_update_field($field);
   }
 }
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
+  scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary);
+}
