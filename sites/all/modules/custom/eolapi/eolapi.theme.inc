@@ -80,7 +80,7 @@ function theme_eolapi_movingimage_teaser($variables){
   $data = unserialize($variables['entity']->data);
   switch($data->mimeType){
     case 'video/x-flv':
-      return '<object data="' . $data->mediaURL . '" height="220" type="application/x-shockwave-flash" width="270"></object>';
+      return '<object data="' . $data->mediaURL . '" height="100" type="application/x-shockwave-flash" width="100"></object>';
       break;
   }
 }
