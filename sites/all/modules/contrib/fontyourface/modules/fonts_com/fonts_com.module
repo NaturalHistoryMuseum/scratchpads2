@@ -1,0 +1,327 @@
+<?php
+
+define('FONTS_COM_API_BASE_URL', 'http://api.fonts.com');
+define('FONTS_COM_API_APP_KEY', '1fdb130c-d5c0-4fab-8e2b-271508570323932606');
+
+/**
+ * Implements hook_fontyourface_info().
+ */
+function fonts_com_fontyourface_info() {
+
+  return array(
+    'name' => 'Fonts.com',
+    'url' => 'http://webfonts.fonts.com/',
+  );
+
+  return $info;
+
+} // fonts_com_fontyourface_info
+
+/**
+ * Implements hook_fontyourface_import().
+ */
+function fonts_com_fontyourface_import() {
+
+  $import_fonts = array();
+  $projects = fonts_com_get_projects();
+
+  foreach ($projects as $project) {
+  
+    $fonts = array();
+  
+    $domains = fonts_com_get_domains_in_project($project->ProjectKey);
+    $domain_match = FALSE;
+
+    foreach ($domains as $domain) {
+    
+      if ($domain->DomainName == $_SERVER['HTTP_HOST']) {
+        $domain_match = TRUE;
+      } // if
+    
+    } // foreach
+    
+    if ($domain_match) {
+
+      $fonts = fonts_com_get_fonts_in_project($project->ProjectKey);
+      
+      foreach ($fonts as $font) {
+
+        $font->project = $project;
+        $import_fonts[] = $font;
+
+      } // foreach
+
+    } // if
+
+  } // foreach
+
+  foreach ($import_fonts as $import_font) {
+  
+    $metadata = array(
+      'project_id' => $import_font->project->ProjectKey,
+    );
+
+    $font = new stdClass;
+    $font->name = $import_font->FontName;
+    $font->url = 'http://webfonts.fonts.com/en-US/Project/ChooseFonts?ViewDetails=T&ViewFontID=' . $import_font->FontID . '&AddFontToPalette=T';
+    $font->provider = 'fonts_com';
+    $font->metadata = serialize($metadata);
+    $font->css_family = '"' . $import_font->FontCSSName . '"';
+    $font->foundry = $import_font->FontFondryName;
+    $font->tags = array();
+
+    fontyourface_save_font($font);
+
+  } // foreach
+
+} // fonts_com_import
+
+/**
+ * Implements template_preprocess_page().
+ */
+function fonts_com_preprocess_page(&$vars) {
+
+  if (!empty($vars['fontyourface'])) {
+
+    $projects = array();
+
+    foreach ($vars['fontyourface'] as $used_font) {
+
+      if ($used_font->provider == 'fonts_com') {
+
+        $metadata = unserialize($used_font->metadata);
+        $projects[$metadata['project_id']] = TRUE;
+
+      } // if
+
+    } // foreach
+
+    if (count($projects) > 0) {
+
+      $base = 'http://fast.fonts.com/jsapi/';
+
+      if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+        $base = 'https://fast.fonts.com/jsapi/';
+      } // if
+
+      foreach (array_keys($projects) as $project) {
+
+        drupal_add_js($base . $project . '.js', array('type' => 'external'));
+        $variables['scripts'] = drupal_get_js();
+
+      } // foreach
+
+    } // if
+
+  } // if
+
+} // fonts_com_preprocess_page
+
+/**
+ * Implements hook_fontyourface_view().
+ */
+function fonts_com_fontyourface_view($font, $text) {
+
+  $output = '';
+  $sizes = array(32, 24, 18, 14, 12, 10);
+
+  foreach ($sizes as $size) {
+
+    $output .= '<div style="' . fontyourface_font_css($font) . ' font-size: ' . $size . 'px; line-height: ' . $size . 'px;">' . $text . '</div>';
+
+  } // foreach
+
+  return $output;
+
+} // fonts_com_fontyourface_view
+
+/**
+ * Implements hook_fontyourface_preview().
+ */
+function fonts_com_fontyourface_preview($font) {
+
+  return '<span style="' . fontyourface_font_css($font) . ' font-size: 24px;">' . $font->name . '</span>';
+
+} // fonts_com_fontyourface_preview
+
+/**
+ * Gets list of fonts in a given project.
+ */
+function fonts_com_get_fonts_in_project($project_id) {
+
+  $logging = variable_get('fontyourface_detailed_logging', FALSE);
+
+  $fonts = array();
+
+  $path = '/rest/json/Fonts/?wfspstart=0&wfsplimit=100&wfspid=' . $project_id;
+
+  $response = drupal_http_request(FONTS_COM_API_BASE_URL . $path, array('headers' => fonts_com_api_headers($path)));
+
+  if ($response->code == 200) {
+
+    $data = json_decode($response->data);
+    $font = $data->Fonts->Font;
+
+    if (is_array($font)) {
+      $fonts = $font;
+    } // if
+    else {
+      $fonts[] = $font;
+    } // else
+
+  } // if
+  else {
+
+    drupal_set_message(t('There was an error importing a project (@project) font list from Fonts.com.', array('@project' => $project_id)), 'error');
+
+    if ($logging) {
+      watchdog('@font-your-face', 'Invalid drupal_http_request response: @response', array('@response' => print_r($response, TRUE)), WATCHDOG_INFO);
+    } // if
+
+  } // else
+
+  return $fonts;
+
+} // fonts_com_get_fonts_in_project
+
+/**
+ * Gets list of domains in a given project.
+ */
+function fonts_com_get_domains_in_project($project_id) {
+
+  $logging = variable_get('fontyourface_detailed_logging', FALSE);
+
+  $domains = array();
+
+  $path = '/rest/json/Domains/?wfspstart=0&wfsplimit=100&wfspid=' . $project_id;
+
+  $response = drupal_http_request(FONTS_COM_API_BASE_URL . $path, array('headers' => fonts_com_api_headers($path)));
+
+  if ($response->code == 200) {
+
+    $data = json_decode($response->data);
+
+    if ($data->Domains->TotalRecords > 0) {
+
+      $domain = $data->Domains->Domain;
+  
+      if (is_array($domain)) {
+        $domains = $domain;
+      } // if
+      else {
+        $domains[] = $domain;
+      } // else
+
+    } // if
+
+  } // if
+  else {
+
+    drupal_set_message(t('There was an error importing a project (@project) domain list from Fonts.com.', array('@project' => $project_id)), 'error');
+
+    if ($logging) {
+      watchdog('@font-your-face', 'Invalid drupal_http_request response: @response', array('@response' => print_r($response, TRUE)), WATCHDOG_INFO);
+    } // if
+
+  } // else
+
+  return $domains;
+
+} // fonts_com_get_domains_in_project
+
+/**
+ * Gets list of projects from API.
+ */
+function fonts_com_get_projects() {
+
+  $logging = variable_get('fontyourface_detailed_logging', FALSE);
+
+  $projects = array();
+
+  $path = '/rest/json/Projects/?wfspstart=0&wfsplimit=100';
+
+  $response = drupal_http_request(FONTS_COM_API_BASE_URL . $path, array('headers' => fonts_com_api_headers($path)));
+
+  if ($response->code == 200) {
+
+    $data = json_decode($response->data);
+    $project = $data->Projects->Project;
+    
+    if (is_array($project)) {
+      $projects = $project;
+    } // if
+    else {
+      $projects[] = $project;
+    } // else
+
+  } // if
+  else {
+
+    drupal_set_message(t('There was an error importing project list from Fonts.com.'), 'error');
+
+    if ($logging) {
+      watchdog('@font-your-face', 'Invalid drupal_http_request response: @response', array('@response' => print_r($response, TRUE)), WATCHDOG_INFO);
+    } // if
+
+  } // else
+
+  return $projects;
+
+} // fonts_com_get_projects
+
+/**
+ * Provides headers with api parameters.
+ */
+function fonts_com_api_headers($path) {
+
+  list($public_key, $private_key) = explode('--', variable_get('fonts_com_token', ''));
+
+  $encoded = base64_encode(hash_hmac('md5', $public_key . '|' . $path, $private_key, true));
+  $auth = urlencode($public_key . ':' . $encoded);
+
+  return array('Authorization' => $auth, 'AppKey' => FONTS_COM_API_APP_KEY);
+
+} // fonts_com_api_headers
+
+/**
+ * Implements hook_form_alter().
+ */
+function fonts_com_form_alter(&$form, &$form_state, $form_id) {
+
+  if ($form_id == 'fontyourface_settings_form') {
+
+    $form['fonts_com'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Fonts.com',
+      '#weight' => -1,
+      'fonts_com_token' => array(
+        '#type' => 'textfield',
+        '#title' => t('Fonts.com authentication token'),
+        '#description' => t('This is available at !url', array('!url' => l('https://webfonts.fonts.com/en-US/Account/AccountInformation', 'https://webfonts.fonts.com/en-US/Account/AccountInformation'))),
+        '#default_value' => variable_get('fonts_com_token', ''),
+      ),
+      'fonts_com_token_save' => array(
+        '#type' => 'submit',
+        '#value' => 'Update Fonts.com',
+      ),
+    );
+
+    $form['#submit'][] = 'fonts_com_token_submit';
+
+  } // if
+
+} // fonts_com_form_alter
+
+/**
+ * Updates auth token.
+ */
+function fonts_com_token_submit($form, &$form_state) {
+
+  if ($form_state['clicked_button']['#parents'][0] == 'fonts_com_token_save') {
+
+    variable_set('fonts_com_token', $form_state['values']['fonts_com_token']);
+    drupal_set_message(t('Fonts.com token updated.'));
+
+  } // if
+
+} // fonts_com_token_submit

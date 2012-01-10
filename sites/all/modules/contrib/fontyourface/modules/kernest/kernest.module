@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Implements hook_fontyourface_info().
+ */
+function kernest_fontyourface_info() {
+
+  return array(
+    'name' => 'KERNEST',
+    'url' => 'http://kernest.com/',
+  );
+
+} // kernest_fontyourface_info
+
+/**
+ * Implements hook_fontyourface_import().
+ */
+function kernest_fontyourface_import() {
+
+  // KERNEST's Joyent server throws 500 error on Drupal's user agent
+
+  $logging = variable_get('fontyourface_detailed_logging', FALSE);
+
+  $api_result = drupal_http_request('http://kernest.com/styles/web-native.json', array('headers' => array('User-Agent' => 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3')));
+
+  if ($api_result->code == '200') {
+
+    $decoded = json_decode(str_replace("\n", ' ', $api_result->data));
+
+    if (is_array($decoded->fonts)) {
+
+      foreach ($decoded->fonts as $import_font) {
+
+        $font = new StdClass;
+        $font->name = $import_font->name;
+        $font->url = $import_font->url;
+        $font->provider = 'kernest';
+        $font->foundry = $import_font->foundry;
+        $font->license = $import_font->license->name;
+        $font->license_url = $import_font->license->url;
+        $font->tags = array();
+
+        $css = explode(';', $import_font->{'recommended css'});
+
+        foreach ($css as $property) {
+
+          if (strpos($property, ':') !== FALSE) {
+
+            list($key, $value) = explode(':', $property);
+
+            if (trim($key) == 'font-family') {
+              $font->css_family = trim($value);
+            } // if
+
+            if (trim($key) == 'font-weight') {
+              $font->css_weight = trim($value);
+            } // if
+
+            if (trim($key) == 'font-style') {
+              $font->css_style = trim($value);
+            } // if
+
+          } // if
+
+        } // foreach
+
+        fontyourface_save_font($font);
+
+      } // foreach
+
+    } // if
+
+  } // if
+  elseif ($logging) {
+    watchdog('@font-your-face', 'Invalid drupal_http_request response: @response', array('@response' => print_r($api_result, TRUE)), WATCHDOG_INFO);
+  } // elseif
+
+} // kernest_fontyourface_import
+
+/**
+ * Implements hook_fontyourface_preview().
+ */
+function kernest_fontyourface_preview($font) {
+
+  return '<span style="' . fontyourface_font_css($font) . ' font-size: 24px;">' . $font->name . '</span>';
+
+} // kernest_fontyourface_preview
+
+/**
+ * Implements hook_fontyourface_view().
+ */
+function kernest_fontyourface_view($font, $text) {
+
+  $output = '';
+  $sizes = array(32, 24, 18, 14, 12, 10);
+
+  foreach ($sizes as $size) {
+
+    $output .= '<div style="' . fontyourface_font_css($font) . ' font-size: ' . $size . 'px; line-height: ' . $size . 'px;">' . $text . '</div>';
+
+  } // foreach
+
+  return $output;
+
+} // kernest_fontyourface_view
+
+/**
+ * Implements template_preprocess_page().
+ */
+function kernest_preprocess_page(&$vars) {
+
+  if (!empty($vars['fontyourface'])) {
+
+    foreach ($vars['fontyourface'] as $used_font) {
+
+      if ($used_font->provider == 'kernest') {
+        $metaddata = unserialize($used_font->metadata);
+        fontyourface_add_css_in_preprocess($vars, $used_font->url . '.css', 'remote');
+      } // if
+
+    } // foreach
+
+  } // if
+
+} // kernest_preprocess_page

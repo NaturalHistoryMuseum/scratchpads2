@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Removes fonts on disable.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function fontdeck_enable() {
+
+  // Weight must be above @font-your-face weight so preprocess comes after
+
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'fontdeck'");
+
+} // fontdeck_enable
+
+/**
+ * Implements hook_disable().
+ */
+function fontdeck_disable() {
+
+  fontyourface_provider_disable('fontdeck');
+  variable_del('fontdeck_project');
+  variable_del('fontdeck_css');
+
+} // fontdeck_disable
