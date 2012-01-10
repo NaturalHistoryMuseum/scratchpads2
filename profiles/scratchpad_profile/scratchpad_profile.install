@@ -71,7 +71,6 @@ function scratchpad_profile_install(){
   $full_html_format = (object)$full_html_format;
   filter_format_save($full_html_format);
   // Enable some standard blocks.
-  $admin_theme = 'seven';
   $values = array(
     array(
       'module' => 'system',
@@ -96,7 +95,7 @@ function scratchpad_profile_install(){
     array(
       'module' => 'node',
       'delta' => 'recent',
-      'theme' => $admin_theme,
+      'theme' => 'seven',
       'status' => 1,
       'weight' => 10,
       'region' => 'dashboard_main',
@@ -146,7 +145,7 @@ function scratchpad_profile_install(){
     array(
       'module' => 'user',
       'delta' => 'login',
-      'theme' => $admin_theme,
+      'theme' => 'seven',
       'status' => 1,
       'weight' => 10,
       'region' => 'content',
