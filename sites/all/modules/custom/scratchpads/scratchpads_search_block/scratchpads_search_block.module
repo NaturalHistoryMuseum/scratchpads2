@@ -4,60 +4,28 @@
  * Implementation of hook_form_FORM_ID_alter()
  */
 function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  // Set the placeholder for the search box.  
+  $form[$form_id]['#attributes']['placeholder'] = t('Search...');
+  // Set the autocomplete path, so that when we select "Taxonomy", we can attempt
+  // to autocomplete.
+  $form[$form_id]['#autocomplete_path'] = 'scratchpads_search_block';
   $options = array(
-    '_all' => 'All'
+    '_all' => t('All'),
+    '_taxonomy' => t('Taxonomy'),
+    '_user' => t('User')
   );
   $default_value = '_all';
-  switch(arg(0)){
-    case 'node':
-      if(is_numeric(arg(1))){
-        // We're on a node page, we should add an option (and enable it) to search
-        // by this content type.
-        $node = node_load(arg(1));
-        $entity_info = entity_get_info('node');
-        $form[$form_id]['#attributes']['placeholder'] = t('Search on "@bundle_type" nodes...', array(
-          '@bundle_type' => $entity_info['bundles'][$node->type]['label']
-        ));
-        $options['node:' . $node->type] = $entity_info['bundles'][$node->type]['label'];
-        $default_value = 'node:' . $node->type;
-      }
-      break;
-    case 'taxonomy':
-      if(arg(1) == 'term' && is_numeric(arg(2))){
-        switch(arg(3)){
-          case 'media':
-            $form[$form_id]['#attributes']['placeholder'] = t('Search media...');
-            $options['media'] = t('Media');
-            $default_value = 'media';
-            break;
-          case 'literature':
-            break;
-          case 'maps':
-            break;
-          case 'specimens':
-            break;
-          case 'phylogeny':
-            break;
-          case 'eol':
-            break;
-          case FALSE:
-          default:
-            $term = taxonomy_term_load(arg(2));
-            $vocabulary = taxonomy_vocabulary_load($term->vid);
-            $form[$form_id]['#attributes']['placeholder'] = t('Search "@vocabulary_name" and content...', array(
-              '@vocabulary_name' => $vocabulary->name
-            ));
-            $options['taxonomy_vocabulary:' . $term->vid] = $vocabulary->name;
-            $default_value = 'taxonomy_vocabulary:' . $term->vid;
-        }
-      }
-      break;
-    default:
-      $entity_info = entity_get_info();
-      foreach($entity_info['node']['bundles'] as $key => $values){
-        $options['node:' . $key] = $values['label'];
-      }
-      $form[$form_id]['#attributes']['placeholder'] = t('Search...');
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    switch(arg(3)){
+      case 'media':
+        $options['media'] = t('Media');
+        $default_value = 'media';
+        break;
+      case 'literature':
+        $options['biblio'] = t('Literature');
+        $default_value = 'biblio';
+        break;
+    }
   }
   $form['entity_type'] = array(
     '#type' => 'fieldset',
@@ -67,6 +35,9 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
     '#attached' => array(
       'css' => array(
         drupal_get_path('module', 'scratchpads_search_block') . '/css/scratchpads_search_block.css'
+      ),
+      'js' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/js/scratchpads_search_block.js'
       )
     ),
     'entity_type_value' => array(
@@ -129,6 +100,24 @@ function scratchpads_search_block_theme(){
     'scratchpads_search_block_form' => array(
       'render element' => 'form',
       'template' => 'scratchpads-search-block-form'
+    )
+  );
+  taxonomy_menu();
+}
+
+/**
+ * hook_menu().
+ */
+function scratchpads_search_block_menu(){
+  return array(
+    'scratchpads_search_block' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'scratchpads_search_block_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'scratchpads_search_block.callback.inc'
     )
   );
 }

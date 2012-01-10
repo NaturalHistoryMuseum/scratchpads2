@@ -769,25 +769,26 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       // We need to add a GM3 map to the page.
       // We'll also need some additional JS to record the points and save them
       // actually into a form element.
-      $widget += array(
-        '#prefix' => drupal_render(theme('gm3_map', array(
-          'map' => array(
-            'id' => $element['#field_name'],
-            'libraries' => array(
-              'point' => array(
-                'points' => $items
-              ),
-              'field_point' => array(
-                'module' => 'gm3_field'
-              )
+      $content = theme('gm3_map', array(
+        'map' => array(
+          'id' => $element['#field_name'],
+          'libraries' => array(
+            'point' => array(
+              'points' => $items
             ),
-            'tools' => array(
-              theme('gm3_point_button', array(
-                'id' => $element['#field_name']
-              ))
+            'field_point' => array(
+              'module' => 'gm3_field'
             )
+          ),
+          'tools' => array(
+            theme('gm3_point_button', array(
+              'id' => $element['#field_name']
+            ))
           )
-        ))),
+        )
+      ));
+      $widget += array(
+        '#prefix' => drupal_render($content),
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
