@@ -3,3 +3,4 @@ description = "Scratchpads species pages"
 name = "Species"
 package = "Scratchpads"
 dependencies[] = itis_term
+dependencies[] = tinytax
