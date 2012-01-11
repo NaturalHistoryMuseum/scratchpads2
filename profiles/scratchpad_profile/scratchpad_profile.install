@@ -269,9 +269,18 @@ function scratchpad_profile_install(){
   /*
    * Additional Scratchpad settings: 
    */
+  // Date API stuff
   variable_set('date_default_timezone', 'Europe/London');
   variable_set('date_first_day', '1');
-  variable_set('date_format_long','l, F j, Y - H:i');
-  variable_set('date_format_medium','D, Y-m-d H:i');
-  variable_set('date_format_short','Y-m-d H:i');
+  variable_set('date_format_long', 'l, F j, Y - H:i');
+  variable_set('date_format_medium', 'D, Y-m-d H:i');
+  variable_set('date_format_short', 'Y-m-d H:i');
+  // Apache Solr settings
+  variable_set('apachesolr_default_environment', 'solr');
+  variable_set('search_default_module', 'apachesolr_search');
+  variable_set('search_active_modules', array(
+    'apachesolr_search' => 'apachesolr_search',
+    'node' => 0,
+    'user' => 0
+  ));
 }
