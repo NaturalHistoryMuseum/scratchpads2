@@ -327,7 +327,7 @@ function itis_term_allowed_values($field, $biological_type = FALSE){
 function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if($form_id == 'taxonomy_form_term'){
     $vids = variable_get('biological_vids', array());
-    if(isset($vids[$form['vid']['#value']])){
+    if(isset($form['vid']) && isset($vids[$form['vid']['#value']])){
       // WHAT A FUCKING CLUDGE!
       $form['field_rank'][$form['field_rank']['#language']]['#options'] = array_merge(array(
         '_none' => $form['field_rank'][$form['field_rank']['#language']]['#options']['_none']
