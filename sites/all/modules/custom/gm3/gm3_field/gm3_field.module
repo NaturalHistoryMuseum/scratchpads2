@@ -889,7 +889,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                   $default_values_string[$item['gm3_type']] .= "\n";
                 }
                 $default_values_string[$item['gm3_type']] .= $item[$item['gm3_type']];
-                $default_values[$item['gm3_type']] = array_merge($default_values[$item['gm3_type']], gm3_convert_polygon_string($item[$item['gm3_type']]));
+                $merge_array = gm3_convert_polygon_string($item[$item['gm3_type']]);
+                $default_values[$item['gm3_type']] = array_merge((is_array($default_values[$item['gm3_type']]) ? $default_values[$item['gm3_type']] : array()), (is_array($merge_array) ? $merge_array : array()));
                 break;
               case 'point':
                 $default_values['point'][] = array(
