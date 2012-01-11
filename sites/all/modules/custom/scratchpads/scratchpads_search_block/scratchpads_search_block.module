@@ -40,6 +40,11 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
         drupal_get_path('module', 'scratchpads_search_block') . '/js/scratchpads_search_block.js'
       )
     ),
+    '#attributes' => array(
+      'class' => array(
+        'sp-bg-colour'
+      )
+    ),
     'entity_type_value' => array(
       '#title' => '',
       '#type' => 'radios',
