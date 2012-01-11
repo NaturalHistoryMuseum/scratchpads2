@@ -79,23 +79,17 @@ function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $type = $form['#node_type']->type;
   $form_state['var'] = 'species_page_' . $type . '_tab';
   $tab = variable_get($form_state['var'], NULL);
-  $form['species'] = array(
-    '#type' => 'fieldset', 
-    '#title' => t('Species pages'), 
-    '#weight' => 5, 
-    '#collapsible' => TRUE, 
-    '#collapsed' => FALSE
-  );
-  $form['species']['species_page_display'] = array(
+  $form['display']['species_page_display'] = array(
     '#type' => 'checkbox', 
     '#title' => t('Display on species pages.'), 
-    '#default_value' => ($tab ? 1 : 0)
+    '#default_value' => ($tab ? 1 : 0),
+  	'#description' => t('Do you want to display this content on the species page?'), 
   );
   $tabs = scratchpads_species_get_tabs();
   if(isset($tabs[$type])){
   	unset($tabs[$type]);
   }
-  $form['species']['tabs'] = array(
+  $form['display']['tabs'] = array(
     '#type' => 'radios', 
     '#title' => t('Tabs'), 
     '#default_value' => $tab, 

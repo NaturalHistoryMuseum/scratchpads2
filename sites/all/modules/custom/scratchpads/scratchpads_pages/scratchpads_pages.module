@@ -76,6 +76,7 @@ function scratchpads_pages_form_node_type_form_alter(&$form, &$form_state){
     '#title' => t('Page display'),
     '#type' => 'radios',
     '#options' => array(
+      'none' => t('No page display'),
       'view' => t('View (a list of node teasers)'),
       'page' => t('Page (a standalone page)'),
       'solr' => t('Solr (a faceted search page)')
@@ -105,6 +106,7 @@ function scratchpads_pages_node_type_form_submit($form, $form_state){
   $type = $form_state['values']['type'];
   $display_settings[$type] = $form_state['values']['page_display_type'];
   variable_set('scratchpads_pages_display', $display_settings);
+  menu_rebuild();
 }
 
 /**
@@ -166,7 +168,10 @@ function scratchpads_pages_variable_default($name = NULL){
     $defaults = array(
       'scratchpads_pages_display' => array(
         'page' => 'page',
-        'spm' => 'view'
+        'spm' => 'none',
+    		'specimen_observation' => 'view',
+    		'biblio' => 'view',
+    		'location' => 'none'
       )
     );
   }
