@@ -266,4 +266,12 @@ function scratchpad_profile_install(){
   ))->condition('type', 'theme')->condition('name', 'seven')->execute();
   variable_set('admin_theme', 'seven');
   variable_set('node_admin_theme', '1');
+  /*
+   * Additional Scratchpad settings: 
+   */
+  variable_set('date_default_timezone', 'Europe/London');
+  variable_set('date_first_day', '1');
+  variable_set('date_format_long','l, F j, Y - H:i');
+  variable_set('date_format_medium','D, Y-m-d H:i');
+  variable_set('date_format_short','Y-m-d H:i');
 }
