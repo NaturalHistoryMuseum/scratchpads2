@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ * .install file for the taxonomy_breadcrumb module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function taxonomy_breadcrumb_install() {
+  // Create tables.
+
+  $weight = (int) db_query("SELECT weight FROM {system} WHERE name = :name", array(':name' => 'taxonomy'))->fetchField();
+  db_update('system')
+    ->fields(array(
+      'weight' => $weight + 1,
+    ))
+    ->condition('name', 'taxonomy_breadcrumb')
+    ->execute();
+
+  drupal_set_message('Taxonomy breadcrumb: Taxonomy-based breadcrumbs can now be configured for node pages and taxonomy/term pages on the ' . l('administration page', 'admin/config/user-interface/taxonomy-breadcrumb') . '.');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function taxonomy_breadcrumb_uninstall() {
+
+  // Remove global variables.
+  variable_del('taxonomy_breadcrumb_home');
+  variable_del('taxonomy_breadcrumb_show_current_term');
+  variable_del('taxonomy_breadcrumb_include_nodes');
+  variable_del('taxonomy_breadcrumb_node_types');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function taxonomy_breadcrumb_schema() {
+  return array(
+    'taxonomy_breadcrumb_vocabulary' => array(
+      'description' => 'Stores categories for aggregator feeds and feed items.',
+      'fields' => array(
+        'vid' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'path' => array(
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('vid'),
+    ),
+    'taxonomy_breadcrumb_term' => array(
+      'description' => 'Stores categories for aggregator feeds and feed items.',
+      'fields' => array(
+        'tid' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'path' => array(
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('tid'),
+    ),
+  );
+}
+
+/**
+ * Ensures that this module's weight is larger than the core taxonomy module.
+ */
+function taxonomy_breadcrumb_update_1() {
+  // removed because this is no longer needed.
+}
+
+/**
+ * Sets weight of taxonomy_breadcrumb to be greater than core taxonomy module.
+ */
+function taxonomy_breadcrumb_update_6001() {
+  // Ensure this module's weight is larger than the core taxonomy module.
+  $weight = (int) db_query("SELECT weight FROM {system} WHERE name = :name", array(':name' => 'taxonomy'))->fetchField();
+  db_update('system')
+    ->fields(array(
+      'weight' => $weight + 1,
+      ))
+    ->condition('name', 'taxonomy_breadcrumb')
+    ->execute();
+}
+
+/**
+ * Corrects variable value for new version.
+ */
+function taxonomy_breadcrumb_update_6100() {
+
+  if (variable_get('taxonomy_breadcrumb_include_nodes', 0)) {
+    variable_set('taxonomy_breadcrumb_include_nodes', 1);
+  }
+  else {
+    variable_set('taxonomy_breadcrumb_include_nodes', 0);
+  }
+}

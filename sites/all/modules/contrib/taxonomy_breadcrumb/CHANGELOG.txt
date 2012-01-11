@@ -1,0 +1,1 @@
+Issue #1124808 by MGN.  Initial port of taxonomy breadcrumb to Drupal 7.

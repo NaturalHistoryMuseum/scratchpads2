@@ -1,0 +1,251 @@
+<?php
+
+/**
+ * @file
+ * The taxonomy_breadcrumb module generates taxonomy based breadcrumbs on node
+ * pages and taxonomy/term pages.  The breadcrumb trail takes on the form:
+ *   [HOME] >> [VOCABULARY] >> TERM >> [TERM] ...
+ *
+ *   - The HOME breadcrumb (if present) links to the homepage.  The text
+ *     displayed for HOME is administrator configurable.  If the HOME
+ *     breadcrumb is not defined by the administrator, it will not appear
+ *     in the breadcrumb trail.
+ *   - The VOCABULARY breadcrumb (if present) will link to an administrator
+ *     defined page.  If the VOCABULARY does not have an administrator
+ *     defined page, it will not appear in the breadcrumb trail.
+ *   - Each TERM breadcrumb will link to either
+ *     (1) taxonomy/term/tid by default, or
+ *     (2) an administrator defined page if one is defined for the term.
+ *   - These administrator defined "breadcrumb links" for VOCABULARIES and TERMS
+ *     are controlled from the add/edit vocabulary and add/edit term
+ *     administrator pages.
+ *
+ * Examples:
+ *   home >> term >> term
+ *   mysite >> term >> term
+ *   home >> vocabulary >> term >> term
+ *   vocabulary >> term >> term
+ */
+
+// Default value for Advanced Settings, Node Types.
+define('TAXONOMY_BREADCRUMB_NODE_TYPES_DEFAULT', 'book');
+
+/**
+ * Implements hook_menu().
+ */
+function taxonomy_breadcrumb_menu() {
+  $items['admin/config/user-interface/taxonomy-breadcrumb'] = array(
+    'title' => 'Taxonomy Breadcrumb Settings',
+    'description' => 'Configure how taxonomy based breadcrumbs are displayed.',
+    'file' => 'taxonomy_breadcrumb.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('taxonomy_breadcrumb_admin_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function taxonomy_breadcrumb_node_view($node, $view_mode = 'full') {
+  if ($view_mode = 'full' && !drupal_is_front_page()) {
+    // Include the .inc file with all helper functions
+    module_load_include('inc', 'taxonomy_breadcrumb');
+
+    // See if the node type of the current node is part of the node types listed on the advanced settings page.
+    $array_of_types = array_filter((array) variable_get('taxonomy_breadcrumb_node_types', TAXONOMY_BREADCRUMB_NODE_TYPES_DEFAULT));
+    $in_list = in_array($node->type, $array_of_types);
+
+    // if the node type IS IN     the node types list and the list IS     inclusive OR
+    // if the node type IS NOT IN the node types list and the list IS NOT inclusive (e.g. exclusive)
+    // THEN modify the breadcrumb trail.
+    if ($in_list == variable_get('taxonomy_breadcrumb_include_nodes', 0) ) {
+
+      // Extract lightest term from lightest vocabulary assosciated with node.
+      $term = _taxonomy_breadcrumb_node_get_lightest_term($node);
+      $breadcrumb = _taxonomy_breadcrumb_generate_breadcrumb($term->tid);
+      if (variable_get('taxonomy_breadcrumb_include_node_title', FALSE)) {
+        $breadcrumb[] = check_plain($node->title);
+      }
+      drupal_set_breadcrumb($breadcrumb);
+    }
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function taxonomy_breadcrumb_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#taxonomy_breadcrumb':
+      $output = '<p>' . t('The taxonomy_breadcrumb module generates taxonomy based breadcrumbs on node pages and taxonomy/term pages. The breadcrumb trail takes on the form:') . '</p>';
+      $output .= '<p>' . t('[HOME] >> [VOCABULARY] >> TERM >> [TERM] ...') . '</p>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('The text displayed for HOME is configurable below. The <em>HOME</em> breadcrumb (if present) links to the homepage. The text displayed for HOME is configurable by an administrator. If the HOME breadcrumb is not defined by the administrator, it will not appear in the breadcrumb trail.') . '</li>';
+      $output .= '<li>' . t('The <em>VOCABULARY</em> breadcrumb (if present) will link to an administrator defined page. If the VOCABULARY does not have an administrator defined page, it will not appear in the breadcrumb trail. This can be configured on the add/edit vocabulary pages within <a href="@taxonomy">Structure >> Taxonomy</a>', array('@taxonomy' => url('admin/structure/taxonomy'))) . '</li>';
+      $output .= '<li>' . t('Each <em>TERM</em> breadcrumb will link to either (1) taxonomy/term/tid by default, or (2) an administrator defined page if one is defined for the term. This can be configured on the add/edit term pages within <a href="@taxonomy">Structure >> Taxonomy</a>', array('@taxonomy' => url('admin/structure/taxonomy'))) . '</li>';
+      $output .= '</ul>';
+      $output .= '<h3>' . t('Examples:') . '</h3>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('home >> term >> term') . '</li>';
+      $output .= '<li>' . t('mysite >> term >> term') . '</li>';
+      $output .= '<li>' . t('home >> vocabulary >> term >> term') . '</li>';
+      $output .= '<li>' . t('vocabulary >> term >> term') . '</li>';
+      $output .= '</ul>';
+
+      return $output;
+  }
+}
+
+
+/**
+ * Implements hook_page_alter().
+ */
+function taxonomy_breadcrumb_page_alter(&$page) {
+  // Set the breadcrumb on taxonomy term pages.
+  if ($page_term = menu_get_object('taxonomy_term', 2)) {
+    module_load_include('inc', 'taxonomy_breadcrumb');
+    $breadcrumb = _taxonomy_breadcrumb_generate_breadcrumb($page_term->tid, TRUE);
+    drupal_set_breadcrumb($breadcrumb);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_breadcrumb_form_taxonomy_form_vocabulary_alter(&$form, &$form_state) {
+  // Include the .inc file with all helper functions.
+  module_load_include('inc', 'taxonomy_breadcrumb', 'taxonomy_breadcrumb.admin');
+  module_load_include('inc', 'taxonomy_breadcrumb');
+
+  $form['taxonomy_breadcrumb_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Breadcrumb path (taxonomy_breadcrumb)'),
+    '#default_value' => _taxonomy_breadcrumb_get_vocabulary_path($form['vid']['#value']),
+    '#maxlength' => 128,
+    '#description' => t("Specify the path this vocabulary links to as a breadcrumb. If blank, the breadcrumb will not appear. Use a relative path and don't add a trailing slash. For example: node/42 or my/path/alias."),
+    '#weight' => 0,
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_breadcrumb_form_taxonomy_form_term_alter(&$form, &$form_state) {
+  if (!(isset($_POST['op']) && $_POST['op'] == t('Delete')) || isset($_POST['confirm'])) {
+    // Include the .inc file with all helper functions.
+    module_load_include('inc', 'taxonomy_breadcrumb');
+    $form['taxonomy_breadcrumb_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Breadcrumb path (taxonomy_breadcrumb)'),
+      '#default_value' => _taxonomy_breadcrumb_get_term_path($form['tid']['#value']),
+      '#maxlength' => 128,
+      '#description' => t("Specify the path this term links to as a breadcrumb. If blank, the breadcrumb links to the default taxonomy page. Use a relative path and don't add a trailing slash. For example: node/42 or my/path/alias."),
+      '#weight' => 0,
+    );
+  }
+}
+
+/**
+ * Checks to see if a vocabulary or term is being updated and makes
+ * the necessary changes in the taxonomy_breadcrumb database tables.
+ */
+function taxonomy_breadcrumb_taxonomy($op, $type, $object = NULL) {
+  if ($type == 'taxonomy_vocabulary' || $type == 'term') {
+    // Include the .inc file with all helper functions.
+    module_load_include('inc', 'taxonomy_breadcrumb');
+    // Set variables to used in query to reflect if vocabulary or term is being updated.
+    if ($type == 'taxonomy_vocabulary') {
+      $table = 'taxonomy_breadcrumb_vocabulary';
+      $key_type = 'vid';
+      $old_path = _taxonomy_breadcrumb_get_vocabulary_path($object->vid);
+    }
+    elseif ($type == 'term') {
+      $table = 'taxonomy_breadcrumb_term';
+      $key_type = 'tid';
+      $old_path = _taxonomy_breadcrumb_get_term_path($object->tid);
+    }
+    $key = isset($object->$key_type) ? $object->$key_type : NULL;
+
+    switch ($op) {
+      case 'insert':
+      case 'update':
+        $new_path = isset($object->taxonomy_breadcrumb_path) ? $object->taxonomy_breadcrumb_path : NULL;
+
+        // Only modify database when the object has the 'taxonomy_breadcrumb_path' field
+        if (!is_null($new_path)) {
+          // Delete the record from taxonomy_breadcrumb_vocabulary or taxonomy_breadcrumb_term.
+          if (drupal_strlen($new_path) == 0 && $old_path !== NULL) {
+            db_delete($table)
+              ->condition($key_type, $key)
+              ->execute();
+          }
+          // Update the existing record in taxonomy_breadcrumb_vocabulary or taxonomy_breadcrumb_term.
+          elseif (drupal_strlen($new_path) != 0 && $old_path != NULL) {
+            db_update($table)
+              ->fields(array('path' => $new_path))
+              ->condition($key_type, $key)
+              ->execute();
+          }
+          // Create a new record in taxonomy_breadcrumb_vocabulary or taxonomy_breadcrumb_term.
+          elseif (drupal_strlen($new_path) != 0 && $old_path == NULL) {
+            db_insert($table)
+              ->fields(array($key_type => $key, 'path' => $new_path))
+              ->execute();
+          }
+        }
+        break;
+      case 'delete':
+        db_delete($table)
+          ->condition($key_type, $key)
+          ->execute();
+        break;
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_update().
+ */
+function taxonomy_breadcrumb_taxonomy_vocabulary_update($vocabulary) {
+  taxonomy_breadcrumb_taxonomy('update', 'taxonomy_vocabulary', $vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function _taxonomy_breadcrumb_vocabulary_insert($vid, $path) {
+  taxonomy_breadcrumb_taxonomy('insert', 'taxonomy_vocabulary', $vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function taxonomy_breadcrumb_taxonomy_vocabulary_delete($vocabulary) {
+  taxonomy_breadcrumb_taxonomy('delete', 'taxonomy_vocabulary', $vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_term_update().
+ */
+function taxonomy_breadcrumb_taxonomy_term_update($term) {
+  taxonomy_breadcrumb_taxonomy('update', 'term', $term);
+}
+
+/**
+ * Implements hook_taxonomy_term_insert().
+ */
+function taxonomy_breadcrumb_taxonomy_term_insert($term) {
+  taxonomy_breadcrumb_taxonomy('insert', 'term', $term);
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ */
+function taxonomy_breadcrumb_taxonomy_term_delete($term) {
+  taxonomy_breadcrumb_taxonomy('delete', 'term', $term);
+}
