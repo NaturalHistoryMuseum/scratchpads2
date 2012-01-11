@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
+  if($vocabulary->biological_classification){
+    // We have a biological classification.  We need to update the field.
+    $field = field_info_field('field_taxonomic_name');
+    $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+      'parent' => 0,
+      'vocabulary' => $vocabulary->machine_name
+    );
+    $bio_vids = variable_get('biological_vids', array());
+    $i = 0;
+    foreach($bio_vids as $vid => $value){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if($vocabulary){
+        $field['settings']['allowed_values'][$i] = array(
+          'parent' => 0,
+          'vocabulary' => $vocabulary->machine_name
+        );
+      }
+      $i++;
+    }
+    field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
+  scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary);
+}

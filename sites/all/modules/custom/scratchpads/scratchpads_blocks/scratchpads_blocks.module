@@ -9,21 +9,45 @@ function scratchpads_blocks_block_info(){
     'info' => t('Scratchpads footer menu'),
     'region' => 'footer',
     'weight' => 1,
-    'theme' => SCRATCHPADS_THEME_NAME
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
   );
   $blocks['footer_logos'] = array(
     'info' => t('Scratchpads footer logos'),
     'region' => 'footer',
     'weight' => 2,
-    'theme' => SCRATCHPADS_THEME_NAME
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
   );
   $blocks['footer_links'] = array(
     'info' => t('Scratchpads footer links'),
     'region' => 'footer',
     'weight' => 3,
-    'theme' => SCRATCHPADS_THEME_NAME
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
   );
   return $blocks;
+}
+
+/**
+ * Implementation of hook_system_info_alter().
+ * 
+ * We tweak the seven theme so that we can assign blocks automatically to the
+ * "scratchpads" theme regions without Drupal being fucking stupid.
+ */
+function scratchpads_blocks_system_info_alter(&$info, $file, $type){
+  if($file->name == 'seven'){
+    $info['regions']['page_top'] = 'Page Top';
+    $info['regions']['page_bottom'] = 'Page Bottom';
+    $info['regions']['slide_top'] = 'Slide Top';
+    $info['regions']['content'] = 'Main content';
+    $info['regions']['sidebar'] = 'Sidebar';
+    $info['regions']['footer'] = 'Footer';
+    $info['regions']['slide_bottom'] = 'Slide Bottom';
+    $info['regions']['branding'] = 'Branding';
+    $info['regions']['menu'] = 'Menu';
+    $info['regions']['header'] = 'Header';
+  }
 }
 
 /**
@@ -42,7 +66,7 @@ function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
       $blocks['system']['navigation']['status'] = 0;
       $blocks['system']['user-menu']['status'] = 0;
       // Move the search box to the top
-      $blocks['search']['form']['region'] = 'header';      
+      $blocks['search']['form']['region'] = 'header';
       break;
   }
 }
@@ -96,6 +120,26 @@ function scratchpads_blocks_block_view($delta = ''){
       break;
   }
   return $block;
+}
+
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_blocks_menu_block_blocks() {
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_blocks-1' => array(
+      'menu_name'   => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link'  => 0,
+      'admin_title' => 'Secondary menu',
+      'level'       => 2,
+      'follow'      => 0,
+      'depth'       => 0,
+      'expanded'    => 1,
+      'sort'        => 0,
+    ),
+  );
 }
 
 /**

@@ -1,0 +1,20 @@
+# Upgrading (from Drupal 6 to 7)
+
+1. **BE WARE THAT NOT ALL FUNCTIONALITY HAS BEEN PORTED!**
+
+	Make sure that you know if the part of Hierarchical Select's functionality
+	that you want to use has been ported. Otherwise, you may be in for a
+	frustrating upgrade experience.
+
+	See the included TODO.txt file for details. In a nutshell:
+
+	- Taxonomy support is almost complete, only "create new item", "entity count" and token support are missing
+	- Forum support has **not** yet been ported (but relies on Taxonomy, so this is trivial)
+	- Taxonomy Views support has **not** yet been ported
+	- Menu support has **not** yet been ported
+
+2. Upgrade this module just like any other: delete the old module, copy the
+	files of the new module and run update.php.  
+	For details, see <http://drupal.org/node/570162>.
+
+3. That's it! :)

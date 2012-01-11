@@ -1,0 +1,12 @@
+name = Hierarchical Select Small Hierarchy
+description = Allows Hierarchical Select to be used for a hardcoded hierarchy. When it becomes to slow, you should move the hierarchy into the database and write a proper implementation.
+dependencies[] = hierarchical_select
+package = Form Elements
+core = 7.x
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "7.x-3.0-alpha5"
+core = "7.x"
+project = "hierarchical_select"
+datestamp = "1316201202"
+

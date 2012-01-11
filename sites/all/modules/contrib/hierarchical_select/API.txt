@@ -1,0 +1,668 @@
+
+Terminology
+-----------
+- item: an item in the hierarchy. A hierarchy can also be seen as a tree. In
+        that case, an item can be either a parent or a child. However, if
+        "multiple parents" are supported (i.e. a child can have multiple
+        parents), then it's actually not a tree but a directed acyclic graph
+        (see http://en.wikipedia.org/wiki/Directed_acyclic_graph), in which
+        each case technically is a "node".
+        An example: in the case of taxonomy, this is the term id (tid).
+- label: the label associated with an item in the hierarchy. You may now it
+         as "title" or something else similar.
+         An example: in the case of taxonomy, this is the actual term.
+- item type: a per-level, human-readable name that describes what kind of
+             items that level contains.
+- entity: an item is often associated with an entity. E.g. a term is usually
+          associated with a node.
+- form element: a form element allows the developer to assign a new value to
+                a #type property in a form item. Examples of form elements
+                supported by Drupal core are: select, checkboxes, textfield.
+- form item: an instance of a form element, with various other properties
+             defined, such as #title, #default_value and #description. These
+             are used to define a form in Drupal.
+- Hierarchical Select: this is the name of the module.
+- hierarchical_select: this is the internal name of the Hierarchical Select
+                       form element.
+- hierarchical select: (note the difference in case) this is the part of the
+                       widget with the multiple selects.
+- dropbox: this is the part of the widget where the selections are stored when
+           multiple selections are allowed.
+           
+
+Form API usage
+--------------
+You have to make sure your form item is using the "hierarchical_select" form
+element type:
+
+  $form['select_some_term'] = array(
+    '#type' => 'hierarchical_select',
+    '#title' => t('Select the tag you wish to use.'),
+    '#size' => 1,
+    '#config' => array(
+      'module' => 'hs_taxonomy',
+      'params' => array(
+        'vid' => $vid,
+      ),
+      'save_lineage'    => 0,
+      'enforce_deepest' => 0,
+      'entity_count'    => 0,
+      'require_entity'  => 0,
+      'resizable'       => 1,
+      'level_labels' => array(
+        'status' => 0,
+        'labels' => array(
+          0 => t('Main category'),
+          1 => t('Subcategory'),
+          2 => t('Third level category'),
+        ),
+      ),
+      'dropbox' => array(
+        'status'   => 0,
+        'title'    => t('All selections'),
+        'limit'    => 0,
+        'reset_hs' => 1,
+      ),
+      'editability' => array(
+        'status'           => 0,
+        'item_types'       => array(),
+        'allowed_levels'   => array(
+          0 => 0,
+          1 => 0,
+          2 => 1,
+        ),
+        'allow_new_levels' => 0,
+        'max_levels'       => 3,
+      ),
+      // These settings cannot be configured through the UI: they can only be
+      // overridden through code.
+      'animation_delay'    => 400,
+      'special_items'      => array(),
+      'render_flat_select' => 0,
+    ),
+    '#default_value' => '83',
+  ); 
+
+Now, let's explain what we see here:
+1) We've set the #type property to "hierarchical_select" instead of "select".
+2) The #size property is inherited by the selects of the hierarchical select.
+   You can use it to change a vertical size of the select (i.e. change how many
+   items are displayed in the select, similar to a form select multiple).
+3) There's a new property: #config. This must be an
+array. These are the items it can contain:
+ - module (required)
+   This will be passed through in the AJAX requests, to let Hierarchical
+   Select know which module's hooks should be used.
+
+ - params (optional, may be necessary for some implementations)
+   An array of parameters that will also be passed through in every AJAX
+   request.
+   e.g. In the case of taxonomy, this is the vocabulary id (vid). In case of
+   content_taxonomy, there's three parameters: vid, tid and depth (tid allows
+   one to define a new root, depth allows one to limit the depth of the
+   displayed hierarchy).
+
+ - save_lineage (optional, defaults to 0)
+   Triggers the lineage saving functionality. If enabled, the selection can
+   consist of multiple values.
+
+ - enforce_deepest (optional, defaults to 0)
+   Triggers the enforcing of a selection in the deepest level. If enabled, the
+   selection will always be a single value.
+
+ - entity_count (optional, defaults to 0)
+   Enables the display of entity counts, between parentheses, for each item in
+   the hierarchy.
+
+ - require_entity (optional, defaults to 0)
+   Whether an item should only be displayed if it has at least one associated
+   entity.
+
+ - resizable (optional, defaults to 1)
+   Makes the hierarchical select resizable.
+
+ - level_labels['status'] (optional, defaults to 0)
+   Whether level labels should be enabled or not. When save_lineage is
+   enabled, this will result in *empty* level labels.
+
+ - level_labels['labels'] (optional)
+   An array of labels, one per level. The label for the first level should be
+   the value of key 0.
+   When enforce_deepest is set to:
+   - 0, then you can provide n level labels, with n the number of levels
+   - 1, then you can provide only one level label.   
+
+ - dropbox['status'] (optional, defaults to 0)
+   Whether the dropbox is enabled or not (the dropbox allows the user to make
+   multiple selections).
+
+ - dropbox['title'] (optional, defaults to "All selections:")
+   The title of the dropbox. The dropbox is the area where all selections are
+   displayed when the dropbox is enabled.
+
+ - dropbox['limit'] (optional, defaults to 0, which means "no limit")
+   Limit the number of selection that can be added to the dropbox. So this
+   allows you the restrict the number of items that can be selected when
+   the dropbox has been enabled.
+   
+ - dropbox['reset_hs'] (optional, defaults to 1, which means "do reset")
+   Determines what will happen to the hierarchical select when the user has
+   added a selection to the dropbox.
+
+ - editability['status] (optional, defaults to 0)
+   Allow the user to create new items in the hierarchy.
+
+ - editability['item_types'] (optional, defaults to the empty array)
+   Only meaningful when editable is set to TRUE.
+   Set the item type for each level. E.g.: "country" for the first level,
+   "region" for the second and "city" for the third. When the user then wants
+   to create a new item, the default label for the new item will be of the
+   form "new <item type>", e.g. "new region".
+
+ - editability['allowed_levels'] (optional, defaults to 1 for each level)
+   Only meaningful when editable is set to TRUE.
+   Specify in which levels the user is allowed to create new items. In the
+   example, the user is only allowed to create new items in the third level.
+   When a setting for a level is ommitted, it defaults to 1 (i.e. allowed for
+   that level). This means you only have to specify in which levels the user
+   is not allowed to create new items.
+   This only applies to *existing* levels: it does not affect the
+   allow_new_levels setting (the next setting).
+
+ - editability['allow_new_levels'] (optional, defaults to 0)
+   Only meaningful when editable is set to TRUE.
+   Allow the user to create new levels, i.e. when a certain item does not yet
+   have children, the user can create a first child for it (thus thereby
+   creating a new level).
+
+ - editability['max_levels'] (optional, defaults to 3)
+   Only meaningful when editable_settings['allow_new_levels'] is set to TRUE.
+   Limits the maximum number of levels. Don't set this too high or you'll end
+   up with very deep hierarchies. This only affects how deep new levels can be
+   created, it will not affect the existing hierarchy.
+
+ - animation_delay (optional, defaults to 400)
+   The delay of each animation (the drop in left and right animations), in ms.
+
+ - special_items (optional, defaults to the empty array)
+   Through this setting, you can mark each item with special properties it
+   possesses. There currently are two special properties: 'exclusive' and
+   'none'.
+   Note: you should include these items in the hierarchy as if it were a
+   normal item and then you can mark them as special through this property.
+   * 'exclusive': Sometimes it's desirable to have exclusive lineages. When
+                  such an option is selected, the user should not be able to
+                  select anything else. This also means that  nothing else in
+                  the dropbox can be selected: if the dropbox contains
+                  anything, it will be reset.
+                  Can be applied to multiple items.
+                  e.g. an 'entire_tree' item:
+                    'special_items' => array(
+                      'entire_tree' => array('exclusive'),
+                    )
+   * 'none': Sometimes you want to replace the default '<none>' option by
+             something else. This replacement should of course also exist in
+             the root level.
+             Can be applied to only one item.
+             e.g. an 'any' item (used in hs_taxonomy_views):
+               'special_items' => array(
+                 'any' => array('none', 'exclusive'),
+               )
+   And a final example for a better overview:
+    'special_items' => array(
+      'entire_tree' => array('exclusive'),
+      'any'         => array('none', 'exclusive'),
+    )
+
+ - render_flat_select (optional, defaults to 0)
+   Because the hierarchical_select form element consists of multiple form
+   items, it doesn't work well in GET forms. By enabling this setting, a flat
+   select will also be rendered, that contains only the selected lineages.
+   Combine that with Drupal.HierarchicalSelect.prepareGETSubmit in the JS code
+   (or, alternatively, the 'prepare-GET-submit' event  that can be triggered,
+   see the JavaScript events section for details) and you have a work-around
+   (which, admittedly, only works when JS is enabled).
+
+3) We *don't* specify a list of options: Hierarchical Select automatically
+generates the options for us, thanks to the 'module' and 'params' settings.
+
+
+Concepts
+--------
+- Item Unicity: each item in the hierarchy must be *unique*. It doesn't have
+                to be numerical, it can also be a string.
+                If your hierarchy does not have unique items by nature or by
+                design (your items may be unique per level instead), that's
+                not a problem. You can simply prepend the item's ancestors to
+                get a unique item.
+                e.g. you have an item "foobar" at the first, second and third
+                levels. By prepending the ancestors using the dash as the
+                separator, you'd get an item "foobar-foobar-foobar" at the
+                third level.
+                Also see the "Reserved item values" section.
+- #options: it's gone, because it was the inherent cause for scalability
+            problems: if a hierarchy consists of 10,000 or even 100,000 items,
+            this results in huge HTML being generated. Huge HTML means more
+            processing power necessary, and more bandwidth necessary. So where
+            does Hierarchical Select get its "options"? It uses the hooks that
+            every implementation has to implement to only get what it needs.
+- The General Concept: you should think of Hierarchical Select as an abstract
+                       widget that can represent *any* hierarchy. To be able
+                       to display any hierarchy, you obviously  need some
+                       universal way to "browse" a hierarchy.
+                       If you are familiar with C++ or Java iterators, this
+                       should come natural: the hooks you have to implement
+                       is what allows Hierarchical Select to iterate over your
+                       hierarchy. Then the heart of the iterator would be the
+                       root_level() and children() hooks. params() allows you
+                       to define which information is necessary before you can
+                       determine *which* hierarchy or which *part* of the
+                       hierarchy is being browsed. lineage() must return the
+                       lineage, i.e. the item itself and all its ancestors,
+                       this allows a hierarchy to be generated from just one
+                       (selected) item.
+
+
+Reserved item values
+--------------------
+- Ensure that your items don't have a "none", "all", "create_new_item" nor
+  "label_\d+" values (the latter means "label_" followed by one or more
+  digits). Your values should also not contain a pipe ("|"), since pipes are
+  used to separate the selection of values that are sent back to the server
+  in the callbacks.
+- Valid 'empty' selections (i.e. if you want to set the #default_value
+  property of your form item), are -1 and the empty array. The empty string is
+  also considered valid, because Drupal core's Taxonomy module uses this as
+  the empty selection.
+
+
+Developer mode
+--------------
+When you are writing your implementation of the Hierarchical Select API, you
+will often wonder what Hierarchical Select is doing internally with the data
+you're feeding it. That's why there's a developer mode: it will show you this
+data, even the data generated in AJAX callbacks. It'll also show you the time
+it took to generate the lineage, to fill up the levels and to calculate the
+child info, to track down badly performing code.
+Also, when you're just creating a new HS config and it doesn't quite work
+right, it can be helpful to enable the developer mode. It will perform some
+basic diagnostics that might help you track down the cause.
+To use this, you must have a browser with console.log() support. Install 
+Firebug Lite (http://getfirebug.com/lite.html) if your browser does not
+suport this. Next, go to Hierarchical Select's .module file and set the define
+for the HS_DEVELOPER_MODE constant to TRUE.
+When you now open Firebug (Firefox) or the Web Inspector (Safari), you'll see
+the debug output. New output is added after each callback to the server.
+
+
+Hierarchical Select implementations: gotcha's
+---------------------------------------------
+- "warning: Missing argument 1 for drupal_retrieve_form() …"
+  This implies that your implementation's module weight is heavier than
+  hierarchical_select.module. In that case, Hierarchical Select will not be
+  able to detect hierarchical_select form items, preventing it from applying
+  some magic, and AJAX updates won't work.
+
+
+Hierarchical Select compatibility: gotcha's
+-------------------------------------------
+- "Invalid response from server"
+  This typically means that some functions could not be found when
+  Hierarchical Select does an AJAX callback to the server, which in turn means
+  that some code (some PHP file) has not been included, while it should have
+  been. Instead of using module_load_include() or even require_once, you
+  should use form_load_include(). This function is new in Drupal 7 and will
+  ensure that all required PHP files are included automatically.
+
+
+Hierarchical Select API Tutorial
+--------------------------------
+Written by Stephen Barker of Digital Frontiers Media
+(http://drupal.org/user/106070) and reviewed by Wim Leers:
+  http://drupal.org/node/532724
+
+
+Hierarchical Select Small Hierarchy
+-----------------------------------
+Hierarchical Select includes a Hierarchical Select API implementation that
+allows one to use a hardcoded hierarchy. When it becomes to slow, you should
+move the hierarchy into the database and write a proper implementation.
+Below you can find an example of how to use the hs_smallhierarchy module. Just
+change the $hierarchy array to suit your needs and off you go! Look at the
+code of hs_smallhierarchy.module for full details, but this code example
+should get you started.
+
+  $hierarchy = array(
+     'win' => array(
+       'label' => 'Windows',
+       'children' => array(
+         'xp'    => array('label' => 'XP'),
+         'vista' => array(
+           'label' => 'Vista',
+           'children' => array(
+             'x86' => array('label' => '32-bits'),
+             'x64' => array('label' => '64-bits'),
+           ),
+         ),
+       ),
+     ),
+  );
+
+  $form['select_some_term'] = array(
+    '#type' => 'hierarchical_select',
+    '#title' => t('Select the tag you wish to use.'),
+    '#size' => 1,
+    '#config' => array(
+      'module' => 'hs_smallhierarchy',
+      'params' => array(
+        'hierarchy' => $hierarchy,
+        'id' => 'my-hierarchy-about-windows',
+        'separator' => '|',
+      ),
+      'save_lineage'    => 0,
+      'enforce_deepest' => 0,
+      'entity_count'    => 0,
+      'resizable'       => 1,
+      'level_labels' => array(
+        'status' => 0,
+        'labels' => array(
+          0 => t('Main category'),
+          1 => t('Subcategory'),
+          2 => t('Third level category'),
+        ),
+      ),
+      'dropbox' => array(
+        'status'   => 0,
+        'title'    => t('All selections'),
+        'limit'    => 0,
+        'reset_hs' => 1,
+      ),
+      'editability' => array(
+        'status'           => 0,
+        'item_types'       => array(),
+        'allowed_levels'   => array(
+          0 => 0,
+          1 => 0,
+          2 => 1,
+        ),
+        'allow_new_levels' => 0,
+        'max_levels'       => 3,
+      ),
+      // These settings cannot be configured through the UI: they can only be
+      // overridden through code.
+      'animation_delay'    => 400,
+      'exclusive_lineages' => array(),
+      'render_flat_select' => 0,
+    ),
+    '#description' => 'Put your description here',
+    '#default_value' => 'win|xp|x86',
+  );
+
+
+Hooks
+-----
+1) hook_hierarchical_select_params();
+   Returns an array with the names of all parameters that are necessary for
+   this implementation to work.
+
+2) hook_hierarchical_select_root_level($params, $dropbox = FALSE);
+   Returns the root level of the hierarchy: an array of (item, label) pairs.
+   The $dropbox parameter can is optional and can even ommitted, as it's only
+   necessary if you need the dropbox to influence your hierarchy.
+
+3) hook_hierarchical_select_children($parent, $params, $dropbox = FALSE);
+   Gets the children of $parent ($parent is an item in the hierarchy) and
+   returns them: an array of (item, label) pairs, or the empty array if the
+   given $parent has no children.
+   The $dropbox parameter can is optional and can even ommitted, as it's only
+   necessary if you need the dropbox to influence your hierarchy.
+
+4) hook_hierarchical_select_lineage($item, $params);
+   Calculates the lineage of $item (array of items, with $item the last) and
+   returns it. Necessary when the "enforce_deepest" option is enabled.
+
+5) hook_hierarchical_select_valid_item($item, $params);
+   Validates an item, returns TRUE if valid, FALSE if invalid.
+
+6) hook_hierarchical_select_item_get_label($item, $params);
+   Given a valid item, returns the label. Is only used for rendering the
+   selections in the dropbox.
+
+7) hook_hierarchical_select_create_item($label, $parent, $params);
+   Given a parent item and the label of a new item, create a new item as a
+   child of the parent item. When $parent == 0, this means a new item is being
+   created at the root level.
+   Optional hook. When this hook is not implemented, this functionality will
+   never be used, even when you configure it that way in code.
+
+8) hook_hierarchical_select_entity_count($item, $params);
+   Given a item, get the number of entities (most of the time the entity type
+   is 'node') that are related to the given item. Used for the entity_count
+   and require_entity settings.
+   Optional hook. When this hook is not implemented, this functionality will
+   never be used, even when you configure it that way (i.e. when you enable
+   the entity_count and require_entity settings).
+
+9) hook_hierarchical_select_implementation_info();
+   Return metadata about this implementation.
+   This information is used to generate the implementations overview at
+   admin/settings/hierarchical_select/implementations. The expected format is:
+
+      array(
+        'hierarchy type' => t('Taxonomy'),
+        'entity type'    => t('Node'),
+        'entity'         => t('Story'),
+        'context type'   => t('Node form'),
+        'context'        => '',
+      );
+    
+    another example:
+
+      array(
+        'hierarchy type' => t('Taxonomy'),
+        'entity type'    => t('Node'),
+        'entity'         => '',
+        'context type'   => t('Views exposed filter'),
+        'context'        => t('some view'),
+      );
+
+10) hook_hierarchical_select_config_info();
+    Return metadata about each available user-editable configuration for this
+    implementation.
+    Optional hook. This information is used to generate the configurations
+    overview at admin/settings/hierarchical_select/configs. The expected
+    format is:
+
+      $config_info[$config_id] = array(
+        'config_id'      => $config_id,
+        'hierarchy type' => t('Taxonomy'),
+        'hierarchy'      => t($vocabulary->name),
+        'entity type'    => t('Node'),
+        'entity'         => implode(', ', array_map('t', $entities)),
+        'edit link'      => "admin/content/taxonomy/edit/vocabulary/$vid",
+      );
+
+
+Standardized configuration form
+-------------------------------
+Hierarchical Select 3 comes with a standardized configuration form: 
+hierarchical_select_common_config_form(). This function accepts a lot of
+parameters, which allows you to use names typical to your module's hierarchy
+(e.g. 'leaf' instead of 'term' and 'tree' instead of 'vocabulary'). A submit
+handler is also provided, of course.
+An example:
+
+  // I'm not configuring all parameters here. For an example of that, see one
+  // of the included modules.
+  $form['foobar_hierarchical_select_config'] = hierarchical_select_common_config_form($module, $params, $config_id, $defaults, $strings, $max_hierarchy_depth, $preview_is_required);
+
+  // Add the the submit handler for the Hierarchical Select config form.
+  $parents = array('foobar_hierarchical_select_config');
+  $form['#submit'][] = 'hierarchical_select_common_config_form_submit';
+  $form['#hs_common_config_form_parents'] = $parents;
+
+
+Configuration management
+------------------------
+It's now possible to export Hierarchical Select configurations, and there is a
+function to set the configuration of a certain Hierarchical Select. Combine
+the two and you can manage your Hierarchical Select configurations in code!
+An example:
+
+  // The exported configuration.
+  $config = array( … );
+  $config_id = $config['config_id];
+
+  // Apply the configuration.
+  require_once(drupal_get_path('module', 'hierarchical_select') .'/includes/common.inc');
+  hierarchical_select_common_config_set($config_id, $config);
+
+
+JavaScript events
+-----------------
+The Hierarchical Select module's JavaScript code triggers several events, to
+allow for advanced interactions.
+
+You can find all hierarchical_select form items using this selector:
+
+  $('.hierarchical-select-wrapper');
+
+You can find a *specific* hierarchical_select form item using this selector:
+
+  $('#hierarchical-select-x-wrapper');
+
+where x is a number, or more accurately: a hsid (hierarchical select id).
+Retrieving all hsids in the current document can be done like this:
+
+  for (var hsid in Drupal.settings.HierarchicalSelect.settings) {
+    // …
+  }
+
+Alternatively, you can use one of the transliterated class names. A wrapper
+for Hierarchical Select looks like this:
+  <div class="hierarchical-select-wrapper
+              hierarchical-select-level-labels-style-none
+              hierarchical-select-wrapper-for-name-edit-taxonomy-1
+              hierarchical-select-wrapper-for-config-taxonomy-1
+              hierarchical-select-wrapper-processed"
+       id="hierarchical-select-35-wrapper">
+  …
+  </div>
+Hence, you could also use selectors such as these, to achieve the same effect,
+but with more robust code:
+  $('.hierarchical-select-wrapper-for-config-taxonomy-1:first')
+  .trigger('enforce-update');
+  $('.hierarchical-select-wrapper-for-name-edit-taxonomy-1:first')
+  .trigger('enforce-update');
+
+The following events are triggered:
+  - change-hierarchical-select
+  - update-hierarchical-select
+  - create-new-item
+  - cancel-new-item
+  - add-to-dropbox
+  - remove-from-dropbox
+  - enforced-update
+  - prepared-GET-submit
+All events are triggered *after* the animations have completed.
+
+However, it's often useful to do something *before* an event (especially
+because all of the above events perform an AJAX request to the server). So,
+the equivalent "before" events exist as well:
+  - before-update-hierarchical-select
+  - before-create-new-item
+  - before-cancel-new-item
+  - before-add-to-dropbox
+  - before-remove-from-dropbox
+  - before-enforced-update
+There is one exception: when the cache is enabled, the "before update
+hierarchical select" event will not be triggered. This makes sense, because
+updates from the cache are instantaneous.
+
+An example of binding a function to the 'create-new-item' event of the second
+(hsid == 1) hierarchical_select form item on the page:
+
+  $('#hierarchical-select-1-wrapper')
+  .bind('create-new-item', function() {
+    // …
+  });
+
+And finally, you can trigger a special event to enforce an update (this can be
+useful when you have changed a hierarchy through another form item, or for
+live previews, or …). You can then also pass additional information that will
+be POSTed. You can even disable normal updates, to manage that completely
+yourself via enforced updates. This allows you to write a Hierarchical Select
+implementation that gets some of its information ($params) from another form
+item!
+Suppose you'd like to enforce an update of the first (hsid == 0)
+hierarchical_select form item on the page:
+
+  $('#hierarchical-select-0-wrapper')
+  .trigger('enforce-update');
+
+Now let's move on to a more advanced example, in which we will disable normal
+updates and let another form item (here a select) provide a part of the
+information that will be used to render the Hierarchical Select. Effectively,
+this other form item will *influence* the hierarchy that will be presented by
+Hierarchical Select!
+
+  $(document).ready(function() {
+    Drupal.settings.specialfilter = {};
+
+    // .specialfilter-first: a select form item
+    // .specialfilter-second: a hierarchical_select form item
+
+    update = function() {
+      var selection = Drupal.settings.specialfilter.currentSelection;
+
+      // Send an extra parameter via POST: dynamicParameter. This is the stored
+      // selection.
+      $('.specialfilter-second')
+      .trigger('enforce-update',
+        [
+          { name : 'dynamicParameter', value : selection }
+        ]
+      );
+    };
+
+    attachHSBindings = function() {
+      // When a user navigates the hierarchical_select form item, we still want to
+      // POST the the extra dynamicParameter, or otherwise we will no longer have
+      // a hierarchy in the hierarchical_select form item that really depends on
+      // the select.
+      $('.specialfilter-second .hierarchical-select > select')
+      .change(function() { update(); });
+
+      $('.specialfilter-second')
+      .unbind('enforced-update').bind('enforced-update', function() { return attachHSBindings(); });
+    };
+
+    // Initialize after 25 ms, because otherwise the event binding of HS will
+    // not yet be ready, and hence this won't have any effect
+    setTimeout(function() {
+      // Get the initial selection (before the user has changed anything).
+      Drupal.settings.specialfilter.currentSelection = $('.specialfilter-first').attr('value');
+
+      // When the select form item changes, we want to *store* that selection, and
+      // update the hierarchical_select form item.
+      $('.specialfilter-first')
+      .change(function() {
+        // Store the current selection.
+        Drupal.settings.specialfilter.currentSelection = $(this).attr('value');
+    
+        update();
+      });
+
+      $('.specialfilter-second')
+      .trigger('disable-updates');
+
+      attachHSBindings();
+    }, 25);
+  });
+
+The 'enforced-update' (notice the past tense!) event is triggered upon
+completion.
+An even more rarely used special event can be triggered to prepare the
+hierarchical_select form element for a get submit: the 'prepare GET submit'
+event. To use this event, the 'render_flat_select' setting should be enabled
+in the config.

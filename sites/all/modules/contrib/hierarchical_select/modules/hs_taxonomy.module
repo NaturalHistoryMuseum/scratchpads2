@@ -1,0 +1,1002 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the Hierarchical Select API for the Taxonomy module.
+ */
+
+
+//----------------------------------------------------------------------------
+// Drupal core hooks.
+
+/**
+ * Implements hook_theme().
+ */
+function hs_taxonomy_theme() {
+  return array(
+    'hs_taxonomy_formatter_lineage' => array(
+      'variables' => array('lineage' => array()),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Alter the widget type form; dynamically add the Hierarchical Select
+ * Configuration form when it is needed.
+ */
+function hs_taxonomy_form_field_ui_widget_type_form_alter(&$form, &$form_state) {
+  form_load_include($form_state, 'inc', 'hierarchical_select', 'includes/common');
+
+  // Alter the widget type select: configure #ajax so that we can respond to
+  // changes in its value: whenever it is set to "taxonomy_hs", we add the HS
+  // config UI.
+  $form['basic']['widget_type']['#ajax'] = array(
+    'event'    => 'change',
+    'callback' => 'hs_taxonomy_field_ui_widget_settings_ajax',
+    'wrapper'  => 'hs-config-replace',
+    'method'   => 'replace'
+  );
+
+  $current_widget_type = (isset($form_state['input']['widget_type'])) ? $form_state['input']['widget_type'] : $form_state['build_info']['args'][0]['widget']['type'];
+  if ($current_widget_type == 'taxonomy_hs') {
+    $field = field_info_field($form['#field_name']);
+    $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+
+    $vid = $vocabulary->vid;
+    $instance = field_info_instance($form['#entity_type'], $form['#field_name'], $form['#bundle']);
+
+    // Add the Hierarchical Select config form.
+    $module = 'hs_taxonomy';
+    $params = array(
+      'vid'                        => $vid,
+      'exclude_tid'                => NULL,
+      'root_term'                  => NULL,
+      'entity_count_for_node_type' => NULL,
+    );
+    $config_id = "taxonomy-$vid";
+    $defaults = array(
+      // Enable the save_lineage setting by default if the multiple parents
+      // vocabulary option is enabled.
+      'save_lineage' => (int) ($vocabulary->hierarchy == 2),
+      'editability' => array(
+        'max_levels' => _hs_taxonomy_hierarchical_select_get_depth($vid),
+      ),
+    );
+    $strings = array(
+      'hierarchy'   => t('taxonomy_vocabulary'),
+      'hierarchies' => t('vocabularies'),
+      'item'        => t('term'),
+      'items'       => t('terms'),
+      'item_type'   => t('term type'),
+      'entity'      => t('node'),
+      'entities'    => t('nodes'),
+    );
+    $max_hierarchy_depth = _hs_taxonomy_hierarchical_select_get_depth($vid);
+    $preview_is_required = ($instance['required'] == 1);
+    $form['hs'] = hierarchical_select_common_config_form($module, $params, $config_id, $defaults, $strings, $max_hierarchy_depth, $preview_is_required);
+
+    // Make the config form AJAX-updateable.
+    $form['hs'] += array(
+      '#prefix' => '<div id="hs-config-replace">',
+      '#suffix' => '</div>',
+    );
+
+    // Add the submit handler for the Hierarchical Select config form. Make
+    // sure it is executed first.
+    $form['#hs_common_config_form_parents'] = array('hs');
+    array_unshift($form['#submit'], 'hierarchical_select_common_config_form_submit');
+
+    // Add a submit handler for HS Taxonomy that will update the field
+    // settings when necessary.
+    // @see hs_taxonomy_field_settings_submit() for details.
+    $form['#submit'][] = 'hs_taxonomy_field_settings_submit';
+  }
+  else {
+    $form['hs'] = array(
+      '#prefix' => '<div id="hs-config-replace">',
+      '#suffix' => '</div>',
+    );
+  }
+}
+
+/**
+ * Submit callback; updates the field settings (i.e. sets the cardinality of
+ * the field to unlimited) whenever either the dropbox or "save lineage" is
+ * enabled.
+ */
+function hs_taxonomy_field_settings_submit(&$form, &$form_state) {
+  $field = field_info_field($form['#field_name']);
+  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+  $config = hierarchical_select_common_config_get("taxonomy-$vocabulary->vid");
+
+  if ($config['dropbox']['status'] || $config['save_lineage']) {
+    $field = field_info_field($form['#field_name']);
+    $field['cardinality'] = -1; // -1 = unlimited
+    field_update_field($field);
+
+    drupal_set_message(t("Updated this field's cardinality to unlimited."));
+  }
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Alter the field settings form; dynamically disable the "cardinality" (or
+ * "Number of values" in the UI) setting on the form when either the dropbox
+ * or "save lineage" is enabled.
+ */
+function hs_taxonomy_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if (isset($form['#field']['type']) && $form['#field']['type'] === 'taxonomy_term_reference' && $form['#instance']['widget']['type'] == 'taxonomy_hs') {
+    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+
+    $vocabulary = taxonomy_vocabulary_machine_name_load($form['#field']['settings']['allowed_values'][0]['vocabulary']);
+    $config = hierarchical_select_common_config_get("taxonomy-$vocabulary->vid");
+
+    if ($config['dropbox']['status'] || $config['save_lineage']) {
+      $form['field']['cardinality']['#disabled'] = TRUE;
+      $form['field']['cardinality']['#description'] .= ' <strong>' . t('This setting is now managed by the Hierarchical Select configuration.') . '</strong>';
+    }
+  }
+}
+
+function hs_taxonomy_form_taxonomy_form_term_alter(&$form, &$form_state) {
+  // Don't alter the form when taxonomy_override_selector is not set.
+  if (variable_get('taxonomy_override_selector', FALSE) === FALSE) {
+    return;
+  }
+
+  // Don't alter the form when it's in confirmation mode.
+  if (isset($form_state['confirm_delete']) || isset($form_state['confirm_parents'])) {
+    return;
+  }
+
+  // Build an appropriate config, that inherits the level_labels settings
+  // from the vocabulary's Hierarchical Select config.
+  $vid = $form['#vocabulary']->vid;
+  module_load_include('inc', 'hierarchical_select', 'includes/common');
+  $vocabulary_config = hierarchical_select_common_config_get("taxonomy-$vid");
+  $config = array(
+    'module' => 'hs_taxonomy',
+    'params' => array(
+      'vid'         => $vid,
+      'exclude_tid' => isset($form['#term']['tid']) ? $form['#term']['tid'] : NULL,
+      'root_term'   => TRUE,
+    ),
+    'enforce_deepest' => 0,
+    'entity_count'    => 0,
+    'require_entity'  => 0,
+    'save_lineage'    => 0,
+    'level_labels'    => $vocabulary_config['level_labels'],
+    'dropbox' => array(
+      'status' => 1,
+      'limit'  => 0,
+    ),
+    'editability' => array(
+      'status' => 0,
+    ),
+    'render_flat_select' => 0,
+  );
+
+  // Use Hierarchical Select for selecting the parent term(s).
+  $parent = isset($form['#term']['tid']) ? array_keys(taxonomy_get_parents($form['#term']['tid'])) : array(0);
+  $form['relations']['parent'] = array(
+    '#type'          => 'hierarchical_select',
+    '#title'         => t('Parents'),
+    '#required'      => TRUE,
+    '#default_value' => $parent,
+    '#config'        => $config,
+  );
+  $form['relations']['parent']['#config']['dropbox']['title'] = t('All parent terms');
+}
+
+
+//----------------------------------------------------------------------------
+// FAPI callbacks.
+
+/**
+ * AJAX callback; field UI widget settings form.
+ */
+function hs_taxonomy_field_ui_widget_settings_ajax($form, &$form_state) {
+  return $form['hs'];
+}
+
+
+//----------------------------------------------------------------------------
+// Field API widget hooks.
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function hs_taxonomy_field_widget_info() {
+  return array(
+    'taxonomy_hs' => array(
+      'label'       => t('Hierarchical Select'),
+      'field types' => array('taxonomy_term_reference'),
+      'settings'    => array(), // All set in hs_taxonomy_field_widget_form().
+      'behaviors'   => array(
+        // TODO: figure out how to map the "dropbox" behavior to Field API's
+        // "multiple values" system.
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function hs_taxonomy_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+
+  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+
+  // Build an array of existing term IDs.
+  $tids = array();
+  foreach ($items as $delta => $item) {
+    if (!empty($item['tid']) && $item['tid'] != 'autocreate') {
+      $tids[] = $item['tid'];
+    }
+  }
+
+  $element += array(
+    '#type'          => 'hierarchical_select',
+    '#config'        => array(
+      'module' => 'hs_taxonomy',
+      'params' => array(
+        'vid'                        => (int) $vocabulary->vid,
+        'exclude_tid'                => NULL,
+        'root_term'                  => (int) $field['settings']['allowed_values'][0]['parent'],
+        'entity_count_for_node_type' => NULL,
+      ),
+    ),
+    '#default_value' => $tids,
+  );
+
+  hierarchical_select_common_config_apply($element, "taxonomy-$vocabulary->vid");
+
+  // Append another #process callback that transforms #return_value to the
+  // format that Field API/Taxonomy Field expects.
+  // However, HS' default #process callback has not yet been set, since this
+  // typically happens automatically during FAPI processing. To ensure the
+  // order is right, we already set HS' own #process callback here explicitly.
+  $element_info = element_info('hierarchical_select');
+  $element['#process'] = array_merge($element_info['#process'], array('hs_taxonomy_widget_process'));
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function hs_taxonomy_field_widget_settings_form($field, $instance) {
+  // This poorly integrates with the Field UI. Hence we alter the
+  // field_ui_widget_type_form, to provide a more appropriate integration.
+  // @see hs_taxonomy_form_field_ui_widget_type_form_alter.
+  $form = array();
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function hs_taxonomy_field_widget_error($element, $error, $form, &$form_state) {
+  form_error($element, $error['message']);
+}
+
+/**
+ * #process callback that runs after HS' #process callback, to transform
+ * #return_value to the format that Field API/Taxonomy Field expects.
+ */
+function hs_taxonomy_widget_process($element, &$form_state, $complete_form) {
+  $tids = $element['#return_value'];
+
+  // If #return_value is array(NULL), then nothing was selected!
+  if (count($tids) == 1 && $tids[0] === NULL) {
+    $element['#return_value'] = array();
+    return $element;
+  }
+
+  $items = array();
+  foreach ($tids as $tid) {
+    $items[] = array('tid' => $tid);
+  }
+
+  $element['#return_value'] = $items;
+
+  return $element;
+}
+
+
+//----------------------------------------------------------------------------
+// Field API formatter hooks.
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function hs_taxonomy_field_formatter_info() {
+  return array(
+    'hs_taxonomy_term_reference_hierarchical_text' => array(
+      'label' => t('Hierarchical text'),
+      'field types' => array('taxonomy_term_reference'),
+    ),
+    'hs_taxonomy_term_reference_hierarchical_links' => array(
+      'label' => t('Hierarchical links'),
+      'field types' => array('taxonomy_term_reference'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_prepare_view().
+ */
+function hs_taxonomy_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  // Extract required field information.
+  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+  $vid = $vocabulary->vid;
+
+  // Get the config for this field.
+  module_load_include('inc', 'hierarchical_select', 'includes/common');
+  $config_id = "taxonomy-$vid";
+  $config = hierarchical_select_common_config_get($config_id);
+  $config += array(
+    'module' => 'hs_taxonomy',
+    'params' => array(
+      'vid' => $vid,
+    ),
+  );
+
+  // Collect every possible term attached to any of the fieldable entities.
+  // Copied from taxonomy_field_formatter_prepare_view().
+  foreach ($entities as $id => $entity) {
+    $selection  = array();
+
+    foreach ($items[$id] as $delta => $item) {
+      // Force the array key to prevent duplicates.
+      if ($item['tid'] != 'autocreate') {
+        $selection[] = $item['tid'];
+      }
+    }
+
+    // Generate a dropbox out of the selection. This will automatically
+    // calculate all lineages for us.
+    $dropbox = _hierarchical_select_dropbox_generate($config, $selection);
+
+    // Store additional information in each item that's required for
+    // Hierarchical Select's custom formatters that are compatible with the
+    // save_lineage functionality.
+    if (!empty($dropbox->lineages)) {
+      foreach (array_keys($dropbox->lineages) as $lineage) {
+        foreach ($dropbox->lineages[$lineage] as $level => $details) {
+          $tid = $details['value'];
+
+          // Look up where this term (tid) is stored in the items array.
+          $key = array_search($tid, $selection);
+
+          // Store the additional information. One term can occur in multiple
+          // lineages: when Taxonomy's "multiple parents" functionality is
+          // being used.
+          $items[$id][$key]['hs_lineages'][] = array(
+            'lineage' => $lineage,
+            'level'   => $level,
+            'label'   => $details['label'],
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function hs_taxonomy_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  // Extract required field information.
+  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+
+  // Extract the lineage information from the items (this was added by
+  // hs_taxonomy_field_formatter_prepare_view()).
+  $lineages = array();
+  foreach ($items as $delta => $item) {
+    $metadata = $item['hs_lineages'];
+
+    for ($i = 0; $i < count($metadata); $i++) {
+      $term = new StdClass();
+      $term->tid = $item['tid'];
+      $term->vid = $vocabulary->vid;
+      $term->vocabulary_machine_name = $vocabulary->machine_name;
+      $term->name = $metadata[$i]['label'];
+
+      $lineages[$metadata[$i]['lineage']][$metadata[$i]['level']] = $term;
+    }
+  }
+
+  // Actual formatting.
+  $element = array();
+  $element['#attached']['css'][] = drupal_get_path('module', 'hierarchical_select') . '/hierarchical_select.css';
+  switch ($display['type']) {
+    case 'hs_taxonomy_term_reference_hierarchical_text':
+      for ($l = 0; $l < count($lineages); $l++) {
+        $element[$l]['#theme'] = 'hs_taxonomy_formatter_lineage';
+        for ($level = 0; $level < count($lineages[$l]); $level++) {
+          $term = $lineages[$l][$level];
+          $element[$l]['#lineage'][$level] = array(
+            '#markup' => $term->name,
+          );
+        }
+      }
+      break;
+    case 'hs_taxonomy_term_reference_hierarchical_links':
+      for ($l = 0; $l < count($lineages); $l++) {
+        $element[$l]['#theme'] = 'hs_taxonomy_formatter_lineage';
+        for ($level = 0; $level < count($lineages[$l]); $level++) {
+          $term = $lineages[$l][$level];
+          $uri = entity_uri('taxonomy_term', $term);
+          $element[$l]['#lineage'][$level] = array(
+            '#type' => 'link',
+            '#title' => $term->name,
+            '#href' => $uri['path'],
+            '#options' => $uri['options'],
+          );
+        }
+      }
+      break;
+  }
+
+  return $element;
+}
+
+
+//----------------------------------------------------------------------------
+// Hierarchical Select hooks.
+
+/**
+ * Implementation of hook_hierarchical_select_params().
+ */
+function hs_taxonomy_hierarchical_select_params() {
+  $params = array(
+    'vid',
+    'exclude_tid',                // Allows a term to be excluded (necessary for the taxonomy_form_term form).
+    'root_term',                  // Displays a fake "<root>" term in the root level (necessary for the taxonomy_form-term form).
+    'entity_count_for_node_type', // Restrict the entity count to a specific node type.
+  );
+  return $params;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_root_level().
+ */
+function hs_taxonomy_hierarchical_select_root_level($params) {
+  // TODO: support multiple parents, i.e. support "save lineage".
+  $vocabulary = taxonomy_vocabulary_load($params['vid']);
+  $terms = _hs_taxonomy_hierarchical_select_get_tree($params['vid'], 0, -1, 1);
+
+  // If the root_term parameter is enabled, then prepend a fake "<root>" term.
+  if (isset($params['root_term']) && $params['root_term'] === TRUE) {
+    $root_term = new StdClass();
+    $root_term->tid = 0;
+    $root_term->name = '<' . t('root') . '>';
+    $terms = array_merge(array($root_term), $terms);
+  }
+
+  // Unset the term that's being excluded, if it is among the terms.
+  if (isset($params['exclude_tid'])) {
+    foreach ($terms as $key => $term) {
+      if ($term->tid == $params['exclude_tid']) {
+        unset($terms[$key]);
+      }
+    }
+  }
+
+  // If the Term Permissions module is installed, honor its settings.
+  if (function_exists('term_permissions_allowed')) {
+    global $user;
+    foreach ($terms as $key => $term) {
+      if (!term_permissions_allowed($term->tid, $user) ) {
+        unset($terms[$key]);
+      }
+    }
+  }
+
+  return _hs_taxonomy_hierarchical_select_terms_to_options($terms);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_children().
+ */
+function hs_taxonomy_hierarchical_select_children($parent, $params) {
+  if (isset($params['root_term']) && $params['root_term'] && $parent == 0) {
+    return array();
+  }
+
+  $terms = taxonomy_get_children($parent, $params['vid']);
+
+  // Unset the term that's being excluded, if it is among the children.
+  if (isset($params['exclude_tid'])) {
+    unset($terms[$params['exclude_tid']]);
+  }
+
+  // If the Term Permissions module is installed, honor its settings.
+  if (function_exists('term_permissions_allowed')) {
+    global $user;
+    foreach ($terms as $key => $term) {
+      if (!term_permissions_allowed($term->tid, $user) ) {
+        unset($terms[$key]);
+      }
+    }
+  }
+
+  return _hs_taxonomy_hierarchical_select_terms_to_options($terms);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_lineage().
+ */
+function hs_taxonomy_hierarchical_select_lineage($item, $params) {
+  $lineage = array();
+
+  if (isset($params['root_term']) && $params['root_term'] && $item == 0) {
+    return array(0);
+  }
+
+  $terms = array_reverse(hs_taxonomy_get_parents_all($item));
+  foreach ($terms as $term) {
+    $lineage[] = $term->tid;
+  }
+  return $lineage;
+}
+
+/**
+ * Alternative version of taxonomy_get_parents_all(): instead of using all
+ * parents of a term (i.e. when multiple parents are being used), only the
+ * first is kept.
+ */
+function hs_taxonomy_get_parents_all($tid) {
+  $parents = array();
+  if ($tid) {
+    $parents[] = taxonomy_term_load($tid);
+    $n = 0;
+    while ($parent = taxonomy_get_parents($parents[$n]->tid)) {
+      $parents = array_merge($parents, array(reset($parent)));
+      $n++;
+    }
+  }
+  return $parents;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_valid_item().
+ */
+function hs_taxonomy_hierarchical_select_valid_item($item, $params) {
+  if (isset($params['root_term']) && $params['root_term'] && $item == 0) {
+    return TRUE;
+  }
+  else if (!is_numeric($item) || $item < 1 || (isset($params['exclude_tid']) && $item == $params['exclude_tid'])) {
+    return FALSE;
+  }
+  $term = taxonomy_term_load($item);
+
+  // If the Term Permissions module is installed, honor its settings.
+  if (function_exists('term_permissions_allowed')) {
+    global $user;
+    if (!term_permissions_allowed($term->tid, $user) ) {
+      return FALSE;
+    }
+  }
+
+  return ($term->vid == $params['vid']);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_item_get_label().
+ */
+function hs_taxonomy_hierarchical_select_item_get_label($item, $params) {
+  static $labels = array();
+
+  if (!isset($labels[$item])) {
+    if ($item === 0 && isset($params['root_term']) && $params['root_term'] === TRUE) {
+      $term = new StdClass();
+      $term->tid = 0;
+      $term->name = '<' . t('root') . '>';
+    }
+    else {
+      $term = taxonomy_term_load($item);
+    }
+
+    // Use the translated term when available!
+    if (module_exists('i18ntaxonomy') && i18ntaxonomy_vocabulary($term->vid) == I18N_TAXONOMY_LOCALIZE) {
+      $labels[$item] = i18n_taxonomy_term_name($term);
+    }
+    else {
+      $labels[$item] = t($term->name);
+    }
+  }
+
+  return $labels[$item];
+}
+
+
+/**
+ * Implementation of hook_hierarchical_select_create_item().
+ */
+function hs_taxonomy_hierarchical_select_create_item($label, $parent, $params) {
+  $term = new StdClass();
+  $term->vid         = $params['vid'];
+  $term->name        = html_entity_decode($label, ENT_QUOTES);
+  $term->description = '';
+  $term->parent      = $parent;
+
+  $status = taxonomy_term_save($term);
+
+  if ($status == SAVED_NEW) {
+    // Reset the cached tree.
+    _hs_taxonomy_hierarchical_select_get_tree($params['vid'], 0, -1, 1, TRUE);
+
+    // Retrieve the tid.
+    $children = _hs_taxonomy_hierarchical_select_get_tree($params['vid'], $parent, 1);
+    foreach ($children as $term) {
+      if ($term->name == $label) {
+        return $term->tid;
+      }
+    }
+  }
+  else {
+    return FALSE;
+  }
+}
+
+
+/**
+ * Implementation of hook_hierarchical_select_entity_count().
+ */
+/*
+// TODO: port this to D7.
+function hs_taxonomy_hierarchical_select_entity_count($item, $params) {
+  // Allow restricting entity count by node type.
+  if ($params['entity_count_for_node_type']) {
+    return hs_taxonomy_term_count_nodes($item, $params['entity_count_for_node_type']);
+  }
+  else {
+    return hs_taxonomy_term_count_nodes($item);
+  }
+}
+*/
+
+/**
+ * Implementation of hook_hierarchical_select_implementation_info().
+ */
+function hs_taxonomy_hierarchical_select_implementation_info() {
+  return array(
+    'hierarchy type' => t('Taxonomy'),
+    'entity type'    => t('Node'),
+  );
+}
+
+/**
+ * Implementation of hook_hierarchical_select_config_info().
+ */
+function hs_taxonomy_hierarchical_select_config_info() {
+  static $config_info;
+
+  if (!isset($config_info)) {
+    $config_info = array();
+    $fields = field_info_fields();
+    foreach ($fields as $field_name => $field) {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle) {
+          $instance = field_info_instance($entity_type, $field_name, $bundle);
+          if ($instance['widget']['type'] == 'taxonomy_hs') {
+            $bundles_info = field_info_bundles($entity_type);
+            $entity_info = entity_get_info($entity_type);
+            $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+            $config_id = "taxonomy-$vocabulary->vid";
+            $config_info[$config_id] = array(
+              'config_id'      => $config_id,
+              'hierarchy type' => t('Taxonomy'),
+              'hierarchy'      => t('Vocabulary') . ': ' . l(t($vocabulary->name), "admin/structure/taxonomy/$vocabulary->machine_name") . '<br /><small>' . t('Field label') . ': ' . $instance['label'] . '<br />' . t('Field machine name') . ': ' . $field_name . '</small>',
+              'entity type'    => $entity_info['label'],
+              'bundle'         => l(t($bundles_info[$bundle]['label']), "admin/structure/types/manage/$bundle"),
+              'context type'   => '',
+              'context'        => '',
+              'edit link'      => isset($bundles_info[$bundle]['admin']['real path']) ? $bundles_info[$bundle]['admin']['real path'] . "/fields/$field_name/widget-type" : $bundles_info[$bundle]['admin']['path'] . "/fields/$field_name/widget-type",
+            );
+
+          }
+        }
+      }
+    }
+  }
+
+  return $config_info;
+}
+
+
+//----------------------------------------------------------------------------
+// Token hooks.
+
+/**
+ * Implementation of hook_token_values().
+ */
+/*
+// TODO: port this to D7.
+function hs_taxonomy_token_values($type, $object = NULL, $options = array()) {
+  static $hs_vids;
+  static $all_vids;
+
+  $separator = variable_get('hs_taxonomy_separator', variable_get('pathauto_separator', '-'));
+
+  $values = array();
+  switch ($type) {
+    case 'node':
+      $node = $object;
+
+      // Default values.
+      $values['save-lineage-termpath'] = $values['save-lineage-termpath-raw'] = '';
+
+      // If $node->taxonomy doesn't exist, these tokens cannot be created!
+      if (!is_object($node) || !isset($node->taxonomy) || !is_array($node->taxonomy)) {
+        return $values;
+      }
+
+      // Find out which vocabularies are using Hierarchical Select.
+      if (!isset($hs_vids)) {
+        $hs_vids = array();
+        // TODO Please convert this statement to the D7 database API syntax.
+        $result = db_query("SELECT SUBSTRING(name, 30, 3) AS vid FROM {variable} WHERE name LIKE 'taxonomy_hierarchical_select_%' AND value LIKE 'i:1\;';");
+        while ($o = db_fetch_object($result)) {
+          $hs_vids[] = $o->vid;
+        }
+      }
+
+      // Get a list of all existent vids, so we can generate an empty token
+      // when a token is requested for a vocabulary that's not associated with
+      // the current content type.
+      if (!isset($all_vids)) {
+        $all_vids = array();
+        $result = db_query("SELECT vid FROM {taxonomy_vocabulary}");
+        while ($row = db_fetch_object($result)) {
+          $all_vids[] = $row->vid;
+        }
+      }
+
+      // Generate the per-vid "save-lineage-termpath" tokens.
+      foreach ($all_vids as $vid) {
+        $terms = array();
+        if (in_array($vid, $hs_vids) && isset($node->taxonomy[$vid])) {
+          $selection = $node->taxonomy[$vid];
+          $terms = _hs_taxonomy_token_termpath_for_vid($selection, $vid);
+        }
+
+        $terms_raw = $terms;
+        $terms = array_map('check_plain', $terms);
+        $values["save-lineage-termpath:$vid"] = !empty($options['pathauto']) ? $terms : implode($separator, $terms);
+        $values["save-lineage-termpath-raw:$vid"] = !empty($options['pathauto']) ? $terms_raw : implode($separator, $terms_raw);
+      }
+
+      // We use the terms of the first vocabulary that uses Hierarchical
+      // Select for the default "save-lineage-termpath" tokens.
+      $vids = array_intersect(array_keys($node->taxonomy), $hs_vids);
+      if (!empty($vids)) {
+        $vid = $vids[0];
+        $values['save-lineage-termpath'] = $values["save-lineage-termpath:$vid"];
+        $values['save-lineage-termpath-raw'] = $values["save-lineage-termpath-raw:$vid"];
+      }
+      break;
+  }
+
+  return $values;
+}
+*/
+
+/**
+ * Implementation of hook_token_list().
+ */
+/*
+// TODO: port this to D7.
+function hs_taxonomy_token_list($type = 'all') {
+  if ($type == 'node' || $type == 'all') {
+    $tokens['node']['save-lineage-termpath'] = t('Only use when you have enabled the "save lineage" setting of Hierarchical Select. Will show the term\'s parent terms separated by /.');
+    $tokens['node']['save-lineage-termpath-raw'] = t('As [save-linage-termpath]. WARNING - raw user input.');
+
+    $tokens['node']['save-lineage-termpath:vid'] = t('Only has output when terms are present for the vocabulary with the specified vid. Only use when you have enabled the "save lineage" setting of Hierarchical Select. Will show the term\'s parent terms separated by /.');
+    $tokens['node']['save-lineage-termpath-raw:vid'] = t('Only has output when terms are present for the vocabulary with the specified vid. As [save-linage-termpath]. WARNING - raw user input.');
+
+    return $tokens;
+  }
+}
+*/
+
+/**
+ * Helper function for hs_taxonomy_token_values().
+ */
+function _hs_taxonomy_token_termpath_for_vid($selection, $vid) {
+  $terms = array();
+  $selection = (is_array($selection)) ? $selection : array($selection);
+
+  // Generate the part we'll need of the Hierarchical Select configuration.
+  $config = array(
+    'module'       => 'hs_taxonomy',
+    'save_lineage' => 1,
+    'params' => array(
+      'vid'         => $vid,
+      'exclude_tid' => NULL,
+      'root_term'   => NULL,
+    ),
+  );
+
+  // Validate all items in the selection, if any.
+  if (!empty($selection)) {
+    foreach ($selection as $key => $item) {
+      $valid = module_invoke($config['module'], 'hierarchical_select_valid_item', $selection[$key], $config['params']);
+      if (!$valid) {
+        unset($selection[$key]);
+      }
+    }
+  }
+
+  // Generate a dropbox out of the selection. This will automatically
+  // calculate all lineages for us.
+  // If the selection is empty, then the tokens will be as well.
+  if (!empty($selection)) {
+    $dropbox = _hierarchical_select_dropbox_generate($config, $selection);
+
+    // If no lineages could be generated, these tokens cannot be created!
+    if (empty($dropbox->lineages)) {
+      return $terms;
+    }
+
+    // We pick the first lineage.
+    $lineage = $dropbox->lineages[0];
+
+    // Finally, we build the tokens.
+    foreach ($lineage as $item) {
+      $terms[] = $item['label'];
+    }
+  }
+
+  return $terms;
+}
+
+
+//----------------------------------------------------------------------------
+// Theme functions.
+
+/**
+ * Format a lineage for one of HS Taxonomy's custom Term reference formatters.
+ */
+function theme_hs_taxonomy_formatter_lineage($variables) {
+  $output = '';
+  $lineage = $variables['lineage'];
+  $separator = theme('hierarchical_select_item_separator');
+
+  // Render each item within a lineage.
+  $items = array();
+  foreach ($lineage as $level => $item ) {
+    $line  = '<span class="lineage-item lineage-item-level-' . $level . '">';
+    $line .= drupal_render($item);
+    $line .= '</span>';
+    $items[] = $line;
+  }
+  $output .= implode($separator, $items);
+
+  return $output;
+}
+
+
+//----------------------------------------------------------------------------
+// Private functions.
+
+/**
+ * Drupal core's taxonomy_get_tree() doesn't allow us to reset the cached
+ * trees, which obviously causes problems when you create new items between
+ * two calls to it.
+ */
+function _hs_taxonomy_hierarchical_select_get_tree($vid, $parent = 0, $depth = -1, $max_depth = NULL, $reset = FALSE) {
+  static $children, $parents, $terms;
+
+  if ($reset) {
+    $children = $parents = $terms = array();
+  }
+
+  $depth++;
+
+  // We cache trees, so it's not CPU-intensive to call get_tree() on a term
+  // and its children, too.
+  if (!isset($children[$vid])) {
+    $children[$vid] = array();
+
+    // TODO Please convert this statement to the D7 database API syntax.
+    $result = db_query('SELECT t.tid, t.*, parent FROM {taxonomy_term_data} t INNER JOIN  {taxonomy_term_hierarchy} h ON t.tid = h.tid WHERE t.vid = :vid ORDER BY weight, name', array(':vid' => $vid));
+    foreach ($result as $term) {
+      $children[$vid][$term->parent][] = $term->tid;
+      $parents[$vid][$term->tid][] = $term->parent;
+      $terms[$vid][$term->tid] = $term;
+    }
+  }
+
+  $max_depth = (is_null($max_depth)) ? count($children[$vid]) : $max_depth;
+  if (isset($children[$vid][$parent])) {
+    foreach ($children[$vid][$parent] as $child) {
+      if ($max_depth > $depth) {
+        $term = clone $terms[$vid][$child];
+        $term->depth = $depth;
+        // The "parent" attribute is not useful, as it would show one parent only.
+        unset($term->parent);
+        $term->parents = $parents[$vid][$child];
+        $tree[] = $term;
+
+        if (isset($children[$vid][$child])) {
+          $tree = array_merge($tree, _hs_taxonomy_hierarchical_select_get_tree($vid, $child, $depth, $max_depth));
+        }
+      }
+    }
+  }
+
+  return isset($tree) ? $tree : array();
+}
+
+/**
+ * Drupal core's taxonomy_term_count_nodes() is buggy. See
+ * http://drupal.org/node/144969#comment-843000.
+ */
+function hs_taxonomy_term_count_nodes($tid, $type = 0) {
+  static $count;
+
+  $term = taxonomy_term_load($tid);
+  $tree = _hs_taxonomy_hierarchical_select_get_tree($term->vid, $tid);
+  $tids = array($tid);
+  foreach ($tree as $descendant) {
+    $tids[] = $descendant->tid;
+  }
+
+  if (!isset($count[$type][$tid])) {
+    if (is_numeric($type)) {
+      // TODO Please convert this statement to the D7 database API syntax.
+      $count[$type][$tid] = db_query(db_rewrite_sql("SELECT COUNT(DISTINCT(n.nid)) AS count FROM {taxonomy_term_node} t INNER JOIN {node} n ON t.nid = n.nid WHERE n.status = 1 AND t.tid IN (%s)"), implode(',', $tids))->fetchField();
+    }
+    else {
+      // TODO Please convert this statement to the D7 database API syntax.
+      $count[$type][$tid] = db_query(db_rewrite_sql("SELECT COUNT(DISTINCT(n.nid)) AS count FROM {taxonomy_term_node} t INNER JOIN {node} n ON t.nid = n.nid WHERE n.status = 1 AND n.type = '%s' AND t.tid IN (%s)"), $type, implode(',', $tids))->fetchField();
+    }
+  }
+  return $count[$type][$tid];
+}
+
+/**
+ * Transform an array of terms into an associative array of options, for use
+ * in a select form item.
+ *
+ * @param $terms
+ *  An array of term objects.
+ * @return
+ *  An associative array of options, keys are tids, values are term names.
+ */
+function _hs_taxonomy_hierarchical_select_terms_to_options($terms) {
+  $options = array();
+  $use_i18n = module_exists('i18n_taxonomy');
+  foreach ($terms as $key => $term) {
+    // Use the translated term when available!
+    $options[$term->tid] = $use_i18n && isset($term->vid) ? i18n_taxonomy_term_name($term) : t($term->name);
+  }
+  return $options;
+}
+
+/**
+ * Get the depth of a vocabulary's tree.
+ *
+ * @param $vid
+ *   A vocabulary id.
+ * @return
+ *   The depth of the vocabulary's tree.
+ */
+function _hs_taxonomy_hierarchical_select_get_depth($vid) {
+  $depth = -99999;
+  $tree = _hs_taxonomy_hierarchical_select_get_tree($vid);
+  foreach ($tree as $term) {
+    if ($term->depth > $depth) {
+      $depth = $term->depth;
+    }
+  }
+  return $depth;
+}

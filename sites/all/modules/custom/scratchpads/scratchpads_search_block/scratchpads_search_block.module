@@ -1,0 +1,152 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  // Set the placeholder for the search box.  
+  $form[$form_id]['#attributes']['placeholder'] = t('Search...');
+  // Set the autocomplete path, so that when we select "Taxonomy", we can attempt
+  // to autocomplete.
+  $form[$form_id]['#autocomplete_path'] = 'scratchpads_search_block';
+  $options = array(
+    '_all' => t('All'),
+    '_taxonomy' => t('Taxonomy'),
+    '_user' => t('User')
+  );
+  $default_value = '_all';
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    switch(arg(3)){
+      case 'media':
+        $options['media'] = t('Media');
+        $default_value = 'media';
+        break;
+      case 'literature':
+        $options['biblio'] = t('Literature');
+        $default_value = 'biblio';
+        break;
+    }
+  }
+  $form['entity_type'] = array(
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#title' => 'Type',
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/css/scratchpads_search_block.css'
+      ),
+      'js' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/js/scratchpads_search_block.js'
+      )
+    ),
+    'entity_type_value' => array(
+      '#title' => '',
+      '#type' => 'radios',
+      '#default_value' => $default_value,
+      '#options' => $options
+    )
+  );
+  // Alter the submit function so that we can add facet magic.
+  $form['#submit'][0] = 'scratchpads_search_block_form_submit';
+  $form['#theme'][0] = 'scratchpads_search_block_form';
+}
+
+/**
+ * Process a scratchpad search form submission.
+ */
+function scratchpads_search_block_form_submit($form, &$form_state){
+  // The search form relies on control of the redirect destination for its
+  // functionality, so we override any static destination set in the request,
+  // for example by drupal_access_denied() or drupal_not_found()
+  // (see http://drupal.org/node/292565).
+  if(isset($_GET['destination'])){
+    unset($_GET['destination']);
+  }
+  // Check to see if the form was submitted empty.
+  // If it is empty, display an error message.
+  // (This method is used instead of setting #required to TRUE for this field
+  // because that results in a confusing error message.  It would say a plain
+  // "field is required" because the search keywords field has no title.
+  // The error message would also complain about a missing #title field.)
+  if($form_state['values']['search_block_form'] == ''){
+    form_set_error('keys', t('Please enter some keywords.'));
+  }
+  $form_id = $form['form_id']['#value'];
+  $info = search_get_default_module_info();
+  if($info){
+    $query = array();
+    if($form_state['values']['entity_type_value'] != '_all'){
+      $query = array(
+        'query' => array(
+          'f[0]' => 'bundle:' . $form_state['values']['entity_type_value']
+        )
+      );
+    }
+    $form_state['redirect'] = array(
+      'search/' . $info['path'] . '/' . trim($form_state['values'][$form_id]),
+      $query
+    );
+  }else{
+    form_set_error(NULL, t('Search is currently disabled.'), 'error');
+  }
+}
+
+/**
+ * Hook theme
+ */
+function scratchpads_search_block_theme(){
+  return array(
+    'scratchpads_search_block_form' => array(
+      'render element' => 'form',
+      'template' => 'scratchpads-search-block-form'
+    )
+  );
+  taxonomy_menu();
+}
+
+/**
+ * hook_menu().
+ */
+function scratchpads_search_block_menu(){
+  return array(
+    'scratchpads_search_block' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'scratchpads_search_block_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'scratchpads_search_block.callback.inc'
+    )
+  );
+}
+
+/**
+ * Process variables for search-block-form.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $form
+ *
+ * @see search-block-form.tpl.php
+ */
+function template_preprocess_scratchpads_search_block_form(&$variables){
+  $variables['search'] = array();
+  $hidden = array();
+  // Provide variables named after form keys so themers can print each element independently.
+  foreach(element_children($variables['form']) as $key){
+    $type = $variables['form'][$key]['#type'];
+    if($type == 'hidden' || $type == 'token'){
+      $hidden[] = drupal_render($variables['form'][$key]);
+    }else{
+      $variables['search'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  // Hidden form elements have no value to themers. No need for separation.
+  $variables['search']['hidden'] = implode($hidden);
+  // Additional to the standard preprocess function  
+  $variables['entity_types'] = $variables['search']['entity_type'];
+  unset($variables['search']['entity_type']);
+  // Collect all form elements to make it easier to print the whole form.
+  $variables['search_form'] = implode($variables['search']);
+}

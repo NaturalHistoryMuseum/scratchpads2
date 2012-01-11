@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the Hierarchical Select API that allows one to use
+ * Hierarchical Select's dropbox for selecting multiple items of a flat list.
+ */
+
+
+//----------------------------------------------------------------------------
+// Hierarchical Select hooks.
+
+/**
+ * Implements hook_hierarchical_select_params().
+ */
+function hs_flatlist_hierarchical_select_params() {
+  $params = array(
+    'options',
+  );
+  return $params;
+}
+
+/**
+ * Implements hook_hierarchical_select_root_level().
+ */
+function hs_flatlist_hierarchical_select_root_level($params) {
+  return $params['options'];
+}
+
+/**
+ * Implements hook_hierarchical_select_children().
+ */
+function hs_flatlist_hierarchical_select_children($parent, $params) {
+  return array(); // A flat list doesn't have any children, ever.
+}
+
+/**
+ * Implements hook_hierarchical_select_lineage().
+ */
+function hs_flatlist_hierarchical_select_lineage($item, $params) {
+  return array($item); // No hierarchies exist in flat lists.
+}
+
+/**
+ * Implements hook_hierarchical_select_valid_item().
+ */
+function hs_flatlist_hierarchical_select_valid_item($item, $params) {
+  return (in_array($item, array_keys($params['options'])));
+}
+
+/**
+ * Implements hook_hierarchical_select_item_get_label().
+ */
+function hs_flatlist_hierarchical_select_item_get_label($item, $params) {
+  return $params['options'][$item];
+}
+
+/**
+ * Implements hook_hierarchical_select_implementation_info().
+ */
+function hs_flatlist_hierarchical_select_implementation_info() {
+  return array(
+    'hierarchy type' => t('None: flat list'),
+    'entity type'    => t('N/A'),
+  );
+}

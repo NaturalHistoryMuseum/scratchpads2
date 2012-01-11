@@ -1,0 +1,11 @@
+
+.hierarchical-select-config-form .live-preview {
+  margin-left: auto;
+  margin-right: auto;
+  width: 25em;
+  float: right;
+}
+
+.hierarchical-select-config-form fieldset {
+  clear: right;
+}

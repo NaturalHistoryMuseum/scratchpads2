@@ -23,18 +23,17 @@ function scratchpads_user_menu_alter(&$items){
  * Menu callback;
  * Replaces user_admin(list) function to allow for real user names / hiding dummy usernames
  */
-function scratchpads_user_admin($callback_arg = '') {
+function scratchpads_user_admin($callback_arg = ''){
   $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
-  switch ($op) {
+  switch($op){
     case t('Create new account'):
     case 'create':
       $build['user_register'] = drupal_get_form('user_register_form');
       break;
     default:
-      if (!empty($_POST['accounts']) && isset($_POST['operation']) && ($_POST['operation'] == 'cancel')) {
+      if(!empty($_POST['accounts']) && isset($_POST['operation']) && ($_POST['operation'] == 'cancel')){
         $build['user_multiple_cancel_confirm'] = drupal_get_form('user_multiple_cancel_confirm');
-      }
-      else {
+      }else{
         $build['user_filter_form'] = drupal_get_form('user_filter_form');
         $build['user_admin_account'] = drupal_get_form('scratchpads_user_admin_account');
       }
@@ -92,7 +91,7 @@ function scratchpads_user_admin_account(){
     'status',
     'created',
     'access',
-  	'pass'
+    'pass'
   ));
   $query->limit(50);
   $query->orderByHeader($header);
@@ -139,15 +138,13 @@ function scratchpads_user_admin_account(){
       $users_roles[] = $roles[$user_role->rid];
     }
     asort($users_roles);
-    
     if(empty($account->pass)){
-    	$username = '';
+      $username = '';
     }else{
-    	$username = theme('username', array(
+      $username = theme('username', array(
         'account' => $account
       ));
     }
-    
     $options[$account->uid] = array(
       'username' => $username,
       'given_names' => $account->given_names,
@@ -194,7 +191,11 @@ function scratchpads_user_user_load($entities){
     if($entity->uid && empty($entity->pass)){
       // Is this user just a stub - cannot login
       $entities[$entity_id]->stub_user = true;
-      $entities[$entity_id]->name = $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] . ' ' . $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'];
+      // Following edited as it throws up an error on install with UID 1.
+      $new_name = trim((isset($entity->field_user_given_names[LANGUAGE_NONE]) ? $entity->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '') . ' ' . (isset($entity->field_user_family_name[LANGUAGE_NONE]) ? $entity->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : ''));
+      if($new_name){
+        $entities[$entity_id]->name = $new_name;
+      }
     }
   }
   return $entities;
@@ -231,7 +232,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $form['actions']['submit']['#submit'] = array(
-      'user_register_submit',
+      'user_register_submit'
     );
   }
 }
@@ -243,7 +244,7 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
  * @param array $form_state
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
-	global $user;
+  global $user;
   $form['account']['#type'] = 'fieldset';
   $form['account']['#title'] = t('User account settings');
   $form['account']['#states'] = array(
@@ -276,7 +277,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
         );
       }
     }
-  }  
+  }
 }
 
 /**

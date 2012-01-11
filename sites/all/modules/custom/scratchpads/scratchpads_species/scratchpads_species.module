@@ -12,34 +12,34 @@ function scratchpads_species_menu(){
   $weight = 1;
   foreach(scratchpads_species_get_tabs() as $tab => $label){
     $items['taxonomy/term/%taxonomy_term/' . $tab] = array(
-      'title' => $label,
-      'page callback' => 'scratchpads_species_term_page',
+      'title' => $label, 
+      'page callback' => 'scratchpads_species_term_page', 
       'page arguments' => array(
-        2,
+        2, 
         3
-      ),
-      'access callback' => 'scratchpads_species_access_callback',
+      ), 
+      'access callback' => 'scratchpads_species_access_callback', 
       'access arguments' => array(
         2
-      ),
-      'type' => MENU_LOCAL_TASK,
-      'weight' => $weight++,
-      'file' => 'taxonomy.pages.inc',
+      ), 
+      'type' => MENU_LOCAL_TASK, 
+      'weight' => $weight++, 
+      'file' => 'taxonomy.pages.inc', 
       'file path' => drupal_get_path('module', 'taxonomy')
     );
   }
   // Add the empty content toggle
   $items['taxonomy/term/%taxonomy_term/toggle-empty-blocks'] = array(
-    'title' => 'Toggle empty blocks',
-    'page callback' => 'scratchpads_species_toggle_empty_blocks',
+    'title' => 'Toggle empty blocks', 
+    'page callback' => 'scratchpads_species_toggle_empty_blocks', 
     'page arguments' => array(
       2
-    ),
+    ), 
     'access arguments' => array(
       'toggle empty blocks'
-    ),
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
+    ), 
+    'weight' => 10, 
+    'type' => MENU_LOCAL_TASK, 
     'context' => MENU_CONTEXT_INLINE
   );
   return $items;
@@ -66,7 +66,7 @@ function scratchpads_species_menu_alter(&$items){
 function scratchpads_species_permission(){
   return array(
     'toggle empty blocks' => array(
-      'title' => t('toggle empty blocks'),
+      'title' => t('toggle empty blocks'), 
       'description' => t('Allows user to turn on & off empty blocks.')
     )
   );
@@ -77,26 +77,56 @@ function scratchpads_species_permission(){
  */
 function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $type = $form['#node_type']->type;
-  $node_types = variable_get('species_page_node_types', array());
+  $form_state['var'] = 'species_page_' . $type . '_tab';
+  $tab = variable_get($form_state['var'], NULL);
   $form['species'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Species pages'),
-    '#weight' => 5,
-    '#collapsible' => TRUE,
+    '#type' => 'fieldset', 
+    '#title' => t('Species pages'), 
+    '#weight' => 5, 
+    '#collapsible' => TRUE, 
     '#collapsed' => FALSE
   );
   $form['species']['species_page_display'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display on species pages.'),
-    '#default_value' => (isset($node_types[$type]) ? $node_types[$type] : 0)
+    '#type' => 'checkbox', 
+    '#title' => t('Display on species pages.'), 
+    '#default_value' => ($tab ? 1 : 0)
   );
+  $tabs = scratchpads_species_get_tabs();
+  if(isset($tabs[$type])){
+  	unset($tabs[$type]);
+  }
+  $form['species']['tabs'] = array(
+    '#type' => 'radios', 
+    '#title' => t('Tabs'), 
+    '#default_value' => $tab, 
+    '#options' => array_merge(array(
+      'own' => t('Own tab')
+    ), $tabs), 
+    '#description' => t('In which tab on the species pages do you want to display this content type?'), 
+    '#states' => array(
+      'invisible' => array(
+        'input[name="species_page_display"]' => array(
+          'checked' => FALSE
+        )
+      )
+    )
+  );
+  $form['#validate'][] = 'scratchpads_species_node_type_form_validate';
   $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
 }
 
 function scratchpads_species_node_type_form_submit($form, $form_state){
-  $node_types = variable_get('species_page_node_types');
-  $node_types[$form_state['values']['type']] = $form_state['values']['species_page_display'];
-  variable_set('species_page_node_types', $node_types);
+  if($form_state['values']['species_page_display'] && !empty($form_state['values']['tabs'])){
+    variable_set($form_state['var'], $form_state['values']['tabs']);
+  }else{
+    variable_del($form_state['var']);
+  }
+}
+
+function scratchpads_species_node_type_form_validate($form, $form_state){
+  if($form_state['values']['species_page_display'] && empty($form_state['values']['tabs'])){
+    form_set_error('tabs', t("Please select where on the species page you want this content type to display."));
+  }
 }
 
 /*********************************************************************************************
@@ -120,7 +150,7 @@ function scratchpads_species_access_callback($term){
   }
 }
 
-function scratchpads_species_term_page($term, $op = 'overview'){	
+function scratchpads_species_term_page($term, $op = 'overview'){
   if(scratchpads_species_term_is_biological_classification($term)){
     // Copied from context_entity_prepare_view()
     // Trigger the taxonomy viewing condition 
@@ -133,16 +163,16 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     }
     // Return a blank page contextual links
     $build = array(
-      '#theme' => 'page',
-      '#type' => 'page',
+      '#theme' => 'page', 
+      '#type' => 'page', 
       'content' => array(
         ''
-      ),
+      ), 
       '#contextual_links' => array(
         'taxonomy' => array(
-          'taxonomy',
+          'taxonomy', 
           array(
-            'term',
+            'term', 
             $term->tid
           )
         )
@@ -171,8 +201,8 @@ function scratchpads_species_toggle_empty_blocks($term){
 function scratchpads_species_ctools_plugin_type(){
   return array(
     'plugins' => array(
-      'cache' => TRUE,
-      'use hooks' => TRUE,
+      'cache' => TRUE, 
+      'use hooks' => TRUE, 
       'classes' => array(
         'handler'
       )
@@ -198,9 +228,9 @@ function scratchpads_species_context_plugins(){
   $plugins = array();
   $plugins['scratchpads_species_context_condition'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'scratchpads_species') . '/plugins',
-      'file' => 'scratchpads_species_context_condition.inc',
-      'class' => 'scratchpads_species_context_condition',
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/plugins', 
+      'file' => 'scratchpads_species_context_condition.inc', 
+      'class' => 'scratchpads_species_context_condition', 
       'parent' => 'context_condition'
     )
   );
@@ -215,7 +245,7 @@ function scratchpads_species_context_registry(){
   return array(
     'conditions' => array(
       'species' => array(
-        'title' => t('Species page'),
+        'title' => t('Species page'), 
         'plugin' => 'scratchpads_species_context_condition'
       )
     )
@@ -241,11 +271,13 @@ function scratchpads_species_term_is_biological_classification($term){
 /**
  * Return a list of node types to display on the species page
  */
-function scratchpads_species_get_node_types(){
+function scratchpads_species_get_node_tabs(){
   $node_types = array();
   $node_info = node_type_get_names();
-  foreach(array_keys(array_filter(variable_get('species_page_node_types', array()))) as $node_type){
-    $node_types[$node_type] = $node_info[$node_type];
+  foreach(array_keys($node_info) as $type){
+    if(variable_get('species_page_' . $type . '_tab', NULL) == 'own'){
+      $node_types[$type] = $node_info[$type];
+    }
   }
   return $node_types;
 }
@@ -255,11 +287,11 @@ function scratchpads_species_get_node_types(){
  */
 function scratchpads_species_get_default_tabs(){
   $tabs = array(
-    'media' => t('Media'),
-    'literature' => t('Literature'),
-    'maps' => t('Maps'),
-    'specimens' => t('Specimens'),
-    'phylogeny' => t('Phylogeny'),
+    'media' => t('Media'), 
+    'literature' => t('Literature'), 
+    'maps' => t('Maps'), 
+    'specimens' => t('Specimens'), 
+    'phylogeny' => t('Phylogeny'), 
     'eol' => t('EOL')
   );
   return $tabs;
@@ -269,7 +301,7 @@ function scratchpads_species_get_default_tabs(){
  * Return a list of species tabs
  */
 function scratchpads_species_get_tabs(){
-  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_types());
+  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_tabs());
 }
 
 

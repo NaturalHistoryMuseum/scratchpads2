@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Install file for the Hierarchical Select Taxonomy Views module.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hs_taxonomy_views_uninstall() {
+  $views = views_get_all_views();
+
+  foreach ($views as $view) {
+    foreach (array_keys($view->display) as $display_name) {
+      if (isset($view->display[$display_name]->display_options['filters']) && count($view->display[$display_name]->display_options['filters'])) {
+        foreach (array_keys($view->display[$display_name]->display_options['filters']) as $filter_id) {
+          $filter = $view->display[$display_name]->display_options['filters'][$filter_id];
+          if (isset($filter['type']) && $filter['type'] == 'hierarchical_select' && $filter['table'] == 'taxonomy_term_node' && $filter['field'] == 'tid') {
+            $view->display[$display_name]->display_options['filters'][$filter_id]['type'] = 'select';
+            $view->save();
+          }
+        }
+      }
+    }
+  }
+
+  drupal_set_message(t("Reset the Selection Type from 'Hierarchical Select' to
+                        'Dropdown' everywhere where it was used."),
+                    'warning');
+}

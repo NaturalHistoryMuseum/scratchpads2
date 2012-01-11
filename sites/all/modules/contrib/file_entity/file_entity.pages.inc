@@ -34,35 +34,54 @@ function file_entity_page_edit($file) {
 /**
  * Form builder: Builds the edit file form.
  */
-function file_entity_edit($form, $form_state, $file) {
+function file_entity_edit($form, &$form_state, $file) {
   $form_state['file'] = $file;
-  field_attach_form('file', $file, $form, $form_state);
+
+  $form['#attributes']['class'][] = 'file-form';
+  if (!empty($file->type)) {
+    $form['#attributes']['class'][] = 'file-' . $file->type . '-form';
+  }
+
+  // Basic file information.
+  // These elements are just values so they are not even sent to the client.
+  foreach (array('fid', 'type', 'uid', 'timestamp') as $key) {
+    $form[$key] = array(
+      '#type' => 'value',
+      '#value' => isset($file->$key) ? $file->$key : NULL,
+    );
+  }
+
+  $form['filename'] = array(
+    '#type' => 'textfield',
+    '#title' => t('File name'),
+    '#default_value' => $file->filename,
+    '#required' => TRUE,
+    '#maxlength' => 255,
+    '#weight' => -10,
+  );
 
   $form['preview'] = array(
     '#theme' => 'file_link',
     '#file' => $file,
+    '#weight' => -5,
   );
 
   // Add the buttons.
   $form['actions'] = array('#type' => 'actions');
-  $form['actions']['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#weight' => 15,
-    '#submit' => array('file_entity_delete_submit'),
-  );
-
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 5,
     '#submit' => array('file_entity_edit_submit'),
   );
+  $form['actions']['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+    '#weight' => 10,
+    '#submit' => array('file_entity_delete_submit'),
+  );
 
-  // Add internal file properties needed by media_edit_validate().
-  foreach (array('fid', 'type') as $key) {
-    $form[$key] = array('#type' => 'value', '#value' => $file->$key);
-  }
+  field_attach_form('file', $file, $form, $form_state);
 
   return $form;
 }
