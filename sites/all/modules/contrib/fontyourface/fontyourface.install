@@ -1,0 +1,247 @@
+<?php
+
+/**
+ * @file
+ * Adds fontyourface tables for tracking fonts.
+ */
+
+/**
+ * Re-usable function for the 6.2 schema.
+ */
+function fontyourface_6200_schema() {
+
+  $schema = array();
+
+  $schema['fontyourface_font'] = array(
+    'description' => 'Font information.',
+    'fields' => array(
+      'fid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique font ID.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The font name.',
+      ),
+      'enabled' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Whether or not the font is enabled. (0 = disabled, 1 = enabled)',
+      ),
+      'url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'A URL for the font.',
+      ),
+      'provider' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The module providing the font.',
+      ),
+      'css_selector' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'description' => 'CSS selector for applying the font.',
+      ),
+      'css_family' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'CSS family for the font.',
+      ),
+      'css_style' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'CSS style for the font.',
+      ),
+      'css_weight' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'CSS weight for the font.',
+      ),
+      'foundry' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Foundry for the font.',
+      ),
+      'foundry_url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'URL for foundry for the font.',
+      ),
+      'license' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'License for the font.',
+      ),
+      'license_url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'URL for license for the font.',
+      ),
+      'metadata' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'description' => 'Additional serialized metadata about the font.',
+      ),
+    ),
+    'indexes' => array(
+      'enabled' => array('enabled'),
+    ),
+    'primary key' => array('fid'),
+  );
+
+  $schema['fontyourface_tag'] = array(
+    'description' => 'Font tag information.',
+    'fields' => array(
+      'tid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique tag ID.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The font name.',
+      ),
+    ),
+    'primary key' => array('tid'),
+  );
+
+  $schema['fontyourface_tag_font'] = array(
+    'description' => 'Relationship information between fonts and tags.',
+    'fields' => array(
+      'fid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Foreign Key: the unique ID of the font.',
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Foreign Key: the unique ID of the tag.',
+      ),
+    ),
+    'indexes' => array(
+      'fid' => array('fid'),
+      'tid' => array('tid'),
+    ),
+    'primary key' => array('fid', 'tid'),
+  );
+
+  return $schema;
+
+} // fontyourface_6200_schema
+
+/**
+ * Implements hook_schema().
+ */
+function fontyourface_schema() {
+
+  return fontyourface_6200_schema();
+
+} // fontyourface_schema
+
+/**
+ * Implements hook_update_N().
+ */
+function fontyourface_update_6200() {
+
+  // Get old fonts
+
+  $old_fonts = array();
+  $old_fonts_sql = 'SELECT * FROM {fontyourface}';
+  $old_font_results = db_query($old_fonts_sql);
+
+  while ($old_font = db_fetch_object($old_font_results)) {
+    $old_fonts[] = $old_font;
+  } // while
+
+  // Drop old table.
+
+  db_drop_table('fontyourface');
+
+  // Drop provider tables from old version (may not all be there).
+
+  $ignore = array();
+  db_drop_table('fontsquirrel_group');
+  db_drop_table('kernest');
+  db_drop_table('typekit_api_variant');
+
+  // Import from any used providers.
+
+  $used_providers = array();
+
+  foreach ($old_fonts as $old_font) {
+    $used_providers[$old_font->provider] = TRUE;
+  } // foreach
+
+  foreach ($used_providers as $used_provider) {
+
+    $import_function = $used_provider . '_fontyourface_import';
+
+    if (function_exists($import_function)) {
+      $import_function();
+    } // if
+
+  } // foreach
+
+  // Add tables.
+
+  $schema = fontyourface_6200_schema();
+
+  db_create_table('fontyourface_font', $schema['fontyourface_font']);
+  db_create_table('fontyourface_tag', $schema['fontyourface_tag']);
+  db_create_table('fontyourface_tag_font', $schema['fontyourface_tag_font']);
+
+  // Re-enable fonts.
+
+  foreach ($old_fonts as $old_font) {
+
+    $new_fonts = fontyourface_get_fonts("provider = '" . $old_font->provider . "' AND name = '" . $old_font->name . "'");
+
+    if (count($new_fonts) > 0) {
+      $new_font = $new_fonts[0];
+      fontyourface_enable_font($new_font);
+      fontyourface_set_css_selector($new_font, $old_font->css);
+    } // if
+
+  } // foreach
+
+  return t('Updated @font-your-face.');
+
+} // fontyourface_update_6200

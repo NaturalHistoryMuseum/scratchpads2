@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Removes fonts on disable.
+ */
+
+/**
+ * Implements hook_disable().
+ */
+function common_fonts_disable() {
+
+  fontyourface_provider_disable('common_fonts');
+
+} // common_fonts_disable
