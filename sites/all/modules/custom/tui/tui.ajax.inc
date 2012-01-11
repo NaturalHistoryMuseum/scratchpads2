@@ -78,8 +78,9 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
       $term = taxonomy_term_load($tids[0]);
       if($term){
         module_load_include('admin.inc', 'taxonomy');
+        $form = drupal_get_form('taxonomy_form_term', $term);
         print ajax_render(array(
-          ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', $term))),
+          ajax_command_html('#tui-form-container', drupal_render($form)),
           ajax_command_html('#tui-name-live h2', $term->name)
         ));
       }else{
@@ -194,7 +195,9 @@ function tui_sort_callback(){
     foreach($tids as $tid){
       $term = taxonomy_term_load($tid);
       if($term){
-        db_update('taxonomy_term_data')->fields(array('weight' => $weight))->condition('tid', $term->tid)->execute();
+        db_update('taxonomy_term_data')->fields(array(
+          'weight' => $weight
+        ))->condition('tid', $term->tid)->execute();
         $term->weight = $weight;
         $weight++;
       }else{
