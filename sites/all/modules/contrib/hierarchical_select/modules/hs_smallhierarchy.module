@@ -1,0 +1,214 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the Hierarchical Select API that allows one to use a
+ * hardcoded hierarchy. When it becomes to slow, you should move the hierarchy
+ * into the database and write a proper implementation.
+ */
+
+
+//----------------------------------------------------------------------------
+// Hierarchical Select hooks.
+
+/**
+ * Implementation of hook_hierarchical_select_params().
+ */
+function hs_smallhierarchy_hierarchical_select_params() {
+  $params = array(
+    'hierarchy',
+    'id',
+    'separator',
+  );
+  return $params;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_root_level().
+ */
+function hs_smallhierarchy_hierarchical_select_root_level($params) {
+  $hierarchy = _hs_smallhierarchy_transform($params['hierarchy'], $params['id'], $params['separator']);
+
+  $children = $hierarchy['root']['children'];
+
+  $level = array();
+  foreach ($children as $item) {
+    $level[$item] = $hierarchy[$item]['label'];
+  }
+
+  return $level;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_children().
+ */
+function hs_smallhierarchy_hierarchical_select_children($parent, $params) {
+  $hierarchy = _hs_smallhierarchy_transform($params['hierarchy'], $params['id'], $params['separator']);
+
+  $children = (isset($hierarchy[$parent]['children'])) ? $hierarchy[$parent]['children'] : array();
+
+  $level = array();
+  foreach ($children as $item) {
+    $level[$item] = $hierarchy[$item]['label'];
+  }
+
+  return $level;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_lineage().
+ */
+function hs_smallhierarchy_hierarchical_select_lineage($item, $params) {
+  $parts = explode($params['separator'], $item);
+
+  $lineage = array();
+  for ($i = 0; $i < count($parts); $i++) {
+    $lineage[$i] = implode($params['separator'], array_slice($parts, 0, $i + 1));
+  }
+
+  return $lineage;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_valid_item().
+ */
+function hs_smallhierarchy_hierarchical_select_valid_item($item, $params) {
+  $hierarchy = _hs_smallhierarchy_transform($params['hierarchy'], $params['id'], $params['separator']);
+
+  // All valid items are in the keys of the $hierarchy array. Only the fake
+  // "root" item is not a valid item.
+  $items = array_keys($hierarchy);
+  unset($items['root']);
+
+  return (in_array($item, $items));
+}
+
+/**
+ * Implementation of hook_hierarchical_select_item_get_label().
+ */
+function hs_smallhierarchy_hierarchical_select_item_get_label($item, $params) {
+  $hierarchy = _hs_smallhierarchy_transform($params['hierarchy'], $params['id'], $params['separator']);
+  return $hierarchy[$item]['label'];
+}
+
+/**
+ * Implementation of hook_hierarchical_select_implementation_info().
+ */
+function hs_smallhierarchy_hierarchical_select_implementation_info() {
+  return array(
+    'hierarchy type' => t('Custom'),
+    'entity type'    => t('N/A'),
+  );
+}
+
+
+//----------------------------------------------------------------------------
+// Private functions.
+
+/**
+ * Automatically transform a given hierarchy with this format:
+ * array(
+ *   'win' => array(
+ *     'label' => 'Windows',
+ *     'children' => array(
+ *       'xp'    => array('label' => 'XP'),
+ *       'vista' => array(
+ *         'label' => 'Vista',
+ *         'children' => array(
+ *           'x86' => array('label' => '32-bits'),
+ *           'x64' => array('label' => '64-bits'),
+ *         ),
+ *       ),
+ *     ),
+ *   ),
+ * )
+ *
+ * to one with this format:
+ * array(
+ *   'root' => array(
+ *     'children' => array(
+ *       'xp',
+ *       'vista',
+ *     ),
+ *   ),
+ *   'win' => array(
+ *     'label' => 'Windows',
+ *     'children' => array(
+ *        'win|xp',
+ *        'win|vista',
+ *      ),
+ *   ),
+ *   'win|xp' => array(
+ *     'label' => 'XP',
+ *   ),
+ *   'win|vista' => array(
+ *     'label' => 'Vista',
+ *     'children' => array(
+ *        'win|vista|x86',
+ *        'win|vista|x64',
+ *      ),
+ *   ),
+ *   'win|vista|x86' => array(
+ *     'label' => '32-bits',
+ *   ),
+ *   'win|vista|x64' => array(
+ *     'label' => '64-bits',
+ *   ),
+ * )
+ *
+ * This new format:
+ * - ensures unique identifiers for each item
+ * - makes it very easy to find the parent of a given item.
+ * - makes it very easy to find the label and children of a given item.
+ *
+ * @params $hierarchy
+ *   The hierarchy.
+ * @params $id
+ *   A unique identifier for the hierarchy, for caching purposes.
+ * @params $separator
+ *   The separator to use.
+ */
+function _hs_smallhierarchy_transform($hierarchy, $id, $separator = '|') {
+  // Make sure each hierarchy is only transformed once.
+  if (!isset($hs_hierarchy[$id])) {
+    $hs_hierarchy[$id] = array();
+
+    // Build the root level.
+    foreach ($hierarchy as $item => $children) {
+      $hs_hierarchy[$id]['root']['children'][] = $item;
+      $hs_hierarchy[$id][$item]['label'] = $children['label'];
+
+      // Build the subsequent levels.
+      if (isset($children['children'])) {
+        _hs_smallhierarchy_transform_recurse($item, $hs_hierarchy[$id], $children['children'], $separator);
+      }
+    }
+  }
+
+  return $hs_hierarchy[$id];
+}
+
+/**
+ * Helper function for _hs_smallhierarchy_transform().
+ *
+ * @params $parent
+ *   The parent item of the current level.
+ * @params $hs_hierarchy
+ *   The HS hierarchy.
+ * @params $relative_hierarchy
+ *   The hierarchy relative to the current level.
+ * @params $separator
+ *   The separator to use.
+ */
+function _hs_smallhierarchy_transform_recurse($parent, &$hs_hierarchy, $relative_hierarchy, $separator = '|') {
+  foreach ($relative_hierarchy as $item => $children) {
+    $generated_item = $parent . $separator . $item;
+    $hs_hierarchy[$parent]['children'][] = $generated_item;
+    $hs_hierarchy[$generated_item]['label'] = $children['label'];
+
+    // Build the subsequent levels.
+    if (isset($children['children'])) {
+      _hs_smallhierarchy_transform_recurse($generated_item, $hs_hierarchy, $children['children'], $separator);
+    }
+  }
+}

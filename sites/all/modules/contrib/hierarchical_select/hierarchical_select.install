@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Hierarchical Select module.
+ */
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function hierarchical_select_uninstall() {
+  db_delete('variable')
+  ->condition('name', 'hs_config_%', 'LIKE')
+  ->execute();
+}
+
+
+//----------------------------------------------------------------------------
+// Updates.
+
+/**
+ * Update Hierarchical Select to Drupal 7. Basically remove a lot of cruft.
+ */
+function hierarchical_select_update_7001() {
+  // Drop Hierarchical Select's cache table, which is now obsolete.
+  db_drop_table('cache_hierarchical_select');
+
+  // Undo Hierarchical Select module weight changes, because they're no longer
+  // necessary.
+  db_update('system')
+  ->fields(array(
+    'weight' => 0,
+  ))
+  ->condition('name', 'hierarchical_select')
+  ->execute();
+}

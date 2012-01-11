@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Install file for the Hierarchical Select Taxonomy module.
+ */
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hs_taxonomy_uninstall() {
+  db_delete('variable')
+  ->condition('name', 'taxonomy_hierarchical_select_%', 'LIKE')
+  ->execute();
+  variable_del('taxonomy_override_selector');
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function hs_taxonomy_enable() {
+  variable_set('taxonomy_override_selector', TRUE);
+  drupal_set_message(t("Drupal core's taxonomy selects are now overridden on the
+                        Taxonomy Term form. They've been replaced by
+                        Hierarchical Selects for better scalability.<br />
+                        You can <a href=\"!configure-url\">configure</a> it to
+                        be used on node forms too!",
+                        array(
+                          '!configure-url' => url('admin/config/content/hierarchical_select/configs'),
+                        )),
+                      'warning');
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function hs_taxonomy_disable() {
+  variable_set('taxonomy_override_selector', FALSE);
+  drupal_set_message(t("Drupal core's taxonomy selects are now restored.
+                        Please remember that they're not scalable!."),
+                     'warning');
+}
+
+
+//----------------------------------------------------------------------------
+// Schema updates.
+
+/**
+ * Upgrade path from Drupal 6 to Drupal 7 version of Hierarchical Select:
+ * - delete the taxonomy_override_selector variable if it exists.
+ */
+function hs_taxonomy_update_7300() {
+  variable_del('taxonomy_override_selector');
+}
+
+/**
+ * Apparently, taxonomy_override_selector still exists in *one* location in
+ * Drupal 7 core: on the form_taxonomy_form_term form (where you can create or
+ * edit a Taxonomy term).
+ */
+function hs_taxonomy_update_7301() {
+  variable_set('taxonomy_override_selector', TRUE);
+}

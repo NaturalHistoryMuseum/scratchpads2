@@ -1,0 +1,14 @@
+name = Hierarchical Select Taxonomy
+description = Use Hierarchical Select for Taxonomy.
+dependencies[] = hierarchical_select
+dependencies[] = taxonomy
+package = Form Elements
+
+core = 7.x
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "7.x-3.0-alpha5"
+core = "7.x"
+project = "hierarchical_select"
+datestamp = "1316201202"
+

@@ -1,0 +1,264 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the Hierarchical Select API for the Menu module.
+ */
+
+
+//----------------------------------------------------------------------------
+// Drupal core hooks.
+
+/**
+ * Implements of hook_menu().
+ */
+function hs_menu_menu() {
+  $items['admin/config/content/hierarchical_select/menu'] = array(
+    'title'            => 'Menu',
+    'description'      => 'Hierarchical Select configuration for Menu',
+    'access arguments' => array('administer site configuration'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('hs_menu_admin_settings'),
+    'type'             => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Alter the node form's menu form.
+ */
+function hs_menu_form_node_form_alter(&$form, &$form_state) {
+  if (isset($form['menu']['link']['parent']) && $form['menu']['#access']) {
+    unset($form['menu']['link']['parent']['#options']);
+    $form['menu']['link']['parent']['#type'] = 'hierarchical_select';
+    _hs_menu_apply_config($form['menu']['link']['parent'], NULL);
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORMID_alter().
+ *
+ * Alter the widget type form; dynamically add the Hierarchical Select
+ * Configuration form when it is needed.
+ */
+function hs_menu_form_menu_edit_item_alter(&$form, &$form_state) {
+  unset($form['parent']['#options']);
+  $original_item = $form['original_item']['#value'];
+  $form['parent']['#type'] = 'hierarchical_select';
+  _hs_menu_apply_config($form['parent'], array($original_item['menu_name'], $original_item['mlid']));
+
+  // Set custom submit callback.
+  array_unshift($form['#submit'], 'hs_menu_menu_edit_item_form_submit');
+}
+
+
+//----------------------------------------------------------------------------
+// Form API callbacks.
+
+/**
+ * Submit callback; menu edit item form.
+ */
+function hs_menu_menu_edit_item_form_submit(&$form, &$form_state) {
+  // Don't return an array, but a single item.
+  $form_state['values']['parent'] = $form_state['values']['parent'][0];
+}
+
+
+//----------------------------------------------------------------------------
+// Menu callbacks.
+
+/**
+ * Form definition; admin settings.
+ */
+function hs_menu_admin_settings() {
+  $form['hs_menu_resizable'] = array(
+    '#type' => 'radios',
+    '#title' => t('Resizable'),
+    '#description' => t(
+      "When enabled, a handle appears below the Hierarchical Select to allow
+      the user to dynamically resize it. Double clicking will toggle between
+      the smallest and a sane 'big size'."
+    ),
+    '#options' => array(
+      0 => t('Disabled'),
+      1 => t('Enabled'),
+    ),
+    '#default_value' => variable_get('hs_menu_resizable', 1),
+  );
+
+  return system_settings_form($form);
+}
+
+
+//----------------------------------------------------------------------------
+// Hierarchical Select hooks.
+
+/**
+ * Implements hook_hierarchical_select_params().
+ */
+function hs_menu_hierarchical_select_params() {
+  $params = array(
+    'exclude', // The menu_name and mlid (in an array) of a menu link that should be excluded from the hierarchy.
+  );
+  return $params;
+}
+
+/**
+ * Implements hook_hierarchical_select_root_level().
+ */
+function hs_menu_hierarchical_select_root_level($params) {
+  $menus = array();
+
+  $result = db_query("SELECT menu_name, title FROM {menu_custom} ORDER BY title");
+  while ($menu = $result->fetchObject()) {
+    $menus[$menu->menu_name . ':0'] = $menu->title;
+  }
+
+  return $menus;
+}
+
+/**
+ * Implements hook_hierarchical_select_children().
+ */
+function hs_menu_hierarchical_select_children($parent, $params) {
+  $children = array();
+  list($menu_name, $plid) = explode(':', $parent);
+  $tree = menu_tree_all_data($menu_name, NULL);
+  return _hs_menu_children($tree, $menu_name, $plid, $params['exclude']);
+}
+
+/**
+ * Implements hook_hierarchical_select_lineage().
+ */
+function hs_menu_hierarchical_select_lineage($item, $params) {
+  $lineage = array($item);
+
+  list($menu_name, $mlid) = explode(':', $item);
+
+  // If the initial mlid is zero, then this is the root level, so we don't
+  // have to get the lineage.
+  if ($mlid > 0) {
+    // Prepend each parent mlid (i.e. plid) to the lineage.
+    do {
+      $plid = db_query("SELECT plid FROM {menu_links} WHERE mlid = :mlid", array(':mlid' => $mlid))->fetchField();
+      array_unshift($lineage, "$menu_name:$plid");
+      $mlid = $plid;
+    } while ($plid > 0);
+  }
+
+  return $lineage;
+}
+
+/**
+ * Implements hook_hierarchical_select_valid_item().
+ */
+function hs_menu_hierarchical_select_valid_item($item, $params) {
+  $parts = explode(':', $item);
+
+  $valid = TRUE;
+
+  // Validate menu name.
+  $valid = (in_array($parts[0], menu_get_names()));
+
+  // Validate hierarchy of mlids.
+  for ($i = 1; $valid && $i < count($parts); $i++) {
+    $valid = $valid && is_numeric($parts[$i]);
+  }
+
+  // Ensure that this isn't the excluded menu link.
+  $valid = $valid && $item != $params['exclude'][0] . $params['exclude'][1];
+
+  return $valid;
+}
+
+/**
+ * Implements hook_hierarchical_select_item_get_label().
+ */
+function hs_menu_hierarchical_select_item_get_label($item, $params) {
+  static $labels = array();
+
+  $parts = explode(':', $item);
+  if (count($parts) == 1) { // Get the menu name.
+    $menu_name = $parts[0];
+    $labels[$item] = db_query("SELECT title FROM {menu_custom} WHERE menu_name = :menu_name", array(':menu_name' => $menu_name))->fetchField();
+  }
+  else { // Get the menu link title.
+    $mlid = end($parts);
+    $menu_link = menu_link_load($mlid);
+    $labels[$item] = $menu_link['title'];
+  }
+
+  return $labels[$item];
+}
+
+/**
+ * Implements hook_hierarchical_select_implementation_info().
+ */
+function hs_menu_hierarchical_select_implementation_info() {
+  return array(
+    'hierarchy type' => t('Menu'),
+    'entity type'    => t('N/A'),
+  );
+}
+
+
+//----------------------------------------------------------------------------
+// Private functions.
+
+/**
+ * Recursive helper function for hs_menu_hierarchical_select_children().
+ */
+function _hs_menu_children($tree, $menu_name, $plid = 0, $exclude = FALSE) {
+  $children = array();
+
+  foreach ($tree as $data) {
+    if ($data['link']['plid'] == $plid && $data['link']['hidden'] >= 0) {
+      if ($exclude && $data['link']['menu_name'] === $exclude[0] && $data['link']['mlid'] == $exclude[1]) {
+        continue;
+      }
+
+      $title = truncate_utf8($data['link']['title'], 30, TRUE, FALSE);
+      if ($data['link']['hidden']) {
+        $title .= ' (' . t('disabled') . ')';
+      }
+      $children[$menu_name . ':' . $data['link']['mlid']] = $title;
+      if ($data['below']) {
+        $children += _hs_menu_children($data['below'], $menu_name, $plid, $exclude);
+      }
+    }
+    elseif ($data['below']) {
+      $children += _hs_menu_children($data['below'], $menu_name, $plid, $exclude);
+    }
+  }
+
+  return $children;
+}
+
+/**
+ * Helper function to apply the HS config to a form item.
+ */
+function _hs_menu_apply_config(&$form, $exclude) {
+  $form['#config'] = array(
+    'module' => 'hs_menu',
+    'params' => array(
+      'exclude' => $exclude,
+    ),
+    'save_lineage'    => 0,
+    'enforce_deepest' => 0,
+    'entity_count'    => 0,
+    'require_entity'  => 0,
+    'resizable'       => variable_get('hs_menu_resizable', 1),
+    'level_labels' => array(
+      'status' => 0,
+    ),
+    'dropbox' => array(
+      'status' => 0,
+    ),
+    'editability' => array(
+      'status' => 0,
+    ),
+    'render_flat_select' => 0,
+  );
+}

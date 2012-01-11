@@ -1,0 +1,52 @@
+
+
+/* The hierarchical select. */
+.hierarchical-select-wrapper .hierarchical-select .selects {
+  float: right; /* If a block is floated, it won't consume as much width as
+                   available, only just enough. This allows the grippie to
+                   perfectly scale with the with consumed by the selects. */ 
+}
+
+.hierarchical-select-wrapper .hierarchical-select .selects .grippie {
+  clear: right; /* clear: left; */
+  height: 9px;
+  overflow: hidden;
+  background: #eee url(images/grippie.png) no-repeat center 2px;
+  border: 1px solid #ddd;
+  border-top-width: 0;
+  cursor: s-resize;
+  margin-left: 0.5em; /* margin-right: 0.5em; */ /* Give the grippie the same margin as each select. */
+  min-width: 70px; /* Hack for IE, makes the grip usable, but not yet the same as in other browsers. */
+}
+
+.hierarchical-select-wrapper .hierarchical-select select,
+.hierarchical-select-wrapper .hierarchical-select .add-to-dropbox,
+.hierarchical-select-wrapper .hierarchical-select .create-new-item {
+  margin-left: .5em;
+  float: right;
+}
+
+
+/* The pseudo-modal window for creating a new item or new level. */
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-create,
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-cancel {
+  float: left;
+  margin-right: .4em;
+}
+
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-input {
+  float: right;
+  clear: left;
+}
+
+
+/* Child level indicator. */
+.hierarchical-select-wrapper .hierarchical-select option.has-children {
+  background: url(images/arrow-rtl.png) no-repeat left center;
+}
+
+
+/* Dropbox limit warning.*/
+p.hierarchical-select-dropbox-limit-warning {
+  padding-right: .5em;
+}

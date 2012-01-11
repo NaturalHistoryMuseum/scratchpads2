@@ -1,0 +1,691 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the Hierarchical Select API for the Taxonomy module's
+ * Views exposed filters.
+ */
+
+
+define('HS_TAXONOMY_VIEWS_ANY_OPTION', 'Any');
+
+
+//----------------------------------------------------------------------------
+// Core hooks.
+
+/**
+ * Implementation of hook_menu().
+ */
+function hs_taxonomy_views_menu() {
+  $items = array();
+
+  $items["admin/structure/views/hs_config/%views_ui_cache/%/%"] = array(
+    'title'            => 'Hierarchical Select configuration',
+    'title callback'   => 'hs_taxonomy_views_config_title',
+    'title arguments'  => array(4, 5, 6),
+    'page callback'    => 'hs_taxonomy_views_config',
+    'page arguments'   => array(4, 5, 6),
+    'access arguments' => array('administer views'),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+
+  $items['hs_taxonomy_views_json/%/%'] = array(
+    'page callback'   => 'hs_taxonomy_views_json',
+    'page arguments'   => array(1, 2),
+    'type'            => MENU_CALLBACK,
+    // TODO: Needs improvements. Ideally, this would inherit the permissions
+    // of the form the Hierarchical Select was in.
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function hs_taxonomy_views_form_alter(&$form, $form_state, $form_id) {
+  //
+  if ($form_id == 'views_ui_edit_view_form') {
+    // Add JS and CSS required for Hierarchical Select to work.
+    _hierarchical_select_setup_js();
+
+    // Ensure that Drupal.HierarchicalSelect.prepareGETSubmit() gets called.
+    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+    hierarchical_select_common_add_views_js();
+  }
+
+  if ($form_id == 'views_ui_config_item_form'
+        && $form_state['type'] == 'filter'
+        && $form_state['handler']->table == 'taxonomy_term_node'
+        && $form_state['handler']->field == 'tid') {
+    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+
+    $view_name  = $form_state['view']->name;
+    $filter_id  = $form_state['id'];
+    $display_id = _hs_taxonomy_views_get_display_id_for_filter($form_state['view'], $filter_id);
+
+
+    $config_id = "taxonomy-views-$view_name-$display_id-$filter_id";
+    $config    = hierarchical_select_common_config_get($config_id);
+
+    if ($config['save_lineage']) {
+      $description = t("Managed by Hierarchical Select because the 'Save lineage' setting is enabled.");
+      // "Operator"
+      $form['options']['operator']['#disabled'] = TRUE;
+      $form['options']['operator']['#description'] = $description;
+      // "Unlock operator"
+      $form['options']['expose']['use_operator']['#disabled'] = TRUE;
+      $form['options']['expose']['use_operator']['#description'] = $description;
+      // "Operator identifier"
+      $form['options']['expose']['operator']['#disabled'] = TRUE;
+      $form['options']['expose']['operator']['#description'] = $description;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+// Menu system callbacks.
+
+/**
+ * Title callback; Hierarchical Select configuration form page.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ */
+function hs_taxonomy_views_config_title($view, $display_id, $filter_id) {
+  $filter_label = _hs_taxonomy_views_get_filter_label($view, $display_id, $filter_id);
+  return t('Hierarchical Select configuration for the "!filter-id" filter in
+            the "!view-name" view\'s "!display-id" display',
+            array(
+              '!view-name'  => $view->name,
+              '!display-id' => $display_id,
+              '!filter-id'  => $filter_id,
+            )
+          );
+}
+
+/**
+ * Menu callback; Hierarchical Select configuration form page.
+ *
+ * When the given filter id doesn't exist, a 404 page is displayed.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ */
+function hs_taxonomy_views_config($view, $display_id, $filter_id) {
+  $filter = _hs_taxonomy_views_get_filter($view, $display_id, $filter_id);
+  if ($filter == FALSE) {
+    drupal_not_found();
+  }
+  else {
+    views_set_current_view($view);
+    return drupal_get_form('hs_taxonomy_views_config_form', $view, $display_id, $filter_id);
+  }
+}
+
+
+/**
+ * Menu callback; wrapper around hierarchical_select_json, with support for
+ * preloading the view thats is referenced from within the form.
+ *
+ * @param $view_name
+ *   The name of the view to load.
+ * @param $display_id
+ *   The ID of a display to execute.
+ */
+function hs_taxonomy_views_json($view_name, $display_id) {
+  $view = views_get_view($view_name);
+
+  if ($view != NULL) {
+    $view->execute_display($display_id);
+    views_set_current_view($view);
+  }
+
+  return hierarchical_select_json();
+}
+
+
+//----------------------------------------------------------------------------
+// Views hooks.
+
+/**
+ * Implementation of hook_views_api().
+ */
+function hs_taxonomy_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'hierarchical_select') . '/modules',
+  );
+}
+
+/**
+ * Implementation of hook_views_handlers().
+ */
+function hs_taxonomy_views_handlers() {
+  return array(
+    'handlers' => array(
+      // Provide a subclass of the term filter handler, to make it possible to
+      // use Hierarchical Select in Views.
+      'hs_taxonomy_views_handler_filter_term_node_tid' => array(
+        'parent' => 'views_handler_filter_term_node_tid',
+      ),
+      'hs_taxonomy_views_handler_filter_term_node_tid_depth' => array(
+        'parent' => 'hs_taxonomy_views_handler_filter_term_node_tid',
+      ),
+    )
+  );
+}
+
+/**
+ * Implementation of hook_views_data_alter().
+ */
+function hs_taxonomy_views_views_data_alter(&$data) {
+  // Term view type, tid field.
+  $data['taxonomy_term_data']['tid'] = array(
+   'title' => t('Term ID'),
+   'help'  => t('The taxonomy term ID.'),
+   'field' => array(
+     'handler'   => 'views_handler_field_numeric',
+     'skip base' => array('node', 'node_revision'),
+   ),
+   'sort' => array(
+     'handler' => 'views_handler_sort',
+   ),
+   'argument' => array(
+     'handler'   => 'views_handler_argument_numeric',
+     'skip base' => array('node', 'node_revision'),
+   ),
+   // Override the views_handler_filter_term_node_tid filter handler: use our
+   // hs_taxonomy_views_handler_filter_term_node_tid subclass instead.
+   'filter' => array(
+     'handler'         => 'hs_taxonomy_views_handler_filter_term_node_tid',
+     'hierarchy table' => 'taxonomy_term_hierarchy',
+     'numeric'         => TRUE,
+     'skip base'       => array('node', 'node_revision'),
+   ),
+  );
+
+  // Node view type, tid field.
+  $data['taxonomy_term_node']['tid'] = array(
+    'title' => t('Term ID'),
+    'help'  => t('The taxonomy term ID.'),
+    'field' => array(
+      'title'     => t('All terms'),
+      'help'      => t('Display all taxonomy terms associated with a node from specified vocabularies.'),
+      'handler'   => 'views_handler_field_term_node_tid',
+      'skip base' => 'taxonomy_term_data',
+    ),
+    'argument' => array(
+      'handler'          => 'views_handler_argument_term_node_tid',
+      'name table'       => 'taxonomy_term_data',
+      'name field'       => 'name',
+      'empty name field' => t('Uncategorized'),
+      'numeric'          => TRUE,
+      'skip base'        => 'taxonomy_term_data',
+    ),
+    // Override the views_handler_filter_term_node_tid filter handler: use our
+    // hs_taxonomy_views_handler_filter_term_node_tid subclass instead.
+    'filter' => array(
+      'title'           => t('Term'),
+      'handler'         => 'hs_taxonomy_views_handler_filter_term_node_tid',
+      'hierarchy table' => 'taxonomy_term_hierarchy',
+      'numeric'         => TRUE,
+      'skip base'       => 'taxonomy_term_data',
+    ),
+  );
+
+  // Node view type, tid with depth field.
+  $data['node']['term_node_tid_depth'] = array(
+    'group' => t('Taxonomy'),
+    'title' => t('Term ID (with depth)'),
+    'help' => t('The depth filter is more complex, so provides fewer options.'),
+    'real field' => 'vid',
+    'argument' => array(
+      'handler' => 'views_handler_argument_term_node_tid_depth',
+      'accept depth modifier' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'hs_taxonomy_views_handler_filter_term_node_tid_depth',
+    ),
+  );
+}
+
+
+//----------------------------------------------------------------------------
+// Forms API callbacks.
+
+/**
+ * Form definition; configuration form for Hierarchical Select as the widget
+ * for a Taxonomy filter.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ */
+function hs_taxonomy_views_config_form($form, $form_state, $view, $display_id, $filter_id) {
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+
+  $filter = _hs_taxonomy_views_get_filter($view, $display_id, $filter_id);
+
+  // Build the config ID.
+  $config_id = "taxonomy-views-$view->name-$display_id-$filter_id";
+
+  // Add the Hierarchical Select config form.
+  $module = 'hs_taxonomy_views';
+  $params = array(
+    'optional'    => (bool) $filter['expose']['optional'],
+    'filter_id'   => $filter_id,
+    'vid'         => $filter['vid'],
+    'exclude_tid' => NULL,
+    'root_term'   => NULL,
+  );
+  $vocabulary = taxonomy_vocabulary_load($params['vid']);
+  $defaults = array(
+    // Enable the save_lineage setting by default if the multiple parents
+    // vocabulary option is enabled.
+    'save_lineage' => (int) ($vocabulary->hierarchy == 2),
+    'editability' => array(
+      'max_levels' => _hs_taxonomy_hierarchical_select_get_depth($filter['vid']),
+    ),
+    // Use our custom callback.
+    'path' => "hs_taxonomy_views_json/$view->name/$display_id",
+    // When the 'Any' option is selected, nothing else should be and it
+    // should replace the '<none>' option.
+    'special_items' => array(
+      HS_TAXONOMY_VIEWS_ANY_OPTION => array('none', 'exclusive'),
+    ),
+  );
+  $strings = array(
+    'hierarchy'   => t('taxonomy_vocabulary'),
+    'hierarchies' => t('vocabularies'),
+    'item'        => t('term'),
+    'items'       => t('terms'),
+    'item_type'   => t('term type'),
+    'entity'      => t('node'),
+    'entities'    => t('nodes'),
+  );
+  $max_hierarchy_depth = _hs_taxonomy_hierarchical_select_get_depth($vocabulary->vid);
+  $preview_is_required = !(bool) $filter['expose']['optional'];
+  $form['hierarchical_select_config'] = hierarchical_select_common_config_form($module, $params, $config_id, $defaults, $strings, $max_hierarchy_depth, $preview_is_required);
+
+  $form['link'] = array(
+    '#markup' => l("Back to the View's display configuration", "admin/structure/views/edit/$view->name", array('fragment' => 'views-tab-' . $display_id)),
+    '#prefix' => '<div class="hierarchical-select-config-back-link">',
+    '#suffix' => '</div>',
+    '#weight' => -5,
+  );
+
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  // Add the custom submit handler for the Hierarchical Select config form
+  // that will update the View object when necessary.
+  $form['#submit'][] = 'hs_taxonomy_views_common_config_form_submit';
+  $form['#custom_submit_data'] = array(
+    'view_name'  => $view->name,
+    'display_id' => $display_id,
+    'filter_id'  => $filter_id,
+  );
+
+  // Add the submit handler for the Hierarchical Select config form.
+  $parents = array('hierarchical_select_config');
+  $form['#submit'][] = 'hierarchical_select_common_config_form_submit';
+  $form['#hs_common_config_form_parents'] = $parents;
+
+  return $form;
+}
+
+/**
+ * Additional submit callback to redirect the user to the "Edit view" form.
+ */
+function hs_taxonomy_views_common_config_form_submit($form, &$form_state) {
+  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'hierarchical_select') . '/includes/common.inc';
+
+  $view_name  = $form['#custom_submit_data']['view_name'];
+  $display_id = $form['#custom_submit_data']['display_id'];
+  $filter_id  = $form['#custom_submit_data']['filter_id'];
+  $view       = views_get_view($view_name);
+
+  $config_id = $form_state['values']['hierarchical_select_config']['config_id'];
+  $config    = hierarchical_select_common_config_get($config_id);
+
+  // Overrides when save_lineage is enabled.
+  $new_config = $form_state['values']['hierarchical_select_config'];
+  if ($new_config['save_lineage'] == 1 && $config['save_lineage'] != $new_config['save_lineage']) {
+    $view->display[$display_id]->display_options['filters'][$filter_id]['operator'] = 'and';
+    $view->display[$display_id]->display_options['filters'][$filter_id]['expose']['use_operator'] = 0;
+    $view->save();
+
+    views_object_cache_clear('view', $view_name);
+    drupal_set_message(t("Because you've enabled the 'Save Lineage' setting, the operator has been set to 'AND' and cannot be changed by the end user."));
+  }
+}
+
+
+//----------------------------------------------------------------------------
+// Hierarchical Select hooks.
+
+/**
+ * Implementation of hook_hierarchical_select_params().
+ */
+function hs_taxonomy_views_hierarchical_select_params() {
+  $params = array(
+    'vid',
+    'optional',    // Do we display an "All" option?
+    'filter_id',   // The ID of the filter. Necessary for entity count support.
+    'exclude_tid', // Allows a term to be excluded (necessary for the taxonomy_form_term form).
+    'root_term',   // Displays a fake "<root>" term in the root level (necessary for the taxonomy_form-term form).
+  );
+  return $params;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_root_level().
+ */
+function hs_taxonomy_views_hierarchical_select_root_level($params) {
+  $any_label = variable_get('views_exposed_filter_any_label', 'old_any') === 'old_any' ? '<' . t('Any') . '>' : '- ' . t('Any') . ' -';
+  $root_level =  ($params['optional']) ? array(HS_TAXONOMY_VIEWS_ANY_OPTION => $any_label) : array();
+  $root_level += hs_taxonomy_hierarchical_select_root_level($params);
+  return $root_level;
+}
+
+/**
+ * Implementation of hook_hierarchical_select_children().
+ */
+function hs_taxonomy_views_hierarchical_select_children($parent, $params) {
+  return ($parent == HS_TAXONOMY_VIEWS_ANY_OPTION) ? array() : hs_taxonomy_hierarchical_select_children($parent, $params);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_lineage().
+ */
+function hs_taxonomy_views_hierarchical_select_lineage($item, $params) {
+  return ($item == HS_TAXONOMY_VIEWS_ANY_OPTION) ? array($item) : hs_taxonomy_hierarchical_select_lineage($item, $params);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_valid_item().
+ */
+function hs_taxonomy_views_hierarchical_select_valid_item($item, $params) {
+  return ($item == HS_TAXONOMY_VIEWS_ANY_OPTION || hs_taxonomy_hierarchical_select_valid_item($item, $params));
+}
+
+/**
+ * Implementation of hook_hierarchical_select_item_get_label().
+ */
+function hs_taxonomy_views_hierarchical_select_item_get_label($item, $params) {
+  return ($item == HS_TAXONOMY_VIEWS_ANY_OPTION) ? '<' . t('Any') . '>' : hs_taxonomy_hierarchical_select_item_get_label($item, $params);
+}
+
+/**
+ * Implementation of hook_hierarchical_select_create_item().
+ */
+// No implementation. This doesn't make sense for exposed filters: if you were
+// able to create new items in the hierarchy, how could you then possibly find
+// anything for that item?
+
+/**
+ * Implementation of hook_hierarchical_select_entity_count().
+ */
+function hs_taxonomy_views_hierarchical_select_entity_count($item, $params) {
+  static $count;
+
+  $current_view = views_get_current_view();
+
+  if (!isset($count[$current_view->name][$item])) {
+    $temp_view = $current_view->clone_view();
+    $display_id = (isset($current_view->current_display)) ? $current_view->current_display : 'default';
+    $temp_view->set_display($display_id);
+
+    // Disable the pager to get *all* results.
+    if (method_exists($temp_view, 'set_use_pager')) {
+      $temp_view->set_use_pager(FALSE);
+    }
+    else {
+      $temp_view->set_use_pager = FALSE;
+    }
+
+    // Pretend nothing is exposed, otherwise an exposed filters form will also
+    // be rendered and thereby cause endless recursion.
+    $temp_view->display_handler->has_exposed = 0;
+
+    // Dynamically add an additional filter when
+    if ($item != HS_TAXONOMY_VIEWS_ANY_OPTION) {
+      // Get an array with all tids: the tid of the currently selected term and
+      // all child terms.
+      $term = taxonomy_term_load($item);
+      $tree = _hs_taxonomy_hierarchical_select_get_tree($term->vid, $term->tid);
+      $tids = array($term->tid => $term->tid);
+      foreach ($tree as $descendant) {
+        $tids[$descendant->tid] = $descendant->tid;
+      }
+
+      $id = 'tid_' . implode('-', $tids);
+      $temp_view->display[$display_id]->handler->override_option('filters', array(
+        $id => array(
+          'operator' => 'or',
+          'value' => $tids,
+          'group' => '0',
+          'exposed' => FALSE,
+          'expose' => array(
+            'operator' => FALSE,
+            'label' => '',
+          ),
+          'type' => 'select',
+          'limit' => TRUE,
+          'vid' => $params['vid'],
+          'id' => $id,
+          'table' => 'taxonomy_term_node',
+          'field' => 'tid',
+          'hierarchy' => 0,
+          'override' => array(
+            'button' => 'Override',
+          ),
+          'relationship' => 'none',
+          'reduce_duplicates' => 0,
+        ),
+      ));
+    }
+    else {
+      // Disable the default value, otherwise the <Any> option will actually
+      // filter by the default value.
+      $filter_id = $params['filter_id'];
+      $temp_view->display[$display_id]->display_options['filters'][$filter_id]['value'] = array();
+      $temp_view->display[$display_id]->handler->options['filters'][$filter_id]['value'] = array();
+      $temp_view->display['default']->display_options['filters'][$filter_id]['value'] = array();
+      $temp_view->display['default']->handler->options['filters'][$filter_id]['value'] = array();
+    }
+
+    // Build the queries and collect the arguments.
+    $temp_view->build($display_id);
+
+    // We only need the count query. We don't care about the actual fields or
+    // order of the View.
+    $count_query = $temp_view->build_info['count_query'];
+    $args        = $temp_view->build_info['query_args'];
+
+    // Regenerate the query after we set the distinct flag for the nid field.
+    // This unfortunately doesn't work, because Views doesn't create an
+    // optimized count query when any of the fields have the distinct flag set.
+    //$temp_view->query->fields['nid']['distinct'] = TRUE;
+    //$count_query = $temp_view->query->query(TRUE);
+
+    // Due to the above: sneak DISTINCT() in through a string replace ...
+    $count_query = str_replace("SELECT node.nid AS nid", "SELECT DISTINCT(node.nid) AS nid", $count_query);
+
+    // Filter by node type if such a filter is configured in the view.
+    if (isset($current_view->filter['type'])) {
+      $node_types = $current_view->filter['type']->value;
+      if (isset($node_types)) {
+        $values = '';
+        foreach ($node_types as $key => $value) {
+          if (empty($values)) {
+            $values = '\'' . $value . '\'';
+          }
+          else {
+            $values .= ', \'' . $value . '\'';
+          }
+        }
+
+        // Use the same sneaky string replace trick once more.
+        $count_query = str_replace("WHERE", 'WHERE node.type IN (' . $values . ') AND', $count_query);
+      }
+    }
+
+    // Apply the same query transformations as view::execute() does.
+    $count_query = db_rewrite_sql($count_query, $temp_view->base_table, $temp_view->base_field, array('view' => &$temp_view));
+    $count_query = 'SELECT COUNT(*) FROM (' . $count_query . ') count_alias';
+
+    // Execute the count query.
+    // TODO Please convert this statement to the D7 database API syntax.
+    $count[$current_view->name][$item] = db_query($count_query, $args)->fetchField();
+  }
+
+  return $count[$current_view->name][$item];
+}
+
+/**
+ * Implementation of hook_hierarchical_select_implementation_info().
+ */
+function hs_taxonomy_views_hierarchical_select_implementation_info() {
+  return array(
+    'hierarchy type' => t('Taxonomy'),
+    'entity type'    => t('Node'),
+  );
+}
+
+/**
+ * Implementation of hook_hierarchical_select_config_info().
+ */
+function hs_taxonomy_views_hierarchical_select_config_info() {
+  $config_info = array();
+  $views = views_get_all_views();
+
+  foreach ($views as $view) {
+    foreach (array_keys($view->display) as $display_id) {
+      if (isset($view->display[$display_id]->display_options['filters']) && count($view->display[$display_id]->display_options['filters'])) {
+        foreach ($view->display[$display_id]->display_options['filters'] as $filter) {
+          if (isset($filter['type']) && $filter['type'] == 'hierarchical_select'
+              && ((isset($filter['table']) && $filter['table'] == 'taxonomy_term_node'
+              && isset($filter['field']) && $filter['field'] == 'tid')
+             || (isset($filter['table']) && $filter['table'] == 'node'
+              && isset($filter['field']) && $filter['field'] == 'term_node_tid_depth'))) {
+            $vocabulary = taxonomy_vocabulary_load($filter['vid']);
+            $filter_label = (!empty($filter['expose']['label'])) ? $filter['expose']['label'] : t('Taxonomy: Term');
+
+            $config_id = "taxonomy-views-$view->name-$display_id-{$filter['id']}";
+            $config_info[$config_id] = array(
+              'config_id'      => $config_id,
+              'hierarchy type' => t('Taxonomy'),
+              'hierarchy'      => t($vocabulary->name),
+              'entity type'    => t('Node'),
+              'entity'         => '',
+              'context type'   => t('Views (exposed) filter'),
+              'context'        => t('"!view-name" view, "!display-name" display, "!filter-label" filter',
+                                    array(
+                                      '!view-name'    => $view->name,
+                                      '!display-name' => $display_id,
+                                      '!filter-label' => $filter_label,
+                                    )
+                                   ),
+              'edit link'      => _hs_taxonomy_views_config_path($view->name, $display_id, $filter['id']),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return $config_info;
+}
+
+
+//----------------------------------------------------------------------------
+// Private functions.
+
+/**
+ * Get a filter from a view object.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ * @return
+ *   The filter array.
+ */
+function _hs_taxonomy_views_get_filter($view, $display_id, $filter_id) {
+  $filters = $view->display[$display_id]->display_options['filters'];
+  return (!isset($filters[$filter_id])) ? FALSE : $filters[$filter_id];
+}
+
+/**
+ * Get a filter's label from a view object.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ * @return
+ *   The filter's label.
+ */
+function _hs_taxonomy_views_get_filter_label($view, $display_id, $filter_id) {
+  $filter = _hs_taxonomy_views_get_filter($view, $display_id, $filter_id);
+  return ($filter === FALSE) ? FALSE : $filter['expose']['label'];
+}
+
+/**
+ * Generate the path at which the configuration form of the given filter is
+ * available.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ * @return
+ *   The Drupal path for the desired config form..
+ */
+function _hs_taxonomy_views_config_path($view_name, $display_id, $filter_id) {
+  return "admin/structure/views/hs_config/$view_name/$display_id/$filter_id";
+}
+
+/**
+ * Find out what the name is of the display with the most specific settings
+ * for the given filter ID.
+ * If a display has overriden the default display, then that display's name
+ * will be returned instead of 'default'. That's also how Views picks which
+ * filter settings to use.
+ *
+ * @param $view
+ *   A view object.
+ * @param $display_id
+ *   The ID of a display within the given view object.
+ * @param $filter_id
+ *   The ID of a filter used within the given view object.
+ * @return
+ *   The most specfic display name.
+ */
+function _hs_taxonomy_views_get_display_id_for_filter($view, $filter_id) {
+  $current_display = $view->current_display;
+  $current_display_filters = (isset($view->display[$current_display]->display_options['filters'])) ? $view->display[$current_display]->display_options['filters'] : array();
+  return (isset($current_display_filters[$filter_id])) ? $current_display : 'default';
+}

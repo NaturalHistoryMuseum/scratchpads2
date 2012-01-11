@@ -1,0 +1,16 @@
+name = Hierarchical Select Taxonomy Views
+description = Use Hierarchical Select for Taxonomy exposed filters in Views.
+dependencies[] = hierarchical_select
+dependencies[] = hs_taxonomy 
+dependencies[] = views
+package = Form Elements
+core = 6.x
+
+files[] = hs_taxonomy_views_handler_filter_term_node_tid.inc
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "7.x-3.0-alpha5"
+core = "7.x"
+project = "hierarchical_select"
+datestamp = "1316201202"
+
