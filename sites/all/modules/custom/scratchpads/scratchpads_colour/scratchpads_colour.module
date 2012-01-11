@@ -224,6 +224,9 @@ function scratchpads_colour_preprocess_html(&$vars){
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-sidebar h2.block-title{ color: #' . $colour . ';}' . PHP_EOL;
+    // Couple of default classes for colouring stuff
+    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
+    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
   }
   $vars['colours'] .= '</style>';
   $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
