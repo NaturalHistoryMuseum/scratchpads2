@@ -76,6 +76,7 @@ function scratchpads_pages_views_default_views(){
       $handler->display->display_options['menu']['type'] = 'normal';
       $handler->display->display_options['menu']['title'] = $node_info->name . 's';
       $handler->display->display_options['menu']['name'] = PRIMARY_MENU_NAME;
+      $handler->display->display_options['menu']['weight'] = 1;
       $views[$view->name] = $view;
     }
   }

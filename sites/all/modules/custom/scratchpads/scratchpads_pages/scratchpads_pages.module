@@ -15,6 +15,7 @@ define('PRIMARY_MENU_NAME', 'main-menu');
  * Implements hook_menu().
  */
 function scratchpads_pages_menu(){
+  $items = array();
   global $conf;
   if(isset($conf['biological_vids'])){
     foreach(array_keys($conf['biological_vids']) as $vid){
@@ -117,6 +118,7 @@ function scratchpads_pages_form_node_form_alter(&$form, $form_state){
     $form['menu']['enabled']['#default_value'] = 1;
     $form['menu']['enabled']['#disabled'] = true;
     $form['menu']['link']['link_title']['#required'] = true;
+    $form['menu']['link']['weight']['#default_value'] = 1; // Home is 0, so ensure by default pages are weighting higher
   }else{ // If this isn't a page, remove the menu link option
     unset($form['menu']);
   }
