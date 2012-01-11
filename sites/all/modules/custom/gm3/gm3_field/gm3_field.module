@@ -950,10 +950,11 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             break;
         }
       }
+      $to_render = theme('gm3_map', array(
+        'map' => $map
+      ));
       $widget += array(
-        '#prefix' => drupal_render(theme('gm3_map', array(
-          'map' => $map
-        )))
+        '#prefix' => drupal_render($to_render)
       );
       break;
   }
