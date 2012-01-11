@@ -1,0 +1,175 @@
+<?php
+/*********************************************************************************************
+ * 
+ * CONSTANTS
+ * 
+ ********************************************************************************************/
+define('PRIMARY_MENU_NAME', 'main-menu');
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_pages_menu(){
+  global $conf;
+  if(isset($conf['biological_vids'])){
+    foreach(array_keys($conf['biological_vids']) as $vid){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if($tree = taxonomy_get_tree($vid, 0, 1)){
+        $term = array_shift($tree);
+        $items['classification/' . $vid] = array(
+          'title' => $vocabulary->name,
+          'page callback' => 'drupal_goto',
+          'page arguments' => array(
+            'taxonomy/term/' . $term->tid
+          ),
+          'access arguments' => array(
+            'access content'
+          ),
+          'menu_name' => PRIMARY_MENU_NAME,
+          'weight' => 1
+        );
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_taxonomy_term_insert()
+ */
+function scratchpads_pages_taxonomy_term_insert($term){
+  global $conf;
+  // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
+  if(scratchpads_species_term_is_biological_classification($term)){
+    if(!menu_get_item('classification/' . $term->vid)){
+      menu_rebuild();
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete()
+ */
+function scratchpads_pages_taxonomy_term_delete($term){
+  global $conf;
+  // If this is a biological classification & there is a menu item for it, rebuild the menu to check it's still useful
+  if(scratchpads_species_term_is_biological_classification($term)){
+    if(menu_get_item('classification/' . $term->vid)){
+      menu_rebuild();
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_pages_form_node_type_form_alter(&$form, &$form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  $type = $form['#node_type']->type;
+  $form['display']['page_display_type'] = array(
+    '#title' => t('Page display'),
+    '#type' => 'radios',
+    '#options' => array(
+      'view' => t('View (a list of node teasers)'),
+      'page' => t('Page (a standalone page)'),
+      'solr' => t('Solr (a faceted search page)')
+    ),
+    '#default_value' => (isset($display_settings[$type]) ? $display_settings[$type] : 'view'),
+    '#description' => t("How do you want this content type to display on pages?"),
+    '#weight' => -1
+  );
+  if(in_array($type, scratchpads_pages_page_display_locked_types())){
+    $form['display']['page_display_type']['#disabled'] = true;
+  }
+  $form['#submit'][] = 'scratchpads_pages_node_type_form_submit';
+}
+
+/**
+ * Return an array of locked page display types
+ * By default, the page type should never be changed from page
+ */
+function scratchpads_pages_page_display_locked_types(){
+  return array(
+    'page'
+  );
+}
+
+function scratchpads_pages_node_type_form_submit($form, $form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  $type = $form_state['values']['type'];
+  $display_settings[$type] = $form_state['values']['page_display_type'];
+  variable_set('scratchpads_pages_display', $display_settings);
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function scratchpads_pages_form_node_form_alter(&$form, $form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  $type = $form['#node']->type;
+  // If this is page display type, force providing a menu link
+  if(isset($display_settings[$type]) && $display_settings[$type] == 'page'){
+    $form['menu']['enabled']['#default_value'] = 1;
+    $form['menu']['enabled']['#disabled'] = true;
+    $form['menu']['link']['link_title']['#required'] = true;
+  }else{ // If this isn't a page, remove the menu link option
+    unset($form['menu']);
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * VIEWS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_pages_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_pages');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes'
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_pages_variable_get($name){
+  $default = scratchpads_pages_variable_default($name);
+  return variable_get($name, $default);
+}
+
+/**
+ * 
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_pages_variable_default($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'scratchpads_pages_display' => array(
+        'page' => 'page',
+        'spm' => 'view'
+      )
+    );
+  }
+  if(!isset($name)){return $defaults;}
+  if(isset($defaults[$name])){return $defaults[$name];}
+}
+
+
