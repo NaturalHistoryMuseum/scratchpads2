@@ -17,8 +17,8 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
           'parent' => 0,
           'vocabulary' => $vocabulary->machine_name
         );
+        $i++;
       }
-      $i++;
     }
     $field['settings']['allowed_values'][] = array(
       'parent' => 0,
