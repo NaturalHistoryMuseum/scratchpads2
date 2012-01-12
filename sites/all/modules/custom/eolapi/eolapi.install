@@ -40,17 +40,16 @@ function eolapi_install(){
     'type' => 'taxonomy_term_reference'
   );
   $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
   foreach($bio_vids as $vid => $value){
     $vocabulary = taxonomy_vocabulary_load($vid);
     if($vocabulary){
-      $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+      $field['settings']['allowed_values'][$i] = array(
         'parent' => 0,
         'vocabulary' => $vocabulary->machine_name
       );
     }
-    if(isset($field['settings']['allowed_values'][0])){
-      unset($field['settings']['allowed_values'][0]);
-    }
+    $i++;
   }
   $instance = array(
     'bundle' => '',
@@ -61,7 +60,12 @@ function eolapi_install(){
       'default' => array(
         'label' => 'above',
         'module' => 'taxonomy',
-        'settings' => array(),
+        'settings' => array(
+          'allowed_values' => array(
+            'parent' => 0,
+            'vocabulary' => ''
+          )
+        ),
         'type' => 'taxonomy_term_reference_link',
         'weight' => 1
       ),
