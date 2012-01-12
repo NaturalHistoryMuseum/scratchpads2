@@ -2,6 +2,6 @@ name = "Scratchpads Biblio Search with Facet API integration"
 description = "Integrates Biblio with Facet API so that specific Biblio fields can be used with the Solr search."
 package = "Scratchpads"
 core = 7.x
-dependencies[] = apachesolr
+dependencies[] = apachesolr_search
 dependencies[] = facetapi
 dependencies[] = biblio
