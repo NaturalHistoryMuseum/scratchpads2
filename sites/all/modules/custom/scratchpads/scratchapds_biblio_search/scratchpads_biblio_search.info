@@ -5,3 +5,4 @@ core = 7.x
 dependencies[] = apachesolr_search
 dependencies[] = facetapi
 dependencies[] = biblio
+dependencies[] = context

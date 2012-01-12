@@ -5,17 +5,6 @@
  */
 function scratchpads_biblio_search_install(){
   // Add a taxonomy search page to the database
-  $settings = array(
-    'fq' => array(
-      'bundle:biblio'
-    ),
-    'apachesolr_search_search_type' => 'custom',
-    'apachesolr_search_search_box' => 1,
-    'apachesolr_search_per_page' => '200',
-    'apachesolr_search_browse' => 'browse',
-    'apachesolr_search_spellcheck' => 1
-  );
-  $settings = serialize($settings);
   $fields = array(
     'page_id' => 'biblio_search',
     'label' => 'Literature Search',
@@ -23,7 +12,16 @@ function scratchpads_biblio_search_install(){
     'search_path' => 'literature',
     'env_id' => 'solr',
     'page_title' => 'Literature',
-    'settings' => $settings
+    'settings' => serialize(array(
+      'fq' => array(
+        'bundle:biblio'
+      ),
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 1,
+      'apachesolr_search_per_page' => '200',
+      'apachesolr_search_browse' => 'browse',
+      'apachesolr_search_spellcheck' => 1
+    ))
   );
   db_insert('apachesolr_search_page')->fields($fields)->execute();
 }
