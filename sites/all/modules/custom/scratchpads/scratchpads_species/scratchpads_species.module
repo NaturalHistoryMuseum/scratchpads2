@@ -146,10 +146,8 @@ function scratchpads_species_access_callback($term){
 
 function scratchpads_species_term_page($term, $op = 'overview'){
   if(scratchpads_species_term_is_biological_classification($term)){
-  	
-  	$path = drupal_get_path('module', 'scratchpads_species');
-  	drupal_add_css($path . '/css/scratchpads_species.css');
-  	
+    $path = drupal_get_path('module', 'scratchpads_species');
+    drupal_add_css($path . '/css/scratchpads_species.css');
     // Copied from context_entity_prepare_view()
     // Trigger the taxonomy viewing condition 
     if($plugin = context_get_plugin('condition', 'taxonomy_term')){
@@ -237,11 +235,10 @@ function theme_scratchpads_species_name($vars){
       $italicise = true;
       break;
   }
-  
+  $italicise = true;
   if($italicise){
-  	$name = '<em>' . $name . '</em>';
+    $name = '<em>' . $name . '</em>';
   }
-  
   return $name;
 }
 
