@@ -7,11 +7,10 @@
 .view-species-nomenclature div.label{
   float:left;
   clear: left;
+  padding-right: 5px;
 }
 
-.view-species-nomenclature div.name{
-  float:left;
-}
+
 
 .view-species-nomenclature div.label strong{
   font-weight: bold;
