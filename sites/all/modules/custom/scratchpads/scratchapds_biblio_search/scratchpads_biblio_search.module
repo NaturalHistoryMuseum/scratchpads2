@@ -169,7 +169,7 @@ function theme_scratchpads_biblio_search($variables){
  */
 function scratchpads_biblio_search_page_alter(&$page){
   try{
-    if(isset($page['content']['system_main']['search_results']['#theme'])){
+    if(arg(0) == 'literature' && isset($page['content']['system_main']['search_results']['#theme'])){
       $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_biblio_search';
     }
   }
