@@ -3,17 +3,9 @@
 /**
  * Implementation of hook_facetapi_facet_info().
  */
-function scratchpads_biblio_search_facetapi_facet_info(array $searcher_info){
+function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
   // Facets are usually associated with the type of content stored in the index.
   if(isset($searcher_info['types']['node'])){return array(
-      'tus_biblio_year' => array(
-        'name' => 'tus_biblio_year',
-        'label' => t('Biblio: Publication year'),
-        'description' => t('Biblio: Publication year'),
-        'query types' => array(
-          'term'
-        )
-      ),
       'im_biblio_contributor' => array(
         'name' => 'im_biblio_contributor',
         'label' => t('Biblio: Contributor'),
@@ -24,6 +16,26 @@ function scratchpads_biblio_search_facetapi_facet_info(array $searcher_info){
         'map callback' => 'scratchpads_biblio_search_map_callback',
         'map options' => array(
           'biblio_contributor'
+        )
+      ),
+      'tus_biblio_year' => array(
+        'name' => 'tus_biblio_year',
+        'label' => t('Biblio: Publication year'),
+        'description' => t('Biblio: Publication year'),
+        'query types' => array(
+          'term'
+        )
+      ),
+      'tus_biblio_secondary_title' => array(
+        'name' => 'tus_biblio_secondary_title',
+        'label' => t('Biblio: Secondary title'),
+        'description' => t('Biblio: Secondary title'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_secondary_title'
         )
       ),
       'tus_biblio_type' => array(
@@ -40,6 +52,61 @@ function scratchpads_biblio_search_facetapi_facet_info(array $searcher_info){
       )
     );}
   return array();
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_biblio_search_ctools_plugin_api($owner, $api){
+  if($owner == 'facetapi'){return array(
+      'version' => 1
+    );}
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_biblio_search_facetapi_default_facet_settings(){
+  $facets = array();
+  foreach(scratchpads_biblio_search_facetapi_facet_info(array(
+    'types' => array(
+      'node' => TRUE
+    )
+  )) as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'count' => -49,
+        'display' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'none',
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[] = $facet;
+  }
+  return $facets;
 }
 
 /**
@@ -68,13 +135,6 @@ function scratchpads_biblio_search_map_callback($values, $options){
       }
       return $map;
   }
-}
-
-/**
- * DEBUGING
- */
-function scratchpads_biblio_search_init(){
-  dpm(node_load(5));
 }
 
 /**
