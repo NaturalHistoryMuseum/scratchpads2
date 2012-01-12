@@ -25,6 +25,8 @@
  *   an associative array containing:
  *   - label: The human readable name of the searcher displayed in the admin UI.
  *   - adapter: The adapter plugin ID associated with the searcher.
+ *   - url processor: (optional) The URL processor plugin ID associated with the
+ *     searcher. Defaults to "standard".
  *   - types: (optional) An array containing the types of content indexed by the
  *     searcher. A type is usually an entity such as 'node', but it can contain
  *     non-entities as well. Defaults to array('node').
@@ -45,6 +47,7 @@ function hook_facetapi_searcher_info() {
     'search' => array(
       'label' => t('Search'),
       'adapter' => 'search',
+      'url processor' => 'standard',
       'types' => array('node'),
       'path' => 'admin/config/search/settings',
       'supports facet missing' => TRUE,
@@ -100,7 +103,7 @@ function hook_facetapi_realm_info() {
       'settings callback' => 'facetapi_block_realm_settings',
       'description' => t(
         'The <em>Blocks</em> realm displays each facet in a separate <a href="@block-page">block</a>. Users are able to refine their searches in a drill-down fashion.',
-        array('@block-page' => url('admin/structure/block', array('query' => array('destination' => $_GET['q']))))
+        array('@block-page' => url('admin/structure/block', array('query' => array('destination' => current_path()))))
       ),
     ),
   );
@@ -143,6 +146,8 @@ function hook_facetapi_realm_info_alter(array &$realm_info) {
  *     contains bundle information for. Defaults to an empty array.
  *   - query types: The query type plugins that that this facet supports. For
  *     example, numeric fields support "term" and "range_filter" queries.
+ *   - alter callbacks: (optional) Callbacks that alter the initialized render
+ *     array returned by the query type plugin. Defaults to an empty array.
  *   - dependency plugins: (optional) An array of dependency plugin IDs that are
  *     supported by this facet.
  *   - default widget: (optional) The widget plugin ID used if no plugin has
@@ -401,6 +406,32 @@ function hook_facetapi_query_types() {
 }
 
 /**
+ * Define all URL processor plugins provided by the module.
+ *
+ * URL processors are responsible for building and formatting facet URLs. The
+ * standard processor passes all facet filters through the "f" query string
+ * variable.
+ *
+ * @return array
+ *   An associative array keyed by unique name of the URL processor. Each URL
+ *   processor is an associative array keyed by "handler" containing:
+ *   - label: The human readable name of the plugin displayed in the admin UI.
+ *   - class: The name of the plugin class.
+ *
+ * @see FacetapiFilter
+ */
+function hook_facetapi_url_processors() {
+  return array(
+    'standard' => array(
+      'handler' => array(
+        'label' => t('Standard URL processors'),
+        'class' => 'FacetapiUrlProcessorStandard',
+      ),
+    ),
+  );
+}
+
+/**
  * Define all widget plugins provided by the module.
  *
  * Widget plugins process the facet render arrays to the structure that wille be
@@ -453,6 +484,32 @@ function hook_facetapi_force_delta_mapping() {
       ),
     ),
   );
+}
+
+/**
+ * Implemented by the translator module to translate a string.
+ *
+ * This hook is invoked by the facetapi_translate_string() function. The
+ * "facetapi:translator_module" variable stores which translator module is
+ * active since it wouldn't make sense to have multiple translator modules.
+ *
+ * @param $name
+ *   The name of the string in "textgroup:object_type:object_key:property_name"
+ *   format.
+ * @param $string
+ *   The string being translated.
+ * @param $langcode
+ *   The language code to translate to a language other than what is used to
+ *   display the page. Defaults to NULL, which uses the current language.
+ *
+ * @return
+ *   The translated string.
+ *
+ * @see facetapi_translate_string()
+ */
+function hook_facetapi_translate_string($name, $string, $langcode = NULL) {
+  // In this instance, the translator module integrates with the i18n project.
+  return i18n_string($name, $string, array('langcode' => $langcode));
 }
 
 /**

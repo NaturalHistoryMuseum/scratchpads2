@@ -71,6 +71,13 @@ class FacetapiWidgetLinks extends FacetapiWidget {
    *   The "items" parameter for theme_item_list().
    */
   function buildListItems($build) {
+    $settings = $this->settings->settings;
+
+    // Initializes links attributes, adds rel="nofollow" if configured.
+    $attributes = ($settings['nofollow']) ? array('rel' => 'nofollow') : array();
+    $attributes += array('class' => $this->getItemClasses());
+
+    // Builds rows.
     $items = array();
     foreach ($build as $value => $item) {
       $row = array('class' => array());
@@ -81,11 +88,16 @@ class FacetapiWidgetLinks extends FacetapiWidget {
         'path' => $item['#path'],
         'count' => $item['#count'],
         'options' => array(
-          'attributes' => array('class' => $this->getItemClasses()),
+          'attributes' => $attributes,
           'html' => $item['#html'],
           'query' => $item['#query'],
         ),
       );
+
+      // Adds the facetapi-zero-results class to items that have no results.
+      if (!$item['#count']) {
+        $variables['options']['attributes']['class'][] = 'facetapi-zero-results';
+      }
 
       // If the item has no children, it is a leaf.
       if (empty($item['#item_children'])) {
@@ -94,7 +106,7 @@ class FacetapiWidgetLinks extends FacetapiWidget {
       else {
         // If the item is active or the "show_expanded" setting is selected,
         // show this item as expanded so we see its children.
-        if ($item['#active'] || !empty($this->settings->settings['show_expanded'])) {
+        if ($item['#active'] || !empty($settings['show_expanded'])) {
           $row['class'][] = 'expanded';
           $row['children'] = $this->buildListItems($item['#item_children']);
         }
@@ -136,6 +148,19 @@ class FacetapiWidgetLinks extends FacetapiWidget {
       ),
     );
 
+    // @see http://drupal.org/node/1370342
+    $form['widget']['widget_settings']['links'][$this->id]['nofollow'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Prevent crawlers from following facet links'),
+      '#default_value' => !empty($this->settings->settings['nofollow']),
+      '#description' => t('Add the <code>rel="nofollow"</code> attribute to facet links to maximize SEO by preventing crawlers from indexing duplicate content and getting stuck in loops.'),
+      '#states' => array(
+        'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+      ),
+    );
+
     // @see http://drupal.org/node/735528
     if ($this->facet['hierarchy callback']) {
       $form['widget']['widget_settings']['links'][$this->id]['show_expanded'] = array(
@@ -168,6 +193,7 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   function getDefaultSettings() {
     return array(
       'soft_limit' => 20,
+      'nofollow' => 1,
       'show_expanded' => 0,
     );
   }
@@ -184,6 +210,7 @@ class FacetapiWidgetCheckboxLinks extends FacetapiWidgetLinks {
   public function init() {
     parent::init();
     $this->jsSettings['makeCheckboxes'] = 1;
+    drupal_add_css(drupal_get_path('module', 'facetapi') . '/facetapi.css');
   }
 
   /**

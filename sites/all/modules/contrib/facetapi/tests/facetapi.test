@@ -5,8 +5,17 @@
  * Tests for the Facet API module.
  */
 
+/**
+ * Base class for all Facet API test cases.
+ */
 class FacetapiTestCase extends DrupalWebTestCase {
 
+  /**
+   * Overrides DrupalWebTestCase::fetchAssoc().
+   *
+   * Enables the "block" and "facetapi_test" modules, creates an administrative
+   * user with permissions to configure the Faceted Search interface.
+   */
   public function setUp() {
     parent::setUp('block', 'facetapi_test');
     $this->authenticatedUser = $this->drupalCreateUser();
@@ -17,6 +26,21 @@ class FacetapiTestCase extends DrupalWebTestCase {
     ));
   }
 
+  /**
+   * Instantiates the adapter plugin associated with the searcher.
+   *
+   * The following tests are executed:
+   *   - DrupalTestCase::assertTrue(): Asserts that FALSE is not returned by
+   *     facetapi_adapter_load().
+   *
+   * @param string $searcher
+   *   The machine readable name of the searcher.
+   *
+   * @return FacetapiAdapter
+   *   The adapter object, FALSE if the object can't be loaded.
+   *
+   * @see facetapi_adapter_load().
+   */
   public function loadAdapter($searcher) {
     $adapter = facetapi_adapter_load('facetapi_test');
     $value = ($adapter instanceof FacetapiAdapter);
@@ -24,13 +48,35 @@ class FacetapiTestCase extends DrupalWebTestCase {
     return $adapter;
   }
 
-  public function enableFacet($name, $label, $realm = 'block') {
-    $path = 'admin/config/search/facetapi_test/facets/' . $realm;
-
-    $values = array();
-    $values['enabled_facets[' . $name . ']'] = $name;
+  /**
+   * Enables a facet in the block realm, adds it to the "sidebar_first" region.
+   *
+   * The following tests are executed:
+   *   - DrupalTestCase::getPath(): Retrieves path to the administrative
+   *     settings page for the block realm.
+   *   - DrupalTestCase::getPost(): Enables the facet in the block realm.
+   *   - DrupalTestCase::assertRaw(): Ensures the configuration options were
+   *     successful by testing for the confirmation message.
+   *   - DrupalTestCase::assertTrue(): Double checks that the facet is enabled
+   *     via the facetapi_facet_enabled() API function.
+   *   - DrupalTestCase::getPost(): Activates the facet block in the
+   *     "sidebar_first" region.
+   *   - DrupalTestCase::getPath(): Retrieves path to the search page.
+   *   - DrupalTestCase::assertRaw(): Tests if the block is displayed by
+   *     looking for it's title.
+   *
+   * @param string $facet_name
+   *   The machine readable name of the facet.
+   * @param string $label
+   *   The title of the block whose existence is being tested.
+   * @param string $realm_name
+   *   The machine readable name of the realm.
+   */
+  public function enableFacet($facet_name, $label, $realm_name = 'block') {
+    $path = 'admin/config/search/facetapi_test/facets/' . $realm_name;
 
     // Posts the form, ensures it was successfully submitted.
+    $values = array('enabled_facets[' . $facet_name . ']' => $facet_name);
     $this->drupalGet($path);
     $this->drupalPost($path, $values, t('Save configuration'));
     $this->assertRaw(t('The configuration options have been saved.'), t('Facet form successfully submitted.'));
@@ -41,14 +87,19 @@ class FacetapiTestCase extends DrupalWebTestCase {
     drupal_static('facetapi_get_enabled_facets', array(), TRUE);
 
     // Tests the status of the enabled facet.
-    $value = facetapi_facet_enabled('facetapi_test', $realm, $name);
+    $value = facetapi_facet_enabled('facetapi_test', $realm_name, $facet_name);
     $this->assertTrue($value, t('Facet enabled via the interface.'));
 
     // Adds realm to block if we are testing the block realm.
-    if ('block' == $realm) {
-      $edit = array();
-      $key = 'facetapi_facetapi_test:block:' . urlencode($name);
-      $edit['blocks[' . $key . '][region]'] = 'sidebar_first';
+    if ('block' == $realm_name) {
+
+      // Generates the "key" by generating and hashing the delta.
+      module_load_include('inc', 'facetapi', 'facetapi.block');
+      $detla = facetapi_build_delta('facetapi_test', $realm_name, $facet_name);
+      $key = 'facetapi_' . facetapi_hash_delta($detla);
+
+      // Enables the facet in the "sidebar_first" region.
+      $edit = array('blocks[' . $key . '][region]' => 'sidebar_first');
       $this->drupalPost('admin/structure/block', $edit, t('Save blocks'));
 
       // Visits search page, raw value mimics return from default theme function.

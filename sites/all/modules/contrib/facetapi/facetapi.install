@@ -15,14 +15,12 @@ function facetapi_schema() {
       'key' => 'name',
       'identifier' => 'facet',
       'default hook' => 'facetapi_default_facet_settings',
-      'status' => 'facetapi_facet_status',
       'api' => array(
         'owner' => 'facetapi',
-        'api' => 'facetapi',
+        'api' => 'facetapi_defaults',
         'minimum_version' => 1,
         'current_version' => 1,
       ),
-      'export callback' => 'facetapi_export_facet_settings',
     ),
     'fields' => array(
       'name' => array(
@@ -49,7 +47,7 @@ function facetapi_schema() {
       'facet' => array(
         'description' => 'The machine readable name of the facet.',
         'type' => 'varchar',
-        'length' => 64,
+        'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
@@ -167,4 +165,38 @@ function facetapi_update_7001() {
       ->condition('delta', $record->delta)
       ->execute();
   }
+}
+
+/**
+ * Ensures hashes are alpha-numeric.
+ */
+function facetapi_update_7002() {
+
+  // Updates the block table with alpha-numeric hashes.
+  $result = db_query("SELECT delta, bid FROM {block} WHERE module = 'facetapi'");
+  foreach ($result as $record) {
+    $hash = strtr($record->delta, array('-' => '0', '_' => '1'));
+    db_update('block')
+      ->fields(array('delta' => $hash))
+      ->condition('module', 'facetapi')
+      ->condition('delta', $record->delta)
+      ->execute();
+  }
+
+  // Clears the delta cache.
+  cache_clear_all('facetapi:delta_map', 'cache');
+}
+
+/**
+ * Increase the length of the facetapi.facet column.
+ */
+function facetapi_update_7101() {
+  // Change the length of the facet field.
+  db_change_field('facetapi', 'facet', 'facet', array(
+    'description' => 'The machine readable name of the facet.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
 }

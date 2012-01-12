@@ -30,8 +30,8 @@ class FacetapiEmptyBehaviorText extends FacetapiEmptyBehavior {
    * Returns an empty array.
    */
   public function execute() {
-    $text = $this->settings['empty_text']['value'];
     $format_id = $this->settings['empty_text']['format'];
+    $text = $this->translate('empty_text', $this->settings['empty_text']['value']);
     return array('#markup' => check_markup($text, $format_id));
   }
 

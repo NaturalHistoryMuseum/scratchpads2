@@ -6,10 +6,19 @@
  */
 
 /**
- * Map callback for node types.
+ * Maps bundle machine names to their human friendly label.
  */
-function facetapi_map_bundle(array $values) {
-  $names = node_type_get_names();
+function facetapi_map_bundle(array $values, array $options) {
+  if (empty($options['entities'])) {
+     $options['entities'] = array('node');
+  }
+  foreach ($options['entities'] as $entity_type) {
+    if ($info = entity_get_info($entity_type)) {
+      foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+        $names[$bundle_name] = $bundle_info['label'];
+      }
+    }
+  }
   return array_intersect_key($names, array_flip($values));
 }
 
@@ -40,7 +49,7 @@ function facetapi_map_language(array $values) {
   $language_list = language_list();
   foreach ($values as $language) {
     if (isset($language_list[$language])) {
-      $map[$language] = $language_list[$language]->name;
+      $map[$language] = t($language_list[$language]->name);
     }
     else {
       $map[$language] = t('Language neutral');
