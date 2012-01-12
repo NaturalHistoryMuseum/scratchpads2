@@ -127,6 +127,54 @@ function scratchpads_biblio_search_ctools_plugin_api(){
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function scratchpads_biblio_search_theme(){
+  return array(
+    'scratchpads_biblio_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      )
+    )
+  );
+}
+
+function theme_scratchpads_biblio_search($variables){
+  module_load_include('inc', 'biblio', 'includes/biblio_theme');
+  foreach($variables['results'] as $result){
+    $biblio_node = node_load($result['node']->entity_id);
+    $rows[] = array(
+      biblio_format_authors($biblio_node->biblio_contributors),
+      $biblio_node->biblio_year,
+      $biblio_node->title
+    );
+  }
+  return theme('table', array(
+    'header' => array(
+      t('Authors'),
+      t('Year'),
+      t('Title')
+    ),
+    'rows' => $rows
+  ));
+}
+
+/**
+ * Implementation of hook_page_alter().
+ */
+function scratchpads_biblio_search_page_alter(&$page){
+  try{
+    if(isset($page['content']['system_main']['search_results']['#theme'])){
+      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_biblio_search';
+    }
+  }
+  catch(Exception $e){
+    ;
+  }
+}
+
+/**
  * Implements hook_facetapi_default_facet_settings().
  */
 function scratchpads_biblio_search_facetapi_default_facet_settings(){
