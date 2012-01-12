@@ -38,7 +38,8 @@ function scratchpads_species_context_default_contexts(){
                 'weight' => '0'
               )
             )
-          )
+          ),
+          'menu' => 'classification/' . $vocabulary->vid,
         );
         $context->condition_mode = 0;
         $contexts[$name] = $context;
