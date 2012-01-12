@@ -81,9 +81,9 @@ function scratchpads_biblio_search_context_default_contexts(){
           'region' => 'sidebar',
           'weight' => '-10'
         ),
-        'facetapi-neiZLzdaxJF90hE1J5JtnLZmGzy1oB7R' => array(
+        'facetapi-TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo' => array(
           'module' => 'facetapi',
-          'delta' => 'neiZLzdaxJF90hE1J5JtnLZmGzy1oB7R',
+          'delta' => 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo',
           'region' => 'sidebar',
           'weight' => '-10'
         ),
