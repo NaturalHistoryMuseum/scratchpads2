@@ -165,6 +165,8 @@ function theme_scratchpads_biblio_search($variables){
       t('Title')
     ),
     'rows' => $rows
+  )) . theme('pager', array(
+    'tags' => NULL
   ));
 }
 
