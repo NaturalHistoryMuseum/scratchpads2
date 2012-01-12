@@ -32,3 +32,36 @@ function scratchpads_biblio_search_install(){
 function scratchpads_biblio_search_uninstall(){
   db_delete('apachesolr_search_page')->condition('page_id', 'biblio_search')->execute();
 }
+
+/**
+ * Implementation of hook_schema().
+ */
+function scratchpads_biblio_search_schema(){
+  return array(
+    'biblio_secondary_title' => array(
+      'description' => 'Normalize the Biblio data for Solr.',
+      'fields' => array(
+        'bstid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Primary Key: Unique term ID.'
+        ),
+        'secondary_title' => array(
+          'description' => 'The secondary title',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        )
+      ),
+      'unique keys' => array(
+        'secondary_title' => array(
+          'secondary_title'
+        )
+      ),
+      'primary key' => array(
+        'bstid'
+      )
+    )
+  );
+}

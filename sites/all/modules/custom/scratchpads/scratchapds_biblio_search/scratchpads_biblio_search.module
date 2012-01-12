@@ -26,23 +26,17 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
           'term'
         )
       ),
-      'tus_biblio_secondary_title' => array(
-        'name' => 'tus_biblio_secondary_title',
+      'im_biblio_secondary_title' => array(
+        'name' => 'im_biblio_secondary_title',
         'label' => t('Biblio: Secondary title'),
         'description' => t('Biblio: Secondary title'),
         'query types' => array(
           'term'
         ),
-        /*
-         * Map be possible to normalise the biblio_secondary_title field to
-         * allow this to work nicely.  Normalisation could be done at the
-         * hook_apachesolr_update_index() stage.
-         *   
         'map callback' => 'scratchpads_biblio_search_map_callback',
         'map options' => array(
           'biblio_secondary_title'
-          
-        )*/
+        )
       ),
       'tus_biblio_type' => array(
         'name' => 'tus_biblio_type',
@@ -255,6 +249,13 @@ function scratchpads_biblio_search_map_callback($values, $options){
         $map[$record['cid']] = $record['name'];
       }
       return $map;
+    case 'biblio_secondary_title':
+      $result = db_select('biblio_secondary_title', 'b')->fields('b')->condition('bstid', $values, 'IN')->execute();
+      $map = array();
+      while($record = $result->fetchAssoc()){
+        $map[$record['bstid']] = $record['secondary_title'];
+      }
+      return $map;
   }
 }
 
@@ -265,16 +266,36 @@ function scratchpads_biblio_search_apachesolr_update_index($document, $node, $na
   if($node->type == 'biblio'){
     foreach($node as $key => $value){
       if(substr($key, 0, 7) == 'biblio_'){
-        if(is_string($value)){
-          $document->addField("tus_$key", $value);
-        }else if(is_array($value)){
-          switch($key){
-            case 'biblio_contributors':
-              foreach($value as $contributor){
-                $document->addField('im_biblio_contributor', $contributor['cid']);
+        switch($key){
+          case 'biblio_secondary_title':
+            $value = trim($value);
+            // We insert this text into the 'biblio_secondary_title' table, and
+            // use the tsid instead.
+            $results = db_select('biblio_secondary_title', 'b')->fields('b')->condition('secondary_title', $value)->execute()->fetch();
+            if($results){
+              $bstid = $results->bstid;
+            }else{
+              $record = array(
+                'secondary_title' => $value
+              );
+              drupal_write_record('biblio_secondary_title', $record);
+              $bstid = $record['bstid'];
+            }
+            $document->addField('im_biblio_secondary_title', $bstid);
+            break;
+          default:
+            if(is_string($value)){
+              $document->addField("tus_$key", $value);
+            }else if(is_array($value)){
+              switch($key){
+                case 'biblio_contributors':
+                  foreach($value as $contributor){
+                    $document->addField('im_biblio_contributor', $contributor['cid']);
+                  }
+                  break;
               }
-              break;
-          }
+            }
+            break;
         }
       }
     }
