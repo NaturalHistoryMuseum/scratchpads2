@@ -54,8 +54,47 @@ function eolapi_entity_info(){
   );
 }
 
-function eolapi_init(){
-  //dpm(node_load(1));
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function eolapi_taxonomy_vocabulary_insert($vocabulary){
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+    // We have a biological classification.  We need to update the field.
+    $field = field_info_field('eolapi_taxonomy');
+    $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+      'parent' => 0,
+      'vocabulary' => $vocabulary->machine_name
+    );
+    $bio_vids = variable_get('biological_vids', array());
+    if(count($bio_vids)){
+      $i = 0;
+      foreach($bio_vids as $vid => $value){
+        $vocabulary = taxonomy_vocabulary_load($vid);
+        if($vocabulary){
+          $field['settings']['allowed_values'][$i] = array(
+            'parent' => 0,
+            'vocabulary' => $vocabulary->machine_name
+          );
+        }
+        $i++;
+      }
+    }else{
+      $field['settings']['allowed_values'][] = array(
+        'parent' => 0,
+        'vocabulary' => ''
+      );
+    }
+    field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function eolapi_taxonomy_vocabulary_delete($vocabulary){
+  $vocabulary->biological_classification = TRUE;
+  eolapi_taxonomy_vocabulary_insert($vocabulary);
 }
 
 /**
