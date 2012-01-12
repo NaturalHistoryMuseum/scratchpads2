@@ -61,7 +61,12 @@ function eolapi_install(){
       'default' => array(
         'label' => 'above',
         'module' => 'taxonomy',
-        'settings' => array(),
+        'settings' => array(
+          'allowed_values' => array(
+            'parent' => 0,
+            'vocabulary' => ''
+          )
+        ),
         'type' => 'taxonomy_term_reference_link',
         'weight' => 1
       ),

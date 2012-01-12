@@ -12,16 +12,23 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
       'vocabulary' => $vocabulary->machine_name
     );
     $bio_vids = variable_get('biological_vids', array());
-    $i = 0;
-    foreach($bio_vids as $vid => $value){
-      $vocabulary = taxonomy_vocabulary_load($vid);
-      if($vocabulary){
-        $field['settings']['allowed_values'][$i] = array(
-          'parent' => 0,
-          'vocabulary' => $vocabulary->machine_name
-        );
+    if(count($bio_vids)){
+      $i = 0;
+      foreach($bio_vids as $vid => $value){
+        $vocabulary = taxonomy_vocabulary_load($vid);
+        if($vocabulary){
+          $field['settings']['allowed_values'][$i] = array(
+            'parent' => 0,
+            'vocabulary' => $vocabulary->machine_name
+          );
+        }
+        $i++;
       }
-      $i++;
+    }else{
+      $field['settings']['allowed_values'][] = array(
+        'parent' => 0,
+        'vocabulary' => ''
+      );
     }
     field_update_field($field);
   }
