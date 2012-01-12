@@ -4,6 +4,11 @@
 
 /* Nomenclature block */
 
+.view-species-nomenclature .item-list ul li{
+  line-height: 20em;
+  margin: 0;
+}
+
 .view-species-nomenclature div.label{
   float:left;
   clear: left;
