@@ -33,10 +33,16 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
         'query types' => array(
           'term'
         ),
+        /*
+         * Map be possible to normalise the biblio_secondary_title field to
+         * allow this to work nicely.  Normalisation could be done at the
+         * hook_apachesolr_update_index() stage.
+         *   
         'map callback' => 'scratchpads_biblio_search_map_callback',
         'map options' => array(
           'biblio_secondary_title'
-        )
+          
+        )*/
       ),
       'tus_biblio_type' => array(
         'name' => 'tus_biblio_type',
