@@ -4,10 +4,12 @@
 
 /* Nomenclature block */
 
-.view-species-nomenclature div.label,
-.view-species-nomenclature div.views-label{
+.view-species-nomenclature div.label{
   float:left;
   clear: left;
   padding-right: 5px;
+}
+
+.view-species-nomenclature strong{
   font-weight: bold;
 }
