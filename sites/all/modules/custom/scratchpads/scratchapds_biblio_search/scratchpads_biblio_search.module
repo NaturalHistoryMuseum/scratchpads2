@@ -116,9 +116,13 @@ function scratchpads_biblio_search_context_default_contexts(){
 /**
  * Implements hook_ctools_plugin_api().
  */
-function scratchpads_biblio_search_ctools_plugin_api($owner, $api){
-  if($owner == 'facetapi'){return array(
+function scratchpads_biblio_search_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
       'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
     );}
 }
 
