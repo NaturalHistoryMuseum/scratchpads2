@@ -5,7 +5,12 @@
 /* Nomenclature block */
 
 .view-species-nomenclature div.label{
-  display: inline;
+  float:left;
+  clear: left;
+}
+
+.view-species-nomenclature div.name{
+  float:left;
 }
 
 .view-species-nomenclature div.label strong{
