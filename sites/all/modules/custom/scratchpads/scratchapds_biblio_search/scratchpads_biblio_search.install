@@ -27,3 +27,10 @@ function scratchpads_biblio_search_install(){
   );
   db_insert('apachesolr_search_page')->fields($fields)->execute();
 }
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_biblio_search_uninstall(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'biblio_search')->execute();
+}
