@@ -4,3 +4,5 @@ name = "Species"
 package = "Scratchpads"
 dependencies[] = itis_term
 dependencies[] = tinytax
+
+files[] = views/scratchpads_species_views_handler_field_taxonomy.inc

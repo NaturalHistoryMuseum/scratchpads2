@@ -22,7 +22,7 @@ function scratchpads_species_context_default_contexts(){
           'taxonomy_term' => array(
             'values' => array(
               $vocabulary->machine_name => $vocabulary->machine_name
-            ), 
+            ),
             'options' => array(
               'term_form' => '0'
             )
@@ -32,22 +32,66 @@ function scratchpads_species_context_default_contexts(){
           'block' => array(
             'blocks' => array(
               'tinytax-' . $vocabulary->vid => array(
-                'module' => 'tinytax', 
-                'delta' => $vocabulary->vid, 
-                'region' => 'sidebar', 
+                'module' => 'tinytax',
+                'delta' => $vocabulary->vid,
+                'region' => 'sidebar',
                 'weight' => '0'
               )
             )
           ),
-          'menu' => 'classification/' . $vocabulary->vid,
+          'menu' => 'classification/' . $vocabulary->vid
         );
         $context->condition_mode = 0;
         $contexts[$name] = $context;
       }
     }
   }
-  // TODO - Tabs
-  foreach(scratchpads_species_get_tabs() as $tabs){
+  // Get tabs - we need to add in the voerview tab here too
+  $tabs = array_merge(array(
+    'overview' => t("Overview")
+  ), scratchpads_species_get_tabs());
+  foreach($tabs as $name => $label){
+    $context = new stdClass();
+    $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+    $context->api_version = 3;
+    $context->name = 'species_' . $name;
+    $context->description = $label . ' species page';
+    $context->tag = 'Species';
+    $context->conditions = array(
+      'species' => array(
+        'values' => array(
+          $name => $name
+        )
+      )
+    );
+    switch($name){
+      case 'overview':
+        $blocks = array(
+          'species_nomenclature-block'
+        );
+        break;
+      default:
+        $blocks = array();
+        break;
+    }
+    if(count($blocks)){
+      foreach($blocks as $block){
+        $context->reactions = array(
+          'block' => array(
+            'blocks' => array(
+              'views-' . $block => array(
+                'module' => 'views',
+                'delta' => $block,
+                'region' => 'content',
+                'weight' => '0'
+              )
+            )
+          )
+        );
+      }
+    }
+    $context->condition_mode = 0;
+    $contexts[$context->name] = $context;
   }
   return $contexts;
 }
