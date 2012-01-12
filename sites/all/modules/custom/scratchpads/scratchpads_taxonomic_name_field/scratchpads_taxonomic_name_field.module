@@ -11,11 +11,11 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
     $i = 0;
     $field['settings']['allowed_values'] = array();
     foreach($bio_vids as $vid => $value){
-      $vocabulary = taxonomy_vocabulary_load($vid);
-      if($vocabulary){
+      $voc = taxonomy_vocabulary_load($vid);
+      if($voc){
         $field['settings']['allowed_values'][$i] = array(
           'parent' => 0,
-          'vocabulary' => $vocabulary->machine_name
+          'vocabulary' => $voc->machine_name
         );
         $i++;
       }
