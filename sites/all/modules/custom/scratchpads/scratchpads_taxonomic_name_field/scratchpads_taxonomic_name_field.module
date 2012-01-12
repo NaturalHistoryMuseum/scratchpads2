@@ -4,7 +4,7 @@
  * Implementation of hook_taxonomy_vocabulary_insert().
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
-  if($vocabulary->biological_classification){
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
     // We have a biological classification.  We need to update the field.
     $field = field_info_field('field_taxonomic_name');
     $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
@@ -38,5 +38,6 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
+  $vocabulary->biological_classification = TRUE;
   scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary);
 }
