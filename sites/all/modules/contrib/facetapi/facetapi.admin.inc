@@ -6,6 +6,19 @@
  */
 
 /**
+ * Tests whether a configuration setting is overridden or not.
+ *
+ * @param stdClass $settings
+ *   The configuration settings being tested.
+ *
+ * @return boolean
+ *   TRUE if the settings are overridden, FALSE otherwise.
+ */
+function facetapi_is_overridden(stdClass $settings) {
+  return ($settings->export_type & EXPORT_IN_CODE && $settings->export_type & EXPORT_IN_DATABASE);
+}
+
+/**
  * Form constructor for the realm settings form.
  *
  * @param $searcher
@@ -50,7 +63,8 @@ function facetapi_realm_settings_form($form, &$form_state, $searcher, $realm_nam
   // Builds "enabled_facets" options.
   $options = $default_value = array();
   foreach ($form['#facetapi']['facet_info'] as $facet_name => $facet) {
-    $settings = $adapter->getFacet($facet)->getSettings($realm);
+    $settings = $adapter->getFacetSettings($facet, $realm);
+    $global_settings = $adapter->getFacetSettingsGlobal($facet);
 
     // Builds array of operations to use in the dropbutton.
     $operations = array();
@@ -74,6 +88,12 @@ function facetapi_realm_settings_form($form, &$form_state, $searcher, $realm_nam
       'title' => t('Export configuration'),
       'href' => facetapi_get_settings_path($searcher, $realm['name'], $facet_name, 'export')
     );
+    if (facetapi_is_overridden($settings) || facetapi_is_overridden($global_settings)) {
+      $operations[] = array(
+        'title' => t('Revert configuration'),
+        'href' => facetapi_get_settings_path($searcher, $realm['name'], $facet_name, 'revert')
+      );
+    }
 
     $form['table']['operations'][$facet_name] = array(
       '#theme' => 'links__ctools_dropbutton',
@@ -117,7 +137,7 @@ function facetapi_realm_settings_form($form, &$form_state, $searcher, $realm_nam
   else {
     $description = t(
       'To enable block caching, visit the <a href="@performance-page">performance page</a>.',
-      array('@performance-page' => url('admin/config/development/performance', array('query' => array('destination' => $_GET['q']))))
+      array('@performance-page' => url('admin/config/development/performance', array('query' => array('destination' => current_path()))))
     );
   }
   $form['block_cache'] = array(
@@ -180,7 +200,7 @@ function facetapi_realm_settings_form_submit($form, &$form_state) {
     if ('block' == $form['#facetapi']['realm']['name']) {
       drupal_set_message(t(
         'To enable or arrange the facet blocks, visit the <a href="@block-page">blocks administration page</a>.',
-        array('@block-page' => url('admin/structure/block', array('query' => array('destination' => $_GET['q']))))
+        array('@block-page' => url('admin/structure/block', array('query' => array('destination' => current_path()))))
       ));
     }
   }
@@ -213,7 +233,7 @@ function theme_facetapi_realm_settings_table($variables) {
 
   // Adds CSS to ensure that the dropbutton looks nice.
   $path = drupal_get_path('module', 'facetapi');
-  drupal_add_css($path . '/facetapi.css', array('weight' => CSS_THEME - 1));
+  drupal_add_css($path . '/facetapi.admin.css', array('weight' => CSS_THEME - 1));
 
   // Gets variales for code readability.
   $searcher = $variables['element']['#facetapi']['adapter']->getSearcher();
@@ -322,6 +342,30 @@ function facetapi_get_widgets(array $realm, array $facet) {
 }
 
 /**
+ * Returns the sorts available to the facet.
+ *
+ * All sorts are checked against their requirmenets. Only sorts that pass all
+ * requirements are returned by this function.
+ *
+ * @param array $realm
+ *   The realm definition.
+ * @param array $facet
+ *   The facet definition.
+ *
+ * @return array
+ *   An array of available sorts plugins.
+ */
+function facetapi_get_available_sorts(array $realm, array $facet) {
+  $sort_info = array();
+  foreach (facetapi_get_sort_info() as $name => $info) {
+    if (!$info['requirements'] || facetapi_check_requirements($info['requirements'], $realm, $facet)) {
+      $sort_info[$name] = $info;
+    }
+  }
+  return $sort_info;
+}
+
+/**
  * Form constructor for the facet display settings form.
  *
  * @param array $realm
@@ -334,7 +378,7 @@ function facetapi_get_widgets(array $realm, array $facet) {
  */
 function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapter, array $realm, array $facet) {
   $path = drupal_get_path('module', 'facetapi');
-  drupal_add_css($path . '/facetapi.css', array('weight' => CSS_THEME - 1));
+  drupal_add_css($path . '/facetapi.admin.css', array('weight' => CSS_THEME - 1));
   drupal_add_js($path . '/facetapi.admin.js');
   ctools_include('plugins');
 
@@ -366,7 +410,7 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
 
   $form['widget'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Widget settings'),
+    '#title' => t('Display settings'),
   );
 
   // Builds select options for widgets, allows widgets to add settings.
@@ -411,7 +455,7 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
   // form elements in the foreach() loop below.
   $sort_weight = $facet_settings->settings['sort_weight'];
   $sort_order = $facet_settings->settings['sort_order'];
-  foreach (facetapi_get_sort_info() as $sort_name => $sort_info) {
+  foreach (facetapi_get_available_sorts($realm, $facet) as $sort_name => $sort_info) {
     $weight = (isset($sort_weight[$sort_name])) ? $sort_weight[$sort_name] : 0;
     $form['#facetapi']['sort_info'][$sort_name] = $sort_info;
     $form['#facetapi']['sort_info'][$sort_name]['weight'] = $weight;
@@ -519,13 +563,16 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
     '#description' => t('AND filters are exclusive and narrow the result set. OR filters are inclusive and widen the result set.')
   );
 
+  $hard_limit_options = drupal_map_assoc(array(3, 5, 10, 15, 20, 30, 40, 50, 75, 100));
+  $hard_limit_options[-1] = t('No limit');
+
   $form['global']['hard_limit'] = array(
     '#type' => 'select',
     '#title' => t('Hard limit'),
     '#prefix' => '<div class="facetapi-global-setting">',
     '#suffix' => '</div>',
     '#default_value' => $global_settings->settings['hard_limit'],
-    '#options' => drupal_map_assoc(array(100, 75, 50, 40, 30, 20, 15, 10, 5, 3)),
+    '#options' => $hard_limit_options,
     '#description' => t('Display no more than this number of facet items.')
   );
 
@@ -968,7 +1015,7 @@ function facetapi_facet_filters_form_submit($form, &$form_state) {
   $form_state_values_settings = $form_state['values']['settings'];
   // Go though all filters and if filter is enabled save its form settings.
   foreach ($form_state_values_settings['filters'] as $filter_name => $filter_settings) {
-    if ($filter_settings['status']) {
+    if ($filter_settings['status'] && !empty($form_state['values'][$filter_name])) {
       $form_state_values_settings += $form_state['values'][$filter_name];
     }
   }
@@ -1146,6 +1193,8 @@ function facetapi_facet_dependencies_form_submit($form, &$form_state) {
  * @ingroup forms
  */
 function facetapi_export_form($form, &$form_state, FacetapiAdapter $adapter, array $realm, array $facet) {
+  $form['facet'] = array();
+  $form['global'] = array();
 
   // Adds link to get back to list page.
   $form['back'] = array(
@@ -1154,13 +1203,106 @@ function facetapi_export_form($form, &$form_state, FacetapiAdapter $adapter, arr
     '#href' => $adapter->getPath($realm['name']),
   );
 
-  // Gets export fieldset from ctools_export_form().
-  $title = t('Export configuration');
-  $settings = $adapter->getFacet($facet)->getSettings($realm);
+  // Gets export fieldset for display settings.
+  $title = t('Display settings');
+  $settings = $adapter->getFacetSettings($facet, $realm);
   $export = ctools_export_crud_export('facetapi', $settings);
-  $form = ctools_export_form($form, $form_state, $export, $title);
+  $form['facet'] = ctools_export_form($form['facet'], $form_state, $export, $title);
+
+  // Gets export fieldset for display settings.
+  $title = t('Global settings');
+  $settings = $adapter->getFacetSettingsGlobal($facet);
+  $export = ctools_export_crud_export('facetapi', $settings);
+  $form['global'] = ctools_export_form($form['global'], $form_state, $export, $title);
 
   // Adds settings and returns form.
   $form['#settings'] = $settings;
   return $form;
+}
+
+/**
+ * Form constructor for the revert form.
+ *
+ * @param FacetapiAdapter $adapter
+ *   The adapter object the settings apply to.
+ * @param array $realm
+ *   The realm definition.
+ * @param array $facet
+ *   The facet definition.
+ *
+ * @ingroup forms
+ */
+function facetapi_revert_form($form, &$form_state, FacetapiAdapter $adapter, array $realm, array $facet) {
+
+  $form['#facetapi'] = array(
+    'adapter' => $adapter,
+    'realm' => $realm,
+    'facet' => $facet,
+  );
+
+  $form['text'] = array(
+   '#markup' => '<p>' . t('Any changes you have made will be lost and cannot be recovered.') . '</p>',
+  );
+
+  $form['revert_facet'] = array(
+    '#type' => 'checkbox',
+    '#access' => facetapi_is_overridden($adapter->getFacetSettings($facet, $realm)),
+    '#title' => t('Revert per-facet display configuration settings.'),
+    '#default_value' => TRUE,
+  );
+
+  $form['revert_global'] = array(
+    '#type' => 'checkbox',
+    '#access' => facetapi_is_overridden($adapter->getFacetSettingsGlobal($facet)),
+    '#title' => t('Revert global configuration settings.'),
+    '#default_value' => TRUE,
+  );
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+    '#weight' => 20,
+  );
+
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Revert configuration'),
+  );
+
+  $form['actions']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => $adapter->getPath($realm['name']),
+    '#attributes' => array('title' => t('Do not revert configurations')),
+  );
+
+  $form['#submit'][] = 'facetapi_revert_form_submit';
+
+  return $form;
+}
+
+/**
+ * Form submission handler for facetapi_revert_form_submit().
+ */
+function facetapi_revert_form_submit($form, &$form_state) {
+
+  // Pulls variables for code readability.
+  $adapter = $form['#facetapi']['adapter'];
+  $realm = $form['#facetapi']['realm'];
+  $facet = $form['#facetapi']['facet'];
+
+  // Reverts per-facet display settings.
+  if ($form_state['values']['revert_facet']) {
+    $facet_settings = $adapter->getFacetSettings($facet, $realm);
+    ctools_export_crud_delete('facetapi', $facet_settings);
+  }
+
+  // Reverts global settings if selected.
+  if ($form_state['values']['revert_global']) {
+    $global_settings = $adapter->getFacetSettingsGlobal($facet);
+    ctools_export_crud_delete('facetapi', $global_settings);
+  }
+
+  // Sets message if both sets of configurations were saved.
+  drupal_set_message(t('The configuration options have been reverted.'));
+  $form_state['redirect'] = $adapter->getPath($realm['name']);
 }

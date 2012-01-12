@@ -43,11 +43,11 @@ Drupal.facetapi.applyLimit = function(settings) {
       $('<a href="#" class="facetapi-limit-link"></a>').text(Drupal.t('Show more')).click(function() {
         if ($(this).prev().find('li:hidden').length > 0) {
           $(this).prev().find('li:gt(' + limit + ')').slideDown();
-          $(this).text(Drupal.t('Show fewer'));
+          $(this).addClass('open').text(Drupal.t('Show fewer'));
         }
         else {
           $(this).prev().find('li:gt(' + limit + ')').slideUp();
-          $(this).text(Drupal.t('Show more'));
+          $(this).removeClass('open').text(Drupal.t('Show more'));
         }
         return false;
       }).insertAfter($(this));
@@ -96,7 +96,7 @@ Drupal.facetapi.makeCheckbox = function() {
       $link.before(checkbox).hide();
     }
     else {
-      $link.before(checkbox).before('&nbsp;');
+      $link.before(checkbox);
     }
     $link.removeClass('facetapi-checkbox').addClass('facetapi-checkbox-processed');
   }

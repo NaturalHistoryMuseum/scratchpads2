@@ -54,37 +54,32 @@ function eolapi_entity_info(){
   );
 }
 
-
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
+ * 
+ * Exactly the same function (almost) from the field_taxonomic_name module.
  */
 function eolapi_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
     // We have a biological classification.  We need to update the field.
     $field = field_info_field('eolapi_taxonomy');
-    $field['settings']['allowed_values'][$vocabulary->machine_name] = array(
+    $bio_vids = variable_get('biological_vids', array());
+    $i = 0;
+    $field['settings']['allowed_values'] = array();
+    foreach($bio_vids as $vid => $value){
+      $voc = taxonomy_vocabulary_load($vid);
+      if($voc){
+        $field['settings']['allowed_values'][$i] = array(
+          'parent' => 0,
+          'vocabulary' => $voc->machine_name
+        );
+        $i++;
+      }
+    }
+    $field['settings']['allowed_values'][] = array(
       'parent' => 0,
       'vocabulary' => $vocabulary->machine_name
     );
-    $bio_vids = variable_get('biological_vids', array());
-    if(count($bio_vids)){
-      $i = 0;
-      foreach($bio_vids as $vid => $value){
-        $vocabulary = taxonomy_vocabulary_load($vid);
-        if($vocabulary){
-          $field['settings']['allowed_values'][$i] = array(
-            'parent' => 0,
-            'vocabulary' => $vocabulary->machine_name
-          );
-        }
-        $i++;
-      }
-    }else{
-      $field['settings']['allowed_values'][] = array(
-        'parent' => 0,
-        'vocabulary' => ''
-      );
-    }
     field_update_field($field);
   }
 }
@@ -93,8 +88,25 @@ function eolapi_taxonomy_vocabulary_insert($vocabulary){
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function eolapi_taxonomy_vocabulary_delete($vocabulary){
-  $vocabulary->biological_classification = TRUE;
-  eolapi_taxonomy_vocabulary_insert($vocabulary);
+  // We have a biological classification.  We need to update the field.
+  $field = field_info_field('eolapi_taxonomy');
+  $update = FALSE;
+  foreach($field['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary'] == $vocabulary->machine_name){
+      $update = TRUE;
+      unset($field['settings']['allowed_values'][$key]);
+      if(!count($field['settings']['allowed_values'])){
+        $field['settings']['allowed_values'][0] = array(
+          'parent' => 0,
+          'vocabulary' => $vocabulary->machine_name
+        );
+      }
+      break;
+    }
+  }
+  if($update){
+    field_update_field($field);
+  }
 }
 
 /**
