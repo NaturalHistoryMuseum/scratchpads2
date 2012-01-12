@@ -24,7 +24,6 @@
 .view-species-page-slideshow{
   padding: 1px;
   background: #fff;
-/*  width: 778px;*/
 }
 
 .view-species-page-slideshow .views-slideshow-pager-field-item img{
@@ -48,4 +47,8 @@
   width: 100%;
   padding: 10px 0;
   color: #fff;
+}
+
+.view-species-page-slideshow .views-field-filename span {
+    padding: 0 10px;
 }
