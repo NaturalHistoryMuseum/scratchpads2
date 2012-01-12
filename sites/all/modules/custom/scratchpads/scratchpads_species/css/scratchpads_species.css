@@ -5,5 +5,9 @@
 /* Nomenclature block */
 
 .view-species-nomenclature div.label{
-  color: red;
+  display: inline;
+}
+
+.view-species-nomenclature div.label strong{
+  font-weight: bold;
 }
