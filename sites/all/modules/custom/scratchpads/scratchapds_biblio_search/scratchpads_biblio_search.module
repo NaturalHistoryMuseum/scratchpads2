@@ -228,34 +228,38 @@ function scratchpads_biblio_search_facetapi_default_facet_settings(){
  * Map keys to values
  */
 function scratchpads_biblio_search_map_callback($values, $options){
-  switch($options[0]){
-    case 'biblio_type':
-      $result = db_select('biblio_types', 'b')->fields('b', array(
-        'tid',
-        'name'
-      ))->condition('tid', $values, 'IN')->execute();
-      $map = array();
-      while($record = $result->fetchAssoc()){
-        $map[$record['tid']] = $record['name'];
-      }
-      return $map;
-    case 'biblio_contributor':
-      $result = db_select('biblio_contributor_data', 'b')->fields('b', array(
-        'cid',
-        'name'
-      ))->condition('cid', $values, 'IN')->execute();
-      $map = array();
-      while($record = $result->fetchAssoc()){
-        $map[$record['cid']] = $record['name'];
-      }
-      return $map;
-    case 'biblio_secondary_title':
-      $result = db_select('biblio_secondary_title', 'b')->fields('b')->condition('bstid', $values, 'IN')->execute();
-      $map = array();
-      while($record = $result->fetchAssoc()){
-        $map[$record['bstid']] = $record['secondary_title'];
-      }
-      return $map;
+  if(count($values)){
+    switch($options[0]){
+      case 'biblio_type':
+        $result = db_select('biblio_types', 'b')->fields('b', array(
+          'tid',
+          'name'
+        ))->condition('tid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['tid']] = $record['name'];
+        }
+        return $map;
+      case 'biblio_contributor':
+        $result = db_select('biblio_contributor_data', 'b')->fields('b', array(
+          'cid',
+          'name'
+        ))->condition('cid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['cid']] = $record['name'];
+        }
+        return $map;
+      case 'biblio_secondary_title':
+        $result = db_select('biblio_secondary_title', 'b')->fields('b')->condition('bstid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['bstid']] = $record['secondary_title'];
+        }
+        return $map;
+    }
+  } else {
+    return array();
   }
 }
 
