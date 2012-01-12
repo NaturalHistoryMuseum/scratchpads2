@@ -298,5 +298,161 @@ function scratchpads_species_get_tabs(){
   return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_tabs());
 }
 
+/*********************************************************************************************
+ * 
+ * IMAGE STYLES
+ * 
+ ********************************************************************************************/
+
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_species_styles_default_styles(){
+  $styles = array();
+  // Exported style: species_slideshow_large
+  $styles['file']['styles']['species_slideshow_large'] = array(
+    'label' => 'species_slideshow_large',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_large'
+        )
+      ),
+//      'audio' => array(
+//        'species_slideshow_large' => array(
+//          'default preset' => 'original'
+//        )
+//      ),
+//      'video' => array(
+//        'species_slideshow_large' => array(
+//          'default preset' => 'original'
+//        )
+//      ),
+      'default' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  // Exported style: species_slideshow_thumbnail
+  $styles['file']['styles']['species_slideshow_thumbnail'] = array(
+    'label' => 'species_slideshow_thumbnail',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_thumbnail'
+        )
+      ),
+//      'audio' => array(
+//        'species_slideshow_thumbnail' => array(
+//          'default preset' => 'original'
+//        )
+//      ),
+//      'video' => array(
+//        'species_slideshow_thumbnail' => array(
+//          'default preset' => 'original'
+//        )
+//      ),
+      'default' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_species_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['species_slideshow_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_large'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+  if($styles['file']['styles']['species_slideshow_thumbnail']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_thumbnail'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_image_default_styles().
+ */
+function scratchpads_species_image_default_styles(){
+  $styles = array();
+  // Exported image style: species_slideshow_large
+  $styles['species_slideshow_large'] = array(
+    'name' => 'species_slideshow_large',
+    'effects' => array(
+      2 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '284',
+          'height' => '211'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported image style: species_slideshow_thumbnail
+  $styles['species_slideshow_thumbnail'] = array(
+    'name' => 'species_slideshow_thumbnail',
+    'effects' => array(
+      1 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '92',
+          'height' => '69'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  return $styles;
+}
 
 
