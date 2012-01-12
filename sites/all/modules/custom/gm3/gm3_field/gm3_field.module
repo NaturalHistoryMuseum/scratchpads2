@@ -692,11 +692,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           case 'rectangle':
           case 'polygon':
           case 'polyline':
-            $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
-              $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
-              'editable' => FALSE
-            );
-            $display_map = TRUE;
+            $shape = gm3_convert_polygon_string($item[$item['gm3_type']]);
+            if(is_array($shape)){
+              $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
+                $item['gm3_type'] => array_pop($shape),
+                'editable' => FALSE
+              );
+              $display_map = TRUE;
+            }
             break;
           case 'point':
             $map['libraries']['point']['points'][] = array(
