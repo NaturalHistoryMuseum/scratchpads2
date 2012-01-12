@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_biblio_search_facetapi_facet_info(array $searcher_info){
+  // Facets are usually associated with the type of content stored in the index.
+  if(isset($searcher_info['types']['node'])){return array(
+      'tus_biblio_year' => array(
+        'name' => 'tus_biblio_year',
+        'label' => t('Biblio: Publication year'),
+        'description' => t('Biblio: Publication year'),
+        'query types' => array(
+          'term'
+        )
+      ),
+      'im_biblio_contributor' => array(
+        'name' => 'im_biblio_contributor',
+        'label' => t('Biblio: Contributor'),
+        'description' => t('Biblio: Contributor'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_contributor'
+        )
+      ),
+      'tus_biblio_type' => array(
+        'name' => 'tus_biblio_type',
+        'label' => t('Biblio: Type'),
+        'description' => t('Biblio: Type'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_type'
+        )
+      )
+    );}
+  return array();
+}
+
+/**
+ * Map keys to values
+ */
+function scratchpads_biblio_search_map_callback($values, $options){
+  switch($options[0]){
+    case 'biblio_type':
+      $result = db_select('biblio_types', 'b')->fields('b', array(
+        'tid',
+        'name'
+      ))->condition('tid', $values, 'IN')->execute();
+      $map = array();
+      while($record = $result->fetchAssoc()){
+        $map[$record['tid']] = $record['name'];
+      }
+      return $map;
+    case 'biblio_contributor':
+      $result = db_select('biblio_contributor_data', 'b')->fields('b', array(
+        'cid',
+        'name'
+      ))->condition('cid', $values, 'IN')->execute();
+      $map = array();
+      while($record = $result->fetchAssoc()){
+        $map[$record['cid']] = $record['name'];
+      }
+      return $map;
+  }
+}
+
+/**
+ * DEBUGING
+ */
+function scratchpads_biblio_search_init(){
+  dpm(node_load(5));
+}
+
+/**
+ * Implementation of hook_apachesolr_update_index($document, $node, $namespace) {
+ */
+function scratchpads_biblio_search_apachesolr_update_index($document, $node, $namespace){
+  if($node->type == 'biblio'){
+    foreach($node as $key => $value){
+      if(substr($key, 0, 7) == 'biblio_'){
+        if(is_string($value)){
+          $document->addField("tus_$key", $value);
+        }else if(is_array($value)){
+          switch($key){
+            case 'biblio_contributors':
+              foreach($value as $contributor){
+                $document->addField('im_biblio_contributor', $contributor['cid']);
+              }
+              break;
+          }
+        }
+      }
+    }
+    $style = biblio_get_style();
+    $base = variable_get('biblio_base', 'biblio');
+    $document->content .= strip_tags(theme('biblio_long', array(
+      'node' => $node,
+      'base' => $base,
+      'style' => $style
+    )));
+    $document->teaser .= strip_tags(theme('biblio_style', array(
+      'node' => $node,
+      'base' => $base,
+      'style_name' => $style
+    )));
+  }
+}
