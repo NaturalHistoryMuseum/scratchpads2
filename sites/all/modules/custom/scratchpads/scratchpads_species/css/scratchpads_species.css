@@ -1,0 +1,9 @@
+@CHARSET "UTF-8";
+
+/***************** Overview page *******************/
+
+/* Nomenclature block */
+
+.view-species-nomenclature div.label{
+  color: red;
+}
