@@ -18,3 +18,34 @@
 .view-species-nomenclature strong{
   font-weight: bold;
 }
+
+/* Slideshow */
+
+.view-species-page-slideshow{
+  padding: 1px;
+  background: #fff;
+/*  width: 778px;*/
+}
+
+.view-species-page-slideshow .views-slideshow-pager-field-item img{
+  margin-left: 2px;
+  margin-bottom: 2px;
+}
+
+.view-species-page-slideshow #views_slideshow_pager_field_item_bottom_species_page_slideshow-block_1_2 img{
+  margin-bottom: 0;
+}
+
+.view-species-page-slideshow .views_slideshow_cycle_main{
+  float: left;
+  position: relative;
+}
+
+.view-species-page-slideshow .views-field-filename{
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
