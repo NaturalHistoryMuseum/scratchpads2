@@ -61,6 +61,59 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
 }
 
 /**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_biblio_search_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->api_version = 3;
+  $context->name = 'biblio_search_page';
+  $context->description = t('Biblio search page');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'biblios*' => 'biblios*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        'facetapi-efUCrEc1MxBSc0No16CZsf3DfmXuzfMe' => array(
+          'module' => 'facetapi',
+          'delta' => 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe',
+          'region' => 'sidebar',
+          'weight' => '-10'
+        ),
+        'facetapi-neiZLzdaxJF90hE1J5JtnLZmGzy1oB7R' => array(
+          'module' => 'facetapi',
+          'delta' => 'neiZLzdaxJF90hE1J5JtnLZmGzy1oB7R',
+          'region' => 'sidebar',
+          'weight' => '-10'
+        ),
+        'facetapi-oAU7juLpy7tz9yH0jXrLldP25ANlraws' => array(
+          'module' => 'facetapi',
+          'delta' => 'oAU7juLpy7tz9yH0jXrLldP25ANlraws',
+          'region' => 'sidebar',
+          'weight' => '-10'
+        ),
+        'facetapi-jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U' => array(
+          'module' => 'facetapi',
+          'delta' => 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U',
+          'region' => 'sidebar',
+          'weight' => '-10'
+        )
+      )
+    )
+  );
+  $context->condition_mode = 0;
+  $export['biblio_search_page'] = $context;
+  return $export;
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function scratchpads_biblio_search_ctools_plugin_api($owner, $api){

@@ -20,7 +20,7 @@ function scratchpads_biblio_search_install(){
     'page_id' => 'biblio_search',
     'label' => 'Literature Search',
     'description' => 'Search the site\'s literature.',
-    'search_path' => 'biblios',
+    'search_path' => 'literature',
     'env_id' => 'solr',
     'page_title' => 'Literature',
     'settings' => $settings
