@@ -22,10 +22,14 @@ dependencies[] = overlay
 dependencies[] = field_ui
 dependencies[] = file
 dependencies[] = rdf
+
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_colour
 dependencies[] = scratchpads_front
 dependencies[] = scratchpads_image_styles
 dependencies[] = scratchpads_search_block
 dependencies[] = scratchpads_user
+dependencies[] = scratchpads_solr
+dependencies[] = scratchpads_pages
+
 files[] = scratchpad_profile.profile
