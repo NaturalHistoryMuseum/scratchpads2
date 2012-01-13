@@ -2241,3 +2241,20 @@ function biblio_node_export_node_alter($node, $original_node) {
     }
   }
 }
+
+function biblio_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  module_load_include('inc', 'biblio', 'includes/biblio.feeds');
+  return  _biblio_feeds_processor_targets_alter($targets, $entity_type, $bundle_name);
+}
+
+function biblio_feeds_importer_default() {
+  module_load_include('inc', 'biblio', 'includes/biblio.feeds');
+  return  _biblio_feeds_importer_default();
+}
+
+function biblio_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "feeds" && $api == "feeds_importer_default") {
+    return array("version" => 1);
+  }
+}

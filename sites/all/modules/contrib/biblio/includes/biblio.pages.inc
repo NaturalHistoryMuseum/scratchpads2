@@ -109,19 +109,8 @@ function biblio_page_header($filter = array()) {
   // Search box. Has same permissions as the filter tab.
   if (variable_get('biblio_search', 0) && user_access('show filter tab')) {
     $header += array(
-      'search_form' => array(
-        '#type'   => 'fieldset',
-        '#title'   => t('Search'),
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-        'searchform' => drupal_get_form('biblio_search_form'),
-        'filterform' => drupal_get_form('biblio_form_filter')
-      ),
+      'search_form' => drupal_get_form('biblio_search_form'),
     );
-    $header['search_form']['#attached']['library'][] = array('system', 'drupal.form');
-    $header['search_form']['#attached']['library'][] = array('system', 'drupal.collapse');
-    $header['search_form']['#attributes']['class'][] = 'collapsible';
-    $header['search_form']['#attributes']['class'][] = 'collapsed';
   }
   $header += array(
     'export_links' => array(
@@ -129,7 +118,6 @@ function biblio_page_header($filter = array()) {
       '#node'    => NULL,
       '#filter' => $filter,
       '#theme'  => 'biblio_export_links',
-      //'#markup' => theme('biblio_export_links', array('node' => NULL)),
       '#suffix' => '</div>',
     ),
   );
@@ -185,7 +173,7 @@ function biblio_page_header($filter = array()) {
 
 function biblio_page_content($nids = array(), $extras = array()) {
   $base =  variable_get('biblio_base', 'biblio');
-  $content = $nodes = array();
+  $content = $raw_nodes = $nodes = array();
   $count = $section_id = 0;
 
   if (module_exists('popups')) {
@@ -193,17 +181,21 @@ function biblio_page_content($nids = array(), $extras = array()) {
   }
 
   if (count($nids)) {
-    $nids = array_unique($nids);
-    $nodes = node_load_multiple($nids);
+  //  $nids = array_unique($nids);
+    $raw_nodes = node_load_multiple($nids);
     $langcode = $GLOBALS['language_content']->language;
-    field_attach_prepare_view('node', $nodes, 'biblio_list', $langcode);
-    entity_prepare_view('node', $nodes, $langcode);
+    field_attach_prepare_view('node', $raw_nodes, 'biblio_list', $langcode);
+    entity_prepare_view('node', $raw_nodes, $langcode);
 
-    if (!empty($extras)) {
-      foreach ($nodes as $nid => $node) {
-        $nodes[$nid] = (object)array_merge((array)$node, (array)$extras[$nid]);
+    foreach ($nids as $key => $nid) {
+      if (!empty($extras)) {
+        $nodes[] = (object)array_merge((array)$raw_nodes[$nid], (array)$extras[$key]);
+      }
+      else {
+        $nodes[] = $raw_nodes[$nid];
       }
     }
+
   }
 
   foreach ($nodes as $node) {
@@ -221,7 +213,7 @@ function biblio_page_content($nids = array(), $extras = array()) {
 
   }
 
-  $content['pager']['#markup'] = theme('pager', array('quantity' => variable_get('biblio_rowsperpage', 25)));
+  $content['pager']['#markup'] = theme('pager');
   if ($count == 0) {
     $content .= "<h3>" . t("No items found") . "</h3>";
     if (strstr($content, "Filters:")) {
@@ -301,7 +293,7 @@ function biblio_entry($node) {
  *
  */
 function biblio_build_query($arg_list) {
-  global $user, $db_type;
+  global $user;
   static $bcc = 0; //biblio_contributor (bc) count , increase for every invocation
   static $bkd = 0;
   static $tcc = 0; //term counter, increase for every invocation
@@ -328,7 +320,7 @@ function biblio_build_query($arg_list) {
 //  $query->distinct();
 
   // POSIX regular expression matching, case insensitive
-  $match_op = ($db_type == 'pgsql') ? '~*' : 'RLIKE';
+  $match_op = (db_driver() == 'pgsql') ? '~*' : 'RLIKE';
 
   $limit = '';
   if (variable_get('biblio_view_only_own', 0) ) {
@@ -529,6 +521,11 @@ function biblio_build_query($arg_list) {
     }
   }
 
+  // show unpublished nodes to users with uid = 1 or  with 'Administer Biblio' permissions
+  if ($user->uid != 1 && !biblio_access('admin')) {
+    $query->condition('n.status', 1);
+  }
+
   $result = $query->execute();
   $nids = array();
   $extras = array();
@@ -536,7 +533,7 @@ function biblio_build_query($arg_list) {
   foreach ($result as $node) {
     $nids[] = $node->nid;
     if (isset($node->biblio_year)) unset($node->biblio_year);
-    $extras[$node->nid] = $node;
+    $extras[] = $node;
   }
 
   return array($nids, $extras, $rss_info);
@@ -875,12 +872,11 @@ function biblio_section_bar($text) {
  */
 function biblio_search_form($form, &$form_state) {
   $base = variable_get('biblio_base', 'biblio');
-//  $form['#action'] = url($base);
-  $form['biblio_search'] = array(
+  $searchform['biblio_search'] = array(
     '#prefix' => '<div class="container-inline biblio-search clear-block">',
     '#suffix' => '</div>',
     );
-  $form['biblio_search']['keys'] = array(
+  $searchform['biblio_search']['keys'] = array(
     '#type' => 'textfield',
     '#title' => '',
     '#default_value' => '',
@@ -888,23 +884,33 @@ function biblio_search_form($form, &$form_state) {
     '#maxlength' => 255,
   );
   $button_text = variable_get('biblio_search_button_text', 'Biblio search');
-  $form['biblio_search']['submit'] = array(
+  $searchform['biblio_search']['submit'] = array(
     '#type' => 'submit',
     '#value' => t($button_text)
   );
- // $form['#cache'] = FALSE;
+
+  $form['search_form'] = array(
+        '#type'   => 'fieldset',
+        '#title'   => t('Search'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        'searchform' => $searchform,
+        'filterform' => biblio_form_filter(),
+      );
+
   return $form;
 }
 
 function biblio_search_form_submit($form, &$form_state) {
   static $keys = '';
   $base = variable_get('biblio_base', 'biblio');
-  $keys =  $form_state['values']['keys'];
-  $form_state['redirect'] = $base . '/search/' . $keys;
-  $uri = drupal_parse_url(request_uri());
-  $uri['path'] = variable_get('biblio_base', 'biblio');
-  $uri['query']['f']['search'] = $keys;
-  drupal_goto($uri['path'], $uri);
+  $keys =  trim($form_state['values']['keys']);
+  if (!empty($keys)) {
+    $uri = drupal_parse_url(request_uri());
+    $uri['path'] = variable_get('biblio_base', 'biblio');
+    $uri['query']['f']['search'] = $keys;
+    $form_state['redirect'] = array($uri['path'], $uri);
+  }
 
 }
 
@@ -1032,9 +1038,9 @@ function biblio_form_filter() {
     '#type' => 'fieldset',
     '#title' => t('Show only items where'),
     '#theme' => 'exposed_filters__node',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
   );
-  $form['filters']['#attributes']['class'][] = 'collapsible';
- // $form['filters']['#attributes']['class'][] = 'collapsed';
 
   foreach ($session as $filter) {
     $type = key($filter);
@@ -1090,10 +1096,19 @@ function biblio_form_filter() {
   $form['filters']['status']['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => count($session) ? t('Refine') : t('Filter'),
+    '#submit' => array('biblio_form_filter_submit'),
   );
   if (count($session)) {
-    $form['filters']['status']['actions']['undo'] = array('#type' => 'submit', '#value' => t('Undo'));
-    $form['filters']['status']['actions']['reset'] = array('#type' => 'submit', '#value' => t('Reset'));
+    $form['filters']['status']['actions']['undo'] = array(
+      '#type' => 'submit',
+      '#value' => t('Undo'),
+      '#submit' => array('biblio_form_filter_submit')
+    );
+    $form['filters']['status']['actions']['reset'] = array(
+      '#type' => 'submit',
+      '#value' => t('Reset'),
+      '#submit' => array('biblio_form_filter_submit')
+    );
   }
 
   return $form;
@@ -1128,28 +1143,7 @@ function biblio_form_filter_submit($form, &$form_state) {
           }
         }
       }
-      drupal_goto($uri['path'], $uri);
-      $base =  variable_get('biblio_base', 'biblio');
-      drupal_goto($base);
-
-      if (isset($form_state['values']['filter'])) {
-        $uri = drupal_parse_url(request_uri());
-//        $filter = $form_state['values']['filter'];
-//
-//        // Flatten the options array to accommodate hierarchical/nested options.
-//        if (isset($filters[$filter]['options'])) {
-//          $flat_options = form_options_flatten($filters[$filter]['options']);
-//        }
-        foreach ($form_state['values']['filter'] as $filter => $value) {
-          if (!empty($value)) {
-          }
-        }
- //       if (isset($flat_options[$form_state['values'][$filter]]) ) {
- //         $_SESSION['biblio_filter'][] = array($filter, $form_state['values'][$filter]);
- //         $base =  variable_get('biblio_base', 'biblio');
-
-  //      }
-      }
+      $form_state['redirect'] =  array($uri['path'], $uri);
       break;
     case t('Undo'):
       array_pop($_SESSION['biblio_filter']);

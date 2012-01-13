@@ -135,6 +135,10 @@ function biblio_insert_keywords($node, $update = FALSE) {
             ->condition($and)
             ->execute();
   }
+  $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
+  if (variable_get('biblio_keyword_freetagging', 0)) {
+    $freetag_vocab = $vocabularies[variable_get('biblio_keyword_vocabulary', 0)];
+  }
   if (isset($node->taxonomy) && is_array($node->taxonomy) && variable_get('biblio_copy_taxo_terms_to_keywords', 0)) { //add any taxonomy terms to our keyword list
     foreach ($node->taxonomy as $vid => $term) {
       if ($vid == 'copy_to_biblio' && $term == 0 ) {// don't copy if user overrides the default to copy, just set the $taxo_terms to an empty array and break out of the for loop
@@ -187,8 +191,30 @@ function biblio_insert_keywords($node, $update = FALSE) {
 
   // now if we are saving keywords into a taxonomy freetagging vocabulary, then create the tags string and add it to the node object.
 
-  if ($freetagging && $kw_vocab ) {
-    $node->taxonomy['tags'][$kw_vocab] =  biblio_implode_keywords($typed_keywords, ',');
+  if ($freetagging && $freetag_vocab ) {
+    $tids = array();
+    $ft_field = 'field_' . $freetag_vocab->machine_name;
+    $lang = isset($freetag_vocab->language) ? $freetag_vocab->language : 'und';
+    if (isset($node->{$ft_field}[$lang])) {
+      foreach($node->{$ft_field}[$lang] as $tag) {
+        $tids[] = $tag['tid'];
+      }
+    }
+    foreach ($typed_keywords as $kw) {
+      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($kw), 'vid' => $freetag_vocab->vid))) {
+        $term = array_pop($possibilities);
+      }
+      else {
+        $term = new stdClass();
+        $term->vid = $freetag_vocab->vid;
+        $term->name  = $kw;
+        $term->vocabulary_machine_name = $freetag_vocab->machine_name;
+        taxonomy_term_save($term);
+      }
+      if (!in_array($term->tid, $tids)) {
+        $node->{$ft_field}[$lang][] = (array)$term;
+      }
+    }
   }
 
   return array_keys($inserted);
