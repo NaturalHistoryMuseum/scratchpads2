@@ -216,7 +216,7 @@ function scratchpads_species_theme(){
 function scratchpads_species_preprocess_views_view_field(&$vars){
   if($vars['view']->name == 'species_nomenclature'){
     if($vars['field']->table == 'taxonomy_term_data' && $vars['field']->field == 'name'){
-      $term = taxonomy_term_load($vars['row']->tid);
+      $term = taxonomy_term_load($vars['row']->{$vars['field']->aliases['tid']});
       $vars['output'] = theme('scratchpads_species_name', array(
         'term' => $term
       ));
