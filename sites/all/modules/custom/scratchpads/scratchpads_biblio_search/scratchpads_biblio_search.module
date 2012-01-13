@@ -70,6 +70,32 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function scratchpads_biblio_search_theme(){
+  return array(
+    'scratchpads_biblio_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_biblio_search.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_biblio_search_scratchpads_solr_info(){
+  return array(
+    'literature' => array(
+      'theme' => 'scratchpads_biblio_search'
+    )
+  );
+}
+
+/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_biblio_search_context_default_contexts(){
