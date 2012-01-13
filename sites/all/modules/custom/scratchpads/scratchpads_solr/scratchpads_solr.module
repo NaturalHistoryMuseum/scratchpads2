@@ -76,7 +76,7 @@ function scratchpads_solr_theme(){
 function scratchpads_solr_page_alter(&$page){
   try{
     if(arg(0) == 'literature' && isset($page['content']['system_main']['search_results']['#theme'])){
-      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_biblio_search';
+      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
     }
   }
   catch(Exception $e){
