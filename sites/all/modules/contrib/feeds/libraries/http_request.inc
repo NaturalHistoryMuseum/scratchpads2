@@ -4,8 +4,7 @@
  * @file
  * Download via HTTP.
  *
- * Support caching, HTTP Basic Authentication, detection of RSS/Atom feeds,
- * redirects.
+ * Support caching, HTTP Basic Authentication, detection of RSS/Atom feeds, redirects.
  */
 
 /**
@@ -27,9 +26,9 @@ class HRCurlException extends Exception {}
  * Discover RSS or atom feeds at the given URL. If document in given URL is an
  * HTML document, function attempts to discover RSS or Atom feeds.
  *
- * @return
- *  string - the discovered feed, FALSE - if the URL is not reachable or there
- *    no feeds.
+ * @param $url
+ * @param null $settings
+ * @return bool|string string - the discovered feed, FALSE - if the URL is not reachable or there
  */
 function http_request_get_common_syndication($url, $settings = NULL) {
   $password = $username = NULL;
@@ -56,7 +55,7 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   // @see http_request_get.
   $downloaded_string = $download->data;
   // If this happens to be a feed then just return the url.
-  if (http_request_is_feed($download->headers['Content-Type'], $downloaded_string)) {
+  if (http_request_is_feed($download->headers['content-type'], $downloaded_string)) {
     return $url;
   }
 
@@ -79,17 +78,16 @@ function http_request_get_common_syndication($url, $settings = NULL) {
  *  If the URL use authentication, here you can supply the username for this.
  * @param $password
  *  If the URL use authentication, here you can supply the password for this.
- * @return
- *  A stdClass object that describes the data downloaded from $url. The object's
- *  data property contains the actual document at the URL.
+ * @param bool $accept_invalid_cert
+ * @return object A stdClass object that describes the data downloaded from $url. The object's
  */
 function http_request_get($url, $username = NULL, $password = NULL, $accept_invalid_cert = FALSE) {
-  // Intra-pagedownload cache, avoid to download the same content twice within one page download (it's possible, compatible and parse calls).
+  // Intra-pagedownload cache, avoid to download the same content twice within one page download
+  // (it's possible, compatible and parse calls).
   static $download_cache = array();
   if (isset($download_cache[$url])) {
     return $download_cache[$url];
   }
-  $has_etag = FALSE;
   $curl = http_request_use_curl();
 
   // Only download and parse data if really needs refresh.
@@ -97,23 +95,22 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
   $headers = array();
   if ($cache = cache_get('feeds_http_download_' . md5($url))) {
     $last_result = $cache->data;
-    $last_headers = $last_result->headers;
+    $last_headers = array_change_key_case($last_result->headers);
 
-    $has_etag = TRUE;
-    if (!empty($last_headers['ETag'])) {
+    if (!empty($last_headers['etag'])) {
       if ($curl) {
-        $headers[] = 'If-None-Match: ' . $last_headers['ETag'];
+        $headers[] = 'If-None-Match: ' . $last_headers['etag'];
       }
       else {
-        $headers['If-None-Match'] = $last_headers['ETag'];
+        $headers['If-None-Match'] = $last_headers['etag'];
       }
     }
-    if (!empty($last_headers['Last-Modified'])) {
+    if (!empty($last_headers['last-modified'])) {
       if ($curl) {
-        $headers[] = 'If-Modified-Since: ' . $last_headers['Last-Modified'];
+        $headers[] = 'If-Modified-Since: ' . $last_headers['last-modified'];
       }
       else {
-        $headers['If-Modified-Since'] = $last_headers['Last-Modified'];
+        $headers['If-Modified-Since'] = $last_headers['last-modified'];
       }
     }
     if (!empty($username) && !$curl) {
@@ -167,18 +164,29 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
       $header = '';
       $data = curl_exec($download);
       if (curl_error($download)) {
-        throw new HRCurlException(t('cURL error (@code) @error for @url', array('@code' => curl_errno($download), '@error' => curl_error($download), '@url' => $url)), curl_errno($download));
+        throw new HRCurlException(
+          t('cURL error (@code) @error for @url', array(
+            '@code' => curl_errno($download),
+            '@error' => curl_error($download),
+            '@url' => $url
+          )), curl_errno($download)
+        );
       }
+
       $header_size = curl_getinfo($download, CURLINFO_HEADER_SIZE);
       $header = substr($data, 0, $header_size - 1);
       $result->data = substr($data, $header_size);
-      $header_lines = preg_split("/\r\n|\n|\r/", $header);
-
+      $headers = preg_split("/(\r\n){2}/", $header);
+      $header_lines = preg_split("/\r\n|\n|\r/", end($headers));
       $result->headers = array();
       array_shift($header_lines); // skip HTTP response status
+
       while ($line = trim(array_shift($header_lines))) {
         list($header, $value) = explode(':', $line, 2);
-        if (isset($result->headers[$header]) && $header == 'Set-Cookie') {
+        // Normalize the headers.
+        $header = strtolower($header);
+
+        if (isset($result->headers[$header]) && $header == 'set-cookie') {
           // RFC 2109: the Set-Cookie response header comprises the token Set-
           // Cookie:, followed by a comma-separated list of one or more cookies.
           $result->headers[$header] .= ',' . trim($value);
@@ -211,12 +219,6 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
       cache_clear_all('feeds_http_download_' . md5($url), 'cache');
       return http_request_get($url, $username, $password);
     }
-  }
-
-  if (!isset($result->headers) || !isset($result->headers['ETag']) || !isset($result->headers['Last-Modified'])) {
-    $result->headers = isset($result->headers) ? $result->headers : array();
-    $result->headers['ETag'] = isset($result->headers['ETag']) ? $result->headers['ETag'] : '';
-    $result->headers['Last-Modified'] = isset($result->headers['Last-Modified']) ? $result->headers['Last-Modified'] : '';
   }
 
   // Set caches.
@@ -272,8 +274,7 @@ function http_request_is_feed($content_type, $data) {
     return TRUE;
   }
 
-  // @TODO: Sometimes the content-type can be text/html but still be a valid
-  // feed.
+  // @TODO: Sometimes the content-type can be text/html but still be a valid feed.
   return FALSE;
 }
 
@@ -290,7 +291,6 @@ function http_request_find_feeds($html) {
   $matches = array();
   preg_match_all(HTTP_REQUEST_PCRE_LINK_TAG, $html, $matches);
   $links = $matches[1];
-  $candidates = array();
   $valid_links = array();
 
   // Build up all the links information.
@@ -300,8 +300,7 @@ function http_request_find_feeds($html) {
 
     preg_match_all(HTTP_REQUEST_PCRE_TAG_ATTRIBUTES, $link_tag, $attributes, PREG_SET_ORDER);
     foreach ($attributes as $attribute) {
-      // Find the key value pairs, attribute[1] is key and attribute[2] is the
-      // value.
+      // Find the key value pairs, attribute[1] is key and attribute[2] is the value.
       if (!empty($attribute[1]) && !empty($attribute[2])) {
         $candidate[drupal_strtolower($attribute[1])] = drupal_strtolower(decode_entities($attribute[2]));
       }

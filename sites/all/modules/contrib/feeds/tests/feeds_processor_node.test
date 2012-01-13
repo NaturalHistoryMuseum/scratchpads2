@@ -173,7 +173,16 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
 
     // Set to update existing, remove authorship of above nodes and import again.
     $this->setSettings('syndication', 'FeedsNodeProcessor', array('update_existing' => 2));
-    db_query("UPDATE {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id SET n.uid = 0, fi.hash=''");
+    $nids = db_query("SELECT nid FROM {node} n INNER JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id")->fetchCol();
+    db_update('node')
+      ->fields(array('uid' => 0))
+      ->condition('nid', $nids, 'IN')
+      ->execute();
+    db_update('feeds_item')
+      ->fields(array('hash' => ''))
+      ->condition('entity_type', 'node')
+      ->condition('entity_id', $nids, 'IN')
+      ->execute();
     $this->drupalPost("node/$nid/import", array(), 'Import');
     $this->drupalGet('node');
     $this->assertNoPattern('/<span class="username">' . check_plain($this->auth_user->name) . '<\/span>/');
@@ -218,7 +227,7 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/settings', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/syndication_standalone/settings', $edit, 'Save');
     $this->addMappings('syndication_standalone',
       array(
         array(
@@ -301,12 +310,12 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     $this->drupalLogin($this->admin_user);
 
     $edit = array('plugin_key' => 'FeedsFileFetcher');
-    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/fetcher', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/syndication_standalone/fetcher', $edit, 'Save');
 
     $edit = array(
       'allowed_extensions' => 'rss2',
     );
-    $this->drupalPost('admin/structure/feeds/edit/syndication_standalone/settings/FeedsFileFetcher', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/syndication_standalone/settings/FeedsFileFetcher', $edit, 'Save');
 
     // Create a feed node.
     $edit = array(
@@ -396,10 +405,10 @@ class FeedsRSStoNodesTest extends FeedsWebTestCase {
     // There should not be feed links on an article node.
     $non_feed_node = $this->drupalCreateNode(array('type' => 'article'));
     $this->drupalGet('node/' . $non_feed_node->nid);
-    $this->assertNoLink('Import');
+    $this->assertNoLinkByHref('node/' . $non_feed_node->nid . '/import');
     $this->assertNoLink('Delete items');
 
-    // Navigat to a non-feed node form, there should be no Feed field visible.
+    // Navigate to a non-feed node form, there should be no Feed field visible.
     $this->drupalGet('node/add/article');
     $this->assertNoFieldByName('feeds[FeedsHTTPFetcher][source]');
   }

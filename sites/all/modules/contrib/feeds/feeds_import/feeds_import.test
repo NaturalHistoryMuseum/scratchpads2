@@ -134,13 +134,12 @@ class FeedsExamplesUserTestCase extends FeedsWebTestCase {
     $this->importFile('user', $this->absolutePath() . '/tests/feeds/users.csv');
 
     // Assert result.
-    $this->assertText('Created 4 users');
+    $this->assertText('Created 3 users');
     // 1 user has an invalid email address.
-    $this->assertText('Failed importing 1 user');
+    $this->assertText('Failed importing 2 users');
     $this->drupalGet('admin/people');
     $this->assertText('Morticia');
     $this->assertText('Fester');
     $this->assertText('Gomez');
-    $this->assertText('Pugsley');
   }
 }

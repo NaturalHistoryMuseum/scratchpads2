@@ -54,12 +54,12 @@ interface FeedsSourceInterface {
   public function sourceFormValidate(&$source_config);
 
   /**
-   * A source is being deleted.
+   * A source is being saved.
    */
   public function sourceSave(FeedsSource $source);
 
   /**
-   * A source is being saved.
+   * A source is being deleted.
    */
   public function sourceDelete(FeedsSource $source);
 }
@@ -199,6 +199,13 @@ class FeedsSource extends FeedsConfigurable {
     $this->importer = feeds_importer($importer_id);
     parent::__construct($importer_id);
     $this->load();
+  }
+
+  /**
+   * Returns the FeedsImporter object that this source is expected to be used with.
+   */
+  public function importer() {
+    return $this->importer;
   }
 
   /**

@@ -42,7 +42,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/term_import/settings', $edit, 'Save');
 
     $edit = array(
       'name' => 'Addams vocabulary',
@@ -53,7 +53,7 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $edit = array(
       'vocabulary' => 'addams',
     );
-    $this->drupalPost('admin/structure/feeds/edit/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
+    $this->drupalPost('admin/structure/feeds/term_import/settings/FeedsTermProcessor', $edit, t('Save'));
 
     // Import and assert.
     $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');

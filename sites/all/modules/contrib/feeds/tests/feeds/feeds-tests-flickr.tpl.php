@@ -168,4 +168,36 @@ print '<?xml version="1.0" encoding="utf-8" standalone="yes"?>';
 		<category term="hstreetbynight" scheme="http://www.flickr.com/photos/tags/" />
 		<category term="forlaia" scheme="http://www.flickr.com/photos/tags/" />
                 	</entry>
+  <entry>
+ 		<title>La Fayette Park</title>
+ 		<link rel="alternate" type="text/html" href="http://www.flickr.com/photos/a-barth/4209685951/in/set-72157603970496952/"/>
+ 		<id>tag:flickr.com,2005:/photo/4209685951/in/set-72157603970496952</id>
+ 		<published>2009-07-09T21:48:04Z</published>
+ 		<updated>2009-07-09T21:48:04Z</updated>
+                 <dc:date.Taken>2009-05-01T00:00:00-08:00</dc:date.Taken>
+ 		<content type="html">&lt;p&gt;&lt;a href=&quot;http://www.flickr.com/people/a-barth/&quot;&gt;Alex Barth&lt;/a&gt; posted a photo:&lt;/p&gt;
+
+ &lt;p&gt;&lt;a href=&quot;http://www.flickr.com/photos/a-barth/3596408735/&quot; title=&quot;Tubing is fun&quot;&gt;&lt;img src=&quot;http://farm3.staticflickr.com/2675/4209685951_cb073de96f_m.jpg&quot; width=&quot;239&quot; height=&quot;240&quot; alt=&quot;La Fayette park&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+
+ &lt;p&gt;Virginia, 2009&lt;/p&gt;</content>
+ 		<author>
+ 			<name>Alex Barth</name>
+ 			<uri>http://www.flickr.com/people/a-barth/</uri>
+ 					</author>
+ 		<link rel="license" type="text/html" href="http://creativecommons.org/licenses/by-nc/2.0/deed.en" />
+         <link rel="enclosure" type="image/jpeg" href="<?php print $image_urls[4]; ?>" />
+
+ 		<category term="color" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="film" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="virginia" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="awesome" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="ishootfilm" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="va" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="badge" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="tubing" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="fuji160c" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="anfamiliebarth" scheme="http://www.flickr.com/photos/tags/" />
+ 		<category term="canon24l" scheme="http://www.flickr.com/photos/tags/" />
+                 	</entry>
 </feed>

@@ -44,6 +44,7 @@ function feeds_tests_flickr() {
     1 => "foosball.jpeg",
     2 => "attersee.jpeg",
     3 => "hstreet.jpeg",
+    4 => "la fayette.jpeg",
   );
   $path = drupal_get_path('module', 'feeds_tests') . '/feeds/assets';
   foreach ($images as &$image) {
@@ -62,6 +63,7 @@ function feeds_tests_files() {
     1 => "foosball.jpeg",
     2 => "attersee.jpeg",
     3 => "hstreet.jpeg",
+    4 => "la fayette.jpeg",
   );
   foreach ($images as &$image) {
     $image = "public://images/$image";
