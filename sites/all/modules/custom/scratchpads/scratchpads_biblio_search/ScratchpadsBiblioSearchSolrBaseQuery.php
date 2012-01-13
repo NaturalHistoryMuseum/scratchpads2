@@ -44,6 +44,10 @@ class ScratchpadsBiblioSearchSolrBaseQuery extends SolrBaseQuery implements Drup
       'tus_biblio_year' => array(
         'title' => t('Year'),
         'default' => 'desc'
+      ),
+      'tus_biblio_first_author_lastname' => array(
+        'title' => t('First author surname'),
+        'default' => 'asc'
       )
     );
   }
