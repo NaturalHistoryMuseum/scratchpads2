@@ -24,6 +24,8 @@ function scratchpads_biblio_search_install(){
     ))
   );
   db_insert('apachesolr_search_page')->fields($fields)->execute();
+  // Set the search class to use our extended class.
+  variable_set('apachesolr_query_class', 'ScratchpadsBiblioSearchSolrBaseQuery');
 }
 
 /**
@@ -31,6 +33,8 @@ function scratchpads_biblio_search_install(){
  */
 function scratchpads_biblio_search_uninstall(){
   db_delete('apachesolr_search_page')->condition('page_id', 'biblio_search')->execute();
+  // Reset the variable.
+  variable_set('apachesolr_query_class', 'SolrBaseQuery');
 }
 
 /**
