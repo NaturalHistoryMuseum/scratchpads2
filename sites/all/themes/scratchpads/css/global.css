@@ -56,6 +56,12 @@ h1{
 	margin: 0 0 10px 0;
 }
 
+/* Subtitle */
+h1 span{
+  font-size: 0.6em;
+  padding-left: 6px;
+}
+
 
 .front h1{
   font-size: 2em;

@@ -164,6 +164,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       'content' => array(
         ''
       ),
+      'subtitle' => $term->field_authors[LANGUAGE_NONE][0]['safe_value'],
       '#contextual_links' => array(
         'taxonomy' => array(
           'taxonomy',
@@ -215,10 +216,13 @@ function scratchpads_species_theme(){
 function scratchpads_species_preprocess_views_view_field(&$vars){
   if($vars['view']->name == 'species_nomenclature'){
     if($vars['field']->table == 'taxonomy_term_data' && $vars['field']->field == 'name'){
-      $term = taxonomy_term_load($vars['row']->tid);
-      $vars['output'] = theme('scratchpads_species_name', array(
+      $name = $vars['row']->{$vars['field']->field_alias};
+      $tid = $vars['field']->aliases['tid'];
+      $term = taxonomy_term_load($vars['row']->{$tid});
+      $formatted_name = theme('scratchpads_species_name', array(
         'term' => $term
       ));
+      $vars['output'] = str_replace($name, $formatted_name, $vars['output']);
     }
   }
 }
