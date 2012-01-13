@@ -8,6 +8,7 @@ function scratchpads_species_views_default_views(){
   $view->tag = '';
   $view->base_table = 'taxonomy_term_data';
   $view->human_name = 'species nomenclature';
+  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
