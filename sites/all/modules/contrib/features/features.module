@@ -187,7 +187,7 @@ function features_theme() {
   ) + $base;
 
   $items['features_storage_link'] = array(
-    'variables' => array('storage' => null, 'path' => null, 'options' => array()),
+    'variables' => array('storage' => null, 'text' => null, 'path' => null, 'options' => array()),
   ) + $base;
 
   $items['features_form_components'] =
@@ -249,7 +249,7 @@ function features_permission() {
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function features_help($path, $arg) {
   switch ($path) {
@@ -257,7 +257,31 @@ function features_help($path, $arg) {
       $output = file_get_contents(drupal_get_path('module', 'features') .'/README.txt');
       return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>'. check_plain($output) .'</pre>';
     case 'admin/build/features':
-      return '<p>'. t('A "Feature" is a certain type of Drupal module with contains a package of configuration that, when enabled, provides a new set of functionality for your Drupal site. Enable features by selecting the checkboxes below and clicking the Save configuration button. If the configuration of the feature has been changed its "State" will be either "overridden" or "needs review", otherwise it will be "default", indicating that the configuration has not been changed. Click on the state to see more details about the feature and its components.') .'</p>';
+      return '<p>'. t('A "Feature" is a certain type of Drupal module which contains a package of configuration that, when enabled, provides a new set of functionality for your Drupal site. Enable features by selecting the checkboxes below and clicking the Save configuration button. If the configuration of the feature has been changed its "State" will be either "overridden" or "needs review", otherwise it will be "default", indicating that the configuration has not been changed. Click on the state to see more details about the feature and its components.') .'</p>';
+  }
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function features_modules_disabled($modules) {
+  // Find any features modules that were disabled.
+  if ($modules = array_intersect(array_keys(features_get_features()), $modules)) {
+    foreach ($modules as $module) {
+      features_disable_feature($module);
+    }
+  }
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function features_modules_enabled($modules) {
+  // Find any features modules that were enabled.
+  if ($modules = array_intersect(array_keys(features_get_features()), $modules)) {
+    foreach ($modules as $module) {
+      features_enable_feature($module);
+    }
   }
 }
 
@@ -289,6 +313,11 @@ function features_include($reset = FALSE) {
       if (!module_hook($module, 'features_api')) {
         module_load_include('inc', 'features', "includes/features.$module");
       }
+    }
+
+    if (module_exists('ctools')) {
+      // Finally, add ctools eval'd implementations.
+      ctools_features_declare_functions();
     }
 
     // Clear static cache, since we've now included new implementers.
@@ -446,6 +475,9 @@ function features_install_modules($modules) {
   // Build maximal list of dependencies.
   $install = array();
   foreach ($modules as $name) {
+    // Parse the dependency string into the module name and version information.
+    $parsed_name = drupal_parse_dependency($name);
+    $name = $parsed_name['name'];
     if ($file = $files[$name]) {
       $install[] = $name;
       if (!empty($file->info['dependencies'])) {
@@ -485,8 +517,13 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
   if (empty($cache) || $reset) {
     $data = array();
     $ignored = variable_get('features_ignored_orphans', array());
-    $result = system_rebuild_module_data();
-    foreach ($result as $row) {
+    $files = system_rebuild_module_data();
+
+    // Filter out intentionally hidden features.
+    module_load_include('inc', 'features', 'features.admin');
+    $files = array_filter($files, 'features_filter_hidden');
+
+    foreach ($files as $row) {
       // If module is no longer enabled, remove it from the ignored orphans list.
       if (in_array($row->name, $ignored, TRUE) && !$row->status) {
         $key = array_search($row->name, $ignored, TRUE);
@@ -494,10 +531,51 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
       }
 
       if (!empty($row->info['features'])) {
+        // Fix css/js paths
+        if (!empty($row->info['stylesheets'])) {
+          foreach($row->info['stylesheets'] as $media => $css) {
+            $row->info['stylesheets'][$media] = array_keys($css);
+          }
+        }
+        if (!empty($row->info['scripts'])) {
+          $row->info['scripts'] = array_keys($row->info['scripts']);
+        }
         $data['feature'][$row->name] = $row;
       }
       $data['module'][$row->name] = $row;
     }
+
+    // Sort features according to dependencies.
+    // @see install_profile_modules()
+    $required = array();
+    $non_required = array();
+
+    $modules = array_keys($data['feature']);
+    foreach ($modules as $module) {
+      if ($files[$module]->requires) {
+        $modules = array_merge($modules, array_keys($files[$module]->requires));
+      }
+    }
+    $modules = array_unique($modules);
+    foreach ($modules as $module) {
+      if (!empty($files[$module]->info['features'])) {
+        if (!empty($files[$module]->info['required'])) {
+          $required[$module] = $files[$module]->sort;
+        }
+        else {
+          $non_required[$module] = $files[$module]->sort;
+        }
+      }
+    }
+    arsort($required);
+    arsort($non_required);
+
+    $sorted = array();
+    foreach ($required + $non_required as $module => $weight) {
+      $sorted[$module] = $data['feature'][$module];
+    }
+    $data['feature'] = $sorted;
+
     variable_set('features_ignored_orphans', $ignored);
     cache_set("features_module_info", $data);
     $cache = new stdClass();
@@ -542,9 +620,9 @@ function features_get_orphans($reset = FALSE) {
     _module_build_dependencies($modules);
 
     foreach ($orphaned as $module) {
-      if (!empty($modules[$module]->info['dependents'])) {
+      if (!empty($modules[$module]->required_by)) {
         // Determine whether any dependents are actually enabled.
-        $dependents = array_intersect($modules[$module]->info['dependents'], $enabled);
+        $dependents = array_intersect($modules[$module]->required_by, $enabled);
         if (empty($dependents)) {
           $info = features_get_modules($module);
           $orphans[$module] = $info;
@@ -682,10 +760,24 @@ function _features_restore($op, $items = array()) {
       $restore_hook = 'features_rebuild';
       $log_action = 'Rebuild';
       break;
+    case 'disable':
+      $restore_hook = 'features_disable_feature';
+      $log_action = 'Disable';
+      break;
+    case 'enable':
+      $restore_hook = 'features_enable_feature';
+      $log_action = 'Enable';
+      break;
   }
 
   if (empty($items)) {
-    $states = features_get_component_states(array(), ($op == 'rebuild'));
+    // Drush may execute a whole chain of commands that may trigger feature
+    // rebuilding multiple times during a single request. Make sure we do not
+    // rebuild the same cached list of modules over and over again by setting
+    // $reset to TRUE.
+    // Note: this may happen whenever more than one feature will be enabled
+    // in chain, for example also using features_install_modules().
+    $states = features_get_component_states(array(), ($op == 'rebuild'), defined('DRUSH_BASE_PATH'));
     foreach ($states as $module_name => $components) {
       foreach ($components as $component => $state) {
         if (in_array($state, $restore_states)) {
@@ -727,6 +819,24 @@ function features_rebuild($rebuild = array()) {
 }
 
 /**
+ * Wrapper around _features_restore().
+ */
+function features_disable_feature($module) {
+  $feature = feature_load($module);
+  $items[$module] = array_keys($feature->info['features']);
+  return _features_restore('disable', $items);
+}
+
+/**
+ * Wrapper around _features_restore().
+ */
+function features_enable_feature($module) {
+  $feature = feature_load($module);
+  $items[$module] = array_keys($feature->info['features']);
+  return _features_restore('enable', $items);
+}
+
+/**
  * Utility functions ==================================================
  */
 
@@ -758,8 +868,10 @@ function features_log($message, $severity = 'status') {
  * Implements hook_hook_info().
  */
 function features_hook_info() {
-  $hooks['features_api'] = array(
-    'group' => 'features',
+  $hooks = array(
+    'features_api',
+    'features_pipe_alter',
+    'features_export_alter',
   );
-  return $hooks;
+  return array_fill_keys($hooks, array('group' => 'features'));
 }

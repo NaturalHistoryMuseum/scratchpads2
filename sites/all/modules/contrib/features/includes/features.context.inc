@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of hook_features_export().
+ * Implements hook_features_export().
  */
 function context_features_export($data, &$export, $module_name = '') {
   $pipe = ctools_component_features_export('context', $data, $export, $module_name);
@@ -42,7 +42,7 @@ function context_features_export($data, &$export, $module_name = '') {
 }
 
 /**
- * Implementation of hook_features_revert().
+ * Implements hook_features_revert().
  *
  * @param $module
  * name of module to revert content for

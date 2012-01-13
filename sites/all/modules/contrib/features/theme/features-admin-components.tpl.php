@@ -12,7 +12,7 @@
     <div class='components'>
       <?php print $components ?>
       <?php if (!empty($key)): ?>
-        <div class='clear-block features-key'><?php print theme('links', $key) ?></div>
+        <div class='clear-block features-key'><?php print theme('links', array('links' => $key)) ?></div>
       <?php endif; ?>
       <?php if (!empty($buttons)): ?>
         <div class='buttons clear-block'><?php print $buttons ?></div>

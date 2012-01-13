@@ -12,14 +12,13 @@ features[image][] = "features_test"
 features[node][] = "features_test"
 features[user_permission][] = "create features_test content"
 features[views_view][] = "features_test"
-hidden = TRUE
 name = "Features Tests"
 package = "Testing"
 php = "5.2.0"
 
-; Information added by drupal.org packaging script on 2011-06-20
-version = "7.x-1.0-beta3"
+; Information added by drupal.org packaging script on 2012-01-03
+version = "7.x-1.0-beta6"
 core = "7.x"
 project = "features"
-datestamp = "1308598915"
+datestamp = "1325627143"
 
