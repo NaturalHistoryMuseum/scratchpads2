@@ -154,9 +154,21 @@ function theme_scratchpads_biblio_search($variables){
   }
   return theme('table', array(
     'header' => array(
-      t('Authors'),
-      t('Year'),
-      t('Title')
+      array(
+        'data' => t('Authors'),
+        'field' => '',
+        'sort' => 'asc'
+      ),
+      array(
+        'data' => t('Year'),
+        'field' => '',
+        'sort' => ''
+      ),
+      array(
+        'data' => t('Title'),
+        'field' => '',
+        'sort' => ''
+      )
     ),
     'rows' => $rows
   )) . theme('pager', array(
@@ -258,7 +270,7 @@ function scratchpads_biblio_search_map_callback($values, $options){
         }
         return $map;
     }
-  } else {
+  }else{
     return array();
   }
 }
@@ -293,7 +305,12 @@ function scratchpads_biblio_search_apachesolr_update_index($document, $node, $na
             }else if(is_array($value)){
               switch($key){
                 case 'biblio_contributors':
+                  $set_first_author_surname = TRUE;
                   foreach($value as $contributor){
+                    if($set_first_author_surname){
+                      $document->addField('tus_biblio_first_author_lastname', $contributor['lastname']);
+                      $set_first_author_surname = FALSE;
+                    }
                     $document->addField('im_biblio_contributor', $contributor['cid']);
                   }
                   break;
