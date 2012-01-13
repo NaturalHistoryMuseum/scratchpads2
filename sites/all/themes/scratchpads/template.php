@@ -40,11 +40,10 @@ function scratchpads_contextual_links_view_alter(&$element, &$items){
         break;
       case 'scratchpads_colour':
       case 'scratchpads_blocks':
-      	unset($element['#links']);
+        unset($element['#links']);
         break;
     }
   }
- 
 }
 
 function scratchpads_form_user_login_block_alter(&$form, &$form_state, $form_id){
@@ -73,9 +72,19 @@ function scratchpads_preprocess_breadcrumb(&$variables){
   }
 }
 
-
-
-
+/**
+ * Implements hook_process_region().
+ */
+function scratchpads_process_region(&$vars){
+  $theme = alpha_get_theme();
+  switch($vars['elements']['#region']){
+    case 'content':
+      if($theme->page['page']['subtitle']){
+        $vars['subtitle'] = $theme->page['page']['subtitle'];
+      }
+      break;
+  }
+}
 
 
 
