@@ -339,12 +339,12 @@ function scratchpads_species_get_node_tabs(){
  */
 function scratchpads_species_get_default_tabs(){
   $tabs = array(
+    'descriptions' => t('Descriptions'),
     'media' => t('Media'),
     'literature' => t('Literature'),
     'maps' => t('Maps'),
     'specimens' => t('Specimens'),
-    'phylogeny' => t('Phylogeny'),
-    'eol' => t('EOL')
+    'phylogeny' => t('Phylogeny')
   );
   return $tabs;
 }
