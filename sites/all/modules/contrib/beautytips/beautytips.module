@@ -111,7 +111,7 @@ function beautytips_add_beautytips($options = NULL) {
       }
 
       // Setup the settings array for adding js
-      if (is_array($content)) {
+      if (isset($content) && is_array($content)) {
         $style = isset($content['style']) ? $content['style'] : 'default';
         unset($content['style']);
         $settings['beautytips'][$beautytip] = array_merge(beautytips_get_style($style), $content);
