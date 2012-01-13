@@ -21,26 +21,26 @@
 
 /* Slideshow */
 
-.view-species-page-slideshow{
+.view-species-slideshow{
   padding: 1px;
   background: #fff;
 }
 
-.view-species-page-slideshow .views-slideshow-pager-field-item img{
+.view-species-slideshow .views-slideshow-pager-field-item img{
   margin-left: 2px;
   margin-bottom: 2px;
 }
 
-.view-species-page-slideshow #views_slideshow_pager_field_item_bottom_species_page_slideshow-block_1_2 img{
+.view-species-slideshow #views_slideshow_pager_field_item_bottom_species_page_slideshow-block_1_2 img{
   margin-bottom: 0;
 }
 
-.view-species-page-slideshow .views_slideshow_cycle_main{
+.view-species-slideshow .views_slideshow_cycle_main{
   float: left;
   position: relative;
 }
 
-.view-species-page-slideshow .views-field-filename{
+.view-species-slideshow .views-field-filename{
   position: absolute;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
@@ -49,6 +49,6 @@
   color: #fff;
 }
 
-.view-species-page-slideshow .views-field-filename span {
+.view-species-slideshow .views-field-filename span {
     padding: 0 10px;
 }
