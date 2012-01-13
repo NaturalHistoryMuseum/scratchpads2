@@ -1,5 +1,4 @@
 <?php
-// $Id: node_reference.module,v 1.1.2.6 2011/02/15 22:09:23 yched Exp $
 
 /**
  * @file
@@ -10,13 +9,11 @@
  * Implements hook_menu().
  */
 function node_reference_menu() {
-  $items = array();
-  $items['node_reference/autocomplete/%/%'] = array(
-    'title' => 'node_reference autocomplete',
+  $items['node_reference/autocomplete/%/%/%'] = array(
     'page callback' => 'node_reference_autocomplete',
-    'page arguments' => array(2, 3),
-    'access callback' => 'node_reference_autocomplete_access',
-    'access arguments' => array(2, 3),
+    'page arguments' => array(2, 3, 4),
+    'access callback' => 'reference_autocomplete_access',
+    'access arguments' => array(2, 3, 4),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -30,13 +27,22 @@ function node_reference_field_info() {
     'node_reference' => array(
       'label'             => t('Node reference'),
       'description'       => t('This field stores the ID of a related node as an integer value.'),
-      'settings'          => array('referenceable_types' => array()),
+      'settings'          => array(
+        'referenceable_types' => array(),
+        'view' => array(
+          'view_name' => '',
+          'display_name' => '',
+          'args' => array(),
+        ),
+      ),
       // It probably make more sense to have the referenceable types be per-field than per-instance
       // 'instance settings' => array('referenceable_types' => array()),
       'default_widget'    => 'options_select', //  node_reference_autocomplete',
       'default_formatter' => 'node_reference_default',
       // Support hook_entity_property_info() from contrib "Entity API".
       'property_type' => 'node',
+      // Support default token formatter for field tokens.
+      'default_token_formatter' => 'node_reference_plain',
     ),
   );
 }
@@ -72,16 +78,95 @@ function node_reference_field_settings_form($field, $instance, $has_data) {
 
   $form = array();
   $form['referenceable_types'] = array(
-    '#type'          => 'checkboxes',
-    '#title'         => t('Content types that can be referenced'),
-    '#multiple'      => TRUE,
-    '#default_value' => is_array($settings['referenceable_types'])
-      ? $settings['referenceable_types']
-      : array(),
-    '#options'       => array_map('check_plain', node_type_get_names()),
-    '#disabled'      => $has_data,
+    '#type' => 'checkboxes',
+    '#title' => t('Content types that can be referenced'),
+    '#multiple' => TRUE,
+    '#default_value' => $settings['referenceable_types'],
+    '#options' => array_map('check_plain', node_type_get_names()),
   );
+
+  if (module_exists('views')) {
+    $view_settings = $settings['view'];
+
+    $description = '<p>' . t('The list of nodes that can be referenced can provided by a view (Views module) using the "References" display type.') . '</p>';
+
+    // Special note for legacy fields migrated from D6.
+    if (!empty($view_settings['view_name']) && $view_settings['display_name'] == 'default') {
+      $description .= '<p><strong><span class="admin-missing">'. t("Important D6 migration note:") . '</span></strong>';
+      $description .= '<br/>' . t("The field is currently configured to use the 'Master' display of the view %view_name.", array('%view_name' => $view_settings['view_name']));
+      $description .= '<br/>' . t("It is highly recommended that you: <br/>- edit this view and create a new display using the 'References' display type, <br/>- update the field settings to explicitly select the correct view and display.");
+      $description .= '<br/>' . t("The field will work correctly until then, but submitting this form might inadvertently change the field settings.") . '</p>';
+    }
+
+    $form['view'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Views - Nodes that can be referenced'),
+      '#collapsible' => TRUE,
+      '#collapsed' => empty($view_settings['view_name']),
+      '#description' => $description,
+    );
+
+    $views_options = references_get_views_options('node');
+    if ($views_options) {
+      // The value of the 'view_and_display' select below will need to be split
+      // into 'view_name' and 'view_display' in the final submitted values, so
+      // we massage the data at validate time on the wrapping element (not
+      // ideal).
+      $form['view']['#element_validate'] = array('_node_reference_view_settings_validate');
+
+      $views_options = array('' => '<' . t('none') . '>') + $views_options;
+      $default = empty($view_settings['view_name']) ? '' : $view_settings['view_name'] . ':' .$view_settings['display_name'];
+      $form['view']['view_and_display'] = array(
+        '#type' => 'select',
+        '#title' => t('View used to select the nodes'),
+        '#options' => $views_options,
+        '#default_value' => $default,
+        '#description' => '<p>' . t('Choose the view and display that select the nodes that can be referenced.<br />Only views with a display of type "References" are eligible.') . '</p>' .
+          t('Note:<ul><li>This will discard the "Content types" settings above. Use the view\'s "filters" section instead.</li><li>Use the view\'s "fields" section to display additional informations about candidate nodes on node creation/edition form.</li><li>Use the view\'s "sort criteria" section to determine the order in which candidate nodes will be displayed.</li></ul>'),
+      );
+
+      $default = implode(', ', $view_settings['args']);
+      $form['view']['args'] = array(
+        '#type' => 'textfield',
+        '#title' => t('View arguments'),
+        '#default_value' => $default,
+        '#required' => FALSE,
+        '#description' => t('Provide a comma separated list of arguments to pass to the view.'),
+      );
+    }
+    else {
+      $form['view']['no_view_help'] = array(
+        '#markup' => '<p>' . t('No eligible view was found.') .'</p>',
+      );
+    }
+  }
+
   return $form;
+}
+
+/**
+ * Validate callback for the 'view settings' fieldset.
+ *
+ * Puts back the various form values in the expected shape.
+ */
+function _node_reference_view_settings_validate($element, &$form_state, $form) {
+  // Split view name and display name from the 'view_and_display' value.
+  if (!empty($element['view_and_display']['#value'])) {
+    list($view, $display) = explode(':', $element['view_and_display']['#value']);
+  }
+  else {
+    $view = '';
+    $display = '';
+  }
+
+  // Explode the 'args' string into an actual array. Beware, explode() turns an
+  // empty string into an array with one empty string. We'll need an empty array
+  // instead.
+  $args_string = trim($element['args']['#value']);
+  $args = ($args_string === '') ? array() : array_map('trim', explode(',', $args_string));
+
+  $value = array('view_name' => $view, 'display_name' => $display, 'args' => $args);
+  form_set_value($element, $value, $form_state);
 }
 
 /**
@@ -111,7 +196,10 @@ function node_reference_field_validate($entity_type, $entity, $field, $instance,
   }
   // Prevent performance hog if there are no ids to check.
   if ($ids) {
-    $refs = _node_reference_potential_references($field, '', NULL, $ids);
+    $options = array(
+      'ids' => $ids,
+    );
+    $refs = node_reference_potential_references($field, $options);
     foreach ($items as $delta => $item) {
       if (is_array($item)) {
         if (!empty($item['nid']) && !isset($refs[$item['nid']])) {
@@ -130,10 +218,12 @@ function node_reference_field_validate($entity_type, $entity, $field, $instance,
  * Implements hook_field_prepare_view().
  */
 function node_reference_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
-  // @todo : do we need the static ?
-  $fetched_nodes = &drupal_static(__FUNCTION__, array());
+  $checked_ids = &drupal_static(__FUNCTION__, array());
 
-  // Extract nids to check.
+  // Set an 'access' property on each item (TRUE if the node exists and is 
+  // accessible by the current user.
+
+  // Extract ids to check.
   $ids = array();
   foreach ($items as $id => $entity_items) {
     foreach ($entity_items as $delta => $item) {
@@ -148,24 +238,38 @@ function node_reference_field_prepare_view($entity_type, $entities, $field, $ins
   }
 
   if ($ids) {
-    // Load information about nids that we haven't already loaded during
-    // this page request.
-    $missing_ids = array_diff($ids, array_keys($fetched_nodes));
-    if (!empty($missing_ids)) {
+    // Load information about ids that we haven't already loaded during this
+    // page request.
+    $ids_to_check = array_diff($ids, array_keys($checked_ids));
+    if (!empty($ids_to_check)) {
       $query = db_select('node', 'n')
-        ->fields('n')
-        ->condition('n.nid', $missing_ids)
+        ->fields('n', array('nid'))
         ->addTag('node_access');
-      if (!user_access('administer nodes')) {
-        $query->condition('status', 1);
+      $condition = db_and()
+        ->condition('n.nid', $ids_to_check, 'IN')
+        ->condition('n.status', NODE_PUBLISHED);
+      // Take the 'view own unpublished content' permission into account to
+      // decide whether unpublished nodes should be hidden.
+      if (!user_access('administer nodes') && !user_access('bypass node access')) {
+        if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+          // (n.nid IN (nodes) AND n.status = 1) OR n.nid = (unpublished)
+          $condition = db_or()
+            ->condition($condition)
+            ->condition('n.nid', $own_unpublished, 'IN');
+        }
       }
-      $fetched_nodes = $query->execute()->fetchAllAssoc('nid');
+      $query->condition($condition);
+      $accessible_ids = $query->execute()->fetchAllAssoc('nid');
+
+      // Populate our static list so that we do not query on those ids again.
+      foreach ($ids_to_check as $id) {
+        $checked_ids[$id] = isset($accessible_ids[$id]);
+      }
     }
 
     foreach ($items as $id => $entity_items) {
       foreach ($entity_items as $delta => $item) {
-        if (is_array($item) && !empty($item['nid']) && isset($fetched_nodes[$item['nid']])) {
-          $items[$id][$delta]['node'] = $fetched_nodes[$item['nid']];
+        if (is_array($item) && !empty($item['nid']) && !empty($checked_ids[$item['nid']])) {
           $items[$id][$delta]['access'] = TRUE;
         }
       }
@@ -187,55 +291,37 @@ function node_reference_field_is_empty($item, $field) {
 function node_reference_field_formatter_info() {
   $ret = array(
     'node_reference_default' => array(
-      'label'       => t('Title (link)'),
+      'label' => t('Title (link)'),
       'description' => t('Display the title of the referenced node as a link to the node page.'),
       'field types' => array('node_reference'),
     ),
     'node_reference_plain' => array(
-      'label'       => t('Title (no link)'),
+      'label' => t('Title (no link)'),
       'description' => t('Display the title of the referenced node as plain text.'),
       'field types' => array('node_reference'),
     ),
     'node_reference_node' => array(
-      'label'       => t('Rendered node'),
+      'label' => t('Rendered node'),
       'description' => t('Display the referenced node in a specific view mode'),
       'field types' => array('node_reference'),
-      'settings'    => array('node_reference_view_mode' => 'full'),
+      'settings' => array('node_reference_view_mode' => 'full'),
+    ),
+    'node_reference_nid' => array(
+      'label' => t('Node ID'),
+      'description' => t('Display the referenced node ID'),
+      'field types' => array('node_reference'),
+    ),
+    'node_reference_path' => array(
+      'label' => t('URL as plain text'),
+      'description' => t('Display the URL of the referenced node'),
+      'field types' => array('node_reference'),
+      'settings' => array(
+        'alias' => TRUE,
+        'absolute' => FALSE
+      ),
     ),
   );
   return $ret;
-}
-
-/**
- * Implements hook_field_formatter_prepare_view().
- *
- * Preload all nodes referenced by items using 'full entity' formatters.
- */
-function node_reference_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
-  // Collect nids to load.
-  // @todo : can we make clever use of the recursion queue here ?
-  $nids = array();
-  foreach ($displays as $id => $display) {
-    if ($display['type'] == 'node_reference_node') {
-      foreach ($items[$id] as $delta => $item) {
-        if ($item['access']) {
-          $nids[$item['nid']] = $item['nid'];
-        }
-      }
-    }
-  }
-  $nodes = node_load_multiple($nids);
-
-  // Add the loaded nodes to the items.
-  foreach ($displays as $id => $display) {
-    if ($display['type'] == 'node_reference_node') {
-      foreach ($items[$id] as $delta => $item) {
-        if ($item['access']) {
-          $items[$id][$delta]['node'] = $nodes[$item['nid']];
-        }
-      }
-    }
-  }
 }
 
 /**
@@ -245,24 +331,39 @@ function node_reference_field_formatter_settings_form($field, $instance, $view_m
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  // Only build this information for node_reference_node displays
-  if ($display['type'] !== 'node_reference_node') {
-    return NULL;
+  $element = array();
+
+  switch ($display['type']) {
+    case 'node_reference_node':
+      $entity_info = entity_get_info('node');
+      $modes = $entity_info['view modes'];
+      $options = array();
+      foreach ($modes as $name => $mode) {
+        $options[$name] = $mode['label'];
+      }
+      $element['node_reference_view_mode'] = array(
+        '#title' => t('View mode'),
+        '#type' => 'select',
+        '#options' => $options,
+        '#default_value' => $settings['node_reference_view_mode'],
+        // Never empty, so no #empty_option
+      );
+      break;
+
+    case 'node_reference_path':
+      $element['alias'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Display the aliased path (if exists) instead of the system path'),
+        '#default_value' => $settings['alias'],
+      );
+      $element['absolute'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Display an absolute URL'),
+        '#default_value' => $settings['absolute'],
+      );
+      break;
   }
 
-  $entity_info = entity_get_info('node');
-  $modes = $entity_info['view modes'];
-  $options = array();
-  foreach ($modes as $name => $mode) {
-    $options[$name] = $mode['label'];
-  }
-  $element['node_reference_view_mode'] = array(
-    '#title'   => t('View mode'),
-    '#type'    => 'select',
-    '#options' => $options,
-    '#default_value' => $settings['node_reference_view_mode'],
-    // Never empty, so no #empty_option
-  );
   return $element;
 }
 
@@ -272,23 +373,64 @@ function node_reference_field_formatter_settings_form($field, $instance, $view_m
 function node_reference_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
+  $summary = array();
 
-  if ($display['type'] === 'node_reference_node') {
-    $entity_info = entity_get_info('node');
-    $modes = $entity_info['view modes'];
-    $mode = $modes[$settings['node_reference_view_mode']]['label'];
-    $summary = t('View mode: %mode', array('%mode' => $mode));
+  switch ($display['type']) {
+    case 'node_reference_node':
+      $entity_info = entity_get_info('node');
+      $modes = $entity_info['view modes'];
+      $mode = $modes[$settings['node_reference_view_mode']]['label'];
+      $summary[] = t('View mode: %mode', array('%mode' => $mode));
+      break;
+
+    case 'node_reference_path':
+      $summary[] = t('Aliased path: %yes_no', array('%yes_no' => $settings['alias'] ? t('Yes') : t('No')));
+      $summary[] = t('Absolute URL: %yes_no', array('%yes_no' => $settings['absolute'] ? t('Yes') : t('No')));
+      break;
   }
-  else {
-    $summary = NULL;
+
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_field_formatter_prepare_view().
+ *
+ * Preload all nodes referenced by items using 'full entity' formatters.
+ */
+function node_reference_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  // Load the referenced nodes, except for the 'node_reference_nid' which does
+  // not need full objects.
+
+  // Collect ids to load.
+  $ids = array();
+  foreach ($displays as $id => $display) {
+    if ($display['type'] != 'node_reference_nid') {
+      foreach ($items[$id] as $delta => $item) {
+        if ($item['access']) {
+          $ids[$item['nid']] = $item['nid'];
+        }
+      }
+    }
   }
-  return $summary;
+  $entities = node_load_multiple($ids);
+
+  // Add the loaded nodes to the items.
+  foreach ($displays as $id => $display) {
+    if ($display['type'] != 'node_reference_nid') {
+      foreach ($items[$id] as $delta => $item) {
+        if ($item['access']) {
+          $items[$id][$delta]['node'] = $entities[$item['nid']];
+        }
+      }
+    }
+  }
 }
 
 /**
  * Implements hook_field_formatter_view().
  */
 function node_reference_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'];
   $result = array();
 
   switch ($display['type']) {
@@ -297,18 +439,19 @@ function node_reference_field_formatter_view($entity_type, $entity, $field, $ins
       foreach ($items as $delta => $item) {
         if ($item['access']) {
           $node = $item['node'];
+          $label = entity_label('node', $node);
           if ($display['type'] == 'node_reference_default') {
             $uri = entity_uri('node', $node);
             $result[$delta] = array(
               '#type' => 'link',
-              '#title' => $node->title,
+              '#title' => $label,
               '#href' => $uri['path'],
               '#options' => $uri['options'],
             );
           }
           else {
             $result[$delta] = array(
-              '#markup' => check_plain($node->title),
+              '#markup' => check_plain($label),
             );
           }
           if (!$node->status) {
@@ -320,7 +463,6 @@ function node_reference_field_formatter_view($entity_type, $entity, $field, $ins
       break;
 
     case 'node_reference_node':
-      $view_mode = $display['settings']['node_reference_view_mode'];
       // To prevent infinite recursion caused by reference cycles, we store
       // diplayed nodes in a recursion queue.
       $recursion_queue = &drupal_static(__FUNCTION__, array());
@@ -355,7 +497,7 @@ function node_reference_field_formatter_view($entity_type, $entity, $field, $ins
           $nodes_display[$nid]->referencing_entity = $entity;
           $nodes_display[$nid]->referencing_field = $field['field_name'];
         }
-        $nodes_built = node_view_multiple($nodes_display, $view_mode);
+        $nodes_built = node_view_multiple($nodes_display, $settings['node_reference_view_mode']);
       }
 
       // Assemble the render array.
@@ -366,10 +508,11 @@ function node_reference_field_formatter_view($entity_type, $entity, $field, $ins
           }
           else {
             $node = $item['node'];
+            $label = entity_label('node', $node);
             $uri = entity_uri('node', $node);
             $result[$delta] = array(
               '#type' => 'link',
-              '#title' => $node->title,
+              '#title' => $label,
               '#href' => $uri['path'],
               '#options' => $uri['options'],
             );
@@ -378,6 +521,33 @@ function node_reference_field_formatter_view($entity_type, $entity, $field, $ins
               $result[$delta]['#suffix'] = '</span>';
             }
           }
+        }
+      }
+      break;
+
+    case 'node_reference_nid':
+      foreach ($items as $delta => $item) {
+        if ($item['access']) {
+          $result[$delta] = array(
+            '#markup' => $item['nid'],
+          );
+        }
+      }
+      break;
+
+    case 'node_reference_path':
+      foreach ($items as $delta => $item) {
+        if ($item['access']) {
+          $uri = entity_uri('node', $item['node']);
+          $options = array(
+            'absolute' => $settings['absolute'],
+            'alias' => !$settings['alias'],
+          );
+
+          $options += $uri['options'];
+          $result[$delta] = array(
+            '#markup' => url($uri['path'], $options),
+          );
         }
       }
       break;
@@ -452,7 +622,7 @@ function node_reference_field_widget_form(&$form, &$form_state, $field, $instanc
       $element += array(
         '#type' => 'textfield',
         '#default_value' => isset($items[$delta]['nid']) ? $items[$delta]['nid'] : NULL,
-        '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $instance['entity_type'] . '/' . $field['field_name'],
+        '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $field['field_name'],
         '#size' => $instance['widget']['settings']['size'],
         '#element_validate' => array('node_reference_autocomplete_validate'),
         '#value_callback' => 'node_reference_autocomplete_value',
@@ -492,8 +662,8 @@ function node_reference_autocomplete_value($element, $input = FALSE, $form_state
  * Validation callback for a node_reference autocomplete element.
  */
 function node_reference_autocomplete_validate($element, &$form_state, $form) {
-  $field = $form_state['field'][$element['#field_name']][$element['#language']]['field'];
-  $instance = $form_state['field'][$element['#field_name']][$element['#language']]['instance'];
+  $field = field_widget_field($element, $form_state);
+  $instance = field_widget_instance($element, $form_state);
 
   $value = $element['#value'];
   $nid = NULL;
@@ -519,13 +689,18 @@ function node_reference_autocomplete_validate($element, &$form_state, $form) {
     else {
       // No explicit nid (the submitted value was not populated by autocomplete
       // selection). Get the nid of a referencable node from the entered title.
-      $reference = _node_reference_potential_references($field, $value, 'equals', NULL, 1);
-      if ($reference) {
+      $options = array(
+        'string' => $value,
+        'match' => 'equals',
+        'limit' => 1,
+      );
+      $references = node_reference_potential_references($field, $options);
+      if ($references) {
         // @todo The best thing would be to present the user with an
         // additional form, allowing the user to choose between valid
         // candidates with the same title. ATM, we pick the first
         // matching candidate...
-        $nid = key($reference);
+        $nid = key($references);
       }
       else {
         form_error($element, t('%name: found no valid post with that title.', array('%name' => $instance['label'])));
@@ -554,23 +729,38 @@ function node_reference_field_widget_error($element, $error, $form, &$form_state
  *
  * @param $field
  *   The field definition.
+ * @param $flat
+ *   Whether optgroups are allowed.
  *
  * @return
- *   An array of referenceable node titles, keyed by node id.
+ *   An array of referenceable node titles, keyed by node id. If the $flat
+ *   parameter is TRUE, the list might be nested by optgroup first.
  */
-function _node_reference_options($field) {
-  $references = _node_reference_potential_references($field);
+function _node_reference_options($field, $flat = TRUE) {
+  $references = node_reference_potential_references($field);
 
   $options = array();
   foreach ($references as $key => $value) {
-    $options[$key] = $value['title'];
+    // The label, displayed in selects and checkboxes/radios, should have HTML
+    // entities unencoded. The widgets (core's options.module) take care of
+    // applying the relevant filters (strip_tags() or filter_xss()).
+    $label = html_entity_decode($value['rendered'], ENT_QUOTES);
+    if (empty($value['group']) || $flat) {
+      $options[$key] = $label;
+    }
+    else {
+      // The group name, displayed in selects, cannot contain tags, and should
+      // have HTML entities unencoded.
+      $group = html_entity_decode(strip_tags($value['group']), ENT_QUOTES);
+      $options[$group][$key] = $label;
+    }
   }
 
   return $options;
 }
 
 /**
- * Fetch an array of all candidate referenced nodes.
+ * Retrieves an array of candidate referenceable nodes.
  *
  * This info is used in various places (allowed values, autocomplete
  * results, input validation...). Some of them only need the nids,
@@ -581,17 +771,15 @@ function _node_reference_options($field) {
  * and lets consumers use the parts they actually need.
  *
  * @param $field
- *   The field description.
- * @param $string
- *   Optional string to filter titles on (used by autocomplete).
- * @param $match
- *   Operator to match filtered name against, can be any of:
- *   'contains', 'equals', 'starts_with'
- * @param $ids
- *   Optional node ids to lookup (the $string and $match arguments will be
- *   ignored).
- * @param $limit
- *   If non-zero, limit the size of the result set.
+ *   The field definition.
+ * @param $options
+ *   An array of options to limit the scope of the returned list. The following
+ *   key/value pairs are accepted:
+ *   - string: string to filter titles on (used by autocomplete).
+ *   - match: operator to match the above string against, can be any of:
+ *     'contains', 'equals', 'starts_with'. Defaults to 'contains'.
+ *   - ids: array of specific node ids to lookup.
+ *   - limit: maximum size of the the result set. Defaults to 0 (no limit).
  *
  * @return
  *   An array of valid nodes in the form:
@@ -602,19 +790,31 @@ function _node_reference_options($field) {
  *     ),
  *     ...
  *   )
- *  @todo Check whether we still need the 'rendered' value (hook_options_list()
- *  does not need it anymore). Should probably be clearer after the 'Views'
- *  mode is ported.
  */
-function _node_reference_potential_references($field, $string = '', $match = 'contains', $ids = array(), $limit = NULL) {
+function node_reference_potential_references($field, $options = array()) {
+  // Fill in default options.
+  $options += array(
+    'string' => '',
+    'match' => 'contains',
+    'ids' => array(),
+    'limit' => 0,
+  );
+
   $results = &drupal_static(__FUNCTION__, array());
 
   // Create unique id for static cache.
-  $cid = $field['field_name'] . ':' . $match . ':'
-    . ($string !== '' ? $string : implode('-', $ids))
-    . ':' . $limit;
+  $cid = $field['field_name'] . ':' . $options['match'] . ':'
+    . ($options['string'] !== '' ? $options['string'] : implode('-', $options['ids']))
+    . ':' . $options['limit'];
   if (!isset($results[$cid])) {
-    $references = _node_reference_potential_references_standard($field, $string, $match, $ids, $limit);
+    $references = FALSE;
+    if (module_exists('views') && !empty($field['settings']['view']['view_name'])) {
+      $references = _node_reference_potential_references_views($field, $options);
+    }
+
+    if ($references === FALSE) {
+      $references = _node_reference_potential_references_standard($field, $options);
+    }
 
     // Store the results.
     $results[$cid] = !empty($references) ? $references : array();
@@ -624,11 +824,22 @@ function _node_reference_potential_references($field, $string = '', $match = 'co
 }
 
 /**
- * Helper function for _node_reference_potential_references().
+ * Helper function for node_reference_potential_references().
+ *
+ * Case of Views-defined referenceable nodes.
+ */
+function _node_reference_potential_references_views($field, $options) {
+  $settings = $field['settings']['view'];
+  $options['title_field'] = 'title';
+  return references_potential_references_view('node', $settings['view_name'], $settings['display_name'], $settings['args'], $options);
+}
+
+/**
+ * Helper function for node_reference_potential_references().
  *
  * List of referenceable nodes defined by content types.
  */
-function _node_reference_potential_references_standard($field, $string = '', $match = 'contains', $ids = array(), $limit = NULL) {
+function _node_reference_potential_references_standard($field, $options) {
   // Avoid useless work
   if (!count($field['settings']['referenceable_types'])) {
     return array();
@@ -638,44 +849,47 @@ function _node_reference_potential_references_standard($field, $string = '', $ma
   $node_nid_alias   = $query->addField('n', 'nid');
   $node_title_alias = $query->addField('n', 'title', 'node_title');
   $node_type_alias  = $query->addField('n', 'type',  'node_type');
-  $query->addTag('node_access');
-  $query->addMetaData('id', ' _node_reference_potential_references_standard');
+  $query->addTag('node_access')
+    ->addMetaData('id', ' _node_reference_potential_references_standard')
+    ->addMetaData('field', $field)
+    ->addMetaData('options', $options);
 
   if (is_array($field['settings']['referenceable_types'])) {
     $query->condition('n.type', $field['settings']['referenceable_types'], 'IN');
   }
 
-  if ($string !== '') {
-    switch ($match) {
+  if ($options['string'] !== '') {
+    switch ($options['match']) {
       case 'contains':
-        $query->condition('n.title', '%' . $string . '%', 'LIKE');
+        $query->condition('n.title', '%' . $options['string'] . '%', 'LIKE');
         break;
 
       case 'starts_with':
-        $query->condition('n.title', $string . '%', 'LIKE');
+        $query->condition('n.title', $options['string'] . '%', 'LIKE');
         break;
 
       case 'equals':
       default: // no match type or incorrect match type: use "="
-        $query->condition('n.title', $string);
+        $query->condition('n.title', $options['string']);
         break;
     }
   }
-  elseif ($ids) {
-    $query->condition('n.nid', $ids, 'IN', $ids);
+
+  if ($options['ids']) {
+    $query->condition('n.nid', $options['ids'], 'IN');
+  }
+
+  if ($options['limit']) {
+    $query->range(0, $options['limit']);
   }
 
   $query
     ->orderBy($node_title_alias)
     ->orderBy($node_type_alias);
 
-  if ($limit) {
-    $query->range(0, $limit);
-  }
-
-  $result = $query->execute();
+  $result = $query->execute()->fetchAll();
   $references = array();
-  foreach ($result->fetchAll() as $node) {
+  foreach ($result as $node) {
     $references[$node->nid] = array(
       'title'    => $node->node_title,
       'rendered' => check_plain($node->node_title),
@@ -685,30 +899,28 @@ function _node_reference_potential_references_standard($field, $string = '', $ma
 }
 
 /**
- * Menu access callback for the autocomplete path.
- *
- * Check for both 'edit' and 'view' access in the unlikely event
- * a user has edit but not view access.
- */
-function node_reference_autocomplete_access($entity_type, $field_name) {
-  return user_access('access content') && ($field = field_info_field($field_name)) && field_access('view', $field, $entity_type) && field_access('edit', $field, $entity_type);
-}
-
-/**
  * Menu callback for the autocomplete results.
  */
-function node_reference_autocomplete($entity_type, $field_name, $string = '') {
+function node_reference_autocomplete($entity_type, $bundle, $field_name, $string = '') {
   $field = field_info_field($field_name);
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
 
-  // @todo broken - this is in $field['widget']['settings']['autocomplete_match'] - we'd need the $instance.
-  $match = isset($field['widget']['autocomplete_match']) ? $field['widget']['autocomplete_match'] : 'contains';
+  $options = array(
+    'string' => $string,
+    'match' => $instance['widget']['settings']['autocomplete_match'],
+    'limit' => 10,
+  );
+  $references = node_reference_potential_references($field, $options);
+
   $matches = array();
-
-  $references = _node_reference_potential_references($field, $string, $match, array(), 10);
   foreach ($references as $id => $row) {
+    // Markup is fine in autocompletion results (might happen when rendered
+    // through Views) but we want to remove hyperlinks.
+    $suggestion = preg_replace('/<a href="([^<]*)">([^<]*)<\/a>/', '$2', $row['rendered']);
     // Add a class wrapper for a few required CSS overrides.
-    $matches[$row['title'] . " [nid:$id]"] = '<div class="reference-autocomplete">' . $row['rendered'] . '</div>';
+    $matches[$row['title'] . " [nid:$id]"] = '<div class="reference-autocomplete">' . $suggestion . '</div>';
   }
+
   drupal_json_output($matches);
 }
 
@@ -737,18 +949,19 @@ function node_reference_node_type_update($info) {
  * Theme preprocess function.
  *
  * Allows specific node templates for nodes displayed as values of a
- * node_reference field with the 'full node' / 'teaser' formatters.
+ * node_reference field with a specific view mode.
  */
 function node_reference_preprocess_node(&$vars) {
-  // The 'referencing_field' attribute of the node is added by the 'teaser'
-  // and 'full node' formatters.
+  // The 'referencing_field' attribute of the node is added by the
+  // node_reference_node mode formatter (display referenced node
+  // in a specific view mode).
   if (!empty($vars['node']->referencing_field)) {
     $node = $vars['node'];
     $field = $node->referencing_field;
-    $vars['theme_hook_suggestions'][] = 'node-reference';
-    $vars['theme_hook_suggestions'][] = 'node-reference__' . $field['field_name'];
-    $vars['theme_hook_suggestions'][] = 'node-reference__' . $node->type;
-    $vars['theme_hook_suggestions'][] = 'node-reference__' . $field['field_name'] . '__' . $node->type;
+    $vars['theme_hook_suggestions'][] = 'node_reference';
+    $vars['theme_hook_suggestions'][] = 'node_reference__' . $field['field_name'];
+    $vars['theme_hook_suggestions'][] = 'node_reference__' . $node->type;
+    $vars['theme_hook_suggestions'][] = 'node_reference__' . $field['field_name'] . '__' . $node->type;
   }
 }
 
@@ -790,7 +1003,7 @@ function node_reference_field_prepare_translation($entity_type, $entity, $field,
  * Implements hook_options_list().
  */
 function node_reference_options_list($field) {
-  return _node_reference_options($field);
+  return _node_reference_options($field, FALSE);
 }
 
 /**
@@ -808,6 +1021,22 @@ function node_reference_content_migrate_field_alter(&$field_value, $instance_val
     case 'nodereference':
       $field_value['module'] = 'node_reference';
       $field_value['type'] = 'node_reference';
+
+      // Translate 'view' settings.
+      $view_name = isset($field_value['settings']['advanced_view']) ? $field_value['settings']['advanced_view'] : '';
+      $view_args = isset($field_value['settings']['advanced_view_args']) ? $field_value['settings']['advanced_view_args'] : '';
+      $view_args = array_map('trim', explode(',', $view_args));
+      $field_value['settings']['view'] = array(
+        'view_name' => $view_name,
+        'display_name' => 'default',
+        'args' => $view_args,
+      );
+      if ($view_name) {
+        $field_value['messages'][] = t("The field uses the view @view_name to determine referenceable nodes. You will need to manually edit the view and add a display of type 'References'.");
+      }
+      unset($field_value['settings']['advanced_view']);
+      unset($field_value['settings']['advanced_view_args']);
+
       break;
   }
 }
@@ -883,12 +1112,27 @@ function node_reference_field_views_data($field) {
       $data[$table][$id_column]['filter']['options callback'] = 'node_reference_views_options';
       $data[$table][$id_column]['filter']['options arguments'] = array($field['field_name']);
 
+      // Argument: display node.title in argument titles (handled in our custom
+      // handler) and summary lists (handled by the base views_handler_argument
+      // handler).
+      // Both mechanisms rely on the 'name table' and 'name field' information
+      // below, by joining to a separate copy of the base table from the field
+      // data table.
+      $data[$table][$id_column]['argument']['handler'] = 'references_handler_argument';
+      $data[$table][$id_column]['argument']['name table'] = $table . '_reference';
+      $data[$table][$id_column]['argument']['name field'] = 'title';
+      $data[$table . '_reference']['table']['join'][$table] = array(
+        'left_field' => $id_column,
+        'table' => 'node',
+        'field' => 'nid',
+      );
+
       // Relationship.
       $data[$table][$id_column]['relationship'] = array(
         'handler' => 'references_handler_relationship',
         'base' => 'node',
-        'field' => 'nid',
         'base field' => 'nid',
+        'field' => $id_column,
         'label' => $field['field_name'],
         'field_name' => $field['field_name'],
       );
@@ -899,14 +1143,57 @@ function node_reference_field_views_data($field) {
 }
 
 /**
+ * Implements hook_field_views_data_views_data_alter().
+ */
+function node_reference_field_views_data_views_data_alter(&$data, $field) {
+  foreach ($field['bundles'] as $entity_type => $bundles) {
+    $entity_info = entity_get_info($entity_type);
+    $pseudo_field_name = 'reverse_' . $field['field_name'] . '_' . $entity_type;
+
+    list($label, $all_labels) = field_views_field_label($field['field_name']);
+    $entity = $entity_info['label'];
+    if ($entity == t('Node')) {
+      $entity = t('Content');
+    }
+
+    // Only specify target entity type if the field is used in more than one.
+    if (count($field['bundles']) > 1) {
+      $title = t('@field (@field_name) - reverse (to @entity)', array('@entity' => $entity, '@field' => $label, '@field_name' => $field['field_name']));
+    }
+    else {
+      $title = t('@field (@field_name) - reverse', array('@entity' => $entity, '@field' => $label, '@field_name' => $field['field_name']));
+    }
+    $data['node'][$pseudo_field_name]['relationship'] = array(
+      'title' => $title,
+      'help' => t('Relate each @entity referencing the node through @field.', array('@entity' => $entity, '@field' => $label)),
+      'handler' => 'views_handler_relationship_entity_reverse',
+      'field_name' => $field['field_name'],
+      'field table' => _field_sql_storage_tablename($field),
+      'field field' => $field['field_name'] . '_nid',
+      'base' => $entity_info['base table'],
+      'base field' => $entity_info['entity keys']['id'],
+      'label' => t('!field_name', array('!field_name' => $field['field_name'])),
+    );
+  }
+}
+
+/**
  * Helper callback for the views_handler_filter_in_operator filter.
  *
  * @param $field_name
  *   The field name.
  */
 function node_reference_views_options($field_name) {
+  $options = array();
+
   if ($field = field_info_field($field_name)) {
-    return _node_reference_options($field);
+    $options = _node_reference_options($field, TRUE);
+    // The options will be used as is in checkboxes, and thus need to be
+    // sanitized first.
+    foreach ($options as $key => $value) {
+      $options[$key] = field_filter_xss($value);
+    }
   }
-  return array();
+
+  return $options;
 }
