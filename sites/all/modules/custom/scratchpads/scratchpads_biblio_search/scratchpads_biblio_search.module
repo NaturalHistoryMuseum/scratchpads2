@@ -1,6 +1,21 @@
 <?php
 
 /**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_biblio_search_menu_alter(&$items){
+  $items['literature']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['literature']['weight'] = 1;
+  $items['literature']['type'] = MENU_NORMAL_ITEM;
+  $items['biblio']['type'] = MENU_CALLBACK;
+  foreach($items as $key => $value){
+    if(substr($key, 0, 6) == 'biblio'){
+      unset($items[$key]);
+    }
+  }
+}
+
+/**
  * Implementation of hook_facetapi_facet_info().
  */
 function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
@@ -55,12 +70,38 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function scratchpads_biblio_search_theme(){
+  return array(
+    'scratchpads_biblio_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_biblio_search.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_biblio_search_scratchpads_solr_info(){
+  return array(
+    'literature' => array(
+      'theme' => 'scratchpads_biblio_search'
+    )
+  );
+}
+
+/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_biblio_search_context_default_contexts(){
   $export = array();
   $context = new stdClass();
-  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->disabled = FALSE;
   $context->api_version = 3;
   $context->name = 'biblio_search_page';
   $context->description = t('Biblio search page');
@@ -118,76 +159,6 @@ function scratchpads_biblio_search_ctools_plugin_api(){
   if($module == "context" && $api == "context"){return array(
       "version" => "3"
     );}
-}
-
-/**
- * Implementation of hook_theme().
- */
-function scratchpads_biblio_search_theme(){
-  return array(
-    'scratchpads_biblio_search' => array(
-      'variables' => array(
-        'results' => NULL,
-        'module' => NULL
-      )
-    )
-  );
-}
-
-function theme_scratchpads_biblio_search($variables){
-  module_load_include('inc', 'biblio', 'includes/biblio_theme');
-  $reset_author_links = FALSE;
-  if(variable_get('biblio_author_links', 1)){
-    variable_set('biblio_author_links', 0);
-    $reset_author_links = TRUE;
-  }
-  foreach($variables['results'] as $result){
-    $biblio_node = node_load($result['node']->entity_id);
-    $rows[] = array(
-      biblio_format_authors($biblio_node->biblio_contributors),
-      $biblio_node->biblio_year,
-      l($biblio_node->title, 'node/' . $biblio_node->nid)
-    );
-  }
-  if($reset_author_links){
-    variable_set('biblio_author_links', 1);
-  }
-  return theme('table', array(
-    'header' => array(
-      array(
-        'data' => t('Authors'),
-        'field' => '',
-        'sort' => 'asc'
-      ),
-      array(
-        'data' => t('Year'),
-        'field' => '',
-        'sort' => ''
-      ),
-      array(
-        'data' => t('Title'),
-        'field' => '',
-        'sort' => ''
-      )
-    ),
-    'rows' => $rows
-  )) . theme('pager', array(
-    'tags' => NULL
-  ));
-}
-
-/**
- * Implementation of hook_page_alter().
- */
-function scratchpads_biblio_search_page_alter(&$page){
-  try{
-    if(arg(0) == 'literature' && isset($page['content']['system_main']['search_results']['#theme'])){
-      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_biblio_search';
-    }
-  }
-  catch(Exception $e){
-    ;
-  }
 }
 
 /**

@@ -169,9 +169,9 @@ function scratchpads_pages_variable_default($name = NULL){
       'scratchpads_pages_display' => array(
         'page' => 'page',
         'spm' => 'none',
-    		'specimen_observation' => 'view',
-    		'biblio' => 'view',
-    		'location' => 'none'
+        'specimen_observation' => 'view',
+        'biblio' => 'solr',
+        'location' => 'none'
       )
     );
   }

@@ -1,6 +1,7 @@
 <?php
 
 function scratchpads_pages_views_default_views(){
+  $views = array();
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
   foreach(node_type_get_types() as $type => $node_info){
     if(!isset($display_settings[$type]) || $display_settings[$type] == 'view'){
