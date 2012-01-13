@@ -7501,7 +7501,7 @@ function entity_create_stub_entity($entity_type, $ids) {
  *
  * @todo Remove $conditions in Drupal 8.
  */
-function entity_load($entity_type, $ids = FALSE, $conditions = array(), $reset = false) {
+function entity_load($entity_type, $ids = FALSE, $conditions = array(), $reset = FALSE) {
   if ($reset) {
     entity_get_controller($entity_type)->resetCache();
   }
@@ -7535,7 +7535,6 @@ function entity_load_unchanged($entity_type, $id) {
  */
 function entity_get_controller($entity_type) {
   $controllers = &drupal_static(__FUNCTION__, array());
-
   if (!isset($controllers[$entity_type])) {
     $type_info = entity_get_info($entity_type);
     $class = $type_info['controller class'];

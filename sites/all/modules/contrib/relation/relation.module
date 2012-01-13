@@ -644,6 +644,8 @@ function relation_create($type, $endpoints, $account = NULL) {
   }
   $relation = new stdClass();
   $relation->is_new = TRUE;
+  $relation->created = time();
+  $relation->changed = time();
   $relation->relation_type = $type;
   $relation->uid = $account->uid;
   $relation->endpoints[LANGUAGE_NONE] = $endpoints;
