@@ -3,7 +3,7 @@ description = Provides the core Media API
 package = Media
 core = 7.x
 
-dependencies[] = file_entity
+dependencies[] = file_entity (>1.99)
 dependencies[] = image
 dependencies[] = views
 
@@ -23,9 +23,9 @@ files[] = tests/media.entity.test
 
 testing_api = 2.x
 
-; Information added by drupal.org packaging script on 2011-12-07
-version = "7.x-2.x-dev"
+; Information added by drupal.org packaging script on 2012-01-12
+version = "7.x-2.0-unstable3"
 core = "7.x"
 project = "media"
-datestamp = "1323217526"
+datestamp = "1326409247"
 

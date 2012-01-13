@@ -93,6 +93,7 @@ function media_field_widget_settings_form($field, $instance) {
     '#default_value' => $settings['allowed_types'],
     '#description' => t('Media types which are allowed for this field when using remote streams.'),
     '#weight' => 1,
+    '#access' => count(file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL)) != count($streams),
   );
 
   $options = array();
@@ -162,7 +163,7 @@ function media_field_widget_form(&$form, &$form_state, $field, $instance, $langc
         'file_directory' => isset($field_settings['file_directory']) ? $field_settings['file_directory'] : NULL,
         'file_extensions' => isset($field_settings['file_extensions']) ? $field_settings['file_extensions'] : media_variable_get('file_extensions'),
         'max_filesize' => isset($field_settings['max_filesize']) ? $field_settings['max_filesize'] : NULL,
-        'uri_scheme' => !empty($field_settings['uri_scheme']) ? $field_settings['uri_scheme'] : file_default_scheme(),
+        'uri_scheme' => !empty($field['settings']['uri_scheme']) ? $field['settings']['uri_scheme'] : file_default_scheme(),
       ),
     ),
   );

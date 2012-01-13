@@ -271,7 +271,7 @@ function template_preprocess_media_thumbnail(&$variables) {
   // Set the name for the thumbnail to be the filename.  This is done here so
   // that other modules can hijack the name displayed if it should not be the
   // filename.
-  $variables['element']['#name'] = isset($variables['element']['#file']->filename) ? $variables['element']['#file']->filename : NULL;
+  $variables['element']['#name'] = isset($variables['element']['#file']->filename) ? check_plain($variables['element']['#file']->filename) : NULL;
 }
 
 /**
