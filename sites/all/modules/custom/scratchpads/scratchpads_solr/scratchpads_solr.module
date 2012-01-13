@@ -70,12 +70,10 @@ function scratchpads_solr_theme(){
 
 /**
  * Implementation of hook_page_alter().
- * 
- * FIXME - Need a far better way of doing this.
  */
 function scratchpads_solr_page_alter(&$page){
   try{
-    if(arg(0) == 'literature' && isset($page['content']['system_main']['search_results']['#theme'])){
+    if(isset($page['content']['system_main']['search_results']['#theme'])){
       $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
     }
   }
