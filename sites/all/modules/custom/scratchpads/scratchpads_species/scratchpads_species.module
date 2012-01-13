@@ -164,6 +164,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       'content' => array(
         ''
       ),
+      'subtitle' => $term->field_authors[LANGUAGE_NONE][0]['safe_value'],
       '#contextual_links' => array(
         'taxonomy' => array(
           'taxonomy',
