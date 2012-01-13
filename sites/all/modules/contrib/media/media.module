@@ -190,27 +190,20 @@ function media_menu() {
     'theme callback' => 'media_dialog_get_theme_name',
   );
 
-  $items['media/%media_multi/multiedit'] = array(
-    'title' => 'Multi Edit',
-    'page callback' => 'media_page_multiedit',
-    'page arguments'  => array(1),
-    'access callback' => 'media_access',
-    'access arguments' => array('edit'),
-    'weight' => 0,
-    'file' => 'includes/media.pages.inc',
-  );
+  if (module_exists('multiform')) {
+    // @todo Investigate passing file IDs in query string rather than a menu
+    // argument and then deprecate media_multi_load().
+    $items['admin/content/file/edit-multiple/%media_multi'] = array(
+      'title' => 'Edit multiple files',
+      'page callback' => 'media_file_page_edit_multiple',
+      'page arguments' => array(4),
+      'access callback' => 'media_access',
+      'access arguments' => array('edit'),
+      'file' => 'includes/media.pages.inc',
+    );
+  }
 
   return $items;
-}
-
-/**
- * Implements hook_admin_paths().
- */
-function media_admin_paths() {
-  $paths = array(
-    'media/*/multiedit' => TRUE,
-  );
-  return $paths;
 }
 
 /**
@@ -385,26 +378,37 @@ function media_element_info_alter(&$types) {
 }
 
 /**
- * Implements hook_media_operations().
+ * Implements hook_file_operations_info().
  */
-function media_media_operations() {
-  $operations = array(
-    'delete' => array(
-      'label' => t('Delete'),
-      'callback' => NULL,
-    ),
-    'edit' => array(
-      'label' => t('Edit'),
-      'callback' => NULL,
-      'redirect' => 'media/%fids/multiedit'
-    ),
-  );
+function media_file_operations_info() {
+  $operations = array();
 
-  if (!module_exists('multiform')) {
-    // If the multiform module is not installed, do not show this option.
-    unset($operations['edit']);
+  // If the multiform module is not installed, do not show this option.
+  if (module_exists('multiform')) {
+    $operations['edit_multiple'] = array(
+      'label' => t('Edit selected files'),
+      'callback' => 'media_file_operation_edit_multiple',
+    );
   }
+
   return $operations;
+}
+
+/**
+ * Callback for the edit operation.
+ *
+ * Redirects the user to the edit multiple files page.
+ *
+ * @param array $fids
+ *   An array of file IDs.
+ *
+ * @see media_file_page_edit_multiple()
+ */
+function media_file_operation_edit_multiple($fids) {
+  // The thumbnail browser returns TRUE/FALSE for each item, so use array keys.
+  $fids = array_keys(array_filter($fids));
+  // Note that we add a destination here to prevent normal form redirects.
+  drupal_goto('admin/content/file/edit-multiple/' . implode(' ', $fids), array('query' => drupal_get_destination()));
 }
 
 /**
@@ -415,9 +419,10 @@ function media_forms($form_id, $args) {
   // To support the multiedit form, each form has to have a unique ID.
   // So we name all the forms media_edit_N where the first requested form is
   // media_edit_0, 2nd is media_edit_1, etc.
+  module_load_include('inc', 'file_entity', 'file_entity.pages');
   if ($form_id != 'media_edit' && (strpos($form_id, 'media_edit') === 0)) {
     $forms[$form_id] = array(
-      'callback' => 'media_edit',
+      'callback' => 'file_entity_edit',
     );
   }
   return $forms;
@@ -477,7 +482,7 @@ function media_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
  *   An array of corresponding file entities.
  */
 function media_multi_load($fids) {
-  return file_load_multiple(explode(" ", $fids));
+  return file_load_multiple(explode(' ', $fids));
 }
 
 /**

@@ -31,22 +31,3 @@ function hook_media_browser_plugin_info() {
   );
   return $plugins;
 }
-
-/**
- * Returns an array of operations which can be taken on media items.
- *
- * This is used on the admin/content/media page so users can select multiple
- * items and do something with them.
- *
- * The return format is an array or arrays with the following keys:
- *  - label: The string to be shown to the user.
- *  - callback (optional): A callback to be called when the media items are selected.
- *     Media items will be passed in as an argument.
- *  - redirect (optional): A path to redirect to.  %fids should be in the path
- *     It will be replaced with the fids selected delimited by "+".
- *     i.e. mymodule/%fids/something -> mymodule/1+3+2/something if media items
- *     1, 3 and 2 were selected.
- */
-function media_media_operations() {
-
-}

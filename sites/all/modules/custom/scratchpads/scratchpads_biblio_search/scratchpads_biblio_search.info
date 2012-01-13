@@ -6,3 +6,4 @@ dependencies[] = apachesolr_search
 dependencies[] = facetapi
 dependencies[] = biblio
 dependencies[] = context
+files[] = ScratchpadsBiblioSearchSolrBaseQuery.php

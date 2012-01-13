@@ -871,7 +871,7 @@ function feeds_plugin($plugin, $id) {
   }
   $args = array('%plugin' => $plugin, '@id' => $id);
   if (user_access('administer feeds')) {
-    $args['@link'] = url('admin/structure/feeds/edit/' . $id);
+    $args['@link'] = url('admin/structure/feeds/' . $id);
     drupal_set_message(t('Missing Feeds plugin %plugin. See <a href="@link">@id</a>. Check whether all required libraries and modules are installed properly.', $args), 'warning');
   }
   else {
@@ -902,7 +902,14 @@ function feeds_plugin($plugin, $id) {
  */
 function feeds_include_library($file, $library) {
   static $included = array();
+  static $ignore_deprecated = array('simplepie');
   if (!isset($included[$file])) {
+    // Disable deprecated warning for libraries known for throwing them
+    if (in_array($library, $ignore_deprecated)) {
+       $level = error_reporting();
+       // We can safely use E_DEPRECATED since Drupal 7 requires PHP 5.3+
+       error_reporting($level & ~E_DEPRECATED);
+    }
     // Try first whether libraries module is present and load the file from
     // there. If this fails, require the library from the local path.
     if (module_exists('libraries') && file_exists(libraries_get_path($library) . "/$file")) {
@@ -912,6 +919,10 @@ function feeds_include_library($file, $library) {
       // @todo: Throws "Deprecated function: Assigning the return value of new
       // by reference is deprecated."
       require DRUPAL_ROOT . '/' . drupal_get_path('module', 'feeds') . "/libraries/$file";
+    }
+    // Restore error reporting level
+    if (isset($level)) {
+      error_reporting($level);
     }
   }
   $included[$file] = TRUE;
@@ -943,6 +954,8 @@ function feeds_library_exists($file, $library) {
  * - None of that 'multiple parameters by ref' crazyness.
  * - Don't use module_implements() to allow hot including on behalf
  *   implementations (see mappers/).
+ *
+ * @todo This needs to be removed and drupal_alter() used. This is crazy dumb.
  */
 function feeds_alter($type, &$data) {
   $args = array(&$data);
@@ -951,10 +964,10 @@ function feeds_alter($type, &$data) {
   array_shift($additional_args);
   $args = array_merge($args, $additional_args);
 
+  $hook = $type . '_alter';
   foreach (module_list() as $module) {
-    $function = "{$module}_{$type}_alter";
-    if (function_exists($function)) {
-      call_user_func_array($function, $args);
+    if (module_hook($module, $hook)) {
+      call_user_func_array($module . '_' . $hook, $args);
     }
   }
 }

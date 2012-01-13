@@ -16,7 +16,7 @@
  * \@see user_pass_validate().
  * \@see user_pass_submit().
  *
- * @} End of "defgroup forms".
+ * @}
  */
 
 /**
@@ -156,6 +156,8 @@ function drupal_get_form($form_id) {
  *       automatically loaded by form_get_cache(). By default the current menu
  *       router item's 'file' definition is added, if any. Use
  *       form_load_include() to add include files from a form constructor.
+ *     - base_form_id: Identification for a base form, as declared in a
+ *       hook_forms() implementation.
  *   - rebuild_info: Internal. Similar to 'build_info', but pertaining to
  *     drupal_rebuild_form().
  *   - rebuild: Normally, after the entire form processing is completed and
@@ -3349,6 +3351,13 @@ function form_process_machine_name($element, &$form_state) {
     'replace' => '_',
   );
 
+  // By default, machine names are restricted to Latin alphanumeric characters.
+  // So, default to LTR directionality.
+  if (!isset($element['#attributes'])) {
+    $element['#attributes'] = array();
+  }
+  $element['#attributes'] += array('dir' => 'ltr');
+
   // The source element defaults to array('name'), but may have been overidden.
   if (empty($element['#machine_name']['source'])) {
     return $element;
@@ -3990,7 +3999,7 @@ function theme_form_element_label($variables) {
   $t = get_t();
 
   // If title and required marker are both empty, output no label.
-  if (empty($element['#title']) && empty($element['#required'])) {
+  if ((!isset($element['#title']) || $element['#title'] === '') && empty($element['#required'])) {
     return '';
   }
 

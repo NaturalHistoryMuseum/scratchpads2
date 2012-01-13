@@ -26,30 +26,39 @@ function media_preview_ajax() {
 }
 
 /**
- * Menu callback; presents the Media editing form for multiple file entities.
+ * Menu callback; Edit multiple files on the same page using multiform module.
+ *
+ * @see media_file_operation_edit_multiple()
  */
-function media_page_multiedit($files) {
-  if (!module_exists('multiform')) {
-    drupal_set_message(t('To edit multiple media items, you must install the multiform module.'));
+function media_file_page_edit_multiple($files) {
+  // @todo When http://drupal.org/node/1227706 is fixed, filter the $files
+  // array using file_access($file, 'edit').
+
+  if (empty($files)) {
+    return MENU_ACCESS_DENIED;
   }
-  $i = 0;
+
   $forms = array();
   foreach ($files as $file) {
-    // To maintain unique form_ids, increment this counter.
-    // @see media_forms().
-    $i++;
-    $forms[] = array("media_edit_$i", $file);
+    // To maintain unique form_ids, append the file id.
+    $forms[] = array('media_edit_' . $file->fid, $file);
   }
 
   $form = call_user_func_array('multiform_get_form', $forms);
   $form['#attributes']['class'][] = 'media-multiedit-form';
 
-  unset($form['buttons']['Delete']);
-  // Would be nice to add this to show a message, but not working.
-  // Can debug.
-  //$form['buttons']['Save']['#submit'][] = 'media_page_multiedit_submit';
+  // Add the title to each 'subform'.
+  foreach (element_children($form['multiform']) as $key) {
+    $fid = $form['multiform'][$key]['fid']['#value'];
+    $file = $files[$fid];
+    $title = t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename));
+    $form['multiform'][$key]['#prefix'] = '<h2>' . $title . '</h2>';
+  }
 
-  drupal_set_title(t('Editing multiple media files'));
+  if (isset($form['buttons']['Delete'])) {
+    $form['buttons']['Delete']['#access'] = FALSE;
+  }
+
   return $form;
 }
 

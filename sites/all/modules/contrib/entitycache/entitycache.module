@@ -29,6 +29,16 @@ class EntityCacheControllerHelper extends DrupalDefaultEntityController {
     if (isset($ids)) {
       cache_clear_all($ids, 'cache_entity_' . $controller->entityType);
     }
+    // Give modules the chance to act on any entity.
+    foreach (module_implements('entitycache_reset') as $module) {
+      $function = $module . '_entitycache_reset';
+      $function($ids, $controller->entityType);
+    }
+    // Give modules the chance to act on a specific entity type.
+    foreach (module_implements('entitycache_' . $controller->entityType . '_reset') as $module) {
+      $function = $module . '_entitycache_' . $controller->entityType . '_reset';
+      $function($ids);
+    }
   }
 
   public static function entityCacheLoad($controller, $ids = array(), $conditions = array()) {
@@ -122,7 +132,7 @@ class EntityCacheControllerHelper extends DrupalDefaultEntityController {
     return $entities;
   }
 
-  protected static function entityCacheGet($controller, $ids, $conditions = array()) {
+  public static function entityCacheGet($controller, $ids, $conditions = array()) {
     $cached_entities = array();
     if ($ids && !$conditions) {
       $cached = cache_get_multiple($ids, 'cache_entity_' . $controller->entityType);
@@ -136,7 +146,7 @@ class EntityCacheControllerHelper extends DrupalDefaultEntityController {
     return $cached_entities;
   }
 
-  protected static function entityCacheSet($controller, $entities) {
+  public static function entityCacheSet($controller, $entities) {
     foreach ($entities as $item) {
       cache_set($item->{$controller->idKey}, $item, 'cache_entity_' . $controller->entityType);
     }
@@ -150,7 +160,7 @@ class EntityCacheControllerHelper extends DrupalDefaultEntityController {
    *
    * @see entitycache_entitycache_node_load()
    */
-  protected static function entityCacheAttachLoad($controller, $entities) {
+  public static function entityCacheAttachLoad($controller, $entities) {
     // Give modules the chance to act on any entity.
     foreach (module_implements('entitycache_load') as $module) {
       $function = $module . '_entitycache_load';

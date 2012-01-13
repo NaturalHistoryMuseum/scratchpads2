@@ -7,6 +7,7 @@
 
 function user_admin($callback_arg = '') {
   $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
   switch ($op) {
     case t('Create new account'):
     case 'create':
@@ -204,6 +205,7 @@ function user_admin_account() {
       $users_roles[] = $roles[$user_role->rid];
     }
     asort($users_roles);
+
     $options[$account->uid] = array(
       'username' => theme('username', array('account' => $account)),
       'status' =>  $status[$account->status],

@@ -66,13 +66,22 @@ function field_features_export($data, &$export, $module_name = '') {
             // @TODO: handle the pipe to image styles
           }
         }
+        // If taxonomy field, add in the vocabulary
+        if ($field['field_config']['type'] == 'taxonomy_term_reference' && !empty($field['field_config']['settings']['allowed_values'])) {
+          foreach ($field['field_config']['settings']['allowed_values'] as $allowed_values) {
+            if (!empty($allowed_values['vocabulary'])) {
+              $pipe['taxonomy'][] = $allowed_values['vocabulary'];
+            }
+          }
+        }
       }
     }
   }
+  return $pipe;
 }
 
 /**
- * Implementation of hook_features_export_render().
+ * Implements hook_features_export_render().
  */
 function field_features_export_render($module, $data, $export = NULL) {
   $translatables = $code = array();
@@ -83,7 +92,17 @@ function field_features_export_render($module, $data, $export = NULL) {
     if ($field = features_field_load($identifier)) {
       unset($field['field_config']['columns']);
       unset($field['field_config']['locked']);
-      unset($field['field_config']['storage']);
+      // Only remove the 'storage' declaration if the field is using the default
+      // storage type.
+      if ($field['field_config']['storage']['type'] == variable_get('field_storage_default', 'field_sql_storage')) {
+        unset($field['field_config']['storage']);
+      }
+      // If we still have a storage declaration here it means that a non-default
+      // storage type was altered into to the field definition. And noone would
+      // never need to change the 'details' key, so don't render it.
+      if (isset($field['field_config']['storage']['details'])) {
+        unset($field['field_config']['storage']['details']);
+      }
 
       _field_features_export_sort($field);
       $field_export = features_var_export($field, '  ');
@@ -110,11 +129,17 @@ function field_features_export_render($module, $data, $export = NULL) {
 }
 
 // Helper to enforce consistency in field export arrays.
-function _field_features_export_sort(&$field) {
-  ksort($field);
+function _field_features_export_sort(&$field, $sort = TRUE) {
+
+  // Some arrays are not sorted to preserve order (for example allowed_values).
+  static $sort_blacklist = array('allowed_values');
+
+  if ($sort) {
+    ksort($field);
+  }
   foreach ($field as $k => $v) {
     if (is_array($v)) {
-      _field_features_export_sort($field[$k]);
+      _field_features_export_sort($field[$k], !in_array($k, $sort_blacklist));
     }
   }
 }

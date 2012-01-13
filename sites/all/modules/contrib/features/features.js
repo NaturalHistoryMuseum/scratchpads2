@@ -38,7 +38,7 @@
           .after(' <small class="feature-module-name-suffix">&nbsp;</small>');
         if ($('.feature-module-name').val() === $('.feature-name').val().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+/g, '_') || $('.feature-module-name').val() === '') {
           $('.feature-module-name').parents('.form-item').hide();
-          $('.feature-name').keyup(function() {
+          $('.feature-name').bind('keyup change', function() {
             var machine = $(this).val().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+/g, '_');
             if (machine !== '_' && machine !== '') {
               $('.feature-module-name').val(machine);

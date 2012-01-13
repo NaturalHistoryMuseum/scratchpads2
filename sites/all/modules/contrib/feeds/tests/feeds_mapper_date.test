@@ -67,7 +67,7 @@ class FeedsMapperDateTestCase extends FeedsMapperTestCase {
     $edit = array(
       'allowed_extensions' => 'rss2',
     );
-    $this->drupalPost('admin/structure/feeds/edit/daterss/settings/FeedsFileFetcher', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/daterss/settings/FeedsFileFetcher', $edit, 'Save');
 
     // Import CSV file.
     $this->importFile('daterss', $this->absolutePath() . '/tests/feeds/googlenewstz.rss2');

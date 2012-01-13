@@ -524,7 +524,7 @@ function biblio_admin_settings() {
     '#default_value' => variable_get('biblio_sort_tabs', array('author', 'title', 'type', 'year')),
     '#options' => array(
       'author'  => t('Author'),
-      'keyword' => t('Keyword'),
+      'keyword' => t('Keyword  (<i>Warning: sorting by keyword may produce many duplicates due to the fact that an entry is listed for each keyword attached to it.</i>)'),
       'title'   => t('Title'),
       'type'    => t('Type'),
       'year'    => t('Year')
@@ -1356,7 +1356,7 @@ function biblio_admin_types_form() {
   $output .= theme('table', array('header' => $header, 'rows' => $rows));
   return $output;
 }
-function biblio_admin_types_add_form() {
+function biblio_admin_types_add_form($form, &$form_state) {
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Type Name'),
@@ -1377,9 +1377,11 @@ function biblio_admin_types_add_form() {
     '#value' => t('Create New Type'),
     '#weight' => 3
   );
+
+
   return $form;
 }
-function biblio_admin_types_add_form_submit($form, & $form_state) {
+function biblio_admin_types_add_form_submit($form, &$form_state) {
   $values['name'] = $form_state['values']['name'];
   $values['description'] = $form_state['values']['description'];
   $values['tid'] = variable_get('biblio_max_user_tid', '999') + 1;
@@ -1411,8 +1413,8 @@ function biblio_admin_types_add_form_submit($form, & $form_state) {
 
   // Refresh publication type string for translation.
   biblio_locale_refresh_types($values['tid']);
+  $form_state['redirect'] = 'admin/config/content/biblio/pubtype';
 
-  drupal_goto('admin/config/content/biblio/pubtype');
 }
 function biblio_admin_types_hide() {
   $args = func_get_args();
@@ -1460,7 +1462,8 @@ function biblio_admin_types_delete_form($form, &$form_state, $tid) {
     drupal_goto('admin/config/content/biblio/pubtype');
   }
 }
-function biblio_admin_types_delete_form_submit($form, & $form_state) {
+
+function biblio_admin_types_delete_form_submit($form, &$form_state) {
   db_delete('biblio_types')
     ->condition('tid', $form_state['values']['tid'])
     ->execute();
@@ -1469,8 +1472,9 @@ function biblio_admin_types_delete_form_submit($form, & $form_state) {
     ->condition('tid', $form_state['values']['tid'])
     ->execute();
 
-  drupal_goto('admin/config/content/biblio/pubtype');
+  $form_state['redirect'] = 'admin/config/content/biblio/pubtype';
 }
+
 function biblio_admin_types_reset_form() {
   $form['reset'] = array(
     '#type' => 'value',
@@ -1479,10 +1483,11 @@ function biblio_admin_types_reset_form() {
   $output = confirm_form($form, t('Are you sure you want to reset ALL the field definitions to the defaults?'), isset($_GET['destination']) ? $_GET['destination'] : 'admin/config/content/biblio/fields', t('By doing this, you will loose all customizations you have made to the field titles, <b><u>this action cannot be undone</u></b>!'), t('Reset!'), t('Cancel'));
   return $output;
 }
+
 function biblio_admin_types_reset_form_submit($form, & $form_state) {
   module_load_include('install', 'biblio');
   biblio_reset_types();
-  drupal_goto("admin/config/content/biblio/fields");
+  $form_state['redirect'] = 'admin/config/content/biblio/fields';
 }
 /*
  * This functin is used by both the admin/config/content/biblio page and user profile page
@@ -1753,7 +1758,8 @@ function biblio_admin_author_types_form_submit($form, $form_state) {
         break;
     }
   }
-  drupal_goto('admin/config/content/biblio/author/type');
+  $form_state['redirect'] = 'admin/config/content/biblio/author/type';
+
 }
 
 function biblio_admin_author_type_delete_confirm($form, &$form_state, $type_id) {
@@ -1783,7 +1789,7 @@ function biblio_admin_author_type_delete_confirm_submit($form, &$form_state) {
     ->condition('auth_type', $form_state['values']['auth_type'])
     ->execute();
 
-  drupal_goto('admin/config/content/biblio/author/type');
+  $form_state['redirect'] = 'admin/config/content/biblio/author/type';
 }
 
 function biblio_admin_author_edit_form($form, &$form_state, $author_id) {
@@ -2387,7 +2393,7 @@ function biblio_admin_keyword_delete_confirm_submit($form, &$form_state) {
   $base = variable_get('biblio_base', 'biblio');
   module_load_include('inc', 'biblio', 'includes/biblio.keywords');
   biblio_delete_keyword($form_state['values']['kid']);
-  drupal_goto($base . '/keywords');
+  $form_state['redirect'] = $base . '/keywords';
 }
 
 function biblio_admin_keyword_edit_form_submit($form, &$form_state) {
@@ -2412,11 +2418,11 @@ function biblio_admin_keyword_edit_form_submit($form, &$form_state) {
     case t('Delete'):
       $base = variable_get('biblio_base', 'biblio');
       unset($_GET['destination']);
-      drupal_goto("$base/keyword/" . $form_state['values']['kid'] . '/delete');
+      $form_state['redirect'] = "$base/keyword/" . $form_state['values']['kid'] . '/delete';
       break;
     case t('Cancel'):
       $base = variable_get('biblio_base', 'biblio');
-      drupal_goto($base . '/keywords');
+      $form_state['redirect'] = $base . '/keywords';
       break;
   }
 }

@@ -9,6 +9,8 @@
  */
 function entitycache_schema() {
   $schema = array();
+  // Load the .module file rather than declare this function twice.
+  drupal_load('module', 'entitycache');
   $entities = array_keys(entitycache_supported_core_entities());
   $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
 

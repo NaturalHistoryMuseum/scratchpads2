@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of hook_features_api().
+ * Implements hook_features_api().
  */
 function taxonomy_features_api() {
   return array(
@@ -15,7 +15,7 @@ function taxonomy_features_api() {
 }
 
 /**
- * Implementation of hook_features_export_options().
+ * Implements hook_features_export_options().
  */
 function taxonomy_features_export_options() {
   $vocabularies = array();
@@ -26,7 +26,7 @@ function taxonomy_features_export_options() {
 }
 
 /**
- * Implementation of hook_features_export().
+ * Implements hook_features_export().
  *
  * @todo Test adding existing dependencies.
  */
@@ -56,7 +56,7 @@ function taxonomy_features_export($data, &$export, $module_name = '') {
 }
 
 /**
- * Implementation of hook_features_export_render().
+ * Implements hook_features_export_render().
  */
 function taxonomy_features_export_render($module, $data) {
   $vocabularies = taxonomy_get_vocabularies();
@@ -77,14 +77,14 @@ function taxonomy_features_export_render($module, $data) {
 }
 
 /**
- * Implementation of hook_features_revert().
+ * Implements hook_features_revert().
  */
 function taxonomy_features_revert($module) {
   taxonomy_features_rebuild($module);
 }
 
 /**
- * Implementation of hook_features_rebuild().
+ * Implements hook_features_rebuild().
  *
  * Rebuilds Taxonomy vocabularies from code defaults.
  */

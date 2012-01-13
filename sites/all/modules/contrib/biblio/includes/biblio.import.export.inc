@@ -554,7 +554,13 @@ function biblio_save_node($node, $terms = array(), $batch = FALSE, $session_id =
   }
 
   $node->type = 'biblio';
+  // Persist the node revision log since it will be overridden by
+  // node_object_prepare().
+  $created = !empty($node->created)? $node->created : NULL;
+  $revision_log = !empty($node->log)? $node->log : NULL;
   node_object_prepare($node);
+  $node->created = $created;
+  $node->log = $revision_log;
 
   if (!empty($terms)) {
     foreach ($terms as $key => $value) {

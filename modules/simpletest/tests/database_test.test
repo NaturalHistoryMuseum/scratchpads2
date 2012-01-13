@@ -1454,23 +1454,9 @@ class DatabaseSelectTestCase extends DatabaseTestCase {
   }
 
   /**
-   * Test that a comparison with NULL is always FALSE.
-   */
-  function testNullCondition() {
-    $this->ensureSampleDataNull();
-
-    $names = db_select('test_null', 'tn')
-      ->fields('tn', array('name'))
-      ->condition('age', NULL)
-      ->execute()->fetchCol();
-
-    $this->assertEqual(count($names), 0, t('No records found when comparing to NULL.'));
-  }
-
-  /**
    * Test that we can find a record with a NULL value.
    */
-  function testIsNullCondition() {
+  function testNullCondition() {
     $this->ensureSampleDataNull();
 
     $names = db_select('test_null', 'tn')
@@ -1485,7 +1471,7 @@ class DatabaseSelectTestCase extends DatabaseTestCase {
   /**
    * Test that we can find a record without a NULL value.
    */
-  function testIsNotNullCondition() {
+  function testNotNullCondition() {
     $this->ensureSampleDataNull();
 
     $names = db_select('test_null', 'tn')
@@ -2074,6 +2060,16 @@ class DatabaseSelectComplexTestCase extends DatabaseTestCase {
     $record = $query->execute()->fetch();
     $this->assertEqual($record->$name_field, 'George', t('Correct data retrieved.'));
     $this->assertEqual($record->$age_field, 27, t('Correct data retrieved.'));
+  }
+
+  function testHavingCountQuery() {
+    $query = db_select('test')
+      ->extend('PagerDefault')
+      ->having('age + 1 > 0');
+    $query->addField('test', 'age');
+    $query->addExpression('age + 1');
+    $count = count($query->execute()->fetchCol());
+    $this->assertEqual($count, 4, t('Counted the correct number of records.'));
   }
 
   /**

@@ -238,10 +238,10 @@ function beautytips_manager_build_beautytip($tip) {
       $options['text'] = check_markup($tip->content);
       break;
     case 'ajax':
-      $options['ajaxPath'] = !$tip->content ? "$(this).attr('href')" : array("$(this).attr('href')", check_plain($tip->content));
+      $options['ajaxPath'] = !$tip->content ? "$(this).attr('href')" : array("$(this).attr('href')", filter_xss($tip->content));
       break;
     case 'js':
-      $options['contentSelector'] = check_plain($tip->content);
+      $options['contentSelector'] = filter_xss($tip->content);
       break;
   }
   return $options;

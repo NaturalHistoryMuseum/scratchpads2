@@ -1499,8 +1499,7 @@ function _add_db_field_data_XML() {
 }
 
 function _add_db_field_data() {
-  global $db_type;
-  if ($db_type == 'mysql' or $db_type == 'mysqli') {
+  if (db_driver() == 'mysql' or db_driver() == 'mysqli') {
     db_query("/*!40000 ALTER TABLE {biblio_field_type_data} DISABLE KEYS */;");
     db_query("/*!40000 ALTER TABLE {biblio_fields} DISABLE KEYS */;");
   }
@@ -1565,7 +1564,7 @@ function _add_db_field_data() {
     $result = array('success' => FALSE, 'query' => 'Could not open ' . $csv_file);
   }
 
-  if ($db_type == 'mysql' or $db_type == 'mysqli') {
+  if (db_driver() == 'mysql' or db_driver() == 'mysqli') {
     db_query("/*!40000 ALTER TABLE {biblio_field_type_data} ENABLE KEYS */;");
     db_query("/*!40000 ALTER TABLE {biblio_fields} ENABLE KEYS */;");
   }

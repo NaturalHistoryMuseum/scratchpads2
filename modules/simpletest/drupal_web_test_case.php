@@ -1071,28 +1071,35 @@ class DrupalWebTestCase extends DrupalTestCase {
   }
 
   /**
-   * Create a user with a given set of permissions. The permissions correspond to the
-   * names given on the privileges page.
+   * Create a user with a given set of permissions.
    *
-   * @param $permissions
-   *   Array of permission names to assign to user.
-   * @return
+   * @param array $permissions
+   *   Array of permission names to assign to user. Note that the user always
+   *   has the default permissions derived from the "authenticated users" role.
+   *
+   * @return object|false
    *   A fully loaded user object with pass_raw property, or FALSE if account
    *   creation fails.
    */
-  protected function drupalCreateUser($permissions = array('access comments', 'access content', 'post comments', 'skip comment approval')) {
-    // Create a role with the given permission set.
-    if (!($rid = $this->drupalCreateRole($permissions))) {
-      return FALSE;
+  protected function drupalCreateUser(array $permissions = array()) {
+    // Create a role with the given permission set, if any.
+    $rid = FALSE;
+    if ($permissions) {
+      $rid = $this->drupalCreateRole($permissions);
+      if (!$rid) {
+        return FALSE;
+      }
     }
 
     // Create a user assigned to that role.
     $edit = array();
     $edit['name']   = $this->randomName();
     $edit['mail']   = $edit['name'] . '@example.com';
-    $edit['roles']  = array($rid => $rid);
     $edit['pass']   = user_password();
     $edit['status'] = 1;
+    if ($rid) {
+      $edit['roles'] = array($rid => $rid);
+    }
 
     $account = user_save(drupal_anonymous_user(), $edit);
 
@@ -1319,6 +1326,13 @@ class DrupalWebTestCase extends DrupalTestCase {
     $test_info = &$GLOBALS['drupal_test_info'];
     $test_info['test_run_id'] = $this->databasePrefix;
     $test_info['in_child_site'] = FALSE;
+
+    // Preset the 'install_profile' system variable, so the first call into
+    // system_rebuild_module_data() (in drupal_install_system()) will register
+    // the test's profile as a module. Without this, the installation profile of
+    // the parent site (executing the test) is registered, and the test
+    // profile's hook_install() and other hook implementations are never invoked.
+    $conf['install_profile'] = $this->profile;
 
     include_once DRUPAL_ROOT . '/includes/install.inc';
     drupal_install_system();

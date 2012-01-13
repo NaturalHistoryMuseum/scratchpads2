@@ -9,7 +9,7 @@ function biblio_pm_form_biblio_admin_settings_alter(&$form, &$form_state, $form_
   $form += biblio_pm_settings_form();
 }
 function biblio_pm_form_biblio_node_form_alter(&$form, &$form_state, $form_id) {
-  if (!$form_state['submitted'] && !isset($form_state['values']) && !isset($form['#node']->nid)) {
+  if ((!isset($form_state['biblio_type']) || empty($form_state['biblio_type'])) && !isset($form_state['node']->nid)) {
     $form['biblio_pubmed_lookup'] = array(
         '#type' => 'fieldset',
         '#title' => t('PubMed Lookup'),
@@ -142,6 +142,9 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
       $dup = biblio_pm_check_md5($node->biblio_pubmed_id, $node->biblio_pubmed_md5);
       $action = variable_get('biblio_pm_dup_action', 'newrev');
       if ($dup < 0 && $action == 'newrev') { //entry has be imported before, but may have changed
+        // Load the node in order to preserve all its data and merge the new
+        // data from pubmed.
+        $node = (object) array_merge((array)node_load(-$dup), (array)$node);
         $node->nid = -$dup;
         $node->revision = 1;
         $curr_date = format_date(time());
@@ -153,6 +156,8 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
         $dup = NULL;
       }
       if (!$dup) {
+        // Allows other modules to alter the node before it is being saved. (Note: $article is a SimpleXML object)
+        drupal_alter('biblio_pm_node', $node, $article);
         biblio_save_node($node, $terms, $batch, $session_id);
         if (!empty($node->nid)) $nids[] = $node->nid;
       }

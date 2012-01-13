@@ -58,7 +58,7 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $edit = array(
       'content_type' => '',
     );
-    $this->drupalPost('admin/structure/feeds/edit/user_import/settings', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/user_import/settings', $edit, 'Save');
 
     // Create roles and assign one of them to the users to be imported.
     $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
@@ -73,17 +73,16 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
 
     // Assert result.
-    $this->assertText('Created 4 users');
+    $this->assertText('Created 3 users');
     // 1 user has an invalid email address, all users should be assigned
     // the manager role.
-    $this->assertText('Failed importing 1 user');
+    $this->assertText('Failed importing 2 user');
     $this->drupalGet('admin/people');
     $this->assertText('Morticia');
     $this->assertText('Fester');
     $this->assertText('Gomez');
-    $this->assertText('Pugsley');
     $count = db_query("SELECT count(*) FROM {users_roles} WHERE rid = :rid", array(':rid' => $manager_rid))->fetchField();
-    $this->assertEqual($count, 4, t('All imported users were assigned the manager role.'));
+    $this->assertEqual($count, 3, t('All imported users were assigned the manager role.'));
     $count = db_query("SELECT count(*) FROM {users_roles} WHERE rid = :rid", array(':rid' => $admin_rid))->fetchField();
     $this->assertEqual($count, 0, t('No imported user was assigned the administrator role.'));
 
