@@ -360,6 +360,19 @@ function scratchpads_species_get_tabs(){
   return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_tabs());
 }
 
+function scratchpads_species_get_context_blocks($context){
+  module_load_include('inc', 'scratchpads_species', 'views/scratchpads_species.views_default');
+  $blocks = array();
+  foreach(scratchpads_species_views_default_views() as $view){
+    if(!empty($view->context)){
+      if($view->context == $context){
+        $blocks[] = $view->name . '-block';
+      }
+    }
+  }
+  return $blocks;
+}
+
 /*********************************************************************************************
  * 
  * IMAGE STYLES

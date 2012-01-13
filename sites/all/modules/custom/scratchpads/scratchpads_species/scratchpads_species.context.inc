@@ -64,30 +64,16 @@ function scratchpads_species_context_default_contexts(){
         )
       )
     );
-    switch($name){
-      case 'overview':
-        $blocks = array(
-          'species_nomenclature-block'
-        );
-        break;
-      default:
-        $blocks = array();
-        break;
-    }
-    if(count($blocks)){
+    if(count($blocks = scratchpads_species_get_context_blocks($context->name))){
+      $weight = 0;
       foreach($blocks as $block){
-        $context->reactions = array(
-          'block' => array(
-            'blocks' => array(
-              'views-' . $block => array(
-                'module' => 'views',
-                'delta' => $block,
-                'region' => 'content',
-                'weight' => '0'
-              )
-            )
-          )
+        $context->reactions['block']['blocks']['views-' . $block] = array(
+          'module' => 'views',
+          'delta' => $block,
+          'region' => 'content',
+          'weight' => $weight
         );
+        $weight++;
       }
     }
     $context->condition_mode = 0;
