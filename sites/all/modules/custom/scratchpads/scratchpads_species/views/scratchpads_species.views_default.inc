@@ -8,9 +8,9 @@ function scratchpads_species_views_default_views(){
   $view->tag = '';
   $view->base_table = 'taxonomy_term_data';
   $view->human_name = 'species nomenclature';
-  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
+  $view->context = 'species_overview';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -331,7 +331,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['view_node']['element_label_type'] = 'strong';
   $handler->display->display_options['fields']['view_node']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['view_node']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['view_node']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['view_node']['hide_empty'] = 1;
   $handler->display->display_options['fields']['view_node']['empty_zero'] = 0;
   $handler->display->display_options['fields']['view_node']['hide_alter_empty'] = 1;
   /* Contextual filter: Taxonomy term: Term ID */
