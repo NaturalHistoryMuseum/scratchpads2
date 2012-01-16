@@ -33,25 +33,56 @@ function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities 
 function taxonomy_field_settings_form($field, $instance, $has_data){
   // Get proper values for 'allowed_values_function', which is a core setting.
   $vocabularies = taxonomy_get_vocabularies();
-  $options = array();
-  foreach($vocabularies as $vocabulary){
-    $options[$vocabulary->machine_name] = $vocabulary->name;
-  }
   $form['allowed_values'] = array(
     '#tree' => TRUE
   );
+  $i = 0;
+  $default_values = array();
+  if(isset($field['settings']['allowed_values'])){
+    foreach($field['settings']['allowed_values'] as $value){
+      $default_values[$value['vocabulary']] = $value;
+    }
+  }
   foreach($vocabularies as $vocabulary){
-    $form['allowed_values'][$vocabulary->machine_name]['vocabulary'] = array(
+    $form['allowed_values'][$i]['vocabulary'] = array(
       '#type' => 'checkbox',
       '#title' => check_plain($vocabulary->name),
-      '#default_value' => isset($field['settings']['allowed_values'][$vocabulary->machine_name]['vocabulary']) ? $field['settings']['allowed_values'][$vocabulary->machine_name]['vocabulary'] : '',
+      '#default_value' => isset($default_values[$vocabulary->machine_name]['vocabulary']) ? $default_values[$vocabulary->machine_name]['vocabulary'] : 0,
       '#return_value' => $vocabulary->machine_name,
       '#disabled' => $has_data
     );
-    $form['allowed_values'][$vocabulary->machine_name]['parent'] = array(
+    $form['allowed_values'][$i]['parent'] = array(
       '#type' => 'value',
-      '#value' => isset($field['settings']['allowed_values'][$vocabulary->machine_name]['parent']) ? $field['settings']['allowed_values'][$vocabulary->machine_name]['parent'] : 0
+      '#value' => isset($default_values[$vocabulary->machine_name]['parent']) ? $default_values[$vocabulary->machine_name]['parent'] : 0
     );
+    $i++;
   }
   return $form;
+}
+
+/**
+ * Implementations of hook_form_FORM_ID_alter
+ */
+function taxonomy_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){
+  taxonomy_form_field_ui_field_settings_form_alter($form, $form_state, $form_id);
+}
+
+function taxonomy_form_field_ui_field_settings_form_alter(&$form, &$form_state, $form_id){
+  // We tweak the submit so that we can alter the values array early on.
+  $form['#submit'] = array_merge(array(
+    'taxonomy_field_ui_field_settings_form_submit'
+  ), $form['#submit']);
+}
+
+/**
+ * Tweak the submitted values to ensure the array is keyed from 0.
+ */
+function taxonomy_field_ui_field_settings_form_submit(&$form, &$form_state){
+  $new_settings = array();
+  foreach($form_state['values']['field']['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary']){
+      $new_settings[] = $value;
+    }
+  }
+  $form_state['values']['field']['settings']['allowed_values'] = $new_settings;
 }
