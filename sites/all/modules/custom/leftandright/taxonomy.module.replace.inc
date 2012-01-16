@@ -68,7 +68,7 @@ function taxonomy_form_field_ui_field_edit_form_alter(&$form, &$form_state, $for
 }
 
 function taxonomy_form_field_ui_field_settings_form_alter(&$form, &$form_state, $form_id){
-  if($form['field']['type']['#value'] == 'taxonomy_term_reference'){
+  if(isset($form['field']['type']) && $form['field']['type']['#value'] == 'taxonomy_term_reference'){
     // We tweak the submit so that we can alter the values array early on.
     $form['#submit'] = array_merge(array(
       'taxonomy_field_ui_field_settings_form_submit'
