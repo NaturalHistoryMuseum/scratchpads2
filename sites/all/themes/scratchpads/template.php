@@ -79,12 +79,16 @@ function scratchpads_process_region(&$vars){
   $theme = alpha_get_theme();
   switch($vars['elements']['#region']){
     case 'content':
-      if($theme->page['page']['subtitle']){
+      if(isset($theme->page['page']['subtitle'])){
         $vars['subtitle'] = $theme->page['page']['subtitle'];
+      }else{
+      	$vars['subtitle'] = NULL;
       }
       break;
   }
 }
+
+
 
 
 
