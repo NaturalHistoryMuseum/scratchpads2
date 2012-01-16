@@ -14,6 +14,16 @@ function tui_ajax_form_callback(){
   // up to the #ajax['callback'] function of the element (may or may not be a
   // button) that triggered the Ajax request to determine what needs to be
   // rendered.
+  if($form_state['executed'] && isset($form_state['values']['tui_destination']) && $form_state['values']['tui_destination']){return array(
+      '#type' => 'ajax',
+      '#commands' => array(
+        ajax_command_invoke('html', 'tui_goto', array(
+          url($form_state['values']['tui_destination'], array(
+            'absolute' => TRUE
+          ))
+        ))
+      )
+    );}
   if(!empty($form_state['triggering_element'])){
     $callback = $form_state['triggering_element']['#ajax']['callback'];
   }

@@ -1,4 +1,8 @@
 (function($){
+  // Extend the jQuery object to allow us to redirect.
+  $.prototype.tui_goto = function(url){
+    window.location.href = url;
+  }
   // TUI object.
   Drupal.tui = Drupal.tui || {};
   // Resize frame/window function.

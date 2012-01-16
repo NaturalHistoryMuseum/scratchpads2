@@ -139,10 +139,26 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
         )) . '</div>'
       );
     }
+    // Add the destination as a value so that we can use it later.
+    if(isset($_GET['destination'])){
+      $form['tui_destination'] = array(
+        '#type' => 'value',
+        '#value' => $_GET['destination']
+      );
+    }
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
     // Redirect to the taxonomy editor if trying to edit a single term.
     if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
-      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid']);
+      $options = array();
+      if(isset($_GET['destination'])){
+        $options = array(
+          'query' => array(
+            'destination' => $_GET['destination']
+          )
+        );
+        unset($_GET['destination']);
+      }
+      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid'], $options);
       exit();
     }
   }
