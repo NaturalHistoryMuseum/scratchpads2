@@ -143,7 +143,7 @@ function biblio_views_data() {
     'node' => array(
       'left_field' => 'vid',
       'field' => 'vid',
-      'type'       => 'inner',
+      'type'       => 'left',
     ),
     'node_revision' => array(
       'left_field' => 'vid',
@@ -153,7 +153,7 @@ function biblio_views_data() {
     'biblio' => array(
       'field' => 'vid',
       'left_field' => 'vid',
-      'type'       => 'inner',
+      'type'       => 'left',
     ),
     'users' => array(
       'left_table' => 'biblio_contributor_data',
