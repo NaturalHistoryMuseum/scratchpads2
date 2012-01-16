@@ -184,6 +184,28 @@ function scratchpads_biblio_search_context_default_contexts(){
 }
 
 /**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_biblio_search_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    switch($block->delta){
+      case 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U':
+        $data['subject'] = t('Contributor');
+        break;
+      case 'oAU7juLpy7tz9yH0jXrLldP25ANlraws':
+        $data['subject'] = t('Year');
+        break;
+      case 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo':
+        $data['subject'] = t('Journal Title');
+        break;
+      case 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe':
+        $data['subject'] = t('Type');
+        break;
+    }
+  }
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function scratchpads_biblio_search_ctools_plugin_api(){
