@@ -43,13 +43,15 @@ h2.block-title{
 }
 
 body *{
-  font-weight: normal;
   letter-spacing: normal;
+}
+
+h1, h2, h3, h4, h5, h6{
+  font-weight: normal!important;
 }
 
 h1{
 	font-family: Georgia, serif;
-	font-weight: normal!important;
 	letter-spacing: 0.5px;
 	font-size: 3em;
 	line-height: 1.2em;
@@ -89,11 +91,6 @@ body,
   font-style: italic;
   word-spacing: 0.1em;
 }
-
-h1,h2,h3,h4,h5,h6{
-  font-weight: normal;
-}
-
 
 
 /************************ Layout *********************/ 
