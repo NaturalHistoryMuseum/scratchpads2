@@ -16,6 +16,41 @@ function scratchpads_biblio_search_menu_alter(&$items){
 }
 
 /**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sorts){
+  $default_sorts = array_merge(array(
+    'tus_biblio_year' => array(
+      'title' => t('Year'),
+      'default' => 'desc'
+    ),
+    'tus_biblio_first_author_lastname' => array(
+      'title' => t('First author surname'),
+      'default' => 'asc'
+    )
+  ), $default_sorts);
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
+  // Here we teak the $sortstring to reflect what is set in the $_GET array.
+  $order = isset($_GET['order']) ? $_GET['order'] : t('Authors');
+  switch($order){
+    case t('Year'):
+      $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
+      break;
+    case t('Authors'):
+      $sortstring = 'tus_biblio_first_author_lastname ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+      break;
+    case t('Title'):
+      $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+      break;
+  }
+}
+
+/**
  * Implementation of hook_facetapi_facet_info().
  */
 function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
@@ -146,6 +181,28 @@ function scratchpads_biblio_search_context_default_contexts(){
   $context->condition_mode = 0;
   $export['biblio_search_page'] = $context;
   return $export;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_biblio_search_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    switch($block->delta){
+      case 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U':
+        $data['subject'] = t('Contributor');
+        break;
+      case 'oAU7juLpy7tz9yH0jXrLldP25ANlraws':
+        $data['subject'] = t('Year');
+        break;
+      case 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo':
+        $data['subject'] = t('Journal Title');
+        break;
+      case 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe':
+        $data['subject'] = t('Type');
+        break;
+    }
+  }
 }
 
 /**

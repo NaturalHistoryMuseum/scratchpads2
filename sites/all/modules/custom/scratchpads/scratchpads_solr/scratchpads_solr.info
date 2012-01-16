@@ -7,4 +7,4 @@ dependencies[] = apachesolr_multisitesearch
 dependencies[] = facetapi
 dependencies[] = context
 dependencies[] = scratchpads_pages
-files[] = ScratchpadsBiblioSearchSolrBaseQuery.php
+files[] = ScratchpadsSolrBaseQuery.php
