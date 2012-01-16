@@ -4,4 +4,3 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = scratchpads_solr
 dependencies[] = biblio
-files[] = ScratchpadsBiblioSearchSolrBaseQuery.php

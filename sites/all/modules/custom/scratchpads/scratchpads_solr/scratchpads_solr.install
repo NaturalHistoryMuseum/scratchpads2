@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_solr_install(){
+  // Set the search class to use our extended class.
+  variable_set('apachesolr_query_class', 'ScratchpadsSolrBaseQuery');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_solr_uninstall(){
+  // Reset the variable.
+  variable_set('apachesolr_query_class', 'SolrBaseQuery');
+}
