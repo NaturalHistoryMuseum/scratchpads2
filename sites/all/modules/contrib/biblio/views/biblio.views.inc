@@ -86,12 +86,12 @@ function biblio_views_data() {
       // links directly to node via vid
       'left_field' => 'vid',
       'field'      => 'vid',
-      'type'       => 'inner',
+      'type'       => 'left',
     ),
     'node_revision' => array(
       'left_field' => 'vid',
       'field'      => 'vid',
-      'type'       => 'inner',
+      'type'       => 'left',
     ),
     );
 
