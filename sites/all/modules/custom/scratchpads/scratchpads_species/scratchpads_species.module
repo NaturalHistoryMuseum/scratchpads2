@@ -217,12 +217,16 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
   if($vars['view']->name == 'species_nomenclature'){
     if($vars['field']->table == 'taxonomy_term_data' && $vars['field']->field == 'name'){
       $name = $vars['row']->{$vars['field']->field_alias};
-      $tid = $vars['field']->aliases['tid'];
-      $term = taxonomy_term_load($vars['row']->{$tid});
-      $formatted_name = theme('scratchpads_species_name', array(
-        'term' => $term
-      ));
-      $vars['output'] = str_replace($name, $formatted_name, $vars['output']);
+      if(isset($vars['field']->aliases['tid'])){
+        $tid_field = $vars['field']->aliases['tid'];
+        if(isset($vars['row']->{$tid_field})){
+          $term = taxonomy_term_load($vars['row']->{$tid_field});
+          $formatted_name = theme('scratchpads_species_name', array(
+            'term' => $term
+          ));
+          $vars['output'] = str_replace($name, $formatted_name, $vars['output']);
+        }
+      }
     }
   }
 }
