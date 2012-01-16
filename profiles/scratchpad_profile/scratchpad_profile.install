@@ -1,9 +1,0 @@
-<?php
-
-/**
- * Implements hook_install().
- *
- * Perform actions to set up the site for this profile.
- */
-function scratchpad_profile_install(){
-}
