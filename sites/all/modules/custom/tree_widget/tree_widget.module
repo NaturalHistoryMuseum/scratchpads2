@@ -204,6 +204,8 @@ function theme_options_tree_term($variables){
       $input_type = 'radio';
       if(isset($variables['element']['#default_value'][0])){
         $checkbox_variables['element']['#value'] = $variables['element']['#default_value'][0];
+      }else{
+        $checkbox_variables['element']['#value'] = '';
       }
     }else{
       $input_type = 'checkbox';
@@ -214,6 +216,7 @@ function theme_options_tree_term($variables){
       }
     }
   }
+  dpm($checkbox_variables);
   return '<li>' . theme('options_tree_expand_button', array(
     'field_id' => $variables['element']['#name'],
     'term' => $variables['term'],
