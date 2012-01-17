@@ -95,7 +95,7 @@ function scratchpads_front_views_api(){
   $path = drupal_get_path('module', 'scratchpads_front');
   return array(
     'api' => '3',
-    'path' => $path . '/includes'
+    'path' => $path . '/views'
   );
 }
 
@@ -322,11 +322,14 @@ function scratchpads_front_node_types(){
  * Preprocessor for theme('block').
  */
 function scratchpads_front_preprocess_block(&$vars){
-  // Change the contextual links
-  $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
-    'scratchpads-front/edit',
-    array()
-  );
+  $block = $vars['block'];
+  if(isset($block->context) && $block->context == 'scratchpads_front_page'){
+    // Change the contextual links
+    $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+      'scratchpads-front/edit',
+      array()
+    );
+  }
 }
 
 /*********************************************************************************************
@@ -349,7 +352,6 @@ function scratchpads_front_ctools_plugin_api(){
  * IMAGE STYLES
  * 
  ********************************************************************************************/
-
 /**
  * Implementation of hook_styles_default_styles().
  */

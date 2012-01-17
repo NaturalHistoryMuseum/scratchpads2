@@ -20,7 +20,8 @@ function scratchpads_species_menu(){
       ),
       'access callback' => 'scratchpads_species_access_callback',
       'access arguments' => array(
-        2
+        2,
+        $tab
       ),
       'type' => MENU_LOCAL_TASK,
       'weight' => $weight++,
@@ -28,20 +29,6 @@ function scratchpads_species_menu(){
       'file path' => drupal_get_path('module', 'taxonomy')
     );
   }
-  // Add the empty content toggle
-  $items['taxonomy/term/%taxonomy_term/toggle-empty-blocks'] = array(
-    'title' => 'Toggle empty blocks',
-    'page callback' => 'scratchpads_species_toggle_empty_blocks',
-    'page arguments' => array(
-      2
-    ),
-    'access arguments' => array(
-      'toggle empty blocks'
-    ),
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE
-  );
   return $items;
 }
 
@@ -61,13 +48,15 @@ function scratchpads_species_menu_alter(&$items){
 }
 
 /**
- * Implementation of hook_permission().
+ * 
+ * Implementation of hook_theme
  */
-function scratchpads_species_permission(){
+function scratchpads_species_theme(){
   return array(
-    'toggle empty blocks' => array(
-      'title' => t('toggle empty blocks'),
-      'description' => t('Allows user to turn on & off empty blocks.')
+    'scratchpads_species_name' => array(
+      'variables' => array(
+        'term' => NULL
+      )
     )
   );
 }
@@ -109,18 +98,20 @@ function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
 }
 
+function scratchpads_species_node_type_form_validate($form, $form_state){
+  if($form_state['values']['species_page_display'] && empty($form_state['values']['tabs'])){
+    form_set_error('tabs', t("Please select where on the species page you want this content type to display."));
+  }
+}
+
 function scratchpads_species_node_type_form_submit($form, $form_state){
   if($form_state['values']['species_page_display'] && !empty($form_state['values']['tabs'])){
     variable_set($form_state['var'], $form_state['values']['tabs']);
   }else{
     variable_del($form_state['var']);
   }
-}
-
-function scratchpads_species_node_type_form_validate($form, $form_state){
-  if($form_state['values']['species_page_display'] && empty($form_state['values']['tabs'])){
-    form_set_error('tabs', t("Please select where on the species page you want this content type to display."));
-  }
+  views_flush_caches();
+  menu_rebuild();
 }
 
 /*********************************************************************************************
@@ -136,9 +127,34 @@ function scratchpads_species_title_callback($term){
   }
 }
 
-function scratchpads_species_access_callback($term){
+/**
+ * 
+ * Access callback for species page
+ * Hide tabs on non-species pages & if there's no content 
+ * @param array $term
+ * @param string - tab $op
+ */
+function scratchpads_species_access_callback($term, $op = 'overview'){
   if(scratchpads_species_term_is_biological_classification($term)){
-    return user_access('access content');
+    // Always show these tabs
+    if(in_array($op, array(
+      'overview',
+      'descriptions',
+      'media'
+    )) || scratchpads_blocks_show_placeholders()){
+      return user_access('access content');
+    }else{ // Check if there is content before displaying these tabs
+      $context = 'species_' . $op;
+      if(count($views = scratchpads_species_get_context_views($context))){
+        foreach($views as $view_name){
+          if($view = views_get_view($view_name)){
+            $view->execute();
+            if(count($view->result)){return user_access('access content');}
+          }
+        }
+      }
+      return false;
+    }
   }else{
     return false;
   }
@@ -181,12 +197,6 @@ function scratchpads_species_term_page($term, $op = 'overview'){
   return $build;
 }
 
-function scratchpads_species_toggle_empty_blocks($term){
-  drupal_set_message(t('You have turned on empty blocks on the species pages.'));
-  // Return to the original page
-  drupal_goto(drupal_get_destination());
-}
-
 /*********************************************************************************************
  * 
  * VIEWS
@@ -203,14 +213,61 @@ function scratchpads_species_views_api(){
   );
 }
 
-function scratchpads_species_theme(){
-  return array(
-    'scratchpads_species_name' => array(
-      'variables' => array(
-        'term' => NULL
-      )
-    )
-  );
+/*********************************************************************************************
+ * 
+ * THEME & PREPROCESS FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ * Add in edit links for species pages blocks
+ */
+function scratchpads_species_preprocess_block(&$vars){
+  $block = $vars['block'];
+  if(isset($block->context) && $block->context == 'species_overview' && $block->module == 'views'){
+    $explode = explode('-', $block->delta);
+    if(count($explode) != 2){return;}
+    list($name, $display_id) = $explode;
+    if($view = views_get_view($name)){
+      $view->execute();
+      // If there's only one result, we can try ans provide an edit link
+      if(count($view->result) === 1){
+        switch($view->base_field){
+          case 'tid':
+            $base_link = 'taxonomy/term/';
+            break;
+          case 'nid':
+            $base_link = 'node/';
+            break;
+        }
+        if(isset($view->result[0]->{$view->base_field})){
+          $vars['title_suffix']['contextual_links']['#contextual_links']['species'] = array(
+            $base_link . $view->result[0]->{$view->base_field},
+            array()
+          );
+        }
+      }
+    }
+    unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+  }
+}
+
+function scratchpads_species_preprocess_views_view(&$vars){
+  if(!scratchpads_blocks_show_placeholders()){
+    switch($vars['view']->name){
+      case 'species_nomenclature':
+        // If species slideshow is empty, expand this block
+        if($view = views_get_view('species_slideshow')){
+          $view->execute();
+          if(!count($view->result)){
+            $vars['classes_array'] = array(
+              'grid-8 alpha omega'
+            );
+          }
+        }
+        break;
+    }
+  }
 }
 
 function scratchpads_species_preprocess_views_view_field(&$vars){
@@ -330,13 +387,16 @@ function scratchpads_species_term_is_biological_classification($term){
 
 /**
  * Return a list of node types to display on the species page
+ * If tab is specified, only return items for that tab
  */
-function scratchpads_species_get_node_tabs(){
+function scratchpads_species_get_species_node_types($tab = NULL){
   $node_types = array();
   $node_info = node_type_get_names();
   foreach(array_keys($node_info) as $type){
-    if(variable_get('species_page_' . $type . '_tab', NULL) == 'own'){
-      $node_types[$type] = $node_info[$type];
+    if($node_type_species_tab = variable_get('species_page_' . $type . '_tab', NULL)){
+      if(is_null($tab) || $tab == $node_type_species_tab){
+        $node_types[$type] = $node_info[$type];
+      }
     }
   }
   return $node_types;
@@ -361,20 +421,20 @@ function scratchpads_species_get_default_tabs(){
  * Return a list of species tabs
  */
 function scratchpads_species_get_tabs(){
-  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_node_tabs());
+  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_species_node_types('own'));
 }
 
-function scratchpads_species_get_context_blocks($context){
+function scratchpads_species_get_context_views($context){
   module_load_include('inc', 'scratchpads_species', 'views/scratchpads_species.views_default');
-  $blocks = array();
+  $views = array();
   foreach(scratchpads_species_views_default_views() as $view){
     if(!empty($view->context)){
       if($view->context == $context){
-        $blocks[] = $view->name . '-block';
+        $views[] = $view->name;
       }
     }
   }
-  return $blocks;
+  return $views;
 }
 
 /*********************************************************************************************
