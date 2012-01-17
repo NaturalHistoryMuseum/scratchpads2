@@ -1,35 +1,5 @@
 name = Scratchpad
 description = Install a Scratchpad
 core = 7.x
-dependencies[] = block
-dependencies[] = color
-dependencies[] = comment
-dependencies[] = contextual
-dependencies[] = dashboard
-dependencies[] = help
-dependencies[] = image
-dependencies[] = list
-dependencies[] = menu
-dependencies[] = number
-dependencies[] = options
-dependencies[] = path
-dependencies[] = taxonomy
-dependencies[] = dblog
-dependencies[] = search
-dependencies[] = shortcut
-dependencies[] = toolbar
-dependencies[] = overlay
-dependencies[] = field_ui
-dependencies[] = file
-dependencies[] = rdf
-
-dependencies[] = scratchpads_blocks
-dependencies[] = scratchpads_colour
-dependencies[] = scratchpads_front
-dependencies[] = scratchpads_image_styles
-dependencies[] = scratchpads_search_block
-dependencies[] = scratchpads_user
-dependencies[] = scratchpads_solr
-dependencies[] = scratchpads_pages
-
+dependencies[] = scratchpads_tweaks
 files[] = scratchpad_profile.profile

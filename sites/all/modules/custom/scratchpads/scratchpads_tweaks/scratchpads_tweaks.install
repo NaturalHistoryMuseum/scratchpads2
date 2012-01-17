@@ -1,11 +1,6 @@
 <?php
 
-/**
- * Implements hook_install().
- *
- * Perform actions to set up the site for this profile.
- */
-function scratchpad_profile_install(){
+function scratchpads_tweaks_install(){
   // Add text formats.
   $filtered_html_format = array(
     'format' => 'filtered_html',
