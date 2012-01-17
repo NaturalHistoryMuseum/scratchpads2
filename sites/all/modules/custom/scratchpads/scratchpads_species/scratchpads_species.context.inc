@@ -64,12 +64,13 @@ function scratchpads_species_context_default_contexts(){
         )
       )
     );
-    if(count($blocks = scratchpads_species_get_context_blocks($context->name))){
+    if(count($views = scratchpads_species_get_context_views($context->name))){
       $weight = 0;
-      foreach($blocks as $block){
-        $context->reactions['block']['blocks']['views-' . $block] = array(
+      foreach($views as $view){
+      	$delta = $view . '-block';
+        $context->reactions['block']['blocks']['views-' . $delta] = array(
           'module' => 'views',
-          'delta' => $block,
+          'delta' => $delta,
           'region' => 'content',
           'weight' => $weight
         );
