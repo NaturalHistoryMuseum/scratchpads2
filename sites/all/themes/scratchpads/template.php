@@ -9,20 +9,12 @@
  */
 function scratchpads_block_view_alter(&$data, $block){
   if(isset($data['content']) && $block->module == 'views'){
-    $explode = explode('-', $block->delta);
-    if(count($explode) != 2){return;}
-    list($name, $display_id) = $explode;
-    // Load the view
-    if($view = views_get_view($name)){
-      if(isset($view->display[$display_id]->display_options['css_class'])){
-        $data['class'] = array(
-          $view->display[$display_id]->display_options['css_class']
-        );
-      }elseif(isset($view->display['default']->display_options['css_class'])){
-        $data['class'] = array(
-          $view->display['default']->display_options['css_class']
-        );
-      }
+  	// Move the view classes to the block classes
+    if(preg_match('/<[^>]*\ class="([^"]*)"/', $data['content']['#markup'], $matches)){
+      $data['content']['#markup'] = str_replace($matches[1], 'view-wrapper', $data['content']['#markup']);
+      $data['class'] = array(
+        $matches[1]
+      );
     }
   }
 }
@@ -82,7 +74,7 @@ function scratchpads_process_region(&$vars){
       if(isset($theme->page['page']['subtitle'])){
         $vars['subtitle'] = $theme->page['page']['subtitle'];
       }else{
-      	$vars['subtitle'] = NULL;
+        $vars['subtitle'] = NULL;
       }
       break;
   }
