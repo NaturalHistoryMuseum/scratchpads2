@@ -28,7 +28,6 @@ function scratchpads_species_menu(){
       'file path' => drupal_get_path('module', 'taxonomy')
     );
   }
-
   return $items;
 }
 
@@ -46,8 +45,6 @@ function scratchpads_species_menu_alter(&$items){
     $items['taxonomy/term/%taxonomy_term/devel']['context'] = MENU_CONTEXT_INLINE;
   }
 }
-
-
 
 /**
  * 
@@ -172,8 +169,6 @@ function scratchpads_species_term_page($term, $op = 'overview'){
   return $build;
 }
 
-
-
 /*********************************************************************************************
  * 
  * VIEWS
@@ -189,8 +184,6 @@ function scratchpads_species_views_api(){
     'path' => $path . '/views'
   );
 }
-
-
 
 /*********************************************************************************************
  * 
@@ -228,6 +221,24 @@ function scratchpads_species_preprocess_block(&$vars){
       }
     }
     unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+  }
+}
+
+function scratchpads_species_preprocess_views_view(&$vars){
+  if(!scratchpads_blocks_show_placeholders()){
+    switch($vars['view']->name){
+      case 'species_nomenclature':
+        // If species slideshow is empty, expand this block
+        if($view = views_get_view('species_slideshow')){
+          $view->execute();
+          if(!count($view->result)){
+            $vars['classes_array'] = array(
+              'grid-8 alpha omega'
+            );
+          }
+        }
+        break;
+    }
   }
 }
 

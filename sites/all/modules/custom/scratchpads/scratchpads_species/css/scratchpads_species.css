@@ -4,24 +4,24 @@
 
 /* Nomenclature block */
 
-.view .item-list ul li{
+.block-views .item-list ul li{
   line-height: 2em;
   margin: 0;
 }
 
-.view-species-nomenclature div.label{
+#block-views-species-nomenclature-block div.label{
   float:left;
   clear: left;
   padding-right: 5px;
 }
 
-.view-species-nomenclature strong{
+#block-views-species-nomenclature-block strong{
   font-weight: bold;
 }
 
 /* Slideshow */
 
-.view-species-slideshow{
+.view-species-slideshow .view-wrapper{
   padding: 1px;
   background: #fff;
 }

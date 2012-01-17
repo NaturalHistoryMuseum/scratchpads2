@@ -208,7 +208,7 @@ function scratchpads_blocks_themes_enabled($theme_list){
  * Implements hook_views_pre_view().
  */
 function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
-  if(isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) && $_SESSION[TOGGLE_PLACEHOLDER_SESSION]){
+  if(scratchpads_blocks_show_placeholders()){
     $filters = $view->get_items('filter');
     // If there's one node type filter set, we know how to create the add link
     if(isset($filters['type']) && count($filters['type']['value']) == 1){
@@ -253,7 +253,7 @@ function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
  ********************************************************************************************/
 
 function scratchpads_blocks_toggle_placeholder($term){
-  if(!isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) || !$_SESSION[TOGGLE_PLACEHOLDER_SESSION]){
+  if(!scratchpads_blocks_show_placeholders()){
     $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = TRUE;
     drupal_set_message(t('You have turned on empty blocks.'));
   }else{
@@ -275,6 +275,16 @@ function scratchpads_blocks_block_load($module, $delta){
     ':delta' => $delta,
     ':theme' => SCRATCHPADS_THEME_NAME
   ))->fetchObject();
+}
+
+function scratchpads_blocks_show_placeholders(){
+	
+	if(!isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) || !$_SESSION[TOGGLE_PLACEHOLDER_SESSION]){
+		return false;
+	}
+	
+	return true;
+	
 }
 
 
