@@ -28,20 +28,7 @@ function scratchpads_species_menu(){
       'file path' => drupal_get_path('module', 'taxonomy')
     );
   }
-  // Add the empty content toggle
-  $items['taxonomy/term/%taxonomy_term/toggle-empty-blocks'] = array(
-    'title' => 'Toggle empty blocks',
-    'page callback' => 'scratchpads_species_toggle_empty_blocks',
-    'page arguments' => array(
-      2
-    ),
-    'access arguments' => array(
-      'toggle empty blocks'
-    ),
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE
-  );
+
   return $items;
 }
 
@@ -60,14 +47,18 @@ function scratchpads_species_menu_alter(&$items){
   }
 }
 
+
+
 /**
- * Implementation of hook_permission().
+ * 
+ * Implementation of hook_theme
  */
-function scratchpads_species_permission(){
+function scratchpads_species_theme(){
   return array(
-    'toggle empty blocks' => array(
-      'title' => t('toggle empty blocks'),
-      'description' => t('Allows user to turn on & off empty blocks.')
+    'scratchpads_species_name' => array(
+      'variables' => array(
+        'term' => NULL
+      )
     )
   );
 }
@@ -181,11 +172,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
   return $build;
 }
 
-function scratchpads_species_toggle_empty_blocks($term){
-  drupal_set_message(t('You have turned on empty blocks on the species pages.'));
-  // Return to the original page
-  drupal_goto(drupal_get_destination());
-}
+
 
 /*********************************************************************************************
  * 
@@ -203,14 +190,45 @@ function scratchpads_species_views_api(){
   );
 }
 
-function scratchpads_species_theme(){
-  return array(
-    'scratchpads_species_name' => array(
-      'variables' => array(
-        'term' => NULL
-      )
-    )
-  );
+
+
+/*********************************************************************************************
+ * 
+ * THEME & PREPROCESS FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ * Add in edit links for species pages blocks
+ */
+function scratchpads_species_preprocess_block(&$vars){
+  $block = $vars['block'];
+  if(isset($block->context) && $block->context == 'species_overview' && $block->module == 'views'){
+    $explode = explode('-', $block->delta);
+    if(count($explode) != 2){return;}
+    list($name, $display_id) = $explode;
+    if($view = views_get_view($name)){
+      $view->execute();
+      // If there's only one result, we can try ans provide an edit link
+      if(count($view->result) === 1){
+        switch($view->base_field){
+          case 'tid':
+            $base_link = 'taxonomy/term/';
+            break;
+          case 'nid':
+            $base_link = 'node/';
+            break;
+        }
+        if(isset($view->result[0]->{$view->base_field})){
+          $vars['title_suffix']['contextual_links']['#contextual_links']['species'] = array(
+            $base_link . $view->result[0]->{$view->base_field},
+            array()
+          );
+        }
+      }
+    }
+    unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+  }
 }
 
 function scratchpads_species_preprocess_views_view_field(&$vars){
