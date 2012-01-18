@@ -97,7 +97,8 @@ function scratchpads_pages_form_node_type_form_alter(&$form, &$form_state){
  */
 function scratchpads_pages_page_display_locked_types(){
   return array(
-    'page'
+    'page',
+    'biblio'
   );
 }
 
