@@ -412,7 +412,6 @@ function scratchpads_species_get_default_tabs(){
     'literature' => t('Literature'),
     'maps' => t('Maps'),
     'specimens' => t('Specimens'),
-    'phylogeny' => t('Phylogeny')
   );
   return $tabs;
 }

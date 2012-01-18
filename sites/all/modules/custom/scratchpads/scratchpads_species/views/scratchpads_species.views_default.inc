@@ -898,7 +898,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['nid']['alter']['external'] = 0;
   $handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
   $handler->display->display_options['fields']['nid']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['nid']['alter']['prefix'] = 'There are ';
+  $handler->display->display_options['fields']['nid']['alter']['prefix'] = 'There  ';
   $handler->display->display_options['fields']['nid']['alter']['suffix'] = ' for this taxon.';
   $handler->display->display_options['fields']['nid']['alter']['nl2br'] = 0;
   $handler->display->display_options['fields']['nid']['alter']['word_boundary'] = 1;
@@ -912,13 +912,8 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['nid']['empty_zero'] = 0;
   $handler->display->display_options['fields']['nid']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['nid']['format_plural'] = 1;
-  $handler->display->display_options['fields']['nid']['format_plural_singular'] = '1 record';
-  $handler->display->display_options['fields']['nid']['format_plural_plural'] = '@count records';
-  /* Sort criterion: Content: Post date */
-  $handler->display->display_options['sorts']['created']['id'] = 'created';
-  $handler->display->display_options['sorts']['created']['table'] = 'node';
-  $handler->display->display_options['sorts']['created']['field'] = 'created';
-  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  $handler->display->display_options['fields']['nid']['format_plural_singular'] = 'is 1 record';
+  $handler->display->display_options['fields']['nid']['format_plural_plural'] = 'are @count records';
   /* Contextual filter: Content: Has taxonomy term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
@@ -955,12 +950,206 @@ function scratchpads_species_views_default_views(){
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
   $view = new view();
+  $view->name = 'species_paratype_count';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'Species paratype count';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'Specimens';
+  $handler->display->display_options['group_by'] = TRUE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['query_comment'] = FALSE;
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'list';
+  $handler->display->display_options['style_options']['group_rendered'] = 1;
+  $handler->display->display_options['row_plugin'] = 'fields';
+  /* Field: COUNT(Content: Nid) */
+  $handler->display->display_options['fields']['nid']['id'] = 'nid';
+  $handler->display->display_options['fields']['nid']['table'] = 'node';
+  $handler->display->display_options['fields']['nid']['field'] = 'nid';
+  $handler->display->display_options['fields']['nid']['group_type'] = 'count';
+  $handler->display->display_options['fields']['nid']['label'] = '';
+  $handler->display->display_options['fields']['nid']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['text'] = 'There are ';
+  $handler->display->display_options['fields']['nid']['alter']['make_link'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens';
+  $handler->display->display_options['fields']['nid']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['prefix'] = 'There ';
+  $handler->display->display_options['fields']['nid']['alter']['suffix'] = ' for this taxon.';
+  $handler->display->display_options['fields']['nid']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nid']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nid']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['nid']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['nid']['empty_zero'] = 1;
+  $handler->display->display_options['fields']['nid']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['nid']['separator'] = '';
+  $handler->display->display_options['fields']['nid']['format_plural'] = 1;
+  $handler->display->display_options['fields']['nid']['format_plural_singular'] = 'is 1 paratype';
+  $handler->display->display_options['fields']['nid']['format_plural_plural'] = 'are @count paratypes';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['limit'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['tid']['add_table'] = 0;
+  $handler->display->display_options['arguments']['tid']['require_value'] = 0;
+  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 0;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'specimen_observation' => 'specimen_observation'
+  );
+  /* Filter criterion: Content: Type status (field_type_status) */
+  $handler->display->display_options['filters']['field_type_status_value']['id'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
+    'Paratype' => 'Paratype'
+  );
+  /* Display: Block */
+  $handler = $view->new_display('block', 'Block', 'block');
+  $views[$view->name] = $view;
+  $view = new view();
+  $view->name = 'species_syntype_count';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'Species syntype count';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'Specimens';
+  $handler->display->display_options['group_by'] = TRUE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['query_comment'] = FALSE;
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'list';
+  $handler->display->display_options['style_options']['group_rendered'] = 1;
+  $handler->display->display_options['row_plugin'] = 'fields';
+  /* Field: COUNT(Content: Nid) */
+  $handler->display->display_options['fields']['nid']['id'] = 'nid';
+  $handler->display->display_options['fields']['nid']['table'] = 'node';
+  $handler->display->display_options['fields']['nid']['field'] = 'nid';
+  $handler->display->display_options['fields']['nid']['group_type'] = 'count';
+  $handler->display->display_options['fields']['nid']['label'] = '';
+  $handler->display->display_options['fields']['nid']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['text'] = 'There are ';
+  $handler->display->display_options['fields']['nid']['alter']['make_link'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['path'] = 'taxonomy/term/!1/specimens';
+  $handler->display->display_options['fields']['nid']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['prefix'] = 'There ';
+  $handler->display->display_options['fields']['nid']['alter']['suffix'] = ' for this taxon.';
+  $handler->display->display_options['fields']['nid']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['nid']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['nid']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['nid']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nid']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['nid']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['nid']['empty_zero'] = 1;
+  $handler->display->display_options['fields']['nid']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['nid']['separator'] = '';
+  $handler->display->display_options['fields']['nid']['format_plural'] = 1;
+  $handler->display->display_options['fields']['nid']['format_plural_singular'] = 'is 1 syntype';
+  $handler->display->display_options['fields']['nid']['format_plural_plural'] = 'are @count syntypes';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['limit'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['tid']['add_table'] = 0;
+  $handler->display->display_options['arguments']['tid']['require_value'] = 0;
+  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 0;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'specimen_observation' => 'specimen_observation'
+  );
+  /* Filter criterion: Content: Type status (field_type_status) */
+  $handler->display->display_options['filters']['field_type_status_value']['id'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
+    'Syntype' => 'Syntype'
+  );
+  /* Display: Block */
+  $handler = $view->new_display('block', 'Block', 'block');
+  $views[$view->name] = $view;
+  $view = new view();
   $view->name = 'species_specimens';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'node';
-  $view->context = 'species_overview';
   $view->human_name = 'Species specimens';
+  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -986,6 +1175,68 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['footer']['view']['empty'] = FALSE;
   $handler->display->display_options['footer']['view']['view_to_insert'] = 'species_specimen_count:default';
   $handler->display->display_options['footer']['view']['inherit_arguments'] = 1;
+  /* Footer: Global: View area */
+  $handler->display->display_options['footer']['view_1']['id'] = 'view_1';
+  $handler->display->display_options['footer']['view_1']['table'] = 'views';
+  $handler->display->display_options['footer']['view_1']['field'] = 'view';
+  $handler->display->display_options['footer']['view_1']['empty'] = FALSE;
+  $handler->display->display_options['footer']['view_1']['view_to_insert'] = 'species_paratype_count:default';
+  $handler->display->display_options['footer']['view_1']['inherit_arguments'] = 1;
+  /* Footer: Global: View area */
+  $handler->display->display_options['footer']['view_2']['id'] = 'view_2';
+  $handler->display->display_options['footer']['view_2']['table'] = 'views';
+  $handler->display->display_options['footer']['view_2']['field'] = 'view';
+  $handler->display->display_options['footer']['view_2']['empty'] = FALSE;
+  $handler->display->display_options['footer']['view_2']['view_to_insert'] = 'species_syntype_count:default';
+  $handler->display->display_options['footer']['view_2']['inherit_arguments'] = 1;
+  /* Field: Content: Basis of record */
+  $handler->display->display_options['fields']['field_basis_of_record']['id'] = 'field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['table'] = 'field_data_field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['field'] = 'field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['element_type'] = '0';
+  $handler->display->display_options['fields']['field_basis_of_record']['element_label_type'] = 'strong';
+  $handler->display->display_options['fields']['field_basis_of_record']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_basis_of_record']['element_default_classes'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_basis_of_record']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_basis_of_record']['field_api_classes'] = 0;
+  /* Field: Content: Institution code */
+  $handler->display->display_options['fields']['field_institution_code']['id'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['table'] = 'field_data_field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['field'] = 'field_institution_code';
+  $handler->display->display_options['fields']['field_institution_code']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['element_type'] = '0';
+  $handler->display->display_options['fields']['field_institution_code']['element_label_type'] = 'strong';
+  $handler->display->display_options['fields']['field_institution_code']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_institution_code']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_institution_code']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_institution_code']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_institution_code']['field_api_classes'] = 0;
   /* Field: Content: Collection code */
   $handler->display->display_options['fields']['field_collection_code']['id'] = 'field_collection_code';
   $handler->display->display_options['fields']['field_collection_code']['table'] = 'field_data_field_collection_code';
@@ -1010,30 +1261,54 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_collection_code']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_collection_code']['hide_alter_empty'] = 0;
   $handler->display->display_options['fields']['field_collection_code']['field_api_classes'] = 0;
-  /* Field: Content: Location */
-  $handler->display->display_options['fields']['field_location']['id'] = 'field_location';
-  $handler->display->display_options['fields']['field_location']['table'] = 'field_data_field_location';
-  $handler->display->display_options['fields']['field_location']['field'] = 'field_location';
-  $handler->display->display_options['fields']['field_location']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_location']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_location']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_location']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_location']['element_type'] = '0';
-  $handler->display->display_options['fields']['field_location']['element_label_type'] = 'strong';
-  $handler->display->display_options['fields']['field_location']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['field_location']['element_default_classes'] = 0;
-  $handler->display->display_options['fields']['field_location']['hide_empty'] = 1;
-  $handler->display->display_options['fields']['field_location']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_location']['hide_alter_empty'] = 0;
-  $handler->display->display_options['fields']['field_location']['field_api_classes'] = 0;
+  /* Field: Content: Catalogue number */
+  $handler->display->display_options['fields']['field_catalogue_number']['id'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['table'] = 'field_data_field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['field'] = 'field_catalogue_number';
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['element_type'] = '0';
+  $handler->display->display_options['fields']['field_catalogue_number']['element_label_type'] = 'strong';
+  $handler->display->display_options['fields']['field_catalogue_number']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_catalogue_number']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_catalogue_number']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_catalogue_number']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_catalogue_number']['field_api_classes'] = 0;
+  /* Field: Content: Type status */
+  $handler->display->display_options['fields']['field_type_status']['id'] = 'field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['field'] = 'field_type_status';
+  $handler->display->display_options['fields']['field_type_status']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_type_status']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_type_status']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['element_type'] = '0';
+  $handler->display->display_options['fields']['field_type_status']['element_label_type'] = 'strong';
+  $handler->display->display_options['fields']['field_type_status']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_type_status']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_type_status']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_type_status']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_type_status']['field_api_classes'] = 0;
   /* Sort criterion: Content: Sticky */
   $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
   $handler->display->display_options['sorts']['sticky']['table'] = 'node';
@@ -1069,6 +1344,15 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
     'specimen_observation' => 'specimen_observation'
+  );
+  /* Filter criterion: Content: Type status (field_type_status) */
+  $handler->display->display_options['filters']['field_type_status_value']['id'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
+    'Holotype' => 'Holotype',
+    'Lectotype' => 'Lectotype',
+    'Neotype' => 'Neotype'
   );
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
@@ -1326,9 +1610,7 @@ function scratchpads_species_views_default_views(){
    ********************************************************************************************/
   // Create views for and content type selected to display on the species pages
   foreach(scratchpads_species_get_species_node_types() as $node_type => $name){
-  	
-  	$tab = variable_get('species_page_' . $node_type . '_tab', NULL);
-  	
+    $tab = variable_get('species_page_' . $node_type . '_tab', NULL);
     $view = new view();
     $view->name = 'species_' . $node_type;
     $view->description = '';
