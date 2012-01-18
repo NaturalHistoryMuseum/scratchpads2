@@ -120,17 +120,6 @@ function scratchpads_biblio_search_theme(){
 }
 
 /**
- * Implementation of hook_scratchpads_solr_info().
- */
-function scratchpads_biblio_search_scratchpads_solr_info(){
-  return array(
-    'literature' => array(
-      'theme' => 'scratchpads_biblio_search'
-    )
-  );
-}
-
-/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_biblio_search_context_default_contexts(){
