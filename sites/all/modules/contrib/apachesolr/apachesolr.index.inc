@@ -331,7 +331,7 @@ function apachesolr_index_get_entities_to_index($env_id, $entity_type, $limit) {
 
   if ($table == 'apachesolr_index_entities') {
     // Other, entity-specific tables don't need this condition.
-    $query->condition('aie.entity_type', $type);
+    $query->condition('aie.entity_type', $entity_type);
   }
   $query->range(0, $limit);
   $records = $query->execute();
