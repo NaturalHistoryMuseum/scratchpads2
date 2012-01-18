@@ -186,7 +186,7 @@ input.editor-text {
 
 /* Rows */
 
-div.odd{
+.grid-canvas div.odd{
   background: #F7F7F7!important;
 }
 

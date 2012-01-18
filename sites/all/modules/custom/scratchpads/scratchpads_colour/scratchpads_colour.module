@@ -4,7 +4,7 @@
  * CONSTANTS
  * 
  ********************************************************************************************/
-define('SCRATCHPADS_DEFAULT_COLOUR', '007DB8');
+define('SCRATCHPADS_DEFAULT_COLOUR', '047DB8');
 
 /*********************************************************************************************
  * 
@@ -243,19 +243,19 @@ function scratchpads_colour_preprocess_html(&$vars){
  ********************************************************************************************/
 function scratchpads_colour_default_colours(){
   $default_colours = array(
-    '57508D',
-    '05264E',
-    '164C8C',
-    '007DB8',
-    '48B3CE',
-    '0D481E',
-    '5F8A25',
-    '72B432',
-    'AECB2A',
-    '7C0424',
-    'D22D34',
-    'E57C23',
-    'F8C41B'
+    '1F3661',
+    '154D8C',
+    '047DB8',
+    '2FA7C3',
+    '134823',
+    '5F8B3D',
+    '67A53D',
+    'A5C033',
+    '7C1227',
+    'B72932',
+    'E47C25',
+    'E9B61E',
+    '57508E'
   );
   // Use values for keys
   return array_combine($default_colours, $default_colours);
