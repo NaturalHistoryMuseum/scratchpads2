@@ -240,7 +240,7 @@ function scratchpads_species_preprocess_block(&$vars){
             $base_link = 'node/';
             break;
         }
-        if(isset($view->result[0]->{$view->base_field})){
+        if(isset($base_link) && isset($view->result[0]->{$view->base_field})){
           $vars['title_suffix']['contextual_links']['#contextual_links']['species'] = array(
             $base_link . $view->result[0]->{$view->base_field},
             array()
@@ -411,7 +411,7 @@ function scratchpads_species_get_default_tabs(){
     'media' => t('Media'),
     'literature' => t('Literature'),
     'maps' => t('Maps'),
-    'specimens' => t('Specimens'),
+    'specimens' => t('Specimens')
   );
   return $tabs;
 }
@@ -424,14 +424,28 @@ function scratchpads_species_get_tabs(){
 }
 
 function scratchpads_species_get_context_views($context){
-  module_load_include('inc', 'scratchpads_species', 'views/scratchpads_species.views_default');
   $views = array();
-  foreach(scratchpads_species_views_default_views() as $view){
+  foreach(scratchpads_species_get_all_views() as $view){
     if(!empty($view->context)){
       if($view->context == $context){
         $views[] = $view->name;
       }
     }
+  }
+  return $views;
+}
+
+/**
+ * 
+ * Get a list of all views
+ * Can't use views_get_all_views() as it's indexed & sorted by name
+ * Use the view definition order to provide block weight
+ */
+function scratchpads_species_get_all_views(){
+  views_module_include('views_default');
+  static $views = array();
+  if(!count($views)){
+    $views = module_invoke_all('views_default_views');
   }
   return $views;
 }
