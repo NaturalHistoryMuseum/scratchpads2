@@ -53,10 +53,13 @@
     padding: 0 10px;
 }
 
-#block-views-species-specimens-block .view-content{
+#block-views-species-specimens-overview-block .view-content{
   display: inline-block;
 }
 
-#block-views-species-specimens-block .view-footer{
+#block-views-species-specimens-overview-block .view-footer{
   float:right;
 }
+
+
+
