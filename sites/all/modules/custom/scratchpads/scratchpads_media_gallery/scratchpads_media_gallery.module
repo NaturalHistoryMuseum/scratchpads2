@@ -1,0 +1,98 @@
+<?php
+include_once ('scratchpads_media_gallery.features.inc');
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_media_gallery_menu_alter(&$items){
+  $items['media']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['media']['weight'] = 1;
+  $items['media']['type'] = MENU_NORMAL_ITEM;
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_media_gallery_scratchpads_solr_info(){
+  return array(
+    'media' => array(
+      'theme' => 'scratchpads_media_gallery'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_media_gallery_theme(){
+  return array(
+    'scratchpads_media_gallery' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_media_gallery.theme.inc'
+    )
+  );
+}
+
+
+/**
+ * Implementation of hook_apachesolr_update_index($document, $node, $namespace) {
+function scratchpads_media_gallery_apachesolr_update_index($document, $node, $namespace){
+  if($node->type == 'biblio'){
+    foreach($node as $key => $value){
+      if(substr($key, 0, 7) == 'biblio_'){
+        switch($key){
+          case 'biblio_secondary_title':
+            $value = trim($value);
+            // We insert this text into the 'biblio_secondary_title' table, and
+            // use the tsid instead.
+            $results = db_select('biblio_secondary_title', 'b')->fields('b')->condition('secondary_title', $value)->execute()->fetch();
+            if($results){
+              $bstid = $results->bstid;
+            }else{
+              $record = array(
+                'secondary_title' => $value
+              );
+              drupal_write_record('biblio_secondary_title', $record);
+              $bstid = $record['bstid'];
+            }
+            $document->addField('im_biblio_secondary_title', $bstid);
+            break;
+          default:
+            if(is_string($value)){
+              $document->addField("tus_$key", $value);
+            }else if(is_array($value)){
+              switch($key){
+                case 'biblio_contributors':
+                  $set_first_author_surname = TRUE;
+                  foreach($value as $contributor){
+                    if($set_first_author_surname){
+                      $document->addField('tus_biblio_first_author_lastname', $contributor['lastname']);
+                      $set_first_author_surname = FALSE;
+                    }
+                    $document->addField('im_biblio_contributor', $contributor['cid']);
+                  }
+                  break;
+              }
+            }
+            break;
+        }
+      }
+    }
+    $style = biblio_get_style();
+    $base = variable_get('biblio_base', 'biblio');
+    $document->content .= strip_tags(theme('biblio_long', array(
+      'node' => $node,
+      'base' => $base,
+      'style' => $style
+    )));
+    $document->teaser .= strip_tags(theme('biblio_style', array(
+      'node' => $node,
+      'base' => $base,
+      'style_name' => $style
+    )));
+  }
+}
+ */
