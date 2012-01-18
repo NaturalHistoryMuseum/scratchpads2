@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Implements apachesolr_update_index
+ * Implements hook_apachesolr_index_document_build_node()
  */
-function apachesolr_access_apachesolr_update_index(&$document, $node, $namespace) {
+function apachesolr_access_apachesolr_index_document_build_node($document, $node, $env_id) {
   $account = &drupal_static(__FUNCTION__);
 
   if (!isset($account)) {
@@ -23,7 +23,7 @@ function apachesolr_access_apachesolr_update_index(&$document, $node, $namespace
   else {
     // Add the generic view grant if we are not using
     // node access or the node is viewable by anonymous users.
-    // We assume we'll never have an entity with the name '_all'.
+    // We assume we'll never have an entity with the name '__all'.
     $document->setMultiValue('access__all', 0);
   }
 }
@@ -39,7 +39,7 @@ function apachesolr_access_build_subquery($account) {
   if (!user_access('access content', $account)) {
     throw new Exception('No access');
   }
-  $node_access_query = new SolrFilterSubQuery();
+  $node_access_query = apachesolr_drupal_subquery();
   if (user_access('bypass node access', $account)) {
     // Access all content from the current site, or public content.
     $node_access_query->addFilter('access__all', 0);
@@ -100,7 +100,7 @@ function apachesolr_access_node_access_records($node) {
   // full rebuild.
   if (empty($node->apachesolr_access_node_ignore) && !node_access_needs_rebuild()) {
     // Only one node is being changed - mark for re-indexing.
-    apachesolr_mark_node($node->nid);
+    apachesolr_mark_entity('node', $node->nid);
   }
 }
 
@@ -121,7 +121,8 @@ function apachesolr_access_form_alter(&$form, $form_state, $form_id) {
  */
 function apachesolr_access_rebuild_nodeaccess(&$form, $form_state) {
   drupal_set_message(t('Solr search index will be rebuilt.'));
-  apachesolr_clear_last_index();
+  // Clear last updated
+  apachesolr_index_set_last_updated();
 }
 
 function apachesolr_access_enable() {

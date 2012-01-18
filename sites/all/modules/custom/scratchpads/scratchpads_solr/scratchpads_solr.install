@@ -5,7 +5,11 @@
  */
 function scratchpads_solr_install(){
   // Set the search class to use our extended class.
-  variable_set('apachesolr_query_class', 'ScratchpadsSolrBaseQuery');
+  variable_set('apachesolr_query_class', array(
+    'file' => 'Solr_Base_Query',
+    'module' => 'apachesolr',
+    'class' => 'ScratchpadsSolrBaseQuery'
+  ));
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
@@ -18,5 +22,5 @@ function scratchpads_solr_install(){
  */
 function scratchpads_solr_uninstall(){
   // Reset the variable.
-  variable_set('apachesolr_query_class', 'SolrBaseQuery');
+  variable_del('apachesolr_query_class');
 }

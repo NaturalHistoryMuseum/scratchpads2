@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ *   Dummy object to simulate a Solr Service
+ *
+ */
 class DummySolr {
   function getId() {
     return __CLASS__;

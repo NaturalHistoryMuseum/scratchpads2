@@ -29,7 +29,7 @@ class ApacheSolrFacetapiDate extends FacetapiQueryTypeDate implements FacetapiQu
   public function execute($query) {
     // Gets the data range in formats that Solr understands.
     $date_range = $this->getDateRange($query);
-    if(empty($date_range)) {
+    if (empty($date_range)) {
       return;
     }
     list($start, $end, $gap) = $date_range;

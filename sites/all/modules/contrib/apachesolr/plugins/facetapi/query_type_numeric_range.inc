@@ -10,6 +10,7 @@
  */
 class ApacheSolrFacetapiNumericRange extends FacetapiQueryType implements FacetapiQueryTypeInterface {
 
+  private $single_key;
   /**
    * Returns the query type associated with the plugin.
    *
@@ -32,13 +33,17 @@ class ApacheSolrFacetapiNumericRange extends FacetapiQueryType implements Faceta
     //
     $settings = $this->adapter->getFacet($this->facet)->getSettings();
     $active = $this->adapter->getActiveItems($this->facet);
+
+    $singular_field_info = $this->facet['map options'];
+    $singular_field_info['multiple'] = FALSE;
+    $this->single_key = apachesolr_index_key($singular_field_info);
     // See:  http://wiki.apache.org/solr/StatsComponent
     $query->addParam('stats', 'true');
-    $query->addParam('stats.field', $this->facet['field']);
-    $query->addParam('stats.facet', $this->facet['field']);
+    $query->addParam('stats.field', $this->single_key);
+    $query->addParam('stats.facet', $this->single_key);
     // Range filters don't support OR operator.
     foreach ($active as $value => $item) {
-      $query->addFilter($this->facet['field'], $value);
+      $query->addFilter($this->single_key, $value);
     }
   }
 
@@ -50,22 +55,35 @@ class ApacheSolrFacetapiNumericRange extends FacetapiQueryType implements Faceta
    */
   public function build() {
     $build = array();
-    if ($response = apachesolr_static_response_cache($this->adapter->getSearcher())) {
+    // Per key we save our statistics result
+    $cache = cache_get('stats_' . $this->single_key, 'cache_apachesolr');
+    $stats_minmax = array();
 
-      //we need an additional query for the statistics of the field
+    if (!isset($cache->data)) {
+      // we need an additional query for the statistics of the field
       // We can optionally specify a Solr object.
       $solr = apachesolr_get_solr();
+
+      // We possibly need some caching for this query
       $query_stats = apachesolr_drupal_query('apachesolr_stats', array(), '', '', $solr);
       $query_stats->addParam('stats', 'true');
-      $query_stats->addParam('stats.field', $this->facet['field']);
-      $query_stats->addParam('stats.facet', $this->facet['field']);
+      $query_stats->addParam('stats.field', $this->single_key);
+      $query_stats->addParam('stats.facet', $this->single_key);
       $response_stats = $query_stats->search();
-      if ($response_stats->response) {
-        $stats_minmax = $response_stats->stats->stats_fields->{$this->facet['field']};
-      }
 
-      if (isset($response->stats->stats_fields->{$this->facet['field']})) {
-        $stats = (array) $response->stats->stats_fields->{$this->facet['field']};
+      if ($response_stats->response) {
+        $stats_minmax = $response_stats->stats->stats_fields->{$this->single_key};
+        cache_set('stats_' . $this->single_key, $stats_minmax, 'cache_apachesolr');
+      }
+    }
+    else {
+      // Set our statistics from the cache
+      $stats_minmax = $cache->data;
+    }
+
+    if ($response = apachesolr_static_response_cache($this->adapter->getSearcher())) {
+      if (isset($response->stats->stats_fields->{$this->single_key})) {
+        $stats = (array) $response->stats->stats_fields->{$this->single_key};
         foreach ($stats as $key => $val) {
           $build[$this->facet['field']]['#range_' . $key] = $val;
           $build[$this->facet['field']]['#global_range_' . $key] = $stats_minmax->$key;

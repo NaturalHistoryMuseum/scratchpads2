@@ -62,11 +62,17 @@ function apachesolr_search_page_list_pages() {
   );
 
   $search_pages = apachesolr_search_load_all_search_pages();
+  $default_search_page = apachesolr_search_default_search_page();
   foreach ($search_pages as $search_page) {
     $row = array();
 
     // Add the label
     $label = check_plain($search_page['label']);
+    // Is this row our default environment?
+    if ($search_page['page_id'] == $default_search_page) {
+      $label = t('!search_page <em>(Default)</em>', array('!search_page' => $label));
+    }
+
     $row[] = $label;
     // Add the link
     $row[] = array(
@@ -227,6 +233,18 @@ function apachesolr_search_page_settings_form($form, &$form_state, $search_page 
     ),
   );
 
+  $is_default = FALSE;
+  if (!empty($search_page)) {
+    $is_default = $search_page->page_id == apachesolr_search_default_search_page();
+  }
+  $form['make_default'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Make this Solr Search Page the default'),
+    '#description' => t('Useful for eg. making facets to link to this page when they are shown on non-search pages'),
+    '#default_value' => $is_default,
+    '#disabled' => $is_default,
+  );
+
   $form['info'] = array(
     '#title' => t('Search Page Information'),
     '#type' => 'fieldset',
@@ -357,6 +375,15 @@ function apachesolr_search_page_settings_form($form, &$form_state, $search_page 
     '#default_value' => $default_value,
   );
 
+  // Enable/disable search form on search page (replaced by a block perhaps)
+  $default_value = isset($search_page->settings['apachesolr_search_allow_user_input']) ? $search_page->settings['apachesolr_search_allow_user_input'] : FALSE;
+  $form['advanced']['apachesolr_search_allow_user_input'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow user input using the URL'),
+    '#description' => t('Allow users to use the URL (mysite.com?q=test&fq=userinput) for manual facetting. This will only work after a search term is searched. Recommended is to leave this unchecked'),
+    '#default_value' => $default_value,
+  );
+
   // Use the main search page setting as the default for new pages.
   $default_value = isset($search_page->settings['apachesolr_search_browse']) ? $search_page->settings['apachesolr_search_browse'] : 'browse';
   $form['advanced']['apachesolr_search_browse'] = _apachesolr_search_browse_form($default_value);
@@ -455,9 +482,11 @@ function apachesolr_search_page_settings_form_submit($form, &$form_state) {
   $settings['apachesolr_search_per_page'] = $form_state['values']['apachesolr_search_per_page'];
   $settings['apachesolr_search_browse'] = $form_state['values']['apachesolr_search_browse'];
   $settings['apachesolr_search_spellcheck'] = $form_state['values']['apachesolr_search_spellcheck'];
+  $settings['apachesolr_search_allow_user_input'] = $form_state['values']['apachesolr_search_allow_user_input'];
 
-  if (isset($form_state['values']['search_page']->settings)) {
-    $settings = array_merge($form_state['values']['search_page']->settings, $settings);
+  // Set the default search page settings
+  if (!empty($form_state['values']['make_default']) && isset($form_state['values']['page_id'])) {
+    variable_set('apachesolr_search_default_search_page', $form_state['values']['page_id']);
   }
 
   $search_page = new stdClass();
@@ -656,7 +685,6 @@ function apachesolr_search_bias_form_submit(&$form, &$form_state) {
         case 'apachesolr_search_comment_boost' :
         case 'apachesolr_search_changed_boost' :
         case 'apachesolr_search_type_boosts' :
-        case 'apachesolr_search_excluded_types' :
         case 'field_bias' :
           apachesolr_environment_variable_set($form['#env_id'], $key, $value);
       }
@@ -703,8 +731,8 @@ function apachesolr_search_result_bias_form($env_id) {
   $weights = drupal_map_assoc(array('21.0', '13.0', '8.0', '5.0', '3.0', '2.0', '1.0', '0.8', '0.5', '0.3', '0.2', '0.1'));
   $weights['0'] = t('Ignore');
 
- $form = array();
- $form['result_bias'] = array(
+  $form = array();
+  $form['result_bias'] = array(
     '#type' => 'fieldset',
     '#title' => t('Result biasing'),
     '#collapsible' => TRUE,
@@ -754,6 +782,7 @@ function apachesolr_search_result_bias_form($env_id) {
  * Form builder function to set query field weights.
  */
 function apachesolr_search_field_bias_form($fields, $env_id) {
+  $form = array();
   // get the current weights
   $defaults = array(
     'content' => '1.0',
@@ -849,59 +878,8 @@ function apachesolr_search_type_boost_form($env_id) {
     );
   }
 
-  $form['type_boost']['apachesolr_search_excluded_types'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Types to exclude from the search index'),
-    '#options' => $names,
-    '#default_value' => apachesolr_environment_variable_get($env_id, 'apachesolr_search_excluded_types', array()),
-    '#description' => t("Specify here which node types should be totally excluded from the search index. Content excluded from the index will never appear in any search results."),
-  );
-  $form['#original_excluded_types'] =  $form['type_boost']['apachesolr_search_excluded_types']['#default_value'];
-
-  $form['#submit'][] = 'apachesolr_search_type_boost_form_submit';
-
   return $form;
 }
-
-/**
- * Submit callback for apachesolr_search_type_boost_form().
- *
- * This is called before system_settings_form_submit().
- */
-function apachesolr_search_type_boost_form_submit($form, &$form_state) {
-  $old_excluded_types = $form['#original_excluded_types'];
-  $new_excluded_types = $form_state['values']['apachesolr_search_excluded_types'];
-  // Check whether we are resetting the values.
-  if ($form_state['clicked_button']['#value'] == t('Reset to defaults')) {
-    $new_excluded_types = array();
-  }
-
-  foreach ($new_excluded_types as $type => $excluded) {
-    // Remove newly omitted node types.
-    // Note - we omit a check on empty($old_excluded_types[$type]) so that
-    // the admin can re-submit this page if the delete operation fails.
-    if (!empty($new_excluded_types[$type])) {
-      try {
-        $solr = apachesolr_get_solr($form['#env_id']);
-        $solr->deleteByQuery("bundle:$type");
-        apachesolr_index_set_last_updated(REQUEST_TIME);
-      }
-      catch (Exception $e) {
-        watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
-        drupal_set_message(t('The Apache Solr search engine is not available. Please contact your site administrator.'), 'error');
-      }
-    }
-  }
-
-  foreach ($old_excluded_types as $type => $excluded) {
-    // Set no longer omitted node types for reindexing.
-    if (empty($new_excluded_types[$type]) && !empty($old_excluded_types[$type])) {
-      $nids = db_select('node')->fields('node', array('nid'))->condition('type', $type);
-      db_update('apachesolr_search_node')->fields(array('changed' => REQUEST_TIME))->condition('nid', $nids, 'IN')->execute();
-    }
-  }
-}
-
 
 /**
  * MoreLikeThis administration and utility functions.
@@ -1034,11 +1012,9 @@ function apachesolr_search_mlt_delete_block_form_submit($form, &$form_state) {
  * @param int $delta If editing, the id of the block to edit.
  *
  * @return array The form used for editing.
- * TODO:
- *   Add term boost settings.
- *   Enable the user to specify a query, rather then forcing suggestions based
- *     on the node id.
- *
+ * @todo Add term boost settings.
+ * @todo Enable the user to specify a query, rather then forcing suggestions
+ *  based on the node id.
  */
 function apachesolr_search_mlt_block_form($block_id = NULL) {
   if (!empty($block_id)) {

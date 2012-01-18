@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_media_gallery_install(){
+  // Add a taxonomy search page to the database
+  $fields = array(
+    'page_id' => 'media_gallery',
+    'label' => 'Media gallery',
+    'description' => 'Search the site\'s literature.',
+    'search_path' => 'literature',
+    'env_id' => 'solr',
+    'page_title' => 'Literature',
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file, bundle:(image OR video)'
+      ),
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  );
+  db_insert('apachesolr_search_page')->fields($fields)->execute();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_biblio_search_uninstall(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
+}

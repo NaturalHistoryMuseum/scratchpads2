@@ -9,7 +9,7 @@
 /**
  * Implements hook_schema().
  */
-function apachesolr_file_schema() {
+function apachesolr_term_schema() {
   $types = array(
       'term' => 'apachesolr_index_entities_term',
   );

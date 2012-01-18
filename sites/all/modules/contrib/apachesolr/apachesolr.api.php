@@ -1,6 +1,7 @@
 <?php
 /**
- * Exposed Hooks in 7.x:
+ * @file
+ *   Exposed Hooks in 7.x:
  */
 
 /**
@@ -13,7 +14,7 @@
  * This is otherwise the same as HOOK_apachesolr_query_alter(), but runs before
  * it.
  *
- * @param $query
+ * @param object $query
  *  An object implementing DrupalSolrQueryInterface. No need for &.
  */
 function hook_apachesolr_query_prepare($query) {
@@ -34,7 +35,7 @@ function hook_apachesolr_query_prepare($query) {
  * A module implementing HOOK_apachesolr_query_alter() may set
  * $query->abort_search to TRUE to flag the query to be aborted.
  *
- * @param $query
+ * @param object $query
  *   An object implementing DrupalSolrQueryInterface. No need for &.
  */
 function hook_apachesolr_query_alter($query) {
@@ -46,9 +47,18 @@ function hook_apachesolr_query_alter($query) {
 }
 
 /**
+ * Assigns a readable name to your custom solr field
+ *
+ * @param array $map
+ */
+function hook_apachesolr_field_name_map_alter(&$map) {
+  $map['xs_node'] = t('The full node object');
+}
+
+/**
  * Alter hook for apachesolr_field_mappings().
  *
- * Add or alter index mappings for Field API types. The default mappings array
+ * Add index mappings for Field API types. The default mappings array
  * handles just list fields and taxonomy term reference fields, such as:
  *
  * $mappings['list_text'] = array(
@@ -58,7 +68,7 @@ function hook_apachesolr_query_alter($query) {
  *   'facets' => TRUE,
  * ),
  *
- * In your _alter hook implementation you can add additional field types such
+ * In your implementation you can add additional field types such
  * as:
  *
  * $mappings['number_integer']['number'] = array('indexing_callback' => '', 'index_type' => 'integer', 'facets' => TRUE);
@@ -77,72 +87,97 @@ function hook_apachesolr_query_alter($query) {
  * can change the 'facets' parameter to FALSE, like:
  *
  * $mappings['number_integer']['number'] = array('callback' => '', 'index_type' => 'integer', 'facets' => FALSE);
+
+ * @return array $mappings
+ *   An associative array of mappings as defined by modules that implement
+ *   hook_apachesolr_field_mappings().
+ */
+function hook_apachesolr_field_mappings() {
+  $mappings = array();
+  $default = array(
+    'indexing_callback' => 'apachesolr_date_default_indexing_callback',
+    'index_type' => 'date',
+    'facets' => TRUE,
+    'query types' => array('date'),
+    'query type' => 'date',
+    'min callback' => 'apachesolr_get_min_date',
+    'max callback' => 'apachesolr_get_max_date',
+    'map callback' => 'facetapi_map_date',
+  );
+
+  // DATE and DATETIME fields can use the same indexing callback.
+  $mappings['date'] = $default;
+  $mappings['datetime'] = $default;
+
+  // DATESTAMP fields need a different callback.
+  $mappings['datestamp'] = $default;
+  $mappings['datestamp']['indexing_callback'] = 'apachesolr_datestamp_default_indexing_callback';
+
+  return $mappings;
+}
+
+/**
+ * Alter hook for apachesolr_field_mappings().
+ *
+ * Add or alter index mappings for Field API types. The default mappings array
+ * handles just list fields and taxonomy term reference fields, in the same way
+ * as documented in hook_apachesolr_field_mappings.
  *
  * @param array $mappings
  *   An associative array of mappings as defined by modules that implement
  *   hook_apachesolr_field_mappings().
  */
-function hook_apachesolr_field_mappings_alter(&$mappings) {
+function hook_apachesolr_field_mappings_alter(&$mappings, $entity_type) {
+  // Enable indexing for text fields
+  $mappings['text'] = array(
+    'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
+    'map callback' => '',
+    'index_type' => 'string',
+    'facets' => TRUE,
+    'facet missing allowed' => TRUE,
+    'dependency plugins' => array('bundle', 'role'),
+    'hierarchy callback' => FALSE,
+    'name_callback' => '',
+    'facet mincount allowed' => FALSE,
+    // Field API allows any field to be multi-valued.
+    // If we set this to false we are able to sort
+    'multiple' => FALSE,
+  );
+
+  // Add our per field mapping here so we can sort on the
+  // price by making it single. Solr cannot sort on multivalued fields
+  // field_price is our identifier of a custom field, and it was decided to
+  // index in the same way as a number_float field.
+  $mappings['per-field']['field_price'] = $mappings['number_float'];
+  $mappings['per-field']['field_price']['multiple'] = FALSE;
 }
 
 /**
- * Invoked by apachesolr.module when generating a list of nodes to index for a
- * given namespace.  Return an array of node types to be excluded from indexing
- * for that namespace (e.g. 'apachesolr_search'). This is used by
- * apachesolr_search module to exclude certain node types from the index.
+ * Add information to index other entities
  *
- * @param string $namespace
- *   Usually the calling module (eg. 'apachesolr_search').
- *
- * @return array
- *   An array containing node types to be excluded from indexing.
+ * @param array $entity_info
  */
-function hook_apachesolr_types_exclude($namespace) {
-  // Do not index any nodes of type 'Basic Page'.
-  return array('page');
+function hook_apachesolr_entity_info_alter(&$entity_info) {
+  $entity_info['myentity']['indexable'] = TRUE;
+  $entity_info['myentity']['status callback'] = 'my_module_status_callback';
+  $entity_info['myentity']['document callback'][] = 'my_module_document';
+  $entity_info['myentity']['reindex callback'] = 'my_module_reindex';
+
+  // Following values are optional
+  $entity_info['myentity']['index_table'] = 'apachesolr_index_entities_myentity';
+  $entity_info['myentity']['cron_check'] = 'my_module_cron_check';
+  $entity_info['myentity']['apachesolr']['result callback'] = 'my_module_result_processing';
 }
 
 /**
- * This is invoked by apachesolr.module for each node to be added to the index.
- * If any module returns TRUE, the node is skipped for indexing. Note that nodes
- * which are already present in the index and subsequently qualify to be
- * excluded will not be removed from the index automatically. This hook can be
- * used to remove them prior to returning TRUE.
+ * Allows a module to modify the delete query.
  *
- * @param object $node
- *   The node object which is being indexed.
- * @param string $namespace
- *   Usually the calling module (eg. 'apachesolr_search').
- *
- * @return bool
- *   Return TRUE to skip the indexing of the node.
+ * @param string $query
+ *   Defaults to *:*
  */
-function hook_apachesolr_node_exclude($node, $namespace) {
-  // Exclude nodes from uid 1.
-  if ($node->uid == 1) {
-    apachesolr_delete_node_from_index($node);
-    return TRUE;
-  }
-}
-
-/**
- * Allows a module to change the contents of the $document object before it is
- * sent to the Solr Server. To add a new field to the document you should
- * generally use one of the pre-defined dynamic fields. Follow the naming
- * conventions for the type of data being added based on the schema.xml file.
- *
- * @param object $document
- *   The ApacheSolrDocument instance. No need for &.
- * @param object $node
- *   The node object which is being indexed.
- * @param string $namespace
- *   Usually the calling module (eg. 'apachesolr_search').
- */
-function hook_apachesolr_update_index($document, $node, $namespace) {
-  // Add the full node object of 'story' nodes to the index.
-  if ($node->type == 'story') {
-    $document->addField('tm_node', urlencode(serialize(node_load($node->nid))));
-  }
+function hook_apachesolr_delete_index_alter($query) {
+  // use the site hash so that you only delete this site's content
+  $query = 'hash:' . apachesolr_site_hash();
 }
 
 /**
@@ -155,7 +190,7 @@ function hook_apachesolr_update_index($document, $node, $namespace) {
  * @param array $extra
  * @param $query
  */
-function hook_apachesolr_search_result_alter($document, $extra, DrupalSolrQueryInterface $query) {
+function hook_apachesolr_search_result_alter($document, &$extra, DrupalSolrQueryInterface $query) {
 }
 
 /**
@@ -177,19 +212,74 @@ function hook_apachesolr_process_results(&$results, DrupalSolrQueryInterface $qu
  * This hook is invoked from apachesolr_environment_delete() after the
  * environment is removed from the database.
  *
- * @param $environment
- *   The environment object that is being deleted. No need for &.
+ * @param array $environment
+ *   The environment object that is being deleted.
  */
 function hook_apachesolr_environment_delete($environment) {
 }
 
 /**
+ *
  * Modify the build array for any search output build by Apache Solr
  * This includes core and custom pages and makes it very easy to modify both
  * of them at once
+ *
+ * @param array $build
+ * @param array $search_page
  */
 function hook_apachesolr_search_page_alter(&$build, $search_page) {
   // Adds a text to the top of the page
   $info = array('#markup' => t('Add information to every search page'));
   array_unshift($build, $info);
+}
+
+/**
+ * Modify the search types as found in the search pages administration
+ *
+ * @param array $search_types
+ */
+function hook_apachesolr_search_types_alter(&$search_types) {
+  $search_types['ss_language'] = array(
+    'name' => apachesolr_field_name_map('ss_language'),
+    'default menu' => 'search/language/%',
+    'title callback' => 'custom_title_callback',
+  );
+}
+
+/**
+ * Build the documents before sending them to Solr.
+ *
+ * @param integer $document_id
+ * @param array $entity
+ * @param string $entity_type
+ */
+function hook_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
+
+}
+
+/**
+ * Build the documents before sending them to Solr.
+ *
+ * Supports all types of
+ * hook_apachesolr_index_document_build_' . $entity_type($documents[$id], $entity, $env_id);
+ *
+ * @param $document
+ * @param $entity
+ * @param $entity_type
+ */
+function hook_apachesolr_index_document_build_node(ApacheSolrDocument $document, $entity, $env_id) {
+
+}
+
+/**
+ * Alter the prepared documents from one entity before sending them to Solr.
+ *
+ * @param $documents
+ *   Array of ApacheSolrDocument objects.
+ * @param $entity
+ * @param $entity_type
+ * @param string $env_id
+ */
+function hook_apachesolr_index_documents_alter(array &$documents, $entity, $entity_type, $env_id) {
+
 }

@@ -59,7 +59,8 @@ function apachesolr_multisitesearch_refresh_metadata() {
   if ($time - $last_fetch > 60*5) {
     apachesolr_multisitesearch_get_metadata();
   }
-  apachesolr_index_set_last_updated($time);
+  $env_id = apachesolr_default_environment();
+  apachesolr_set_last_index_updated($env_id, $time);
 }
 
 /**

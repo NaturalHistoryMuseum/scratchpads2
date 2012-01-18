@@ -14,7 +14,7 @@ function scratchpads_biblio_search_install(){
     'page_title' => 'Literature',
     'settings' => serialize(array(
       'fq' => array(
-        'bundle:biblio'
+        'bundle:biblio, entity_type:node'
       ),
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
