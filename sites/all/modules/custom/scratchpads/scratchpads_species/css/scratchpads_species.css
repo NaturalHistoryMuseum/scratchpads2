@@ -55,10 +55,8 @@
 
 #block-views-species-specimens-block .view-content{
   display: inline-block;
-  width: 65%;
 }
 
 #block-views-species-specimens-block .view-footer{
-  display: inline-block;
-  width: 30%;
+  float:right;
 }

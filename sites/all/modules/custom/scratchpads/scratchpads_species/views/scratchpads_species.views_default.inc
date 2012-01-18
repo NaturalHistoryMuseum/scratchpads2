@@ -504,6 +504,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['filename']['empty_zero'] = 0;
   $handler->display->display_options['fields']['filename']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['filename']['link_to_file'] = 0;
+  /* Sort criterion: File: Sticky at top of lists (field_sticky) */
+  $handler->display->display_options['sorts']['field_sticky_value']['id'] = 'field_sticky_value';
+  $handler->display->display_options['sorts']['field_sticky_value']['table'] = 'field_data_field_sticky';
+  $handler->display->display_options['sorts']['field_sticky_value']['field'] = 'field_sticky_value';
+  $handler->display->display_options['sorts']['field_sticky_value']['order'] = 'DESC';
   /* Contextual filter: Field: Taxonomic name (field_taxonomic_name) */
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
@@ -533,11 +538,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['status']['value'] = array(
     1 => '1'
   );
-  /* Filter criterion: File: Promote to home page (field_promote_to_home_page) */
-  $handler->display->display_options['filters']['field_promote_to_home_page_value']['id'] = 'field_promote_to_home_page_value';
-  $handler->display->display_options['filters']['field_promote_to_home_page_value']['table'] = 'field_data_field_promote_to_home_page';
-  $handler->display->display_options['filters']['field_promote_to_home_page_value']['field'] = 'field_promote_to_home_page_value';
-  $handler->display->display_options['filters']['field_promote_to_home_page_value']['operator'] = 'not empty';
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block');
   $views[$view->name] = $view;
