@@ -19,8 +19,17 @@ class ApacheSolrFacetapiAdapter extends FacetapiAdapter {
    *   The path to the admin settings.
    */
   public function getPath($realm_name) {
-    $base_path = 'admin/config/search/apachesolr';
-    return $base_path . '/facets/' . $realm_name;
+    $path = 'admin/config/search/apachesolr/settings';
+    if ($adapter = menu_get_object('facetapi_adapter', 4)) {
+      // Get the environment ID from the machine name of the searcher.
+      $env_id = ltrim(strstr($adapter->getSearcher(), '@'), '@');
+      $path .= '/' . $env_id . '/facets';
+      // Add the realm name to the path if it is not the first one in the list.
+      if (key(facetapi_get_realm_info()) != $realm_name) {
+        $path .= '/' . $realm_name;
+      }
+    }
+    return $path;
   }
 
   /**
@@ -86,7 +95,7 @@ class ApacheSolrFacetapiAdapter extends FacetapiAdapter {
   public function getSearchPath() {
     $env_id = $this->info['instance'];
     $query = apachesolr_current_query($env_id);
-    if (NULL === $this->searchPath && NULL === $query->getPath()) {
+    if (!$query || (NULL === $this->searchPath && NULL === $query->getPath())) {
       if ($path = module_invoke($this->info['module'] . '_search', 'search_info')) {
         $this->searchPath = 'search/' . $path['path'];
         if (!isset($_GET['keys']) && ($keys = $this->getSearchKeys())) {
@@ -94,8 +103,8 @@ class ApacheSolrFacetapiAdapter extends FacetapiAdapter {
         }
       }
     }
-    if (NULL === $query->getPath()) {
-       return $this->searchPath;
+    if (!$query || NULL === $query->getPath()) {
+      return $this->searchPath;
     }
     else {
       return $query->getPath();

@@ -1,99 +1,37 @@
 <?php
 
 /**
- * @file
- *   Unit tests for query object methods.
- *
- *
+ * Unit tests for query object methods.
  */
-class SolrIndexHelperTests extends DrupalUnitTestCase {
+class SolrBaseQueryTests extends DrupalUnitTestCase {
   public static function getInfo() {
-    return array(
-      'name' => 'Indexing helper functionality',
-      'description' => 'Unit test of text parsing/cleaning',
+        return array(
+      'name' => 'SolrBaseQuery Unit tests',
+      'description' => 'Unit Tests for queries.',
       'group' => 'ApacheSolr',
     );
   }
 
-  protected function setUp() {
+  function setUp() {
     parent::setUp();
     require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.module';
-
-    $this->script_content = <<<EOF
-<p>GOOD_CONTENT</p>
-<script type="text/javascript" >
-$(document).ready(function(){
-  $('.accordion_teachers').accordion({ collapsible:true, autoHeight:false });
-});
-</script>
-
-EOF;
-
-    $this->embed_content = <<<EOF
-<p>GOOD_CONTENT</p>
-<object width="425" height="349"><param name="movie" value="http://www.youtube.com/v/8Vmnq5dBF7Y?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/8Vmnq5dBF7Y?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="425" height="349" allowscriptaccess="always" allowfullscreen="true"></embed></object>
-OTHER_CONTENT
-
-EOF;
-
-    $this->iframe_content = <<<EOF
-<iframe width="425" height="349" src="http://www.youtube.com/embed/8Vmnq5dBF7Y" frameborder="0" allowfullscreen></iframe>
-<p><a href="#">GOOD_CONTENT</a></p><iframe></iframe>
-
-EOF;
-
-    $this->comment_content = <<<EOF
-<p><em>GOOD_CONTENT</em></p><!-- COMMENT -->
-OTHER_CONTENT
-
-EOF;
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.interface.inc';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Solr_Base_Query.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Drupal_Apache_Solr_Service.php';
   }
 
   /**
-   * Test ordering of parsed filter positions.
-   *
-   * Regression test for http://drupal.org/node/891962
+   * Helper function to simulate the auto loading and other non-needed functions
+   * that otherwise require a database
+   * @see apachesolr_drupal_query().
+   * @return SolrBaseQuery
    */
-  function testContentFilters() {
-    $cleaned = apachesolr_clean_text($this->script_content);
-    $this->assertFalse(strpos($cleaned, 'script'), 'Script tags removed');
-    $this->assertFalse(strpos($cleaned, 'accordion_teachers'), 'Script tags conent removed');
-    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
-
-    $cleaned = apachesolr_clean_text($this->embed_content);
-    $this->assertFalse(strpos($cleaned, 'object'), 'object tags removed');
-    $this->assertFalse(strpos($cleaned, 'embed'), 'embed tags removed');
-    $this->assertFalse(strpos($cleaned, '8Vmnq5dBF7Y'), 'object tags conent removed');
-    $this->assertFalse(strpos($cleaned, 'shockwave-flash'), 'embed tags conent removed');
-    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
-    $this->assertTrue(strpos($cleaned, 'OTHER_CONTENT') > 0, 'Other content retained');
-
-    $cleaned = apachesolr_clean_text($this->iframe_content);
-    $this->assertFalse(strpos($cleaned, 'iframe'), 'iframe tags removed');
-    $this->assertFalse(strpos($cleaned, '8Vmnq5dBF7Y'), 'iframe tags conent removed');
-    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
-
-    $cleaned = apachesolr_clean_text($this->comment_content);
-    $this->assertFalse(strpos($cleaned, 'COMMENT'), 'html comment content removed ');
-    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+  private function _apachesolr_drupal_query($name, $params = array(), $solrsort = '', $base_path = '', $solr = 'DrupalApacheSolrService') {
+    return new SolrBaseQuery($name, $solr, $params, $solrsort, $base_path);
   }
 
-}
-
-/**
- * Unit tests for query object methods.
- */
-class SolrBaseQueryTests extends DrupalWebTestCase {
-  public static function getInfo() {
-    return array(
-      'name' => 'Query object base functionality',
-      'description' => 'Tests SolrBaseQuery methods',
-      'group' => 'ApacheSolr',
-    );
-  }
-
-  protected function setUp() {
-    parent::setUp('search', 'apachesolr');
+  private function _apachesolr_drupal_subquery($operator = 'OR') {
+    return new SolrFilterSubQuery($operator);
   }
 
   /**
@@ -104,7 +42,7 @@ class SolrBaseQueryTests extends DrupalWebTestCase {
   function testParseFilters() {
     $fq = array('tid:3', 'sort_label:hello', 'tid:11', 'tid:1', 'tid:12', 'label:hello');
     // Setup dummy Solr object.
-    $query = new SolrBaseQuery("apachesolr_tests", new DummySolr(), array('q' => 'mykeys', 'fq' => $fq), 'sort_label asc', 'search/test');
+    $query = $this->_apachesolr_drupal_query("apachesolr_tests", array('q' => 'mykeys', 'fq' => $fq), 'sort_label asc', 'search/test');
     // Check sortsort
     $this->assertEqual(array('solrsort' => 'sort_label asc'), $query->getSolrsortUrlQuery());
     $query->setSolrsort('sort_name', 'desc');
@@ -137,12 +75,130 @@ class SolrBaseQueryTests extends DrupalWebTestCase {
     $this->assertEqual(count($filters), 2, count($filters) . ' filters found, expected 2 filters');
     $this->assertEqual(array('sort_label:hello', 'label:hello'), $query->getParam('fq'));
 
-    $subquery = new SolrFilterSubQuery();
+    $subquery = $this->_apachesolr_drupal_subquery();
     $subquery->addFilter('access__all', 0);
-    $subquery->addFilter('hash', apachesolr_site_hash());
+    $subquery->addFilter('hash', 'randomhash');
     $query->addFilterSubQuery($subquery);
     $this->assertEqual(count($query->getParam('fq')), 3, count($query->getParam('fq')) . ' fq params found, expected 3 after adding subquery');
-    $this->assertEqual(array('sort_label:hello', 'label:hello', '(access__all:0 OR hash:' . apachesolr_site_hash() . ')'), $query->getParam('fq'));
+    $this->assertEqual(array('sort_label:hello', 'label:hello', '(access__all:0 OR hash:randomhash' . ')'), $query->getParam('fq'));
+  }
+
+  function testAddParams() {
+    $examples = array();
+    $examples['{!cache=false}inStock:true'] = array(
+      '#local' => 'cache=false',
+      '#exclude' => FALSE,
+      '#name' => 'inStock',
+      '#value' => 'true',
+    );
+    $examples['{!frange l=1 u=4 cache=false}sqrt(popularity)'] = array(
+      '#local' => 'frange l=1 u=4 cache=false',
+      '#exclude' => FALSE,
+      '#name' => NULL,
+      '#value' => 'sqrt(popularity)',
+    );
+    $examples['{!cache=false cost=5}inStock:true'] = array(
+      '#local' => 'cache=false cost=5',
+      '#exclude' => FALSE,
+      '#name' => 'inStock',
+      '#value' => 'true',
+    );
+    $examples['{!tag=impala}model:Impala'] = array(
+      '#local' => 'tag=impala',
+      '#exclude' => FALSE,
+      '#name' => 'model',
+      '#value' => 'Impala',
+    );
+    $examples['{!anything that appears to be local}'] = array(
+      '#local' => 'anything that appears to be local',
+      '#exclude' => FALSE,
+      '#name' => NULL,
+      '#value' => NULL,
+    );
+    $examples['bundle:(article OR page)'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'bundle',
+      '#value' => '(article OR page)',
+    );
+    $examples['-bundle:(article OR page)'] = array(
+      '#local' => NULL,
+      '#exclude' => TRUE,
+      '#name' => 'bundle',
+      '#value' => '(article OR page)',
+    );
+    $examples['-{!anything that appears to be local}'] = array(
+      '#local' => 'anything that appears to be local',
+      '#exclude' => TRUE,
+      '#name' => NULL,
+      '#value' => NULL,
+    );
+    $examples['title:"double words"'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'title',
+      '#value' => '"double words"',
+    );
+    $examples['field_date:[1970-12-31T23:59:59Z TO NOW]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'field_date',
+      '#value' => '[1970-12-31T23:59:59Z TO NOW]',
+    );
+
+    $query = $this->_apachesolr_drupal_query("apachesolr_tests");
+    foreach ($examples as $fq => $example) {
+      $name = (!empty($example['#name'])) ? $example['#name'] : '_QUERY_';
+      $value = (!empty($example['#value'])) ? $example['#value'] : '_VALUE_';
+      $filter = $name . ':' . $value;
+      // Check if filter is seen as a valid one
+      $message = t('Filter (@fq) is Valid', array('@fq' => $filter));
+      $this->assertTrue($query->validFilterValue($filter), $message);
+
+      $query->addParam('fq', $fq);
+      // Check if filter was added
+      $message = t('hasFilter(@name, @value) is True', array('@name' => $example['#name'], '@value' => $example['#value']));
+      $this->assertTrue($query->hasFilter($example['#name'], $example['#value'], $example['#exclude']), $message);
+      $filters = $query->getFilters();
+      $filter = reset($filters);
+      $message = t('The filter "@fq" was added with all the given properties', array('@fq' => $fq));
+      $this->assertTrue(!array_diff($example, $filter), $message);
+      $query->removeFilter($example['#name']);
+      $message = t('The filter "@fq" was correctly removed', array('@fq' => $fq));
+      $this->assertFalse($query->hasFilter($example['#name'], $example['#value'], $example['#exclude']), $message);
+      // Since we cannot remove filters without names yet we have to clear the whole fq array
+      $query->removeParam('fq');
+      // Check the ones without the name also
+    }
+
+    // Check for invalid combinations
+    $bad_examples['wrong name:"double words"'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'wrong name',
+      '#value' => '"double words"',
+    );
+    $bad_examples['field_date:[1970-12-31 TO NOW]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'field_date',
+      '#value' => '[1970-12-31 TO NOW]',
+    );
+    $bad_examples['bundle:((article OR page)]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'bundle',
+      '#value' => '((article OR page)]',
+    );
+
+    foreach ($bad_examples as $fq => $example) {
+      $name = (!empty($example['#name'])) ? $example['#name'] : '_QUERY_';
+      $value = (!empty($example['#value'])) ? $example['#value'] : '_VALUE_';
+      $filter = $name . ':' . $value;
+      // Check if filter is seen as a valid one
+      $message = t('Filter (@fq) is not Valid', array('@fq' => $filter));
+      $this->assertFalse($query->validFilterValue($filter), $message);
+    }
+
   }
 }
-

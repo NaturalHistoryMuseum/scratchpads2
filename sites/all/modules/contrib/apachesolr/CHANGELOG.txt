@@ -1,5 +1,45 @@
-
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
+------------------------------
+Issue #1408856 by Nick_vh: Remove DrupalQueue from the install.php.
+Issue #1402746 by Nick_vh: Clean up apachesolr_do_query() so the page variable will be inside the query object.
+Issue #1408192 by becw: Fixed Add apachesolr.interface.inc to the .info file (patch).
+Issue #1405040 by Nick_vh | chrisssi: Fixed SQLSTATE[42S22]: Column not found: 1054.
+
+Apache Solr integration 7.x-1.x-beta15, 2012-01-12
+------------------------------
+Issue #1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages. Follow-Up small bugfix
+Issue #1397138 by Nick_vh: Create Simpletests to verify base functionality of the module.
+Issue #1402688 by Nick_vh: Fixed Upgrade from Beta13 to Beta14 does not take the excluded types into account properly.
+
+Apache Solr integration 7.x-1.x-beta14, 2012-01-12
+------------------------------
+#1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages.
+#713142 by ygerasimov, pwolanin, Nick_vh: Added configuration option to a search environment if we want to use Dismax or EDismax.
+#1379128 by Nick_vh, bdragon: Fixed Treat cardinality=1 fields as single-value + caching stats response - Follow up.
+#370855 by Damien Tournoud, Nick_vh: Add configuration option to a search page if we allow user input using the url or not.
+#1392940 by Nick_vh | pwolanin: Create a 3.x solrconfig.xml that sets luceneMatchVersion.
+#1031250 by EugenMayer, Nick_vh: Added an option to index as another user instead of only anonymous.
+#1388498 by Nick_vh | pwolanin: Remove s (sortable) fields from schema.xml.
+#1379128 by Nick_vh, bdragon: Fixed Treat cardinality=1 fields as single-value + caching stats response.
+#1361422 by Nick_vh: Fixed coder issues as mentioned by the drupal testing bot.
+#1398122 by Nick_vh | thecarlhall: Fixed Trying to get property of non-object in apachesolr_search_block_view().
+#1398100 by thecarlhall: Fixed Configuration throws exception when starting Solr.
+#1396606 by cpliakas: Fixed Fatal error 'Call to undefined function apachesolr_index_status()" when visiting admin/config/search/settings.
+#1392742 by Nick_vh, pwolanin: Fixed Add solr.LengthFilterFactory to the text fields.
+#592522 by Nick_vh, pwolanin | quaoar: Fixed Hooks node_type(), taxonomy and user knocks out our database server.
+#1394276 by pwolanin, Nick_vh, Fix for logic for last indexed timestamp.
+#1388916 by rwohleb, pwolanin: Fix for ctype_digit() port validation fails for ports < 256.
+#1391850 by cpliakas: Fix for Fatal error when Solr server is not available on non-search pages.
+#1389306 by Nick_vh: Fixed Wrong helptext link if facetapi is not installed.
+#1252648 by cpliakas, Nick_vh: Added Allow for enabling facet blocks on non-search pages.
+#1161608 by scor, Nick_vh: Added Index format_username()($account).
+#1380448 by Nick_vh | longwave: Fixed Menu item description for /admin/reports/apachesolr.
+#1387272 by cpliakas: Fixed The cancel links and button submission redirects in facet configuration forms are broken.
+#1387088 by swentel, Nick_vh: Fixed apachesolr_index_mark_for_reindex() not found during enable/disable and drush can't load apachesolr.index.inc.
+#1313698 by Nick_vh, denikin: Fixed Support for search of multiword content in facets/fields .
+#966796 by Nick_vh, scor, BarisW, wesnick, swentel, LSU_JBob | Crell: Added Separate indexer for multiple entity types.
+
+Apache Solr integration 7.x-1.x-beta13, 2011-12-21
 ------------------------------
 #1376278 by Nick_vh: Fixed Inconsistent behavior of data facets producing unlimited filtering, inconsistent counts, or gap mismatches.
 #1372952 by pwolanin | albertosouza: Fixed Wrong variable in apachesolr.module.

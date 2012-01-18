@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ *   Unit tests for query object methods.
+ *
+ *
+ */
+class DrupalSolrDocumentTest extends DrupalUnitTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'ApacheSolrDocument Unit tests',
+      'description' => 'Unit test of ApacheSolrDocument',
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  protected function setUp() {
+    parent::setUp();
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.module';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Apache_Solr_Document.php';
+  }
+
+  function testSolrDocument() {
+    $document = new ApacheSolrDocument();
+
+    $document->addField('ss_testing', 'testingvalue');
+    $field_value = $document->getField('ss_testing');
+    $this->assertEqual($field_value['value'][0], 'testingvalue', t('The field was correctly added and verified'));
+    $document->clear();
+
+    $document->addField('ss_testing', 'testingvalue', 10);
+    $field_value = $document->getField('ss_testing');
+    $this->assertEqual($field_value['value'][0], 'testingvalue', t('The field and boost were correctly added and verified'));
+    $field_boost = $document->getFieldBoost('ss_testing');
+    $this->assertEqual($field_boost, 10, t('The field boost was correctly added and verified'));
+    $document->clear();
+
+    $document->setMultiValue('sm_testing', 'testingvalue1');
+    $document->setMultiValue('sm_testing', 'testingvalue2');
+    $field_value = $document->getField('sm_testing');
+    $this->assertTrue(in_array('testingvalue1', $field_value['value']), t('The multivalued field value was correctly added and verified'));
+    $this->assertTrue(in_array('testingvalue2', $field_value['value']), t('The second multivalued field value was correctly added and verified'));
+    $document->clear();
+
+    $document->setMultiValue('sm_testing', 'testingvalue1', 10);
+    $document->setMultiValue('sm_testing', 'testingvalue2', 20);
+    $field_value = $document->getField('sm_testing');
+    $this->assertTrue(in_array('testingvalue1', $field_value['value']), t('The multivalued field value and boost were correctly added and verified'));
+    $this->assertTrue(in_array('testingvalue2', $field_value['value']), t('The second multivalued field value and boost were correctly added and verified'));
+    $field_boost = $document->getFieldBoost('sm_testing');
+    $this->assertEqual($field_boost, 200, t('The field boost was correctly multiplied and retrieved'));
+
+    $document_field_names = $document->getFieldNames();
+    $this->assertTrue(in_array('sm_testing', $document_field_names), t('The field name was found in the document'));
+
+    $document_field_names = $document->getFieldValues();
+    $this->assertTrue(in_array('testingvalue1', $document_field_names[0]), t('The field value was found in the document'));
+
+    // Clear the complete document
+    $document->clear();
+
+    // Set and Get the document boost
+    $document->setBoost('10');
+    $document_boost = $document->getBoost();
+    $this->assertEqual($document_boost, 10, t('The document boost was correctly added and verified'));
+
+    $document->clear();
+    $document_boost = $document->getBoost();
+    $document_fields = $document->getFieldNames();
+    $document_field_boosts = $document->getFieldBoosts();
+    $this->assertFalse($document_boost, t('Document boost was succesfully emptied'));
+    $this->assertFalse($document_fields, t('Document fields were succesfully emptied'));
+    $this->assertFalse($document_field_boosts, t('Document field boosts were succesfully emptied'));
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+}

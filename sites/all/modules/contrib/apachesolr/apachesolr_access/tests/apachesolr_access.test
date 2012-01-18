@@ -65,16 +65,17 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     node_access_write_grants($author_restricted_node, array($author_grant));
 
     // This loads the document class too.
-    $solr = apachesolr_get_solr();
+    $env_id = apachesolr_default_environment();
+    $solr = apachesolr_get_solr($env_id);
 
     $document = new ApacheSolrDocument();
-    apachesolr_access_apachesolr_update_index($document, $role_restricted_node, 'apachesolr_search');
+    apachesolr_access_apachesolr_index_document_build_node($document, $role_restricted_node, $env_id);
     $field = 'access_node_' . apachesolr_site_hash() . '_nodeaccess_rid';
     $this->assertEqual($document->{$field}[0], $assigned_role, 'Solr Document being indexed is restricted by the proper role' . print_r(db_query('SELECT * FROM {node_access}')->fetchAllAssoc('nid'), 1));
     $this->drupalGet('node');
 
     $document = new ApacheSolrDocument();
-    apachesolr_access_apachesolr_update_index($document, $author_restricted_node, 'apachesolr_search');
+    apachesolr_access_apachesolr_index_document_build_node($document, $author_restricted_node, $env_id);
     $field = 'access_node_' . apachesolr_site_hash() . '_nodeaccess_author';
     $this->assertEqual($document->{$field}[0], $basic_user->uid, 'Solr Document being indexed is restricted by the proper author');
 
@@ -107,7 +108,6 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
 
     $this->assertEqual($expected_criterion, $found_criterion, 'All Criteria was accounted for in fields. If not accounted for, Unaccounted Criteria [' . var_export(array_diff($expected_criterion, $found_criterion), 1) . ']');
     // Run a query through the MLT code to be sure access filters are added.
-    module_load_include('inc', 'apachesolr', 'apachesolr.admin');
     $solr = new DummySolr();
     $settings = apachesolr_search_mlt_block_defaults();
     // Dummy value
