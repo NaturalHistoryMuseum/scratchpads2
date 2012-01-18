@@ -32,6 +32,17 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
 }
 
 /**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_biblio_search_scratchpads_solr_info(){
+  return array(
+    'literature' => array(
+      'theme' => 'scratchpads_biblio_search'
+    )
+  );
+}
+
+/**
  * Implementation of hook_apache_solr_sortstring_alter()
  */
 function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
