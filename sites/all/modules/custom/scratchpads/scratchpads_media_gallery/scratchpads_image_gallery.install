@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_install().
  */
-function scratchpads_image_gallery_install(){
+function scratchpads_media_gallery_install(){
   // Add a taxonomy search page to the database
   $fields = array(
     'page_id' => 'media_gallery',
@@ -30,5 +30,5 @@ function scratchpads_image_gallery_install(){
  * Implementation of hook_uninstall().
  */
 function scratchpads_biblio_search_uninstall(){
-  db_delete('apachesolr_search_page')->condition('page_id', 'image_gallery')->execute();
+  db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
 }
