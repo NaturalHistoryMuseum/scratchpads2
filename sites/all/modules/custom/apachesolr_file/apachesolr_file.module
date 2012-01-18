@@ -58,7 +58,6 @@ function apachesolr_file_solr_reindex(){
     $select->addField('f', 'fid', 'entity_id');
     $select->addField('f', 'type', 'bundle');
     $select->addField('f', 'status', 'status');
-    //$select->addField('f', '`timestamp`', 'changed');
     $select->addExpression(REQUEST_TIME, 'changed');
     $select->addExpression("'file'", 'entity_type');
     $select->condition('f.type', apachesolr_get_index_bundles($env_id, 'file'), 'IN');
