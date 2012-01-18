@@ -38,18 +38,18 @@ function apachesolr_index_status($env_id) {
   $remaining = 0;
   $total = 0;
 
-  foreach (entity_get_info() as $type => $info) {
-    $bundles = apachesolr_get_index_bundles($env_id, $type);
+  foreach (entity_get_info() as $entity_type => $info) {
+    $bundles = apachesolr_get_index_bundles($env_id, $entity_type);
     if (empty($bundles)) {
       continue;
     }
 
-    $table = apachesolr_get_indexer_table($type);
+    $table = apachesolr_get_indexer_table($entity_type);
     $query = db_select($table, 'asn')->condition('asn.status', 1)->condition('asn.bundle', $bundles);
     $total += $query->countQuery()->execute()->fetchField();
 
     // Get $last_entity_id and $last_change.
-    extract(apachesolr_get_last_index_position($env_id, $type));
+    extract(apachesolr_get_last_index_position($env_id, $entity_type));
     // Find the next batch of entities to index for this entity type.  Note that
     // for ordering we're grabbing the oldest first and then ordering by ID so
     // that we get a definitive order.
@@ -66,7 +66,7 @@ function apachesolr_index_status($env_id) {
 
     if ($table == 'apachesolr_index_entities') {
       // Other, entity-specific tables don't need this condition.
-      $query->condition('aie.entity_type', $type);
+      $query->condition('aie.entity_type', $entity_type);
     }
     $remaining += $query->countQuery()->execute()->fetchField();
   }
