@@ -36,7 +36,7 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
  */
 function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
   // Here we teak the $sortstring to reflect what is set in the $_GET array.
-  $order = isset($_GET['order']) ? $_GET['order'] : t('Authors');
+  $order = isset($_GET['order']) ? $_GET['order'] : FALSE;
   switch($order){
     case t('Year'):
       $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
