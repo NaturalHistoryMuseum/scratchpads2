@@ -9,7 +9,7 @@
  */
 function scratchpads_block_view_alter(&$data, $block){
   if(isset($data['content']) && $block->module == 'views'){
-  	// Move the view classes to the block classes
+    // Move the view classes to the block classes
     if(preg_match('/<[^>]*\ class="([^"]*)"/', $data['content']['#markup'], $matches)){
       $data['content']['#markup'] = str_replace($matches[1], 'view-wrapper', $data['content']['#markup']);
       $data['class'] = array(
@@ -81,6 +81,4 @@ function scratchpads_process_region(&$vars){
 }
 
 
-
-
-
+  

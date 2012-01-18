@@ -52,3 +52,11 @@
 .view-species-slideshow .views-field-filename span {
     padding: 0 10px;
 }
+
+#block-views-species-specimens-block .view-content{
+  display: inline-block;
+}
+
+#block-views-species-specimens-block .view-footer{
+  float:right;
+}
