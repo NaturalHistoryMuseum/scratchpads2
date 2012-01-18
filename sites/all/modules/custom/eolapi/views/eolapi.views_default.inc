@@ -11,6 +11,7 @@ function eolapi_views_default_views(){
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'eolapi';
+  $view->context = 'species_media';
   $view->human_name = 'EOL Images';
   $view->core = 7;
   $view->api_version = '3.0';
@@ -84,6 +85,7 @@ function eolapi_views_default_views(){
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'eolapi';
+  $view->context = 'species_media';
   $view->human_name = 'EOL Videos';
   $view->core = 7;
   $view->api_version = '3.0';
@@ -158,6 +160,7 @@ function eolapi_views_default_views(){
   $view->tag = 'default';
   $view->base_table = 'eolapi';
   $view->human_name = 'EOL Text';
+  $view->context = 'species_descriptions';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
