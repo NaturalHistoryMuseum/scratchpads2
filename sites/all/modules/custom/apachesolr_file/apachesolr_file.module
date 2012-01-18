@@ -1,21 +1,25 @@
 <?php
 
-// $Id$
 /**
- * @file
  * Indexer for the userhook_apachesolr_entity_info_alter entities for the Apachesolr module.
  */
 function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
-  dpm($entity_info);
-  /*$entity_info['taxonomy_term']['indexable'] = TRUE;
-  $entity_info['taxonomy_term']['status callback'] = 'apachesolr_file_status_callback';
-  $entity_info['taxonomy_term']['document callback'][] = 'apachesolr_file_solr_document';
-  $entity_info['taxonomy_term']['reindex callback'] = 'apachesolr_file_solr_reindex';*/
-  //$entity_info['taxonomy_term']['index_table'] = 'apachesolr_index_entities_file';
+  $entity_info['file']['indexable'] = TRUE;
+  $entity_info['file']['status callback'] = 'apachesolr_file_status_callback';
+  $entity_info['file']['document callback'][] = 'apachesolr_file_solr_document';
+  $entity_info['file']['reindex callback'] = 'apachesolr_file_solr_reindex';
+  $entity_info['file']['index_table'] = 'apachesolr_index_entities';
 }
 
 /**
- * Builds the user-specific information for a Solr document.
+ * Apachesolr: status callback
+ */
+function apachesolr_file_status_callback($file, $type){
+  return TRUE;
+}
+
+/**
+ * Apachesolr: document callback
  *
  * @param ApacheSolrDocument $document
  * The Solr document we are building up.
@@ -24,16 +28,11 @@ function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
  * @param string $entity_type
  * The type of entity we're dealing with.
  */
-function apachesolr_file_solr_document(ApacheSolrDocument $document, $term, $entity_type){
-  $document->tid = $term->tid;
+function apachesolr_file_solr_document(ApacheSolrDocument $document, $file, $entity_type){
+  $document->fid = $file->fid;
   // Title is a required field.
-  $document->label = apachesolr_clean_text(format_username($term));
-  //$term_tree = apachesolr_file_solr_taxonomy_ancestors($term);
-  //foreach ($term_tree as $tt => $td) {
-  //$document->addField($td['key'], apachesolr_clean_text($td['value']));
-  //}
-  // Note the conspicuous lack of password hash. :-)
-  $build = taxonomy_term_view($term, 'search_index');
+  $document->label = apachesolr_clean_text($file->filename);
+  $build = file_view($file, 'search_index');
   // Why do we need this?
   unset($build['#theme']);
   $text = drupal_render($build);
@@ -46,8 +45,35 @@ function apachesolr_file_solr_document(ApacheSolrDocument $document, $term, $ent
 }
 
 /**
- * Status callback for ApacheSolr, for terms.
+ * Apachesolr: reindex callback
  */
-function apachesolr_file_status_callback($term, $type){
+function apachesolr_file_solr_reindex(){
+  $indexer_table = apachesolr_get_indexer_table('file');
+  $transaction = db_transaction();
+  $env_id = apachesolr_default_environment();
+  try{
+    // FIXME - This needs to be a little more intelligent I suspect.
+    db_delete($indexer_table)->condition('entity_type', 'file')->execute();
+    $select = db_select('file_managed', 'f');
+    $select->addField('f', 'fid', 'entity_id');
+    $select->addField('f', 'type', 'bundle');
+    $select->addField('f', 'status', 'status');
+    //$select->addField('f', '`timestamp`', 'changed');
+    $select->addExpression(REQUEST_TIME, 'changed');
+    $select->addExpression("'file'", 'entity_type');
+    $select->condition('f.type', apachesolr_get_index_bundles($env_id, 'file'), 'IN');
+    $insert = db_insert($indexer_table)->fields(array(
+      'entity_id',
+      'bundle',
+      'status',
+      'changed',
+      'entity_type'
+    ))->from($select)->execute();
+  }
+  catch(Exception $e){
+    $transaction->rollback();
+    watchdog_exception('Apache Solr', $e);
+    return FALSE;
+  }
   return TRUE;
 }
