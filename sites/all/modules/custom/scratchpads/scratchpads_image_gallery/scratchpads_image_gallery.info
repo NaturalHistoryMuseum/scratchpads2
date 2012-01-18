@@ -2,5 +2,5 @@ name = "Scratchpads Image Galleries using Solr"
 description = "Creates a faceted image gallery using the Media module and Apache Solr."
 package = "Scratchpads"
 core = 7.x
-dependencies[] = apachesolr_search
+dependencies[] = apachesolr_file
 dependencies[] = media

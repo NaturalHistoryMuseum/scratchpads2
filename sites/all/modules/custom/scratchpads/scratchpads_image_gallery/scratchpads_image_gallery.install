@@ -6,15 +6,15 @@
 function scratchpads_image_gallery_install(){
   // Add a taxonomy search page to the database
   $fields = array(
-    'page_id' => 'image_gallery',
-    'label' => 'Literature Search',
+    'page_id' => 'media_gallery',
+    'label' => 'Media gallery',
     'description' => 'Search the site\'s literature.',
     'search_path' => 'literature',
     'env_id' => 'solr',
     'page_title' => 'Literature',
     'settings' => serialize(array(
       'fq' => array(
-        'bundle:biblio'
+        'entity_type:file, bundle:(image OR video)'
       ),
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
