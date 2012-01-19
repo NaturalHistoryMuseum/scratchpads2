@@ -401,6 +401,14 @@ var dataView;
       
 
         function initFilters() {
+          
+            $('#slickgrid-toggle-search-panel').click(function(){              
+              if ($(grid.getHeaderRow()).is(":visible")) {
+                grid.hideHeaderRowColumns();
+              } else {
+                grid.showHeaderRowColumns();
+              }
+            });
 
             updateFilters();
 
@@ -841,7 +849,7 @@ var dataView;
             width: 200,
             trigger : 'none',  // Already clicked so manually activate
             cornerRadius: 0,
-            overlap: 7,
+            overlap: 3,
           };
 
           if(typeof content == 'object'){
