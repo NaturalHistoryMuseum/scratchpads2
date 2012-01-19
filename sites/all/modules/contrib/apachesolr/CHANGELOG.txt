@@ -1,15 +1,17 @@
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 ------------------------------
-Issue #1408856 by Nick_vh: Remove DrupalQueue from the install.php.
-Issue #1402746 by Nick_vh: Clean up apachesolr_do_query() so the page variable will be inside the query object.
-Issue #1408192 by becw: Fixed Add apachesolr.interface.inc to the .info file (patch).
-Issue #1405040 by Nick_vh | chrisssi: Fixed SQLSTATE[42S22]: Column not found: 1054.
+#1409076 by Nick_vh, sdrycroft: Fixed Entities that use the 'apachesolr_index_entities()" table are not indexed.
+#1409146 by Nick_vh: Fixed Add all possible index_types() to apachesolr_index_key().
+#1408856 by Nick_vh: Remove DrupalQueue from the install.php.
+#1402746 by Nick_vh: Clean up apachesolr_do_query() so the page variable will be inside the query object.
+#1408192 by becw: Fixed Add apachesolr.interface.inc to the .info file (patch).
+#1405040 by Nick_vh | chrisssi: Fixed SQLSTATE[42S22]: Column not found: 1054.
 
 Apache Solr integration 7.x-1.x-beta15, 2012-01-12
 ------------------------------
-Issue #1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages. Follow-Up small bugfix
-Issue #1397138 by Nick_vh: Create Simpletests to verify base functionality of the module.
-Issue #1402688 by Nick_vh: Fixed Upgrade from Beta13 to Beta14 does not take the excluded types into account properly.
+#1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages. Follow-Up small bugfix
+#1397138 by Nick_vh: Create Simpletests to verify base functionality of the module.
+#1402688 by Nick_vh: Fixed Upgrade from Beta13 to Beta14 does not take the excluded types into account properly.
 
 Apache Solr integration 7.x-1.x-beta14, 2012-01-12
 ------------------------------

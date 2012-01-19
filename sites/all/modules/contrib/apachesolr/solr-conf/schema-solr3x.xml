@@ -412,6 +412,9 @@
    <!-- List of floats can be saved in a regular float field -->
    <dynamicField name="fs_*"  type="float"   indexed="true"  stored="true" multiValued="false"/>
    <dynamicField name="fm_*"  type="float"   indexed="true"  stored="true" multiValued="true"/>
+   <!-- List of doubles can be saved in a regular double field -->
+   <dynamicField name="ps_*"  type="double"   indexed="true"  stored="true" multiValued="false"/>
+   <dynamicField name="pm_*"  type="double"   indexed="true"  stored="true" multiValued="true"/>
    <!-- List of booleans can be saved in a regular boolean field -->
    <dynamicField name="bm_*"  type="boolean" indexed="true"  stored="true" multiValued="true"/>
    <dynamicField name="bs_*"  type="boolean" indexed="true"  stored="true" multiValued="false"/>
@@ -470,7 +473,8 @@
    <dynamicField name="zs_*" type="string"   indexed="false"  stored="true" multiValued="false"/>
    <dynamicField name="zm_*" type="string"   indexed="false"  stored="true" multiValued="true"/>
 
-   <!-- Begin added fields to use features in Solr 3.4+ -->
+   <!-- Begin added fields to use features in Solr 3.4+
+        http://wiki.apache.org/solr/SpatialSearch#geodist_-_The_distance_function -->
    <dynamicField name="points_*" type="point" indexed="true"  stored="true" multiValued="false"/>
    <dynamicField name="pointm_*" type="point" indexed="true"  stored="true" multiValued="true"/>
    <dynamicField name="locs_*" type="location" indexed="true"  stored="true" multiValued="false"/>

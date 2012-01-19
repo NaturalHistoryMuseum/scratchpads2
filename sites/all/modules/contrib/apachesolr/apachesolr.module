@@ -1457,12 +1457,20 @@ function apachesolr_current_query($env_id, DrupalSolrQueryInterface $query = NUL
 }
 
 /**
+ *
+ */
+
+/**
  * Construct a dynamic index name based on information about a field.
  *
- * array('index_type' => 'integer',
- *        'multiple' => TRUE,
- *        'name' => 'fieldname',
- *        ),
+ * @param array $field
+ *   array(
+ *     'index_type' => 'integer',
+ *     'multiple' => TRUE,
+ *     'name' => 'fieldname',
+ *   ),
+ * @return string
+ *   Fieldname as it appears in the solr index
  */
 function apachesolr_index_key($field) {
   $index_type = !empty($field['index_type']) ? $field['index_type'] : NULL;
@@ -1472,6 +1480,9 @@ function apachesolr_index_key($field) {
       break;
     case 'text-omitNorms':
       $type_prefix = 'to';
+      break;
+    case 'text-unstemmed':
+      $type_prefix = 'tu';
       break;
     case 'text-edgeNgram':
       $type_prefix = 'te';
@@ -1491,14 +1502,8 @@ function apachesolr_index_key($field) {
     case 'double':
       $type_prefix = 'p'; // double; sortable d was used for date.
       break;
-    case 'sint':
-      $type_prefix = 'is'; // long integer sortable (deprecated)
-      break;
     case 'boolean':
       $type_prefix = 'b';
-      break;
-    case 'date':
-      $type_prefix = 'd'; // date trie
       break;
     case 'tint':
       $type_prefix = 'it'; // long integer trie; sortable, best for range queries
@@ -1510,13 +1515,40 @@ function apachesolr_index_key($field) {
       $type_prefix = 'ft'; // float trie; sortable, best for range queries.
       break;
     case 'tdouble':
-      $type_prefix = 'pt'; // double trie; d was used for date.
+      $type_prefix = 'pt'; // double trie;
+      break;
+    case 'sint':
+      $type_prefix = 'is'; // long integer sortable (deprecated)
+      break;
+    case 'half-sint':
+      $type_prefix = 'hs'; // 32 bit integer long sortable (deprecated)
       break;
     case 'sfloat':
-      $type_prefix = 'fs'; // float, sortable (use for sorting missing last).
+      $type_prefix = 'fs'; // float, sortable (use for sorting missing last) (deprecated).
       break;
     case 'sdouble':
-      $type_prefix = 'ps'; // double sortable; (use for sorting missing last).
+      $type_prefix = 'ps'; // double sortable; (use for sorting missing last) (deprecated).
+      break;
+    case 'date':
+      $type_prefix = 'd'; // date trie (sortable)
+      break;
+    case 'date-deprecated':
+      $type_prefix = 'dd'; // date (regular)
+      break;
+    case 'binary':
+      $type_prefix = 'x'; // Anything that is base64 encoded
+      break;
+    case 'storage':
+      $type_prefix = 'z'; // Anything that just need to be stored, not indexed
+      break;
+    case 'point':
+      $type_prefix = 'point'; // PointType. "52.3672174,4.9126891"
+      break;
+    case 'location':
+      $type_prefix = 'loc'; // LatLonType. "52.3672174,4.9126891"
+      break;
+    case 'geohash':
+      $type_prefix = 'geo'; // GeohashField. "42.6" http://en.wikipedia.org/wiki/Geohash
       break;
     case 'string':
     default:
@@ -1763,10 +1795,10 @@ function apachesolr_entity_fields($entity_type = 'node') {
       $mappings[$key] += array(
         'dependency plugins' => array('bundle', 'role'),
         'map callback' => FALSE,
+        'name callback' => '',
         'hierarchy callback' => FALSE,
         'indexing_callback' => '',
         'index_type' => 'string',
-        'name_callback' => '',
         'facets' => FALSE,
         'facet missing allowed' => FALSE,
         'facet mincount allowed' => FALSE,
@@ -1795,7 +1827,7 @@ function apachesolr_entity_fields($entity_type = 'node') {
 
         // @todo: for fields like taxonomy we are indexing multiple Solr fields
         // per entity field, but are keying on a single Solr field name here.
-        $function = !empty($row['name_callback']) ? $row['name_callback'] : NULL;
+        $function = !empty($row['name callback']) ? $row['name callback'] : NULL;
         if ($function && is_callable($function)) {
           $row['name'] = $function($field);
         }
@@ -2075,6 +2107,9 @@ function apachesolr_hook_info() {
   $hooks['apachesolr_index_document_build'] = array(
     'group' => 'apachesolr',
   );
+  if($_SERVER['SCRIPT_NAME'] == '/install.php' || substr($_SERVER['SCRIPT_FILENAME'], -12) == '/install.php'){
+    return $hooks;
+  }  
   foreach (entity_get_info() as $entity_type => $info) {
     $hooks['apachesolr_index_document_build_' . $entity_type] = array(
         'group' => 'apachesolr',

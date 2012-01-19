@@ -22,10 +22,3 @@ files[] = tests/solr_index_and_search.test
 files[] = tests/solr_base_query.test
 files[] = tests/solr_base_subquery.test
 files[] = tests/solr_document.test
-
-; Information added by drupal.org packaging script on 2012-01-18
-version = "7.x-1.0-beta15+4-dev"
-core = "7.x"
-project = "apachesolr"
-datestamp = "1326888104"
-
