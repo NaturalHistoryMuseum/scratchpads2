@@ -1790,9 +1790,8 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 0;
     $handler->display->display_options['style_plugin'] = 'list';
     $handler->display->display_options['style_options']['group_rendered'] = 1;
-    $handler->display->display_options['row_plugin'] = 'node';
-    $handler->display->display_options['row_options']['links'] = 0;
-    $handler->display->display_options['row_options']['comments'] = 0;
+		$handler->display->display_options['row_plugin'] = 'entity';
+		$handler->display->display_options['row_options']['view_mode'] = 'species';
     /* Sort criterion: Content: Post date */
     $handler->display->display_options['sorts']['created']['id'] = 'created';
     $handler->display->display_options['sorts']['created']['table'] = 'node';
