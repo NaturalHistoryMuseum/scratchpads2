@@ -32,8 +32,38 @@ function scratchpads_media_gallery_theme(){
         'module' => NULL
       ),
       'file' => 'scratchpads_media_gallery.theme.inc'
+    ),
+    'scratchpads_media_gallery_entity' => array(
+      'variables' => array(
+        'entity' => NULL,
+        'gallery_view' => TRUE
+      ),
+      'file' => 'scratchpads_media_gallery.theme.inc'
     )
   );
+}
+
+/**
+ * Implementation of hook_entity_view()
+ */
+function scratchpads_media_gallery_entity_view($entity, $type, $view_mode, $langcode){
+  if($type == 'file' && $view_mode == 'gallery'){
+    $entity->content = array(
+      'gallery_view' => array(
+        '#markup' => theme('scratchpads_media_gallery_entity', array(
+          'entity' => $entity,
+          'gallery_view' => TRUE
+        ))
+      )
+    );
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){
+  
 }
 
 

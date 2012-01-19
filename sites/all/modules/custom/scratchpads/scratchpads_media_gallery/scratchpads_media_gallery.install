@@ -23,11 +23,38 @@ function scratchpads_media_gallery_install(){
     ))
   );
   db_insert('apachesolr_search_page')->fields($fields)->execute();
+  // Ensure we're indexing the requried files
+  $query = db_insert('apachesolr_index_bundles')->fields(array(
+    'env_id',
+    'entity_type',
+    'bundle'
+  ));
+  $values = array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'image'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'video'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'audio'
+    )
+  );
+  foreach($values as $value){
+    $query->values($value);
+  }
+  $query->execute();
 }
 
 /**
  * Implementation of hook_uninstall().
  */
-function scratchpads_biblio_search_uninstall(){
+function scratchpads_media_gallery_uninstall(){
   db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
 }

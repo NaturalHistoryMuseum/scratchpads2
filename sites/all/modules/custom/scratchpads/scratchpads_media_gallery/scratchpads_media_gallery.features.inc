@@ -12,7 +12,7 @@ function scratchpads_media_gallery_node_info() {
     'image_gallery' => array(
       'name' => t('Image gallery'),
       'base' => 'node_content',
-      'description' => '',
+      'description' => t('Upload media, or select media already uploaded to display together in a gallery.'),
       'has_title' => '1',
       'title_label' => t('Title'),
       'help' => '',
