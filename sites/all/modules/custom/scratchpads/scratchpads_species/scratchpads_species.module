@@ -450,6 +450,20 @@ function scratchpads_species_get_all_views(){
   return $views;
 }
 
+/**
+ * 
+ * Usort comparison function for ordering field groups
+ * @param object $a
+ * @param object $b
+ */
+function scratchpads_species_usort_comparison($a, $b) {
+  if ($a->weight == $b->weight) {
+    return 0;
+  } else {
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
+
 /*********************************************************************************************
  * 
  * IMAGE STYLES

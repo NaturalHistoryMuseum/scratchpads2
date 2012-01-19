@@ -167,8 +167,8 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_rank_2']['table'] = 'field_data_field_rank';
   $handler->display->display_options['fields']['field_rank_2']['field'] = 'field_rank';
   $handler->display->display_options['fields']['field_rank_2']['label'] = '';
-  $handler->display->display_options['fields']['field_rank_2']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['field_rank_2']['alter']['text'] = '[field_rank_2]:';
+  $handler->display->display_options['fields']['field_rank_2']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_rank_2']['alter']['text'] = '[field_rank_2-value]:';
   $handler->display->display_options['fields']['field_rank_2']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_rank_2']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['field_rank_2']['alter']['external'] = 0;
@@ -184,9 +184,10 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_rank_2']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['field_rank_2']['element_wrapper_class'] = 'label';
   $handler->display->display_options['fields']['field_rank_2']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_rank_2']['empty'] = 'Unranked:';
   $handler->display->display_options['fields']['field_rank_2']['hide_empty'] = 0;
   $handler->display->display_options['fields']['field_rank_2']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_rank_2']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_rank_2']['hide_alter_empty'] = 0;
   $handler->display->display_options['fields']['field_rank_2']['field_api_classes'] = 0;
   /* Field: Taxonomy term: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
@@ -1627,8 +1628,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '1';
+  $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'slickgrid';
   $handler->display->display_options['style_options']['grouping_field'] = '';
@@ -1637,7 +1637,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_options']['enableColumnReorder'] = 1;
   $handler->display->display_options['style_options']['select_columns'] = 1;
   $handler->display->display_options['style_options']['asyncEditorLoading'] = 1;
-  $handler->display->display_options['style_options']['forceFitColumns'] = 0;
+  $handler->display->display_options['style_options']['forceFitColumns'] = 1;
   $handler->display->display_options['style_options']['pager'] = 0;
   $handler->display->display_options['style_options']['headerHeight'] = '42';
   $handler->display->display_options['style_options']['viewport_height'] = '500';
@@ -1651,11 +1651,13 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_options']['add'] = '0';
   $handler->display->display_options['style_options']['autoEdit'] = 0;
   $handler->display->display_options['style_options']['columns'] = array();
-  $tabs = array();
+  $handler->display->display_options['style_options']['tabs'] = '';
   $fields = field_info_instances('node', 'specimen_observation');
-  foreach(field_group_info_groups('node', 'specimen_observation', 'form', true) as $group){
+  $groups = field_group_info_groups('node', 'specimen_observation', 'form', true);
+  usort($groups, 'scratchpads_species_usort_comparison');
+  foreach($groups as $group){
     if(count(array_intersect($group->children, array_keys($fields)))){
-      $tabs[$group->weight] = $group->label;
+      $handler->display->display_options['style_options']['tabs'] .= $group->label . PHP_EOL;
       foreach($group->children as $field){
         if(array_key_exists($field, $fields)){
           $handler->display->display_options['fields'][$field]['id'] = $field;
@@ -1692,8 +1694,6 @@ function scratchpads_species_views_default_views(){
       }
     }
   }
-  ksort($tabs);
-  $handler->display->display_options['style_options']['tabs'] = implode(PHP_EOL, $tabs);
   /* Contextual filter: Content: Has taxonomy term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
@@ -1730,7 +1730,6 @@ function scratchpads_species_views_default_views(){
   $handler = $view->new_display('block', 'Block', 'block');
   /* Display: XML Export */
   $handler = $view->new_display('views_data_export', 'XML Export', 'views_data_export_1');
-  $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['style_plugin'] = 'views_data_export_xml';
   $handler->display->display_options['style_options']['provide_file'] = 0;
   $handler->display->display_options['style_options']['parent_sort'] = 0;
@@ -1742,7 +1741,6 @@ function scratchpads_species_views_default_views(){
   );
   /* Display: CSV Export */
   $handler = $view->new_display('views_data_export', 'CSV Export', 'views_data_export_2');
-  $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/csv';
   $handler->display->display_options['displays'] = array(
