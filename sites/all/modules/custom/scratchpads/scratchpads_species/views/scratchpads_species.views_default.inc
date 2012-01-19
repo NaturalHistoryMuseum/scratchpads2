@@ -1610,7 +1610,7 @@ function scratchpads_species_views_default_views(){
    * 
    ********************************************************************************************/
   $view = new view();
-  $view->name = 'species_specimens';
+  $view->name = 'species_specimen_observation';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'node';
