@@ -1755,7 +1755,7 @@ function scratchpads_species_views_default_views(){
    ********************************************************************************************/
   // Create views for and content type selected to display on the species pages
   foreach(scratchpads_species_get_species_node_types() as $node_type => $name){
-    $tab = variable_get('species_page_' . $node_type . '_tab', NULL);
+    $tab = scratchpads_species_variable_get('species_page_' . $node_type . '_tab');
     $view = new view();
     $view->name = 'species_' . $node_type;
     // Ensure we don't overwrite default views
