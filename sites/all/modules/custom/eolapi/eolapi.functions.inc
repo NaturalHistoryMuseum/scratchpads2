@@ -1,6 +1,7 @@
 <?php
 // Constants
 DEFINE('EOLAPI_URL', 'http://eol.org/api/');
+DEFINE('EOLAPI_VERSION', '1.0');
 
 /**
  * This will create a new EOL search entity and return it.  If an identical
@@ -128,7 +129,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
     // Check first that the service is up. Else we set a warning message.
     if(file_get_contents(EOLAPI_URL . 'ping')){
       // We get the full amount of data that we can.      
-      $data = file_get_contents(EOLAPI_URL . $type . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query);
+      $data = file_get_contents(EOLAPI_URL . $type . '/' . EOLAPI_VERSION . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query);
       if($data){
         $data = json_decode($data);
         if($data){
