@@ -19,7 +19,7 @@ function apachesolr_file_status_callback($file, $type){
 }
 
 /**
- * Apachesolr: document callback
+ * Builds the node-specific information for a Solr document.
  *
  * @param ApacheSolrDocument $document
  * The Solr document we are building up.
@@ -27,16 +27,49 @@ function apachesolr_file_status_callback($file, $type){
  * The entity we are indexing.
  * @param string $entity_type
  * The type of entity we're dealing with.
+ * 
+ * Note, this is a stripped down copy of the apachesolr node code.
  */
-function apachesolr_file_solr_document(ApacheSolrDocument $document, $file, $entity_type){
-  $document->fid = $file->fid;
-  // Title is a required field.
+function apachesolr_file_solr_document(ApacheSolrDocument $document, $file, $entity_type, $env_id){
+  // None of these get added unless they are explicitly in our schema.xml
   $document->label = apachesolr_clean_text($file->filename);
+  // Build the file view.
   $build = file_view($file, 'search_index');
   // Why do we need this?
   unset($build['#theme']);
   $text = drupal_render($build);
   $document->content = apachesolr_clean_text($text);
+  $document->teaser = $document->content;
+  $account = user_load($file->uid);
+  $username = format_username($account);
+  $document->ss_name_formatted = $username;
+  $document->tos_name_formatted = $username;
+  // Everything else uses dynamic fields
+  $document->is_uid = $file->uid;
+  $document->bs_status = $file->status;
+  $document->ds_created = apachesolr_date_iso($file->timestamp);
+  $document->ds_changed = apachesolr_date_iso($file->timestamp);
+  $document->type_name = file_type_get_name($file);
+  $document->created = apachesolr_date_iso($file->timestamp);
+  $document->changed = apachesolr_date_iso($file->timestamp);
+  $document->last_comment_or_change = apachesolr_date_iso($file->timestamp);
+  // We need to get the real username here, since it needs a full user object.
+  // That means we can't do the format_username() call on the display side.
+  $document->name = format_username($account);
+  // Fetch extra data normally not visible, including comments.
+  // We do this manually (with module_implements instead of node_invoke_nodeapi)
+  // because we want a keyed array to come back. Only in this way can we decide
+  // whether to index comments or not.
+  $extra = array();
+  foreach(module_implements('file_update_index') as $module){
+    $function = $module . '_file_update_index';
+    if($output = $function($file)){
+      $extra[$module] = $output;
+    }
+  }
+  // Use an omit-norms text field since this is generally going to be short; not
+  // really a full-text field.
+  $document->tos_content_extra = apachesolr_clean_text(implode(' ', $extra));
   //  Generic usecase for future reference. Callbacks can
   //  allow you to send back multiple documents
   $documents = array();
