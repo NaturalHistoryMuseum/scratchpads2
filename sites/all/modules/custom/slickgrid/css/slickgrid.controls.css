@@ -13,7 +13,7 @@
 }
 
 #controls .slickgrid-control span.slickgrid-control-button{
-  opacity: 0.5;
+  opacity: 0.3;
   background-repeat: no-repeat;
   background-position: center 7px;
 }
@@ -125,45 +125,34 @@ opacity: 1;
 /* Add control */
 
 #slickgrid-add span{
-  background-image: url('../images/add.png');
+  background-image: url('../images/doc_plus_icon&16.png');
 }
 
-#slickgrid-add span:hover{
-  background-image: url('../images/add-active.png');
-}
 
 /* Delete control */
 
 #slickgrid-delete span{
-  background-image: url('../images/delete.png');
+  background-image: url('../images/doc_delete_icon&16.png');
 }
 
 /* Undo control */
 
 #slickgrid-undo span{
-  background-image: url('../images/undo.png');
-}
-
-#slickgrid-undo span.enabled:hover{
-  background-image: url('../images/undo-active.png');
+  background-image: url('../images/undo_icon&16.png');
 }
 
 /* Export control */
 
 #slickgrid-export span{
-  background-image: url('../images/export.png');
-}
-
-#slickgrid-export span.enabled:hover{
-  background-image: url('../images/export-active.png');
+  background-image: url('../images/download_icon&16.png');
 }
 
 #slickgrid-clone span{
-  background-image: url('../images/copy.png');
+  background-image: url('../images/clipboard_copy_icon&16.png');
 }
 
-#slickgrid-clone span.enabled:hover{
-  background-image: url('../images/copy-active.png');
+.slickgrid-control span.enabled:hover{
+/*background: #fff;*/
 }
 
 /* Export links are part of the feed icon links */
@@ -184,15 +173,16 @@ opacity: 1;
   -moz-border-radius-topright: 5px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-  background: url("../images/header-bg.png") repeat-x;
   margin: 0 1px 0 0;
   color: #555;
   border: 1px solid #A5A5A5;
   border-bottom-style: none;
   cursor: pointer;
+  position: relative;
+  top: 1px;
 }
 
 #slickgrid-tabs span.active-tab{
-  background-image: url("../images/header-active-bg.png");
-  color: #fff;
+  background: #E8E8E8;
+  z-index: 100;
 }

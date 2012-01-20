@@ -256,6 +256,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
  * @param array $view_name
  */
 function theme_slickgrid($variables){
+  $output = '';
   $view = $variables['view'];
   // Add all the CSS & JS
   // Add the core slickgrid library
@@ -289,7 +290,10 @@ function theme_slickgrid($variables){
   drupal_add_js(implode("\n", $js), array(
     'type' => 'inline'
   ));
-  $output = '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
+  if($view->style_plugin->options['filterable']){
+    $output .= '<span class="ui-icon ui-icon-search" title="Toggle search panel" id="slickgrid-toggle-search-panel"></span>';
+  }
+  $output .= '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
   return $output;
 }
 

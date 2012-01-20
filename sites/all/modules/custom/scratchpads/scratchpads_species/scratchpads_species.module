@@ -62,17 +62,40 @@ function scratchpads_species_theme(){
 }
 
 /**
+ * 
+ * Implementation of hook_entity_info_alter
+ */
+function scratchpads_species_entity_info_alter(&$info){
+  foreach(array_keys($info) as $entity_type){
+    // Add the 'species page' view mode.
+    if(!empty($info[$entity_type]['view modes'])){
+      $info[$entity_type]['view modes']['species'] = array(
+        'label' => t('Species page'),
+        'custom settings' => FALSE
+      );
+    }
+  }
+}
+
+/**
  * Implementation of hook_form_alter().
  */
 function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $type = $form['#node_type']->type;
   $form_state['var'] = 'species_page_' . $type . '_tab';
-  $tab = variable_get($form_state['var'], NULL);
+  $tab = scratchpads_species_variable_get($form_state['var']);
+  
+  $defaults = scratchpads_species_variable_defaults();
+  
+  // If i have specified defaults for this node type, don't allow user to change it
+  $disabled = (isset($defaults[$form_state['var']]) ? true : false);
+  
   $form['display']['species_page_display'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display on species pages.'),
     '#default_value' => ($tab ? 1 : 0),
-    '#description' => t('Do you want to display this content on the species page?')
+    '#description' => t('Do you want to display this content on the species page?'),
+  	'#disabled' => $disabled
   );
   $tabs = scratchpads_species_get_tabs();
   if(isset($tabs[$type])){
@@ -92,7 +115,8 @@ function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
           'checked' => FALSE
         )
       )
-    )
+    ),
+    '#disabled' => $disabled
   );
   $form['#validate'][] = 'scratchpads_species_node_type_form_validate';
   $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
@@ -393,7 +417,7 @@ function scratchpads_species_get_species_node_types($tab = NULL){
   $node_types = array();
   $node_info = node_type_get_names();
   foreach(array_keys($node_info) as $type){
-    if($node_type_species_tab = variable_get('species_page_' . $type . '_tab', NULL)){
+    if($node_type_species_tab = scratchpads_species_variable_get('species_page_' . $type . '_tab')){
       if(is_null($tab) || $tab == $node_type_species_tab){
         $node_types[$type] = $node_info[$type];
       }
@@ -448,6 +472,52 @@ function scratchpads_species_get_all_views(){
     $views = module_invoke_all('views_default_views');
   }
   return $views;
+}
+
+/**
+ * 
+ * Usort comparison function for ordering field groups
+ * @param object $a
+ * @param object $b
+ */
+function scratchpads_species_usort_comparison($a, $b){
+  if($a->weight == $b->weight){
+    return 0;
+  }else{
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
+
+/**
+ * 
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_species_variable_get($name){
+  $default = scratchpads_species_variable_defaults($name);
+  return variable_get($name, $default);
+}
+
+/**
+ * 
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_species_variable_defaults($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'species_page_spm_tab' => 'descriptions',
+      'species_page_biblio_tab' => 'literature',
+      'species_page_specimen_observation_tab' => 'specimens',
+      'species_page_location_tab' => 'maps'
+    );
+  }
+  if(!isset($name)){
+    return $defaults;
+  }else{
+    return (isset($defaults[$name]) ? $defaults[$name] : NULL);
+  }
 }
 
 /*********************************************************************************************
