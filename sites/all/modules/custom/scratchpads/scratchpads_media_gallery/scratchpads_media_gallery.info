@@ -17,7 +17,7 @@ dependencies[] = "libraries"
 
 features[field][] = "file-audio-field_media_galleries"
 features[field][] = "node-image_gallery-body"
-features[field][] = "node-image_gallery-field_scratchpads_media_gallery_media"
+features[field][] = "node-image_gallery-field_smg_media"
 features[node][] = "image_gallery"
 features[ctools][] = "file_entity:file_default_displays:1"
 features[file_display][] = "application__file_styles_scratchpads_media_gallery_thumbnail__file_field_styles_file_scratchpads_media_gallery_thumbnail"

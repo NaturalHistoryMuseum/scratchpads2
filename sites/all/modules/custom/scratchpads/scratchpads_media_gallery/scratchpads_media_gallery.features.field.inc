@@ -80,14 +80,14 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'node-image_gallery-field_scratchpads_media_gallery_media'
-  $fields['node-image_gallery-field_scratchpads_media_gallery_media'] = array(
+  // Exported field: 'node-image_gallery-field_smg_media'
+  $fields['node-image_gallery-field_smg_media'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_scratchpads_media_gallery_media',
+      'field_name' => 'field_smg_media',
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
@@ -130,7 +130,7 @@ function scratchpads_media_gallery_field_default_fields(){
         )
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_scratchpads_media_gallery_media',
+      'field_name' => 'field_smg_media',
       'label' => 'Media',
       'required' => 1,
       'settings' => array(
@@ -165,14 +165,14 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'file-audio-field_scratchpads_media_gallery_galleries'
-  $fields['file-audio-field_scratchpads_media_gallery_galleries'] = array(
+  // Exported field: 'file-audio-field_smg_galleries'
+  $fields['file-audio-field_smg_galleries'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
@@ -289,7 +289,7 @@ function scratchpads_media_gallery_field_default_fields(){
         )
       ),
       'entity_type' => 'file',
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'label' => 'Media galleries',
       'required' => 0,
       'settings' => array(
@@ -308,14 +308,14 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'file-image-field_scratchpads_media_gallery_galleries'
-  $fields['file-image-field_scratchpads_media_gallery_galleries'] = array(
+  // Exported field: 'file-image-field_smg_galleries'
+  $fields['file-image-field_smg_galleries'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
@@ -432,7 +432,7 @@ function scratchpads_media_gallery_field_default_fields(){
         )
       ),
       'entity_type' => 'file',
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'label' => 'Media galleries',
       'required' => 0,
       'settings' => array(
@@ -451,14 +451,14 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'file-video-field_scratchpads_media_gallery_galleries'
-  $fields['file-video-field_scratchpads_media_gallery_galleries'] = array(
+  // Exported field: 'file-video-field_smg_galleries'
+  $fields['file-video-field_smg_galleries'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
@@ -575,7 +575,7 @@ function scratchpads_media_gallery_field_default_fields(){
         )
       ),
       'entity_type' => 'file',
-      'field_name' => 'field_scratchpads_media_gallery_galleries',
+      'field_name' => 'field_smg_galleries',
       'label' => 'Media galleries',
       'required' => 0,
       'settings' => array(
