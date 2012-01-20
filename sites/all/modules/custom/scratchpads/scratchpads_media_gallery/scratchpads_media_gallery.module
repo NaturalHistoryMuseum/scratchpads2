@@ -41,7 +41,64 @@ function scratchpads_media_gallery_theme(){
  */
 function scratchpads_media_gallery_node_insert($node){
   // We edit the file entities to add this node id to their respective field.
-  
+  $new_fids = array();
+  foreach($node->field_smg_media[LANGUAGE_NONE] as $delta => $values){
+    $new_fids[$values['fid']] = $values['fid'];
+  }
+  $files = entity_load('file', $new_fids);
+  foreach($files as $file){
+    // Adding
+    if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
+      $file->field_smg_galleries[LANGUAGE_NONE] = array();
+    }
+    $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      'nid' => $node->nid
+    );
+    entity_save('file', $file);
+  }
+}
+
+/**
+ * Implementation of hook_node_update().
+ */
+function scratchpads_media_gallery_node_update($node){
+  // We edit the file entities to add this node id to their respective field.
+  // We simply get a list of fids that currently have this node associated, and
+  // remove the ones that have been removed, and add ones that have been added.
+  $results = db_select('field_data_field_smg_galleries', 'f')->fields('f', array(
+    'entity_id'
+  ))->condition('field_smg_galleries_nid', $node->nid)->execute();
+  $current_fids = array();
+  while($row = $results->fetch()){
+    $current_fids[$row->entity_id] = $row->entity_id;
+  }
+  $new_fids = array();
+  foreach($node->field_smg_media[LANGUAGE_NONE] as $delta => $values){
+    $new_fids[$values['fid']] = $values['fid'];
+  }
+  $fids_to_add = array_diff_key($new_fids, $current_fids);
+  $fids_to_remove = array_diff_key($current_fids, $new_fids);
+  $files = entity_load('file', $fids_to_add);
+  foreach($files as $file){
+    // Adding
+    if(!isset($file->field_smg_galleries[LANGUAGE_NONE])){
+      $file->field_smg_galleries[LANGUAGE_NONE] = array();
+    }
+    $file->field_smg_galleries[LANGUAGE_NONE][] = array(
+      'nid' => $node->nid
+    );
+    entity_save('file', $file);
+  }
+  $files = entity_load('file', $fids_to_remove);
+  foreach($files as $file){
+    // Removing
+    foreach($file->field_smg_galleries[LANGUAGE_NONE] as $delta => $value){
+      if($value['nid'] == $node->nid){
+        unset($file->field_smg_galleries[LANGUAGE_NONE][$delta]);
+      }
+    }
+    entity_save('file', $file);
+  }
 }
 
 /**
