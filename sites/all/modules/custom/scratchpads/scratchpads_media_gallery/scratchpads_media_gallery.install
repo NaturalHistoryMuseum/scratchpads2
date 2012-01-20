@@ -8,12 +8,13 @@ function scratchpads_media_gallery_install(){
     'page_id' => 'media_gallery',
     'label' => t('Media gallery'),
     'description' => 'Search the site\'s media.',
-    'search_path' => 'media',
+    'search_path' => 'gallery',
     'env_id' => 'solr',
     'page_title' => t('Media gallery'),
     'settings' => serialize(array(
       'fq' => array(
-        'entity_type:file, bundle:(image OR video OR audio)'
+        'entity_type:file',
+        'bundle:(image OR video OR audio)'
       ),
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
@@ -49,7 +50,13 @@ function scratchpads_media_gallery_install(){
   foreach($values as $value){
     $query->values($value);
   }
-  $query->execute();
+  try{
+    $query->execute();
+  }
+  catch(Exception $e){
+    // Do nothing, most likely as a result of this module being installed before.
+    ;
+  }
 }
 
 /**

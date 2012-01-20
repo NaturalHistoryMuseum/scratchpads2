@@ -5,9 +5,9 @@ include_once ('scratchpads_media_gallery.features.inc');
  * Implementation of hook_menu_alter().
  */
 function scratchpads_media_gallery_menu_alter(&$items){
-  $items['media']['menu_name'] = PRIMARY_MENU_NAME;
-  $items['media']['weight'] = 1;
-  $items['media']['type'] = MENU_NORMAL_ITEM;
+  $items['gallery']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['gallery']['weight'] = 1;
+  $items['gallery']['type'] = MENU_NORMAL_ITEM;
 }
 
 /**
@@ -15,7 +15,7 @@ function scratchpads_media_gallery_menu_alter(&$items){
  */
 function scratchpads_media_gallery_scratchpads_solr_info(){
   return array(
-    'media' => array(
+    'gallery' => array(
       'theme' => 'scratchpads_media_gallery'
     )
   );
@@ -32,39 +32,22 @@ function scratchpads_media_gallery_theme(){
         'module' => NULL
       ),
       'file' => 'scratchpads_media_gallery.theme.inc'
-    ),
-    'scratchpads_media_gallery_entity' => array(
-      'variables' => array(
-        'entity' => NULL,
-        'gallery_view' => TRUE
-      ),
-      'file' => 'scratchpads_media_gallery.theme.inc'
     )
   );
 }
 
 /**
- * Implementation of hook_entity_view()
+ * Implementation of hook_node_insert().
  */
-function scratchpads_media_gallery_entity_view($entity, $type, $view_mode, $langcode){
-  if($type == 'file' && $view_mode == 'gallery'){
-    $entity->content = array(
-      'gallery_view' => array(
-        '#markup' => theme('scratchpads_media_gallery_entity', array(
-          'entity' => $entity,
-          'gallery_view' => TRUE
-        ))
-      )
-    );
-  }
+function scratchpads_media_gallery_node_insert($node){
+  // We edit the file entities to add this node id to their respective field.
+  
 }
 
 /**
  * Implementation of hook_form_FORM_ID_alter().
  */
-function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){
-  
-}
+function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){}
 
 
 /**
