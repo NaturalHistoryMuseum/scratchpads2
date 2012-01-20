@@ -47,7 +47,7 @@ function theme_eolapi_text_teaser($variables){
   $data = unserialize($variables['entity']->data);
   drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
   return '<div class="eolapi-text">
-  <h1>' . (isset($data->title) ? $data->title : t('No title')) . '</h1>
+  ' . (isset($data->title) ? '<h1>' . $data->title . '</h1>' : '') . '
   <div class="eolapi-text-hidden-block">
   	<div>' . check_markup($data->description, 'filtered_html') . '</div>
   	<hr/>
