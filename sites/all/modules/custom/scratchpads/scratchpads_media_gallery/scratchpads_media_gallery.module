@@ -102,67 +102,51 @@ function scratchpads_media_gallery_node_update($node){
 }
 
 /**
- * Implementation of hook_form_FORM_ID_alter().
+ * Implementation of hook_facetapi_facet_info().
  */
-function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){}
-
+function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
+  // Facets are usually associated with the type of content stored in the index.
+  if(isset($searcher_info['types']['file'])){return array(
+      'im_field_smg_galleries' => array(
+        'name' => 'im_field_smg_galleries',
+        'label' => t('Media: Galleries'),
+        'description' => t('Media: Galleries'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_media_gallery_map_callback',
+        'map options' => array(
+          'im_field_smg_galleries'
+        )
+      )
+    );}
+  return array();
+}
 
 /**
- * Implementation of hook_apachesolr_update_index($document, $node, $namespace) {
-function scratchpads_media_gallery_apachesolr_update_index($document, $node, $namespace){
-  if($node->type == 'biblio'){
-    foreach($node as $key => $value){
-      if(substr($key, 0, 7) == 'biblio_'){
-        switch($key){
-          case 'biblio_secondary_title':
-            $value = trim($value);
-            // We insert this text into the 'biblio_secondary_title' table, and
-            // use the tsid instead.
-            $results = db_select('biblio_secondary_title', 'b')->fields('b')->condition('secondary_title', $value)->execute()->fetch();
-            if($results){
-              $bstid = $results->bstid;
-            }else{
-              $record = array(
-                'secondary_title' => $value
-              );
-              drupal_write_record('biblio_secondary_title', $record);
-              $bstid = $record['bstid'];
-            }
-            $document->addField('im_biblio_secondary_title', $bstid);
-            break;
-          default:
-            if(is_string($value)){
-              $document->addField("tus_$key", $value);
-            }else if(is_array($value)){
-              switch($key){
-                case 'biblio_contributors':
-                  $set_first_author_surname = TRUE;
-                  foreach($value as $contributor){
-                    if($set_first_author_surname){
-                      $document->addField('tus_biblio_first_author_lastname', $contributor['lastname']);
-                      $set_first_author_surname = FALSE;
-                    }
-                    $document->addField('im_biblio_contributor', $contributor['cid']);
-                  }
-                  break;
-              }
-            }
-            break;
+ * Map callback
+ */
+function scratchpads_media_gallery_map_callback($values, $options){
+  if(count($values)){
+    switch($options[0]){
+      case 'im_field_smg_galleries':
+        $result = db_select('node', 'n')->fields('n', array(
+          'nid',
+          'title'
+        ))->condition('nid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['nid']] = $record['title'];
         }
-      }
+        return $map;
     }
-    $style = biblio_get_style();
-    $base = variable_get('biblio_base', 'biblio');
-    $document->content .= strip_tags(theme('biblio_long', array(
-      'node' => $node,
-      'base' => $base,
-      'style' => $style
-    )));
-    $document->teaser .= strip_tags(theme('biblio_style', array(
-      'node' => $node,
-      'base' => $base,
-      'style_name' => $style
-    )));
+  }else{
+    return array();
   }
 }
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ * 
+function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){}
  */
