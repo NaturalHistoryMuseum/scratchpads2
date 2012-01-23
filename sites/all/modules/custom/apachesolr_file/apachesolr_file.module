@@ -12,6 +12,16 @@ function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
 }
 
 /**
+ * Implementation of hook_facetapi_searcher_info_alter();
+ */
+function apachesolr_file_facetapi_searcher_info_alter(&$searcher_info){
+  // Add files to the types funky.
+  foreach($searcher_info as $key => $value){
+    $searcher_info[$key]['types']['file'] = 'file';
+  }
+}
+
+/**
  * Apachesolr: status callback
  */
 function apachesolr_file_status_callback($file, $type){
