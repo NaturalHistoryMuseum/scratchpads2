@@ -1,0 +1,7 @@
+#ignore the folder from PhpStorm IDE
+.idea
+
+#ignore files used by eclipse
+.buildpath
+.project
+.settings
