@@ -472,7 +472,7 @@ function scratchpads_front_image_default_styles(){
         'module' => 'image',
         'name' => 'image_scale_and_crop',
         'data' => array(
-          'width' => '622',
+          'width' => '619',
           'height' => '463'
         ),
         'weight' => '1'
@@ -493,7 +493,7 @@ function scratchpads_front_image_default_styles(){
         'module' => 'image',
         'name' => 'image_scale_and_crop',
         'data' => array(
-          'width' => '155',
+          'width' => '154',
           'height' => '115'
         ),
         'weight' => '1'
