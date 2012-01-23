@@ -241,7 +241,7 @@ function creative_commons_block_configure($delta = ''){
       '#default_value' => variable_get('creative_commons_block_display_type', CC_LARGE_IMAGE),
       '#options' => array(
         CC_SMALL_IMAGE => t("Small image"),
-        CC_LARGE_IMAGE => t("Small image")
+        CC_LARGE_IMAGE => t("Large image")
       )
     );
   }
