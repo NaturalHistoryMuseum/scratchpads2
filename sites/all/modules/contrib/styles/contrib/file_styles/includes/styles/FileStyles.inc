@@ -202,8 +202,13 @@ class FileStyles extends StylesDefault {
 
   function linkToMedia($effect) {
     // If we're using the media module, then link to its media page.
+    $media_info = system_get_info('module', 'media');
     if (module_exists('media') && ($fid = $this->getFid())) {
-      $link = $this->setLink('media/'. $fid);
+      if(version_compare($media_info['version'], '2', '<')){
+        $link = $this->setLink('media/'. $fid);
+      } else {        
+        $link = $this->setLink('file/'. $fid);
+      }
     }
     else {
       // Link to the file's external url.

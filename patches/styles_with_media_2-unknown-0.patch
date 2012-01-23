@@ -1,0 +1,19 @@
+diff --git a/contrib/file_styles/includes/styles/FileStyles.inc b/contrib/file_styles/includes/styles/FileStyles.inc
+index ebd277f..964f1c2 100644
+--- a/contrib/file_styles/includes/styles/FileStyles.inc
++++ b/contrib/file_styles/includes/styles/FileStyles.inc
+@@ -202,8 +202,13 @@ class FileStyles extends StylesDefault {
+ 
+   function linkToMedia($effect) {
+     // If we're using the media module, then link to its media page.
++    $media_info = system_get_info('module', 'media');
+     if (module_exists('media') && ($fid = $this->getFid())) {
+-      $link = $this->setLink('media/'. $fid);
++      if(version_compare($media_info['version'], '2', '<')){
++        $link = $this->setLink('media/'. $fid);
++      } else {        
++        $link = $this->setLink('file/'. $fid);
++      }
+     }
+     else {
+       // Link to the file's external url.
