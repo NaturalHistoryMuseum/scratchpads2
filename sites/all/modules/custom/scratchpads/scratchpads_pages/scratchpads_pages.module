@@ -172,6 +172,7 @@ function scratchpads_pages_variable_default($name = NULL){
         'spm' => 'none',
         'specimen_observation' => 'view',
         'biblio' => 'solr',
+        'image_gallery' => 'solr',
         'location' => 'none'
       )
     );
