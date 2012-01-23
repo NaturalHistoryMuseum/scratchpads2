@@ -1,0 +1,6 @@
+name = "Scratchpads File Entities in a Colorbox"
+description = "Alters links to a file entity view page so that they are viewed in a colorbox."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = "colorbox"
+scripts[] = js/scratchpads_file_colorboxed.js

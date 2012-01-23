@@ -1,0 +1,3 @@
+<?php
+
+lightbox2_add_files();
