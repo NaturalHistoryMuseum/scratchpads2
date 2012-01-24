@@ -4,6 +4,25 @@
  * Theme function for a Scratchpads search page.
  */
 function theme_scratchpads_media_gallery($variables){
+  if(is_numeric(arg(1))){
+    $gallery_node = node_load(arg(1));
+    // Try to set the body text
+    $body_array = field_view_field('node', $gallery_node, 'body');
+    $body_array['#label_display'] = 'hidden';
+    $body_text = drupal_render($body_array);
+    // Specifics for the omega theme.
+    try{
+      $alpha_get_theme = drupal_static('alpha_get_theme');
+      drupal_set_title($gallery_node->title);
+      $alpha_get_theme['scratchpads']->page['title'] = drupal_set_title();
+      $alpha_get_theme['scratchpads']->page['breadcrumb'] = theme('breadcrumb', array(
+        'breadcrumb' => drupal_get_breadcrumb()
+      ));
+    }
+    catch(Exception $e){
+      ; // Do nothing, we're probably not using the Omega/Scratchpads theme.
+    }
+  }
   $entity_ids = array();
   foreach($variables['results'] as $result){
     $entity_ids[] = $result['fields']['entity_id'];
@@ -15,6 +34,14 @@ function theme_scratchpads_media_gallery($variables){
       $content_array[$key]['#prefix'] = '<div class="grid-2">';
       $content_array[$key]['#suffix'] = '</div>';
     }
+  }
+  // Add the body text if we have it
+  if(isset($body_text)){
+    $content_array = array_merge(array(
+      'body_text' => array(
+        '#markup' => $body_text
+      )
+    ), $content_array);
   }
   return drupal_render($content_array);
 }

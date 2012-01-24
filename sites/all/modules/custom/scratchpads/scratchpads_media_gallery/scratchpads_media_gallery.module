@@ -37,6 +37,15 @@ function scratchpads_media_gallery_theme(){
 }
 
 /**
+ * Implementation of hook_node_view_alter().
+ */
+function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
+  if($node->type == 'image_gallery' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
+    drupal_goto('gallery/' . $node->nid);
+  }
+}
+
+/**
  * Implementation of hook_node_insert().
  */
 function scratchpads_media_gallery_node_insert($node){
