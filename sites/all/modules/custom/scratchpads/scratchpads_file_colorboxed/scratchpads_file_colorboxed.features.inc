@@ -28,17 +28,20 @@ function scratchpads_file_colorboxed_styles_default_styles(){
       ),
       'audio' => array(
         'colorbox' => array(
-          'default preset' => 'original'
+          'default preset' => 'original',
+          'preset' => 'large'
         )
       ),
       'video' => array(
         'colorbox' => array(
-          'default preset' => 'original'
+          'default preset' => 'original',
+          'preset' => 'large'
         )
       ),
       'default' => array(
         'colorbox' => array(
-          'default preset' => 'original'
+          'default preset' => 'original',
+          'preset' => 'large'
         )
       )
     )
