@@ -122,18 +122,12 @@ function scratchpads_blocks_block_view($delta = ''){
         'html' => true,
         'absolute' => true
       );
-      // TODO - Creative commons.
       $links = array(
         l(theme('image', array(
           'path' => $path . '/images/vbrant.png',
           'alt' => 'ViBRANT logo',
           'title' => 'ViBRANT'
         )), 'http://vbrant.eu/', $options),
-        l(theme('image', array(
-          'path' => $path . '/images/cc.png',
-          'alt' => 'Creative Commons',
-          'title' => 'Creative Commons'
-        )), 'http://creativecommons.org/licenses/by-nc-sa/3.0/', $options),
         l(theme('image', array(
           'path' => $path . '/images/drupal_small.png',
           'alt' => 'Drupal logo',
