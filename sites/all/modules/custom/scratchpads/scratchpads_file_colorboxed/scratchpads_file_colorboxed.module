@@ -1,3 +1,15 @@
 <?php
 
-lightbox2_add_files();
+/**
+ * Implementation of hook_entity_view_alter().
+ */
+function scratchpads_file_colorboxed_entity_view_alter(&$build, $type){
+  if(isset($_GET['colorbox'])){
+    // Prevent a loop!
+    unset($_GET['colorbox']);
+    $entities = entity_load('file', array($build['file']['#file']->fid));
+    $content = entity_view('file', $entities, 'file_styles_colorbox');
+    echo drupal_render($content);
+    exit;
+  }
+}
