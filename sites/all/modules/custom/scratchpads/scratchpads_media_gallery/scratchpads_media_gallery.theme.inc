@@ -29,6 +29,13 @@ function theme_scratchpads_media_gallery($variables){
   }
   $media_entities = entity_load('file', $entity_ids);
   $content_array = entity_view('file', $media_entities, 'file_styles_scratchpads_media_gallery_thumbnail');
+  foreach($content_array as $key => $array){
+    if(is_numeric($key) && is_array($array)){
+      if(!isset($array['file']['#file'])){
+        $content_array[$key]['file']['#file'] = $media_entities[$key];
+      }
+    }
+  }
   foreach($content_array as $key => $value){
     if(is_numeric($key)){
       $content_array[$key]['#prefix'] = '<div class="grid-2">';
