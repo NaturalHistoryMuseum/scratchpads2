@@ -27,11 +27,11 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
         break;
     }
   }
-  $form['entity_type'] = array(
-    '#type' => 'fieldset',
-    '#collapsed' => TRUE,
-    '#collapsible' => TRUE,
-    '#title' => 'Type',
+  $form['entity_type_value'] = array(
+    '#title' => '',
+    '#type' => 'radios',
+    '#default_value' => $default_value,
+    '#options' => $options,
     '#attached' => array(
       'css' => array(
         drupal_get_path('module', 'scratchpads_search_block') . '/css/scratchpads_search_block.css'
@@ -39,19 +39,9 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
       'js' => array(
         drupal_get_path('module', 'scratchpads_search_block') . '/js/scratchpads_search_block.js'
       )
-    ),
-    '#attributes' => array(
-      'class' => array(
-        'sp-bg-colour'
-      )
-    ),
-    'entity_type_value' => array(
-      '#title' => '',
-      '#type' => 'radios',
-      '#default_value' => $default_value,
-      '#options' => $options
     )
   );
+
   // Alter the submit function so that we can add facet magic.
   $form['#submit'][0] = 'scratchpads_search_block_form_submit';
   $form['#theme'][0] = 'scratchpads_search_block_form';

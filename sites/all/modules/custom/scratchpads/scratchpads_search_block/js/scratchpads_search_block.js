@@ -7,9 +7,5 @@
         $('input[name="search_block_form"]').removeClass('form-autocomplete');
       }
     });
-    $('input[name="search_block_form"]').focus(function(event){
-      $('input[name="search_block_form"]').parent().parent().siblings('div').find('fieldset.collapsed legend span a').click();
-    });
-    $('input[name="entity_type_value"]:checked').first().change();
   })
 })(jQuery);
