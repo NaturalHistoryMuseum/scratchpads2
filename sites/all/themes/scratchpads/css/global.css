@@ -60,10 +60,6 @@ h2.block-title{
  color: #fff; 
 }
 
-body *{
-  letter-spacing: normal;
-}
-
 h1, h2, h3, h4, h5, h6{
   font-weight: normal!important;
 }
@@ -72,11 +68,19 @@ h1,
 h1.site-name, 
 h2.site-name{
 	font-family: 'FontinSansRegular', Georgia, serif;
-	letter-spacing: 0.5px;
 	font-size: 3em;
 	line-height: 1.2em;
-	margin: 0 0 10px 0;
 }
+
+.site-name{
+  letter-spacing: normal;
+}
+
+h1#page-title{
+  line-height: 0.7em;
+  margin: 0 0 17px 0;
+}
+
 
 /* Subtitle */
 h1 span{
@@ -292,8 +296,38 @@ h2.site-name {
   list-style: none;
 }
 
+.block-footer-menu ul li{
+  margin: 0!important;
+  padding: 0;
+  color: #ACACAC;
+}
+
+.block-footer-menu ul li:not(.last):after{
+  content: "|";
+}
+
+.block-footer-menu ul li a{
+  padding: 0 5px 0 1px;
+}
+
 .block-footer-logos ul li{
   padding: 0 10px;
+}
+
+/* Creative commons licence */
+
+#block-creative-commons-creative-commons{
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+#block-creative-commons-creative-commons p{
+  color: #000;
+}
+
+#block-creative-commons-creative-commons a img{
+  position: relative;
+  top: 3px;
 }
 
 /************************ Content *********************/ 
@@ -305,7 +339,7 @@ h2.site-name {
 
 /* Breadcrumb */
 .breadcrumb{
-  margin: 13px 0 10px 0;
+  margin: 13px 0 11px 0;
   color: #898A8C;
 }
 
