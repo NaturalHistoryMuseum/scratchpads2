@@ -2,15 +2,15 @@
 
 /**
  * @file
- * image_gallery.features.field.inc
+ * media_gallery.features.field.inc
  */
 /**
  * Implements hook_field_default_fields().
  */
 function scratchpads_media_gallery_field_default_fields(){
   $fields = array();
-  // Exported field: 'node-image_gallery-body'
-  $fields['node-image_gallery-body'] = array(
+  // Exported field: 'node-media_gallery-body'
+  $fields['node-media_gallery-body'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
@@ -38,7 +38,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'type' => 'text_with_summary'
     ),
     'field_instance' => array(
-      'bundle' => 'image_gallery',
+      'bundle' => 'media_gallery',
       'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
@@ -80,8 +80,8 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'node-image_gallery-field_smg_media'
-  $fields['node-image_gallery-field_smg_media'] = array(
+  // Exported field: 'node-media_gallery-field_smg_media'
+  $fields['node-media_gallery-field_smg_media'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
@@ -111,7 +111,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'type' => 'file'
     ),
     'field_instance' => array(
-      'bundle' => 'image_gallery',
+      'bundle' => 'media_gallery',
       'deleted' => '0',
       'description' => '',
       'display' => array(
@@ -190,7 +190,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'settings' => array(
         'referenceable_types' => array(
           'biblio' => 0,
-          'image_gallery' => 'image_gallery',
+          'media_gallery' => 'media_gallery',
           'page' => 0
         ),
         'view' => array(
@@ -333,7 +333,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'settings' => array(
         'referenceable_types' => array(
           'biblio' => 0,
-          'image_gallery' => 'image_gallery',
+          'media_gallery' => 'media_gallery',
           'page' => 0
         ),
         'view' => array(
@@ -476,7 +476,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'settings' => array(
         'referenceable_types' => array(
           'biblio' => 0,
-          'image_gallery' => 'image_gallery',
+          'media_gallery' => 'media_gallery',
           'page' => 0
         ),
         'view' => array(

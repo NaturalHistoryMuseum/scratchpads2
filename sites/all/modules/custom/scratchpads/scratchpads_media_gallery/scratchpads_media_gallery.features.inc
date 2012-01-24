@@ -2,15 +2,15 @@
 
 /**
  * @file
- * image_gallery.features.inc
+ * media_gallery.features.inc
  */
 /**
  * Implements hook_node_info().
  */
 function scratchpads_media_gallery_node_info(){
   $items = array(
-    'image_gallery' => array(
-      'name' => t('Image gallery'),
+    'media_gallery' => array(
+      'name' => t('Media gallery'),
       'base' => 'node_content',
       'description' => t('Upload media, or select media already uploaded to display together in a gallery.'),
       'has_title' => '1',

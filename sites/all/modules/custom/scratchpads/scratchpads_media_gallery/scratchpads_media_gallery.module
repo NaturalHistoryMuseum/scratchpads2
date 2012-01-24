@@ -40,7 +40,7 @@ function scratchpads_media_gallery_theme(){
  * Implementation of hook_node_view_alter().
  */
 function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
-  if($node->type == 'image_gallery' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
+  if($node->type == 'media_gallery' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
     drupal_goto('gallery/' . $node->nid);
   }
 }
@@ -180,5 +180,5 @@ function scratchpads_media_gallery_map_callback($values, $options){
 /**
  * Implementation of hook_form_FORM_ID_alter().
  * 
-function scratchpads_media_gallery_form_image_gallery_node_form_alter(&$form, &$form_state, $form_id){}
+function scratchpads_media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state, $form_id){}
  */
