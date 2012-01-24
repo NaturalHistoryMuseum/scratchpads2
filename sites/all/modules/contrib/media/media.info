@@ -22,3 +22,10 @@ files[] = tests/media.types.test
 files[] = tests/media.entity.test
 
 testing_api = 2.x
+
+; Information added by drupal.org packaging script on 2012-01-12
+version = "7.x-2.0-unstable3"
+core = "7.x"
+project = "media"
+datestamp = "1326409247"
+
