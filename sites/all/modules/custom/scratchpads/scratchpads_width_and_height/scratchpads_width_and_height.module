@@ -38,7 +38,7 @@ function scratchpads_width_and_height_theme_image($variables){
       // Set $image_info to false in case we fail to load the image.
       $image_info = FALSE;
       if(substr($variables['path'], 0, 4) == 'http'){
-        $file = file_save_data(@file_get_contents($variables['path']), 'temporary://');
+        $file = file_unmanaged_save_data(@file_get_contents($variables['path']), 'temporary://');
         $path = drupal_realpath($file->uri);
         $image = image_load($path);
         unlink($path);
