@@ -277,11 +277,11 @@ h2.site-name {
 /* Footer links & menu */
 
 .block-footer-menu{
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .block-footer-logos{
-  margin-bottom: 10px;
+  margin-bottom: 30px;
 }
 
 .block-footer-menu ul,
@@ -318,7 +318,7 @@ h2.site-name {
 
 #block-creative-commons-creative-commons{
   max-width: 500px;
-  margin: 20px auto;
+  margin: 0 auto;
 }
 
 #block-creative-commons-creative-commons p{
