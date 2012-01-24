@@ -80,5 +80,9 @@ function scratchpads_process_region(&$vars){
   }
 }
 
+function scratchpads_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  $form['actions']['#weight'] = -10;
+}
+
 
   
