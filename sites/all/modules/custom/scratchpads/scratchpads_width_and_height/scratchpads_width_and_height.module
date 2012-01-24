@@ -35,6 +35,8 @@ function scratchpads_width_and_height_theme_image($variables){
   if((!isset($variables['width']) || !$variables['width']) || (!isset($variables['height']) || !$variables['height'])){
     $image_info = cache_get(md5($variables['path']), 'cache_image_sizes');
     if(!$image_info){
+      // Set image_info to false in case we fail to load the image.
+      $image_info = FALSE;
       if(substr($variables['path'], 0, 4) == 'http'){
         $file = file_save_data(@file_get_contents($variables['path']), 'temporary://');
         $path = drupal_realpath($file->uri);
@@ -47,10 +49,12 @@ function scratchpads_width_and_height_theme_image($variables){
         $image_info = $image->info;
         cache_set(md5($variables['path']), $image_info, 'cache_image_sizes');
       }
+    }else{
+      $image_info = $image_info->data;
     }
     if($image_info){
-      $variables['height'] = $image->info['height'];
-      $variables['width'] = $image->info['width'];
+      $variables['height'] = $image_info['height'];
+      $variables['width'] = $image_info['width'];
     }
   }
   $attributes = $variables['attributes'];
