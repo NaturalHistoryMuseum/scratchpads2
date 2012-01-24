@@ -198,6 +198,10 @@ a.scratchpads-slide-toggle{
 
 /* Header */
 
+#zone-header{
+  padding-top: 20px;
+}
+
 h1.site-name, 
 h2.site-name {
   font-size: 40px;
@@ -214,6 +218,10 @@ h2.site-name {
 
 #region-header{
   margin-top: 40px;
+}
+
+#region-header #search-block-form{
+  max-width: 380px;
 }
 
 #region-header #search-block-form div.form-actions{
@@ -234,12 +242,19 @@ h2.site-name {
 
 #region-header #search-block-form .form-item{
   margin: 0;
+  margin-right: 100px;
+  display: block;
 }
 
-#region-header #search-block-form .form-item input{
-  width: 280px;
+#region-header #search-block-form .form-item input.form-text{
   height: 26px;
   margin-top: 1px;
+  width: 100%;
+  background-position: 100% 6px;
+}
+
+#region-header #search-block-form .form-item input.throbbing{
+  background-position: 100% -14px;
 }
 
 #region-header #search-block-form .element-invisible{
