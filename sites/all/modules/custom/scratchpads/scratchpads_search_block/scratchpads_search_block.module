@@ -27,7 +27,7 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
         break;
     }
   }
-  $form['entity_type_value'] = array(
+  $form['entity_type'] = array(
     '#title' => '',
     '#type' => 'radios',
     '#default_value' => $default_value,
@@ -71,10 +71,10 @@ function scratchpads_search_block_form_submit($form, &$form_state){
   $info = search_get_default_module_info();
   if($info){
     $query = array();
-    if($form_state['values']['entity_type_value'] != '_all'){
+    if($form_state['values']['entity_type'] != '_all'){
       $query = array(
         'query' => array(
-          'f[0]' => 'bundle:' . $form_state['values']['entity_type_value']
+          'f[0]' => 'bundle:' . $form_state['values']['entity_type']
         )
       );
     }
@@ -140,8 +140,8 @@ function template_preprocess_scratchpads_search_block_form(&$variables){
   // Hidden form elements have no value to themers. No need for separation.
   $variables['search']['hidden'] = implode($hidden);
   // Additional to the standard preprocess function  
-  $variables['entity_types'] = $variables['search']['entity_type'];
-  unset($variables['search']['entity_type']);
+//  $variables['entity_types'] = $variables['search']['entity_type'];
+//  unset($variables['search']['entity_type']);
   // Collect all form elements to make it easier to print the whole form.
   $variables['search_form'] = implode($variables['search']);
 }

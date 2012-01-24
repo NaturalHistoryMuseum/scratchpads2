@@ -205,7 +205,7 @@ a.scratchpads-slide-toggle{
 h1.site-name, 
 h2.site-name {
   font-size: 40px;
-  margin: 30px 0 8px 0;
+  margin: 23px 0 8px 0;
 }
 
 .section-header h6.site-slogan{
@@ -213,11 +213,11 @@ h2.site-name {
 }
 
 .section-header #region-menu{
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 #region-header{
-  margin-top: 40px;
+  margin-top: 33px;
 }
 
 #region-header #search-block-form{

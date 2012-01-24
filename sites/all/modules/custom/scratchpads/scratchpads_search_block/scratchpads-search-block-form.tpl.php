@@ -34,5 +34,4 @@
     <h2 class="element-invisible"><?php print t('Search form'); ?></h2>
   <?php endif; ?>
   <div class="scratchpads-search-block-input"><?php print $search_form;?></div>
-  <div class="scratchpads-search-block-fieldset"><?php print $entity_types;?></div>
 </div>
