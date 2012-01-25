@@ -1,5 +1,9 @@
 /* Pagers Positioning */
 
+.pager{
+  padding-top: 10px;
+}
+
 .pager li.pager-current {
   font-weight: normal;
 }
