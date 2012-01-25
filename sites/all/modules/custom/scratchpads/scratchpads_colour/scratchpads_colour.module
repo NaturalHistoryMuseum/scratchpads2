@@ -243,6 +243,8 @@ function scratchpads_colour_preprocess_html(&$vars){
  ********************************************************************************************/
 function scratchpads_colour_default_colours(){
   $default_colours = array(
+  	'000000',
+  	'353535',
     '1F3661',
     '154D8C',
     '047DB8',

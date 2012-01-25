@@ -142,7 +142,8 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
     '#attributes' => array(
       'href' => url(CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : ''), array(
         'absolute' => true
-      ))
+      )),
+      'class' => ($display_type == CC_LARGE_IMAGE ? 'cc-large' : 'cc-small')
     ),
     '#value' => $image
   );
@@ -270,7 +271,12 @@ function creative_commons_block_view($delta = ''){
         '#licence' => creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), variable_get('creative_commons_block_display_type', CC_LARGE_IMAGE)),
         '#text' => t('Except where otherwise noted, content on this site is licensed under a Creative Commons !licence Licence.', array(
           '!licence' => creative_commons_get_licence_types($licence)
-        ))
+        )),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'creative_commons') . '/css/creative_commons.css'
+          ),
+        )
       );
       break;
   }

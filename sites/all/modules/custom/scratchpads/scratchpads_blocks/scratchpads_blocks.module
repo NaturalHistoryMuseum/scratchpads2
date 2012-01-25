@@ -54,13 +54,13 @@ function scratchpads_blocks_block_info(){
     'theme' => SCRATCHPADS_THEME_NAME,
     'status' => 1
   );
-  $blocks['footer_links'] = array(
-    'info' => t('Scratchpads footer links'),
-    'region' => 'footer',
-    'weight' => 3,
-    'theme' => SCRATCHPADS_THEME_NAME,
-    'status' => 1
-  );
+//  $blocks['footer_links'] = array(
+//    'info' => t('Scratchpads footer links'),
+//    'region' => 'footer',
+//    'weight' => 3,
+//    'theme' => SCRATCHPADS_THEME_NAME,
+//    'status' => 1
+//  );
   return $blocks;
 }
 
@@ -144,9 +144,9 @@ function scratchpads_blocks_block_view($delta = ''){
         '#items' => $links
       );
       break;
-    case 'footer_links':
-      $block['content'] = l('Other scratchpads', '/scratchpads');
-      break;
+//    case 'footer_links':
+//      $block['content'] = l('Other scratchpads', '/scratchpads');
+//      break;
   }
   return $block;
 }
@@ -245,10 +245,10 @@ function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
 function scratchpads_blocks_toggle_placeholder($term){
   if(!scratchpads_blocks_show_placeholders()){
     $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = TRUE;
-    drupal_set_message(t('You have turned on empty blocks.'));
+    drupal_set_message(t('You have turned on the display of empty blocks.'));
   }else{
     $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = FALSE;
-    drupal_set_message(t('You have turned off empty blocks.'));
+    drupal_set_message(t('You have turned off the display of empty blocks.'));
   }
   // Return to the original page
   drupal_goto(drupal_get_destination());
