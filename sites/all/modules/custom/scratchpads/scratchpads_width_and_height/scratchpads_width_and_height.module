@@ -46,7 +46,7 @@ function scratchpads_width_and_height_theme_image($variables){
         $image = image_load($variables['path']);
       }
       // We only cache images with a file size (in case the file failed to download).
-      if($image->info && $image->info['file_size']){
+      if($image && $image->info && $image->info['file_size']){
         $image_info = $image->info;
         cache_set(md5($variables['path']), $image_info, 'cache_image_sizes');
       }
