@@ -401,3 +401,27 @@ ul.menu li{
 }
 
 
+/************************ MEDIA GALLERY *********************/ 
+
+.view-species-media .view-content ul{
+  list-style: none;
+  margin-top: 20px;
+  clear: left;
+}
+
+.view-species-media .view-content ul li.views-row{
+  float: left;
+  margin: 0 10px 10px 0;
+  border: 1px solid #999;
+  list-style: none;
+  background: none;
+}
+
+.view-species-media .attachment  ul li.views-row{
+  float: none;
+  border: 0;
+  margin: 0;
+}
+
+
+
