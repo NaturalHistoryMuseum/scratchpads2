@@ -1,0 +1,3 @@
+name = "Media element link"
+description = "Provide simple links to a file entity."
+core = 7.x
