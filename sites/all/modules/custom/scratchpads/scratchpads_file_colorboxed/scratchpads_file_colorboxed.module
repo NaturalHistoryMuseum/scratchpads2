@@ -2,17 +2,32 @@
 include_once ('scratchpads_file_colorboxed.features.inc');
 
 /**
- * Implementation of hook_entity_view_alter().
+ * Implementation of hook_menu()
  */
-function scratchpads_file_colorboxed_entity_view_alter(&$build, $type){
-  if(isset($_GET['colorbox']) && is_numeric(arg(1))){
-    // Prevent a loop!
-    unset($_GET['colorbox']);
-    $entities = entity_load('file', array(
-      arg(1)
-    ));
-    $content = entity_view('file', $entities, 'file_styles_colorbox');
-    echo drupal_render($content);
-    exit();
-  }
+function scratchpads_file_colorboxed_menu(){
+  return array(
+    'file-colorboxed/%' => array(
+      'title' => 'Scratchpads colorbox',
+      'page callback' => 'scratchpads_file_colorboxed_entity_simple_view',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'file_entity_access',
+      'access arguments' => array(
+        'view'
+      )
+    )
+  );
+}
+
+/**
+ * Callback for the above menu entry.
+ */
+function scratchpads_file_colorboxed_entity_simple_view($fid){
+  $entity = entity_load_single('file', $fid);
+  $content = entity_view('file', array(
+    $entity
+  ), 'file_styles_colorbox');
+  echo drupal_render($content);
+  exit();
 }
