@@ -1790,8 +1790,8 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 0;
     $handler->display->display_options['style_plugin'] = 'list';
     $handler->display->display_options['style_options']['group_rendered'] = 1;
-		$handler->display->display_options['row_plugin'] = 'entity';
-		$handler->display->display_options['row_options']['view_mode'] = 'species';
+    $handler->display->display_options['row_plugin'] = 'entity';
+    $handler->display->display_options['row_options']['view_mode'] = 'species';
     /* Sort criterion: Content: Post date */
     $handler->display->display_options['sorts']['created']['id'] = 'created';
     $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1831,6 +1831,239 @@ function scratchpads_species_views_default_views(){
     );
     /* Display: Block */
     $handler = $view->new_display('block', 'Block', 'block');
+    $views[$view->name] = $view;
+    $view = new view();
+    $view->name = 'species_media';
+    $view->description = '';
+    $view->tag = 'default';
+    $view->base_table = 'file_managed';
+    $view->human_name = 'Species media';
+    $view->context = 'species_media';
+    $view->core = 7;
+    $view->api_version = '3.0';
+    $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+    /* Display: Master */
+    $handler = $view->new_display('default', 'Master', 'default');
+    $handler->display->display_options['title'] = 'Species media';
+    $handler->display->display_options['css_class'] = 'view-inline-filters';
+    $handler->display->display_options['use_ajax'] = TRUE;
+    $handler->display->display_options['access']['type'] = 'perm';
+    $handler->display->display_options['cache']['type'] = 'none';
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['query']['options']['query_comment'] = FALSE;
+    $handler->display->display_options['exposed_form']['type'] = 'basic';
+    $handler->display->display_options['pager']['type'] = 'full';
+    $handler->display->display_options['pager']['options']['items_per_page'] = '8';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['pager']['options']['id'] = '0';
+    $handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 1;
+    $handler->display->display_options['style_plugin'] = 'list';
+    $handler->display->display_options['style_options']['wrapper_class'] = 'media-gallery';
+    $handler->display->display_options['row_plugin'] = 'file';
+    $handler->display->display_options['row_options']['view_mode'] = 'file_styles_square_thumbnail';
+    $handler->display->display_options['row_options']['links'] = 1;
+    /* Sort criterion: File: Upload date */
+    $handler->display->display_options['sorts']['timestamp']['id'] = 'timestamp';
+    $handler->display->display_options['sorts']['timestamp']['table'] = 'file_managed';
+    $handler->display->display_options['sorts']['timestamp']['field'] = 'timestamp';
+    $handler->display->display_options['sorts']['timestamp']['order'] = 'DESC';
+    /* Filter criterion: File: Type */
+    $handler->display->display_options['filters']['type']['id'] = 'type';
+    $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+    $handler->display->display_options['filters']['type']['field'] = 'type';
+    $handler->display->display_options['filters']['type']['exposed'] = TRUE;
+    $handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
+    $handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
+    $handler->display->display_options['filters']['type']['expose']['operator'] = 'type_op';
+    $handler->display->display_options['filters']['type']['expose']['identifier'] = 'type';
+    $handler->display->display_options['filters']['type']['expose']['reduce'] = 0;
+    /* Display: Block */
+    $handler = $view->new_display('block', 'Block', 'block');
+    $handler->display->display_options['defaults']['css_class'] = FALSE;
+    $handler->display->display_options['css_class'] = 'view-inline-filters grid-8 alpha omega';
+    /* Display: Count images */
+    $handler = $view->new_display('attachment', 'Count images', 'attachment_1');
+    $handler->display->display_options['defaults']['group_by'] = FALSE;
+    $handler->display->display_options['group_by'] = TRUE;
+    $handler->display->display_options['pager']['type'] = 'none';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['defaults']['style_plugin'] = FALSE;
+    $handler->display->display_options['style_plugin'] = 'list';
+    $handler->display->display_options['style_options']['wrapper_class'] = 'media-gallery';
+    $handler->display->display_options['defaults']['style_options'] = FALSE;
+    $handler->display->display_options['defaults']['row_plugin'] = FALSE;
+    $handler->display->display_options['row_plugin'] = 'fields';
+    $handler->display->display_options['row_options']['hide_empty'] = 0;
+    $handler->display->display_options['row_options']['default_field_elements'] = 0;
+    $handler->display->display_options['defaults']['row_options'] = FALSE;
+    $handler->display->display_options['defaults']['fields'] = FALSE;
+    /* Field: File: File ID */
+    $handler->display->display_options['fields']['fid']['id'] = 'fid';
+    $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
+    $handler->display->display_options['fields']['fid']['field'] = 'fid';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['label'] = '';
+    $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['text'] = 'Images ([fid])';
+    $handler->display->display_options['fields']['fid']['alter']['make_link'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['path'] = '#type=image';
+    $handler->display->display_options['fields']['fid']['alter']['absolute'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['external'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['replace_spaces'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim_whitespace'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['link_class'] = 'view-filter';
+    $handler->display->display_options['fields']['fid']['alter']['nl2br'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['word_boundary'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['ellipsis'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['strip_tags'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['html'] = 0;
+    $handler->display->display_options['fields']['fid']['element_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_label_colon'] = FALSE;
+    $handler->display->display_options['fields']['fid']['element_wrapper_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_default_classes'] = 0;
+    $handler->display->display_options['fields']['fid']['hide_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['empty_zero'] = 1;
+    $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['separator'] = '';
+    $handler->display->display_options['fields']['fid']['format_plural'] = 0;
+    $handler->display->display_options['fields']['fid']['format_plural_singular'] = '1 image';
+    $handler->display->display_options['defaults']['sorts'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: File: Type */
+    $handler->display->display_options['filters']['type']['id'] = 'type';
+    $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+    $handler->display->display_options['filters']['type']['field'] = 'type';
+    $handler->display->display_options['filters']['type']['value'] = array(
+      'image' => 'image'
+    );
+    $handler->display->display_options['displays'] = array(
+      'default' => 'default',
+      'block' => 'block'
+    );
+    $handler->display->display_options['inherit_exposed_filters'] = 1;
+    /* Display: Count video */
+    $handler = $view->new_display('attachment', 'Count video', 'attachment_3');
+    $handler->display->display_options['defaults']['group_by'] = FALSE;
+    $handler->display->display_options['group_by'] = TRUE;
+    $handler->display->display_options['pager']['type'] = 'none';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['defaults']['style_plugin'] = FALSE;
+    $handler->display->display_options['style_plugin'] = 'list';
+    $handler->display->display_options['style_options']['wrapper_class'] = 'media-gallery';
+    $handler->display->display_options['defaults']['style_options'] = FALSE;
+    $handler->display->display_options['defaults']['row_plugin'] = FALSE;
+    $handler->display->display_options['row_plugin'] = 'fields';
+    $handler->display->display_options['row_options']['hide_empty'] = 0;
+    $handler->display->display_options['row_options']['default_field_elements'] = 0;
+    $handler->display->display_options['defaults']['row_options'] = FALSE;
+    $handler->display->display_options['defaults']['fields'] = FALSE;
+    /* Field: File: File ID */
+    $handler->display->display_options['fields']['fid']['id'] = 'fid';
+    $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
+    $handler->display->display_options['fields']['fid']['field'] = 'fid';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['label'] = '';
+    $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['text'] = 'Videos ([fid])';
+    $handler->display->display_options['fields']['fid']['alter']['make_link'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['path'] = '#type=video';
+    $handler->display->display_options['fields']['fid']['alter']['absolute'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['external'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['replace_spaces'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim_whitespace'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['link_class'] = 'view-filter';
+    $handler->display->display_options['fields']['fid']['alter']['nl2br'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['word_boundary'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['ellipsis'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['strip_tags'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['html'] = 0;
+    $handler->display->display_options['fields']['fid']['element_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_label_colon'] = FALSE;
+    $handler->display->display_options['fields']['fid']['element_wrapper_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_default_classes'] = 0;
+    $handler->display->display_options['fields']['fid']['hide_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['empty_zero'] = 1;
+    $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['separator'] = '';
+    $handler->display->display_options['fields']['fid']['format_plural'] = 0;
+    $handler->display->display_options['fields']['fid']['format_plural_singular'] = '1 image';
+    $handler->display->display_options['defaults']['sorts'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: File: Type */
+    $handler->display->display_options['filters']['type']['id'] = 'type';
+    $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+    $handler->display->display_options['filters']['type']['field'] = 'type';
+    $handler->display->display_options['filters']['type']['value'] = array(
+      'video' => 'video'
+    );
+    $handler->display->display_options['displays'] = array(
+      'default' => 'default',
+      'block' => 'block'
+    );
+    $handler->display->display_options['inherit_exposed_filters'] = 1;
+    /* Display: Count audio */
+    $handler = $view->new_display('attachment', 'Count audio', 'attachment_2');
+    $handler->display->display_options['defaults']['group_by'] = FALSE;
+    $handler->display->display_options['group_by'] = TRUE;
+    $handler->display->display_options['pager']['type'] = 'none';
+    $handler->display->display_options['pager']['options']['offset'] = '0';
+    $handler->display->display_options['defaults']['style_plugin'] = FALSE;
+    $handler->display->display_options['style_plugin'] = 'list';
+    $handler->display->display_options['style_options']['wrapper_class'] = 'media-gallery';
+    $handler->display->display_options['defaults']['style_options'] = FALSE;
+    $handler->display->display_options['defaults']['row_plugin'] = FALSE;
+    $handler->display->display_options['row_plugin'] = 'fields';
+    $handler->display->display_options['row_options']['hide_empty'] = 0;
+    $handler->display->display_options['row_options']['default_field_elements'] = 0;
+    $handler->display->display_options['defaults']['row_options'] = FALSE;
+    $handler->display->display_options['defaults']['fields'] = FALSE;
+    /* Field: File: File ID */
+    $handler->display->display_options['fields']['fid']['id'] = 'fid';
+    $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
+    $handler->display->display_options['fields']['fid']['field'] = 'fid';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['label'] = '';
+    $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['text'] = 'Audio ([fid])';
+    $handler->display->display_options['fields']['fid']['alter']['make_link'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['path'] = '#type=audio';
+    $handler->display->display_options['fields']['fid']['alter']['absolute'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['external'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['replace_spaces'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim_whitespace'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['link_class'] = 'view-filter';
+    $handler->display->display_options['fields']['fid']['alter']['nl2br'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['word_boundary'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['ellipsis'] = 1;
+    $handler->display->display_options['fields']['fid']['alter']['strip_tags'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['trim'] = 0;
+    $handler->display->display_options['fields']['fid']['alter']['html'] = 0;
+    $handler->display->display_options['fields']['fid']['element_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_label_colon'] = FALSE;
+    $handler->display->display_options['fields']['fid']['element_wrapper_type'] = '0';
+    $handler->display->display_options['fields']['fid']['element_default_classes'] = 1;
+    $handler->display->display_options['fields']['fid']['hide_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['empty_zero'] = 1;
+    $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
+    $handler->display->display_options['fields']['fid']['separator'] = '';
+    $handler->display->display_options['fields']['fid']['format_plural'] = 0;
+    $handler->display->display_options['fields']['fid']['format_plural_singular'] = '1 image';
+    $handler->display->display_options['defaults']['sorts'] = FALSE;
+    $handler->display->display_options['defaults']['filters'] = FALSE;
+    /* Filter criterion: File: Type */
+    $handler->display->display_options['filters']['type']['id'] = 'type';
+    $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+    $handler->display->display_options['filters']['type']['field'] = 'type';
+    $handler->display->display_options['filters']['type']['value'] = array(
+      'audio' => 'audio'
+    );
+    $handler->display->display_options['displays'] = array(
+      'default' => 'default',
+      'block' => 'block'
+    );
+    $handler->display->display_options['inherit_exposed_filters'] = 1;
     $views[$view->name] = $view;
   }
   return $views;

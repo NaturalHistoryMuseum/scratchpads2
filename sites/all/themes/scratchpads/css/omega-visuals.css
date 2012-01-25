@@ -1,0 +1,5 @@
+/* Pagers Positioning */
+
+.pager li.pager-current {
+  font-weight: normal;
+}

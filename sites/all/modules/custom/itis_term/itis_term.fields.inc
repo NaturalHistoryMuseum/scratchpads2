@@ -107,7 +107,8 @@ function itis_term_groups(){
       'label' => 'Misc.',
       'weight' => '13',
       'children' => array(
-        0 => 'description'
+        0 => 'description',
+        1 => 'field_media'
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -1034,6 +1035,84 @@ function itis_term_fields(){
           'settings' => array(),
           'type' => 'text_textfield',
           'weight' => '16'
+        )
+      )
+    ),
+    array(
+      'field_config' => array(
+        'active' => '1',
+        'cardinality' => '-1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'field_media',
+        'foreign keys' => array(
+          'fid' => array(
+            'columns' => array(
+              'fid' => 'fid'
+            ),
+            'table' => 'file_managed'
+          )
+        ),
+        'indexes' => array(
+          'fid' => array(
+            0 => 'fid'
+          )
+        ),
+        'module' => 'file',
+        'settings' => array(
+          'display_default' => 0,
+          'display_field' => 0,
+          'uri_scheme' => 'public'
+        ),
+        'translatable' => '0',
+        'type' => 'file'
+      ),
+      'field_instance' => array(
+        'bundle' => 'tags',
+        'deleted' => '0',
+        'description' => '',
+        'display' => array(
+          'default' => array(
+            'label' => 'above',
+            'module' => 'file',
+            'settings' => array(),
+            'type' => 'file_default',
+            'weight' => 16
+          )
+        ),
+        'entity_type' => 'taxonomy_term',
+        'field_name' => 'field_media',
+        'label' => 'Media',
+        'required' => 0,
+        'settings' => array(
+          'description_field' => 0,
+          'file_directory' => '',
+          'file_extensions' => 'png jpg gif mp3',
+          'max_filesize' => '',
+          'user_register_form' => FALSE
+        ),
+        'widget' => array(
+          'active' => 1,
+          'module' => 'media',
+          'settings' => array(
+            'allowed_schemes' => array(
+              'public' => 'public'
+            ),
+            'allowed_types' => array(
+              'audio' => 'audio',
+              'default' => 0,
+              'image' => 'image',
+              'video' => 'video'
+            ),
+            'browser_plugins' => array(
+              'library' => 'library',
+              'media_default--media_browser_1' => 'media_default--media_browser_1',
+              'upload' => 'upload'
+            ),
+            'progress_indicator' => 'throbber'
+          ),
+          'type' => 'media_generic',
+          'weight' => '17'
         )
       )
     )

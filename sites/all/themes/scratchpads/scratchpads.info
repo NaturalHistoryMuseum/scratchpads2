@@ -26,7 +26,14 @@ regions[header] = 'Header'
 ; CSS
 css[global.css][name] = 'Scratchpad styles'
 css[global.css][options][weight] = '10'
+css[omega-visuals.css][name] = 'Scratchpad overide of omega visual styles'
+css[omega-visuals.css][options][weight] = '10'
+
+
 stylesheets[all][] = css/tabs.css
+
+
+
 
 ; JS
 scripts[] = js/scratchpads.js
@@ -73,7 +80,7 @@ settings[alpha_css][omega-text.css] = 'omega-text.css'
 settings[alpha_css][omega-branding.css] = 'omega-branding.css'
 settings[alpha_css][omega-menu.css] = 'omega-menu.css'
 settings[alpha_css][omega-forms.css] = 'omega-forms.css'
-settings[alpha_css][omega-visuals.css] = 'omega-visuals.css'
+;settings[alpha_css][omega-visuals.css] = 'omega-visuals.css'
 settings[alpha_css][global.css] = 'global.css'
 settings[alpha_debug_block_toggle] = '0'
 settings[alpha_debug_block_active] = '0'

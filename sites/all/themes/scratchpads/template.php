@@ -10,11 +10,22 @@
 function scratchpads_block_view_alter(&$data, $block){
   if(isset($data['content']) && $block->module == 'views'){
     // Move the view classes to the block classes
-    if(preg_match('/<[^>]*\ class="([^"]*)"/', $data['content']['#markup'], $matches)){
-      $data['content']['#markup'] = str_replace($matches[1], 'view-wrapper', $data['content']['#markup']);
-      $data['class'] = array(
-        $matches[1]
-      );
+    if(preg_match('/(grid-[0-9])/', $data['content']['#markup'], $matches)){
+      if(count($matches)){
+        $data['content']['#markup'] = str_replace($matches[1], '', $data['content']['#markup']);
+        $classes = array(
+          $matches[1]
+        );
+        if(strpos($data['content']['#markup'], 'alpha')){
+          str_replace('alpha', '', $data['content']['#markup']);
+          $classes[] = 'alpha';
+        }
+        if(strpos($data['content']['#markup'], 'omega')){
+          str_replace('omega', '', $data['content']['#markup']);
+          $classes[] = 'omega';
+        }
+        $data['class'] = $classes;
+      }
     }
   }
 }
