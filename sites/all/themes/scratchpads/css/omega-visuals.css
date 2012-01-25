@@ -1,7 +1,7 @@
 /* Pagers Positioning */
 
-.pager{
-  padding-top: 10px;
+.item-list .pager{
+  padding-top: 10px!important;
 }
 
 .pager li.pager-current {
