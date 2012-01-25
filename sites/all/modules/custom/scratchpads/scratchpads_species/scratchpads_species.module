@@ -84,18 +84,15 @@ function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
   $type = $form['#node_type']->type;
   $form_state['var'] = 'species_page_' . $type . '_tab';
   $tab = scratchpads_species_variable_get($form_state['var']);
-  
   $defaults = scratchpads_species_variable_defaults();
-  
   // If i have specified defaults for this node type, don't allow user to change it
   $disabled = (isset($defaults[$form_state['var']]) ? true : false);
-  
   $form['display']['species_page_display'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display on species pages.'),
     '#default_value' => ($tab ? 1 : 0),
     '#description' => t('Do you want to display this content on the species page?'),
-  	'#disabled' => $disabled
+    '#disabled' => $disabled
   );
   $tabs = scratchpads_species_get_tabs();
   if(isset($tabs[$type])){
@@ -277,9 +274,9 @@ function scratchpads_species_preprocess_block(&$vars){
 }
 
 function scratchpads_species_preprocess_views_view(&$vars){
-  if(!scratchpads_blocks_show_placeholders()){
-    switch($vars['view']->name){
-      case 'species_nomenclature':
+  switch($vars['view']->name){
+    case 'species_nomenclature':
+      if(!scratchpads_blocks_show_placeholders()){
         // If species slideshow is empty, expand this block
         if($view = views_get_view('species_slideshow')){
           $view->execute();
@@ -289,8 +286,12 @@ function scratchpads_species_preprocess_views_view(&$vars){
             );
           }
         }
-        break;
-    }
+      }
+      break;
+    case 'species_media':
+      $path = drupal_get_path('module', 'scratchpads_species');
+      drupal_add_js($path . '/js/scratchpads_species.js');
+      break;
   }
 }
 

@@ -61,5 +61,37 @@
   float:right;
 }
 
+/* Show fiew filter links and hide form if javascript is enabled */
+
+a.view-filter{
+  display: none;
+}
+
+.js .view-inline-filters .view-filters form{
+  display: none;
+}
+
+
+.js .view-inline-filters a.view-filter{
+  display: inline;
+}
+
+.attachment {
+margin-bottom: 20px;
+}
+
+.attachment .view-inline-filters,
+.attachment .view-inline-filters div,
+.attachment .view-inline-filters div ul,
+.attachment .view-inline-filters div ul li{
+  display: inline;
+}
+
+.attachment .view-inline-filters ul li{
+  padding-right: 10px;
+}
+
+
+  
 
 
