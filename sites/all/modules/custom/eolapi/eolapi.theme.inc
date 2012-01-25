@@ -22,7 +22,7 @@ function theme_eolapi_stillimage_full($variables){
 function theme_eolapi_stillimage_teaser($variables){
   $data = unserialize($variables['entity']->data);
   return theme('image_style', array(
-    'style_name' => 'sp_square_thumbnail',
+    'style_name' => 'square_thumbnail',
     'path' => substr($variables['entity']->eolapi_image['und'][0]['uri'], 9),
     'width' => $variables['entity']->eolapi_image['und'][0]['width'],
     'height' => $variables['entity']->eolapi_image['und'][0]['height'],
