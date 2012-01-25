@@ -246,8 +246,11 @@ h2.site-name {
 
 #region-header #search-block-form .form-item{
   margin: 0;
-  margin-right: 100px;
   display: block;
+}
+
+#region-header #search-block-form .form-type-textfield{
+  margin-right: 100px;  
 }
 
 #region-header #search-block-form .form-item input.form-text{
@@ -382,7 +385,7 @@ ul.menu li{
 
 #region-content h2.block-title{
   line-height: 14px;
-  padding: 10px 10px 12px 10px;
+  padding: 6px 10px 8px 10px;
   margin-bottom: 20px;
 }
 
