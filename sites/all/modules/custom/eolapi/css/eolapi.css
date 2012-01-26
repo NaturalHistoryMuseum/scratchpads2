@@ -1,10 +1,9 @@
 .view-eol-images .view-content div {
 	margin: 0;
-	padding: 2px;
+	padding: 0;
 	float: left;
-	height:104px;
-	width:104px;
-	overflow:hidden;
+  margin: 0 10px 10px 0;
+  border: 1px solid #999999;
 }
 .view-eol-images .view-content:after{
 	clear: both;
