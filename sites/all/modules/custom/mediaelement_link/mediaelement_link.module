@@ -105,7 +105,7 @@ function theme_mediaelement_link_video($variables){
   if(!file_exists($thumbnail_file)){
     $full_size_file = "public://mediaelement_link_thumbnail/{$variables['settings']['fid']}.jpg";
     if(!file_exists($full_size_file)){
-      exec('ffmpeg -ss 2 -i ' . drupal_realpath($file->uri) . ' -f image2 -vframes 1 ' . drupal_realpath($full_size_file));
+      exec('ffmpeg -ss 2 -i "' . drupal_realpath($file->uri) . '" -f image2 -vframes 1 ' . drupal_realpath($full_size_file));
     }
     $image = image_load($full_size_file);
     if($image){
@@ -131,9 +131,13 @@ function theme_mediaelement_link_video($variables){
 }
 
 function theme_mediaelement_link_audio($variables){
-  $output = '<h1>Audio</h1>';
-  //$output .= '<audio ' . drupal_attributes($variables['attributes']) . ' ></audio>';
-  //$output .= '</div>';
+  $file = entity_load_single('file', $variables['settings']['fid']);
+  $entity_uri = entity_uri('file', $file);
+  $output = l(theme('image', array(
+    'path' => file_create_url(file_icon_path($file))
+  )), $entity_uri['path'], array(
+    'html' => TRUE
+  ));
   return $output;
 }
 
