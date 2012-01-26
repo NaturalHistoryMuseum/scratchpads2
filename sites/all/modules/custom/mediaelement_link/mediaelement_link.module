@@ -109,6 +109,7 @@ function theme_mediaelement_link_video($variables){
     }
     $image = image_load($full_size_file);
     if($image){
+      module_load_include('effects.inc', 'image');
       image_scale_and_crop_effect($image, $variables['settings']);
       image_save($image, $thumbnail_file);
     }
