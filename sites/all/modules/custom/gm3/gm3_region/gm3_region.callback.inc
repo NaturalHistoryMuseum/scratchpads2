@@ -25,7 +25,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   }
   // Load the Library.
   gm3_load_geophp();
-  $wkb_reader = new WKT();
+  $wkb_reader = new WKB();
   // Create a point object from the sent data.
   $latlng = preg_replace("/[)(]/", "", $latlng);
   $latlng = explode(", ", $latlng);
@@ -37,7 +37,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     $level_2_codes = array();
     foreach($level4s as $level4){
       $level_2_codes[$level4->level_2_code] = $level4->level_2_code;
-      $polygon = $wkb_reader->read($level4->polygons, TRUE);
+      $polygon = $wkb_reader->read($level4->binary_polygons, TRUE);
       // There appears to be a tiny bug with the WKB.class, resulting in a
       // notice about an unknown variable.
       if(@$point->within($polygon)){
@@ -52,7 +52,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       foreach($level_2_codes as $level_2_code){
         $level4s = db_select('gm3_region_data', 'g')->fields('g')->condition('level_4_code', '', '!=')->condition('level_2_code', $level_2_code)->execute();
         foreach($level4s as $level4){
-          $polygon = $wkb_reader->read($level4->polygons, TRUE);
+          $polygon = $wkb_reader->read($level4->binary_polygons, TRUE);
           // There appears to be a tiny bug with the WKB.class, resulting in a
           // notice about an unknown variable.
           if(@$point->within($polygon)){
@@ -98,7 +98,7 @@ function gm3_region_get_points($region_ids){
       $region_id_parts = explode(":", $region_id);
       // Load the geoPHP library.
       gm3_load_geophp();
-      $wkb_reader = new WKT();
+      $wkb_reader = new WKB();
       switch(count($region_id_parts)){
         case 4:
           $region_id_4_parts = explode("-", $region_id_parts[3]);
@@ -123,7 +123,7 @@ function gm3_region_get_points($region_ids){
           break;
       }
       if($row){
-        $polygons = $wkb_reader->read($row->polygons, TRUE);
+        $polygons = $wkb_reader->read($row->binary_polygons, TRUE);
         $polygons = $polygons->out('json');
         $polygons = '{"' . $region_id . '":{"name":"'.$row->name.'","shape":' . $polygons . '}}';
       }
