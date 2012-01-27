@@ -49,7 +49,9 @@
       google.maps.event.trigger(self.google_map, 'resize');
     })
     if(true) {// Change this to be an autozoom option
-      this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
+      if(this.max_lat) {
+        this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
+      }
     }
     return this;
   }
