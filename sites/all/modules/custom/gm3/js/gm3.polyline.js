@@ -42,6 +42,7 @@
       } else {
         path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long']);
       }
+      this.GM3.add_latlng(path_points[i]);
     }
     if(editable) {
       // We don't add a popup to an editable polyline.

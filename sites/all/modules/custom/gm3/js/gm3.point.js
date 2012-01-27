@@ -17,15 +17,12 @@
     }
     // Clusterer
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
-    this.autofit = typeof (this.GM3.libraries.point.autofit) != 'undefined' ? this.GM3.libraries.point.autofit : false;
-    if(this.autofit) {
-      this.clusterer.fitMapToMarkers();
-    }
   }
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, title, content){
+    this.GM3.add_latlng(latLng);
     redraw = typeof (redraw) != 'undefined' ? redraw : false;
     title = typeof (title) != 'undefined' ? title : '';
     content = typeof (content) != 'undefined' ? content : '';

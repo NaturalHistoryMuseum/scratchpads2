@@ -1,5 +1,10 @@
 (function($){
   Drupal.GM3 = function(map){
+    // Autofit max and min lat/longs
+    this.max_lat = false;
+    this.max_lng = false;
+    this.min_lat = false;
+    this.min_lng = false;
     this.settings = map.settings;
     this.id = map.id;
     this.initialized = false;
@@ -43,7 +48,24 @@
     $('a').click(function(event){
       google.maps.event.trigger(self.google_map, 'resize');
     })
+    if(true) {// Change this to be an autozoom option
+      this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
+    }
     return this;
+  }
+  Drupal.GM3.prototype.add_latlng = function(latLng){
+    if(!this.max_lat || this.max_lat < latLng.lat()) {
+      this.max_lat = latLng.lat();
+    }
+    if(!this.max_lng || this.max_lng < latLng.lng()) {
+      this.max_lng = latLng.lng();
+    }
+    if(!this.min_lat || this.min_lat > latLng.lat()) {
+      this.min_lat = latLng.lat();
+    }
+    if(!this.min_lng || this.min_lng > latLng.lng()) {
+      this.min_lng = latLng.lng();
+    }
   }
   Drupal.GM3.prototype.add_popup = function(object, content, title){
     // There appears to be a small bug with the infobubble code that calculates
