@@ -2,7 +2,7 @@
 // Get the last edit time of the original file
 $filename = basename(__FILE__);
 $original_filename = DRUPAL_ROOT . '/modules/taxonomy/' . $filename;
-$replacement_filename = drupal_realpath('public://' . $filename);
+$replacement_filename = __FILE__ . '.inc';
 if(filemtime($original_filename) > filemtime($replacement_filename)){
   // The file has been changed, or we have just installed this module.  Lets
   // get the content of taxonomy.module, tweak it, and save it to a file
@@ -22,6 +22,6 @@ if(filemtime($original_filename) > filemtime($replacement_filename)){
   file_unmanaged_save_data($taxonomy_module_string, $replacement_filename, FILE_EXISTS_REPLACE);
 }
 // Load the new file
-include_once ($replacement_filename);
+include $replacement_filename;
 // Load include file with the replacement functions in
 module_load_include('module.replace.inc', 'taxonomy');
