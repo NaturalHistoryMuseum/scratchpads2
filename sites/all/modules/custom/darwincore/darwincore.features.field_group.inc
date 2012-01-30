@@ -110,8 +110,8 @@ function darwincore_field_group_default_field_groups(){
     )
   );
   // Exported field_group: 'node-specimen_observation-form-group_collection'
-  $field_groups['node-specimen_observation-form-group_collection'] = array(
-    'group_name' => 'group_collection',
+  $field_groups['node-specimen_observation-form-group_collection_display'] = array(
+    'group_name' => 'group_collection_display',
     'entity_type' => 'node',
     'bundle' => 'specimen_observation',
     'mode' => 'default',
@@ -154,8 +154,8 @@ function darwincore_field_group_default_field_groups(){
     )
   );
   // Exported field_group: 'node-specimen_observation-form-group_location'
-  $field_groups['node-specimen_observation-form-group_location'] = array(
-    'group_name' => 'group_location',
+  $field_groups['node-specimen_observation-form-group_location_display'] = array(
+    'group_name' => 'group_location_display',
     'entity_type' => 'node',
     'bundle' => 'specimen_observation',
     'mode' => 'default',
@@ -199,8 +199,8 @@ function darwincore_field_group_default_field_groups(){
     )
   );
   // Exported field_group: 'node-specimen_observation-form-group_miscellaneous'
-  $field_groups['node-specimen_observation-form-group_miscellaneous'] = array(
-    'group_name' => 'group_miscellaneous',
+  $field_groups['node-specimen_observation-form-group_miscellaneous_display'] = array(
+    'group_name' => 'group_miscellaneous_display',
     'entity_type' => 'node',
     'bundle' => 'specimen_observation',
     'mode' => 'default',
@@ -247,8 +247,8 @@ function darwincore_field_group_default_field_groups(){
     )
   );
   // Exported field_group: 'node-specimen_observation-form-group_required'
-  $field_groups['node-specimen_observation-form-group_required'] = array(
-    'group_name' => 'group_required',
+  $field_groups['node-specimen_observation-form-group_required_display'] = array(
+    'group_name' => 'group_required_display',
     'entity_type' => 'node',
     'bundle' => 'specimen_observation',
     'mode' => 'default',
@@ -319,8 +319,8 @@ function darwincore_field_group_default_field_groups(){
     )
   );
   // Exported field_group: 'node-specimen_observation-form-group_taxonomy'
-  $field_groups['node-specimen_observation-form-group_taxonomy'] = array(
-    'group_name' => 'group_taxonomy',
+  $field_groups['node-specimen_observation-form-group_taxonomy_display'] = array(
+    'group_name' => 'group_taxonomy_display',
     'entity_type' => 'node',
     'bundle' => 'specimen_observation',
     'parent_name' => '',
