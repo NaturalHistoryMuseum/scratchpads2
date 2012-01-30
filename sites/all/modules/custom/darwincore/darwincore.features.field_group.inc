@@ -325,6 +325,7 @@ function darwincore_field_group_default_field_groups(){
     'bundle' => 'specimen_observation',
     'parent_name' => '',
     'mode' => 'default',
+  	'label' => '',
     'weight' => '2',
     'children' => array(
       0 => 'field_date_identified',
