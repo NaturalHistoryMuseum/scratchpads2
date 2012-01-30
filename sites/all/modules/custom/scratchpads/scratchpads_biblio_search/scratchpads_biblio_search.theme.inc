@@ -40,6 +40,11 @@ function theme_scratchpads_biblio_search($variables){
     ),
     'rows' => $rows
   )) . theme('pager', array(
-    'tags' => NULL
+    'tags' => NULL,
+    'attributes' => array(
+      'class' => array(
+        'biblio'
+      )
+    )
   ));
 }
