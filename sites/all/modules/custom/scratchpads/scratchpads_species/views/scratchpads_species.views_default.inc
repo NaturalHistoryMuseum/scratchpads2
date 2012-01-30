@@ -743,6 +743,7 @@ function scratchpads_species_views_default_views(){
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
+  $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
   $handler->display->display_options['use_more_text'] = 'More';
@@ -1411,6 +1412,7 @@ function scratchpads_species_views_default_views(){
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
+  $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
   $handler->display->display_options['use_more_text'] = 'More';
