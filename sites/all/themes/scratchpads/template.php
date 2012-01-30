@@ -95,5 +95,129 @@ function scratchpads_form_search_block_form_alter(&$form, &$form_state, $form_id
   $form['actions']['#weight'] = -10;
 }
 
+function scratchpads_preprocess_node(&$variables){
+  if($variables['view_mode'] == 'linked_node'){
+    $node_info = node_type_load($variables['type']);
+    $variables['title'] = $node_info->name;
+  }
+}
 
+function scratchpads_preprocess_field(&$variables, $hook){
+  if(isset($variables['element']['#stripe'])){
+    $variables['classes_array'][] = $variables['element']['#stripe'];
+    $variables['classes_array'][] = 'clearfix';
+  }
+}
+
+function scratchpads_biblio_tabular($variables){
+  module_load_include('inc', 'biblio', '/includes/biblio.contributors');
+  $node = $variables['node'];
+  $base = $variables['base'];
+  static $citeproc;
+  if(module_exists('popups')){
+    popups_add_popups();
+  }
+  $tid = $node->biblio_type;
+  $fields = _biblio_get_field_information($node->biblio_type, TRUE);
+  if(!isset($node->biblio_type_name) && isset($node->biblio_type)){ // needed for preview
+    if(($pub_type = db_query('SELECT t.tid, t.name FROM {biblio_types} as t WHERE t.tid=:tid', array(
+      ':tid' => $node->biblio_type
+    ))->fetchObject())){
+      $node->biblio_type_name = drupal_ucfirst(_biblio_localize_type($pub_type->tid, $pub_type->name));
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => t('Publication Type:'),
+      'class' => array(
+        'biblio-row-title'
+      )
+    ),
+    array(
+      'data' => $node->biblio_type_name
+    )
+  );
+  $attrib = (variable_get('biblio_links_target_new_window', FALSE)) ? array(
+    'target' => '_blank'
+  ) : array();
+  $doi = '';
+  if(!empty($node->biblio_doi)){
+    $doi_url = '';
+    if(($doi_start = strpos($node->biblio_doi, '10.')) !== FALSE){
+      $doi = substr($node->biblio_doi, $doi_start);
+      $doi_url .= 'http://dx.doi.org/' . $doi;
+      $doi = l($doi, $doi_url, $attrib);
+    }
+  }
+  foreach($fields as $key => $row){
+    // handling the contributor categories like any other field orders them correctly by weight
+    if($row['type'] == 'contrib_widget' && ($authors = biblio_get_contributor_category($node->biblio_contributors, $row['fid']))){
+      $data = biblio_format_authors($authors);
+    }elseif(empty($node->$row['name']) || $row['name'] == 'biblio_coins'){
+      continue;
+    }else{
+      switch($row['name']){
+        case 'biblio_keywords':
+          $data = _biblio_keyword_links($node->$row['name'], $base);
+          break;
+        case 'biblio_url':
+          $data = l($node->$row['name'], $node->$row['name'], $attrib);
+          break;
+        case 'biblio_doi':
+          $data = $doi;
+          break;
+        default:
+          if($row['type'] == 'text_format'){
+            $data = check_markup($node->$row['name'], $node->biblio_formats[$row['name']]);
+          }else{
+            $data = check_plain($node->$row['name']);
+          }
+      }
+    }
+    $rows[] = array(
+      array(
+        'data' => t($row['title']) . ':',
+        'class' => array(
+          'biblio-row-title'
+        )
+      ),
+      array(
+        'data' => $data
+      )
+    );
+  }
+  if(isset($node->body) && !empty($node->body) && user_access('view full text')){
+    $rows[] = array(
+      array(
+        'data' => t('Full Text'),
+        'valign' => 'top'
+      ),
+      array(
+        'data' => drupal_render(field_view_field('node', $node, 'body', array(
+          'label' => 'hidden'
+        )))
+      )
+    );
+  }
+  $output = '<div id="biblio-node">';
+  $output .= filter_xss($node->biblio_coins, array(
+    'span'
+  ));
+  $header = array();
+  $output .= theme('table', array(
+    'header' => $header,
+    'rows' => $rows
+  ));
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function scratchpads_preprocess_page(&$vars){
+  if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
+    $vars['tabs'] = array();
+  }
+}
   

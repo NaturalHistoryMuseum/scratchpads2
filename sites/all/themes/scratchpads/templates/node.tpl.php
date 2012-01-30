@@ -4,20 +4,15 @@
   <?php if ($title): ?>
   <header>
     <?php print render($title_prefix); ?>
-    <?php if ($view_mode == 'species'): ?>
+    <?php if ($view_mode == 'species' || $view_mode == 'linked_node'): ?>
     <h2<?php print $title_attributes; ?>><?php print $title ?></h2>
     <?php elseif(!$page): ?>
-    <h2<?php print $title_attributes; ?>><a href="<?php print $node_url ?>" title="<?php print $title ?>"><?php print $title ?></a></h2>
+    <h3<?php print $title_attributes; ?>><a href="<?php print $node_url ?>" title="<?php print $title ?>"><?php print $title ?></a></h3>
     <?php endif; ?>
     
     <?php print render($title_suffix); ?>
   </header>
-  <?php endif; ?>
-  
-  
-  <?php if ($display_submitted): ?>
-  <footer class="submitted"><?php print $date; ?> -- <?php print $name; ?></footer>
-  <?php endif; ?>  
+  <?php endif; ?> 
   
   <div<?php print $content_attributes; ?>>
     <?php
@@ -27,6 +22,9 @@
       print render($content);
     ?>
   </div>
+    <?php if ($display_submitted): ?>
+  <footer class="submitted"><?php print $date; ?> -- <?php print $name; ?></footer>
+  <?php endif; ?> 
   
   <div class="clearfix">
     <?php if (!empty($content['links'])): ?>
