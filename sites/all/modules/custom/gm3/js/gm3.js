@@ -1,5 +1,10 @@
 (function($){
   Drupal.GM3 = function(map){
+    // Autofit max and min lat/longs
+    this.max_lat = false;
+    this.max_lng = false;
+    this.min_lat = false;
+    this.min_lng = false;
     this.settings = map.settings;
     this.id = map.id;
     this.initialized = false;
@@ -37,7 +42,32 @@
     }
     // Set the active class to default
     this.set_active_class('default');
+    // Add a listener to vertical tab and horizontal tab buttons to allow
+    // repainting of the map if required.
+    var self = this;
+    $('a').click(function(event){
+      google.maps.event.trigger(self.google_map, 'resize');
+    })
+    if(true) {// Change this to be an autozoom option
+      if(this.max_lat) {
+        this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
+      }
+    }
     return this;
+  }
+  Drupal.GM3.prototype.add_latlng = function(latLng){
+    if(!this.max_lat || this.max_lat < latLng.lat()) {
+      this.max_lat = latLng.lat();
+    }
+    if(!this.max_lng || this.max_lng < latLng.lng()) {
+      this.max_lng = latLng.lng();
+    }
+    if(!this.min_lat || this.min_lat > latLng.lat()) {
+      this.min_lat = latLng.lat();
+    }
+    if(!this.min_lng || this.min_lng > latLng.lng()) {
+      this.min_lng = latLng.lng();
+    }
   }
   Drupal.GM3.prototype.add_popup = function(object, content, title){
     // There appears to be a small bug with the infobubble code that calculates
@@ -221,6 +251,13 @@
   }
   // Entry point. Add a map to a page. This should hopefully work via AJAX.
   Drupal.behaviors.gm3 = {attach: function(context, settings){
+    // We run all the other behaviors before this one so that we've got the
+    // shizzle (vertical tabs).
+    for(i in Drupal.behaviors) {
+      if($.isFunction(Drupal.behaviors[i].attach) && i != 'gm3') {
+        Drupal.behaviors[i].attach(context, settings);
+      }
+    }
     for(map_id in Drupal.settings.gm3.maps) {
       if($('#' + map_id, context).length && typeof (Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
         // Create the new GM3 map object.

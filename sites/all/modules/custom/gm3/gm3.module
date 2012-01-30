@@ -317,6 +317,26 @@ function gm3_load_geophp(){
 }
 
 /**
+ * Implementation of hook_menu().
+ */
+function gm3_menu(){
+  return array(
+    'admin/config/content/gm3' => array(
+      'title' => 'Google Map settings',
+      'description' => 'Configure default behavior of the Google Map module.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'gm3_admin_settings_form'
+      ),
+      'access arguments' => array(
+        'administer gm3'
+      ),
+      'file' => 'gm3.admin.inc'
+    )
+  );
+}
+
+/**
  * Get the default settings.  Note, these vary slightly from Google's default
  * settings, as not all of Google's defaults are appropriate for the intended
  * uses of the GM3 module.  The following changes have been made:

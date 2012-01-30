@@ -6,7 +6,7 @@
     this.markers = new Array();
     // Icon
     // FIXME - Add a way of setting this image.
-    this.marker_image = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(16, 16), new google.maps.Point(0, 44), new google.maps.Point(8, 8));
+    this.marker_image = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(18, 25), new google.maps.Point(62, 0), new google.maps.Point(9, 25));
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
       for( var i in this.GM3.libraries.point.points) {
@@ -17,15 +17,12 @@
     }
     // Clusterer
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
-    this.autofit = typeof (this.GM3.libraries.point.autofit) != 'undefined' ? this.GM3.libraries.point.autofit : false;
-    if(this.autofit) {
-      this.clusterer.fitMapToMarkers();
-    }
   }
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, title, content){
+    this.GM3.add_latlng(latLng);
     redraw = typeof (redraw) != 'undefined' ? redraw : false;
     title = typeof (title) != 'undefined' ? title : '';
     content = typeof (content) != 'undefined' ? content : '';
