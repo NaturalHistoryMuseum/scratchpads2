@@ -545,7 +545,8 @@ table.biblio td.biblio-row-title{
 }
 
 .node-biblio table td,
-table.biblio td{
+table.biblio td,
+table.biblio th{
   padding: 6px 5px;
 }
 
@@ -561,9 +562,10 @@ table.biblio tr.odd{
  background: #F1F4FB;  
 }
 
-/* Just biblio view table */
+/* Just biblio view & solr table */
 
-.biblio table th{
+.biblio table th,
+table.biblio th{
   font-weight: bold;
   vertical-align: middle;
   border-bottom: 1px solid #D9DADD;
