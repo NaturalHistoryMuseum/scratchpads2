@@ -11,8 +11,6 @@ var dataView;
 
     // Slickgrid class implementation
     function Slickgrid(container, viewName, viewDisplayID, callbackPath) {
-
-
         var columnFilters = {};
         var objHttpDataRequest;
         var checkboxSelector;
@@ -30,11 +28,10 @@ var dataView;
         var tabs;
 
         function init() {
-          
+
             // Set up an ajax commmand to handle any modal form responses
             Drupal.ajax.prototype.commands.slickgrid = handleModalResponse;
-            
-            
+
             $status = $('#slickgrid-status');
             
             // Add row checkboxes if multi edit, delete or clone is enabled
@@ -111,8 +108,14 @@ var dataView;
             
             // Add tabs control (Needs to come after columnpicker control & hidden columns is added)  
             if (options['tabs']) {
-                tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"));
+                tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"), options['default_active_tab']);
             }
+            
+            if(options['default_filter']){
+              setColumnFilter(options['default_filter']['field'], options['default_filter']['value']);
+            }
+            
+            
             
             // Does the grid have filters that need adding?
             if (options['filterable']) {
@@ -170,14 +173,17 @@ var dataView;
             dataView.endUpdate();
             
             addGridEventHandlers();
+            
+            
 
             // If has_filter is true, there are header filters being used
             // Apply the filter to the dataView
             if (options['filterable']) {
                 dataView.setFilter(filter);
             }
-            
+
             $(container).trigger('onSlickgridInit');
+            
 
         }
 
