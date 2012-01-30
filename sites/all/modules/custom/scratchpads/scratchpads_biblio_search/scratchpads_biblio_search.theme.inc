@@ -38,13 +38,13 @@ function theme_scratchpads_biblio_search($variables){
         'sort' => ''
       )
     ),
-    'rows' => $rows
-  )) . theme('pager', array(
-    'tags' => NULL,
+    'rows' => $rows,
     'attributes' => array(
       'class' => array(
         'biblio'
       )
     )
+  )) . theme('pager', array(
+    'tags' => NULL
   ));
 }
