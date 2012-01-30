@@ -124,11 +124,11 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
 function scratchpads_front_page_view(){
   $page = array();
   $path = drupal_get_path('module', 'scratchpads_front');
-  $welcome_message = '<h1 id="page-title" class="title"> ';
+  $welcome_message = '<h1 id="front-page-title" class="title"> ';
   $welcome_message .= t('Welcome to @site-name', array(
     '@site-name' => variable_get('site_name', 'Drupal')
   ));
-  $welcome_message .= '</h1>';
+  $welcome_message .= '</h2>';
   $welcome_message .= check_markup(variable_get('front_page_welcome_message'));
   switch(scratchpads_front_variable_get('front_page_main_block_type')){
     case 'images':

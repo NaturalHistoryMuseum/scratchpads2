@@ -127,6 +127,99 @@ function scratchpads_pages_form_node_form_alter(&$form, $form_state){
   }
 }
 
+/**
+ * Implement hook_theme().
+ */
+function scratchpads_pages_theme(){
+  return array(
+    'field_group_stripy_div' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * DISPLAY SETTINGS
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * Implementation of hook_entity_info_alter
+ */
+function scratchpads_pages_entity_info_alter(&$info){
+  foreach(array_keys($info) as $entity_type){
+    // Add the 'species page' view mode.
+    if(!empty($info[$entity_type]['view modes'])){
+      $info[$entity_type]['view modes']['linked_node'] = array(
+        'label' => t('Linked node'),
+        'custom settings' => TRUE
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_field_group_formatter_info().
+ */
+function scratchpads_pages_field_group_formatter_info(){
+  // Define a field group display for the publication module
+  return array(
+    'display' => array(
+      'field_group_stripy_div' => array(
+        'label' => t('Stripy div'),
+        'description' => t('Display fields in a stripy div.'),
+        'format_types' => array(
+          'open'
+        ),
+        'default_formatter' => 'open'
+      )
+    )
+  );
+}
+
+function scratchpads_pages_field_group_pre_render(& $element, $group, & $form){
+  $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $group->group_name;
+  $classes = array(
+    $group->format_type,
+    str_replace('_', '-', $group->group_name)
+  );
+  switch($group->format_type){
+    case 'field_group_stripy_div':
+      $flip = array(
+        'even' => 'odd',
+        'odd' => 'even'
+      );
+      $class = 'odd';
+      uasort($element, 'scratchpads_pages_sort_weight');
+      foreach(element_children($element) as $key){
+        $element[$key]['#stripe'] = $class;
+        $class = $flip[$class];
+      }
+      $element += array(
+        '#id' => $id,
+        '#type' => 'container',
+        '#weight' => $group->weight,
+        '#attributes' => array(
+          'class' => $classes
+        ),
+        '#theme_wrappers' => array(
+          'field_group_stripy_div'
+        ),
+        '#group' => $group
+      );
+      break;
+  }
+}
+
+function scratchpads_pages_sort_weight($a, $b){
+  $a_weight = (is_array($a) && isset($a['#weight'])) ? $a['#weight'] : 0;
+  $b_weight = (is_array($b) && isset($b['#weight'])) ? $b['#weight'] : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
+}
+
 /*********************************************************************************************
  * 
  * VIEWS
@@ -141,6 +234,91 @@ function scratchpads_pages_views_api(){
     'api' => '3',
     'path' => $path . '/includes'
   );
+}
+
+/*********************************************************************************************
+ * 
+ * BLOCKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_pages_block_info(){
+  // Block to display on node views to help user navigation
+  $blocks['signpost'] = array(
+    'info' => t('Scratchpads signpost'),
+    'status' => 0
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_pages_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'signpost':
+      global $conf;
+      if(arg(0) == 'node' && is_numeric($nid = arg(1)) && $node = node_load($nid)){
+        $node_type_info = node_type_load($node->type);
+        $items = array(
+          l(t('View all !type', array(
+            '!type' => scratchpads_pages_pluralise_node_name($node_type_info->name)
+          )), $node->type)
+        );
+        // If this node has a location, provide a link back to all filtered by location title
+        if(isset($node->field_location) && array_key_exists(LANGUAGE_NONE, $node->field_location)){
+          $location = array_shift($node->field_location[LANGUAGE_NONE]);
+          $items[] = l(t('!location !type', array(
+            '!location' => $location['node']->title,
+            '!type' => scratchpads_pages_pluralise_node_name($node_type_info->name)
+          )), $node->type, array(
+            'query' => array(
+              'field_location' => $location['node']->title
+            )
+          ));
+        }
+        $block['content'] = array(
+          'links' => array(
+            '#theme' => 'item_list',
+            '#items' => $items,
+            '#title' => $node_type_info->name
+          )
+        );
+        if(count($terms = taxonomy_breadcrumb_node_get_terms($node))){
+          foreach($terms as $term){
+            if(!array_key_exists($term->vid, $block['content'])){
+              $vocabulary = taxonomy_vocabulary_load($term->vid);
+              $block['content'][$term->vid] = array(
+                '#theme' => 'item_list',
+                '#items' => array(),
+                '#title' => $vocabulary->name
+              );
+            }
+            $block['content'][$term->vid]['#items'][] = l($term->name, 'taxonomy/term/' . $term->tid);
+          }
+        }
+      }
+      break;
+  }
+  return $block;
+}
+
+/*********************************************************************************************
+ * 
+ * CONTEXTS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_pages_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
 }
 
 /*********************************************************************************************
@@ -179,6 +357,18 @@ function scratchpads_pages_variable_default($name = NULL){
   }
   if(!isset($name)){return $defaults;}
   if(isset($defaults[$name])){return $defaults[$name];}
+}
+
+function scratchpads_pages_pluralise_node_name($name){
+  switch($name){
+    case 'image_gallery':
+      $plural = 'image_galleries';
+      break;
+    default:
+      $plural = $name . 's';
+      break;
+  }
+  return $plural;
 }
 
 
