@@ -650,6 +650,14 @@ function darwincore_field_default_fields(){
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
+        ),
+        'link_node' => array(
+          'label' => 'above',
+          'settings' => array(
+            'display_convex_hull' => FALSE
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => 15
         )
       ),
       'entity_type' => 'node',

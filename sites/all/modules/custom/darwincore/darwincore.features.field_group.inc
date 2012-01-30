@@ -85,6 +85,37 @@ function darwincore_field_group_default_field_groups(){
       )
     )
   );
+  // Exported field_group: 'node-location-default-group_container'
+  $field_groups['node-location-default-group_container'] = array(
+    'group_name' => 'group_container',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => '',
+    'weight' => '1',
+    'children' => array(
+      0 => 'field_continent_or_ocean',
+      1 => 'field_coordinate_system',
+      2 => 'field_coordinate_uncertainty',
+      3 => 'field_county',
+      4 => 'field_geodetic_datum',
+      5 => 'field_georeference_protocol',
+      6 => 'field_georeference_remarks',
+      7 => 'field_island',
+      8 => 'field_locality',
+      9 => 'field_max_depth',
+      10 => 'field_max_elevation',
+      11 => 'field_min_depth',
+      12 => 'field_min_elevation',
+      13 => 'field_state_province'
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => NULL
+    )
+  );
   // Exported field_group: 'node-specimen_observation-form-group_collection'
   $field_groups['node-specimen_observation-form-group_collection'] = array(
     'group_name' => 'group_collection',
