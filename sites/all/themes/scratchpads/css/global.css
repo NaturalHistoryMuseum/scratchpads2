@@ -445,11 +445,20 @@ ul.menu li{
 /* Sidebar */
 #region-sidebar ul{
   margin: 8px 0 25px 0;
+  list-style: none!important;
 }
 
 #region-sidebar ul li{
   margin:10px 0;
+  list-style: none!important;
 }
+
+#region-sidebar ul.facetapi-facetapi-links li{
+  margin:5px 0;
+}
+
+
+
 
 /************************ MEDIA GALLERY *********************/ 
 
