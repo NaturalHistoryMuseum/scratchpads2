@@ -10,6 +10,38 @@
 function darwincore_field_group_default_field_groups() {
   $field_groups = array();
 
+  // Exported field_group: 'node-location-default-group_container'
+  $field_groups['node-location-default-group_container'] = array(
+    'group_name' => 'group_container',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => 'Container',
+    'weight' => '1',
+    'children' => array(
+      0 => 'field_continent_or_ocean',
+      1 => 'field_coordinate_system',
+      2 => 'field_coordinate_uncertainty',
+      3 => 'field_county',
+      4 => 'field_geodetic_datum',
+      5 => 'field_georeference_protocol',
+      6 => 'field_georeference_remarks',
+      7 => 'field_island',
+      8 => 'field_locality',
+      9 => 'field_max_depth',
+      10 => 'field_max_elevation',
+      11 => 'field_min_depth',
+      12 => 'field_min_elevation',
+      13 => 'field_state_province',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => NULL,
+    ),
+  );
+
   // Exported field_group: 'node-location-form-group_extra_fields'
   $field_groups['node-location-form-group_extra_fields'] = array(
     'group_name' => 'group_extra_fields',
@@ -83,6 +115,152 @@ function darwincore_field_group_default_field_groups() {
     'format_type' => 'tabs',
     'format_settings' => array(
       'formatter' => NULL,
+      'instance_settings' => array(
+        'classes' => '',
+      ),
+    ),
+  );
+
+  // Exported field_group: 'node-location-linked_node-group_container'
+  $field_groups['node-location-linked_node-group_container'] = array(
+    'group_name' => 'group_container',
+    'entity_type' => 'node',
+    'bundle' => 'location',
+    'mode' => 'linked_node',
+    'parent_name' => '',
+    'label' => 'Container',
+    'weight' => '18',
+    'children' => array(
+      0 => 'field_continent_or_ocean',
+      1 => 'field_coordinate_system',
+      2 => 'field_coordinate_uncertainty',
+      3 => 'field_county',
+      4 => 'field_geodetic_datum',
+      5 => 'field_georeference_protocol',
+      6 => 'field_georeference_remarks',
+      7 => 'field_island',
+      8 => 'field_locality',
+      9 => 'field_max_depth',
+      10 => 'field_max_elevation',
+      11 => 'field_min_depth',
+      12 => 'field_min_elevation',
+      13 => 'field_state_province',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+    ),
+  );
+
+  // Exported field_group: 'node-specimen_observation-default-group_collection_display'
+  $field_groups['node-specimen_observation-default-group_collection_display'] = array(
+    'group_name' => 'group_collection_display',
+    'entity_type' => 'node',
+    'bundle' => 'specimen_observation',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => '',
+    'weight' => '3',
+    'children' => array(
+      0 => 'field_collector',
+      1 => 'field_collector_number',
+      2 => 'field_date_collected',
+      3 => 'field_notes',
+      4 => 'field_number',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => array(
+        'classes' => '',
+      ),
+    ),
+  );
+
+  // Exported field_group: 'node-specimen_observation-default-group_misc_display'
+  $field_groups['node-specimen_observation-default-group_misc_display'] = array(
+    'group_name' => 'group_misc_display',
+    'entity_type' => 'node',
+    'bundle' => 'specimen_observation',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => '',
+    'weight' => '4',
+    'children' => array(),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => NULL,
+    ),
+  );
+
+  // Exported field_group: 'node-specimen_observation-default-group_miscellaneous'
+  $field_groups['node-specimen_observation-default-group_miscellaneous'] = array(
+    'group_name' => 'group_miscellaneous',
+    'entity_type' => 'node',
+    'bundle' => 'specimen_observation',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => '',
+    'weight' => '4',
+    'children' => array(
+      0 => 'field_count',
+      1 => 'field_genbank_number',
+      2 => 'field_lifestage',
+      3 => 'field_other_catalogue_numbers',
+      4 => 'field_remarks',
+      5 => 'field_sex',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => array(
+        'classes' => '',
+      ),
+    ),
+  );
+
+  // Exported field_group: 'node-specimen_observation-default-group_required_display'
+  $field_groups['node-specimen_observation-default-group_required_display'] = array(
+    'group_name' => 'group_required_display',
+    'entity_type' => 'node',
+    'bundle' => 'specimen_observation',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => '',
+    'weight' => '1',
+    'children' => array(
+      0 => 'field_basis_of_record',
+      1 => 'field_catalogue_number',
+      2 => 'field_collection_code',
+      3 => 'field_institution_code',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+      'instance_settings' => NULL,
+    ),
+  );
+
+  // Exported field_group: 'node-specimen_observation-default-group_taxonomy_display'
+  $field_groups['node-specimen_observation-default-group_taxonomy_display'] = array(
+    'group_name' => 'group_taxonomy_display',
+    'entity_type' => 'node',
+    'bundle' => 'specimen_observation',
+    'mode' => 'default',
+    'parent_name' => '',
+    'label' => NULL,
+    'weight' => '2',
+    'children' => array(
+      0 => 'field_date_identified',
+      1 => 'field_identification_qualifier',
+      2 => 'field_identified_by',
+      3 => 'field_taxonomic_name',
+      4 => 'field_type_status',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
       'instance_settings' => array(
         'classes' => '',
       ),
