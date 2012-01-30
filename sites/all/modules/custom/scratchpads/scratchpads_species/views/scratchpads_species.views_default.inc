@@ -732,16 +732,17 @@ function scratchpads_species_views_default_views(){
   $view = new view();
   $view->name = 'species_overview_biblio';
   $view->description = '';
-  $view->context = 'species_overview';
+  $view->tag = '';
   $view->base_table = 'node';
   $view->human_name = 'Species overview biblio';
+  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
   $handler->display->display_options['use_more_text'] = 'More';
@@ -753,6 +754,39 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['pager']['options']['items_per_page'] = '5';
   $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['group_rendered'] = 1;
+  $handler->display->display_options['style_options']['columns'] = array(
+    'biblio_authors' => 'biblio_authors',
+    'title' => 'title',
+    'biblio_year' => 'biblio_year'
+  );
+  $handler->display->display_options['style_options']['default'] = 'biblio_authors';
+  $handler->display->display_options['style_options']['info'] = array(
+    'biblio_authors' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    ),
+    'title' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    ),
+    'biblio_year' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  $handler->display->display_options['style_options']['override'] = 1;
+  $handler->display->display_options['style_options']['sticky'] = 0;
+  $handler->display->display_options['style_options']['empty_table'] = 0;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
@@ -777,28 +811,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['biblio_authors']['biblio_label'] = 1;
   $handler->display->display_options['fields']['biblio_authors']['auth_category'] = '1';
   $handler->display->display_options['fields']['biblio_authors']['initialize'] = 1;
-  /* Field: Biblio: Year of Publication */
-  $handler->display->display_options['fields']['biblio_year']['id'] = 'biblio_year';
-  $handler->display->display_options['fields']['biblio_year']['table'] = 'biblio';
-  $handler->display->display_options['fields']['biblio_year']['field'] = 'biblio_year';
-  $handler->display->display_options['fields']['biblio_year']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
@@ -821,6 +833,28 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['title']['empty_zero'] = 0;
   $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
+  /* Field: Biblio: Year of Publication */
+  $handler->display->display_options['fields']['biblio_year']['id'] = 'biblio_year';
+  $handler->display->display_options['fields']['biblio_year']['table'] = 'biblio';
+  $handler->display->display_options['fields']['biblio_year']['field'] = 'biblio_year';
+  $handler->display->display_options['fields']['biblio_year']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
@@ -1363,22 +1397,20 @@ function scratchpads_species_views_default_views(){
    * BIBLIO PAGE
    * 
    ********************************************************************************************/
-  /* Display: Block */
-  $handler = $view->new_display('block', 'Block', 'block');
-  $views[$view->name] = $view;
   $view = new view();
   $view->name = 'species_biblio';
   $view->description = '';
-  $view->context = 'species_literature';
+  $view->tag = '';
   $view->base_table = 'node';
   $view->human_name = 'Species biblio';
+  $view->context = 'species_literature';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
-  $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+  $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = TRUE;
   $handler->display->display_options['use_more_text'] = 'More';
@@ -1390,6 +1422,39 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['pager']['options']['items_per_page'] = '5';
   $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['group_rendered'] = 1;
+  $handler->display->display_options['style_options']['columns'] = array(
+    'biblio_authors' => 'biblio_authors',
+    'biblio_year' => 'biblio_year',
+    'title' => 'title'
+  );
+  $handler->display->display_options['style_options']['default'] = 'biblio_authors';
+  $handler->display->display_options['style_options']['info'] = array(
+    'biblio_authors' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    ),
+    'biblio_year' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    ),
+    'title' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  $handler->display->display_options['style_options']['override'] = 1;
+  $handler->display->display_options['style_options']['sticky'] = 0;
+  $handler->display->display_options['style_options']['empty_table'] = 0;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
@@ -1414,28 +1479,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['biblio_authors']['biblio_label'] = 1;
   $handler->display->display_options['fields']['biblio_authors']['auth_category'] = '1';
   $handler->display->display_options['fields']['biblio_authors']['initialize'] = 1;
-  /* Field: Biblio: Year of Publication */
-  $handler->display->display_options['fields']['biblio_year']['id'] = 'biblio_year';
-  $handler->display->display_options['fields']['biblio_year']['table'] = 'biblio';
-  $handler->display->display_options['fields']['biblio_year']['field'] = 'biblio_year';
-  $handler->display->display_options['fields']['biblio_year']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
@@ -1458,6 +1501,28 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['title']['empty_zero'] = 0;
   $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
+  /* Field: Biblio: Year of Publication */
+  $handler->display->display_options['fields']['biblio_year']['id'] = 'biblio_year';
+  $handler->display->display_options['fields']['biblio_year']['table'] = 'biblio';
+  $handler->display->display_options['fields']['biblio_year']['field'] = 'biblio_year';
+  $handler->display->display_options['fields']['biblio_year']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['biblio_year']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['biblio_year']['biblio_label'] = 1;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
