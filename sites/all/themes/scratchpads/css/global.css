@@ -522,6 +522,7 @@ ul.menu li{
 /* Biblio */
 
 .node-biblio table,
+table.biblio,
 .biblio table{
   width: 100%;
   border-width: 1px;
@@ -529,29 +530,34 @@ ul.menu li{
   border-style: solid solid none solid;
 }
 
-.biblio table thead tr{
+.biblio table thead tr,
+table.biblio thead tr{
   background: #EBEDED;
 }
 
 
-.node-biblio table td.biblio-row-title{
+.node-biblio table td.biblio-row-title,
+table.biblio td.biblio-row-title{
   width: 200px;
   text-align: right;
   border-right: 1px solid #D9DADD;
   font-weight: bold;
 }
 
-.node-biblio table td{
+.node-biblio table td,
+table.biblio td{
   padding: 6px 5px;
 }
 
 .node-biblio table tr,
-.biblio table tr{
+.biblio table tr,
+table.biblio tr{
  background: #fff;  
 }
 
 .node-biblio table tr.odd,
-.biblio table tr.odd{
+.biblio table tr.odd,
+table.biblio tr.odd{
  background: #F1F4FB;  
 }
 
