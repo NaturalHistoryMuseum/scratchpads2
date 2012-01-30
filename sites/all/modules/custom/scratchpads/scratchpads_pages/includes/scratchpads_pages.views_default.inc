@@ -150,7 +150,7 @@ function scratchpads_pages_views_default_views(){
   $handler = $view->new_display('page', 'Page', 'page_1');
   $handler->display->display_options['path'] = 'specimen_observation';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = scratchpads_pages_pluralise_node_name($node_info->name);
+  $handler->display->display_options['menu']['title'] = t("Specimens");
   $handler->display->display_options['menu']['name'] = PRIMARY_MENU_NAME;
   $handler->display->display_options['menu']['weight'] = 1;
   $views[$view->name] = $view;
