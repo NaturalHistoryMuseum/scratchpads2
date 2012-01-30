@@ -453,8 +453,16 @@ ul.menu li{
   list-style: none!important;
 }
 
+#region-sidebar ul.facetapi-facetapi-links{
+  margin-bottom: 10px;
+}
+
 #region-sidebar ul.facetapi-facetapi-links li{
   margin:5px 0;
+}
+
+#region-sidebar a.facetapi-limit-link{
+  margin-bottom: 20px;
 }
 
 
