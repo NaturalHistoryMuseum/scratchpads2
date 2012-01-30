@@ -99,6 +99,7 @@ function scratchpads_preprocess_node(&$variables){
   if($variables['view_mode'] == 'linked_node'){
     $node_info = node_type_load($variables['type']);
     $variables['title'] = $node_info->name;
+    $variables['display_submitted'] = false;
   }
 }
 
