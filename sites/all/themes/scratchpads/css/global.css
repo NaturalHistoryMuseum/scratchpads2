@@ -586,7 +586,7 @@ table.biblio th{
   width: 200px;
 }
 
-.biblio table td.views-field-biblio-year{
+table.biblio td{
   min-width: 150px;
 }
   
