@@ -154,7 +154,6 @@ function scratchpads_pages_views_default_views(){
   $handler->display->display_options['menu']['name'] = PRIMARY_MENU_NAME;
   $handler->display->display_options['menu']['weight'] = 1;
   $views[$view->name] = $view;
-  $views[$view->name] = $view;
   // Automatically generated teaser views
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
   foreach(node_type_get_types() as $type => $node_info){
