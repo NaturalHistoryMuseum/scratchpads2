@@ -1,0 +1,7 @@
+name = "Scratchpads biblio"
+description = "Scratchpads biblio features"
+core = "7.x"
+package = "Scratchpads"
+dependencies[] = "features"
+dependencies[] = "field_group"
+features[field_group][] = "node-biblio-default-group_container"
