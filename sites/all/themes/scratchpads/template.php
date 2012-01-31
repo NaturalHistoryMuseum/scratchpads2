@@ -100,7 +100,7 @@ function scratchpads_preprocess_node(&$variables){
     $node_info = node_type_load($variables['type']);
     $variables['title'] = $node_info->name;
     $variables['display_submitted'] = false;
-  }
+  }  
 }
 
 function scratchpads_preprocess_field(&$variables, $hook){

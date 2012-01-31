@@ -429,6 +429,14 @@ ul.menu li{
   margin-left: 10px;
 }
 
+/* Species pages*/
+
+.logged-in #block-views-species-spm-block{
+  position: relative;
+  top: -30px;
+}
+
+
 /************************ BLOCKS *********************/ 
 
 /* Content */
@@ -610,4 +618,13 @@ table.biblio td{
   min-width: 100px;
 }
   
+/****************** ADMIN *****************/
 
+/* Fix the contextual links zindex*/
+div.contextual-links-wrapper{
+  z-index:1!important;
+}
+
+div.contextual-links-wrapper ul.contextual-links{
+   z-index:2!important;
+}
