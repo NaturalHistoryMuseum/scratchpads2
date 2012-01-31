@@ -1,0 +1,6 @@
+name = "Entity Admin Example"
+description = "Provides an example use of the entity admin module."
+core = 7.x
+dependencies[] = entity
+dependencies[] = entity_admin
+package = Entity
