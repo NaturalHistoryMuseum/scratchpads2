@@ -28,7 +28,7 @@ function theme_scratchpads_media_gallery($variables){
     $entity_ids[] = $result['fields']['entity_id'];
   }
   $media_entities = entity_load('file', $entity_ids);
-  $content_array = entity_view('file', $media_entities, 'file_styles_scratchpads_media_gallery_thumbnail');
+  $content_array = entity_view('file', $media_entities, 'file_styles_square_thumbnail');
   foreach($content_array as $key => $array){
     if(is_numeric($key) && is_array($array)){
       if(!isset($array['file']['#file'])){
