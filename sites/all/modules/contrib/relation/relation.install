@@ -9,14 +9,17 @@
  * Create our field.
  */
 function relation_install() {
-  module_list(TRUE);
-  field_info_cache_clear();
+  $install = &drupal_static('relation_install');
+  $install = TRUE;
   $field = array(
     'field_name' => 'endpoints',
     'cardinality' => FIELD_CARDINALITY_UNLIMITED,
     'type' => 'relation_endpoint',
   );
+  field_info_cache_clear();
   field_create_field($field);
+  $install = FALSE;
+  entity_info_cache_clear();
 }
 
 /**

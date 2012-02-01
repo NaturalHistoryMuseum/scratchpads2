@@ -50,12 +50,14 @@ function relation_views_data() {
       'numeric' => TRUE,
     ),
     'filter' => array(
-      'handler' => 'views_handler_filter_string',
+      'handler' => 'views_handler_filter_in_operator',
+      'options callback' => 'relation_get_types_options',
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
   );
+
 
   $data['relation']['vid'] = array(
     'title' => t('Vid'),
@@ -198,12 +200,10 @@ function relation_views_data_alter(&$data) {
           'base' => 'relation',
           'base field' => 'rid',
           'relationship field' => $relationship_field,
-          'handler' => 'views_handler_relationship',
+          'handler' => 'relation_handler_relationship',
           'relation_type' => $type,
           'entity_type_left' => $entity_type_left,
-          'entity_type_right' => 'relation',
           'directional' => $relation_type->directional,
-          'join_handler' => 'relation_handler_base_left_join',
         ),
       );
       foreach ($relation_type->$target_index as $target_bundle) {
@@ -225,10 +225,9 @@ function relation_views_data_alter(&$data) {
             'entity_type_left' => $entity_type_left,
             'entity_type_right' => $entity_type_right,
             'directional' => $relation_type->directional,
-            'join_handler' => 'relation_handler_join',
           ),
         );
-        $data['relation']['relation_base_right_' . $entity_type_right] = array(
+        $data['relation']['relation_base_' . $type . '_' . $entity_type_right] = array(
           'title' => t('Relation: @relation_type_label (relation -> @right)', $t_arguments),
           'help' => t('Provides a relationship from the relation table to @right via the relation @relation_type_label', $t_arguments),
           'relationship' => array(
@@ -236,13 +235,11 @@ function relation_views_data_alter(&$data) {
             'label' => check_plain($relation_type->label),
             'base' => $base_table_right,
             'base field' => $entity_infos[$entity_type_right]['entity keys']['id'],
-            'relationship field' => $relationship_field,
-            'handler' => 'views_handler_relationship',
+            'relationship field' => 'rid',
+            'handler' => 'relation_handler_relationship',
             'relation_type' => $type,
-            'entity_type_left' => 'relation',
             'entity_type_right' => $entity_type_right,
             'directional' => $relation_type->directional,
-            'join_handler' => 'relation_handler_base_right_join',
           ),
         );
       }

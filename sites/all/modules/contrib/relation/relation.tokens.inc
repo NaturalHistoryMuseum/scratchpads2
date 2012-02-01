@@ -90,7 +90,7 @@ function relation_tokens($type, $tokens, array $data = array(), array $options =
     foreach ($tokens as $name => $original) {
       switch ($name) {
         // Simple key values on the relation.
-        case 'nid':
+        case 'rid':
           $replacements[$original] = $relation->rid;
           break;
 
@@ -108,11 +108,11 @@ function relation_tokens($type, $tokens, array $data = array(), array $options =
           break;
 
         case 'url':
-          $replacements[$original] = url('relation/' . $relation->nid, $url_options);
+          $replacements[$original] = url('relation/' . $relation->rid, $url_options);
           break;
 
         case 'edit-url':
-          $replacements[$original] = url('relation/' . $relation->nid . '/edit', $url_options);
+          $replacements[$original] = url('relation/' . $relation->rid . '/edit', $url_options);
           break;
 
         // Default values for the chained tokens handled below.

@@ -76,7 +76,7 @@ class RelationViewsTestCase extends RelationTestCase {
     }
 
     // Symmetric.
-    foreach (array(3, 1) as $required => $count) {
+    foreach (array(2, 1) as $required => $count) {
       $view = new view;
       $handler = $view->new_display('default');
       $handler->display->display_options['relationships']['relation_symmetric_node']['id'] = 'relation_symmetric_node';
@@ -93,15 +93,22 @@ class RelationViewsTestCase extends RelationTestCase {
       $view->set_arguments(array($this->node1->nid));
       $view->execute();
 
-      $this->assertEqual(count($view->result), $count);
+      // For non-required, we expect NULL and 4 as results.
+      // For required, we expect just 4.
       $match_count = 0;
+      $null_count  = 0;
       foreach ($view->result as $result) {
         if (isset($result->node_node_nid)) {
           $match_count++;
           $this->assertEqual($result->node_node_nid, $this->node4->nid);
         }
+        else {
+          $null_count++;
+        }
       }
+      $this->assertEqual(count($view->result), $count);
       $this->assertEqual($match_count, 1);
+      $this->assertEqual($null_count, $count - 1);
     }
 
     // Directional to source, to target and to both.
