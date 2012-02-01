@@ -36,12 +36,6 @@ function theme_scratchpads_media_gallery($variables){
       }
     }
   }
-  foreach($content_array as $key => $value){
-    if(is_numeric($key)){
-      $content_array[$key]['#prefix'] = '<div class="grid-2">';
-      $content_array[$key]['#suffix'] = '</div>';
-    }
-  }
   // Add the body text if we have it
   if(isset($body_text)){
     $content_array = array_merge(array(
