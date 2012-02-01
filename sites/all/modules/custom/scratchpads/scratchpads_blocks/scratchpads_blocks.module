@@ -54,13 +54,11 @@ function scratchpads_blocks_block_info(){
     'theme' => SCRATCHPADS_THEME_NAME,
     'status' => 1
   );
-//  $blocks['footer_links'] = array(
-//    'info' => t('Scratchpads footer links'),
-//    'region' => 'footer',
-//    'weight' => 3,
-//    'theme' => SCRATCHPADS_THEME_NAME,
-//    'status' => 1
-//  );
+  // Block to display on node views
+  $blocks['signpost'] = array(
+    'info' => t('Scratchpads signpost'),
+    'status' => 0
+  );
   return $blocks;
 }
 
@@ -144,9 +142,6 @@ function scratchpads_blocks_block_view($delta = ''){
         '#items' => $links
       );
       break;
-//    case 'footer_links':
-//      $block['content'] = l('Other scratchpads', '/scratchpads');
-//      break;
   }
   return $block;
 }

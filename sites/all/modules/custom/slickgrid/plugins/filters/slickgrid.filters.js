@@ -69,7 +69,6 @@
       }
       
       function doFilter(item, search) {
-
         if (item.parent != null) {
           
          var parent = dataView.getItemById(item.parent);

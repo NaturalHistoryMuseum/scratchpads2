@@ -102,9 +102,21 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             break;
           case 'filter':
             $view->style_plugin->options['filterable'] = TRUE;
-            // DOn't show header row if this is a collapsibleFilter plugin - that happens within the data
+            // Don't show header row if this is a collapsibleFilter plugin - that happens within the data
             if($view->style_plugin->options['columns'][$field_id][$plugin_type] != 'collapsibleFilter'){
               $view->style_plugin->options['showHeaderRow'] = TRUE;
+              // A default value can be passed into a filter
+              // Check if it exists and if it does set the default_filter option
+              if(isset($_GET[$field_id]) && !isset($view->style_plugin->options['default_filter'])){
+                $view->style_plugin->options['default_filter'] = array(
+                  'field' => $field_id,
+                  'value' => $_GET[$field_id]
+                );
+                // If a default filter is passed in, that field's tab must be made the default tab
+                if(!empty($view->style_plugin->options['columns'][$field_id]['tab'])){
+                  $view->style_plugin->options['default_active_tab'] = $view->style_plugin->options['columns'][$field_id]['tab'];
+                }
+              }
             }
             break;
         }
@@ -290,7 +302,7 @@ function theme_slickgrid($variables){
   drupal_add_js(implode("\n", $js), array(
     'type' => 'inline'
   ));
-  if($view->style_plugin->options['filterable']){
+  if(isset($view->style_plugin->options['filterable'])){
     $output .= '<span class="ui-icon ui-icon-search" title="Toggle search panel" id="slickgrid-toggle-search-panel"></span>';
   }
   $output .= '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';

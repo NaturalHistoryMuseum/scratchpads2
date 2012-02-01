@@ -4,7 +4,8 @@
  
 (function($) {
  Drupal.behaviors.scratchpadsSpecies = {
-   attach: function (context) {     
+   attach: function (context) {  
+     // Apply exposed filters via link 
      $('a.view-filter', context).click(function() {    
        var $form = $(this).parents('.view').find('form');
        var filters = this.hash.substring(1).split('=');

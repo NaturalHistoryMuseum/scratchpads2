@@ -20,12 +20,23 @@ class slickgrid_views_plugin extends views_plugin_style{
    */
   function option_definition(){
     $options = parent::option_definition();
+    // Columns
+    $options['columns'] = array(
+      'default' => array()
+    );
     // Grouping
     $options['grouping_field'] = array(
       'default' => NULL
     );
     $options['collapse_groups_by_default'] = array(
       'default' => FALSE
+    );
+    // Tabs
+    $options['tabs'] = array(
+      'default' => NULL
+    );
+    $options['default_active_tab'] = array(
+      'default' => NULL
     );
     // Settings
     $options['collapsible_taxonomy_field'] = array(
@@ -285,6 +296,16 @@ class slickgrid_views_plugin extends views_plugin_style{
       '#parents' => array(
         'style_options',
         'tabs'
+      )
+    );
+    $form['tab_settings']['default_active_tab'] = array(
+      '#type' => 'select',
+      '#title' => t('Default active tab'),
+    	'#options' => $tabs,
+      '#default_value' => (isset($this->options['default_active_tab']) ? $this->options['default_active_tab'] : ''),
+      '#parents' => array(
+        'style_options',
+        'default_active_tab'
       )
     );
     $form['settings'] = array(

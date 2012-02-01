@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function entity_admin_example_schema(){
+  $schema = array();
+  // Projects schema defintion
+  $schema['entity_admin_example'] = array(
+    'description' => 'The base table for example entities.', 
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key: Internal ID.', 
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE
+      ), 
+      'type' => array(
+        'description' => 'entity_admin_example_type.type', 
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE, 
+        'default' => ''
+      ), 
+      'label' => array(
+        'description' => 'Label.', 
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE, 
+        'default' => ''
+      ), 
+      'created' => array(
+        'description' => 'The Unix timestamp when data item was created.', 
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
+      ), 
+      'changed' => array(
+        'description' => 'The Unix timestamp when data was most recently saved.', 
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
+      ), 
+      'data' => array(
+        'description' => 'Serialized PHP data', 
+        'type' => 'text', 
+        'size' => 'big'
+      )
+    ), 
+    'indexes' => array(
+      'id' => array(
+        'id'
+      ), 
+    ), 
+    'primary key' => array(
+      'id'
+    )
+  );
+  $schema['entity_admin_example_type'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial', 
+        'not null' => TRUE, 
+        'description' => 'Primary Key: Unique type identifier.'
+      ), 
+      'type' => array(
+        'description' => 'The machine-readable name of this type.', 
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE
+      ), 
+      'label' => array(
+        'description' => 'The human-readable name of this type.', 
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE, 
+        'default' => ''
+      ), 
+    ) + entity_exportable_schema_fields(), 
+    'primary key' => array(
+      'id'
+    ), 
+    'unique keys' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  return $schema;
+}

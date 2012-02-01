@@ -1,0 +1,8 @@
+name = "Entity Admin"
+description = "Provides a generic admin for creating &amp; editing entities"
+core = 7.x
+dependencies[] = entity
+package = Entity
+files[] = classes/EntityAdminController.inc
+files[] = classes/EntityAdminEntityController.inc
+files[] = classes/EntityAdminTypeController.inc

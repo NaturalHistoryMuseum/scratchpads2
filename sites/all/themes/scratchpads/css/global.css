@@ -47,17 +47,34 @@ body{
     font-style: normal;
 }
 
-body, h2.block-title{
+body, h2, #region-sidebar h3{
     font: 12px/1.5 Verdana,Helvetica,Arial,sans-serif;
 }
 
-h2.block-title{
-  font-size: 14px;
+h2,
+#region-sidebar h3{
   text-transform: uppercase;
+  font: 14px/1 Verdana,Helvetica,Arial,sans-serif!important;
+  letter-spacing: normal;
 }
 
-#region-content h2.block-title{
- color: #fff; 
+#region-sidebar h2,
+#region-sidebar h3{
+  padding: 0 0 5px 0;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid #D6D6D6;
+}
+
+
+#region-content h2{
+ color: #fff;
+ line-height: 14px;
+ padding: 7px 10px 9px 10px;
+ margin-bottom: 15px;
+}
+
+#region-content article header h2{
+  margin-top: 35px; 
 }
 
 h1, h2, h3, h4, h5, h6{
@@ -66,10 +83,22 @@ h1, h2, h3, h4, h5, h6{
 
 h1, 
 h1.site-name, 
-h2.site-name{
+h2.site-name,
+h3{
 	font-family: 'FontinSansRegular', Georgia, serif;
-	font-size: 3em;
+}
+
+h1, 
+h1.site-name, 
+h2.site-name{
+	font-size: 2.8em!important;
 	line-height: 1.2em;
+	text-transform: none!important;  
+}
+
+h3{
+  font-size: 1.6em;
+  margin: 10px 0 5px 0;
 }
 
 .site-name{
@@ -77,15 +106,29 @@ h2.site-name{
 }
 
 h1#page-title{
-  line-height: 0.7em;
+  line-height: 1.1em;
   margin: 0 0 17px 0;
+  position: relative;
+  top: -3px;
+  padding-bottom: 3px;
+  border-bottom: 3px solid #047DB8;
+}
+
+h1#front-page-title{
+  font-size: 2.4em!important;
+}
+
+.node-type-biblio h1#page-title{
+  font-size: 2em!important;
+  padding-bottom: 8px;
 }
 
 
 /* Subtitle */
 h1 span{
-  font-size: 0.6em;
+  font-size: 0.5em;
   padding-left: 6px;
+  letter-spacing: normal;
 }
 
 
@@ -116,6 +159,17 @@ body,
   word-spacing: 0.1em;
 }
 
+/* Tables */
+table th a{
+  text-decoration: none!important;
+  color: #3E3E3E!important;
+}
+
+table th a img{
+  position: relative;
+  top: -2px;
+  margin-left: 2px;
+}
 
 /************************ Layout *********************/ 
 
@@ -203,13 +257,13 @@ a.scratchpads-slide-toggle{
 /* Header */
 
 #zone-header{
-  padding-top: 20px;
+  padding-top: 25px;
 }
 
 h1.site-name, 
 h2.site-name {
   font-size: 40px;
-  margin: 23px 0 8px 0;
+  margin: 14px 0 8px 0;
 }
 
 .section-header h6.site-slogan{
@@ -221,7 +275,8 @@ h2.site-name {
 }
 
 #region-header{
-  margin-top: 33px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #region-header #search-block-form{
@@ -357,7 +412,7 @@ h2.site-name {
 }
 
 #region-sidebar .region-inner{
-  padding: 15px 15px 25px 15px;
+  padding: 15px 15px 0px 15px;
 }
 
 #region-sidebar ul.menu li{
@@ -374,6 +429,14 @@ ul.menu li{
   margin-left: 10px;
 }
 
+/* Species pages*/
+
+.logged-in #block-views-species-spm-block{
+  position: relative;
+  top: -30px;
+}
+
+
 /************************ BLOCKS *********************/ 
 
 /* Content */
@@ -383,22 +446,37 @@ ul.menu li{
   margin-bottom: 25px;
 }
 
-#region-content h2.block-title{
-  line-height: 14px;
-  padding: 6px 10px 8px 10px;
-  margin-bottom: 12px;
-}
-
-/* Sidebar */
-#region-sidebar h2.block-title{
-  padding: 0 0 10px 0;
-  margin: 0 0 10px 0;
-  border-bottom: 1px solid #D6D6D6;
-}
-
 #tinytax-search-form{
   display: none;
 }
+
+/* Sidebar */
+#region-sidebar ul{
+  margin: 8px 0 25px 0;
+  list-style: none!important;
+}
+
+#region-sidebar ul li{
+  margin:10px 0;
+  list-style: none!important;
+}
+
+#region-sidebar ul.facetapi-facetapi-links{
+  margin-bottom: 10px;
+}
+
+#region-sidebar ul.facetapi-facetapi-links li{
+  margin:5px 0;
+}
+
+#region-sidebar a.facetapi-limit-link{
+  display: block;
+  margin-bottom: 20px;
+  text-align: right;
+  font-size: 10px;
+}
+
+
 
 
 /************************ MEDIA GALLERY *********************/ 
@@ -424,4 +502,129 @@ ul.menu li{
 }
 
 
+/************************ NODES *********************/ 
 
+.node .submitted{
+  color: #888;
+  font-size: 0.9em;
+  text-align: right;
+}
+
+/* STRIPY DIV GROUPS */
+
+.node .stripy-div-group{
+  margin: 20px 0;
+  border-top: 1px solid #D9DADD;
+}
+
+.node .stripy-div-group .field{
+  border-width: 1px;
+  border-color: #D9DADD;
+  border-style: none solid solid solid;
+  clear: left;
+}
+
+.node .stripy-div-group .odd{
+  background: #F1F4FB;
+}
+
+.node .stripy-div-group .field-label{
+  float: left;
+  width: 200px;
+  text-align: right;
+  padding-right: 5px;
+}
+
+.node .stripy-div-group .field-label,
+.node .stripy-div-group .field-items{
+  padding: 6px 0;
+}
+
+.node .stripy-div-group .field-items{
+  margin-left: 205px;
+  border-left: 1px solid #D9DADD;
+  padding-left: 5px;
+}
+
+
+/* Biblio */
+
+.node-biblio table,
+table.biblio,
+.biblio table{
+  width: 100%;
+  border-width: 1px;
+  border-color: #D9DADD;
+  border-style: solid solid none solid;
+}
+
+.biblio table thead tr,
+table.biblio thead tr{
+  background: #EBEDED;
+}
+
+
+.node-biblio table td.biblio-row-title,
+table.biblio td.biblio-row-title{
+  width: 200px;
+  text-align: right;
+  border-right: 1px solid #D9DADD;
+  font-weight: bold;
+}
+
+.node-biblio table td,
+table.biblio td,
+table.biblio th{
+  padding: 6px 5px;
+}
+
+.node-biblio table tr,
+.biblio table tr,
+table.biblio tr{
+ background: #fff;  
+}
+
+.node-biblio table tr.odd,
+.biblio table tr.odd,
+table.biblio tr.odd{
+ background: #F1F4FB;  
+}
+
+/* Just biblio view & solr table */
+
+.biblio table th,
+table.biblio th{
+  font-weight: bold;
+  vertical-align: middle;
+  border-bottom: 1px solid #D9DADD;
+}
+
+.biblio table td,
+.biblio table th{
+  border-right: 1px solid #D9DADD;
+  padding: 8px 6px;
+}
+
+.biblio table td.active{
+  background: none;
+}
+
+
+.biblio table td.views-field-biblio-authors{
+  width: 200px;
+}
+
+table.biblio td{
+  min-width: 100px;
+}
+  
+/****************** ADMIN *****************/
+
+/* Fix the contextual links zindex*/
+div.contextual-links-wrapper{
+  z-index:1!important;
+}
+
+div.contextual-links-wrapper ul.contextual-links{
+   z-index:2!important;
+}
