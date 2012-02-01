@@ -787,7 +787,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             theme('gm3_point_button', array(
               'id' => $element['#field_name']
             ))
-          )
+          ),
+          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
       $widget += array(
@@ -839,7 +840,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               theme('gm3_' . $poly_type . '_button', array(
                 'id' => $element['#field_name']
               ))
-            )
+            ),
+            'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         ))),
         '#attached' => array(
@@ -860,7 +862,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       $map = array(
         'id' => $element['#field_name'],
         'libraries' => array(),
-        'tools' => array()
+        'tools' => array(),
+        'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
       );
       $widget += array(
         '#attached' => array(

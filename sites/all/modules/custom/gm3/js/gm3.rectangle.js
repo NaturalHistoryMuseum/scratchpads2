@@ -45,24 +45,29 @@
       case 'rectangle':
         switch(event_type){
           case 'click':
-            // Is this the first click? If so, we start a rectangle, else we
-            // finish a rectangle.
-            if(this.first_click) {
-              // We have a second click, we add the rectangle, and clear the
-              // first
-              // click.
-              var points = new Array({'lat': this.first_click.latLng.lat(), 'long': this.first_click.latLng.lng()}, {'lat': this.first_click.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': this.first_click.latLng.lng()});
-              this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(points, false);
-              this.GM3.set_active_class('default');
-              this.followlineN.setMap(null);
-              this.followlineE.setMap(null);
-              this.followlineS.setMap(null);
-              this.followlineW.setMap(null);
-              if(this.update_field) {
-                this.update_field();
+            if(this.GM3.num_objects < this.GM3.max_objects) {
+              // Is this the first click? If so, we start a rectangle, else we
+              // finish a rectangle.
+              if(this.first_click) {
+                // We have a second click, we add the rectangle, and clear the
+                // first
+                // click.
+                var points = new Array({'lat': this.first_click.latLng.lat(), 'long': this.first_click.latLng.lng()}, {'lat': this.first_click.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': this.first_click.latLng.lng()});
+                this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(points, false);
+                this.GM3.num_objects ++;
+                this.GM3.set_active_class('default');
+                this.followlineN.setMap(null);
+                this.followlineE.setMap(null);
+                this.followlineS.setMap(null);
+                this.followlineW.setMap(null);
+                if(this.update_field) {
+                  this.update_field();
+                }
+              } else {
+                this.first_click = event;
               }
             } else {
-              this.first_click = event;
+              alert(Drupal.t('Please delete an object from the map before adding another'));
             }
             break;
           case 'mousemove':

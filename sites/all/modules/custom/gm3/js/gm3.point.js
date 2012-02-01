@@ -24,20 +24,25 @@
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, title, content){
-    this.GM3.add_latlng(latLng);
-    redraw = typeof (redraw) != 'undefined' ? redraw : false;
-    title = typeof (title) != 'undefined' ? title : '';
-    content = typeof (content) != 'undefined' ? content : '';
-    var current_point = this.points.length;
-    this.points[current_point] = new google.maps.Marker({position: latLng, draggable: editable, title: title + " :: " + latLng.toString(), icon: this.marker_images[this.points.length%8]});
-    // Add transfer listeners so the added points can be rightclicked.
-    this.GM3.add_listeners_helper(this.points[current_point]);
-    if(content) {
-      this.GM3.add_popup(this.points[current_point], content, title);
-    }
-    if(redraw) {
-      this.clusterer.addMarker(this.points[current_point], true);
-      this.clusterer.repaint();
+    if(this.GM3.num_objects < this.GM3.max_objects){
+      this.GM3.add_latlng(latLng);
+      redraw = typeof (redraw) != 'undefined' ? redraw : false;
+      title = typeof (title) != 'undefined' ? title : '';
+      content = typeof (content) != 'undefined' ? content : '';
+      var current_point = this.points.length;
+      this.points[current_point] = new google.maps.Marker({position: latLng, draggable: editable, title: title + " :: " + latLng.toString(), icon: this.marker_images[this.points.length%8]});
+      // Add transfer listeners so the added points can be rightclicked.
+      this.GM3.add_listeners_helper(this.points[current_point]);
+      if(content) {
+        this.GM3.add_popup(this.points[current_point], content, title);
+      }
+      if(redraw) {
+        this.clusterer.addMarker(this.points[current_point], true);
+        this.clusterer.repaint();
+      }
+      this.GM3.num_objects ++;
+    } else {
+      alert(Drupal.t('Please delete an object from the map before adding another'));
     }
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
@@ -68,6 +73,7 @@
                     this.clusterer.removeMarker(this.points[i], true);
                     this.points[i].setMap(null);
                     this.points[i] = undefined;
+                    this.GM3.num_objects --;
                   }
                 }
                 // Finally, close up the array, which seems pretty clunky, but

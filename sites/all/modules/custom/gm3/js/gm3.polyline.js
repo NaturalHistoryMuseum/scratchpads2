@@ -65,6 +65,14 @@
       case 'polyline':
         switch(event_type){
           case 'click':
+            if(this.polylines[this.polylines.length - 1].getPath().length == 0) {
+              if(this.GM3.num_objects < this.GM3.max_objects) {
+                this.GM3.num_objects++;
+              } else {
+                alert(Drupal.t('Please delete an object from the map before adding another'));
+                break;
+              }
+            }
             this.polylines[this.polylines.length - 1].stopEdit();
             this.polylines[this.polylines.length - 1].getPath().push(event.latLng);
             this.polylines[this.polylines.length - 1].runEdit(true);
