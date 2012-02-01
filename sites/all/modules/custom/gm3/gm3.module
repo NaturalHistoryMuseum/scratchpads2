@@ -303,7 +303,11 @@ function gm3_load_geophp(){
     // Folk can install geoPHP using a "libraries" path, or simply shove it in
     // the gm3 module folder.
     if(function_exists('libraries_get_path')){
-      $file = libraries_get_path('geoPHP') . '/geoPHP.inc';
+      $library_folder = libraries_get_path('geoPHP');
+      if(!$library_folder){
+        $library_folder = libraries_get_path('geophp');
+      }
+      $file = $library_folder . '/geoPHP.inc';
     }else{
       $file = drupal_get_path('module', 'gm3') . '/geoPHP/geoPHP.inc';
     }
