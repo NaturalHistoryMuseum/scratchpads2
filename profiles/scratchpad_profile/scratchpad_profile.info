@@ -1,5 +1,0 @@
-name = Scratchpad
-description = Install a Scratchpad
-core = 7.x
-dependencies[] = scratchpads_tweaks
-files[] = scratchpad_profile.profile
