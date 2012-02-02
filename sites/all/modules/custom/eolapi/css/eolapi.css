@@ -28,8 +28,14 @@
   padding: 5px 0;
 }
 
-.eolapi-text-data ul{
+.eolapi-text-data ul,
+.eolapi-text-data ol{
   margin-left: 30px;
+  list-style: disc;
+}
+
+.eolapi-text-data a[href^='#cite_ref']{
+  display: none;
 }
 
 .eolapi-text-data strong{
