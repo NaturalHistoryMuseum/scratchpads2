@@ -552,6 +552,10 @@ ul.menu li{
   padding-left: 5px;
 }
 
+.node div.item-list ul li{
+  list-style: disc;
+}
+
 
 /* Biblio */
 
