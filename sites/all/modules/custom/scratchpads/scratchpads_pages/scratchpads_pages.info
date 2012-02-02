@@ -3,3 +3,4 @@ description = "Scratchpads pages"
 name = "Scratchpads pages"
 package = "Scratchpads"
 dependencies[] = scratchpads_species
+dependencies[] = taxonomy_breadcrumb
