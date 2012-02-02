@@ -530,8 +530,7 @@ ul.menu li{
   background: #F1F4FB;
 }
 
-.node .field-label,
-.eolapi-text .field-label{
+.node .stripy-div-group .field-label{
   float: left;
   width: 200px;
   text-align: right;
@@ -544,18 +543,13 @@ ul.menu li{
   padding: 6px 0;
 }
 
-.node .field-items,
-.eolapi-text div.eolapi-text-data{
+.node .stripy-div-group .field-items{
   margin-left: 205px;
 }
 
 .node .stripy-div-group .field-items{ 
   border-left: 1px solid #D9DADD;
   padding-left: 5px;
-}
-
-.eolapi-text-data ul{
-  margin-left: 30px;
 }
 
 
