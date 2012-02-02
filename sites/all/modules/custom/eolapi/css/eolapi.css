@@ -28,10 +28,16 @@
   padding: 5px 0;
 }
 
-.eolapi-text-data ul,
-.eolapi-text-data ol{
+.eolapi-text-data .item-list ul,
+.eolapi-text-data .item-list ol{
   margin-left: 30px;
   list-style: disc;
+}
+
+.eolapi-text-data .item-list ul li,
+.eolapi-text-data .item-list ol li{
+  list-style: disc;
+  padding: 5px 0;
 }
 
 .eolapi-text-data a[href^='#cite_ref']{
