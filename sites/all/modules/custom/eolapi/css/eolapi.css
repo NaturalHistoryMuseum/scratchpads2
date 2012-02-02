@@ -28,16 +28,25 @@
   padding: 5px 0;
 }
 
-.eolapi-text-data .item-list ul,
-.eolapi-text-data .item-list ol{
-  margin-left: 30px;
-  list-style: disc;
+.eolapi-text-data ul,
+.eolapi-text-data ol{
+  margin-left: 30px!important;
+  
 }
 
-.eolapi-text-data .item-list ul li,
-.eolapi-text-data .item-list ol li{
-  list-style: disc;
-  padding: 5px 0;
+.eolapi-text-data ul,
+.eolapi-text-data ul li{
+  list-style: disc!important;
+}
+
+.eolapi-text-data ol,
+.eolapi-text-data ol li{
+  list-style: lower-roman;
+}
+
+.eolapi-text-data ul li,
+.eolapi-text-data ol li{
+  padding: 5px 0!important;
 }
 
 .eolapi-text-data a[href^='#cite_ref']{
