@@ -18,7 +18,6 @@ function apachesolr_file_entity_info_alter(&$entity_info){
   foreach($entity_info['file']['bundles'] as $bundle => $value){
     $entity_info['file']['bundles'][$bundle]['apachesolr']['index'] = TRUE;
   }
-  dpm($entity_info);
 }
 
 /**
