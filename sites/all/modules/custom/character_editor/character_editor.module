@@ -71,10 +71,9 @@ function character_editor_menu(){
 /** 
  * Implementation of hook_menu_alter(). 
  */
-function character_editor_menu_alter(&$items){
-  $items['character-project/%']['page callback'] = 'character_editor_project_view';
-}
-
+//function character_editor_menu_alter(&$items){
+//  $items['character-project/%']['page callback'] = 'character_editor_project_view';
+//}
 /**
  * Implements hook_theme().
  */
@@ -305,7 +304,7 @@ function character_editor_field_widget_form_after_build($form){
  */
 function character_editor_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
-    case 'entity_ui_entity_edit_form':
+    case 'entity_admin_entity_form':
       if($form['#entity_type'] == 'character_editor_character'){
         $destination = drupal_get_destination();
         $form['actions']['back'] = array(
@@ -332,7 +331,7 @@ function character_editor_entity_info(){
   $return['character_editor_project'] = array(
     'label' => t('Character project'),
     // The entity class and controller class extend the classes provided by the Entity API
-    'entity class' => 'EntityUI',
+    'entity class' => 'Entity',
     'controller class' => 'EntityAPIController',
     'base table' => 'character_editor_project',
     'fieldable' => TRUE,
@@ -347,20 +346,18 @@ function character_editor_entity_info(){
     'bundle keys' => array(
       'bundle' => 'type'
     ),
-    'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
     'access callback' => 'character_editor_entity_access',
     'module' => 'character_editor',
     'admin ui' => array(
       'path' => 'admin/content/character-editor/projects',
-      'controller class' => 'CharacterProjectEntityUIController'
+      'controller class' => 'CharacterProjectEntityController'
     ),
     'views controller class' => 'CharacterProjectViewsController'
   );
   // The entity that holds information about the entity types	  
   $return['character_editor_project_type'] = array(
     'label' => t('Character project type'),
-    'entity class' => 'EntityUI',
+    'entity class' => 'Entity',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'character_editor_project_type',
     'fieldable' => FALSE,
@@ -375,13 +372,13 @@ function character_editor_entity_info(){
     'module' => 'character_editor',
     'admin ui' => array(
       'path' => 'admin/structure/character-editor/project',
-      'controller class' => 'EntityUITypeController'
+      'controller class' => 'EntityAdminTypeController'
     )
   );
   $return['character_editor_character'] = array(
     'label' => t('Character'),
     // The entity class and controller class extend the classes provided by the Entity API
-    'entity class' => 'EntityUI',
+    'entity class' => 'Entity',
     'controller class' => 'EntityAPIController',
     'base table' => 'character_editor_character',
     'fieldable' => TRUE,
@@ -396,13 +393,11 @@ function character_editor_entity_info(){
     'bundle keys' => array(
       'bundle' => 'type'
     ),
-    'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
     'access callback' => 'character_editor_entity_access',
     'module' => 'character_editor',
     'admin ui' => array(
       'path' => 'admin/content/character-editor/characters',
-      'controller class' => 'EntityUIEntityController',
+      'controller class' => 'EntityAdminEntityController',
       'access' => false
     ),
     'form callback' => 'character_editor_metadata_form',
@@ -411,7 +406,7 @@ function character_editor_entity_info(){
   // The entity that holds information about the entity types	  
   $return['character_editor_character_type'] = array(
     'label' => t('Character type'),
-    'entity class' => 'EntityUI',
+    'entity class' => 'Entity',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'character_editor_character_type',
     'fieldable' => FALSE,
@@ -426,7 +421,7 @@ function character_editor_entity_info(){
     'module' => 'character_editor',
     'admin ui' => array(
       'path' => 'admin/structure/character-editor/character',
-      'controller class' => 'EntityUITypeController'
+      'controller class' => 'EntityAdminTypeController'
     )
   );
   return $return;
@@ -447,10 +442,13 @@ function character_editor_metadata_form(){
  */
 function character_editor_entity_access($op){
   // Settings should use the same perms as edit
-  if($op == 'settings'){
-    $op = 'edit';
-  }
-  $permission = $op . ' character editor';
+  //  if($op == 'settings'){
+  //    $op = 'edit';
+  //  }
+  //  $permission = $op . ' character editor';
+  //  
+  //  dd($permission);
+  return true;
   return user_access($permission);
 }
 
@@ -494,12 +492,12 @@ function character_editor_entity_delete($entity, $type){
 /**
  * View a character project entity
  */
-function character_editor_project_view($entity_type, $id){
+function character_editor_project_view($entity){
   $path = drupal_get_path('module', 'character_editor');
   $name = character_editor_get_default_view();
   $display_id = 'default';
   $args = array(
-    $id
+    $entity->id
   );
   // Load the view and render it.
   if($view = views_get_view($name)){
@@ -568,12 +566,12 @@ function character_editor_add_character_form($form, &$form_state){
     '#suffix' => '</div>'
   );
   if(isset($form_state['values']['type']) && $form_state['values']['type']){
-    $entity = entity_ui_create('character_editor_character', array(
+    $entity = entity_admin_create('character_editor_character', array(
       'type' => $form_state['values']['type']
     ));
     $form['character_type_wrapper']['subform'] = array(
       '#type' => 'subform',
-      '#subform_id' => 'entity_ui_entity_form',
+      '#subform_id' => 'entity_admin_entity_form',
       '#subform_arguments' => array(
         $entity
       ),
@@ -607,7 +605,7 @@ function character_editor_add_character_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Save'),
     '#subform_triggering_element' => array(
-      'entity_ui_entity_form' => array(
+      'entity_admin_entity_form' => array(
         'actions',
         'submit'
       )
@@ -723,7 +721,7 @@ function character_editor_get_default_view(){
  */
 function character_editor_get_character_types(){
   $character_types = array();
-  foreach($entities = entity_ui_get_entities('character_editor_character_type') as $type => $entity){
+  foreach($entities = entity_admin_get_entities('character_editor_character_type') as $type => $entity){
     $character_types[$type] = $entity->label();
   }
   return $character_types;
@@ -761,9 +759,12 @@ function character_editor_get_groups($character_project_id){
 /**
  * Implements hook_ctools_plugin_api().
  */
-function character_editor_ctools_plugin_api($owner, $api){
-  if($owner == 'slickgrid'){return array(
+function character_editor_ctools_plugin_api($module, $api){
+  if($module == 'slickgrid'){return array(
       'version' => 1
+    );}
+  if($module == "relation" && $api == "relation_type_default"){return array(
+      "version" => "1"
     );}
 }
 
