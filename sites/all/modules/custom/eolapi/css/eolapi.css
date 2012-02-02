@@ -28,6 +28,10 @@
   padding: 5px 0;
 }
 
+.eolapi-text-data{
+  word-wrap: break-word
+}
+
 .eolapi-text-data ul,
 .eolapi-text-data ol{
   margin-left: 30px!important;
