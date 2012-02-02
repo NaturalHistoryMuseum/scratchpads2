@@ -1,5 +1,12 @@
 <?php
 
 /**
- * Empty file.
+ * Implementation of hook_form_FORM_ID_alter.
+ * 
+ * Hide the forums vocabulary from the taxonomy editor.
  */
+function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
+  if($tid = variable_get('forum_nav_vocabulary', FALSE)){
+    unset($form[$tid]);
+  }
+}

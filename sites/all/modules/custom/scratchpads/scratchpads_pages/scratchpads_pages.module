@@ -61,7 +61,11 @@ function scratchpads_pages_taxonomy_term_delete($term){
   // If this is a biological classification & there is a menu item for it, rebuild the menu to check it's still useful
   if(scratchpads_species_term_is_biological_classification($term)){
     if(menu_get_item('classification/' . $term->vid)){
-      menu_rebuild();
+      $shutdown_registered = &drupal_static(__FUNCTION__);
+      if(!$shutdown_registered){
+        $shutdown_registered = TRUE;
+        drupal_register_shutdown_function('menu_rebuild');
+      }
     }
   }
 }

@@ -5,6 +5,9 @@
     this.max_lng = false;
     this.min_lat = false;
     this.min_lng = false;
+    // Max objects (for when editing a field)
+    this.max_objects = typeof (map.max_objects) != 'undefined' ? map.max_objects : 1000000;
+    this.num_objects = 0;
     this.settings = map.settings;
     this.id = map.id;
     this.initialized = false;

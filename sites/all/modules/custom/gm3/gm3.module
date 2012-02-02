@@ -98,10 +98,10 @@ function gm3_library(){
     'gm3.clusterer' => array(
       'title' => t('Google Marker Cluster'),
       'website' => 'http://google-maps-utility-library-v3.googlecode.com/',
-      'version' => '2.0.5',
+      'version' => '2.0.7',
       'js' => array(
         array(
-          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.5/src/markerclusterer_packed.js',
+          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.7/src/markerclusterer_packed.js',
           'options' => 'external'
         )
       )
@@ -303,7 +303,11 @@ function gm3_load_geophp(){
     // Folk can install geoPHP using a "libraries" path, or simply shove it in
     // the gm3 module folder.
     if(function_exists('libraries_get_path')){
-      $file = libraries_get_path('geoPHP') . '/geoPHP.inc';
+      $library_folder = libraries_get_path('geoPHP');
+      if(!$library_folder){
+        $library_folder = libraries_get_path('geophp');
+      }
+      $file = $library_folder . '/geoPHP.inc';
     }else{
       $file = drupal_get_path('module', 'gm3') . '/geoPHP/geoPHP.inc';
     }
