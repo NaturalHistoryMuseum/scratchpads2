@@ -74,6 +74,11 @@
   border-left-color: #E8E8E8;
 }
 
+.slick-header-column.ui-state-default .slick-resizable-handle{
+  right: -1px;
+  background: url('../images/resize-handle.gif') no-repeat 0 9px; 
+}
+
 
 /************************** FILTER BAR ************************/
 
