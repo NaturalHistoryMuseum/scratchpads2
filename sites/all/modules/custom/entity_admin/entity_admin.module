@@ -160,8 +160,9 @@ function _entity_admin_entity_info_filter($entity_info){
 }
 
 function entity_admin_class_uri($entity){
+  $entity_info = $entity->entityInfo();
   return array(
-    'path' => str_replace('_', '-', $entity->entityType()) . '/' . $entity->identifier()
+    'path' => str_replace(' ', '-', strtolower($entity_info['label'])) . '/' . $entity->identifier()
   );
 }
 
