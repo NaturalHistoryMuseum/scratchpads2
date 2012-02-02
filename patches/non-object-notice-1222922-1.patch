@@ -1,0 +1,16 @@
+diff --git a/taxonomy_breadcrumb.module b/taxonomy_breadcrumb.module
+index 40d83e4..0964148 100644
+--- a/taxonomy_breadcrumb.module
++++ b/taxonomy_breadcrumb.module
+@@ -67,7 +67,10 @@ function taxonomy_breadcrumb_node_view($node, $view_mode = 'full') {
+ 
+       // Extract lightest term from lightest vocabulary assosciated with node.
+       $term = _taxonomy_breadcrumb_node_get_lightest_term($node);
+-      $breadcrumb = _taxonomy_breadcrumb_generate_breadcrumb($term->tid);
++      if(is_object($term))
++        $breadcrumb = _taxonomy_breadcrumb_generate_breadcrumb($term->tid);
++      else
++        $breadcrumb=array();
+       if (variable_get('taxonomy_breadcrumb_include_node_title', FALSE)) {
+         $breadcrumb[] = check_plain($node->title);
+       }
