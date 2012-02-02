@@ -53,6 +53,13 @@ function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
       $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
       break;
   }
+  // This also gives us an opportunity to tweak the facets if we've been linked
+  // to by the biblio module.
+  if(isset($_GET['f']) && isset($_GET['f']['author'])){
+    $_GET['f'] = array(
+      'im_biblio_contributor:' . $_GET['f']['author']
+    );
+  }
 }
 
 /**
