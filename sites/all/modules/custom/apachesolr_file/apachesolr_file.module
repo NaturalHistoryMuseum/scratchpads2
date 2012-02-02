@@ -12,6 +12,30 @@ function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
 }
 
 /**
+ * Implementation of hook_entity_info_alter().
+ */
+function apachesolr_file_entity_info_alter(&$entity_info){
+  foreach($entity_info['file']['bundles'] as $bundle => $value){
+    $entity_info['file']['bundles'][$bundle]['apachesolr']['index'] = TRUE;
+  }
+  dpm($entity_info);
+}
+
+/**
+ * Implementation of hook_module_implements_alter().
+ * 
+ * We need to ensure that this module's entity_info_alter fires after other 
+ * modules (particularly file_styles and media).
+ */
+function apachesolr_module_implements_alter(&$implementations, $hook){
+  if($hook == 'entity_info_alter'){
+    $this_module = $implementations['apachesolr_file'];
+    unset($implementations['apachesolr_file']);
+    $implementations['apachesolr_file'] = $this_module;
+  }
+}
+
+/**
  * Implementation of hook_facetapi_searcher_info_alter();
  */
 function apachesolr_file_facetapi_searcher_info_alter(&$searcher_info){
