@@ -154,6 +154,14 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
         'map options' => array(
           'im_field_smg_galleries'
         )
+      ),
+      'tus_type_name' => array(
+        'name' => 'tus_type_name',
+        'label' => t('Media: Type'),
+        'description' => t('Media: Type'),
+        'query types' => array(
+          'term'
+        )
       )
     );}
   return array();
