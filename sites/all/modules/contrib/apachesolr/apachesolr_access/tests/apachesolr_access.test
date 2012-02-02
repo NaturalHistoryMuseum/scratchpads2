@@ -25,6 +25,15 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
       'edit own article content',
     );
     $this->basic_user = $this->drupalCreateUser($permissions);
+    // Create an admin user.
+    $permissions = array(
+      'access content',
+      'search content',
+      'administer nodes',
+      'administer search',
+      'access administration pages',
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
   function testIndexing() {
@@ -125,5 +134,15 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     foreach ($expected_criterion as $k => $v) {
       $this->assertTrue(in_array("$k:$v", $parts), "Filter $k:$v found in the parts");
     }
+    // Test reset of index position.
+    $this->drupalLogin($this->admin_user);
+    $env_id = apachesolr_default_environment();
+    apachesolr_set_last_index_position($env_id, 'node', 1, 1);
+    $empty = serialize(array());
+    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $this->assertNotEqual($value, $empty, 'value is not empty array');
+    $this->drupalPost('admin/reports/status/rebuild', array(), t('Rebuild permissions'));
+    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $this->assertEqual($value, $empty, 'value is empty array');
   }
 }

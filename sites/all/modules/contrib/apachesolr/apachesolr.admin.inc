@@ -200,7 +200,8 @@ function apachesolr_environment_edit_validate($form, &$form_state) {
   if (isset($parts['port'])) {
     // parse_url() should always give an integer for port. Since drupal_http_request()
     // also uses parse_url(), we don't need to validate anything except the range.
-    preg_match('@://[^:]+:([^/]+)@', $form_state['values']['url'], $m);
+    $pattern = empty($parts['user']) ? '@://[^:]+:([^/]+)@' : '#://[^@]+@[^:]+:([^/]+)#';
+    preg_match($pattern, $form_state['values']['url'], $m);
     if (empty($m[1]) || !ctype_digit($m[1]) || $m[1] < 1 || $m[1] > 65535) {
       form_set_error('port', t('The port has to be an integer between 1 and 65535.'));
     }

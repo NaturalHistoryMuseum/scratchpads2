@@ -96,12 +96,30 @@ function apachesolr_schema() {
 
   $schema['apachesolr_environment'] = array(
     'description' => 'The Solr search environment table.',
+    // Enable CTools exportables based on this table.
     'export' => array(
+      // Environment machine name.
       'key' => 'env_id',
-      'identifier' => 'name',
+      // Description of key.
+      'key name' => 'Environment machine name',
+      // Apache Solr doesn't allow disabling environments.
+      'can disable' => FALSE,
+      // Variable name to use in exported code.
+      'identifier' => 'environment',
+      // Use the environment load callback directly.
+      'load callback' => 'apachesolr_environment_load',
+      // Thin wrapper for the environment save callback.
+      'save callback' => 'apachesolr_ctools_environment_save',
+      // Thin wrapper for the environment delete callback.
+      'delete callback' => 'apachesolr_ctools_environment_delete',
+      // Includes the environment variables in 'conf' as well as the fields in this table.
+      'export callback' => 'apachesolr_ctools_environment_export',
+      // Use the same hook as the API name below.
+      'default hook' => 'apachesolr_environments',
+      // CTools API implementation.
       'api' => array(
         'owner' => 'apachesolr',
-        'api' => 'default_apachesolr_environments',
+        'api' => 'apachesolr_environments',
         'minimum_version' => 1,
         'current_version' => 1,
       ),
@@ -138,17 +156,6 @@ function apachesolr_schema() {
   );
   $schema['apachesolr_environment_variable'] = array(
     'description' => 'Variable values for each Solr search environment.',
-    'export' => array(
-      'key' => 'name',
-      'identifier' => 'name',
-      'default hook' => 'default_apachesolr_environment_variable',
-      'api' => array(
-        'owner' => 'apachesolr',
-        'api' => 'default_apachesolr_environment_variables',
-        'minimum_version' => 1,
-        'current_version' => 1,
-      ),
-    ),
     'fields' => array(
       'env_id' => array(
         'description' => 'Unique identifier for the environment',
@@ -186,34 +193,34 @@ function apachesolr_schema() {
   );
   foreach ($types as $type) {
     $schema[$type] = array(
-      'description' => t('Stores a record of when an entity changed to determine if it needs indexing by Solr.'),
+      'description' => 'Stores a record of when an entity changed to determine if it needs indexing by Solr.',
       'fields' => array(
         'entity_type' => array(
-          'description' => t('The type of entity.'),
+          'description' => 'The type of entity.',
           'type' => 'varchar',
-          'length' => 128,
+          'length' => 32,
           'not null' => TRUE,
         ),
         'entity_id' => array(
-          'description' => t('The primary identifier for an entity.'),
+          'description' => 'The primary identifier for an entity.',
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
         ),
         'bundle' => array(
-          'description' => t('The bundle to which this entity belongs.'),
+          'description' => 'The bundle to which this entity belongs.',
           'type' => 'varchar',
           'length' => 128,
           'not null' => TRUE,
         ),
         'status' => array(
-          'description' => t('Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).'),
+          'description' => 'Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).',
           'type' => 'int',
           'not null' => TRUE,
           'default' => 1,
         ),
         'changed' => array(
-          'description' => t('The Unix timestamp when an entity was changed.'),
+          'description' => 'The Unix timestamp when an entity was changed.',
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0,
@@ -231,22 +238,22 @@ function apachesolr_schema() {
   }
 
   $schema['apachesolr_index_bundles'] = array(
-    'description' => t('Records what bundles we should be indexing for a given environment.'),
+    'description' => 'Records what bundles we should be indexing for a given environment.',
     'fields' => array(
       'env_id' => array(
-        'description' => t('The name of the environment.'),
+        'description' => 'The name of the environment.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 64,
         'not null' => TRUE,
       ),
       'entity_type' => array(
-        'description' => t('The type of entity.'),
+        'description' => 'The type of entity.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 32,
         'not null' => TRUE,
       ),
       'bundle' => array(
-        'description' => t('The bundle to index.'),
+        'description' => 'The bundle to index.',
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
@@ -625,34 +632,34 @@ function apachesolr_update_7012() {
   );
   foreach ($types as $type) {
     $schema[$type] = array(
-      'description' => t('Stores a record of when an entity changed to determine if it needs indexing by Solr.'),
+      'description' => 'Stores a record of when an entity changed to determine if it needs indexing by Solr.',
       'fields' => array(
         'entity_type' => array(
-          'description' => t('The type of entity.'),
+          'description' => 'The type of entity.',
           'type' => 'varchar',
-          'length' => 128,
+          'length' => 32,
           'not null' => TRUE,
         ),
         'entity_id' => array(
-          'description' => t('The primary identifier for an entity.'),
+          'description' => 'The primary identifier for an entity.',
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
         ),
         'bundle' => array(
-          'description' => t('The bundle to which this entity belongs.'),
+          'description' => 'The bundle to which this entity belongs.',
           'type' => 'varchar',
           'length' => 128,
           'not null' => TRUE,
         ),
         'status' => array(
-          'description' => t('Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).'),
+          'description' => 'Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).',
           'type' => 'int',
           'not null' => TRUE,
           'default' => 1,
         ),
         'changed' => array(
-          'description' => t('The Unix timestamp when an entity was changed.'),
+          'description' => 'The Unix timestamp when an entity was changed.',
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0,
@@ -672,22 +679,22 @@ function apachesolr_update_7012() {
   }
 
   $schema['apachesolr_index_bundles'] = array(
-    'description' => t('Records what bundles we should be indexing for a given environment.'),
+    'description' => 'Records what bundles we should be indexing for a given environment.',
     'fields' => array(
       'env_id' => array(
-        'description' => t('The name of the environment.'),
+        'description' => 'The name of the environment.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 64,
         'not null' => TRUE,
       ),
       'entity_type' => array(
-        'description' => t('The type of entity.'),
+        'description' => 'The type of entity.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 32,
         'not null' => TRUE,
       ),
       'bundle' => array(
-        'description' => t('The bundle to index.'),
+        'description' => 'The bundle to index.',
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
@@ -736,4 +743,38 @@ function apachesolr_update_7012() {
     // Remove the excluded types
     apachesolr_environment_variable_del($env_id, 'apachesolr_search_excluded_types');
   }
+}
+
+/**
+ * Make consistent (and reduce) field lengths which cause excess pkey length.
+ */
+function apachesolr_update_7013() {
+  db_drop_primary_key('apachesolr_index_entities');
+  db_change_field('apachesolr_index_entities', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_add_primary_key('apachesolr_index_entities', array('entity_id', 'entity_type'));
+  db_change_field('apachesolr_index_entities_node', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_drop_primary_key('apachesolr_index_bundles');
+  db_change_field('apachesolr_index_bundles', 'env_id', 'env_id', array(
+    'description' => 'Unique identifier for the environment',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE)
+  );
+  db_change_field('apachesolr_index_bundles', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_add_primary_key('apachesolr_index_bundles', array('env_id', 'entity_type', 'bundle'));
 }

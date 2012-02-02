@@ -1,5 +1,15 @@
 Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 ------------------------------
+
+Apache Solr integration 7.x-1.0-beta16, 2012-02-02
+------------------------------
+#1408190 by DeFr: Fix port check for url with credentials.
+#1411354 by Nick_vh: fix for Incorrect reporting of documents indexed.
+#1357588 by becw, Bußmeyer, pwolanin: improved ctools export/import support.
+#1418136 by zengenuity, pwolanin: fix for undefined function apachesolr_index_set_last_updated() in apachesolr_access.
+#995526  by chx, pwolanin: another fix for Key length greater than 1000 bytes causes install error on MyISAM.
+#1409878 by becw: Fixed Uncaught exception when the default environment does not exist (patch).
+#1398100 by thecarlhall: Fixed Configuration throws exception when starting Solr. Follow up for 7.x-1.x
 #1409076 by Nick_vh, sdrycroft: Fixed Entities that use the 'apachesolr_index_entities()" table are not indexed.
 #1409146 by Nick_vh: Fixed Add all possible index_types() to apachesolr_index_key().
 #1408856 by Nick_vh: Remove DrupalQueue from the install.php.
@@ -7,13 +17,13 @@ Apache Solr integration 7.x-1.x-xxxx, xxxx-xx-xx
 #1408192 by becw: Fixed Add apachesolr.interface.inc to the .info file (patch).
 #1405040 by Nick_vh | chrisssi: Fixed SQLSTATE[42S22]: Column not found: 1054.
 
-Apache Solr integration 7.x-1.x-beta15, 2012-01-12
+Apache Solr integration 7.x-1.0-beta15, 2012-01-12
 ------------------------------
 #1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages. Follow-Up small bugfix
 #1397138 by Nick_vh: Create Simpletests to verify base functionality of the module.
 #1402688 by Nick_vh: Fixed Upgrade from Beta13 to Beta14 does not take the excluded types into account properly.
 
-Apache Solr integration 7.x-1.x-beta14, 2012-01-12
+Apache Solr integration 7.x-1.0-beta14, 2012-01-12
 ------------------------------
 #1397526 by Nick_vh, cpliakas: Add an option to select which search page facets link to when displayed on non-search pages.
 #713142 by ygerasimov, pwolanin, Nick_vh: Added configuration option to a search environment if we want to use Dismax or EDismax.
