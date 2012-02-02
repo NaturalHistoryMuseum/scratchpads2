@@ -505,7 +505,8 @@ ul.menu li{
 
 /************************ NODES *********************/ 
 
-.node .submitted{
+.node .submitted,
+.eolapi-text-rights{
   color: #888;
   font-size: 0.9em;
   text-align: right;
@@ -529,11 +530,13 @@ ul.menu li{
   background: #F1F4FB;
 }
 
-.node .stripy-div-group .field-label{
+.node .field-label,
+.eolapi-text .field-label{
   float: left;
   width: 200px;
   text-align: right;
   padding-right: 5px;
+  font-weight: bold;
 }
 
 .node .stripy-div-group .field-label,
@@ -541,10 +544,18 @@ ul.menu li{
   padding: 6px 0;
 }
 
-.node .stripy-div-group .field-items{
+.node .field-items,
+.eolapi-text div.eolapi-text-data{
   margin-left: 205px;
+}
+
+.node .stripy-div-group .field-items{ 
   border-left: 1px solid #D9DADD;
   padding-left: 5px;
+}
+
+.eolapi-text-data ul{
+  margin-left: 30px;
 }
 
 
