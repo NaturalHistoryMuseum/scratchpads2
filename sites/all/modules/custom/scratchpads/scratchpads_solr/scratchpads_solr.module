@@ -54,6 +54,33 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
 }
 
 /**
+ * Implementation of hook_node_type_insert().
+ */
+function scratchpads_solr_node_type_insert($info){
+  $entity_info = entity_get_info('node');
+  db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->execute();
+  $query = db_insert('apachesolr_index_bundles')->fields(array(
+    'env_id',
+    'entity_type',
+    'bundle'
+  ));
+  $env_id = apachesolr_default_environment();
+  foreach($entity_info['bundles'] as $key => $value){
+    $query->values(array(
+      'env_id' => $env_id,
+      'entity_type' => 'node',
+      'bundle' => $key
+    ));
+  }
+  $query->values(array(
+    'env_id' => $env_id,
+    'entity_type' => 'node',
+    'bundle' => $info->type
+  ));
+  $query->execute();
+}
+
+/**
  * Implementation of hook_theme().
  */
 function scratchpads_solr_theme(){
@@ -72,6 +99,7 @@ function scratchpads_solr_theme(){
  * Implementation of hook_page_alter().
  */
 function scratchpads_solr_page_alter(&$page){
+  // FIXME - Here we should add the empty results themes (if they're required).
   try{
     if(isset($page['content']['system_main']['search_results']['#theme'])){
       $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
@@ -101,6 +129,10 @@ function scratchpads_solr_menu_alter(&$items){
  * Implementation of hook_node_type_delete().
  */
 function scratchpads_solr_node_type_delete($info){
-  // Attempt to delete this content type from the apachesolr_search_page table.
-  db_delete('apachesolr_search_page')->condition('page_id', 'content_type_' . $info->type . '_search')->execute();
+  if(is_object($info) && isset($info->type)){
+    // Attempt to delete this content type from the apachesolr_search_page table.
+    db_delete('apachesolr_search_page')->condition('page_id', 'content_type_' . $info->type . '_search')->execute();
+    // Also stop indexing this bundle type.
+    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->condition('bundle', $info->type)->execute();
+  }
 }
