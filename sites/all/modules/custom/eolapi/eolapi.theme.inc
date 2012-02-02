@@ -45,7 +45,6 @@ function theme_eolapi_text_full($variables){
  */
 function theme_eolapi_text_teaser($variables){
   $data = unserialize($variables['entity']->data);
-  drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
   return '<div class="eolapi-text">
   ' . (isset($data->title) ? '<div class="field-label">' . $data->title . ':</div>' : '') . '
   	<div class="eolapi-text-data">' . check_markup($data->description, 'filtered_html') . '
