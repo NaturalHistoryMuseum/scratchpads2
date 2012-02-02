@@ -4,7 +4,7 @@
 
 /* Nomenclature block */
 
-.block-views .item-list ul li{
+.block-views .item-list ul li.views-row{
   line-height: 2em;
   margin: 0;
 }
