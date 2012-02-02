@@ -1830,7 +1830,7 @@ function scratchpads_species_views_default_views(){
       continue;
     }
     $view->description = '';
-    $view->tag = '';
+    $view->tag = 'species-node-tab';
     $view->base_table = 'node';
     $view->human_name = 'Species ' . $name;
     $view->core = 7;
@@ -1869,6 +1869,8 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
     $handler->display->display_options['arguments']['tid']['field'] = 'tid';
     $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+    $handler->display->display_options['arguments']['tid']['title_enable'] = 1;
+    $handler->display->display_options['arguments']['tid']['title'] = '<none>';
     $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
     $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
     $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;

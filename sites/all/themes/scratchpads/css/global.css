@@ -505,7 +505,8 @@ ul.menu li{
 
 /************************ NODES *********************/ 
 
-.node .submitted{
+.node .submitted,
+.eolapi-text-rights{
   color: #888;
   font-size: 0.9em;
   text-align: right;
@@ -534,6 +535,7 @@ ul.menu li{
   width: 200px;
   text-align: right;
   padding-right: 5px;
+  font-weight: bold;
 }
 
 .node .stripy-div-group .field-label,
@@ -543,8 +545,15 @@ ul.menu li{
 
 .node .stripy-div-group .field-items{
   margin-left: 205px;
+}
+
+.node .stripy-div-group .field-items{ 
   border-left: 1px solid #D9DADD;
   padding-left: 5px;
+}
+
+.node div.item-list ul li{
+  list-style: disc;
 }
 
 
@@ -617,6 +626,11 @@ table.biblio th{
 
 table.biblio td{
   min-width: 100px;
+}
+
+/****************** SPM *****************/
+.node-spm .field-name-field-spm-map{
+  margin-top: 10px;
 }
   
 /****************** ADMIN *****************/
