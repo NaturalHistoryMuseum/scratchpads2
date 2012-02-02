@@ -55,10 +55,13 @@ function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
   }
   // This also gives us an opportunity to tweak the facets if we've been linked
   // to by the biblio module.
-  if(isset($_GET['f']) && isset($_GET['f']['author'])){
-    $_GET['f'] = array(
-      'im_biblio_contributor:' . $_GET['f']['author']
-    );
+  if(isset($_GET['f'])){
+    if(isset($_GET['f']['author'])){
+      $_GET['f'] = array(
+        'im_biblio_contributor:' . $_GET['f']['author']
+      );
+    }elseif(isset($_GET['f']['keywords'])){
+    }
   }
 }
 
@@ -78,6 +81,18 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
         'map callback' => 'scratchpads_biblio_search_map_callback',
         'map options' => array(
           'biblio_contributor'
+        )
+      ),
+      'im_biblio_keyword' => array(
+        'name' => 'im_biblio_keyword',
+        'label' => t('Biblio: Keyword'),
+        'description' => t('Biblio: Keyword'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_keyword'
         )
       ),
       'tus_biblio_year' => array(
@@ -175,6 +190,12 @@ function scratchpads_biblio_search_context_default_contexts(){
           'delta' => 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U',
           'region' => 'sidebar',
           'weight' => '-10'
+        ),
+        'facetapi-wbFpemj0oBSspRI13zcXqTWuc2j7bpQg' => array(
+          'module' => 'facetapi',
+          'delta' => 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg',
+          'region' => 'sidebar',
+          'weight' => '-10'
         )
       )
     )
@@ -201,6 +222,9 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
         break;
       case 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe':
         $data['subject'] = t('Type');
+        break;
+      case 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg':
+        $data['subject'] = t('Keyword');
         break;
     }
   }
@@ -302,6 +326,13 @@ function scratchpads_biblio_search_map_callback($values, $options){
           $map[$record['bstid']] = $record['secondary_title'];
         }
         return $map;
+      case 'biblio_keyword':
+        $result = db_select('biblio_keyword_data', 'b')->fields('b')->condition('kid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['kid']] = $record['word'];
+        }
+        return $map;
     }
   }else{
     return array();
@@ -345,6 +376,11 @@ function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDoc
                       $set_first_author_surname = FALSE;
                     }
                     $document->addField('im_biblio_contributor', $contributor['cid']);
+                  }
+                  break;
+                case 'biblio_keywords':
+                  foreach($value as $kid => $value){
+                    $document->addField('im_biblio_keyword', $kid);
                   }
                   break;
               }
