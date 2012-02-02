@@ -627,6 +627,11 @@ table.biblio th{
 table.biblio td{
   min-width: 100px;
 }
+
+/****************** SPM *****************/
+.node-spm .field-name-field-spm-map{
+  margin-top: 10px;
+}
   
 /****************** ADMIN *****************/
 
