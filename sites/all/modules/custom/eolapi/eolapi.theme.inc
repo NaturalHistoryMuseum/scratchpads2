@@ -47,12 +47,12 @@ function theme_eolapi_text_teaser($variables){
   $data = unserialize($variables['entity']->data);
   drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
   return '<div class="eolapi-text">
-  ' . (isset($data->title) ? '<div class="field-label">' . $data->title . ':&nbsp;</div>' : '') . '
+  ' . (isset($data->title) ? '<div class="field-label">' . $data->title . ':</div>' : '') . '
   	<div class="eolapi-text-data">' . check_markup($data->description, 'filtered_html') . '
   		' . ((isset($data->references) && count($data->references)) ? theme('item_list', array(
     'items' => $data->references
   )) : '') . '
-  		<p class="eolapi-text-rights">' . (isset($data->rights) ? $data->rights : t('No rights holder')) . '&nbsp;|&nbsp;' . (isset($data->source) ? l($data->source, $data->source) : t('No source database.')) . '</p>
+  		<p class="eolapi-text-rights">' . (isset($data->rights) ? $data->rights : t('No rights holder')) . '<br />' . (isset($data->source) ? l($data->source, $data->source) : t('No source database.')) . '</p>
   	</div> 
 </div>';
 }

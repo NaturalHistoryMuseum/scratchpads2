@@ -2,6 +2,36 @@
     display: none;
 }
 
+/* Logo */
+
+.block-eol-text-block .block-inner{
+  background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
+}
+
+.block-eol-text-block .block-inner .content{
+  border-top: 1px solid #ACACAC;
+  margin-top: 55px;
+  padding-top: 10px;
+}
+
+.block-eol-text-block .block-inner .content .content{
+  margin-top: 0;
+  border: none;
+}
+
+.view-eol-images .view-content div h2, .view-eol-text .view-content div h2 {
+    display: none;
+}
+
+.eolapi-text .field-label{
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.eolapi-text-data ul{
+  margin-left: 30px;
+}
+
 .block-eol-text-block .block-inner{
   background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
 }
