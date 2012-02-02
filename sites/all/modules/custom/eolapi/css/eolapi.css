@@ -32,6 +32,10 @@
   margin-left: 30px;
 }
 
+.eolapi-text-data strong{
+  font-weight: normal;
+}
+
 .block-eol-text-block .block-inner{
   background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
 }
