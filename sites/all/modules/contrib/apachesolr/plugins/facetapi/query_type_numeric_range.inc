@@ -50,6 +50,8 @@ class ApacheSolrFacetapiNumericRange extends FacetapiQueryType implements Faceta
   /**
    * Initializes the facet's build array.
    *
+   * Any calls to this method need to be wrapped in a try-catch block.
+   *
    * @return array
    *   The initialized render array.
    */

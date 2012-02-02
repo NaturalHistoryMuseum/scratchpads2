@@ -471,9 +471,7 @@
      <int name="ps">15</int>
      <!-- Abort any searches longer than 4 seconds -->
      <!-- <int name="timeAllowed">4000</int>  -->
-     <str name="mm">
-        1
-     </str>
+     <str name="mm">1</str>
      <str name="q.alt">*:*</str>
 
    <!-- example highlighter config, enable per-query with hl=true -->

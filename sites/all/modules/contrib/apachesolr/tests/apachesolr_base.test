@@ -110,6 +110,32 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalWebTestCase {
   }
 
   /**
+   *	Asserts that we can use various url forms for the search environment
+   */
+  function testEditSearchEnvironmentURLs() {
+    // Set the various url schemes that will be tested
+    $urls = array(
+      'http://user@localhost:8983/solr/core_does_not_exists',
+      'http://user:pass@localhost:8983/solr/core_does_not_exists',
+      'http://user:pass@localhost/solr/core_does_not_exists',
+      'https://localhost:8983/solr/core_does_not_exists'
+    );
+    $this->drupalLogin($this->admin_user);
+    foreach ($urls as $url) {
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->clickLink(t('Edit'));
+      $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+      $edit = array('url' => $url);
+      $this->drupalPost($this->getUrl(), $edit, t('Save'));
+      $this->assertResponse(200);
+      drupal_static_reset('apachesolr_load_all_environments');
+      drupal_static_reset('apachesolr_get_solr');
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->assertText($url, t('Search environment url was succesfully set to !url', array('!url' => $url)));
+    }
+  }
+
+  /**
    *	Asserts that we can edit a search environment
    */
   function testCloneSearchEnvironment() {

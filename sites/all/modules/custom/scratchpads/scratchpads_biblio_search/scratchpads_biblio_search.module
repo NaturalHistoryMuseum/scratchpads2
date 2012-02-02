@@ -4,15 +4,9 @@
  * Implementation of hook_menu_alter().
  */
 function scratchpads_biblio_search_menu_alter(&$items){
-  $items['literature']['menu_name'] = PRIMARY_MENU_NAME;
-  $items['literature']['weight'] = 1;
-  $items['literature']['type'] = MENU_NORMAL_ITEM;
-  $items['biblio']['type'] = MENU_CALLBACK;
-  foreach($items as $key => $value){
-    if(substr($key, 0, 6) == 'biblio'){
-      unset($items[$key]);
-    }
-  }
+  $items['biblio']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['biblio']['weight'] = 1;
+  $items['biblio']['type'] = MENU_NORMAL_ITEM;
 }
 
 /**
@@ -36,7 +30,7 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
  */
 function scratchpads_biblio_search_scratchpads_solr_info(){
   return array(
-    'literature' => array(
+    'biblio' => array(
       'theme' => 'scratchpads_biblio_search'
     )
   );
@@ -59,6 +53,16 @@ function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
       $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
       break;
   }
+  // This also gives us an opportunity to tweak the facets if we've been linked
+  // to by the biblio module.
+  if(isset($_GET['f'])){
+    if(isset($_GET['f']['author'])){
+      $_GET['f'] = array(
+        'im_biblio_contributor:' . $_GET['f']['author']
+      );
+    }elseif(isset($_GET['f']['keywords'])){
+    }
+  }
 }
 
 /**
@@ -77,6 +81,18 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
         'map callback' => 'scratchpads_biblio_search_map_callback',
         'map options' => array(
           'biblio_contributor'
+        )
+      ),
+      'im_biblio_keyword' => array(
+        'name' => 'im_biblio_keyword',
+        'label' => t('Biblio: Keyword'),
+        'description' => t('Biblio: Keyword'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_keyword'
         )
       ),
       'tus_biblio_year' => array(
@@ -144,7 +160,7 @@ function scratchpads_biblio_search_context_default_contexts(){
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'literature*' => 'literature*'
+        'biblio*' => 'biblio*'
       )
     )
   );
@@ -174,6 +190,12 @@ function scratchpads_biblio_search_context_default_contexts(){
           'delta' => 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U',
           'region' => 'sidebar',
           'weight' => '-10'
+        ),
+        'facetapi-wbFpemj0oBSspRI13zcXqTWuc2j7bpQg' => array(
+          'module' => 'facetapi',
+          'delta' => 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg',
+          'region' => 'sidebar',
+          'weight' => '-10'
         )
       )
     )
@@ -200,6 +222,9 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
         break;
       case 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe':
         $data['subject'] = t('Type');
+        break;
+      case 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg':
+        $data['subject'] = t('Keyword');
         break;
     }
   }
@@ -255,7 +280,11 @@ function scratchpads_biblio_search_facetapi_default_facet_settings(){
         'count' => 3,
         'display' => 4
       ),
-      'empty_behavior' => 'none',
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
       'soft_limit' => 20,
       'show_expanded' => 0
     );
@@ -297,6 +326,13 @@ function scratchpads_biblio_search_map_callback($values, $options){
           $map[$record['bstid']] = $record['secondary_title'];
         }
         return $map;
+      case 'biblio_keyword':
+        $result = db_select('biblio_keyword_data', 'b')->fields('b')->condition('kid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['kid']] = $record['word'];
+        }
+        return $map;
     }
   }else{
     return array();
@@ -304,11 +340,11 @@ function scratchpads_biblio_search_map_callback($values, $options){
 }
 
 /**
- * Implementation of hook_apachesolr_update_index($document, $node, $namespace) {
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
  */
-function scratchpads_biblio_search_apachesolr_update_index($document, $node, $namespace){
-  if($node->type == 'biblio'){
-    foreach($node as $key => $value){
+function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'node' && $entity->type == 'biblio'){
+    foreach($entity as $key => $value){
       if(substr($key, 0, 7) == 'biblio_'){
         switch($key){
           case 'biblio_secondary_title':
@@ -329,17 +365,22 @@ function scratchpads_biblio_search_apachesolr_update_index($document, $node, $na
             break;
           default:
             if(is_string($value)){
-              $document->addField("tus_$key", $value);
+              $document->setField("tus_$key", $value);
             }else if(is_array($value)){
               switch($key){
                 case 'biblio_contributors':
                   $set_first_author_surname = TRUE;
                   foreach($value as $contributor){
                     if($set_first_author_surname){
-                      $document->addField('tus_biblio_first_author_lastname', $contributor['lastname']);
+                      $document->setField('tus_biblio_first_author_lastname', $contributor['lastname']);
                       $set_first_author_surname = FALSE;
                     }
                     $document->addField('im_biblio_contributor', $contributor['cid']);
+                  }
+                  break;
+                case 'biblio_keywords':
+                  foreach($value as $kid => $value){
+                    $document->addField('im_biblio_keyword', $kid);
                   }
                   break;
               }
@@ -351,12 +392,12 @@ function scratchpads_biblio_search_apachesolr_update_index($document, $node, $na
     $style = biblio_get_style();
     $base = variable_get('biblio_base', 'biblio');
     $document->content .= strip_tags(theme('biblio_long', array(
-      'node' => $node,
+      'node' => $entity,
       'base' => $base,
       'style' => $style
     )));
     $document->teaser .= strip_tags(theme('biblio_style', array(
-      'node' => $node,
+      'node' => $entity,
       'base' => $base,
       'style_name' => $style
     )));

@@ -34,6 +34,7 @@ dependencies[] = scratchpads_media_gallery
 dependencies[] = scratchpads_pages
 dependencies[] = scratchpads_search_block
 dependencies[] = scratchpads_solr
+dependencies[] = scratchpads_apachesolr_instant
 dependencies[] = scratchpads_species
 dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_user

@@ -1,0 +1,5 @@
+name = "Instantly runs a quick cron on the update/insert of a new entity"
+description = "Speeds up the indexing of items by solr by adding them as they are created."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = apachesolr

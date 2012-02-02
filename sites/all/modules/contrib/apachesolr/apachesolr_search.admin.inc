@@ -929,15 +929,22 @@ function apachesolr_search_mlt_block_defaults($block = array()) {
  * @return array An array containing a the fields in the solr instance.
  */
 function apachesolr_search_mlt_get_fields() {
-  $solr = apachesolr_get_solr();
-  $fields = $solr->getFields();
   $rows = array();
-  foreach ($fields as $field_name => $field) {
-    if ($field->schema{4} == 'V') {
-      $rows[$field_name] = apachesolr_field_name_map($field_name);
+
+  try {
+    $solr = apachesolr_get_solr();
+    $fields = $solr->getFields();
+    foreach ($fields as $field_name => $field) {
+      if ($field->schema{4} == 'V') {
+        $rows[$field_name] = apachesolr_field_name_map($field_name);
+      }
     }
+    ksort($rows);
   }
-  ksort($rows);
+  catch (Exception $e) {
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+  }
+
   return $rows;
 }
 

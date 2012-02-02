@@ -478,15 +478,20 @@ function apachesolr_search_block_view($delta = '') {
     if ($block && node_access('view', $node)) {
       // Get our specific environment for the MLT block
       $env_id = (!empty($block['mlt_env_id'])) ? $block['mlt_env_id'] : '';
-      $solr = apachesolr_get_solr($env_id);
-      $docs = apachesolr_search_mlt_suggestions($block, apachesolr_document_id($node->nid), $solr);
-      if (!empty($docs)) {
-        $suggestions['subject'] = check_plain($block['name']);
-        $suggestions['content'] = array(
-          '#theme' => 'apachesolr_search_mlt_recommendation_block',
-          '#docs' => $docs,
-          '#delta' => $delta
-        );
+      try {
+        $solr = apachesolr_get_solr($env_id);
+        $docs = apachesolr_search_mlt_suggestions($block, apachesolr_document_id($node->nid), $solr);
+        if (!empty($docs)) {
+          $suggestions['subject'] = check_plain($block['name']);
+          $suggestions['content'] = array(
+            '#theme' => 'apachesolr_search_mlt_recommendation_block',
+            '#docs' => $docs,
+            '#delta' => $delta
+          );
+        }
+      }
+      catch (Exception $e) {
+        watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
       }
     }
     return $suggestions;

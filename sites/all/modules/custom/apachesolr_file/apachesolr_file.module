@@ -55,14 +55,14 @@ function apachesolr_file_solr_document(ApacheSolrDocument $document, $file, $ent
   $document->ss_name_formatted = $username;
   $document->tos_name_formatted = $username;
   // Everything else uses dynamic fields
-  $document->is_uid = $file->uid;
-  $document->bs_status = $file->status;
-  $document->ds_created = apachesolr_date_iso($file->timestamp);
-  $document->ds_changed = apachesolr_date_iso($file->timestamp);
-  $document->type_name = file_type_get_name($file);
-  $document->created = apachesolr_date_iso($file->timestamp);
-  $document->changed = apachesolr_date_iso($file->timestamp);
-  $document->last_comment_or_change = apachesolr_date_iso($file->timestamp);
+  $document->setField("is_uid", $file->uid);
+  $document->setField("bs_status", $file->status);
+  $document->setField("ds_created", apachesolr_date_iso($file->timestamp));
+  $document->setField("ds_changed", apachesolr_date_iso($file->timestamp));
+  $document->setField("created", apachesolr_date_iso($file->timestamp));
+  $document->setField("changed", apachesolr_date_iso($file->timestamp));
+  $document->setField("last_comment_or_change", apachesolr_date_iso($file->timestamp));
+  $document->setField("tus_type_name", file_type_get_name($file));
   // We need to get the real username here, since it needs a full user object.
   // That means we can't do the format_username() call on the display side.
   $document->name = format_username($account);
