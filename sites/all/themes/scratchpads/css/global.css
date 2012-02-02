@@ -111,7 +111,8 @@ h1#page-title{
   position: relative;
   top: -3px;
   padding-bottom: 3px;
-  border-bottom: 3px solid #047DB8;
+  border-bottom-style: solid;
+  border-bottom-width: 3px;
 }
 
 h1#front-page-title{
