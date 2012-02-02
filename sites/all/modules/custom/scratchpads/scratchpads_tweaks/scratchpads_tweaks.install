@@ -278,4 +278,7 @@ function scratchpads_tweaks_install(){
     'node' => 0,
     'user' => 0
   ));
+  // Don't use taxonomy breadcrumb on nodes.
+  variable_set('taxonomy_breadcrumb_include_nodes', 1);
+  variable_set('taxonomy_breadcrumb_node_types', array());
 }
