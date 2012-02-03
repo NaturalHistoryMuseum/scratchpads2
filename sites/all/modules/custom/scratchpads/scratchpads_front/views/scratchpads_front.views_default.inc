@@ -310,6 +310,11 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['fields']['filename']['empty_zero'] = 0;
   $handler->display->display_options['fields']['filename']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['filename']['link_to_file'] = 0;
+  /* Sort criterion: File: Sticky at top of lists (field_sticky) */
+  $handler->display->display_options['sorts']['field_sticky_value']['id'] = 'field_sticky_value';
+  $handler->display->display_options['sorts']['field_sticky_value']['table'] = 'field_data_field_sticky';
+  $handler->display->display_options['sorts']['field_sticky_value']['field'] = 'field_sticky_value';
+  $handler->display->display_options['sorts']['field_sticky_value']['order'] = 'DESC';
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'file_managed';

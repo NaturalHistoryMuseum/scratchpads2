@@ -10,8 +10,8 @@ function scratchpads_image_styles_image_default_styles(){
       array(
         'name' => 'image_scale_and_crop',
         'data' => array(
-          'width' => 100,
-          'height' => 100
+          'width' => 85,
+          'height' => 85
         ),
         'weight' => 0
       )
