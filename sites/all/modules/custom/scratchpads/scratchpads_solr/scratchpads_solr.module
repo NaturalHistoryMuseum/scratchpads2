@@ -57,27 +57,34 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
  * Implementation of hook_node_type_insert().
  */
 function scratchpads_solr_node_type_insert($info){
-  $entity_info = entity_get_info('node');
-  db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->execute();
-  $query = db_insert('apachesolr_index_bundles')->fields(array(
-    'env_id',
-    'entity_type',
-    'bundle'
-  ));
-  $env_id = apachesolr_default_environment();
-  foreach($entity_info['bundles'] as $key => $value){
+  $transaction = db_transaction();
+  try{
+    $entity_info = entity_get_info('node');
+    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->execute();
+    $query = db_insert('apachesolr_index_bundles')->fields(array(
+      'env_id',
+      'entity_type',
+      'bundle'
+    ));
+    $env_id = apachesolr_default_environment();
+    foreach($entity_info['bundles'] as $key => $value){
+      $query->values(array(
+        'env_id' => $env_id,
+        'entity_type' => 'node',
+        'bundle' => $key
+      ));
+    }
     $query->values(array(
       'env_id' => $env_id,
       'entity_type' => 'node',
-      'bundle' => $key
+      'bundle' => $info->type
     ));
+    $query->execute();
   }
-  $query->values(array(
-    'env_id' => $env_id,
-    'entity_type' => 'node',
-    'bundle' => $info->type
-  ));
-  $query->execute();
+  catch(Exception $e){
+    // This is thrown on install.  We don't do anything though!
+    $transaction->rollback();
+  }
 }
 
 /**
