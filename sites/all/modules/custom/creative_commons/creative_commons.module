@@ -275,7 +275,7 @@ function creative_commons_block_view($delta = ''){
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'creative_commons') . '/css/creative_commons.css'
-          ),
+          )
         )
       );
       break;
