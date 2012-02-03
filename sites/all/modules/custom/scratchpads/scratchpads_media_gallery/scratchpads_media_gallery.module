@@ -22,6 +22,165 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
 }
 
 /**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_media_gallery_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'media_gallery_page';
+  $context->description = t('Media gallery page');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'gallery*' => 'gallery*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        // Gallery
+        'facetapi-5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY' => array(
+          'module' => 'facetapi',
+          'delta' => '5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY',
+          'region' => 'sidebar',
+          'weight' => '-31'
+        ),
+        // Type
+        'facetapi-VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv' => array(
+          'module' => 'facetapi',
+          'delta' => 'VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv',
+          'region' => 'sidebar',
+          'weight' => '-30'
+        ),
+        // CC
+        'facetapi-Rzawdl9XttWmU792BLY6CtfJZOhLOVci' => array(
+          'module' => 'facetapi',
+          'delta' => 'Rzawdl9XttWmU792BLY6CtfJZOhLOVci',
+          'region' => 'sidebar',
+          'weight' => '-29'
+        ),
+        // Author
+        'facetapi-wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j' => array(
+          'module' => 'facetapi',
+          'delta' => 'wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j',
+          'region' => 'sidebar',
+          'weight' => '-28'
+        )
+      )
+    )
+  );
+  $context->condition_mode = 0;
+  $export['media_gallery_page'] = $context;
+  return $export;
+}
+
+/**
+ * Check to see if we're viewing a single gallery
+ */
+function scratchpads_media_gallery_is_gallery_node(){
+  if(isset($_GET['f']) && is_array($_GET['f'])){
+    foreach($_GET['f'] as $value){
+      if(substr($value, 0, 23) == 'im_field_smg_galleries:' && is_numeric(substr($value, 23))){return substr($value, 23);}
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_media_gallery_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    switch($block->delta){
+      case 'VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv':
+        $data['subject'] = t('File type');
+        break;
+      case 'wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j':
+        $data['subject'] = t('Author');
+        break;
+      case 'Rzawdl9XttWmU792BLY6CtfJZOhLOVci':
+        $data['subject'] = t('Licence');
+        break;
+      case '5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY':
+        if(scratchpads_media_gallery_is_gallery_node()){
+          $data['content'] = theme('item_list', array(
+            'items' => array(
+              l(t('View all media'), 'gallery')
+            ),
+            'attributes' => array(
+              'class' => 'facetapi-facetapi-links'
+            )
+          ));
+        }
+        $data['subject'] = t('Gallery');
+    }
+  }
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_media_gallery_facetapi_default_facet_settings(){
+  $facets = array();
+  $media_gallery_facets = scratchpads_media_gallery_facetapi_facet_info(array(
+    'types' => array(
+      'file' => TRUE
+    )
+  ));
+  $media_gallery_facets['author'] = array(
+    'name' => 'tus_type_name',
+    'label' => t('Media: Type'),
+    'description' => t('Media: Type'),
+    'query types' => array(
+      'term'
+    )
+  );
+  foreach($media_gallery_facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'count' => -49,
+        'display' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[] = $facet;
+  }
+  return $facets;
+}
+
+/**
  * Implementation of hook_theme().
  */
 function scratchpads_media_gallery_theme(){
@@ -41,21 +200,29 @@ function scratchpads_media_gallery_theme(){
  */
 function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
   if($node->type == 'media_gallery' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
-    drupal_goto('gallery/' . $node->nid);
+    drupal_goto('gallery', array(
+      'query' => array(
+        'f' => array(
+          'im_field_smg_galleries:' . $node->nid
+        )
+      )
+    ));
   }
 }
 
 /**
  * Implementation of hook_page_alter().
+ * 
+ * FIXME - We need to check for the presence of a facet filter.
  */
 function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  if($router_item['path'] == 'gallery/%' && is_numeric(arg(1)) && node_access('update', node_load(arg(1)))){
+  if($router_item['path'] == 'gallery' && $nid = scratchpads_media_gallery_is_gallery_node()){
     // Add a tab linking to node/add to all pages.
     $data['tabs'][0]['output'][] = array(
       '#theme' => 'menu_local_task',
       '#link' => array(
         'title' => t('Edit'),
-        'href' => 'node/' . arg(1) . '/edit',
+        'href' => 'node/' . $nid . '/edit',
         'localized_options' => array(
           'attributes' => array(
             'title' => t('Edit this gallery')
@@ -155,6 +322,16 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
           'im_field_smg_galleries'
         )
       ),
+      'im_field_cc_licence' => array(
+        'name' => 'im_field_cc_licence',
+        'label' => t('Media: Licence'),
+        'description' => t('Media: Licence'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'creative_commons_get_licence_types',
+        'map options' => NULL
+      ),
       'tus_type_name' => array(
         'name' => 'tus_type_name',
         'label' => t('Media: Type'),
@@ -188,9 +365,3 @@ function scratchpads_media_gallery_map_callback($values, $options){
     return array();
   }
 }
-
-/**
- * Implementation of hook_form_FORM_ID_alter().
- * 
-function scratchpads_media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state, $form_id){}
- */

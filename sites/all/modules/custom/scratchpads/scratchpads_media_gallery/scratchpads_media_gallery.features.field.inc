@@ -594,8 +594,489 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
+  // Exported field: 'file-image-field_cc_licence'
+  $fields['file-image-field_cc_licence'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_cc_licence',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'licence' => array(
+          0 => 'licence'
+        )
+      ),
+      'module' => 'creative_commons',
+      'settings' => array(
+        'allowed_values' => array(
+          1 => '1',
+          2 => '2',
+          3 => '3',
+          4 => '4',
+          5 => '5',
+          6 => '6',
+          7 => '7'
+        ),
+        'jurisdiction' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'creative_commons'
+    ),
+    'field_instance' => array(
+      'bundle' => 'image',
+      'default_value' => array(
+        0 => array(
+          'licence' => '5'
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'creative_commons',
+          'settings' => array(),
+          'type' => 'creative_commons_small_image',
+          'weight' => 2
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_scratchpads_media_gallery_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_cc_licence',
+      'label' => 'Licence',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'creative_commons',
+        'settings' => array(),
+        'type' => 'select',
+        'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'file-audio-field_cc_licence'
+  $fields['file-audio-field_cc_licence'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_cc_licence',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'licence' => array(
+          0 => 'licence'
+        )
+      ),
+      'module' => 'creative_commons',
+      'settings' => array(
+        'allowed_values' => array(
+          1 => '1',
+          2 => '2',
+          3 => '3',
+          4 => '4',
+          5 => '5',
+          6 => '6',
+          7 => '7'
+        ),
+        'jurisdiction' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'creative_commons'
+    ),
+    'field_instance' => array(
+      'bundle' => 'audio',
+      'default_value' => array(
+        0 => array(
+          'licence' => '5'
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'creative_commons',
+          'settings' => array(),
+          'type' => 'creative_commons_small_audio',
+          'weight' => 2
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_scratchpads_media_gallery_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_cc_licence',
+      'label' => 'Licence',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'creative_commons',
+        'settings' => array(),
+        'type' => 'select',
+        'weight' => '3'
+      )
+    )
+  );
+  // Exported field: 'file-video-field_cc_licence'
+  $fields['file-video-field_cc_licence'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_cc_licence',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'licence' => array(
+          0 => 'licence'
+        )
+      ),
+      'module' => 'creative_commons',
+      'settings' => array(
+        'allowed_values' => array(
+          1 => '1',
+          2 => '2',
+          3 => '3',
+          4 => '4',
+          5 => '5',
+          6 => '6',
+          7 => '7'
+        ),
+        'jurisdiction' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'creative_commons'
+    ),
+    'field_instance' => array(
+      'bundle' => 'video',
+      'default_value' => array(
+        0 => array(
+          'licence' => '5'
+        )
+      ),
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'creative_commons',
+          'settings' => array(),
+          'type' => 'creative_commons_small_video',
+          'weight' => 2
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_scratchpads_media_gallery_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_cc_licence',
+      'label' => 'Licence',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'creative_commons',
+        'settings' => array(),
+        'type' => 'select',
+        'weight' => '3'
+      )
+    )
+  );
   // Translatables
   // Included for use with string extractors like potx.
+  t('Licence');
   t('Media galleries');
   t('Body');
   t('Media');

@@ -4,8 +4,8 @@
  * Theme function for a Scratchpads search page.
  */
 function theme_scratchpads_media_gallery($variables){
-  if(is_numeric(arg(1))){
-    $gallery_node = node_load(arg(1));
+  if($nid = scratchpads_media_gallery_is_gallery_node()){
+    $gallery_node = node_load($nid);
     // Try to set the body text
     $body_array = field_view_field('node', $gallery_node, 'body');
     $body_array['#label_display'] = 'hidden';
