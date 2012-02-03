@@ -167,35 +167,40 @@ function scratchpads_biblio_search_context_default_contexts(){
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
+        // Type
         'facetapi-efUCrEc1MxBSc0No16CZsf3DfmXuzfMe' => array(
           'module' => 'facetapi',
           'delta' => 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-27'
         ),
+        // Journal title
         'facetapi-TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo' => array(
           'module' => 'facetapi',
           'delta' => 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-28'
         ),
+        // Year
         'facetapi-oAU7juLpy7tz9yH0jXrLldP25ANlraws' => array(
           'module' => 'facetapi',
           'delta' => 'oAU7juLpy7tz9yH0jXrLldP25ANlraws',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-29'
         ),
+        // Contributor
         'facetapi-jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U' => array(
           'module' => 'facetapi',
           'delta' => 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-30'
         ),
+        // Keyword
         'facetapi-wbFpemj0oBSspRI13zcXqTWuc2j7bpQg' => array(
           'module' => 'facetapi',
           'delta' => 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg',
           'region' => 'sidebar',
-          'weight' => '-10'
+          'weight' => '-26'
         )
       )
     )
