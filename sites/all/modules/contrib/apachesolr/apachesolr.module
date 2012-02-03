@@ -630,6 +630,7 @@ function apachesolr_comment_unpublish($comment) {
  * Implements hook_node_type_delete().
  */
 function apachesolr_node_type_delete($info) {
+  $env_id = apachesolr_default_environment();
   module_load_include('inc', 'apachesolr', 'apachesolr.index');
   apachesolr_index_mark_for_reindex($env_id, $info->type);
 }
