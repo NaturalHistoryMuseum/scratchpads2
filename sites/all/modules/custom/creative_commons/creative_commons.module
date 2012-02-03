@@ -206,6 +206,44 @@ function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_sta
 
 /*********************************************************************************************
  * 
+ * APACHESOLR
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_apachesolr_field_mappings().
+ */
+function creative_commons_apachesolr_field_mappings(){
+  return array(
+    'creative_commons' => array(
+      'indexing_callback' => 'creative_commons_indexing_callback',
+      'map callback' => 'creative_commons_get_licence_types',
+      'index_type' => 'integer',
+      'facets' => TRUE,
+      'query types' => array(
+        'term'
+      ),
+      'query type' => 'term',
+      'facet missing allowed' => TRUE
+    )
+  );
+}
+
+/**
+ * Indexing callback
+ */
+function creative_commons_indexing_callback($entity, $field_name, $index_key, $field_info){
+  $fields = array();
+  if(!empty($entity->{$field_name})){
+    $fields[] = array(
+      'key' => $index_key,
+      'value' => $entity->{$field_name}[LANGUAGE_NONE][0]['licence']
+    );
+  }
+  return $fields;
+}
+
+/*********************************************************************************************
+ * 
  * BLOCKS
  * 
  ********************************************************************************************/
@@ -324,7 +362,7 @@ function creative_commons_get_licence_types($type = null){
     CC_BY_NC_SA => t('Attribution, Non-Commercial, Share Alike CC BY-NC-SA'),
     CC_BY_NC_ND => t('Attribution, Non-Commercial, No Derivative Works CC BY-NC-ND')
   );
-  if($type){
+  if($type && !is_array($type)){
     return $licence_types[$type];
   }else{
     return $licence_types;
