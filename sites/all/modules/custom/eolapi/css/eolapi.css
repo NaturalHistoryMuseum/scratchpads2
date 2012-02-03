@@ -64,3 +64,12 @@
 .block-eol-text-block .block-inner{
   background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
 }
+
+/* Media */
+.view-eol-images div.views-row{
+  float: left;
+  margin: 0 10px 10px 0;
+  border: 1px solid #999;
+  list-style: none;
+  background: none;
+}
