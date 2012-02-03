@@ -239,7 +239,6 @@ function scratchpads_species_views_api(){
  */
 function scratchpads_species_views_query_alter(&$view, &$query){
   // Rewrite the species media view to work with terms attached to both the file & related nodes
-  dd($view->name);
   if($view->name == 'species_media'){
     if($view->args){
       $tid = reset($view->args);
