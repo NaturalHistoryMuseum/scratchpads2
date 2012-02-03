@@ -234,6 +234,23 @@ function scratchpads_species_views_api(){
   );
 }
 
+/**
+ * Implementation of hook_views_query_alter
+ */
+function scratchpads_species_views_query_alter(&$view, &$query){
+  // Rewrite the species media view to work with terms attached to both the file & related nodes
+  dd($view->name);
+  if($view->name == 'species_media'){
+    if($view->args){
+      $tid = reset($view->args);
+      $query->table_queue['node_file_usage__taxonomy_index']['join']->type = 'LEFT';
+      $join = $query->get_join_data('field_data_field_taxonomic_name', 'file_managed');
+      $query->add_table('field_data_field_taxonomic_name', null, $join);
+      $query->add_where(1, 'field_data_field_taxonomic_name.field_taxonomic_name_tid', $tid);
+    }
+  }
+}
+
 /*********************************************************************************************
  * 
  * THEME & PREPROCESS FUNCTIONS
