@@ -162,7 +162,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '21',
+        'weight' => '24',
       ),
     ),
   );
@@ -235,7 +235,72 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '23',
+        'weight' => '22',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-location-field_country'
+  $fields['node-location-field_country'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_country',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'iso2' => array(
+          0 => 'iso2',
+        ),
+      ),
+      'module' => 'countries',
+      'settings' => array(
+        'continents' => array(),
+        'enabled' => '1',
+        'size' => 5,
+      ),
+      'translatable' => '0',
+      'type' => 'country',
+    ),
+    'field_instance' => array(
+      'bundle' => 'location',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'countries',
+          'settings' => array(),
+          'type' => 'country_default',
+          'weight' => 16,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_country',
+      'label' => 'Country',
+      'required' => FALSE,
+      'settings' => array(
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_select',
+        'weight' => '31',
       ),
     ),
   );
@@ -310,7 +375,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '19',
+        'weight' => '20',
       ),
     ),
   );
@@ -385,7 +450,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '20',
+        'weight' => '23',
       ),
     ),
   );
@@ -460,7 +525,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '22',
+        'weight' => '25',
       ),
     ),
   );
@@ -533,7 +598,7 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '24',
+        'weight' => '26',
       ),
     ),
   );
@@ -681,7 +746,7 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '15',
+        'weight' => '21',
       ),
     ),
   );
@@ -824,7 +889,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '27',
+        'weight' => '29',
       ),
     ),
   );
@@ -897,7 +962,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '26',
+        'weight' => '28',
       ),
     ),
   );
@@ -970,7 +1035,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '28',
+        'weight' => '30',
       ),
     ),
   );
@@ -1043,7 +1108,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '25',
+        'weight' => '27',
       ),
     ),
   );
@@ -1118,7 +1183,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '16',
+        'weight' => '19',
       ),
     ),
   );
@@ -2742,6 +2807,7 @@ function darwincore_field_default_fields() {
   t('Continent/Ocean');
   t('Coordinate uncertainty in meters');
   t('Count');
+  t('Country');
   t('County');
   t('Date collected');
   t('Date identified');
