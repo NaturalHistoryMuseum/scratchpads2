@@ -2,6 +2,7 @@ name = Scratchpads tweaks
 description = Tweaks a Drupal site into a Scratchpad
 core = 7.x
 
+; Drupal core
 dependencies[] = block
 dependencies[] = color
 dependencies[] = comment
@@ -24,6 +25,10 @@ dependencies[] = field_ui
 dependencies[] = file
 dependencies[] = rdf
 
+; Contrib
+dependencies[] = globalredirect
+
+; Scratchpads modules
 dependencies[] = scratchpads_biblio_search
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_colour
