@@ -24,7 +24,7 @@
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
   Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, colour, title, content){
-    if(this.GM3.num_objects < this.GM3.max_objects) {
+    if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
       this.GM3.add_latlng(latLng);
       redraw = typeof (redraw) != 'undefined' ? redraw : false;
       title = typeof (title) != 'undefined' ? title : '';

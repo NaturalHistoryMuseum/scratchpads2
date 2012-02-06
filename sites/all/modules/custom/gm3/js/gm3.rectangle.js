@@ -45,7 +45,7 @@
       case 'rectangle':
         switch(event_type){
           case 'click':
-            if(this.GM3.num_objects < this.GM3.max_objects) {
+            if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
               // Is this the first click? If so, we start a rectangle, else we
               // finish a rectangle.
               if(this.first_click) {
