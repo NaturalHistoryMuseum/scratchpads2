@@ -6,11 +6,11 @@
     this.countries = new Object();
     // Add Regions sent from server.
     if(this.GM3.libraries.region.regions) {
-      this.add_polygons_by_ids(this.GM3.libraries.region.regions);
+      this.add_polygons_by_ids(this.GM3.libraries.region.regions, false, false, true);
     }
   }
   // FIXME - Add content from the server and on the server.
-  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content){
+  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content, autofit){
     if(typeof region_ids != 'object') {
       if(typeof region_ids == 'string') {
         region_ids = new Array(region_ids);
@@ -66,6 +66,11 @@
                   self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k], false);
                 }
               }
+            }
+          }
+          if(typeof autofit != 'undefined' && autofit) {// Change this to be an autozoom option
+            if(self.GM3.max_lat) {
+              self.GM3.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(self.GM3.min_lat, self.GM3.min_lng), new google.maps.LatLng(self.GM3.max_lat, self.GM3.max_lng)));
             }
           }
         })
