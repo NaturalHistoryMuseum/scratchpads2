@@ -53,9 +53,6 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
-        ),
-        array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3$min.js"
         ),
         array(
@@ -75,7 +72,23 @@ function gm3_library(){
         array(
           'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
         )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3.getclass'
+        )
       )
+    ),
+    // GM3 getClass
+    'gm3.getclass' => array(
+      'title' => t('GM3 getClass'),
+      'website' => '',
+      'version' => 1,
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
+        )
     ),
     // Fancy info bubbles
     'gm3.infobubble' => array(
@@ -244,7 +257,8 @@ function gm3_library(){
         )
       )
     )
-  );
+  )
+  ;
 }
 
 /**
