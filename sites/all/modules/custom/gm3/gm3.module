@@ -89,6 +89,7 @@ function gm3_library(){
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
         )
+      )
     ),
     // Fancy info bubbles
     'gm3.infobubble' => array(
