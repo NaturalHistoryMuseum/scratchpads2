@@ -15,8 +15,12 @@ function theme_scratchpads_media_gallery($variables){
       $alpha_get_theme = drupal_static('alpha_get_theme');
       drupal_set_title($gallery_node->title);
       $alpha_get_theme['scratchpads']->page['title'] = drupal_set_title();
+      $breadcrumb = drupal_get_breadcrumb();
+      if($alpha_get_theme['scratchpads']->page['title'] == $breadcrumb[count($breadcrumb)-1]){
+        array_pop($breadcrumb);
+      }
       $alpha_get_theme['scratchpads']->page['breadcrumb'] = theme('breadcrumb', array(
-        'breadcrumb' => drupal_get_breadcrumb()
+        'breadcrumb' => $breadcrumb
       ));
     }
     catch(Exception $e){
