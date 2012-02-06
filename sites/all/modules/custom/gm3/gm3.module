@@ -50,7 +50,8 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => 'http://maps.googleapis.com/maps/api/js?sensor=false',
-          'options' => 'external'
+          'options' => 'external',
+          'preprocess' => FALSE
         ),
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
@@ -102,7 +103,8 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.7/src/markerclusterer_packed.js',
-          'options' => 'external'
+          'options' => 'external',
+          'preprocess' => FALSE
         )
       )
     ),
@@ -126,7 +128,8 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => 'http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false',
-          'options' => 'external'
+          'options' => 'external',
+          'preprocess' => FALSE
         )
       ),
       'dependencies' => array(
@@ -234,7 +237,8 @@ function gm3_library(){
       'js' => array(
         array(
           'data' => 'http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false',
-          'options' => 'external'
+          'options' => 'external',
+          'preprocess' => FALSE
         )
       ),
       'dependencies' => array(
