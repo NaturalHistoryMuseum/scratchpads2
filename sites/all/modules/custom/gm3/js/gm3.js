@@ -261,11 +261,13 @@
         Drupal.behaviors[i].attach(context, settings);
       }
     }
-    for(map_id in Drupal.settings.gm3.maps) {
-      if($('#' + map_id, context).length && typeof (Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
-        // Create the new GM3 map object.
-        Drupal.settings.gm3.maps[map_id] = new Drupal.GM3(Drupal.settings.gm3.maps[map_id]);
+    setTimeout(function(){
+      for(map_id in Drupal.settings.gm3.maps) {
+        if($('#' + map_id, context).length && typeof (Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
+          // Create the new GM3 map object.
+          Drupal.settings.gm3.maps[map_id] = new Drupal.GM3(Drupal.settings.gm3.maps[map_id]);
+        }
       }
-    }
+    }, 250);
   }};
 })(jQuery);
