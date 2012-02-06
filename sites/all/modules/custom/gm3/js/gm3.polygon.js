@@ -70,7 +70,7 @@
       case 'polygon':
         switch(event_type){
           case 'click':
-            if(this.polylines[this.polylines.length - 1].getPath().length == 0) {
+            if(this.polygons[this.polygons.length - 1].getPath().length == 0) {
               if(this.GM3.num_objects < this.GM3.max_objects) {
                 this.GM3.num_objects++;
               } else {
