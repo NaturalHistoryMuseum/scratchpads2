@@ -27,6 +27,7 @@ dependencies[] = rdf
 
 ; Contrib
 dependencies[] = globalredirect
+dependencies[] = feeds_oai_pmh
 
 ; Scratchpads modules
 dependencies[] = scratchpads_biblio_search
