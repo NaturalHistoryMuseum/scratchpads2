@@ -19,7 +19,7 @@ class MediaBrowserUpload extends MediaBrowserPlugin {
 
     $upload_form = drupal_get_form($upload_form_id, $this->params);
     return array(
-      'form' => array($upload_form),
+      'form' => $upload_form,
       '#attached' => $attached,
     );
   }

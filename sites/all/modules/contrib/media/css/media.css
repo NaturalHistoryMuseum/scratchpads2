@@ -71,17 +71,6 @@
   list-style: none;
 }
 
-/** This is a massive hack. There must be a better way. See media.fields.inc **/
-
-.media-widget .fid {
-  display:none;
-}
-
-.media-widget a.button + a.button {
-  margin-left: 15px;
-  display: none;
-}
-
 /* @end */
 
 /* @group media item */

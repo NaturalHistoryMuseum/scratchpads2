@@ -79,12 +79,14 @@ function media_browser($selected = NULL) {
     // is not returning a form element we need to add a submit button.
     // This is a fairly broad assumption.
     if (empty($plugin_output[$key]['#form']) && ! empty($plugin_output[$key]['#markup'])) {
+      $plugin_output[$key]['#markup'] .= '<div class="form-actions form-wrapper">';
       $plugin_output[$key]['#markup'] .= l(t('Submit'), '', array(
-        'attributes' => array('class' => array('button', 'fake-submit', $key))
+        'attributes' => array('class' => array('button', 'button-yes', 'fake-submit', $key))
       ));
       $plugin_output[$key]['#markup'] .= l(t('Cancel'), '', array(
-      'attributes' => array('class' => array('button', 'fake-cancel', $key))
+      'attributes' => array('class' => array('button', 'button-no', 'fake-cancel', $key))
       ));
+      $plugin_output[$key]['#markup'] .= '</div>';
     }
 
     // I'm not sure if it is ever the case that a plugin form will ever have
@@ -95,7 +97,7 @@ function media_browser($selected = NULL) {
         '#type' => 'link',
         '#title' => t('Cancel'),
         '#href' => '',
-        '#attributes' => array('class' => array('button', 'fake-cancel', $key)),
+        '#attributes' => array('class' => array('button', 'button-no', 'fake-cancel', $key)),
         '#weight' => 100,
       );
     }

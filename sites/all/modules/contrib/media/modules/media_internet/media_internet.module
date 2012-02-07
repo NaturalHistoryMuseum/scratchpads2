@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function media_internet_menu() {
+  $items['file/add/web'] = array(
+    'title' => 'Web',
+    'description' => 'Add internet files to your media library.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_internet_add'),
+    'access callback' => 'media_internet_access',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function media_internet_ctools_plugin_api($module, $api) {
@@ -60,6 +76,7 @@ function media_internet_add($form, &$form_state = array(), $types = NULL) {
     // Explorer supports upto 2083 (http://support.microsoft.com/kb/208427), so
     // we assume publicly available media URLs are within this limit.
     '#maxlength' => 2083,
+    '#required' => TRUE,
   );
 
 
@@ -191,11 +208,25 @@ function media_internet_add_submit($form, &$form_state) {
   }
 
   if (!$file->fid) {
-    form_set_error('url', 'Unknown error: unable to add file, please check URL / Embed code and try again ' . $embed_code);
+    form_set_error('url', t('The file %file could not be saved. An unknown error has occurred.', array('%file' => $embed_code)));
     return;
   }
+  else {
+    $form_state['file'] = $file;
+  }
 
-  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+  // Redirect to the file edit page after submission.
+  if (media_access('edit')) {
+    $destination = array('destination' => 'admin/content/file');
+    if (isset($_GET['destination'])) {
+      $destination = drupal_get_destination();
+      unset($_GET['destination']);
+    }
+    $form_state['redirect'] = array('file/' . $file->fid . '/edit', array('query' => $destination));
+  }
+  else {
+    $form_state['redirect'] = 'admin/content/file';
+  }
 }
 
 /**

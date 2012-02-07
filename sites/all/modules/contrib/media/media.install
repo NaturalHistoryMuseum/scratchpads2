@@ -6,12 +6,119 @@
  */
 
 /**
+ * Implements hook_schema().
+ */
+function media_schema() {
+  $schema['media_type'] = array(
+    'description' => 'Stores the settings for media types.',
+    'fields' => array(
+      'name' => array(
+        'description' => 'The machine name of the media type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'label' => array(
+        'description' => 'The label of the media type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'base' => array(
+        'description' => 'If this is a base type (i.e. cannot be deleted)',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'weight' => array(
+        'description' => 'Weight of media type. Determines which one wins when claiming a piece of media (first wins)',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'normal',
+      ),
+      'type_callback' => array(
+        'description' => 'Callback to determine if provided media is of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+      ),
+      'type_callback_args' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of name value pairs that will be passed to the callback function',
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+
+  $schema['media_list_type'] = array(
+    'description' => 'Stores the user preference for whether to list as table or images.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The {user}.uid of the user.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'type' => array(
+        'description' => 'The type of display (table or images).',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('uid'),
+  );
+
+  $schema['media_filter_usage'] = array(
+    'description' => 'Stores fids that have been included in the media tag in formatted textareas.',
+    'fields' => array(
+      'fid' => array(
+        'description' => 'The media {file_managed}.fid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'timestamp' => array(
+        'description' => 'The timestamp the fid was last recorded by media_filter()',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'foreign keys' => array(
+      'file_managed' => array(
+        'table' => 'file_managed',
+        'columns' => array('fid' => 'fid'),
+      ),
+    ),
+    'primary key' => array('fid'),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
+  $schema['cache_media_xml'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_media_xml']['description'] = 'Cache table for the the results of retreived XML documents for remote streams.';
+
+  return $schema;
+}
+
+/**
  * Implements hook_install().
  */
 function media_install() {
-  // @TODO: We may need to disable the media bundle & field in hook_disable.
-
-  $types = array();
+  // @todo We may need to disable the media bundle & field in hook_disable.
 
   // Define the default type to be used if no other type is found. Give it a
   // high weight to ensure it runs last.
@@ -73,30 +180,19 @@ function media_install() {
 }
 
 /**
- * Implement hook_uninstall().
+ * Implements hook_uninstall().
  */
 function media_uninstall() {
-  // #1169472: Manually load media.module for media_variable_default().
   drupal_load('module', 'media');
-
-  drupal_uninstall_schema('media_list_type');
-  drupal_uninstall_schema('media_type');
-  drupal_uninstall_schema('cache_media_xml');
-  drupal_uninstall_schema('media_filter_usage');
   foreach (media_variable_default() as $name => $value) {
     media_variable_del($name);
   }
 }
 
 /**
- * Implement hook_schema().
+ * Create the media_list_type table.
  */
-function media_schema() {
-
-  // Using this strange looking function name because of http://drupal.org/node/150220.
-  // Any changes to this table should happen after this line.
-  $schema['media_type'] = _media_update_7002_schema_media_type();
-
+function media_update_7000() {
   $schema['media_list_type'] = array(
     'description' => 'Stores the user preference for whether to list as table or images.',
     'fields' => array(
@@ -117,61 +213,23 @@ function media_schema() {
     ),
     'primary key' => array('uid'),
   );
-
-  $schema['cache_media_xml'] = drupal_get_schema_unprocessed('system', 'cache');
-  $schema['cache_media_xml']['description'] = 'Cache table for the the results of retreived XML documents for remote streams.';
-
-  $schema['media_filter_usage'] = _media_update_7012_schema_media_filter_usage();
-
-  return $schema;
+  db_create_table('media_list_type', $schema['media_list_type']);
 }
 
 /**
- * Create the {media_list_type} table.
- */
-function media_update_7000() {
-  db_create_table('media_list_type', array(
-    'fields' => array(
-      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'type' => array('type' => 'varchar', 'length' => 32, 'not null' => TRUE, 'default' => ''),
-    ),
-    'primary key' => array('uid'),
-  ));
-}
-
-/**
- *  Create a cache table for media.
+ * Create the cache_media_xml table.
  */
 function media_update_7001() {
-  $schema = array();
   $schema['cache_media_xml'] = drupal_get_schema_unprocessed('system', 'cache');
   $schema['cache_media_xml']['description'] = 'Cache table for the the results of retreived XML documents for remote streams.';
   db_create_table('cache_media_xml', $schema['cache_media_xml']);
 }
 
 /**
- * Add the media_type table and remove the variable
+ * Create the media_type table from the media_types variable.
  */
 function media_update_7002() {
-  drupal_load('module', 'media');
-  $old_types = variable_get('media_types');
-  db_create_table('media_type', _media_update_7002_schema_media_type());
-  foreach ($old_types as $type) {
-    // Was an error in the original creation
-    if (isset($type->callbacks)) {
-      unset($type->callbacks);
-    }
-    $type->name = $type->machine_name;
-    unset($type->machine_name);
-    media_type_save($type);
-  }
-  variable_del('media_types');
-}
-
-// Using this strange looking function name because of http://drupal.org/node/150220.
-// This function should never be modified.
-function _media_update_7002_schema_media_type() {
-  return array(
+  $schema['media_type'] = array(
     'description' => 'Stores the settings for media types.',
     'fields' => array(
       'name' => array(
@@ -219,6 +277,20 @@ function _media_update_7002_schema_media_type() {
     ),
     'primary key' => array('name'),
   );
+  db_create_table('media_type', $schema['media_type']);
+
+  drupal_load('module', 'media');
+  $old_types = variable_get('media_types');
+  foreach ($old_types as $type) {
+    // Was an error in the original creation
+    if (isset($type->callbacks)) {
+      unset($type->callbacks);
+    }
+    $type->name = $type->machine_name;
+    unset($type->machine_name);
+    media_type_save($type);
+  }
+  variable_del('media_types');
 }
 
 /**
@@ -235,26 +307,22 @@ function media_update_7003() {
 }
 
 /**
- * Removed /media from the menu.
+ * Empty update function to trigger a menu rebuild.
  */
 function media_update_7004() {
-  // Do nothing. Running an update function will trigger a menu rebuild.
 }
 
 /**
- * Added the entity module
+ * Deprecated update function.
  */
 function media_update_7005() {
-  // This is a new dependency and must be enabled as soon as the new code is pushed.
-  module_enable(array('entity'));
 }
 
 /**
- * HEAD changed the 'file' table to 'file_managed'.
+ * Rename the file table to file_managed in case head2head was used.
  */
 function media_update_7006() {
-  // In case the user has used the head2head upgrade.
-  if (!db_table_exists('file') && !db_table_exists('file_managed')) {
+  if (db_table_exists('file') && !db_table_exists('file_managed')) {
     db_rename_table('file', 'file_managed');
   }
 }
@@ -276,7 +344,7 @@ function media_update_7007() {
 }
 
 /**
- * Intentionally left blank.
+ * Empty function.
  */
 function media_update_7008() {
 }
@@ -306,24 +374,16 @@ function media_update_7010() {
 }
 
 /**
- * Allows video as a type of media in the WYSIWYG
+ * Empty update function.
  */
 function media_update_7011() {
-  // Do nothing - default variables automatically update.
 }
 
 /**
- * Add media_filter_usage.
+ * Create the media_filter_usage table.
  */
 function media_update_7012() {
-  db_create_table('media_filter_usage', _media_update_7012_schema_media_filter_usage());
-}
-
-/**
- * Schema definition for media_update_7012().
- */
-function _media_update_7012_schema_media_filter_usage() {
-  return array(
+  $schema['media_filter_usage'] = array(
     'description' => 'Stores fids that have been included in the media tag in formatted textareas.',
     'fields' => array(
       'fid' => array(
@@ -351,6 +411,7 @@ function _media_update_7012_schema_media_filter_usage() {
       'timestamp' => array('timestamp'),
     ),
   );
+  db_create_table('media_filter_usage', $schema['media_filter_usage']);
 }
 
 /**
@@ -372,8 +433,7 @@ function media_update_7013() {
 }
 
 /**
- * Renames the badly named variable for the theme used for the media browser
- * and other media related dialogs.
+ * Rename the media__dialog_get_theme_name variable to media__dialog_theme.
  */
 function media_update_7014() {
   if ($old_value = variable_get('media__dialog_get_theme_name')) {
@@ -383,14 +443,13 @@ function media_update_7014() {
 }
 
 /**
- * Rebuild the registry to locate class files in new location.
+ * Empty update function to trigger a registry rebuild.
  */
 function media_update_7015() {
-  // Do nothing. Running an update function will trigger a registry rebuild.
 }
 
 /**
- * Update Media entities to File entities.
+ * Convert Media entities to File entities.
  */
 function media_update_7016() {
   // Allow File Entity module to take over the {file_managed}.type field. It
@@ -410,6 +469,7 @@ function media_update_7016() {
       continue;
     }
 
+    // @todo Convert this to use _update_7000_field_read_fields()
     $fields = field_read_fields(array('id' => $instance['field_id']), array('include_inactive' => TRUE, 'include_deleted' => TRUE));
     $field = $fields[$instance['field_id']];
 
@@ -417,9 +477,11 @@ function media_update_7016() {
     // data storage. We can do a direct db_update() for when the default SQL
     // storage back-end is being used, but must skip updating fields that use a
     // different storage type.
-    // @todo What else should be added here (e.g., logging and/or a message to
-    //   the administrator)?
     if ($field['storage']['type'] !== 'field_sql_storage' || !module_exists('field_sql_storage') || !$field['storage']['active']) {
+      $messages[] = t('Cannot update field %id (%field_name) because it does not use the field_sql_storage storage type.', array(
+        '%id' => $field['id'],
+        '%field_name' => $field['field_name'],
+      ));
       continue;
     }
 
@@ -522,10 +584,9 @@ function media_update_7017() {
 }
 
 /**
- * Rebuild the menu to fix access for WYSIWYG.
+ * Empty update function to trigger a menu rebuild.
  */
 function media_update_7018() {
-  // Do nothing. Running an update function will trigger a menu rebuild.
 }
 
 /**

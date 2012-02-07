@@ -26,7 +26,7 @@ function media_wysiwyg_include_directory($type) {
  */
 function media_filter($text) {
   $text = ' ' . $text . ' ';
-  $text = preg_replace_callback("/\[\[.*?]]/s", 'media_token_to_markup', $text);
+  $text = preg_replace_callback("/\[\[.*?\]\]/s", 'media_token_to_markup', $text);
 
   return $text;
 }
@@ -225,7 +225,7 @@ function media_pre_render_text_format($element) {
   $tagmap = _media_generate_tagMap($field['#value']);
 
   if (isset($tagmap)) {
-    drupal_add_js(array('tagmap' => array_unique($tagmap)), 'setting');
+    drupal_add_js(array('tagmap' => $tagmap), 'setting');
   }
   return $element;
 }
@@ -250,7 +250,7 @@ function _media_generate_tagMap($text) {
   // between function calls. Since media_process_form is multiple times
   // with same form, this function is also called multiple times.
   static $tagmap = array();
-  preg_match_all("/\[\[.*?]]/s", $text, $matches, PREG_SET_ORDER);
+  preg_match_all("/\[\[.*?\]\]/s", $text, $matches, PREG_SET_ORDER);
   foreach ($matches as $match) {
     // We see if tagContent is already in $tagMap, if not we add it
     // to $tagmap.  If we return an empty array, we break embeddings of the same
@@ -262,7 +262,8 @@ function _media_generate_tagMap($text) {
         $tagmap[$match[0]] = $markup_for_media;
       }
       else {
-        $tagmap[$match[0]] = '<div><img src="/broken.jpg" height="50px" width="100px"/></div>';
+        $missing = file_create_url(drupal_get_path('module', 'media') . '/images/icons/default/image-x-generic.png');
+        $tagmap[$match[0]] = '<div><img src="' . $missing . '" width="100px" height="100px"/></div>';
       }
     }
   }

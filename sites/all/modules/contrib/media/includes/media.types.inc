@@ -17,10 +17,21 @@ function media_file_type_info() {
     $types[$type] = array(
       'label' => $type_object->label,
       'weight' => $type_object->weight,
-      'default view callback' => 'media_file_type_media_default_view',
     );
   }
   return $types;
+}
+
+/**
+ * Implements hook_file_type_info_alter().
+ */
+function media_file_type_info_alter(array &$info) {
+  // Add default view callback support for all file types.
+  foreach ($info as $type => $type_info) {
+    $info[$type] += array(
+      'default view callback' => 'media_file_type_media_default_view',
+    );
+  }
 }
 
 /**

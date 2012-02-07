@@ -21,27 +21,7 @@ Drupal.behaviors.mediaAdmin = {
       }
     });
 
-    // Configure the "Add file" link to fire the media browser popup.
-    var $launcherLink = $('<a class="media-launcher" href="#"></a>').html(Drupal.t('Add file'));
-    $launcherLink.bind('click', function () {
-      // This option format needs *serious* work.
-      // Not even bothering documenting it because it needs to be thrown.
-      // See media.browser.js and media.browser.inc - media_browser()
-      // For how it gets passed.
-      var options = {
-        disabledPlugins: ['library'],
-        multiselect: true
-      };
-      Drupal.media.popups.mediaBrowser(function (mediaFiles) {
-        // When the media browser succeeds, we refresh
-        // @TODO: Should jump to the new media file and perhaps highlight it.
-        parent.window.location.reload();
-        return false;
-      }, options);
-    });
-
-    $('ul.action-links', context).prepend($('<li></li>').append($launcherLink));
-    if ($('body.page-admin-content-file-thumbnails').length != 0) {
+    if ($('.media-display-thumbnails').length) {
       // Implements 'select all/none' for thumbnail view.
       // @TODO: Support grabbing more than one page of thumbnails.
       var allLink = $('<a href="#">' + Drupal.t('all') + '</a>')
@@ -118,4 +98,3 @@ Drupal.behaviors.mediaTypesAdmin = {
 };
 
 })(jQuery);
-
