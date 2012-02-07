@@ -417,6 +417,7 @@ function module_enable($module_list, $enable_dependencies = TRUE) {
         ->condition('name', $module)
         ->execute();
       // Refresh the module list to include it.
+      drupal_install_schema($module);
       system_list_reset();
       module_list(TRUE);
       module_implements('', FALSE, TRUE);
@@ -430,7 +431,6 @@ function module_enable($module_list, $enable_dependencies = TRUE) {
 
       // Now install the module if necessary.
       if (drupal_get_installed_schema_version($module, TRUE) == SCHEMA_UNINSTALLED) {
-        drupal_install_schema($module);
 
         // Set the schema version to the number of the last update provided
         // by the module.
