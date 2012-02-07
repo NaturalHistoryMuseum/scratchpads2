@@ -1,7 +1,11 @@
 <?php
+/**
+ * @file
+ * spm.strongarm.inc
+ */
 
 /**
- * Implementation of hook_strongarm().
+ * Implements hook_strongarm().
  */
 function spm_strongarm() {
   $export = array();
