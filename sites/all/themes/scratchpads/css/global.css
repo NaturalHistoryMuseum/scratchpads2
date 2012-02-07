@@ -488,7 +488,8 @@ ul.menu li{
   clear: left;
 }
 
-.view-species-media .view-content ul li.views-row{
+.view-species-media .view-content ul li.views-row,
+.page-gallery .file-image{
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
