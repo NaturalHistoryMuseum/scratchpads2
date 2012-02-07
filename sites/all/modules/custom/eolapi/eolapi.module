@@ -137,6 +137,41 @@ function eolapi_menu(){
   );
 }
 
+/**
+ * Implement hook_taxonomy_term_delete().
+ */
+function eolapi_taxonomy_term_delete($term = FALSE){
+  // Delete the field data.  Looks like there is a bug somewhere with my code,
+  // as I would expect the field module to do this for me!
+  if($term){
+    db_delete('field_data_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $term->tid)->execute();
+    db_delete('field_revision_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $term->tid)->execute();
+  }
+  // Tidying, just in case a delete failed.
+  $subquery = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ));
+  $results = db_delete('field_data_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $subquery, 'NOT IN')->execute();
+  $results = db_delete('field_revision_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $subquery, 'NOT IN')->execute();
+  // Delete the entities that are no longer associated with a taxon
+  $subquery = db_select('field_data_eolapi_taxonomy', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $results = db_select('eolapi', 'e')->fields('e', array(
+    'eid'
+  ))->condition('e.eid', $subquery, 'NOT IN')->execute();
+  foreach($results as $record){
+    entity_delete('eolapi', $record->eid);
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function eolapi_cron(){
+  eolapi_taxonomy_term_delete();
+}
+
 //---- VIEW -------------------------------------------------------------------
 /**
  * Implementation of hook_theme().
