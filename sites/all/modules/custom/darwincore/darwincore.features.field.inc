@@ -87,7 +87,7 @@ function darwincore_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '17',
+        'weight' => '2',
       ),
     ),
   );
@@ -162,7 +162,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '24',
+        'weight' => '10',
       ),
     ),
   );
@@ -235,7 +235,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '22',
+        'weight' => '8',
       ),
     ),
   );
@@ -300,7 +300,7 @@ function darwincore_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '31',
+        'weight' => '3',
       ),
     ),
   );
@@ -375,7 +375,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '20',
+        'weight' => '6',
       ),
     ),
   );
@@ -450,7 +450,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '23',
+        'weight' => '9',
       ),
     ),
   );
@@ -525,7 +525,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '25',
+        'weight' => '11',
       ),
     ),
   );
@@ -598,7 +598,7 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '26',
+        'weight' => '12',
       ),
     ),
   );
@@ -673,7 +673,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '18',
+        'weight' => '4',
       ),
     ),
   );
@@ -746,7 +746,7 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '21',
+        'weight' => '7',
       ),
     ),
   );
@@ -816,7 +816,7 @@ function darwincore_field_default_fields() {
         'module' => 'gm3_field',
         'settings' => array(),
         'type' => 'gm3_point_gm3',
-        'weight' => '1',
+        'weight' => '2',
       ),
     ),
   );
@@ -889,7 +889,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '29',
+        'weight' => '15',
       ),
     ),
   );
@@ -962,7 +962,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '28',
+        'weight' => '14',
       ),
     ),
   );
@@ -1035,7 +1035,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '30',
+        'weight' => '16',
       ),
     ),
   );
@@ -1108,7 +1108,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '27',
+        'weight' => '13',
       ),
     ),
   );
@@ -1183,7 +1183,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '19',
+        'weight' => '5',
       ),
     ),
   );
