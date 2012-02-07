@@ -65,11 +65,11 @@ function scratchpads_blocks_block_info(){
 /**
  * Implementation of hook_system_info_alter().
  * 
- * We tweak the seven theme so that we can assign blocks automatically to the
+ * We tweak the rubik theme so that we can assign blocks automatically to the
  * "scratchpads" theme regions without Drupal being fucking stupid.
  */
 function scratchpads_blocks_system_info_alter(&$info, $file, $type){
-  if($file->name == 'seven'){
+  if($file->name == 'rubik'){
     $info['regions']['page_top'] = 'Page Top';
     $info['regions']['page_bottom'] = 'Page Bottom';
     $info['regions']['slide_top'] = 'Slide Top';
