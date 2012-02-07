@@ -47,3 +47,4 @@ dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
+dependencies[] = spm
