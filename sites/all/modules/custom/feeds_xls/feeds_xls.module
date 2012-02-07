@@ -37,3 +37,12 @@ function feeds_xls_menu(){
     )
   );
 }
+
+/**
+ * Overlay doesn't handle the file download path well.
+ */
+function feeds_xls_admin_paths(){
+  return array(
+    'import/*/template' => FALSE
+  );
+}

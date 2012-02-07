@@ -145,22 +145,6 @@ function tinytax_taxonomy_vocabulary_delete($vocabulary){
 }
 
 /**
- * hook_taxonomy_vocabulary_insert($vocabulary)
- */
-function tinytax_taxonomy_vocabulary_insert($vocabulary){
-  module_load_include('admin.inc', 'block');
-  block_admin_display();
-  $theme = variable_get('theme_default', 'garland');
-  $region = system_default_region($theme);
-  db_update('block')->fields(array(
-    'status' => 1,
-    'region' => $region,
-    'weight' => -100,
-    'theme' => $theme
-  ))->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
-}
-
-/**
  * hook_block_configure().
  */
 function tinytax_block_configure($delta){

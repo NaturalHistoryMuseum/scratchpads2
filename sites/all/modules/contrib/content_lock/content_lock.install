@@ -1,0 +1,92 @@
+<?php /* -*- mode: php; indent-tabs-mode: nil; tab-width: 2; -*- */
+
+/**
+ * Implement hook_install().
+ *
+ * Enable the 'check out documents' permission for authenticated users
+ * by default since this is the most common use-case.
+ */
+function content_lock_install() {
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('check out documents'));
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function content_lock_uninstall() {
+  variable_del('content_lock_clear');
+  variable_del('content_lock_unload_js');
+  variable_del('content_lock_unload_js_message');
+  variable_del('content_lock_admin_cancelbutton');
+  variable_del('content_lock_admin_verbose');
+  variable_del('content_lock_allowed_node_types');
+  variable_del('content_lock_allowed_formats');
+}
+
+/*
+ * Implementaion of hook_schema().
+ */
+function content_lock_schema() {
+  $schema['content_lock'] = array(
+    'description' => 'content lock module table.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The primary identifier for a node.',
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'User that holds the lock.',
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'timestamp' => array(
+        'description' => 'Time the lock occured.',
+        'size' => 'normal',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'ajax_key' => array(
+        'description' => 'A key which AJAX requests must prevent to prevent page reloads from breaking.',
+        'size' => 'normal',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'user' => array('uid'),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function content_lock_update_6200()
+{
+  $ret = array();
+
+  db_add_field($ret, 'content_lock', 'ajax_key',
+    array(
+      'description' => 'A key which AJAX requests must prevent to prevent page reloads from breaking.',
+      'size' => 'normal',
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+
+  return $ret;
+}

@@ -7,7 +7,7 @@
  */
 
 /**
- * Introductory help for admin/structure/feeds/edit/config page
+ * Introductory help for admin/structure/feeds/%feeds_importer page
  */
 function feeds_ui_edit_help() {
   return t('
@@ -96,10 +96,10 @@ function feeds_ui_overview_form($form, &$form_status) {
     if (!$importer->disabled) {
       $importer_form['operations'] = array(
         '#markup' =>
-          l($edit, 'admin/structure/feeds/edit/' . $importer->id) . ' | ' .
-          l(t('Export'), 'admin/structure/feeds/export/' . $importer->id) . ' | ' .
-          l(t('Clone'), 'admin/structure/feeds/clone/' . $importer->id) .
-          (empty($delete) ? '' :  ' | ' . l($delete, 'admin/structure/feeds/delete/' . $importer->id)),
+          l($edit, 'admin/structure/feeds/' . $importer->id) . ' | ' .
+          l(t('Export'), 'admin/structure/feeds/' . $importer->id . '/export') . ' | ' .
+          l(t('Clone'), 'admin/structure/feeds/' . $importer->id . '/clone') .
+          (empty($delete) ? '' :  ' | ' . l($delete, 'admin/structure/feeds/' . $importer->id . '/delete')),
       );
     }
     else {
@@ -150,8 +150,7 @@ function feeds_ui_overview_form_submit($form, &$form_state) {
  *   of $from_importer.
  */
 function feeds_ui_create_form($form, &$form_state, $from_importer = NULL) {
-  drupal_add_js(drupal_get_path('module', 'feeds_ui') . '/feeds_ui.js');
-  $form = array();
+  $form['#attached']['js'][] = drupal_get_path('module', 'feeds_ui') . '/feeds_ui.js';
   $form['#from_importer'] = $from_importer;
   $form['name'] = array(
     '#type' => 'textfield',
@@ -159,15 +158,14 @@ function feeds_ui_create_form($form, &$form_state, $from_importer = NULL) {
     '#description' => t('A natural name for this configuration. Example: RSS Feed. You can always change this name later.'),
     '#required' => TRUE,
     '#maxlength' => 128,
-    '#attributes' => array('class' => array('feed-name')),
   );
   $form['id'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Machine name'),
-    '#description' => t('A unique identifier for this configuration. Example: rss_feed. Must only contain lower case characters, numbers and underscores.'),
+    '#type' => 'machine_name',
     '#required' => TRUE,
     '#maxlength' => 128,
-    '#attributes' => array('class' => array('feed-id')),
+    '#machine_name' => array(
+      'exists' => 'feeds_ui_importer_machine_name_exists',
+    ),
   );
   $form['description'] = array(
     '#type' => 'textfield',
@@ -182,15 +180,27 @@ function feeds_ui_create_form($form, &$form_state, $from_importer = NULL) {
 }
 
 /**
+ * Validation callback for the importer machine name field.
+ */
+function feeds_ui_importer_machine_name_exists($id) {
+  if ($id == 'create') {
+    // Create is a reserved path for the add importer form.
+    return TRUE;
+  }
+  ctools_include('export');
+  if (ctools_export_load_object('feeds_importer', 'conditions', array('id' => $id))) {
+    return TRUE;
+  }
+}
+
+/**
  * Validation handler for feeds_build_create_form().
  */
 function feeds_ui_create_form_validate($form, &$form_state) {
-  ctools_include('export');
-  $importer = feeds_importer($form_state['values']['id']);
-  if (ctools_export_load_object('feeds_importer', 'conditions', array('id' => $form_state['values']['id']))) {
-    form_set_error('id', t('Id is taken.'));
+  if (!empty($form_state['values']['id'])) {
+    $importer = feeds_importer($form_state['values']['id']);
+    $importer->configFormValidate($form_state['values']);
   }
-  $importer->configFormValidate($form_state['values']);
 }
 
 /**
@@ -214,7 +224,7 @@ function feeds_ui_create_form_submit($form, &$form_state) {
   else {
     drupal_set_message(t('A clone of the @name configuration has been created.', array('@name' => $form['#from_importer']->config['name'])));
   }
-  $form_state['redirect'] = 'admin/structure/feeds/edit/' . $importer->id;
+  $form_state['redirect'] = 'admin/structure/feeds/' . $importer->id;
   feeds_cache_clear();
 }
 
@@ -277,7 +287,7 @@ function feeds_ui_edit_page($importer, $active = 'help', $plugin_key = '') {
   $plugins = FeedsPlugin::all();
   $config = $importer->config;
   // Base path for changing the active container.
-  $path = 'admin/structure/feeds/edit/' . $importer->id;
+  $path = 'admin/structure/feeds/' . $importer->id;
 
   $active_container = array(
     'class' => array('active-container'),
@@ -645,6 +655,7 @@ function _feeds_ui_format_options($options) {
       $result[$k] = $v;
     }
   }
+  asort($result);
   return $result;
 }
 
@@ -675,11 +686,18 @@ function theme_feeds_ui_overview_form($variables) {
       }
     }
   }
-  $output = '';
-  if (count($rows)) {
-    $output .= theme('table', array('header' => $form['#header'], 'rows' => $rows, 'attributes' => array('class' => array('feeds-admin-importers'))));
+
+  $output = theme('table', array(
+    'header' => $form['#header'],
+    'rows' => $rows,
+    'attributes' => array('class' => array('feeds-admin-importers')),
+    'empty' => t('No importers available.'),
+  ));
+
+  if (!empty($rows)) {
+    $output .= drupal_render_children($form);
   }
-  $output .= drupal_render_children($form);
+
   return $output;
 }
 

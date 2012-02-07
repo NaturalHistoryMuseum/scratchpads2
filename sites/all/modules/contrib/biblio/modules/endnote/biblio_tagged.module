@@ -3,22 +3,13 @@
  * @file biblio_tagged.module
  *
  */
-/*function biblio_tagged_menu() {
-  global $user;
-  $items = array();
-  $base = variable_get('biblio_base', 'biblio');
-
-  $items["$base/export/tagged"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_tagged_biblio_export',
-    'access callback'   => 'user_access',
-    'access arguments'  => array('show export links'),
-    'type'              => MENU_CALLBACK
+function biblio_tagged_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_tagged') . '/views',
   );
-
-  return $items;
 }
-*//*
+/*
  *   add the tagged option to the option list of the biblio_import_form
  *   the key is the module name use by module_invoke to call hook_biblio_import
  *   module_invoke('biblio_tagged', 'biblio_import',...)
@@ -26,7 +17,14 @@
 function biblio_tagged_biblio_import_options() {
   return array('biblio_tagged' => t('EndNote Tagged'));
 }
-
+function biblio_tagged_biblio_mapper_options() {
+  return  array(
+    'tagged' => array(
+      'title' => t('EndNote Tagged'),
+      'export' => TRUE,
+      )
+    );
+}
 
 function biblio_tagged_biblio_export_options() {
   return array('tagged' => t('EndNote Tagged'));
@@ -119,9 +117,8 @@ function biblio_tagged_biblio_export($nids) {
     drupal_add_http_header('Content-Disposition', 'attachment; filename="Drupal-Biblio.enw"');
   }
 
-  foreach ($nids as $nid) {
-
-    $node = node_load($nid, FALSE, TRUE);
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
     if (variable_get('biblio_hide_bibtex_braces', 0) ) {
       $node->title = biblio_remove_brace($node->title);
     }
@@ -147,13 +144,15 @@ function biblio_tagged_biblio_export($nids) {
  */
 
 function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
+  ini_set('auto_detect_line_endings', true);
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open EndNote Tagged input"), 'error');
     return;
   }
   $nids = array();
   $dups = array();
-  $node = new stdClass();
+  $ignored_tags = array();
+  $node = NULL;
   $incite = FALSE;
   $node_id = NULL;
   $contributors = NULL;
@@ -217,28 +216,55 @@ function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session
 
         default :
           $field = _biblio_tagged_field_map($tag);
-          $node->$field = $value;
+          if (!empty($field)) {
+            $node->$field = $value;
+          }
+          else {
+            if (!in_array($tag, $ignored_tags)) {
+              $ignored_tags[] = $tag;
+            }
+          }
           break;
       } //end switch
     }
     else {
       $incite = FALSE;
-      if (isset($node)) {
-        $node->biblio_tagged_md5 = md5(serialize($node));
-        if (! ($dup = biblio_tagged_check_md5($node->biblio_tagged_md5))) {
-          biblio_save_node($node, $terms, $batch, $session_id);
-          if (!empty($node->nid)) $nids[] = $node->nid;
-        }
-        else {
-          $dups[] = $dup;
-        }
+      if (!empty($node)) {
+        _biblio_tagged_save($node, $terms, $batch, $session_id, $nids, $dups);
         $node = NULL;
       }
 
     } // end if ($start !== FALSE)
   } // end while
+
   fclose($fp);
+
+  if ($incite && !empty($node)) {  // this catches the case where the file ends without a blank line at the end
+    _biblio_tagged_save($node, $terms, $batch, $session_id, $nids, $dups);
+  }
+
+  if (!empty($ignored_tags)) {
+    $ignored_tags = array_unique($ignored_tags);
+    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
+    $message .= implode(', ',$ignored_tags);
+    if (user_access('administer biblio')) {
+      $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/tagged')));
+    }
+    drupal_set_message($message, 'warning');
+  }
+
   return array($nids, $dups);
+}
+
+function _biblio_tagged_save($node, $terms, $batch, $session_id, &$nids, &$dups) {
+  $node->biblio_tagged_md5 = md5(serialize($node));
+  if (! ($dup = biblio_tagged_check_md5($node->biblio_tagged_md5))) {
+    biblio_save_node($node, $terms, $batch, $session_id);
+    if (!empty($node->nid)) $nids[] = $node->nid;
+  }
+  else {
+    $dups[] = $dup;
+  }
 }
 
 function _biblio_tagged_export($node) {

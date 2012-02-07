@@ -1,0 +1,5 @@
+name = Apache Solr Indexer for Files
+description = Indexer for reading file entity types into a solr core.
+dependencies[] = apachesolr
+package = Search Toolkit
+core = 7.x

@@ -125,17 +125,18 @@ function slickgrid_library(){
  * @param object $view 
  * @return void
  */
-function slickgrid_views_pre_view(&$view, $display_id){
+function slickgrid_views_pre_view(&$view, $display_id, $args){
+  // TODO - Check this isn't running for all views
   global $user;
-  if(isset($_POST['display_id'])){
+  if(isset($display_id)){
     $view->slickgrid_settings = slickgrid_get_settings(array(
       'uid' => $user->uid,
       'view_name' => $view->name,
-      'display_id' => $_POST['display_id']
+      'display_id' => $display_id
     ));
   }
   // If there are hidden columns
-  if(isset($view->slickgrid_settings['hidden_columns'])){
+  if(isset($view->slickgrid_settings['hidden_columns']) && !empty($view->slickgrid_settings['hidden_columns'])){
     // Remove them from the exported file
     foreach($view->slickgrid_settings['hidden_columns'] as $hidden_column){
       $view->set_item($display_id, 'field', $hidden_column, null);
@@ -196,21 +197,6 @@ function slickgrid_user_delete($account){
   slickgrid_delete_settings(array(
     'uid' => $account->uid
   ));
-}
-
-/**
- * Implements hook_entity_info_alter().
- * Add metadata so we know what to call to get the add entity form 
- */
-function slickgrid_entity_info_alter(&$entity_info){
-  // foreach node bundle create an add callback 
-  $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'node') . "/node.pages.inc";
-  foreach($entity_info['node']['bundles'] as $type => $bundle){
-    $entity_info['node']['bundles'][$type]['add'] = array(
-      'callback' => $type . '_node_form',
-      'file' => $file
-    );
-  }
 }
 
 /*********************************************************************************************
@@ -396,6 +382,11 @@ function slickgrid_add_modal(){
         'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
         'alt' => t('Loading...'),
         'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
       ))
     ),
     'ctools-modal-slickgrid-scale' => array(
@@ -412,6 +403,11 @@ function slickgrid_add_modal(){
         'path' => ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'),
         'alt' => t('Loading...'),
         'title' => t('Loading')
+      )),
+      'closeImage' => theme('image', array(
+        'path' => ctools_image_path('close.png', 'slickgrid'),
+        'title' => t('Close window'),
+        'alt' => t('Close window')
       ))
     )
   );
@@ -441,15 +437,15 @@ function slickgrid_encode_columns($columns){
  * @param string $display_id
  * @param array $nids
  */
-function slickgrid_get_view($view_name, $display_id, $entity_ids = array()){
+function slickgrid_get_view($view_name, $display_id, $entity_ids = array(), $args = array()){
   $view = views_get_view($view_name);
   $view->set_display($display_id);
-  // Remove all existing arguments - they won't be passed in by the URL anyway
-  foreach($view->get_items('argument') as $id => $arg){
-    $view->set_item($display_id, 'argument', $id, NULL);
-  }
   // If there are entity IDs specified, add arguments to return only these ones
   if(count($entity_ids)){
+    // Remove all existing arguments
+    foreach($view->get_items('argument') as $id => $arg){
+      $view->set_item($display_id, 'argument', $id, NULL);
+    }
     // Add an argument to limit the view to only nids being updated	
     $options = array(
       'table' => $view->base_table,
@@ -457,11 +453,11 @@ function slickgrid_get_view($view_name, $display_id, $entity_ids = array()){
       'break_phrase' => 1 // Allow multiple nids,
     );
     $view->add_item($display_id, 'argument', $view->base_table, $view->base_field, $options);
-    $view->set_arguments(array(
+    $args = array(
       implode('+', $entity_ids)
-    ));
+    );
   }
-  $view->pre_execute();
+  $view->pre_execute($args);
   $view->execute();
   $view->render();
   return $view;
@@ -636,4 +632,29 @@ function slickgrid_editor_form_submit($form, &$form_state){
       $editor->set_error($id, t('Error trying to update entity'), 'submit');
     }
   }
+}
+
+/**
+ * 
+ * Implentation of hook_form_alter
+ * Add an after build function to supress redirecting forms when used in the slickgrid callback
+ * @param array $form
+ * @param array $form_state
+ * @param string $form_id
+ */
+function slickgrid_form_alter(&$form, &$form_state, $form_id){
+  if(arg(0) == 'slickgrid' && arg(1) == 'callback'){
+    $form['#after_build'][] = 'slickgrid_form_redirect_handler';
+  }
+}
+
+/**
+ * 
+ * After build form function - set no redirect
+ * @param array $form
+ * @param array $form_state
+ */
+function slickgrid_form_redirect_handler(&$form, &$form_state){
+  $form_state['no_redirect'] = true;
+  return $form;
 }

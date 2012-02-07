@@ -27,7 +27,10 @@
 function biblio_get_keyword_by_name($name) {
   static $keywords = array();
   if (!$kid = array_search($name, $keywords)) {
-    $term = db_query("SELECT * FROM {biblio_keyword_data} k WHERE LOWER(k.word) = LOWER(:name)", array(':name' => trim($name)))->fetchObject();
+    $term = db_query("SELECT kd.kid, kd.word, COUNT(*) as use_count FROM {biblio_keyword_data} kd
+    								LEFT JOIN {biblio_keyword} bk on bk.kid = kd.kid
+    								WHERE LOWER(kd.word) = LOWER(:name)
+    								GROUP BY kd.kid, kd.word", array(':name' => trim($name)))->fetchObject();
     if ($term) {
       $keywords[$term->kid] = $term;
       return $keywords[$term->kid];
@@ -80,6 +83,7 @@ function biblio_load_keywords_multiple($vids = array()) {
   else {
     $query->condition('bk.vid', $vids, 'IN');
   }
+  $query->addMetaData('base_table', 'biblio_keyword');
   $query->addTag('node_access');
   $result = $query->execute();
 
@@ -131,6 +135,10 @@ function biblio_insert_keywords($node, $update = FALSE) {
             ->condition($and)
             ->execute();
   }
+  $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
+  if (variable_get('biblio_keyword_freetagging', 0)) {
+    $freetag_vocab = $vocabularies[variable_get('biblio_keyword_vocabulary', 0)];
+  }
   if (isset($node->taxonomy) && is_array($node->taxonomy) && variable_get('biblio_copy_taxo_terms_to_keywords', 0)) { //add any taxonomy terms to our keyword list
     foreach ($node->taxonomy as $vid => $term) {
       if ($vid == 'copy_to_biblio' && $term == 0 ) {// don't copy if user overrides the default to copy, just set the $taxo_terms to an empty array and break out of the for loop
@@ -169,27 +177,44 @@ function biblio_insert_keywords($node, $update = FALSE) {
     }
     // Defend against duplicate, differently cased tags
     if (!isset($inserted[$kid])) {
-      if ($update) {
-        $and = db_and()->condition('nid', $node->nid)
-                       ->condition('vid', $node->vid)
-                       ->condition('kid', $kid);
-         db_delete('biblio_keyword')
-            ->condition($and)
-            ->execute();
-      }
-      $inserted[$kid] = db_insert('biblio_keyword')->fields(
-        array(
-          'kid' => $kid,
-          'nid' => $node->nid,
-          'vid' => $node->vid
-        ))->execute();
+      db_merge('biblio_keyword')
+        ->key(array('kid' => $kid, 'vid' => $node->vid))
+        ->fields(
+          array(
+            'kid' => $kid,
+            'nid' => $node->nid,
+            'vid' => $node->vid
+          ))->execute();
+      $inserted[$kid] = TRUE;
     }
   }
 
   // now if we are saving keywords into a taxonomy freetagging vocabulary, then create the tags string and add it to the node object.
 
-  if ($freetagging && $kw_vocab ) {
-    $node->taxonomy['tags'][$kw_vocab] =  biblio_implode_keywords($typed_keywords, ',');
+  if ($freetagging && $freetag_vocab ) {
+    $tids = array();
+    $ft_field = 'field_' . $freetag_vocab->machine_name;
+    $lang = isset($freetag_vocab->language) ? $freetag_vocab->language : 'und';
+    if (isset($node->{$ft_field}[$lang])) {
+      foreach($node->{$ft_field}[$lang] as $tag) {
+        $tids[] = $tag['tid'];
+      }
+    }
+    foreach ($typed_keywords as $kw) {
+      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($kw), 'vid' => $freetag_vocab->vid))) {
+        $term = array_pop($possibilities);
+      }
+      else {
+        $term = new stdClass();
+        $term->vid = $freetag_vocab->vid;
+        $term->name  = $kw;
+        $term->vocabulary_machine_name = $freetag_vocab->machine_name;
+        taxonomy_term_save($term);
+      }
+      if (!in_array($term->tid, $tids)) {
+        $node->{$ft_field}[$lang][] = (array)$term;
+      }
+    }
   }
 
   return array_keys($inserted);

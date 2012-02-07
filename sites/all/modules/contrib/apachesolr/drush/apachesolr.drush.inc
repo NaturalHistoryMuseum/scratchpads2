@@ -15,7 +15,8 @@
  * Notice how this structure closely resembles how
  * you define menu hooks.
  *
- * @see drush_parse_command() for a list of recognized keys.
+ * @see drush_parse_command()
+ *   for a list of recognized keys.
  *
  * @return
  *   An associative array describing your command(s).
@@ -33,9 +34,9 @@ function apachesolr_drush_command() {
       'types' => dt('Optional. A space delimited list of content types to be deleted from the index.'),
     ),
   );
-  $items['solr-reindex'] = array(
+  $items['solr-mark-all'] = array(
     // the name of the function implementing your command.
-    'callback' => 'apachesolr_drush_solr_reindex',
+    'callback' => 'apachesolr_drush_solr_mark_for_reindex',
     // a short description of your command
     'description' => dt('Marks content for reindexing. Can take content types as parameters.'),
     'arguments' => array(
@@ -74,7 +75,7 @@ function apachesolr_drush_help($section) {
   switch ($section) {
     case 'drush:solr-delete-index':
       return dt("Used without parameters, this command deletes the entire Solr index. Used with parameters for content type, it deletes just the content types that are specified. After the index has been deleted, all content will be indexed again on future cron runs.");
-    case 'drush:solr-reindex':
+    case 'drush:solr-mark-all':
       return dt("Used without parameters, this command marks all of the content in the Solr index for reindexing. Used with paramters for content type, it marks just the content types that are specified. Reindexing is different than deleting as the content is still searchable while it is in queue to be reindexed. Reindexing is done on future cron runs.");
     case 'drush:solr-index':
       return dt("Reindexes content marked for (re)indexing. If you want to reindex all content or content of a specific type, use solr-reindex first to mark that content.");
@@ -95,33 +96,33 @@ function apachesolr_drush_help($section) {
  *
  */
 function apachesolr_drush_solr_delete_index() {
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
   $args = func_get_args();
-  module_load_include('inc', 'apachesolr', 'apachesolr.admin');
-  if (count($args) > 0) {
-    foreach ($args as $type) {
-      apachesolr_delete_index($type);
-    }
-  }
-  else {
-    apachesolr_delete_index();
-  }
+  $env_id = apachesolr_default_environment();
+  apachesolr_index_delete_index($env_id);
+  drush_print(t('Deleted the Solr index'));
 }
 
-function apachesolr_drush_solr_reindex() {
+function apachesolr_drush_solr_mark_for_reindex() {
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
   $args = func_get_args();
+  $env_id = apachesolr_default_environment();
   if (count($args) > 0) {
     foreach ($args as $type) {
-      apachesolr_rebuild_index_table($type);
+      apachesolr_index_mark_for_reindex($env_id, $type);
     }
   }
   else {
-    apachesolr_rebuild_index_table();
+    apachesolr_index_mark_for_reindex($env_id);
   }
+  drush_print(t('Marked content for reindexing'));
 }
 
 function apachesolr_drush_solr_index() {
   module_load_include('inc', 'apachesolr', 'apachesolr.admin');
-  apachesolr_batch_index_remaining();
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  $env_id = apachesolr_default_environment();
+  apachesolr_index_batch_index_remaining($env_id);
   drush_backend_batch_process();
 }
 

@@ -1,0 +1,570 @@
+<?php
+
+
+/**
+ * @file
+ * Get a group from a viewed page.
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function og_context_menu() {
+  $items['admin/config/group/context'] = array(
+    'title' => 'Organic groups context',
+    'description' => 'Organic groups context detection and selection',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_context_configure_form'),
+    'access arguments' => array('administer group'),
+    'file' => 'og_context.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function og_context_theme() {
+  return array(
+    'og_context_configure_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_property_info().
+ *
+ * Add the current-group to the system token (i.e. like current-user).
+ */
+function og_context_entity_property_info() {
+  $info = array();
+
+  $properties = &$info['site']['properties'];
+  $properties['current_group'] = array(
+    'label' => t("Current group"),
+    'description' => t("The group from context, if exists."),
+    'getter callback' => 'og_context_get_properties',
+    'type' => 'group',
+  );
+  return $info;
+}
+
+/**
+ * Property getter callback.
+ */
+function og_context_get_properties($data = array(), array $options, $name, $type) {
+  switch ($name) {
+    case 'current_group':
+      // Get the current group.
+      // @code
+      //   $wrapper = entity_metadata_site_wrapper();
+      //   wrapper->current_group->value()
+      // @endcode
+      return ($group = og_context()) ? $group : NULL;
+  }
+}
+
+/**
+ * Implement hook_preprocess_html().
+ *
+ * HTML preprocess; Add context related templates and CSS.
+ */
+function og_context_preprocess_html(&$variables) {
+  if ($group = og_context()) {
+    // Add template suggestions.
+    $variables['theme_hook_suggestions'][] = 'page__group_context';
+    $variables['theme_hook_suggestions'][] = 'page__group_context__group_' . $group->gid;
+    $variables['theme_hook_suggestions'][] = 'page__group_context__' . $group->entity_type;
+    $variables['theme_hook_suggestions'][] = 'page__group_context__' . $group->entity_type . '_' . $group->etid;
+
+    // Add CSS.
+    $clean_html = drupal_html_class('group-context-' . $group->entity_type);
+    $variables['classes_array'][] = 'group-context';
+    $variables['classes_array'][] = 'group-context-group-' . $group->gid;
+    $variables['classes_array'][] = $clean_html;
+    $variables['classes_array'][] = $clean_html . '-' . $group->etid;
+
+    // Add context to JS.
+    og_context_add_js($group);
+  }
+}
+
+/**
+ * Implements hook_og_context_negotiation_info().
+ */
+function og_context_og_context_negotiation_info() {
+  $providers = array();
+
+  $providers['url'] = array(
+    'name' => t('URL'),
+    'description' => t("Select groups if they were passed in the URL (e.g. node/add/post?gids_node[]=4,5,6)."),
+    'callback' => 'og_context_handler_url',
+  );
+
+  $providers['node'] = array(
+    'name' => t('Node'),
+    'description' => t("Determine context by checking if a node is a group or a group content."),
+    'callback' => 'og_context_handler_node',
+    'menu path' => array('node/%', 'node/%/edit'),
+  );
+
+  $providers['user-view'] = array(
+    'name' => t('User view'),
+    'description' => t("Determine context by checking if a user is a group or a group content on the 'user view' page."),
+    'callback' => 'og_context_handler_user_view',
+    'menu path' => array('user/%'),
+  );
+
+  $providers['user-edit'] = array(
+    'name' => t('User edit'),
+    'description' => t("Determine context by checking if a user is a group or a group content on the 'user edit' page."),
+    'callback' => 'og_context_handler_user_edit',
+    'menu path' => array('user/%/edit'),
+  );
+
+  return $providers;
+}
+
+/**
+ * Implement hook_init().
+ */
+function og_context_init() {
+  og_context();
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function og_context_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'og_context') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_og_invalidate_cache().
+ */
+function og_context_og_invalidate_cache($gids = array()) {
+  $caches = array(
+    'og_context',
+    'og_context_js',
+  );
+
+  foreach ($caches as $cache) {
+    drupal_static_reset($cache);
+  }
+
+  if ($gids && !empty($_SESSION['og_context']) && in_array($_SESSION['og_context'], $gids)) {
+    // Remove group's context.
+    $_SESSION['og_context'] = NULL;
+  }
+}
+
+/**
+ * Implements hook_ctools_entity_contexts_alter().
+ *
+ * Change the OG context plugin.
+ *
+ * @see ctools_context_entity_get_children().
+ */
+function og_context_ctools_entity_contexts_alter(&$plugins) {
+  if (empty($plugins['entity:group'])) {
+    return;
+  }
+
+  $plugin = &$plugins['entity:group'];
+  $plugin['context'] = 'og_context_create_og_group';
+  $plugin['edit form'] = 'og_context_og_group_settings_form';
+  $plugin['defaults'] = array('type' => 'select', 'gid' => '');
+}
+
+/**
+ * Return OG group form context.
+ */
+function og_context_create_og_group($empty, $data = NULL, $conf = FALSE) {
+  $context = new ctools_context(array('entity:group', 'entity', 'group'));
+  $context->plugin = 'og_group';
+
+  if ($empty) {
+    return $context;
+  }
+
+  if ($conf) {
+    if ($data['type'] == 'select') {
+      global $user;
+      $data = og_load($data->gid);
+    }
+    else {
+      $data = og_context();
+    }
+  }
+
+  // Load entity if the data provided is a numeric value. This kind of data is
+  // passed by some relationships.
+  if (!empty($data) && is_numeric($data)) {
+    $data = og_load($data);
+  }
+
+  if (!$data) {
+    return ctools_context_create_empty('entity:group', NULL);
+  }
+
+  $context->data = $data;
+  $context->argument = $data->gid;
+  $context->title = og_label($data->gid);
+  return $context;
+}
+
+/**
+ * OG group context settings form.
+ */
+function og_context_og_group_settings_form($form, &$form_state) {
+  $conf = $form_state['conf'];
+
+  $form['type'] = array(
+    '#title' => t('Enter the context type'),
+    '#type' => 'radios',
+    '#options' => array(
+      'select' => t('Select an OG group'),
+      'context' => t('OG group form context'),
+    ),
+    '#default_value' => $conf['type'],
+  );
+
+  $form['gid'] = array(
+    '#title' => t('Enter a group ID'),
+    '#type' => 'textfield',
+    '#states' => array(
+      'visible' => array(
+        ':input[name=type]' => array('value' => 'select'),
+      ),
+    ),
+    '#default_value' => $conf['gid'],
+  );
+
+  if (!empty($conf['gid'])) {
+    $group = og_load($conf['gid']);
+    if ($group) {
+      $form['gid']['#description'] = t('Currently set to %name group', array('%name' => og_label($group->gid)));
+    }
+  }
+
+  return $form;
+}
+
+/**
+ * Validate an OG group.
+ */
+function og_context_og_group_settings_form_validate($form, &$form_state) {
+  if ($form_state['values']['type'] != 'select') {
+    return;
+  }
+
+  if (empty($form_state['values']['gid'])) {
+    form_error($form['user'], t('You must select an OG group.'));
+    return;
+  }
+
+  element_validate_integer_positive($form['gid'], $form_state);
+  if (form_get_error($form['gid'])) {
+    return;
+  }
+
+  $group = og_load($form_state['values']['gid']);
+  if (!$group) {
+    form_error($form['gid'], t('Invalid OG group selected.'));
+  }
+}
+
+/**
+ * Submit handler; Save values.
+ */
+function og_context_og_group_settings_form_submit($form, &$form_state) {
+  $form_state['conf']['type'] = $form_state['values']['type'];
+  $form_state['conf']['gid'] = $form_state['values']['gid'];
+}
+
+
+/**
+ * Get or set group context using the menu system.
+ *
+ * @param $group
+ *   Optional; The group entity to set as the context.
+ *
+ * @return
+ *   A group entity, or FALSE if no context was found.
+ */
+function og_context($group = NULL) {
+  global $user;
+  $context = &drupal_static(__FUNCTION__, FALSE);
+
+  if (!empty($group)) {
+    $context = $group;
+  }
+
+  if (empty($context)) {
+    // Get context from context handlers.
+    if (($context = og_context_determine_context()) && $user->uid) {
+      // TODO: Add option to save session for anonymous users as-well?
+      // Save the group ID in the authenticated user's session,
+      $_SESSION['og_context'] = $context->gid;
+    }
+  }
+
+  return $context;
+}
+
+/**
+ * Add the group entity of the context to the Drupal javascript entity.
+ *
+ * @param $group
+ *   A group entity.
+ */
+function og_context_add_js($group) {
+  // Static variable to indicate if group was already added to javascript.
+  $js = &drupal_static(__FUNCTION__, FALSE);
+
+  if (empty($js)) {
+    drupal_add_js(array('og' => array('og_context' => $group)), 'setting');
+    $js = TRUE;
+  }
+}
+
+/**
+ * Return all the defined group context providers.
+ *
+ * @return
+ *   An array of group context providers.
+ */
+function og_context_negotiation_info() {
+  $group_context_providers = &drupal_static(__FUNCTION__);
+
+  if (!isset($group_context_providers)) {
+    // Collect all the module-defined og_context negotiation providers.
+    $group_context_providers = module_invoke_all('og_context_negotiation_info');
+
+    // Let other modules alter the list of og_context providers.
+    drupal_alter('og_context_negotiation_info', $group_context_providers);
+  }
+
+  // Assign default values.
+  foreach ($group_context_providers as &$group_context_provider) {
+    $group_context_provider += array(
+      'menu path' => array(),
+    );
+  }
+
+  return $group_context_providers;
+}
+
+
+/**
+ * Save a list of language providers.
+ *
+ * @param $type
+ *   The language negotiation type.
+ * @param $language_providers
+ *   An array of language provider ids.
+ */
+function og_context_negotiation_set($group_context_providers) {
+  $type = 'group_context';
+  // Save only the necessary fields.
+  $provider_fields = array('callbacks');
+
+  $negotiation = array();
+  $providers_weight = array();
+  $defined_providers = og_context_negotiation_info();
+
+  // Initialize the providers weight list.
+  foreach ($group_context_providers as $id => $provider) {
+    $providers_weight[$id] = og_context_provider_weight($provider);
+  }
+
+  // Order providers list by weight.
+  asort($providers_weight);
+
+  foreach ($providers_weight as $id => $weight) {
+    if (isset($defined_providers[$id])) {
+      $provider = $defined_providers[$id];
+
+      $provider_data = array();
+      foreach ($provider_fields as $field) {
+        if (isset($provider[$field])) {
+          $provider_data[$field] = $provider[$field];
+        }
+      }
+      $negotiation[$id] = $provider_data;
+    }
+  }
+
+  variable_set("og_context_negotiation_$type", $negotiation);
+}
+
+
+/**
+ * Return the passed group context provider weight or a default value.
+ *
+ * @param $provider
+ *   A group context provider data structure.
+ *
+ * @return
+ *   A numeric weight.
+ */
+function og_context_provider_weight($provider) {
+  $default = is_numeric($provider) ? $provider : 0;
+  return isset($provider['weight']) && is_numeric($provider['weight']) ? $provider['weight'] : $default;
+}
+
+
+/**
+ * Determine the best matching context of a viewed page.
+ *
+ * @param $item
+ *   Optional; A menu item that context should be extracted from. If empty
+ *   defaults to the current menu item by using menu_get_item().
+ */
+function og_context_determine_context($item = NULL) {
+  $context = FALSE;
+
+  // Enable url and node context handlers by default.
+  $defaults = array('url' => -5, 'node' => -4);
+  if ($enabled_providers = array_keys(variable_get("og_context_negotiation_group_context", $defaults))) {
+
+
+    if (empty($item)) {
+      $item = menu_get_item();
+    }
+
+    foreach (og_context_negotiation_info() as $name => $provider) {
+      if (in_array($name, $enabled_providers)) {
+        $invoke = FALSE;
+        if (!empty($provider['menu path'])) {
+          foreach ($provider['menu path'] as $path) {
+            if (strpos($item['path'], $path) === 0) {
+              $invoke = TRUE;
+              // Path matches, so we can break.
+              break;
+            }
+          }
+        }
+        else {
+          // Context isn't determined by the menu item.
+          $invoke = TRUE;
+        }
+
+        $gids = array();
+
+        if ($invoke && ($gids = call_user_func($provider['callback']))) {
+          // Check if one of the group IDs already exists in the session, and if
+          // so use it.
+          if (!empty($_SESSION['og_context']) && in_array($_SESSION['og_context'], $gids)) {
+            $gid = $_SESSION['og_context'];
+          }
+          else {
+            // Grab the first group ID.
+            $gid = reset($gids);
+          }
+
+          $context = og_load($gid);
+          // We found the first context, so we can break.
+          break;
+        }
+      }
+    }
+  }
+
+  return $context;
+}
+
+/**
+ * Context handler; Get groups from URL.
+ */
+function og_context_handler_url() {
+  $context = array();
+  if ($gids = og_get_context_by_url()) {
+    $context = $gids;
+  }
+
+  return $context;
+}
+
+/**
+ * Context handler; Get groups from existing node or ctools context.
+ */
+function og_context_handler_node() {
+  $node = menu_get_object('node');
+  if ($node) {
+    return _group_context_handler_entity('node', $node);
+  }
+
+  // The path may not be %node, but in fact is a ctools-context, so extract the
+  // node from it. We check only the 1st position (e.g. node/%/foo).
+  $item = menu_get_item();
+  if (empty($item['map'][1]) || !is_object($item['map'][1]) || !($item['map'][1] instanceof ctools_context)) {
+    return;
+  }
+
+  // Check the context is a node type. We check only path similar to node/%/foo
+  // and don't traverse over the whole arguments, as it might be a page manager
+  // page passing multiple nodes (e.g. some/path/with/%node/%node). Implementing
+  // modules wanting to handle the above example, should implement their own
+  // context handler.
+  $context = clone $item['map'][1];
+  if (empty($context->type[0]) || $context->type[0] != 'entity:node') {
+    return;
+  }
+  return _group_context_handler_entity('node', $context->data);
+
+}
+
+/**
+ * Context handler; Get groups from user view.
+ */
+function og_context_handler_user_view() {
+  global $user;
+  return _group_context_handler_entity('user', $user);
+}
+
+/**
+ * Context handler; Get groups from user edit.
+ */
+function og_context_handler_user_edit() {
+  return _group_context_handler_entity('user');
+}
+
+/**
+ * Helper function to get group context from an entity.
+ *
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   Optional; The entity object.
+ * @param $position
+ *   Optional; The position that should be used in menu_get_object().
+ */
+function _group_context_handler_entity($entity_type = 'node', $entity = NULL, $position = 1) {
+  $context = array();
+
+  if (empty($entity)) {
+    $entity = menu_get_object($entity_type, $position);
+  }
+  if ($entity) {
+    // Check if the entity is itself a group.
+    list($id) = entity_extract_ids($entity_type, $entity);
+    // Only proceed if it really is the entity and we got an id.
+    if (isset($id)) {
+      if ($group = og_get_group($entity_type, $id)) {
+        $context = drupal_map_assoc(array($group->gid));
+      }
+      elseif ($gids = og_get_entity_groups($entity_type, $entity)) {
+        $context = $gids;
+      }
+    }
+  }
+
+  return $context;
+}

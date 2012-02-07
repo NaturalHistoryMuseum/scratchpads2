@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.1 2010/11/30 20:05:10 fgm Exp $
 
 -- SUMMARY --
 

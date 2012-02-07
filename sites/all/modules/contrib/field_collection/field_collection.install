@@ -1,5 +1,4 @@
 <?php
-// $Id: field_collection.install,v 1.1.2.4 2010/10/28 11:59:18 fago Exp $
 
 /**
  * @file
@@ -12,12 +11,12 @@
 function field_collection_schema() {
 
   $schema['field_collection_item'] = array(
-    'description' => 'Stores information about field-collection items.',
+    'description' => 'Stores information about field collection items.',
     'fields' => array(
       'item_id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => 'Primary Key: Unique field-collection item ID.',
+        'description' => 'Primary Key: Unique field collection item ID.',
       ),
       'field_name' => array(
         'description' => 'The name of the field on the host entity embedding this entity.',

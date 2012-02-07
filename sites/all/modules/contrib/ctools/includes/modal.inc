@@ -227,7 +227,7 @@ function ctools_modal_form_render($form_state, $output) {
 
   // If there are messages for the form, render them.
   if ($messages = theme('status_messages')) {
-    $output = '<div class="messages">' . $messages . '</div>' . $output;
+    $output = $messages . $output;
   }
 
   $commands = array();

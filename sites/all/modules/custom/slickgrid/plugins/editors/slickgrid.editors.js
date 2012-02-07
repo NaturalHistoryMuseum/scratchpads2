@@ -111,7 +111,7 @@
                 
                 // Set up the ajax functionality
                 var base = 'ctools-modal-slickgrid';
-                // Ajax settings
+                // Ajax settings                
                 var element_settings = {
                     event: 'modal',
                     // Drupal.ajax needs an event to fire it - use modal as it should be harmless

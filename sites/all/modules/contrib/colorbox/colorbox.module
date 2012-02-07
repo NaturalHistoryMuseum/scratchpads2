@@ -1,0 +1,613 @@
+<?php
+
+/**
+ * @file
+ * A light-weight, customizable lightbox plugin for jQuery 1.3
+ */
+
+/**
+ * The default path to the Colorbox directory.
+ */
+define('COLORBOX_PATH', 'sites/all/libraries/colorbox');
+define('COLORBOX_MIN_PLUGIN_VERSION', '1.3.16');
+
+
+/**
+ * Implements hook_theme().
+ */
+function colorbox_theme() {
+  return array(
+    'colorbox_imagefield' => array(
+      'variables' => array(
+        'image' => array(),
+        'path' => NULL,
+        'title' => NULL,
+        'gid' => NULL,
+      ),
+      'file' => 'colorbox.theme.inc',
+    ),
+
+    'colorbox_insert_image' => array(
+      'variables' => array(
+        'item' => NULL,
+        'widget' => NULL,
+      ),
+      'template' => 'colorbox-insert-image',
+      'file' => 'colorbox.theme.inc',
+    ),
+
+    'colorbox_image_formatter' => array(
+      'variables' => array(
+        'item' => NULL,
+        'node' => NULL,
+        'field' => array(),
+        'display_settings' => array(),
+      ),
+      'file' => 'colorbox.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function colorbox_init() {
+  // Do not load colorbox during the Drupal installation process, e.g. if part
+  // of installation profiles.
+  if (!drupal_installation_attempted()) {
+    _colorbox_doheader();
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function colorbox_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'colorbox') . '/views',
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function colorbox_menu() {
+  $items = array();
+
+  $items['admin/config/media/colorbox'] = array(
+    'title' => 'Colorbox',
+    'description' => 'Adjust Colorbox settings.',
+    'file' => 'colorbox.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('colorbox_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['user/login/colorbox'] = array(
+    'title' => 'Login',
+    'page callback' => 'colorbox_login',
+    'access callback' => 'user_is_anonymous',
+    'type' => MENU_CALLBACK,
+    'file' => 'colorbox.pages.inc',
+  );
+  $items['colorbox/form'] = array(
+    'title' => 'Form',
+    'page callback' => 'colorbox_form_page',
+    'page arguments' => array(2),
+    'access callback' => '_colorbox_form_page_access',
+    'access arguments' => array(2),
+    'type' => MENU_CALLBACK,
+    'file' => 'colorbox.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Colorbox menu access check.
+ */
+function _colorbox_form_page_access($form_id) {
+  $access = FALSE;
+
+  // First check if this is one of the forms Colorbox support out of the box.
+  switch ($form_id) {
+    case 'contact_site_form':
+      $access = user_access('access site-wide contact form');
+      break;
+    case 'user_register_form':
+      $access = user_register_access();
+      break;
+    case 'user_pass':
+    case 'user_login':
+    case 'user_login_block':
+      $access = user_is_anonymous();
+      break;
+  }
+
+  // Invoke hook_colorbox_form_access for all modules.
+  if (!$access) {
+    foreach (module_implements('colorbox_form_access') as $module) {
+      if ($access = module_invoke($module, 'colorbox_form_access', $form_id)) {
+        return $access;
+      }
+    }
+  }
+
+  return $access;
+}
+
+/**
+ * Check if Colorbox should be active for the current URL.
+ *
+ * @return
+ *   TRUE if Colorbox should be active for the current page.
+ */
+function _colorbox_active() {
+  // Make it possible deactivate Colorbox with
+  // parameter ?colorbox=no in the url.
+  if (isset($_GET['colorbox']) && $_GET['colorbox'] == 'no') {
+    return FALSE;
+  }
+
+  // Code from the block_list funtion in block.module.
+  $path = drupal_get_path_alias($_GET['q']);
+  $colorbox_pages = variable_get('colorbox_pages', "admin*\nimg_assist*\nimce*\nnode/add/*\nnode/*/edit");
+  // Compare with the internal and path alias (if any).
+  $page_match = drupal_match_path($path, $colorbox_pages);
+  if ($path != $_GET['q']) {
+    $page_match = $page_match || drupal_match_path($_GET['q'], $colorbox_pages);
+  }
+
+  return !$page_match;
+}
+
+/**
+ * Loads the various js and css files.
+ */
+function _colorbox_doheader() {
+  static $already_added = FALSE;
+  if ($already_added) {
+    return; // Don't add the JavaScript and CSS multiple times.
+  }
+  if (!_colorbox_active()) {
+    return; // Don't add the JavaScript and CSS on specified paths.
+  }
+
+  // Insert options and translated strings as javascript settings.
+  if (variable_get('colorbox_custom_settings_activate', 0)) {
+    $js_settings = array(
+      'transition' => variable_get('colorbox_transition_type', 'elastic'),
+      'speed' => variable_get('colorbox_transition_speed', 350),
+      'opacity' => variable_get('colorbox_opacity', '0.85'),
+      'slideshow' => variable_get('colorbox_slideshow', 0) ? TRUE : FALSE,
+      'slideshowAuto' => variable_get('colorbox_slideshowauto', 1) ? TRUE : FALSE,
+      'slideshowSpeed' => variable_get('colorbox_slideshowspeed', 2500),
+      'slideshowStart' => variable_get('colorbox_text_start', 'start slideshow'),
+      'slideshowStop' => variable_get('colorbox_text_stop', 'stop slideshow'),
+      'current' => variable_get('colorbox_text_current', '{current} of {total}'),
+      'previous' => variable_get('colorbox_text_previous', '« Prev'),
+      'next' => variable_get('colorbox_text_next', 'Next »'),
+      'close' => variable_get('colorbox_text_close', 'Close'),
+      'overlayClose' => variable_get('colorbox_overlayclose', 1) ? TRUE : FALSE,
+      'maxWidth' => variable_get('colorbox_maxwidth', '100%'),
+      'maxHeight' => variable_get('colorbox_maxheight', '100%'),
+      'initialWidth' => variable_get('colorbox_initialwidth', '300'),
+      'initialHeight' => variable_get('colorbox_initialheight', '100'),
+      'fixed' => variable_get('colorbox_fixed', 1) ? TRUE : FALSE,
+    );
+  }
+  else {
+    $js_settings = array(
+      'opacity' => '0.85',
+      'current' => t('{current} of {total}'),
+      'previous' => t('« Prev'),
+      'next' => t('Next »'),
+      'close' => t('Close'),
+      'maxWidth' => '100%',
+      'maxHeight' => '100%',
+      'fixed' => TRUE,
+    );
+  }
+
+  $path = drupal_get_path('module', 'colorbox');
+  $style = variable_get('colorbox_style', 'default');
+
+  // Give other modules the possibility to override Colorbox settings and style.
+  $data = &$js_settings;
+  $data['__drupal_alter_by_ref'] = array(&$style);
+  drupal_alter('colorbox_settings', $data);
+
+  drupal_add_js(array('colorbox' => $js_settings), array('type' => 'setting', 'scope' => JS_DEFAULT));
+
+  if (module_exists('image') && variable_get('colorbox_auto_image_nodes', 0)) {
+    $image_derivative = variable_get('colorbox_image_derivative', 'preview');
+    // If the image derivative is set to IMAGE_ORIGINAL check if the
+    // user has access before activating Colorbox.
+    if (!($image_derivative == IMAGE_ORIGINAL && !user_access('view original images'))) {
+      drupal_add_js(array('colorbox' => array('image_derivative' => $image_derivative)), array('type' => 'setting', 'scope' => JS_DEFAULT));
+      drupal_add_js($path . '/js/colorbox_image_module.js');
+    }
+  }
+
+  // Add and initialise the Colorbox plugin.
+  drupal_add_js(colorbox_get_js());
+  drupal_add_js($path . '/js/colorbox.js');
+
+  // Add JS and CSS based on selected style.
+  switch ($style) {
+    case 'none':
+      break;
+    case 'default':
+      drupal_add_css($path . '/styles/default/colorbox_default_style.css');
+      drupal_add_js($path . '/styles/default/colorbox_default_style.js');
+      break;
+    case 'stockholmsyndrome':
+      drupal_add_css($path . '/styles/stockholmsyndrome/colorbox_stockholmsyndrome.css');
+      drupal_add_js($path . '/styles/stockholmsyndrome/colorbox_stockholmsyndrome.js');
+      break;
+    default:
+      drupal_add_css($style . '/colorbox.css');
+  }
+
+  if (variable_get('colorbox_load', 0)) {
+    drupal_add_js($path . '/js/colorbox_load.js');
+  }
+
+  if (variable_get('colorbox_inline', 0)) {
+    drupal_add_js($path . '/js/colorbox_inline.js');
+  }
+
+  if ($GLOBALS['user']->uid == 0 && variable_get('colorbox_login', 0)) {
+    drupal_add_js($path . '/js/colorbox_login.js');
+  }
+
+  $already_added = TRUE;
+}
+
+/**
+ * Return the version of Colorbox plugin that is installed.
+ *
+ * This can be used by other modules' hook_requirements() to ensure that the
+ * proper version of Colorbox plugin is installed.
+ *
+ * @see version_compare()
+ */
+function colorbox_get_version($colorbox_js = NULL) {
+  $version = 0;
+  $pattern = '#ColorBox v([0-9\.a-z]+)#';
+
+  // No file is passed in so use the default location.
+  if (is_null($colorbox_js)) {
+    $colorbox_js = colorbox_get_js();
+  }
+
+  // Return the version of Colorbox plugin, it it exists.
+  if (file_exists($colorbox_js)) {
+    $colorbox_plugin = file_get_contents($colorbox_js, NULL, NULL, 0, 32);
+    if (preg_match($pattern, $colorbox_plugin, $matches)) {
+      $version = $matches[1];
+    }
+  }
+
+  return $version;
+}
+
+/**
+ * Return the JS filename for Colorbox plugin.
+ *
+ * @return
+ *   Boolean indicating if the JS is located.
+ */
+function colorbox_get_js() {
+  $library_path = colorbox_get_path();
+
+  if (file_exists($library_path . '/colorbox/jquery.colorbox.js') && file_exists($library_path . '/colorbox/jquery.colorbox-min.js')) {
+    $colorbox_js_map = array('none' => 'jquery.colorbox.js', 'min' => 'jquery.colorbox-min.js');
+    $colorbox_js = $colorbox_js_map[variable_get('colorbox_compression_type', 'min')];
+    return $library_path . '/colorbox/' . $colorbox_js;
+  }
+//   else {
+//     drupal_set_message(t('You need to download the !colorbox and extract the entire contents of the archive into the %path folder of your server.', array('!colorbox' => l(t('Colorbox plugin'), 'http://colorpowered.com/colorbox/'), '%path' => $library_path)), 'error', FALSE);
+//     return FALSE;
+//   }
+}
+
+/**
+ * Return the path to the Colorbox plugin.
+ */
+function colorbox_get_path() {
+  static $library_path = NULL;
+
+  // Try to locate the library path in any possible setup.
+  if ($library_path == NULL) {
+    // First check the default location.
+    $path = variable_get('colorbox_path', COLORBOX_PATH);
+    if (is_dir($path . '/colorbox')) {
+      $library_path = $path;
+    }
+    // Ask the libraries module as a fallback.
+    elseif ($library_path == NULL && module_exists('libraries')) {
+      if ($path = libraries_get_path('colorbox')) {
+        $library_path = $path;
+        variable_set('colorbox_path', $library_path);
+      }
+    }
+    // HACK: If libraries api module is not installed but available, load it.
+    elseif ($library_path == NULL && file_exists(dirname(__FILE__) . '/../libraries/libraries.module')) {
+      require_once(dirname(__FILE__) . '/../libraries/libraries.module');
+      if ($path = libraries_get_path('colorbox')) {
+        $library_path = $path;
+        variable_set('colorbox_path', $library_path);
+      }
+    }
+    // If no path is found suggest the default one.
+    elseif ($library_path == NULL) {
+      $library_path = COLORBOX_PATH;
+    }
+  }
+
+  return $library_path;
+}
+
+/**
+ * Implements hook_form_alter().
+ * Reformat the login form.
+ */
+function colorbox_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login':
+      if (arg(0) == 'user' && arg(1) == 'login' && arg(2) == 'colorbox') {
+        $form['name']['#size'] = 25;
+        $form['pass']['#size'] = 25;
+
+        // Add links as needed.
+        if (variable_get('colorbox_login_links', 0)) {
+          $items = array();
+          // Add standard links.
+          if (variable_get('colorbox_login_links', 0) == 1) {
+            if (variable_get('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)) {
+              $items[] = l(t('Create new account'), 'user/register', array('attributes' => array('title' => t('Create a new user account.'))));
+            }
+            $items[] = l(t('Request new password'), 'user/password', array('attributes' => array('title' => t('Request new password via e-mail.'))));
+          }
+          // Add links that opens in a Colorbox.
+          if (variable_get('colorbox_login_links', 0) == 2) {
+            if (variable_get('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)) {
+              $items[] = l(t('Create new account'), 'colorbox/form/user_register_form', array('query' => array('width' => '300', 'height' => 'auto'), 'attributes' => array('title' => t('Create a new user account.'), 'class' => 'colorbox-load')));
+            }
+            $items[] = l(t('Request new password'), 'colorbox/form/user_pass', array('query' => array('width' => '300', 'height' => '150'), 'attributes' => array('title' => t('Request new password via e-mail.'), 'class' => 'colorbox-load')));
+          }
+          $form['links'] = array('#markup' => theme('item_list', array('items' => $items)));
+        }
+      }
+      break;
+    case 'user_register_form':
+      if (arg(0) == 'colorbox' && arg(1) == 'form') {
+        $form['account']['name']['#size'] = 30;
+        $form['account']['mail']['#size'] = 30;
+      }
+      break;
+    case 'user_pass':
+      if (arg(0) == 'colorbox' && arg(1) == 'form') {
+        $form['name']['#size'] = 30;
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_link_alter().
+ */
+function colorbox_link_alter(&$links, $node) {
+  if ($node->type == 'image' && is_array($node->images) && variable_get('colorbox_auto_image_nodes', 0)) {
+    // Add a colorbox class to the image link sizes on the image node.
+    foreach ($node->images as $size => $path) {
+      $links['image_size_' . $size]['attributes']['class'] = "image image-{$size} colorbox";
+      $links['image_size_' . $size]['href'] = $path;
+      unset($links['image_size_' . $size]['query']);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function colorbox_field_formatter_info() {
+  return array(
+    'colorbox' => array(
+      'label' => t('Colorbox'),
+      'field types' => array('image'),
+      'settings' => array(
+        'colorbox_node_style' => '',
+        'colorbox_image_style' => '',
+        'colorbox_gallery' => 'post',
+        'colorbox_gallery_custom' => '',
+        'colorbox_caption' => 'auto',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function colorbox_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $image_styles = image_style_options(FALSE);
+  $image_styles_hide = $image_styles;
+  $image_styles_hide['hide'] = t('Hide (do not display image)');
+  $element['colorbox_node_style'] = array(
+    '#title' => t('Node image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['colorbox_node_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles_hide,
+    '#description' => t('Image style to use in the node.'),
+  );
+  $element['colorbox_image_style'] = array(
+    '#title' => t('Colorbox image style'),
+    '#type' => 'select',
+    '#default_value' => $settings['colorbox_image_style'],
+    '#empty_option' => t('None (original image)'),
+    '#options' => $image_styles,
+    '#description' => t('Image style to use in the Colorbox.'),
+  );
+
+  $gallery = array(
+    'post' => t('Per post gallery'),
+    'page' => t('Per page gallery'),
+    'field_post' => t('Per field in post gallery'),
+    'field_page' => t('Per field in page gallery'),
+    'custom' => t('Custom'),
+    'none' => t('No gallery'),
+  );
+  $element['colorbox_gallery'] = array(
+    '#title' => t('Gallery (image grouping)'),
+    '#type' => 'select',
+    '#default_value' => $settings['colorbox_gallery'],
+    '#options' => $gallery,
+    '#description' => t('How Colorbox should group the image galleries.'),
+  );
+  $element['colorbox_gallery_custom'] = array(
+    '#title' => t('Custom gallery'),
+    '#type' => 'machine_name',
+    '#maxlength' => 32,
+    '#default_value' => $settings['colorbox_gallery_custom'],
+    '#description' => t('All images on a page with the same gallery value (rel attribute) will be grouped together. It must only contain lowercase letters, numbers, and underscores.'),
+    '#required' => FALSE,
+    '#machine_name' => array(
+      'exists' => 'colorbox_gallery_exists',
+      'error' => t('The custom gallery field must only contain lowercase letters, numbers, and underscores.'),
+    ),
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][colorbox_gallery]"]' => array('value' => 'custom'),
+      ),
+    ),
+  );
+
+  $caption = array(
+    'auto' =>  t('Automatic'),
+    'title' => t('Title text'),
+    'alt' => t('Alt text'),
+    'node_title' => t('Node title'),
+    'none' => t('None'),
+  );
+  $element['colorbox_caption'] = array(
+    '#title' => t('Caption'),
+    '#type' => 'select',
+    '#default_value' => $settings['colorbox_caption'],
+    '#options' => $caption,
+    '#description' => t('Automatic will use the first none empty value of the title, the alt text and the node title.'),
+  );
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function colorbox_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = array();
+
+  $image_styles = image_style_options(FALSE);
+  // Unset possible 'No defined styles' option.
+  unset($image_styles['']);
+  // Styles could be lost because of enabled/disabled modules that defines
+  // their styles in code.
+  if (isset($image_styles[$settings['colorbox_node_style']])) {
+    $summary[] = t('Node image style: @style', array('@style' => $image_styles[$settings['colorbox_node_style']]));
+  }
+  else if ($settings['colorbox_node_style'] == 'hide') {
+    $summary[] = t('Node image style: Hide');
+  }
+  else {
+    $summary[] = t('Node image style: Original image');
+  }
+
+  if (isset($image_styles[$settings['colorbox_image_style']])) {
+    $summary[] = t('Colorbox image style: @style', array('@style' => $image_styles[$settings['colorbox_image_style']]));
+  }
+  else {
+    $summary[] = t('Colorbox image style: Original image');
+  }
+
+  $gallery = array(
+    'post' => t('Per post gallery'),
+    'page' => t('Per page gallery'),
+    'field_post' => t('Per field in post gallery'),
+    'field_page' => t('Per field in page gallery'),
+    'custom' => t('Custom'),
+    'none' => t('No gallery'),
+  );
+  if (isset($settings['colorbox_gallery'])) {
+    $summary[] = t('Colorbox gallery type: @type', array('@type' => $gallery[$settings['colorbox_gallery']])) . ($settings['colorbox_gallery'] == 'custom' ? ' (' . $settings['colorbox_gallery_custom'] . ')' : '');
+  }
+
+  $caption = array(
+    'auto' =>  t('Automatic'),
+    'title' => t('Title text'),
+    'alt' => t('Alt text'),
+    'node_title' => t('Node title'),
+    'none' => t('None'),
+  );
+  if (isset($settings['colorbox_caption'])) {
+    $summary[] = t('Colorbox caption: @type', array('@type' => $caption[$settings['colorbox_caption']]));
+  }
+
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function colorbox_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  foreach ($items as $delta => $item) {
+    $element[$delta] = array(
+      '#theme' => 'colorbox_image_formatter',
+      '#item' => $item,
+      '#node' => $entity,
+      '#field' => $field,
+      '#display_settings' => $display['settings'],
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_insert_styles().
+ */
+function colorbox_insert_styles() {
+  $insert_styles = array();
+  foreach (image_styles() as $key => $style) {
+    $insert_styles['colorbox__' . $key] = array('label' => 'Colorbox ' . $style['name']);
+  }
+
+  return $insert_styles;
+}
+
+/**
+ * Implements hook_insert_content().
+ */
+function colorbox_insert_content($item, $style, $widget) {
+  list($item['module_name'], $item['style_name']) = explode('__', $style['name'], 2);
+  return theme('colorbox_insert_image', array('item' => $item, 'widget' => $widget));
+}
+
+/**
+ * Machine names normally need to be unique but that does not apply to galleries.
+ *
+ * @return
+ *   Always FALSE
+ */
+function colorbox_gallery_exists() {
+  return FALSE;
+}

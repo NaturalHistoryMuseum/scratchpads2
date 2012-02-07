@@ -50,6 +50,7 @@ function views_content_views_plugins() {
         'theme path' => drupal_get_path('module', 'views') . '/theme',
         'theme' => 'views_view_unformatted',
         'uses row plugin' => TRUE,
+        'uses row class' => TRUE,
         'uses fields' => TRUE,
         'uses options' => TRUE,
         'type' => 'context',

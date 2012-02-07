@@ -15,27 +15,27 @@ function apachesolr_requirements($phase) {
   }
   // Ensure translations don't break at install time
   $t = get_t();
-  $has_server_settings = FALSE;
-  $server_id = variable_get('apachesolr_default_server', 'solr');
-  $server = apachesolr_server_load($server_id);
-  if (!$server || empty($server['url'])) {
+  $has_settings = FALSE;
+  $id = apachesolr_default_environment();
+  $environment = apachesolr_environment_load($id);
+  if (!$environment || empty($environment['url'])) {
     $requirements['apachesolr'] = array(
       'title' => $t('Apache Solr'),
-      'value' => $t('Missing server configuration'),
-      'description' => $t('Missing or invalid Solr server record for the default server ID %id.', array('%id' => $server_id)),
+      'value' => $t('Missing environment configuration'),
+      'description' => $t('Missing or invalid Solr environment record for the default environment ID %id.', array('%id' => $id)),
       'severity' => REQUIREMENT_ERROR,
     );
   }
   else {
-    $has_server_settings = TRUE;
+    $has_settings = TRUE;
   }
 
-  if ($has_server_settings) {
+  if ($has_settings) {
     $ping = FALSE;
     try {
-      $solr = apachesolr_get_solr($server_id);
+      $solr = apachesolr_get_solr($id);
       $ping = @$solr->ping(variable_get('apachesolr_ping_timeout', 4));
-      // If there is no $solr object, there is no server available, so don't continue.
+      // If there is no $solr object, there is no instance available, so don't continue.
       if (!$ping) {
         throw new Exception(t('No Solr instance available when checking requirements.'));
       }
@@ -48,7 +48,7 @@ function apachesolr_requirements($phase) {
     $requirements['apachesolr'] = array(
       'title' => $t('Apache Solr'),
       'value' => $value,
-      'description' => $t('Default server url: <br/> %url',  array('%url' => $server['url'])),
+      'description' => $t('Default environment url: <br/> %url',  array('%url' => $environment['url'])),
       'severity' => $severity,
     );
   }
@@ -60,12 +60,19 @@ function apachesolr_requirements($phase) {
  * Implements hook_install().
  */
 function apachesolr_install() {
+  module_load_include('inc', 'apachesolr', 'apachesolr_search.admin');
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
   // Create one MLT block.
-  require_once(drupal_get_path('module', 'apachesolr') . '/apachesolr.admin.inc');
-  apachesolr_mlt_save_block(array('name' => st('More like this')));
-  db_insert('apachesolr_server')->fields(array('server_id' => 'solr', 'name' => 'Apache Solr server', 'host' => 'localhost', 'port' => '8983', 'path' => '/solr'))->execute();
-  variable_set('apachesolr_default_server', 'solr');
-  drupal_set_message(st('Apache Solr is enabled. Visit the <a href="!settings_link">settings page</a>.', array('!settings_link' => url('admin/config/search/apachesolr'))));
+  apachesolr_search_mlt_save_block(array('name' => st('More like this')));
+  db_insert('apachesolr_environment')->fields(array('env_id' => 'solr', 'name' => 'localhost server', 'url' => 'http://localhost:8983/solr'))->execute();
+
+  // Initialize the entities to index. We enable all node types by default
+  $info = entity_get_info('node');
+  $bundles = array_keys($info['bundles']);
+  $env_id = apachesolr_default_environment();
+  apachesolr_index_set_bundles($env_id, 'node', $bundles);
+
+  drupal_set_message(st('Apache Solr is enabled. Visit the <a href="@settings_link">settings page</a>.', array('@settings_link' => url('admin/config/search/apachesolr'))));
 }
 
 /**
@@ -73,48 +80,53 @@ function apachesolr_install() {
  */
 function apachesolr_enable() {
   // Completely build the index table.
-  apachesolr_rebuild_index_table();
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  $env_id = apachesolr_default_environment();
+  apachesolr_index_mark_for_reindex($env_id);
 }
 
 /**
  * Implements hook_schema().
- *
- * TODO: move all node indexing/seach code to apachesolr_search
  */
 function apachesolr_schema() {
-  $schema['apachesolr_search_node'] = array(
-    'description' => t('Stores a record of when a node property changed to determine if it needs indexing by Solr.'),
-    'fields' => array(
-      'nid' => array(
-        'description' => t('The primary identifier for a node.'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE),
-      'status' => array(
-        'description' => t('Boolean indicating whether the node is published (visible to non-administrators).'),
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 1),
-      'changed' => array(
-        'description' => t('The Unix timestamp when a node property was changed.'),
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0),
-      ),
-    'indexes' => array(
-      'changed' => array('changed', 'status'),
-      ),
-    'primary key' => array('nid'),
-  );
+
   $table = drupal_get_schema_unprocessed('system', 'cache');
   $table['description'] = 'Cache table for apachesolr to store Luke data and indexing information.';
   $schema['cache_apachesolr'] = $table;
 
-  $schema['apachesolr_server'] = array(
-    'description' => 'The Solr server table.',
+  $schema['apachesolr_environment'] = array(
+    'description' => 'The Solr search environment table.',
+    // Enable CTools exportables based on this table.
+    'export' => array(
+      // Environment machine name.
+      'key' => 'env_id',
+      // Description of key.
+      'key name' => 'Environment machine name',
+      // Apache Solr doesn't allow disabling environments.
+      'can disable' => FALSE,
+      // Variable name to use in exported code.
+      'identifier' => 'environment',
+      // Use the environment load callback directly.
+      'load callback' => 'apachesolr_environment_load',
+      // Thin wrapper for the environment save callback.
+      'save callback' => 'apachesolr_ctools_environment_save',
+      // Thin wrapper for the environment delete callback.
+      'delete callback' => 'apachesolr_ctools_environment_delete',
+      // Includes the environment variables in 'conf' as well as the fields in this table.
+      'export callback' => 'apachesolr_ctools_environment_export',
+      // Use the same hook as the API name below.
+      'default hook' => 'apachesolr_environments',
+      // CTools API implementation.
+      'api' => array(
+        'owner' => 'apachesolr',
+        'api' => 'apachesolr_environments',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
     'fields' => array(
-     'server_id' => array(
-        'description' => 'Unique identifier for the server',
+      'env_id' => array(
+        'description' => 'Unique identifier for the environment',
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
@@ -140,13 +152,13 @@ function apachesolr_schema() {
         'default' => ''
       ),
     ),
-    'primary key' => array('server_id'),
+    'primary key' => array('env_id'),
   );
-  $schema['apachesolr_server_variable'] = array(
-    'description' => 'Variable values for each Solr server.',
+  $schema['apachesolr_environment_variable'] = array(
+    'description' => 'Variable values for each Solr search environment.',
     'fields' => array(
-     'server_id' => array(
-        'description' => 'Unique identifier for the server',
+      'env_id' => array(
+        'description' => 'Unique identifier for the environment',
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
@@ -165,9 +177,90 @@ function apachesolr_schema() {
         'size' => 'big',
       ),
     ),
-    'primary key' => array('server_id', 'name'),
+    'primary key' => array('env_id', 'name'),
   );
 
+  // Technically the entity system does not require an integer ID.
+  // However, documentation mentions :
+  // id: The name of the property that contains the primary id of the
+  // entity. Every entity object passed to the Field API must have this
+  // property and its value must be numeric.
+
+  //Predefine an amount of types that get their own table
+  $types = array(
+      'other' => 'apachesolr_index_entities',
+      'node' => 'apachesolr_index_entities_node',
+  );
+  foreach ($types as $type) {
+    $schema[$type] = array(
+      'description' => 'Stores a record of when an entity changed to determine if it needs indexing by Solr.',
+      'fields' => array(
+        'entity_type' => array(
+          'description' => 'The type of entity.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'entity_id' => array(
+          'description' => 'The primary identifier for an entity.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'bundle' => array(
+          'description' => 'The bundle to which this entity belongs.',
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'status' => array(
+          'description' => 'Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 1,
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when an entity was changed.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+      ),
+      'indexes' => array(
+        'changed' => array('bundle', 'status', 'changed'),
+      ),
+      'primary key' => array('entity_id'),
+    );
+    if ($type == 'other') {
+      // Need the entity type also in the pkey for multiple entities in one table.
+      $schema[$type]['primary key'][] = 'entity_type';
+    }
+  }
+
+  $schema['apachesolr_index_bundles'] = array(
+    'description' => 'Records what bundles we should be indexing for a given environment.',
+    'fields' => array(
+      'env_id' => array(
+        'description' => 'The name of the environment.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The type of entity.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'bundle' => array(
+        'description' => 'The bundle to index.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('env_id', 'entity_type', 'bundle'),
+  );
   return $schema;
 }
 
@@ -175,16 +268,18 @@ function apachesolr_schema() {
  * Implements hook_uninstall().
  */
 function apachesolr_uninstall() {
-  variable_del('apachesolr_default_server');
+  // Remove variables.
+  variable_del('apachesolr_default_environment');
   variable_del('apachesolr_rows');
-  variable_del('apachesolr_facet_show_children');
-  variable_del('apachesolr_facet_query_limits');
-  variable_del('apachesolr_facet_query_limit_default');
   variable_del('apachesolr_site_hash');
   variable_del('apachesolr_index_last');
-  variable_del('apachesolr_mlt_blocks');
+  variable_del('apachesolr_search_mlt_blocks');
   variable_del('apachesolr_cron_limit');
   variable_del('apachesolr_exclude_nodeapi_types');
+  variable_del('apachesolr_failure');
+  variable_del('apachesolr_index_updated');
+  variable_del('apachesolr_read_only');
+  variable_del('apachesolr_set_nodeapi_messages');
   // Remove blocks.
   db_delete('block')->condition('module', 'apachesolr')->execute();
 }
@@ -397,4 +492,289 @@ function apachesolr_update_7005() {
       ->execute();
     }
   }
+}
+
+/**
+ * Remove facet-related variable deprecated by the Facet API integration.
+ */
+function apachesolr_update_7006() {
+  variable_del('apachesolr_facetstyle');
+  variable_del('apachesolr_facet_show_children');
+  variable_del('apachesolr_facet_query_limits');
+  variable_del('apachesolr_facet_query_limit_default');
+}
+
+/**
+ * Rename tables to make them more generic.
+ */
+function apachesolr_update_7007() {
+  db_drop_primary_key('apachesolr_server');
+  db_drop_primary_key('apachesolr_server_variable');
+  db_rename_table('apachesolr_server', 'apachesolr_environment');
+  db_rename_table('apachesolr_server_variable', 'apachesolr_environment_variable');
+  db_change_field('apachesolr_environment', 'server_id', 'env_id', array(
+    'description' => 'Unique identifier for the environment',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE)
+  );
+  db_change_field('apachesolr_environment_variable', 'server_id', 'env_id', array(
+    'description' => 'Unique identifier for the environment',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE)
+  );
+  db_add_primary_key('apachesolr_environment', array('env_id'));
+  db_add_primary_key('apachesolr_environment_variable', array('env_id', 'name'));
+  $id = variable_get('apachesolr_default_server', NULL);
+  if (isset($id)) {
+    variable_set('apachesolr_default_environment', $id);
+  }
+  variable_del('apachesolr_default_server');
+}
+
+/**
+ * Remove more facet-related variable deprecated by the Facet API integration.
+ */
+function apachesolr_update_7008() {
+  variable_del('apachesolr_facet_missing');
+  variable_del('apachesolr_facet_query_initial_limits');
+  variable_del('apachesolr_facet_query_sorts');
+  variable_del('apachesolr_facet_sort_active');
+  variable_del('apachesolr_operator');
+}
+
+/**
+ * Update Facet API block deltas to account for removal of numeric ID from field names.
+ */
+function apachesolr_update_7009() {
+  // Only run when facetapi is available and/or installed
+  if (module_exists('facetapi')) {
+    module_load_include('inc', 'facetapi', 'facetapi.block');
+    // Get all searchers
+    $searchers = facetapi_get_searcher_info();
+    $realms = facetapi_get_realm_info();
+    foreach ($searchers as $searcher_id => $searcher) {
+      foreach ($realms as $realm_id => $realm) {
+        foreach (field_info_fields() as $field_name => $field) {
+          // Generate the old delta
+          $facet_name_old = $field['id'] . '_' . $field['field_name'];
+          $delta_old = facetapi_build_delta($searcher['name'], $realm['name'], $facet_name_old);
+          $delta_old = substr(drupal_hash_base64($delta_old), 0, 32);
+          // Generate the new delta
+          $facet_name = $field['field_name'];
+          $delta = facetapi_build_delta($searcher['name'], $realm['name'], $facet_name);
+          $delta = substr(drupal_hash_base64($delta), 0, 32);
+          db_update('block')
+            ->fields(array('delta' => $delta))
+            ->condition('module', 'facetapi')
+            ->condition('delta', $delta_old)
+            ->execute();
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Update cache table schema for Drupal 7.
+ */
+function apachesolr_update_7010() {
+  db_drop_field('cache_apachesolr', 'headers');
+  return 'Updated cache table schema for Drupal 7.';
+}
+
+/**
+ * Change the namespace for the indexer from apachesolr_search to apachesolr
+ */
+function apachesolr_update_7011() {
+  $stored = variable_get('apachesolr_index_last', array());
+  if (isset($stored['apachesolr_search'])) {
+    $stored['apachesolr'] = $stored['apachesolr_search'];
+    unset($stored['apachesolr_search']);
+    variable_set('apachesolr_index_last', $stored);
+  }
+  return 'Updated the namespace variable for the index process.';
+}
+
+/**
+ * Rename some variables and update the database tables
+ */
+function apachesolr_update_7012() {
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  $env_id = apachesolr_default_environment();
+
+  // Variable changed from integer to array with environment integers
+  $stored = variable_get('apachesolr_index_last', array());
+  if (isset($stored['apachesolr'])) {
+    $stored[$env_id]['node']['last_entity_id'] = $stored['apachesolr']['last_nid'];
+    $stored[$env_id]['node']['last_changed'] = $stored['apachesolr']['last_change'];
+    unset($stored['apachesolr']);
+    variable_set('apachesolr_index_last', $stored);
+  }
+  $last = variable_get('apachesolr_index_updated', NULL);
+  if (isset($last)) {
+    variable_set('apachesolr_index_updated', array($env_id => (int) $last));
+  }
+
+  // Change namespace to environment id
+  $excluded_types = apachesolr_environment_variable_get('apachesolr', 'apachesolr_search_excluded_types', array());
+  if (!empty($excluded_types)) {
+    apachesolr_environment_variable_set($env_id, 'apachesolr_search_excluded_types', $excluded_types);
+    apachesolr_environment_variable_del('apachesolr', 'apachesolr_search_excluded_types');
+  }
+
+  // Install the new schema
+  //Predefine an amount of types that get their own table
+  $types = array(
+      'other' => 'apachesolr_index_entities',
+      'node' => 'apachesolr_index_entities_node',
+  );
+  foreach ($types as $type) {
+    $schema[$type] = array(
+      'description' => 'Stores a record of when an entity changed to determine if it needs indexing by Solr.',
+      'fields' => array(
+        'entity_type' => array(
+          'description' => 'The type of entity.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'entity_id' => array(
+          'description' => 'The primary identifier for an entity.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'bundle' => array(
+          'description' => 'The bundle to which this entity belongs.',
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'status' => array(
+          'description' => 'Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 1,
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when an entity was changed.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+      ),
+      'indexes' => array(
+        'changed' => array('bundle', 'status', 'changed'),
+      ),
+      'primary key' => array('entity_id'),
+    );
+    if ($type == 'other') {
+      // Need the entity type also in the pkey for multiple entities in one table.
+      $schema[$type]['primary key'][] = 'entity_type';
+    }
+    // Create the table
+    db_create_table($type, $schema[$type]);
+  }
+
+  $schema['apachesolr_index_bundles'] = array(
+    'description' => 'Records what bundles we should be indexing for a given environment.',
+    'fields' => array(
+      'env_id' => array(
+        'description' => 'The name of the environment.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The type of entity.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'bundle' => array(
+        'description' => 'The bundle to index.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('env_id', 'entity_type', 'bundle'),
+  );
+  db_create_table('apachesolr_index_bundles', $schema['apachesolr_index_bundles']);
+
+
+  // Move the data from apachesolr_search_node to apachesolr_index_entities_node
+  $select = db_select('apachesolr_search_node', 'asn');
+  $select->join('node', 'n', 'asn.nid = n.nid');
+  $select->addField('n', 'nid', 'entity_id');
+  $select->addField('n', 'type', 'bundle');
+  $select->addField('asn', 'status', 'status');
+  $select->addField('asn', 'changed', 'changed');
+  $select->addExpression("'node'", 'entity_type');
+  $return_value = db_insert('apachesolr_index_entities_node')
+    ->fields(array('entity_id', 'bundle', 'status', 'changed', 'entity_type'))
+    ->from($select)
+    ->execute();
+  // Drop the table apachesolr_search_node
+  db_drop_table('apachesolr_search_node');
+
+  $environments = apachesolr_load_all_environments();
+  foreach ($environments as $env_id => $environment) {
+    $excluded_types = apachesolr_environment_variable_get($env_id, 'apachesolr_search_excluded_types', array());
+    // Get indexable entity types
+    $options = array();
+    foreach (entity_get_info() as $entity_type => $entity_info) {
+      if ($entity_type == 'node') {
+        foreach ($entity_info['bundles'] as $key => $info) {
+          // See if it was excluded & only of entity node. We will not enable
+          // other entity types by default
+          if (empty($excluded_types[$key])) {
+            $options[$entity_type][$key] = $key;
+          }
+        }
+      }
+    }
+    // Set all except the excluded types
+    foreach ($options as $entity_type => $bundles) {
+       apachesolr_index_set_bundles($env_id, $entity_type, $bundles);
+    }
+    // Remove the excluded types
+    apachesolr_environment_variable_del($env_id, 'apachesolr_search_excluded_types');
+  }
+}
+
+/**
+ * Make consistent (and reduce) field lengths which cause excess pkey length.
+ */
+function apachesolr_update_7013() {
+  db_drop_primary_key('apachesolr_index_entities');
+  db_change_field('apachesolr_index_entities', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_add_primary_key('apachesolr_index_entities', array('entity_id', 'entity_type'));
+  db_change_field('apachesolr_index_entities_node', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_drop_primary_key('apachesolr_index_bundles');
+  db_change_field('apachesolr_index_bundles', 'env_id', 'env_id', array(
+    'description' => 'Unique identifier for the environment',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE)
+  );
+  db_change_field('apachesolr_index_bundles', 'entity_type', 'entity_type', array(
+    'description' => 'The type of entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE)
+  );
+  db_add_primary_key('apachesolr_index_bundles', array('env_id', 'entity_type', 'bundle'));
 }

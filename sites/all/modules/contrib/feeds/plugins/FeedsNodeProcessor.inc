@@ -71,6 +71,10 @@ class FeedsNodeProcessor extends FeedsProcessor {
    * Save a node.
    */
   public function entitySave($entity) {
+    // If nid is set and a node with that id doesn't exist, flag as new.
+    if (!empty($entity->nid) && !node_load($entity->nid)) {
+      $entity->is_new = TRUE;
+    }
     node_save($entity);
   }
 
@@ -221,27 +225,52 @@ class FeedsNodeProcessor extends FeedsProcessor {
       $targets['title'] = array(
         'name' => t('Title'),
         'description' => t('The title of the node.'),
+        'optional_unique' => TRUE,
       );
     }
-    $targets += array(
-      'nid' => array(
-        'name' => t('Node ID'),
-        'description' => t('The nid of the node. NOTE: use this feature with care, node ids are usually assigned by Drupal.'),
-        'optional_unique' => TRUE,
-      ),
-      'uid' => array(
-        'name' => t('User ID'),
-        'description' => t('The Drupal user ID of the node author.'),
-      ),
-      'status' => array(
-        'name' => t('Published status'),
-        'description' => t('Whether a node is published or not. 1 stands for published, 0 for not published.'),
-      ),
-      'created' => array(
-        'name' => t('Published date'),
-        'description' => t('The UNIX time when a node has been published.'),
-      ),
+    $targets['nid'] = array(
+      'name' => t('Node ID'),
+      'description' => t('The nid of the node. NOTE: use this feature with care, node ids are usually assigned by Drupal.'),
+      'optional_unique' => TRUE,
     );
+    $targets['uid'] = array(
+      'name' => t('User ID'),
+      'description' => t('The Drupal user ID of the node author.'),
+    );
+    $targets['status'] = array(
+      'name' => t('Published status'),
+      'description' => t('Whether a node is published or not. 1 stands for published, 0 for not published.'),
+    );
+    $targets['created'] = array(
+      'name' => t('Published date'),
+      'description' => t('The UNIX time when a node has been published.'),
+    );
+    $targets['promote'] = array(
+      'name' => t('Promoted to front page'),
+      'description' => t('Boolean value, whether or not node is promoted to front page. (1 = promoted, 0 = not promoted)'),
+    );
+    $targets['sticky'] = array(
+      'name' => t('Sticky'),
+      'description' => t('Boolean value, whether or not node is sticky at top of lists. (1 = sticky, 0 = not sticky)'),
+    );
+
+    // Include language field if Locale module is enabled.
+    if (module_exists('locale')) {
+      $targets['language'] = array(
+        'name' => t('Language'),
+        'description' => t('The two-character language code of the node.'),
+      );
+    }
+
+    // Include comment field if Comment module is enabled.
+    if (module_exists('comment')) {
+      $targets['comment'] = array(
+        'name' => t('Comments'),
+        'description' => t('Whether comments are allowed on this node: 0 = no, 1 = read only, 2 = read/write.'),
+      );
+    }
+
+
     // If the target content type is a Feed node, expose its source field.
     if ($id = feeds_get_importer_id($this->config['content_type'])) {
       $name = feeds_importer($id)->config['name'];
@@ -273,6 +302,9 @@ class FeedsNodeProcessor extends FeedsProcessor {
       switch ($target) {
         case 'nid':
           $nid = db_query("SELECT nid FROM {node} WHERE nid = :nid", array(':nid' => $value))->fetchField();
+          break;
+        case 'title':
+          $nid = db_query("SELECT nid FROM {node} WHERE title = :title", array(':title' => $value))->fetchField();
           break;
         case 'feeds_source':
           if ($id = feeds_get_importer_id($this->config['content_type'])) {

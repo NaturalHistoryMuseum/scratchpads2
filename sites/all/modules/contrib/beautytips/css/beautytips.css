@@ -39,3 +39,7 @@
 .beautytips-fixed-beautytips {
   position: fixed;
 }
+
+.fieldset-wrapper {
+  position: relative;
+}

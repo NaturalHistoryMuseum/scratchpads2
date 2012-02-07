@@ -1,0 +1,421 @@
+<?php
+
+/**
+ * @file
+ * This file contains the unit tests of the internals.
+ */
+
+
+//file_put_contents('test.html', print_r(array($hierarchy, $reference), TRUE));
+define('SEP', '|');
+define('EURO', 'europe');
+define('EURO_BE', 'belgium');
+define('EURO_BE_BRU', 'brussels');
+define('EURO_BE_HAS', 'hasselt');
+define('EURO_FR', 'france');
+define('ASIA', 'asia');
+define('ASIA_CH', 'china');
+define('ASIA_JP', 'japan');
+define('ASIA_JP_TOK', 'tokyo');
+
+define('LABEL_EURO', 'Europe');
+define('LABEL_EURO_BE', 'Belgium');
+define('LABEL_EURO_BE_BRU', 'Brussels');
+define('LABEL_EURO_BE_HAS', 'Hasselt');
+define('LABEL_EURO_FR', 'France');
+define('LABEL_ASIA', 'Asia');
+define('LABEL_ASIA_CH', 'China');
+define('LABEL_ASIA_JP', 'Japan');
+define('LABEL_ASIA_JP_TOK', 'tokyo');
+
+define('LINEAGE_EURO', implode(SEP, array(EURO)));
+define('LINEAGE_EURO_BE', implode(SEP, array(EURO, EURO_BE)));
+define('LINEAGE_EURO_BE_BRU', implode(SEP, array(EURO, EURO_BE, EURO_BE_BRU)));
+define('LINEAGE_EURO_BE_HAS', implode(SEP, array(EURO, EURO_BE, EURO_BE_HAS)));
+define('LINEAGE_EURO_FR', implode(SEP, array(EURO, EURO_FR)));
+define('LINEAGE_ASIA', implode(SEP, array(ASIA)));
+define('LINEAGE_ASIA_CH', implode(SEP, array(ASIA, ASIA_CH)));
+define('LINEAGE_ASIA_JP', implode(SEP, array(ASIA, ASIA_JP)));
+define('LINEAGE_ASIA_JP_TOK', implode(SEP, array(ASIA, ASIA_JP, ASIA_JP_TOK)));
+
+
+class HierarchicalSelectInternals extends DrupalWebTestCase {
+  private $small_hierarchy = array(
+    EURO => array(
+      'label' => LABEL_EURO,
+      'children' => array(
+        EURO_BE => array(
+          'label' => LABEL_EURO_BE,
+          'children' => array(
+            EURO_BE_BRU => array(
+              'label' => LABEL_EURO_BE_BRU,
+            ),
+            EURO_BE_HAS => array(
+              'label' => LABEL_EURO_BE_HAS,
+            ),
+          ),
+        ),
+        EURO_FR => array(
+          'label' => LABEL_EURO_FR,
+        ),
+      ),
+    ),
+    ASIA => array(
+      'label' => LABEL_ASIA,
+      'children' => array(
+        ASIA_CH => array(
+          'label' => LABEL_ASIA_CH,
+        ),
+        ASIA_JP => array(
+          'label' => LABEL_ASIA_JP,
+          'children' => array(
+            ASIA_JP_TOK => array(
+              'label' => LABEL_ASIA_JP_TOK,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+
+  /**
+   * Implementation of getInfo().
+   */
+  public function getInfo() {
+    return array(
+      'name'        => 'Internals',
+      'description' => 'Checks whether all internals are working: the
+                        building of the hierarchy and dropbox objects.',
+      'group'       => 'Hierarchical Select',
+    );
+  }
+
+  /**
+   * Implementation of setUp().
+   */
+  public function setUp() {
+    parent::setUp('hierarchical_select', 'hs_smallhierarchy');
+  }
+
+  // In this test, all settings are disabled.
+  public function testAllSettingsOff() {
+    // Generate form item.
+    $form_item = array(
+      '#required' => FALSE,
+      '#config' => array(
+        'module' => 'hs_smallhierarchy',
+        'params' => array(
+          'hierarchy' => $this->small_hierarchy,
+          'id'        => 'driverpack_platforms',
+          'separator' => '|',
+        ),
+        'save_lineage'    => 0,
+        'enforce_deepest' => 0,
+        'entity_count'    => 0,
+        'require_entity'  => 0,
+        'resizable'       => 1,
+        'level_labels' => array(
+          'status' => 0,
+        ),
+        'dropbox' => array(
+          'status'   => 0,
+          'limit'    => 0,
+          'reset_hs' => 1,
+        ),
+        'editability' => array(
+          'status'           => 0,
+          'item_types'       => array(),
+          'allowed_levels'   => array(),
+          'allow_new_levels' => 0,
+          'max_levels'       => 3,
+        ),
+        'animation_delay'    => 400,
+        'exclusive_lineages' => array(),
+        'render_flat_select' => 0,
+      ),
+    );
+
+    // No selection
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(), array());
+    $reference = new stdClass();
+    $reference->lineage = array(
+      0 => 'none',
+    );
+    $reference->levels = array(
+      0 => array(
+        'none' => '<none>',
+        LINEAGE_EURO => LABEL_EURO,
+        LINEAGE_ASIA => LABEL_ASIA,
+      ),
+    );
+    $reference->childinfo = array(
+      0 => array(
+        LINEAGE_EURO => 2,
+        LINEAGE_ASIA => 2,
+      ),
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => 'label_1',
+    );
+    $reference->levels[1] = array(
+      'label_1'            => '',
+      LINEAGE_EURO_BE => LABEL_EURO_BE,
+      LINEAGE_EURO_FR => LABEL_EURO_FR,
+    );
+    $reference->childinfo[1] = array(
+      LINEAGE_EURO_BE => 2,
+      LINEAGE_EURO_FR => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe > France
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO_FR), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => LINEAGE_EURO_FR,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe > Belgium
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO_BE), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => LINEAGE_EURO_BE,
+      2 => 'label_2',
+    );
+    $reference->levels[1] = array(
+      'label_1'            => '',
+      LINEAGE_EURO_BE => LABEL_EURO_BE,
+      LINEAGE_EURO_FR => LABEL_EURO_FR,
+    );
+    $reference->levels[2] = array(
+      'label_2'            => '',
+      LINEAGE_EURO_BE_BRU => LABEL_EURO_BE_BRU,
+      LINEAGE_EURO_BE_HAS => LABEL_EURO_BE_HAS,
+    );
+    $reference->childinfo[1] = array(
+      LINEAGE_EURO_BE => 2,
+      LINEAGE_EURO_FR => 0,
+    );
+    $reference->childinfo[2] = array(
+      LINEAGE_EURO_BE_BRU => 0,
+      LINEAGE_EURO_BE_HAS => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Asia
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_ASIA), array());
+    $reference->lineage = array(
+      0 => LINEAGE_ASIA,
+      1 => 'label_1',
+    );
+    $reference->levels[1] = array(
+      'label_1'            => '',
+      LINEAGE_ASIA_CH => LABEL_ASIA_CH,
+      LINEAGE_ASIA_JP => LABEL_ASIA_JP,
+    );
+    unset($reference->levels[2]);
+    $reference->childinfo[1] = array(
+      LINEAGE_ASIA_CH => 0,
+      LINEAGE_ASIA_JP => 1,
+    );
+    unset($reference->childinfo[2]);
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Asia > Japan > Tokyo
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_ASIA_JP_TOK), array());
+    $reference->lineage = array(
+      0 => LINEAGE_ASIA,
+      1 => LINEAGE_ASIA_JP,
+      2 => LINEAGE_ASIA_JP_TOK,
+    );
+    $reference->levels[2] = array(
+      'label_2'           => '',
+      LINEAGE_ASIA_JP_TOK => LABEL_ASIA_JP_TOK,
+    );
+    $reference->childinfo[2] = array(
+      LINEAGE_ASIA_JP_TOK => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+  }
+
+  // In this test, only enforce_deepest enabled.
+  public function testEnforceDeepest() {
+    // Generate form item.
+    $form_item = array(
+      '#required' => FALSE,
+      '#config' => array(
+        'module' => 'hs_smallhierarchy',
+        'params' => array(
+          'hierarchy' => $this->small_hierarchy,
+          'id'        => 'driverpack_platforms',
+          'separator' => '|',
+        ),
+        'save_lineage'    => 0,
+        'enforce_deepest' => 1,
+        'entity_count'    => 0,
+        'require_entity'  => 0,
+        'resizable'       => 1,
+        'level_labels' => array(
+          'status' => 0,
+        ),
+        'dropbox' => array(
+          'status'   => 0,
+          'limit'    => 0,
+          'reset_hs' => 1,
+        ),
+        'editability' => array(
+          'status'           => 0,
+          'item_types'       => array(),
+          'allowed_levels'   => array(),
+          'allow_new_levels' => 0,
+          'max_levels'       => 3,
+        ),
+        'animation_delay'    => 400,
+        'exclusive_lineages' => array(),
+        'render_flat_select' => 0,
+      ),
+    );
+
+    // No selection
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(), array());
+    $reference = new stdClass();
+    $reference->lineage = array(
+      0 => 'label_0',
+    );
+    $reference->levels = array(
+      0 => array(
+        'none' => '<none>',
+        LINEAGE_EURO => LABEL_EURO,
+        LINEAGE_ASIA => LABEL_ASIA,
+      ),
+    );
+    $reference->childinfo = array(
+      0 => array(
+        LINEAGE_EURO => 2,
+        LINEAGE_ASIA => 2,
+      ),
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => LINEAGE_EURO_BE,
+      2 => LINEAGE_EURO_BE_BRU,
+    );
+    $reference->levels[1] = array(
+      LINEAGE_EURO_BE => LABEL_EURO_BE,
+      LINEAGE_EURO_FR => LABEL_EURO_FR,
+    );
+    $reference->levels[2] = array(
+      LINEAGE_EURO_BE_BRU => LABEL_EURO_BE_BRU,
+      LINEAGE_EURO_BE_HAS => LABEL_EURO_BE_HAS,
+    );
+    $reference->childinfo[1] = array(
+      LINEAGE_EURO_BE => 2,
+      LINEAGE_EURO_FR => 0,
+    );
+    $reference->childinfo[2] = array(
+      LINEAGE_EURO_BE_BRU => 0,
+      LINEAGE_EURO_BE_HAS => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe > France
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO_FR), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => LINEAGE_EURO_FR,
+    );
+    unset($reference->levels[2]);
+    unset($reference->childinfo[2]);
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Europe > Belgium
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_EURO_BE), array());
+    $reference->lineage = array(
+      0 => LINEAGE_EURO,
+      1 => LINEAGE_EURO_BE,
+      2 => LINEAGE_EURO_BE_BRU,
+    );
+    $reference->levels[1] = array(
+      LINEAGE_EURO_BE => LABEL_EURO_BE,
+      LINEAGE_EURO_FR => LABEL_EURO_FR,
+    );
+    $reference->levels[2] = array(
+      LINEAGE_EURO_BE_BRU => LABEL_EURO_BE_BRU,
+      LINEAGE_EURO_BE_HAS => LABEL_EURO_BE_HAS,
+    );
+    $reference->childinfo[1] = array(
+      LINEAGE_EURO_BE => 2,
+      LINEAGE_EURO_FR => 0,
+    );
+    $reference->childinfo[2] = array(
+      LINEAGE_EURO_BE_BRU => 0,
+      LINEAGE_EURO_BE_HAS => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Asia
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_ASIA), array());
+    $reference->lineage = array(
+      0 => LINEAGE_ASIA,
+      1 => LINEAGE_ASIA_CH,
+    );
+    $reference->levels[1] = array(
+      LINEAGE_ASIA_CH => LABEL_ASIA_CH,
+      LINEAGE_ASIA_JP => LABEL_ASIA_JP,
+    );
+    unset($reference->levels[2]);
+    $reference->childinfo[1] = array(
+      LINEAGE_ASIA_CH => 0,
+      LINEAGE_ASIA_JP => 1,
+    );
+    unset($reference->childinfo[2]);
+    $this->assertHierarchy($hierarchy, $reference);
+
+    // Asia > Japan > Tokyo
+    list($hierarchy, $dropbox) = $this->generate($form_item, array(LINEAGE_ASIA_JP_TOK), array());
+    $reference->lineage = array(
+      0 => LINEAGE_ASIA,
+      1 => LINEAGE_ASIA_JP,
+      2 => LINEAGE_ASIA_JP_TOK,
+    );
+    $reference->levels[2] = array(
+      LINEAGE_ASIA_JP_TOK => LABEL_ASIA_JP_TOK,
+    );
+    $reference->childinfo[2] = array(
+      LINEAGE_ASIA_JP_TOK => 0,
+    );
+    $this->assertHierarchy($hierarchy, $reference);
+  }
+
+
+  //--------------------------------------------------------------------------
+  // Private methods.
+
+  private function generate($element, $hs_selection, $db_selection, $op = 'Update') {
+    $config = $element['#config'];
+
+    // Generate the $hierarchy and $dropbox objects using the selections that
+    // were just calculated.
+    $dropbox = (!$config['dropbox']['status']) ? FALSE : _hierarchical_select_dropbox_generate($config, $db_selection);
+    $hierarchy = _hierarchical_select_hierarchy_generate($config, $hs_selection, $element['#required'], $dropbox);
+
+    return array($hierarchy, $dropbox);
+  }
+
+  private function assertHierarchy($hierarchy, $reference) {
+    $this->assertIdentical($hierarchy->lineage,    $reference->lineage,    'Hierarchy lineage is correct.');
+    $this->assertIdentical($hierarchy->levels,     $reference->levels,     'Hierarchy levels is correct.');
+    $this->assertIdentical($hierarchy->childinfo, $reference->childinfo, 'Hierarchy child info is correct.');
+  }
+}

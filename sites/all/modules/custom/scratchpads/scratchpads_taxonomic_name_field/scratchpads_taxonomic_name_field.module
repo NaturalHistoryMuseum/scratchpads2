@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+    // We have a biological classification.  We need to update the field.
+    $field = field_info_field('field_taxonomic_name');
+    $bio_vids = variable_get('biological_vids', array());
+    $i = 0;
+    $field['settings']['allowed_values'] = array();
+    foreach($bio_vids as $vid => $value){
+      $voc = taxonomy_vocabulary_load($vid);
+      if($voc){
+        $field['settings']['allowed_values'][$i] = array(
+          'parent' => 0,
+          'vocabulary' => $voc->machine_name
+        );
+        $i++;
+      }
+    }
+    $field['settings']['allowed_values'][] = array(
+      'parent' => 0,
+      'vocabulary' => $vocabulary->machine_name
+    );
+    field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
+  // We have a biological classification.  We need to update the field.
+  $field = field_info_field('field_taxonomic_name');
+  $update = FALSE;
+  foreach($field['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary'] == $vocabulary->machine_name){
+      $update = TRUE;
+      unset($field['settings']['allowed_values'][$key]);
+      if(!count($field['settings']['allowed_values'])){
+        $field['settings']['allowed_values'][0] = array(
+          'parent' => 0,
+          'vocabulary' => $vocabulary->machine_name
+        );
+      }
+      break;
+    }
+  }
+  if($update){
+    field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_field_taxonomic_name' => array(
+      'name' => 'im_field_taxonomic_name',
+      'label' => t('Taxonomic name'),
+      'description' => t('Taxonomic name'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    )
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ * 
+ * Magic happens just because this function exists (fucked up, I know).
+ */
+function scratchpads_taxonomic_name_field_ctools_plugin_api(){}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
+  $facet = new stdClass();
+  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr:block:im_field_taxonomic_name';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = 'block';
+  $facet->facet = 'im_field_taxonomic_name';
+  $facet->enabled = TRUE;
+  $facet->settings = array(
+    'weight' => 0,
+    'widget' => 'facetapi_links',
+    'filters' => array(),
+    'active_sorts' => array(
+      'active' => 'active',
+      'count' => 'count',
+      'display' => 'display'
+    ),
+    'sort_weight' => array(
+      'active' => -50,
+      'count' => -49,
+      'display' => -48
+    ),
+    'sort_order' => array(
+      'active' => 3,
+      'count' => 3,
+      'display' => 4
+    ),
+    'empty_behavior' => 'none',
+    'soft_limit' => 20,
+    'nofollow' => 1,
+    'show_expanded' => 0
+  );
+  return array(
+    $facet
+  );
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    switch($block->delta){
+      case 'pa0Er3HviUQyjP8dfbrsk1RU0gL0qrRv':
+        $data['subject'] = t('Taxonomic name');
+        break;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_taxonomic_name_field_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'taxonomic_name_facet';
+  $context->description = t('Taxonomic name field on a search page.');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'gallery*' => 'gallery*',
+        'biblio*' => 'biblio*',
+        'search*' => 'search*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        'facetapi-pa0Er3HviUQyjP8dfbrsk1RU0gL0qrRv' => array(
+          'module' => 'facetapi',
+          'delta' => 'pa0Er3HviUQyjP8dfbrsk1RU0gL0qrRv',
+          'region' => 'sidebar',
+          'weight' => '-25'
+        )
+      )
+    )
+  );
+  $context->condition_mode = 0;
+  $export['taxonomic_name_facet'] = $context;
+  return $export;
+}

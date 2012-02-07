@@ -1,0 +1,94 @@
+<?php
+/**
+ * Perform end-to-end tests of the upgrade path using Drupal 7 dump file.
+ */
+abstract class OgUpgradePathTestCase extends UpgradePathTestCase {
+
+  /**
+   * Override of UpgradePathTestCase::setUp() specialized for upgrade testing.
+   */
+  protected function setUp() {
+    global $user, $language, $conf;
+
+    // Load the Update API.
+    require_once DRUPAL_ROOT . '/includes/update.inc';
+
+    // Reset flags.
+    $this->upgradedSite = FALSE;
+    $this->upgradeErrors = array();
+
+    $this->loadedModules = module_list();
+
+    // Generate a temporary prefixed database to ensure that tests have a clean starting point.
+    $this->databasePrefix = 'simpletest' . mt_rand(1000, 1000000);
+    db_update('simpletest_test_id')
+      ->fields(array('last_prefix' => $this->databasePrefix))
+      ->condition('test_id', $this->testId)
+      ->execute();
+
+    // Clone the current connection and replace the current prefix.
+    $connection_info = Database::getConnectionInfo('default');
+    Database::renameConnection('default', 'simpletest_original_default');
+    foreach ($connection_info as $target => $value) {
+      $connection_info[$target]['prefix'] = array(
+        'default' => $value['prefix']['default'] . $this->databasePrefix,
+      );
+    }
+    Database::addConnectionInfo('default', 'default', $connection_info['default']);
+
+    // Store necessary current values before switching to prefixed database.
+    $this->originalLanguage = $language;
+    $this->originalLanguageDefault = variable_get('language_default');
+    $this->originalFileDirectory = variable_get('file_public_path', conf_path() . '/files');
+    $this->originalProfile = drupal_get_profile();
+    $clean_url_original = variable_get('clean_url', 0);
+
+    // Unlike the parent function, we don't unregister the registry, as this
+    // is Drupal 7 DB, and we want to keep our classes registered.
+    // spl_autoload_unregister('drupal_autoload_class');
+    // spl_autoload_unregister('drupal_autoload_interface');
+
+    // Create test directories ahead of installation so fatal errors and debug
+    // information can be logged during installation process.
+    // Use mock files directories with the same prefix as the database.
+    $public_files_directory  = $this->originalFileDirectory . '/simpletest/' . substr($this->databasePrefix, 10);
+    $private_files_directory = $public_files_directory . '/private';
+    $temp_files_directory    = $private_files_directory . '/temp';
+
+    // Create the directories.
+    file_prepare_directory($public_files_directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    file_prepare_directory($private_files_directory, FILE_CREATE_DIRECTORY);
+    file_prepare_directory($temp_files_directory, FILE_CREATE_DIRECTORY);
+    $this->generatedTestFiles = FALSE;
+
+    // Log fatal errors.
+    ini_set('log_errors', 1);
+    ini_set('error_log', $public_files_directory . '/error.log');
+
+    // Reset all statics and variables to perform tests in a clean environment.
+    $conf = array();
+
+    // Load the database from the portable PHP dump.
+    foreach ($this->databaseDumpFiles as $file) {
+      require $file;
+    }
+
+    // Set path variables.
+    $this->variable_set('file_public_path', $public_files_directory);
+    $this->variable_set('file_private_path', $private_files_directory);
+    $this->variable_set('file_temporary_path', $temp_files_directory);
+
+    $this->pass('Finished loading the dump.');
+
+    // Load user 1.
+    $this->originalUser = $user;
+    drupal_save_session(FALSE);
+    $user = db_query('SELECT * FROM {users} WHERE uid = :uid', array(':uid' => 1))->fetchObject();
+
+    // Restore necessary variables.
+    $this->variable_set('clean_url', $clean_url_original);
+    $this->variable_set('site_mail', 'simpletest@example.com');
+
+    drupal_set_time_limit($this->timeLimit);
+  }
+}

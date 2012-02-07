@@ -161,8 +161,8 @@ function ctools_update_6003() {
   $result = db_query('SELECT status FROM {system} WHERE name = :name', array(':name' => 'panels_views'))->fetchField();
   if ($result) {
     db_delete('system')->condition('name', 'panels_views')->execute();
-    drupal_install_modules(array('views_content'));
-  }
+    module_enable(array('views_content'), TRUE);
+ }
 }
 
 /**
@@ -188,7 +188,7 @@ function ctools_update_6007() {
   $ret = array();
   if (db_table_exists('ctools_custom_content')) {
     // Enable the module to make everything as seamless as possible.
-    drupal_install_modules(array('ctools_custom_content'));
+    module_enable(array('ctools_custom_content'), TRUE);
   }
 
   return $ret;

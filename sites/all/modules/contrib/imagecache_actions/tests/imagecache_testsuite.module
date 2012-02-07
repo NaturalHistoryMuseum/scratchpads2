@@ -1,0 +1,421 @@
+<?php
+
+/**
+ * @file An admin-only utility to demo and check a number of imagecache presets
+ * and actions.
+ * 
+ * It provides a tab in Home > Administer > Site Building > Imagecache
+ * 
+ * that lists a whole bunch of sample presets.
+ * 
+ * @author dman http://coders.co.nz/
+ *
+ *
+ */
+
+include_once('imagecache_testsuite.features.inc');
+
+/**
+ * Implementation of hook_menu().
+ */
+function imagecache_testsuite_menu() {
+  $items = array();
+  $items['admin/build/imagecache/test'] = array(
+    'title' => 'Test Suite',
+    'page callback' => 'imagecache_testsuite_generate',
+    'access arguments' => array('administer imagecache'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/build/imagecache/test/%'] = array(
+    'title' => 'Test Suite Image',
+    'page callback' => 'imagecache_testsuite_generate',
+    'page arguments' => array(4,5),
+    'access arguments' => array('administer imagecache'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/build/imagecache/positioning_test'] = array(
+    'title' => 'Positioning Test',
+    'page callback' => 'imagecache_testsuite_positioning',
+    'access arguments' => array('administer imagecache'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implementation  of hook_help()
+ */
+function imagecache_testsuite_help($path, $arg) {
+  switch ($path) {
+    case 'admin/build/imagecache/test' :
+      $output = file_get_contents(drupal_get_path('module', 'imagecache_testsuite') ."/README.txt");
+      return _filter_autop($output);
+    break;
+    case 'admin/build/imagecache/test' :
+      return t('This displays a number of examples of keyword positioning. This positioning algorithm is used when placing image overlays, such as watermarks or text on a base image canvas. Illustrated are both the expected result and the actual result. This page is just for debugging to confirm that this behavior doesnt change as the code gets updated. If the two illustrations do not match, there is probably something wrong with the calculation logic.');
+    break;
+  }
+}
+
+
+/**
+ * Either returns the whole testsuite page or generates the requested
+ * image+preset
+ * 
+ * Flushes the entire test cache every time anything is done.
+ */
+function imagecache_testsuite_generate($test_id = '', $toolkit = 'gd') {
+  // Samples to test are scanned from
+  // - the existing installed presets
+  // - features inc attached to this module
+  // - individual *.imagecache_preset.inc files found near any known modules
+  // Images illustrating the named preset are looked for also.
+   
+  $sample_path = drupal_get_path('module' , 'imagecache_testsuite') ;
+  $sample_folders = imagecache_testsuite_get_folders(); 
+  $src = $sample_path .'/sample.jpg'; 
+  $tests = imagecache_presets() + imagecache_testsuite_get_tests();
+  $testsuite_dir = imagecache_create_path('testsuite', '');
+  
+  if (empty($test_id)) {
+    // Firstly, remove any previous images
+    if (is_dir(realpath($testsuite_dir))) {
+      _imagecache_recursive_delete(realpath($testsuite_dir));
+    }
+    
+    // Draw the admin table
+    $test_table = array();
+    foreach ($tests as $testname => $preset) {
+      $row = array();
+      $row_class = 'test';
+      $details = '';
+      // Render the details
+      foreach ($preset['actions'] as $i => $action) {
+        $definition = imagecache_action_definition($action['action']);
+        if ($definition) {
+          $description = "<b>{$definition['name']}</b> ";
+          $description .= theme($action['action'], array('#value' => $action['data']));
+          $details .= "<div>$description</div>";
+        }
+        else {
+          // probably an action that requires a module that is not installed.
+          $details = t("<div><b>Action %action Unavailable</b></div>", array('%action' => $action['action']));
+          $row_class = 'error';
+          break;
+        }
+      }
+      $row['details'] = "<h3>{$preset['presetname']}</h3><p>$details</p>";
+
+      // Look for a sample image. May also be defined by the definition itself, 
+      // but normally assume a file named after the presetname, in the preset file path.
+      foreach ($sample_folders as $sample_folder) {
+        if (file_exists("{$sample_folder}/{$testname}.png")) {
+          $preset['sample'] = "{$sample_folder}/{$testname}.png";
+        }
+        elseif (file_exists("{$sample_folder}/{$testname}.jpg")) {
+          $preset['sample'] = "{$sample_folder}/{$testname}.jpg";
+        }
+      }
+      
+      if (isset($preset['sample']) && file_exists($preset['sample']) ) {
+        $sample_img = theme('image', $preset['sample']);
+        // I was having trouble with permissions on an OSX dev machine
+        if (! is_readable($preset['sample'])) { 
+          $sample_img = "FILE UNREADABLE: {$preset['sample']}"; 
+        }
+      }
+      else {
+        $sample_img = "[no sample]";
+      }
+      $row['sample'] = $sample_img;
+
+      // generate a result for each available toolit
+      foreach (array('gd', 'imagemagick') as $toolkit) {
+        if (module_exists('imageapi_'. $toolkit)) {
+          $test_url = "admin/build/imagecache/test/$testname/$toolkit";
+          $test_img = theme('image', $test_url, "$testname/$toolkit", NULL, NULL, FALSE);
+          $row[$toolkit] = l($test_img, $test_url, array('html' => TRUE));
+        }
+        else {
+          $row[$toolkit] = 'Disabled';
+        }
+      }
+      $test_table[$testname] = array('data' => $row, 'class' => $row_class);
+    }
+    $header = array('test', 'sample', 'gd', 'imagemagick');
+    $output = theme('table', $header, $test_table, array('id' => 'imagecache-testsuite'));
+    
+    // Default system zebra-striping fails to show my transparency on white
+    drupal_set_html_head('<style  type="text/css" >#imagecache-testsuite tr.even{background-color:#EEEEEE !important;} #imagecache-testsuite td{vertical-align:top;}  #imagecache-testsuite tr.error{background-color:#FFCCCC !important;}</style>');
+    
+    return $output;
+  }
+  else {
+    // run the process and return the image
+    // @see imagecache_cache ...imagecache_build_derivative ... 
+
+    $preset = $tests[$test_id];
+    $actions = $preset['actions'];
+    if (! $preset) {
+      trigger_error("Unknown test preset '$test_id' ", E_USER_ERROR);
+      return FALSE;
+    }
+    if (!$image = imageapi_image_open($src, 'imageapi_'. $toolkit)) {
+      trigger_error("Failed to open original image $src with toolkit $toolkit", E_USER_ERROR);
+      return FALSE;
+    }
+  
+    foreach ($actions as $action) {
+      #dpm(array('applying action' => $action, 'on image' => $image));
+      if (!_imagecache_apply_action($action, $image)) {
+        watchdog('imagecache', 'action: %action failed for %src', array('%action' => $action['action'], '%src' => $src), WATCHDOG_ERROR);
+        return FALSE;
+      }
+    }
+    // Need to save the result before returning it - to stay compatible with imagemagick
+    $filename = "$test_id-$toolkit.{$image->info['extension']}";
+    if (!file_check_directory($testsuite_dir, FILE_CREATE_DIRECTORY)) {
+      mkdir($testsuite_dir, 0775, TRUE);
+    }
+    
+    $dst = $testsuite_dir .'/'. $filename;
+    imageapi_image_close($image, $dst);
+    imagecache_transfer($dst);
+  }
+}
+
+/**
+ * Retrieve the list of presets, each of which contain actions and action
+ * definitions.
+ * 
+ * Scans all the module folders for files named *.imagecache_preset.inc
+ */
+function imagecache_testsuite_get_tests() {
+  $presets = array();
+  $folders = imagecache_testsuite_get_folders();
+  
+  foreach ($folders as $folder) {
+    $preset_files = file_scan_directory($folder, ".*.imagecache_preset.inc");
+    // Setting filepath in this scope allows the tests to know where they are.
+    // The inc files may use it to create their rules.
+    $filepath = $folder;
+    foreach($preset_files as $preset_file) {
+      include_once($preset_file->filename);
+    }
+  }
+  uasort($presets, 'element_sort');
+  return $presets;
+}
+
+/**
+ * Places to scan for test presets and sample images.
+ * 
+ * @return an array of foldernames of everything that implements
+ * imagecache_actions.
+ */
+function imagecache_testsuite_get_folders() {
+  $folders = array(drupal_get_path('module', 'imagecache_testsuite'));
+  foreach (module_implements('imagecache_actions') as $module_name) {
+    $folders[] = drupal_get_path('module', $module_name) . '/tests';
+  }
+  return $folders;
+}
+
+
+/**
+ * Display a page demonstrating a number of positioning tests
+ * 
+ * Tests both styles of positioning - the x=, y= original, used in most places,
+ * pls the css-like left=, top= version also.
+ */
+function imagecache_testsuite_positioning() {
+  drupal_set_title("Testing the positioning algorithm");
+  $tests = imagecache_testsuite_positioning_get_tests();
+  $table = array();
+  // $dst_image represents tha field or canvas.
+  // $src_image is the item being placed on it.
+  // Both these represent an imageapi-type image resource handle, but contain just dimensions
+  $src_image->info = array('width' => 75, 'height' => 100);
+  $dst_image->info = array('width' => 200, 'height' => 150);
+  
+  foreach ($tests as $testname => $test) {
+    // calc it, using either old or new method
+    if (isset($test['parameters']['x']) || isset($test['parameters']['y'])) {
+      $result['x'] = imagecache_actions_keyword_filter($test['parameters']['x'], $dst_image->info['width'], $src_image->info['width']);
+      $result['y'] = imagecache_actions_keyword_filter($test['parameters']['y'], $dst_image->info['height'], $src_image->info['height']);
+    }
+    else {
+      // use css style
+      $result = imagecache_actions_calculate_relative_position($dst_image, $src_image, $test['parameters']);
+    }
+    $expected_illustration = theme_positioning_test($test['expected']['x'], $test['expected']['y']);
+    $result_illustration = theme_positioning_test($result['x'], $result['y']);
+    $row = array();
+    $row['name'] = array('data' => '<h3>' . $testname . '</h3>' . $test['description']);
+    $row['parameters'] = theme_positioning_parameters($test['parameters']);
+    $row['expected'] = theme_positioning_parameters($test['expected']);
+    $row['expected_image'] = $expected_illustration;
+    $row['result'] = theme_positioning_parameters($result);
+    $row['result_image'] = $result_illustration;
+    $table[] = $row;
+  }
+  return 'Result of test:'. theme('table', array('test', 'parameters', 'expected', 'image', 'result', 'actual image', 'status'), $table);
+  
+}
+
+
+function theme_positioning_test($x, $y) {
+  $inner = "<div style='background-color:red; width:75px; height:100px; position:absolute; left:{$x}px; top:{$y}px'>";
+  $outer = "<div style='background-color:blue; width:200px; height:150px; position:absolute; left:25px; top:25px'><div style='position:relative'>$inner</div></div>";
+  $wrapper = "<div style='background-color:#CCCCCC; width:250px; height:200px; position:relative'>$outer</div>"; 
+  return $wrapper;
+}
+function theme_positioning_parameters($parameters) {
+  foreach ($parameters as $key => $value) {
+    $outputs[] = "[$key] => $value";
+  }
+  return '<pre>' . join("\n", $outputs) . '</pre>';
+}
+
+function imagecache_testsuite_positioning_get_tests() {
+  return array(
+    'base' => array(
+      'parameters' => array(
+        'x' => '0',
+        'y' => '0',
+      ),
+      'description' => '0 is top left.',
+      'expected' => array(
+        'x' => '0',
+        'y' => '0',
+      ),
+    ),
+    'numbers' => array(
+      'parameters' => array(
+        'x' => '50',
+        'y' => '-50',
+      ),
+      'description' => 'Basic numbers indicate distance and direction from top left.',
+      'expected' => array(
+        'x' => '50',
+        'y' => '-50',
+      ),
+    ),
+    'keywords' => array(
+      'parameters' => array(
+        'x' => 'center',
+        'y' => 'bottom',
+      ),
+      'description' => "Plain keywords will align against the region",
+      'expected' => array(
+        'x' => '62.5',
+        'y' => '50',
+      ),
+    ),
+    'keyword with offsets' => array(
+      'parameters' => array(
+        'x' => 'right+10',
+        'y' => 'bottom+10',
+      ),
+      'description' => "Keywords can be used with offsets. Positive numbers are in from the named side",
+      'expected' => array(
+        'x' => '115',
+        'y' => '40',
+      ),
+    ),
+    'keyword with negative offsets' => array(
+      'parameters' => array(
+        'x' => 'right-10',
+        'y' => 'bottom-10',
+      ),
+      'description' => "Negative numbers place the item outside the boundry",
+      'expected' => array(
+        'x' => '135',
+        'y' => '60',
+      ),
+    ),
+    'percent' => array(
+      'parameters' => array(
+        'x' => '50%',
+        'y' => '50%',
+      ),
+      'description' => "Percentages on their own will CENTER on both the source and destination items",
+      'expected' => array(
+        'x' => '62.5',
+        'y' => '25',
+      ),
+    ),
+
+    'keyword with percent' => array(
+      'parameters' => array(
+        'x' => 'right+10%',
+        'y' => 'bottom+10%',
+      ),
+      'description' => "Percentages can be used with keywords, though the placed image will be centered on the calculated position.",
+      'expected' => array(
+        'x' => '142.5',
+        'y' => '85',
+      ),
+    ),
+
+    'css styles' => array(
+      'parameters' => array(
+        'left' => '10px',
+        'bottom' => '10px',
+      ),
+      'description' => "A different method uses css-like parameters.",
+      'expected' => array(
+        'x' => '10',
+        'y' => '40',
+      ),
+    ),
+
+    'css negatives' => array(
+      'parameters' => array(
+        'left' => '-10px',
+        'bottom' => '-10px',
+      ),
+      'description' => "Negative numbers from sides always move outside of the boundries.",
+      'expected' => array(
+        'x' => '-10',
+        'y' => '60',
+      ),
+    ),
+
+    'css with percents' => array(
+      'parameters' => array(
+        'right' => '+10%',
+        'bottom' => '+10%',
+      ),
+      'description' => "Using percents with sides calculates the percent location on the base, then centers the source item on that point.",
+      'expected' => array(
+        'x' => '142.5',
+        'y' => '85',
+      ),
+    ),
+  
+    'css centering' => array(
+      'parameters' => array(
+        'right' => '50%',
+        'top' => '50%',
+      ),
+      'description' => "The auto-centering that happens when percents are used means you can easily center things at 50%.",
+      'expected' => array(
+        'x' => '62.5',
+        'y' => '25',
+      ),
+    ),
+    'css positioning' => array(
+      'parameters' => array(
+        'right' => 'left+20',
+        'top' => 'bottom-20',
+      ),
+      'description' => "It's also possible to use keywords there, though it's not smart to do so",
+      'expected' => array(
+        'x' => '-55',
+        'y' => '130',
+      ),
+    ),
+  
+  );
+}

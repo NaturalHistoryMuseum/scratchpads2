@@ -1,5 +1,4 @@
 <?php
-// $Id: field_collection.admin.inc,v 1.1.2.3 2010/10/28 11:59:18 fago Exp $
 
 /**
  * @file
@@ -37,7 +36,7 @@ function field_collections_overview() {
     $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/field-collections/' . $field_name_url_str . '/display');
   }
   if (empty($rows)) {
-    $output = t('No field-collections have been defined yet. To do so attach a field-collection field to any entity.');
+    $output = t('No field collections have been defined yet. To do so attach a field collection field to any entity.');
   }
   else {
     // Sort rows by field name.

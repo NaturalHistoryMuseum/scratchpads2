@@ -1,0 +1,205 @@
+# LANGUAGE translation of Drupal (demo.module)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from file: demo.module,v 1.1.2.17 2007/09/28 23:24:01 smk
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2007-09-29 01:24+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: demo.module:40
+msgid "Demonstration site"
+msgstr ""
+
+#: demo.module:41
+msgid "Administer reset interval, create new dumps and manually reset this site."
+msgstr ""
+
+#: demo.module:48;116
+msgid "Status"
+msgstr ""
+
+#: demo.module:54
+msgid "Manage snapshots"
+msgstr ""
+
+#: demo.module:63
+msgid "Create snapshot"
+msgstr ""
+
+#: demo.module:72
+msgid "Reset site"
+msgstr ""
+
+#: demo.module:81
+msgid "Demo Site autocomplete"
+msgstr ""
+
+#: demo.module:95
+msgid "Demo site reset"
+msgstr ""
+
+#: demo.module:104
+msgid "Reset demo"
+msgstr ""
+
+#: demo.module:123
+msgid "Never"
+msgstr ""
+
+#: demo.module:126
+msgid "<p><strong>Last reset:</strong> !date</p>"
+msgstr ""
+
+#: demo.module:129
+msgid "<p><strong>Default snapshot:</strong> !snapshot</p>"
+msgstr ""
+
+#: demo.module:129
+msgid "None"
+msgstr ""
+
+#: demo.module:136
+msgid "Dump settings"
+msgstr ""
+
+#: demo.module:141
+msgid "disabled"
+msgstr ""
+
+#: demo.module:144
+msgid "Automatically reset site every"
+msgstr ""
+
+#: demo.module:147
+msgid "Select how often this demonstration site is automatically reset. Ensure that you have chosen a snapshot for cron runs in <a href=\"!manage\">Manage snapshots</a> first. <strong>Note:</strong> This requires cron to run at least within this interval."
+msgstr ""
+
+#: demo.module:152
+msgid "Dump path"
+msgstr ""
+
+#: demo.module:155
+msgid "Enter a writable directory where dump files of this demonstration site are stored, f.e. %files. The name of this site (e.g. %confpath) is automatically appended to this directory.<br /><br /><strong>Note: For security reasons you should store site dumps outside of the document root of your webspace!</strong>"
+msgstr ""
+
+#: demo.module:159
+msgid "Save"
+msgstr ""
+
+#: demo.module:167
+msgid "Dump could not be created. The directory %directory has not been properly configured."
+msgstr ""
+
+#: demo.module:178;260
+msgid "Available snapshots"
+msgstr ""
+
+#: demo.module:183;195
+msgid "Set as default snapshot for cron"
+msgstr ""
+
+#: demo.module:187;200
+msgid "Delete selected snapshot"
+msgstr ""
+
+#: demo.module:197
+msgid "Snapshot %title will be used for upcoming cron runs."
+msgstr ""
+
+#: demo.module:205
+msgid "Snapshot %title has been deleted."
+msgstr ""
+
+#: demo.module:213
+msgid "File name"
+msgstr ""
+
+#: demo.module:218
+msgid "Enter the snapshot file name without file extension. Allowed characters are a-z, 0-9, dashes (\"-\"), underscores (\"_\") and dots."
+msgstr ""
+
+#: demo.module:221
+msgid "Description"
+msgstr ""
+
+#: demo.module:224
+msgid "Optionally enter a description for this snapshot here. If no description is given and a snapshot with the same filename already exists, the previous description is used."
+msgstr ""
+
+#: demo.module:226
+msgid "Are you sure you want to create a new snapshot?"
+msgstr ""
+
+#: demo.module:226
+msgid "If the above filename already exists, creating a new snapshot will overwrite the existing snapshot. This action cannot be undone."
+msgstr ""
+
+#: demo.module:226
+msgid "Create"
+msgstr ""
+
+#: demo.module:226;264
+msgid "Cancel"
+msgstr ""
+
+#: demo.module:264
+msgid "Are you sure you want to reset the site?"
+msgstr ""
+
+#: demo.module:264
+msgid "Resetting the site will overwrite all changes that have been made to this Drupal installation since the chosen snapshot.<br /><br /><div style=\"color: red; font-weight: bold; font-size: 18px;\"><center>THIS ACTION CANNOT BE UNDONE!</center><br /></div>"
+msgstr ""
+
+#: demo.module:264
+msgid "Reset"
+msgstr ""
+
+#: demo.module:291
+msgid "Active snapshot: !snapshot"
+msgstr ""
+
+#: demo.module:295
+msgid "Reset now"
+msgstr ""
+
+#: demo.module:340
+msgid "Successfully restored database from %filename."
+msgstr ""
+
+#: demo.module:343
+msgid "Failed restoring database from %filename."
+msgstr ""
+
+#: demo.module:354
+msgid "Unable to open dump file %filename."
+msgstr ""
+
+#: demo.module:415
+msgid "Snapshot"
+msgstr ""
+
+#: demo.module:440
+msgid "Modules: "
+msgstr ""
+
+#: demo.module:483
+msgid "Dump filename %title must contain alphanumeric characters, dots, dashes and underscores only. Other characters, including blanks (spaces), are not allowed."
+msgstr ""
+
+#: demo.module:348;358;0
+msgid "demo"
+msgstr ""
+
+#: demo.module:27
+msgid "administer demo settings"
+msgstr ""
+

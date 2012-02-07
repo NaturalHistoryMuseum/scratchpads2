@@ -78,7 +78,7 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $edit = array(
       'import_on_create' => FALSE,
     );
-    $this->drupalPost('admin/structure/feeds/edit/syndication/settings', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/syndication/settings', $edit, 'Save');
     $this->assertText('Do not import on submission');
     $nid = $this->createFeedNode();
     $terms = array('testterm1', 'testterm2', 'testterm3');

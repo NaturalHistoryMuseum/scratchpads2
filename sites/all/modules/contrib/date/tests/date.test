@@ -1,5 +1,4 @@
 <?php
-// $Id: date.test,v 1.8 2011/01/18 00:37:35 karens Exp $
 class DateUITestCase extends DrupalWebTestCase {
   protected $privileged_user;
 
@@ -94,6 +93,13 @@ class DateUITestCase extends DrupalWebTestCase {
     $this->dateForm($options = 'popup');
     $this->assertText('Thu, 10/07/2010 - 10:30', 'Found the correct date for a datetime field using the date_popup widget.');
     $this->deleteDateField();
+
+    // Test timezone handling validation on the field settings form.
+    $this->createDateField($type = 'date', $widget = 'date_select');
+    $edit = array('field[settings][granularity][hour]' => FALSE);
+    $this->drupalPost(NULL, $edit, t('Save field settings'));
+    $this->assertText("Dates without hours granularity must not use any timezone handling.", "Dates without hours granularity required to use timezone handling of 'none.'");
+    $this->deleteDateField();
   }
 
   function dateForm($options) {
@@ -134,5 +140,5 @@ class DateUITestCase extends DrupalWebTestCase {
     $this->clickLink('delete');
     $this->drupalPost(NULL, NULL, t('Delete'));
     $this->assertText('The field Test has been deleted from the Story content type.', 'Removed date field.');
-  }  
+  }
 }

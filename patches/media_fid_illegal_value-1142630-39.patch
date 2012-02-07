@@ -1,0 +1,12 @@
+diff --git a/includes/media.fields.inc b/includes/media.fields.inc
+index 0e4d724..ee28bc7 100644
+--- a/includes/media.fields.inc
++++ b/includes/media.fields.inc
+@@ -93,7 +93,6 @@ function media_field_widget_settings_form($field, $instance) {
+     '#default_value' => $settings['allowed_types'],
+     '#description' => t('Media types which are allowed for this field when using remote streams.'),
+     '#weight' => 1,
+-    '#access' => count(file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL)) != count($streams),
+   );
+ 
+   $options = array();

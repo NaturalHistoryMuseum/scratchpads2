@@ -123,14 +123,20 @@ class FeedsImporter extends FeedsConfigurable {
     $save = new stdClass();
     $save->id = $this->id;
     $save->config = $this->getConfig();
-    if (db_query_range("SELECT 1 FROM {feeds_importer} WHERE id = :id", 0, 1, array(':id' => $this->id))->fetchField()) {
+
+    if ($config = db_query("SELECT config FROM {feeds_importer} WHERE id = :id", array(':id' => $this->id))->fetchField()) {
       drupal_write_record('feeds_importer', $save, 'id');
+      // Only rebuild menu if content_type has changed. Don't worry about
+      // rebuilding menus when creating a new importer since it will default
+      // to the standalone page.
+      $config = unserialize($config);
+      if ($config['content_type'] != $save->config['content_type']) {
+        variable_set('menu_rebuild_needed', TRUE);
+      }
     }
     else {
       drupal_write_record('feeds_importer', $save);
     }
-    // Clear menu cache, changes to importer can change menu items.
-    menu_rebuild();
   }
 
   /**

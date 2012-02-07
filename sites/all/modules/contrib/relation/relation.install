@@ -6,6 +6,23 @@
  */
 
 /**
+ * Create our field.
+ */
+function relation_install() {
+  $install = &drupal_static('relation_install');
+  $install = TRUE;
+  $field = array(
+    'field_name' => 'endpoints',
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'type' => 'relation_endpoint',
+  );
+  field_info_cache_clear();
+  field_create_field($field);
+  $install = FALSE;
+  entity_info_cache_clear();
+}
+
+/**
  * Implements hook_schema().
  */
 function relation_schema() {
@@ -120,12 +137,13 @@ function relation_schema() {
       'default hook' => 'relation_default_relation_types',  // Function hook name.
       'api' => array(
         'owner' => 'relation',
-        'api' => 'relation_default',  // Base name for api include files.
+        'api' => 'relation_type_default',  // Base name for api include files.
         'minimum_version' => 1,
         'current_version' => 1,
       ),
       // the callback to load the available bundles
       'subrecords callback' => '_relation_get_types_bundles',
+      'export callback' => 'relation_relation_type_export',
     ),
     'fields' => array(
       'relation_type' => array(
@@ -231,11 +249,16 @@ function relation_uninstall() {
   foreach ($types as $type) {
     field_attach_delete_bundle('relation', $type);
   }
+  field_delete_field('endpoints');
 }
 
 /**
- * Implements hook_update_N().
+ * Enable the new endpoint module and ctools.
  */
-function hook_update_7001() {
-  module_enable(array('relation_endpoints'));
+function relation_update_7001() {
+  module_enable(array('relation_endpoint', 'ctools'));
+  db_update('field_config')
+    ->fields(array('module' => 'relation_endpoint'))
+    ->condition('field_name', 'endpoints')
+    ->execute();
 }

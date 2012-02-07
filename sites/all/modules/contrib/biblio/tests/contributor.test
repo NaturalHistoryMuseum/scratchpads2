@@ -68,6 +68,7 @@ class BiblioContributorUnitTest extends BiblioContributorWebTestCase {
   function testBiblioParseAuthor() {
 
     $author['name'] = 'Bush, Jr. III, George W';
+    $author['auth_category'] = 1;
     $author = biblio_parse_author($author);
     $this->assertIdentical($author['firstname'], 'George', 'Test biblio_parse_author($author), firstname' );
     $this->assertIdentical($author['lastname'], 'Bush', 'Test biblio_parse_author($author), lastname');

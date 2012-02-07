@@ -1,6 +1,6 @@
 GeoPHP is a open-source native PHP library for doing geometry operations. It is written entirely in PHP and 
 can therefore run on shared hosts. It can read and write a wide variety of formats (WKT, WKB, GeoJSON, 
-KML, GPX). It works with all Simple-Feature geometries (Point, LineString, Polygon, GeometryCollection etc.)
+KML, GPX, GeoRSS). It works with all Simple-Feature geometries (Point, LineString, Polygon, GeometryCollection etc.)
 and can be used to get centroids, bounding-boxes, area, and a wide variety of other useful information. 
 
 geoPHP also helpfully wraps the GEOS php extension so that applications can get a transparent performance 
@@ -20,6 +20,7 @@ message. Forks are also welcome, please issue pull requests and I will merge the
 Getting Started
 -----------------------
 
+ * The lastest stable version can always be downloaded at: <https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz>
  * Read the API Reference at: <https://github.com/phayes/geoPHP/wiki/API-Reference>
  * Examples
    * Using geoPHP as a GIS format converter: <http://github.com/phayes/geoPHP/wiki/Example-format-converter>

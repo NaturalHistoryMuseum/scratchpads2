@@ -1,8 +1,10 @@
 <?php
 
 class biblio_handler_field extends views_handler_field {
-  function init(&$view, $options) {
+
+  function init(&$view, &$options) {
     parent::init($view, $options);
+
     if (!$this->options['biblio_label']) return;
     $this->definition['click sortable'] = array('default' => TRUE);
 
@@ -34,7 +36,7 @@ class biblio_handler_field extends views_handler_field {
       '#type' => 'checkbox',
       '#title' => t('Use label specific to biblio type'),
       '#description' => 'Check this option to use the type-specific field labels as defined in '
-      . l(t('biblio settings'), 'admin/config/biblio/fields/type'),
+      . l(t('biblio settings'), 'admin/config/content/biblio/fields/type'),
       '#default_value' => $this->options['biblio_label'],
     );
     parent::options_form($form, $form_state);
@@ -51,7 +53,7 @@ class biblio_handler_field extends views_handler_field {
     $this->options['label'] = isset($this->labels[$tid]) ? $this->labels[$tid] : $this->labels[0];
   }
 
-  function pre_render($values) {
+  function pre_render(&$values) {
     foreach ($values as $result) {
       if (!empty($result->biblio_biblio_year)) { // this converts values like 9999 or 9998 to "Submitted" and "In Press"
         $result->biblio_biblio_year = _biblio_text_year($result->biblio_biblio_year);

@@ -93,7 +93,8 @@ function views_data_export_schema() {
  * Implementation of hook_uninstall()
  */
 function views_data_export_uninstall() {
-  //Clean up any tables we may have left around
+  // Clean up any tables we may have left around.
+  module_load_include('module', 'views_data_export');
   views_data_export_garbage_collect(0, -1);
 }
 

@@ -1,0 +1,149 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Title module.
+ */
+
+/**
+ * Tests for legacy field replacement.
+ */
+class TitleFieldReplacementTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Field replacement',
+      'description' => 'Test field replacement.',
+      'group' => 'Title',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('entity', 'field_test', 'title', 'title_test');
+  }
+
+  /**
+   * Test field replacement API and workflow.
+   */
+  function testFieldReplacementWorkflow() {
+    $info = entity_get_info('test_entity');
+    $label_key = $info['entity keys']['label'];
+    $field_name = $label_key . '_field';
+
+    // Enable field replacement for the test entity.
+    title_field_replacement_toggle('test_entity', 'test_bundle', $label_key);
+
+    $i = 0;
+    $entity = field_test_create_stub_entity(FALSE, FALSE);
+
+    while ($i++ <= 1) {
+      // The first time the entity gets created the second time gets updated.
+      title_test_entity_save($entity);
+
+      // Check that the replacing field value has been synchronized on save.
+      $query = db_select('test_entity', 'te');
+      $query->addJoin('INNER', 'field_data_' . $field_name, 'f', 'te.ftid = f.entity_id');
+      $record = $query
+        ->fields('te')
+        ->fields('f')
+        ->condition('ftid', $entity->ftid)
+        ->execute()
+        ->fetch();
+
+      $phase = $entity->is_new ? 'insert' : 'update';
+      $this->assertIdentical($record->{$label_key}, $record->{$field_name . '_value'}, t('Field synchronization is correctly performed on %phase.', array('%phase' => $phase)));
+      unset($entity->is_new);
+    }
+
+    // Store a dummy value in the legacy field.
+    while (($label = $this->randomName()) == $entity->{$label_key});
+
+    db_update('test_entity')
+      ->fields(array($label_key => $label))
+      ->execute();
+
+    $record = db_select('test_entity', 'te')
+      ->fields('te')
+      ->condition('ftid', $entity->ftid)
+      ->execute()
+      ->fetch();
+
+    $this->assertNotIdentical($record->{$label_key}, $entity->{$label_key}, t('Entity label has been changed.'));
+
+    // Clear field cache so synchronization can be performed on field attach
+    // load.
+    cache_clear_all('*', 'cache_field');
+
+    // Check that the replacing field value is correctly synchronized on load
+    // and view.
+    $entity = title_test_entity_test_load($entity);
+    title_test_phase_check('after_load', $entity);
+    $build = entity_view('test_entity', array($entity->ftid => $entity));
+
+    foreach (title_test_phase_store() as $phase => $value) {
+      $this->assertTrue($value, t('Field synchronization is correctly performed on %phase.', array('%phase' => $phase)));
+    }
+
+    // Change the value stored into the label field to check entity_label().
+    if (isset($info['label callback'])) {
+      $label = $this->randomName();
+      $entity->{$field_name}[LANGUAGE_NONE][0]['value'] = $label;
+      $this->assertIdentical(entity_label('test_entity', $entity), $label, t('entity_label() returns the expected value.'));
+    }
+  }
+
+  /**
+   * Test field replacement UI.
+   */
+  function testFieldReplacementUI() {
+    $admin_user = $this->drupalCreateUser(array('access administration pages', 'view the administration theme', 'administer content types', 'administer taxonomy', 'administer comments'));
+    $this->drupalLogin($admin_user);
+
+    foreach (entity_get_info() as $entity_type => $entity_info) {
+      if (!empty($entity_info['field replacement'])) {
+        foreach ($entity_info['bundles'] as $bundle => $bundle_info) {
+          if (isset($bundle_info['admin']['path'])) {
+            $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle) . '/fields';
+
+            foreach ($entity_info['field replacement'] as $legacy_field => $info) {
+              $path = $admin_path . '/replace/' . $legacy_field;
+              $xpath = '//a[@href=:url and text()=:label]';
+              $args = array(':url' => url($path), ':label' => t('replace'));
+              $targs = array('%legacy_field' => $legacy_field, '%entity_type' => $entity_type, '%bundle' => $bundle);
+              $field_name = $info['field']['field_name'];
+
+              // Check that the current legacy field has a "replace" operation.
+              $this->drupalGet($admin_path);
+              $link = $this->xpath($xpath, $args);
+              $this->assertEqual(count($link), 1, t('Replace link found for the field %legacy_field of the bundle %bundle of the entity %entity_type.', $targs));
+
+              // Check that the legacy field has correctly been replaced through
+              // field replacement UI.
+              $this->drupalPost($path, array('enabled' => TRUE), t('Save settings'));
+              _field_info_collate_fields(TRUE);
+              $link = $this->xpath($xpath, $args);
+              $this->assertTrue(empty($link) && title_field_replacement_enabled($entity_type, $bundle, $legacy_field), t('%legacy_field successfully replaced for the bundle %bundle of the entity %entity_type.', $targs));
+
+              // Check that the enabled status cannot be changed unless the
+              // field instance is removed.
+              $this->drupalGet($path);
+              $this->assertFieldByXPath('//form//input[@name="enabled" and @checked="checked" and @disabled="disabled"]', NULL, t('Field replacement for %legacy_field cannot be disabled unless the replacing field instance is deleted.', array('%legacy_field' => $legacy_field)));
+              $this->drupalPost($path, array(), t('Save settings'));
+              _field_info_collate_fields(TRUE);
+              $this->assertTrue(title_field_replacement_enabled($entity_type, $bundle, $legacy_field), t('Submitting the form does not alter field replacement settings.'));
+
+              // Delete the field instance and check that the "replace"
+              // operation is available again.
+              $this->drupalPost($admin_path . '/' . $field_name . '/delete', array(), t('Delete'));
+              $link = $this->xpath($xpath, $args);
+              $this->assertEqual(count($link), 1, t('Replace link found for the field %legacy_field of the bundle %bundle of the entity %entity_type.', $targs));
+
+              // Check that field replacement can be enabled again.
+              $this->drupalGet($path);
+              $this->assertFieldByXPath('//form//input[@name="enabled" and not(@checked) and not(@disabled)]', NULL, t('Field replacement for %legacy_field cannot be disabled unless the replacing field instance is deleted.', array('%legacy_field' => $legacy_field)));
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -57,9 +57,10 @@ function _save_endnote8_maps() {
 }
 
 function _reset_endnote_xml_map($version, $type) {
-  $count = db_result(db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='%s'", $version));
+  $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format=:format", array(':format' => $version))->fetchField();
   if ($count && $type) { //update
     $function = '_get_' . $version . '_' . $type;
+    if (!function_exists($function)) return;
     $map = $function();
     drupal_write_record('biblio_type_maps', $map, 'format');
     db_update('biblio_type_maps')

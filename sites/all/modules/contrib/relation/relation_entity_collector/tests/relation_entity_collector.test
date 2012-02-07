@@ -41,7 +41,7 @@ class RelationEntityCollectorTestCase extends RelationTestCase {
       "entity_key" => $node3key,
     );
     $this->drupalPost('node', $edit, t('Pick'));
-    $this->drupalPost('node', array(), t('Create relation'));
+    $this->drupalPost('node', array(), t('Save relation'));
     // Now figure out the new rid.
     $result = array_keys(relation_query('node', $this->node3->nid)
       ->propertyCondition('relation_type', $relation_type)

@@ -1,0 +1,6 @@
+name = Media Internet Sources
+description = Provides an API for accessing media on various internet services
+package = Media
+core = 7.x
+dependencies[] = media
+files[] = includes/MediaBrowserInternet.inc

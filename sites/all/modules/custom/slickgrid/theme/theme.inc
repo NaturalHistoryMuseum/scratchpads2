@@ -19,7 +19,9 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
     $view->style_plugin->options = array_merge($view->style_plugin->options, $user_settings);
   }
   // Set the entity type
-  $view->style_plugin->options['entity_type'] = $view->base_table;
+  if(!isset($view->style_plugin->options['entity_type'])){
+    $view->style_plugin->options['entity_type'] = $view->base_table;
+  }
   $handlers = $view->style_plugin->display->handler->get_handlers('field');
   // arrays to store ordered / unordered columns in
   $ordered_columns = array();
@@ -48,6 +50,15 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       'cssClass' => 'cell-title',
       'resizable' => ($view->style_plugin->options['enableColumnResize'] ? 1 : 0)
     );
+    if(isset($view->style_plugin->options['columns'][$field_id]['toolTip'])){
+      $column['toolTip'] = $view->style_plugin->options['columns'][$field_id]['toolTip'];
+    }
+    if(isset($view->style_plugin->options['columns'][$field_id]['headerCssClass'])){
+      $column['headerCssClass'] = $view->style_plugin->options['columns'][$field_id]['headerCssClass'];
+    }
+    if(isset($view->style_plugin->options['columns'][$field_id]['data'])){
+      $column['data'] = $view->style_plugin->options['columns'][$field_id]['data'];
+    }
     if(isset($field_handler->definition['field_name'])){
       $column['fieldName'] = $field_handler->definition['field_name'];
     }else{
@@ -72,7 +83,11 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
           ) as $file_type){
             if(isset($plugin[$file_type]) && $plugin[$file_type]['file']){
               $func = 'drupal_add_' . $file_type;
-              $func($plugin['path'] . '/' . $plugin[$file_type]['file']);
+              if(isset($plugin[$file_type]['file_path'])){
+                $func($plugin[$file_type]['file_path'] . '/' . $plugin[$file_type]['file']);
+              }else{
+                $func($plugin['path'] . '/' . $plugin[$file_type]['file']);
+              }
             }
           }
           // Add this plugin to the the added_plugins array so it is not added again
@@ -87,9 +102,21 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             break;
           case 'filter':
             $view->style_plugin->options['filterable'] = TRUE;
-            // DOn't show header row if this is a collapsibleFilter plugin - that happens within the data
+            // Don't show header row if this is a collapsibleFilter plugin - that happens within the data
             if($view->style_plugin->options['columns'][$field_id][$plugin_type] != 'collapsibleFilter'){
               $view->style_plugin->options['showHeaderRow'] = TRUE;
+              // A default value can be passed into a filter
+              // Check if it exists and if it does set the default_filter option
+              if(isset($_GET[$field_id]) && !isset($view->style_plugin->options['default_filter'])){
+                $view->style_plugin->options['default_filter'] = array(
+                  'field' => $field_id,
+                  'value' => $_GET[$field_id]
+                );
+                // If a default filter is passed in, that field's tab must be made the default tab
+                if(!empty($view->style_plugin->options['columns'][$field_id]['tab'])){
+                  $view->style_plugin->options['default_active_tab'] = $view->style_plugin->options['columns'][$field_id]['tab'];
+                }
+              }
             }
             break;
         }
@@ -241,6 +268,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
  * @param array $view_name
  */
 function theme_slickgrid($variables){
+  $output = '';
   $view = $variables['view'];
   // Add all the CSS & JS
   // Add the core slickgrid library
@@ -274,7 +302,10 @@ function theme_slickgrid($variables){
   drupal_add_js(implode("\n", $js), array(
     'type' => 'inline'
   ));
-  $output = '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
+  if(isset($view->style_plugin->options['filterable'])){
+    $output .= '<span class="ui-icon ui-icon-search" title="Toggle search panel" id="slickgrid-toggle-search-panel"></span>';
+  }
+  $output .= '<div id="slickgrid" style="width:100%;height:' . $view->style_plugin->options['viewport_height'] . 'px;" class="hideCols hideRows' . (isset($view->style_plugin->options['editable']) && $view->style_plugin->options['editable'] ? ' editable' : '') . '"></div>';
   return $output;
 }
 
@@ -315,7 +346,11 @@ function theme_slickgrid_controls($variables){
   }
   $output .= '<div id="slickgrid-status"></div>';
   if($view->style_plugin->options['add']){
-    $output .= '<div class="slickgrid-control" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', SLICKGRID_CALLBACK_PATH . '/add/' . $view->style_plugin->options['add'] . '/' . $variables['view']->name . '/' . $variables['view']->current_display, t('Add'), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
+    $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $view->style_plugin->options['add'] . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+    if(count($view->args)){
+      $add_path .= '/' . implode('/', $view->args);
+    }
+    $output .= '<div class="slickgrid-control" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', $add_path, t('Add'), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
   }
   // Add controls defined by our slickgrid module (undo, export, delete)
   if($view->style_plugin->options['undo']){
@@ -326,6 +361,7 @@ function theme_slickgrid_controls($variables){
     drupal_add_js($path . '/js/controls/slickgrid.delete.js');
     $output .= '<div class="slickgrid-control" id="slickgrid-delete"></div>';
   }
+  $view->style_plugin->options['export'] = true;
   if(isset($view->style_plugin->options['export'])){
     drupal_add_js($path . '/js/controls/slickgrid.export.js');
     $output .= '<div class="slickgrid-control" id="slickgrid-export"></div>';

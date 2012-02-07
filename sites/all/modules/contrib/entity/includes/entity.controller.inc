@@ -192,6 +192,20 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
       }
     }
 
+    // Support the entitycache module if activated.
+    if (!empty($this->entityInfo['entity cache']) && !$revision_id && $ids && !$conditions) {
+      $cached_entities = EntityCacheControllerHelper::entityCacheGet($this, $ids, $conditions);
+      // If any entities were loaded, remove them from the ids still to load.
+      $ids = array_diff($ids, array_keys($cached_entities));
+      $entities += $cached_entities;
+
+      // Add loaded entities to the static cache if we are not loading a
+      // revision.
+      if ($this->cache && !empty($cached_entities) && !$revision_id) {
+        $this->cacheSet($cached_entities);
+      }
+    }
+
     // Load any remaining entities from the database. This is the case if $ids
     // is set to FALSE (so we load all entities), if there are any ids left to
     // load or if loading a revision.
@@ -231,6 +245,12 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
       $entities += $queried_entities;
     }
 
+    // Entitycache module support: Add entities to the entity cache if we are
+    // not loading a revision.
+    if (!empty($this->entityInfo['entity cache']) && !empty($queried_entities) && !$revision_id) {
+      EntityCacheControllerHelper::entityCacheSet($this, $queried_entities);
+    }
+
     if ($this->cache) {
       // Add entities to the cache if we are not loading a revision.
       if (!empty($queried_entities) && !$revision_id) {
@@ -256,6 +276,10 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
   public function resetCache(array $ids = NULL) {
     $this->cacheComplete = FALSE;
     parent::resetCache($ids);
+    // Support the entitycache module.
+    if (!empty($this->entityInfo['entity cache'])) {
+      EntityCacheControllerHelper::resetEntityCache($this, $ids);
+    }
   }
 
   /**
@@ -428,6 +452,10 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
 
     // Add in fields.
     if (!empty($this->entityInfo['fieldable'])) {
+      // Perform the preparation tasks if they have not been performed yet.
+      // An internal flag prevents the operation from running twice.
+      $key = isset($entity->{$this->idKey}) ? $entity->{$this->idKey} : NULL;
+      field_attach_prepare_view($this->entityType, array($key => $entity), $view_mode);
       $entity->content += field_attach_view($this->entityType, $entity, $view_mode, $langcode);
     }
     // Invoke hook_ENTITY_view() to allow modules to add their additions.
@@ -522,10 +550,6 @@ class EntityAPIControllerExportable extends EntityAPIController {
    */
   public function load($ids = array(), $conditions = array()) {
     $entities = array();
-    // For exportable entities, make sure the defaults have been built.
-    if (!empty($this->entityInfo['exportable']) && empty($GLOBALS['conf']['entity_defaults_built'][$this->entityType])) {
-      _entity_defaults_rebuild($this->entityType);
-    }
 
     // Only do something if loaded by names.
     if (!$ids || $this->nameKey == $this->idKey || is_numeric(reset($ids))) {
@@ -760,9 +784,15 @@ class EntityAPIControllerExportable extends EntityAPIController {
   public function view($entities, $view_mode = 'full', $langcode = NULL, $page = NULL) {
     $view = parent::view($entities, $view_mode, $langcode, $page);
 
-    // Re-key the view array to be keyed by name.
-    $key = isset($entity->{$this->nameKey}) ? $entity->{$this->nameKey} : NULL;
-    $view[$this->entityType][$key] = reset($view[$this->entityType]);
+    if ($this->nameKey != $this->idKey) {
+      // Re-key the view array to be keyed by name.
+      $return = array();
+      foreach ($view[$this->entityType] as $id => $content) {
+        $key = isset($content['#entity']->{$this->nameKey}) ? $content['#entity']->{$this->nameKey} : NULL;
+        $return[$this->entityType][$key] = $content;
+      }
+      $view = $return;
+    }
     return $view;
   }
 }

@@ -32,7 +32,7 @@ class RelationQuery extends EntityFieldQuery {
    * @param $entity_type
    *   Entity type of the related entity.
    * @param $entity_id
-   *   Entity id of the related entity.
+   *   Entity id of the related entity. Can be an array of entity IDs.
    * @param $index
    *   The index of the related entity within the requested relation(s).
    *
@@ -40,7 +40,7 @@ class RelationQuery extends EntityFieldQuery {
    */
   function related($entity_type, $entity_id, $index = NULL) {
     $this->fieldCondition('endpoints', 'entity_type', $entity_type, '=', $this->delta_group);
-    $this->fieldCondition('endpoints', 'entity_id', $entity_id, '=', $this->delta_group);
+    $this->fieldCondition('endpoints', 'entity_id', $entity_id, NULL, $this->delta_group);
     if (isset($index)) {
       $this->fieldCondition('endpoints', 'r_index', $index, '=', $this->delta_group);
     }

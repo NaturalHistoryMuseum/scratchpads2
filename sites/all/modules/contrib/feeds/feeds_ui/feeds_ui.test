@@ -29,7 +29,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->createImporterConfiguration('Test feed', 'test_feed');
 
     // Assert UI elements.
-    $this->drupalGet('admin/structure/feeds/edit/test_feed');
+    $this->drupalGet('admin/structure/feeds/test_feed');
     $this->assertText('Basic settings');
     $this->assertText('Fetcher');
     $this->assertText('HTTP Fetcher');
@@ -38,43 +38,43 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $this->assertText('Processor');
     $this->assertText('Node processor');
     $this->assertText('Getting started');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/settings');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/settings/FeedsNodeProcessor');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/fetcher');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/parser');
-    $this->assertRaw('admin/structure/feeds/edit/test_feed/processor');
+    $this->assertRaw('admin/structure/feeds/test_feed/settings');
+    $this->assertRaw('admin/structure/feeds/test_feed/settings/FeedsNodeProcessor');
+    $this->assertRaw('admin/structure/feeds/test_feed/fetcher');
+    $this->assertRaw('admin/structure/feeds/test_feed/parser');
+    $this->assertRaw('admin/structure/feeds/test_feed/processor');
     $this->drupalGet('import');
     $this->assertText('Basic page');
 
     // Select some other plugins.
-    $this->drupalGet('admin/structure/feeds/edit/test_feed');
+    $this->drupalGet('admin/structure/feeds/test_feed');
 
     $this->clickLink('Change', 0);
     $this->assertText('Select a fetcher');
     $edit = array(
       'plugin_key' => 'FeedsFileFetcher',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/fetcher', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/test_feed/fetcher', $edit, 'Save');
 
     $this->clickLink('Change', 1);
     $this->assertText('Select a parser');
     $edit = array(
       'plugin_key' => 'FeedsCSVParser',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/parser', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/test_feed/parser', $edit, 'Save');
 
     $this->clickLink('Change', 2);
     $this->assertText('Select a processor');
     $edit = array(
       'plugin_key' => 'FeedsUserProcessor',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/processor', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/test_feed/processor', $edit, 'Save');
 
     // Assert changed configuration.
     $this->assertPlugins('test_feed', 'FeedsFileFetcher', 'FeedsCSVParser', 'FeedsUserProcessor');
 
     // Delete importer.
-    $this->drupalPost('admin/structure/feeds/delete/test_feed', array(), 'Delete');
+    $this->drupalPost('admin/structure/feeds/test_feed/delete', array(), 'Delete');
     $this->drupalGet('import');
     $this->assertNoText('Test feed');
 
@@ -87,10 +87,10 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
       'content_type' => 'page',
       'import_period' => 3600,
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/settings', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/test_feed/settings', $edit, 'Save');
 
     // Assert results of change.
-    $this->assertText('Edit importer: Syndication');
+    $this->assertText('Syndication feed');
     $this->assertText('Your changes have been saved.');
     $this->assertText('Attached to: Basic page');
     $this->assertText('Periodic import: every 1 hour');
@@ -101,7 +101,7 @@ class FeedsUIUserInterfaceTestCase extends FeedsWebTestCase {
     $edit = array(
       'content_type' => 'article',
     );
-    $this->drupalPost('admin/structure/feeds/edit/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
+    $this->drupalPost('admin/structure/feeds/test_feed/settings/FeedsNodeProcessor', $edit, 'Save');
     $this->assertFieldByName('content_type', 'article');
 
     // Create a feed node.

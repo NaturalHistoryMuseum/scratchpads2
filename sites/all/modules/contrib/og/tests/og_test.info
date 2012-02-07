@@ -1,0 +1,12 @@
+name = Organic groups test module
+description = Functionality to assist Organic groups testing.
+core = 7.x
+dependencies[] = og
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2011-12-05
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "og"
+datestamp = "1323088183"
+

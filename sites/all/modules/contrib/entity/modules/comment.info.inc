@@ -7,6 +7,7 @@
 
 /**
  * Implements hook_entity_property_info() on top of comment module.
+ *
  * @see entity_entity_property_info()
  */
 function entity_metadata_comment_entity_property_info() {
@@ -65,12 +66,14 @@ function entity_metadata_comment_entity_property_info() {
     'description' => t("The URL of the comment."),
     'getter callback' => 'entity_metadata_entity_get_properties',
     'type' => 'uri',
+    'computed' => TRUE,
   );
   $properties['edit_url'] = array(
     'label' => t("Edit URL"),
     'description' => t("The URL of the comment's edit page."),
     'getter callback' => 'entity_metadata_comment_get_properties',
     'type' => 'uri',
+    'computed' => TRUE,
   );
   $properties['created'] = array(
     'label' => t("Date created"),
@@ -91,7 +94,6 @@ function entity_metadata_comment_entity_property_info() {
     'label' => t("Node"),
     'description' => t("The node the comment was posted to."),
     'type' => 'node',
-    'getter callback' => 'entity_metadata_comment_get_properties',
     'setter callback' => 'entity_metadata_comment_setter',
     'setter permission' => 'administer comments',
     'required' => TRUE,
@@ -101,11 +103,21 @@ function entity_metadata_comment_entity_property_info() {
     'label' => t("Author"),
     'description' => t("The author of the comment."),
     'type' => 'user',
-    'getter callback' => 'entity_metadata_comment_get_properties',
-    'setter callback' => 'entity_metadata_comment_setter',
+    'setter callback' => 'entity_property_verbatim_set',
     'setter permission' => 'administer comments',
     'required' => TRUE,
     'schema field' => 'uid',
+  );
+  $properties['status'] = array(
+    'label' => t("Status"),
+    'description' => t("Whether the comment is published or unpublished."),
+    'setter callback' => 'entity_property_verbatim_set',
+    // Although the status is expected to be boolean, its schema suggests
+    // it is an integer, so we follow the schema definition.
+    'type' => 'integer',
+    'options list' => 'entity_metadata_status_options_list',
+    'setter permission' => 'administer comments',
+    'schema field' => 'status',
   );
   return $info;
 }

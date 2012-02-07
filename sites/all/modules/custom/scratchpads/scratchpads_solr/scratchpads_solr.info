@@ -1,0 +1,10 @@
+name = "Scratchpads Solr search results for content types"
+description = "Allows a user to specify that a content type should use Solr as the way of viewing the content."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = apachesolr_search
+dependencies[] = apachesolr_multisitesearch
+dependencies[] = facetapi
+dependencies[] = context
+dependencies[] = scratchpads_pages
+files[] = ScratchpadsSolrBaseQuery.php

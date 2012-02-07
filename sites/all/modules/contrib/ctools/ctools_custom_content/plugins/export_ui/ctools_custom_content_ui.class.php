@@ -3,6 +3,11 @@
 class ctools_custom_content_ui extends ctools_export_ui {
 
   function edit_form(&$form, &$form_state) {
+    // Correct for an error that came in because filter format changed.
+    if (is_array($form_state['item']->settings['body'])) {
+      $form_state['item']->settings['format'] = $form_state['item']->settings['body']['format'];
+      $form_state['item']->settings['body'] = $form_state['item']->settings['body']['value'];
+    }
     parent::edit_form($form, $form_state);
 
     $form['category'] = array(

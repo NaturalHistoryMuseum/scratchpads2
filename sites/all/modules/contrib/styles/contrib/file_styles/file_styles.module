@@ -1,0 +1,228 @@
+<?php
+
+/**
+ *  @file styles/contrib/file_styles/file_styles.module
+ *  File widget formatter definitions.
+ */
+
+// A registry of variable_get defaults.
+include_once('includes/file_styles.variables.inc');
+
+/**
+ * Implementation of Styles module hook_styles_register().
+ */
+function file_styles_styles_register() {
+  return array(
+    'FileStyles' => array(
+      'field_types' => 'file',
+      'name' => t('file'),
+      'description' => t('file styles'),
+      'path' => drupal_get_path('module', 'file_styles') .'/includes/styles',
+      'file' => 'FileStyles.inc',
+    ),
+  );
+}
+
+/**
+ * Styles filter callback.
+ *
+ * This will determine the correct style container corresponding to media type.
+ *
+ * @param $object
+ *   A file object with a uri value specified in the $object->uri. Note: the
+ *   file object may also be sent in a wrapper (Eg, $object->file->uri).
+ * @param $element
+ *   The element parameter is ignored by this callback.
+ */
+function file_styles_styles_filter($object, $element = NULL) {
+  // Remove the wrapper object from around the actual file, if provided.
+  if (isset($object->file) && is_object($object->file)) {
+    $object = $object->file;
+  }
+
+  // Ensure we're working against the fully loaded file object.
+  $object = file_styles_uri_to_object($object->uri, TRUE);
+
+  // Allow other modules to define their own file styles.
+  // In general, they'll most likely want to check against the mimetype.
+  $containers = styles_default_containers('file');
+  $filters = module_invoke_all('file_styles_filter', $object);
+
+  foreach ($filters as $filter) {
+    if (isset($containers['containers'][$filter])) {
+      return $filter;
+    }
+  }
+
+  // Now check the part of the mimetype before the slash.
+  // Note that we can't use strstr($haystack, $needle, $before_needle)
+  // < PHP 5.3, so we need a work-around.
+  $filter = file_styles_strstr($object->filemime, '/', TRUE);
+  if (isset($containers['containers'][$filter])) {
+    return $filter;
+  }
+
+  // Fallback to default.
+  return 'default';
+}
+
+/**
+ * Support for strstr with $before_needle < PHP 5.3.
+ */
+function file_styles_strstr($haystack, $needle, $before_needle = FALSE){
+  if ($before_needle) {
+    list($var) = explode($needle, $haystack, 2);
+    return $var;
+  }
+  return strstr($haystack, $needle);
+}
+
+/**
+ * Return the path to the image for previews in Styles UI.
+ *
+ * If it doesn't yet exist, then copy the source to the files directory.
+ *
+ * @param boolean $replace
+ *  If TRUE, then replace the file.
+ *
+ * @return mixed
+ *  The path to the image preview file, or FALSE if unable to copy.
+ */
+function file_styles_preview_image($replace = FALSE) {
+  $path = file_styles_variable_get('preview_image');
+  if (!$path || $replace) {
+    $dir = file_default_scheme() . '://' . file_styles_variable_get('preview_image_directory');
+    if (file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
+      $source = file_styles_variable_get('image_style_preview_image');
+      if ($path = file_unmanaged_copy($source, $dir . '/' . basename($source), FILE_EXISTS_REPLACE)) {
+        file_styles_variable_set('preview_image', $path);
+      }
+    }
+  }
+  return $path;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function file_styles_theme($existing, $type, $theme, $path) {
+  return array(
+    'file_styles_image' => array(
+      'variables' => array('image_uri' => '', 'alt' => '', 'title' => '', 'attributes' => array(), 'image_style' => NULL, 'instance' => NULL),
+      'file' => 'file_styles.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
+    'file_styles_image_preview' => array(
+      'variables' => array('style_name' => NULL),
+      'file' => 'file_styles.theme.inc',
+      'path' => $path . '/includes/themes',
+    ),
+  );
+}
+
+/**
+  * Returns a file object which can be passed to file_save().
+  *
+  * @param $uri
+  *   A string containing the URI, path, or filename.
+  * @param $use_existing
+  *   (Optional) If TRUE and there's an existing file in the {file_managed}
+  *   table with the passed in URI, then that file object is returned.
+  *   Otherwise, a new file object is returned.
+  * @return
+  *   A file object, or FALSE on error.
+  *
+  * @see http://drupal.org/node/685818
+  */
+function file_styles_uri_to_object($uri, $use_existing = FALSE) {
+  if ($use_existing) {
+    $query = db_select('file_managed', 'f')
+      ->fields('f', array('fid'))
+      ->condition('uri', $uri)
+      ->execute()
+      ->fetchCol();
+    if (!empty($query)) {
+      $file = file_load(array_shift($query));
+    }
+  }
+  if (!isset($file)) {
+    global $user;
+    $uri = file_stream_wrapper_uri_normalize($uri);
+    $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
+    $file = new StdClass;
+    $file->uid = $user->uid;
+    $file->filename = basename($uri);
+    $file->uri = $uri;
+    $file->filemime = file_get_mimetype($uri);
+    // This is gagged because some uris will not support it.
+    $file->filesize = @filesize($uri);
+    $file->timestamp = REQUEST_TIME;
+    $file->status = FILE_STATUS_PERMANENT;
+    $file->is_new = TRUE;
+  }
+  return $file;
+}
+
+/**
+ * Implements hook_image_style_save().
+ */
+function file_styles_image_style_save($image_style) {
+  // Rebuild the styles to account for any new image styles.
+  styles_style_flush();
+}
+
+/**
+ * Implements hook_image_style_delete().
+ */
+function file_styles_image_style_delete($image_style) {
+// Rebuild the styles to account for any deleted image styles.
+styles_style_flush();
+}
+
+function file_styles_display_info_defaults($file_type, $view_mode, $style_name) {
+  $formatter_name = 'file_field_styles_file_' . $style_name;
+  $display = array('status' => 1, 'weight' => 0);
+  $displays_original = file_displays_load($file_type, $view_mode, TRUE);
+  if (!isset($displays_original[$formatter_name])) {
+    $display_original = file_display_new($file_type, $view_mode, $formatter_name);
+    $display += (array) $display_original;
+    file_display_save((object) $display);
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * Add view modes to the file entity type, appropriate for displaying media.
+ */
+function file_styles_entity_info_alter(&$entity_info) {
+  if (module_exists('file_entity')) {
+    $styles = styles_default_styles('file');
+    foreach ($styles['styles'] as $style_name => $style) {
+      if (!isset($entity_info['file']['view modes']['media_' . $style_name])) {
+        $label = isset($style['label']) ? $style['label'] : ucfirst($style_name);
+        $view_mode = 'file_styles_' . $style_name;
+        $entity_info['file']['view modes'][$view_mode] = array('label' => t($label), 'custom settings' => TRUE);
+        foreach ($entity_info['file']['bundles'] as $file_type => $bundle_info) {
+          file_styles_display_info_defaults($file_type, $view_mode, $style_name);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function file_styles_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'entity_info_alter') {
+    // Move my_module_rdf_mapping() to the end of the list. module_implements()
+    // iterates through $implementations with a foreach loop which PHP iterates
+    // in the order that the items were added, so to move an item to the end of
+    // the array, we remove it and then add it.
+    $group = $implementations['file_styles'];
+    unset($implementations['file_styles']);
+    $implementations['file_styles'] = $group;
+  }
+}
+

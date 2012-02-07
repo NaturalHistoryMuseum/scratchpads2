@@ -1,0 +1,137 @@
+<?php /* -*- mode: php; indent-tabs-mode: nil; tab-width: 2; -*- */
+
+/**
+ * @file
+ * Allowed time-based automatic unlocking of nodes locked for editing with content_lock.
+ */
+
+/**
+ * Implement hook_form_FORM_ID_alter() to append settings to
+ * content_lock's settings page.
+ */
+function content_lock_timeout_form_content_lock_admin_settings_alter(&$form, &$form_state) {
+  $form['content_lock_timeout'] = array(
+     '#type' => 'fieldset',
+     '#title' => t('Lock Timeouts'),
+     '#description' => t('Configure automatic stale lock breaking.'),
+     '#collapsible' => TRUE,
+  );
+
+  $form['content_lock_timeout']['content_lock_timeout_minutes'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Lock timeout'),
+     '#description' => t('The maximum time in minutes that each lock may be kept. To disable breaking locks after a timeout, please !disable the Content Lock Timeout module.',
+                         array('!disable' => l(t('disable'), 'admin/build/modules', array('fragment' => 'edit-status-content-lock-timeout-wrapper')))),
+     '#default_value' => variable_get('content_lock_timeout_minutes', 30),
+  );
+  $form['content_lock_timeout']['content_lock_timeout_on_edit'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Break stale locks on edit'),
+     '#description' => t('By default, stale locks will be broken when cron is run. This option enables checking for stale locks when a user clicks a node\'s Edit link, enabling lower lock timeout values without having to run cron every few minutes.'),
+     '#default_value' => variable_get('content_lock_timeout_on_edit', TRUE),
+  );
+
+  // Apply some form beautification
+  $form['buttons']['#weight'] = 2;
+
+  $form['#validate'][] = 'content_lock_timeout_admin_settings_validate';
+}
+
+/**
+ * Validation handler for the altered content_lock_admin_settings form.
+ */
+function content_lock_timeout_admin_settings_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['content_lock_timeout_minutes'])
+      || $form_state['values']['content_lock_timeout_minutes'] <= 0) {
+    form_set_error('content_lock_timeout_minutes', t('You must set your content lock timeout value to a positive number.'));
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ *
+ * Breaks batches of stale locks whenever the cron hooks are
+ * run. Inspired by original content_lock_cron() (leftover from the
+ * checkout module).
+ */
+function content_lock_timeout_cron() {
+  $timeout_minutes = variable_get('content_lock_timeout_minutes', 30);
+  $last_valid_time = time() - 60 * $timeout_minutes;
+
+  // We call content_lock_release() for each lock so that the
+  // hook_content_lock_released may be invoked.
+  $query = db_select('content_lock', 'c')
+    ->fields('c', array('nid'))
+    ->condition('c.timestamp', $last_valid_time, '<');
+  $count = 0;
+  foreach ($query->execute() as $obj) {
+    content_lock_release($obj->nid);
+    $count++;
+  }
+
+  if ($count) {
+    $period = format_interval($timeout_minutes * 60);
+    watchdog('content_lock_timeout', 'Released @count stale node locks which lasted at least @period.',
+             array('@count' => $count, '@period' => $period));
+  }
+}
+
+/**
+ * Implemention of hook_form_alter().
+ *
+ * Break stale locks on edit. 
+ *
+ * Breaks an individual lock when a user attempts to edit a form. This
+ * way, if the lock timeout is a low value such as 20 minutes and cron
+ * only runs every few hours, a workflow of quick lock breaks can be
+ * maintained.
+ */
+function content_lock_timeout_node_prepare($node) {
+  global $user;
+  if (!variable_get('content_lock_timeout_on_edit', TRUE)) {
+    return;
+  }
+  $timeout_minutes = variable_get('content_lock_timeout_minutes', 30);
+
+  $last_valid_time = time() - 60 * $timeout_minutes;
+  if (!empty($node->nid)                        // This is a new, unsaved node (which thus can't be locked).
+    && is_object($lock = content_lock_fetch_lock($node->nid)) // There already is a lock on this node.
+    && $lock->uid != $user->uid                 // A different user owns the lock.
+    && $lock->timestamp < $last_valid_time      // This is a stale lock.
+
+      // Now check a subset of the conditions that content_lock_form_alter()
+      // checks before it sets a lock. Many of the checks don't apply because
+      // we know the uid of the lock is different from the current user's uid
+      // and that the node already exists. That is, we don't need as many checks
+      // because there's already a lock on this node.
+    && user_access('check out documents')       // The user must have this permission to be able to lock
+    && ($user->uid > 0)              // A valid user is needed for locking
+    ) {
+    content_lock_release($node->nid, $lock->uid);
+
+    if (_content_lock_verbose()) {
+      $username = theme('username', array('account' => user_load($lock->uid)));
+      $date = format_date($lock->timestamp, 'medium');
+      $stale_time = format_interval($last_valid_time - $lock->timestamp);
+      drupal_set_message(t('Breaking existing lock by !name so that you may edit this node. (This lock was set on @date and was @stale_time stale.)',
+          array('!name' => $username, '@date' => $date, '@stale_time' => $stale_time)));
+    }
+  }
+}
+
+/**
+ * Implementation of hook_content_lock_locked().
+ *
+ * Informs user that his lock will be considered stale.
+ */
+function content_lock_timeout_content_lock_locked($nid, $uid) {
+  if(_content_lock_verbose()) {
+    $on_edit = '';
+    if (variable_get('content_lock_timeout_on_edit', TRUE)) {
+      $on_edit = ' and up for grabs';
+    }
+    $time = format_interval(variable_get('content_lock_timeout_minutes', 30) * 60);
+    drupal_set_message(t('Your lock will be considered stale' . $on_edit . ' in @time.',
+                         array('@time' => $time)));
+  }
+}

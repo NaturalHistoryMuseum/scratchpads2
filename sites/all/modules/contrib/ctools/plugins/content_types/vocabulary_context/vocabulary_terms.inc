@@ -10,7 +10,7 @@ if (module_exists('taxonomy')) {
     'title' => t('Vocabulary terms'),
     'icon' => 'icon_vocabulary.png',
     'description' => t('All the terms in a vocabulary.'),
-    'required context' => new ctools_context_required(t('Vocabulary'), 'vocabulary'),
+    'required context' => new ctools_context_required(t('Vocabulary'), 'entity:taxonomy_vocabulary'),
     'category' => t('Vocabulary'),
     'defaults' => array('max_depth' => 0, 'tree' => 1),
   );

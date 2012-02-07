@@ -54,7 +54,6 @@
     }
     if(Drupal['settings']['tree_widget'][name_no_array] && Drupal['settings']['tree_widget'][name_no_array]['max']>0) {
       var checked_count = $('input[name="' + item.attr('name') + '"]:checked').length;
-      console.log(Drupal['settings']['tree_widget']);
       if(checked_count >= Drupal['settings']['tree_widget'][name_no_array]['max']) {
         $('input[name="' + item.attr('name') + '"]:not(:checked)').attr(
             'disabled', 'disabled');

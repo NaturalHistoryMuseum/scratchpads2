@@ -13,16 +13,17 @@ function relation_type_list() {
   $field_ui = module_exists('field_ui');
   $headers = array(
     array('data' => t('Name'), 'width' => '40%'),
-    array('data' => t('Operations'), 'colspan' => $field_ui ? '4' : '2'));
+    array('data' => t('Operations'), 'colspan' => $field_ui ? 5 : 3));
   $rows = array();
   foreach ($relation['relation']['bundles'] as $type => $relation_type) {
     $url = 'admin/structure/relation/manage/' . $type;
-    $row = array(l($type, $url));
+    $row = array(l($relation_type['label'], $url));
     $row[] = l(t('edit'), $url . '/edit');
     if ($field_ui) {
       $row[] =  l(t('manage fields'), $url . '/fields');
       $row[] =  l(t('display fields'), $url . '/display');
     }
+    $row[] =  l(t('export'), $url . '/export');
     $row[] =  l(t('delete'), $url . '/delete');
     $rows[] = $row;
   }
@@ -47,9 +48,10 @@ function relation_type_form($form, &$form_state, $relation_type = array(), $op =
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'relation') . '/relation.admin.css',
   );
+
   if ($relation_type) {
     $relation_type = (object) $relation_type;
-    if ($relation_type) {
+    if (empty($relation_type->in_code_only)) {
       $form['#write_record_keys'][] = 'relation_type';
     }
   }
@@ -71,7 +73,7 @@ function relation_type_form($form, &$form_state, $relation_type = array(), $op =
   $form['labels'] = array(
     '#type' => 'container',
     '#attributes' => array(
-      'class' => array('relation-type-form-float'),
+      'class' => array('relation-type-form-table'),
     ),
     '#suffix' => '<div class="clearfix"></div>',
   );
@@ -133,7 +135,7 @@ function relation_type_form($form, &$form_state, $relation_type = array(), $op =
     '#default_value'  => $relation_type->r_unique,
   );
   // these should probably be changed to numerical (validated) textfields.
-  $options = array('2' => '2', '3' => '3', '4' => '4', '5' => '5', '8' => '8');
+  $options = array('2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7', '8' => '8');
   $form['advanced']['min_arity'] = array(
     '#type' => 'select',
     '#title' => t('Minimum Arity'),
@@ -147,7 +149,7 @@ function relation_type_form($form, &$form_state, $relation_type = array(), $op =
     ),
   );
 
-  $options = array('2' => '2', '3' => '3', '4' => '4', '5' => '5', '8' => '8', '0' => t('Infinite'));
+  $options = array('2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7', '8' => '8', '0' => t('Infinite'));
   $form['advanced']['max_arity'] = array(
     '#type' => 'select',
     '#title' => t('Maximum Arity'),
@@ -174,7 +176,7 @@ function relation_type_form($form, &$form_state, $relation_type = array(), $op =
   $form['endpoints'] = array(
     '#type' => 'container',
     '#attributes' => array(
-      'class' => array('relation-type-form-float'),
+      'class' => array('relation-type-form-table'),
     ),
     '#suffix' => '<div class="clearfix"></div>',
   );
@@ -320,9 +322,9 @@ function relation_generate_form_submit($form, &$form_state) {
   $types = $form_state['values']['relation_types'];
   $kill = $form_state['values']['relation_kill'];
   if (is_numeric($number) && $number > 0) {
+    include_once drupal_get_path('module', 'relation') . '/relation.drush.inc';
     $types = array_keys(array_filter($types));
     $rids = relation_generate_relations($number, $types, $kill);
-    drupal_set_message(t("Generated %count relations (rids from %first to %last).", array('%count' => count($rids), '%first' => $rids[0], '%last' => end($rids))));
   }
 }
 
@@ -340,9 +342,7 @@ function relation_admin_content() {
 
   // Grab all relations.
   $query = db_select('relation', 'r')->extend('PagerDefault')->extend('TableSort');
-  $query->join('relation_type', 'rt', 'r.relation_type = rt.relation_type');
   $query->fields('r', array('rid', 'relation_type'))
-    ->fields('rt', array('directional'))
     ->limit(50)
     ->orderByHeader($header);
   $relations = $query->execute();
@@ -356,7 +356,8 @@ function relation_admin_content() {
 function theme_relation_admin_content($variables) {
   $relations = $variables['relations'];
   $header = $variables['header'];
-
+	$types = relation_get_types();
+	
   $rows = array();
   if (empty($relations)) {
     // Give a message if there are no relations returned.
@@ -372,7 +373,8 @@ function theme_relation_admin_content($variables) {
       $r = relation_load($relation->rid);
       // Get the endpoints for this relation.
       $endpoints = field_get_items('relation', $r, 'endpoints');
-
+      // Get the type for this relation
+      $type = $types[$r->relation_type];
       if (!empty($endpoints)) {
         $relation_entities = array();
         foreach ($endpoints as $endpoint) {
@@ -404,7 +406,7 @@ function theme_relation_admin_content($variables) {
       $rows[] = array(
         l(t('Relation') . ' ' . $relation->rid, 'relation/' . $relation->rid),
         $relation->relation_type,
-        implode(($relation->directional) ? " -> " : " -- ", $relation_column),
+        implode(($type->directional) ? " -> " : " -- ", $relation_column),
         user_access('edit relations') ? l(t('Edit'), 'relation/' . $relation->rid . '/edit') : '',
         user_access('delete relations') ? l(t('Delete'), 'relation/' . $relation->rid . '/delete') : '',
       );
@@ -412,4 +414,56 @@ function theme_relation_admin_content($variables) {
   }
 
   return theme('table', array('header' => $header, 'rows' => $rows)).theme('pager');
+}
+
+/**
+ * Page callback to import a relation.
+ */
+function relation_type_import($form) {
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Relation type name'),
+    '#description' => t('Enter the machine name to use for this relation type if it is different from the relation type to be imported. Leave blank to use the name of the relation type below.'),
+  );
+  $form['relation_type'] = array(
+    '#type' => 'textarea',
+    '#rows' => 10,
+  );
+  $form['import'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+  return $form;
+}
+
+function relation_type_import_validate($form, &$form_state) {
+  if (substr($form_state['values']['relation_type'], 0, 5) == '<?php') {
+    $form_state['values']['relation_type'] = substr($form_state['values']['relation_type'], 5);
+  }
+  ob_start();
+  eval($form_state['values']['relation_type']);
+  ob_end_clean();
+  if (!is_object($relation_type)) {
+    return form_error($form['relation_type'], t('Unable to interpret relation type code.'));
+  }
+  // relation_type name must be alphanumeric or underscores, no other punctuation.
+  if (!empty($form_state['values']['name']) && preg_match('/[^a-zA-Z0-9_]/', $form_state['values']['name'])) {
+    form_error($form['name'], t('Relation type name must be alphanumeric or underscores only.'));
+  }
+
+  if ($form_state['values']['name']) {
+    $relation_type->relation_type = $form_state['values']['name'];
+  }
+
+  if (relation_type_load($relation_type->relation_type)) {
+    form_set_error('name', t('A relation type by that name already exists; please choose a different name'));
+  }
+  $form_state['relation_type'] = $relation_type;
+}
+
+function relation_type_import_submit($form, &$form_state) {
+  relation_type_save($form_state['relation_type']);
+  $relation_type = $form_state['relation_type']->relation_type;
+  drupal_set_message(t('Successfully imported @relation_type', array('@relation_type' => $relation_type)));
+  $form_state['redirect'] = 'admin/structure/relation/manage/' . $relation_type;
 }

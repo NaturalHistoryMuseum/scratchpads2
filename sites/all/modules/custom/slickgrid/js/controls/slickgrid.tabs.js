@@ -2,17 +2,16 @@
   * Controller for tabbed columns
   */
   (function($) {
-      function SlickGridTabs(dataView, grid, $container)
+      function SlickGridTabs(dataView, grid, $container, defaultTab)
       {
           
           var activeTab;
+          var defaultTabIndex = 0;
           
           function init()
           {
               constructUI();
-              
               grid.onHeaderContextMenu.subscribe(onHeaderContextMenu);
-
           }
 
           function onHeaderContextMenu(e, ui){
@@ -45,6 +44,11 @@
               }
             });      
             grid.setColumns(cols);
+            
+            if(typeof slickgrid !== 'undefined'){
+              $(slickgrid.getContainer()).trigger('onSlickgridTabChanged');
+            }
+            
           }
 
           function constructUI()
@@ -55,16 +59,27 @@
               $(columns).each(function(i, col) {
                 if(typeof col.tab !== 'undefined'){
                  if(tabs.indexOf(col.tab) === -1){
+                   if(typeof defaultTab !== 'undefined' && defaultTab == col.tab){
+                     defaultTabIndex = tabs.length;
+                   }                                      
                    $("<span class='slickgrid-tab' id='"+col.tab+"'>"+col.tab+"</span>").click(handleTabClick).appendTo($container);
                    tabs.push(col.tab);
                  }                                
                 }
-              });  
-
-              $('.slickgrid-tab').eq(0).addClass('active-tab');
-              showTab(tabs[0]);
-              
+              });
+              $('.slickgrid-tab').eq(defaultTabIndex).addClass('active-tab');
+              showTab(tabs[defaultTabIndex]);              
           }
+          
+          function rebuild(){
+            constructUI();
+          }
+          
+          $.extend(this, {
+             // Methods
+             "rebuild": rebuild,
+             "showTab": showTab
+          });
 
           init();
       }

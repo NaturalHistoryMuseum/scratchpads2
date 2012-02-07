@@ -6,34 +6,22 @@
  */
 
 /**
- * Implement hook_install().
+ * Implements hook_uninstall().
  */
-function entity_test_install() {
-  // Auto-create a field for the full name.
-  $field = array(
-    'field_name' => 'entity_test_fullname',
-    'type' => 'text',
-    'cardinality' => 1,
-    'translatable' => FALSE,
-  );
-  field_create_field($field);
+function entity_test_uninstall() {
+  // Bypass entity_load() as we cannot use it here.
+  $types = db_select('entity_test_type', 'et')
+    ->fields('et')
+    ->execute()
+    ->fetchAllAssoc('name');
 
-  $instance = array(
-    'entity_type' => 'entity_test',
-    'field_name' => 'entity_test_fullname',
-    'bundle' => 'main',
-    'label' => 'Full name',
-    'description' => 'Specify your first and last name.',
-    'widget' => array(
-      'type' => 'text_textfield',
-      'weight' => 0,
-    ),
-  );
-  field_create_instance($instance);
+  foreach ($types as $name => $type) {
+    field_attach_delete_bundle('entity_test', $name);
+  }
 }
 
 /**
- * Implement hook_schema().
+ * Implements hook_schema().
  */
 function entity_test_schema() {
   $schema['entity_test'] = array(
@@ -135,3 +123,4 @@ function entity_test_schema() {
   );
   return $schema;
 }
+

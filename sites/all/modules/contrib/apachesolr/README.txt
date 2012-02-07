@@ -25,72 +25,52 @@ Installation
 
 Prerequisite: Java 5 or higher (a.k.a. 1.5.x).  PHP 5.2.4 or higher.
 
-Install the Apache Solr Drupal module as you would any Drupal module.
+Install the Apache Solr Drupal module as you would any Drupal module. Note
+that the Drupal 7.x-1.x branch does not require the SolrPhpClient to
+be installed. All necessary code is now included with this module.
 
-Before enabling it, you must also do the following:
+Before enabling the module, you must have a working Solr server, or be
+subscribed to a service like Acquia Search.
 
-Get the PHP library from the external project. The project is
-found at:  http://code.google.com/p/solr-php-client/
-From the apachesolr module directory, run this command:
+The Debian/Ubuntu packages for Solr should NOT be used to install Solr.
+For example, do NOT install the solr or solr-jetty packages.
 
-svn checkout -r22 http://solr-php-client.googlecode.com/svn/trunk/ SolrPhpClient
-
-Alternately you may download and extract the library from
-http://code.google.com/p/solr-php-client/downloads/list
-
-Make sure to select a r22 archive, either of these two:
-http://solr-php-client.googlecode.com/files/SolrPhpClient.r22.2009-11-09.zip
-http://solr-php-client.googlecode.com/files/SolrPhpClient.r22.2009-11-09.tgz
-
-Note that revision 22 is the currently tested and required revision. 
-Make sure that the final directory is named SolrPhpClient under the apachesolr
-module directory.  
-
-If you are maintaing your code base in subversion, you may choose instead to 
-use svn export or svn externals. For an export (writing a copy to your local
-directory without .svn files to track changes) use:
-
-svn export -r22 http://solr-php-client.googlecode.com/svn/trunk/ SolrPhpClient
-
-Instead of checking out, externals can be used too. Externals can be seen as 
-(remote) symlinks in svn. This requires your own project in your own svn ]
-repository, off course. In the apachesolr module directory, issue the command:
-
-svn propedit svn:externals .
-
-Your editor will open. Add a line
-
-SolrPhpClient -r22 http://solr-php-client.googlecode.com/svn/trunk/
-
-On exports and checkouts, svn will grab the externals, but it will keep the 
-references on the remote server.
-
-Those without svn, etc may also choose to try the bundled Acquia Search
-download, which includes all the items which are not in Drupal.org CVS due to 
-CVS use policy. See the download link here: 
-http://acquia.com/documentation/acquia-search/activation
-
-Download the latest Solr 1.4.x release (e.g. 1.4.1) from:
+Download the latest Solr 1.4.x or 3.x release (e.g. 1.4.1 or 3.5.0) from:
 http://www.apache.org/dyn/closer.cgi/lucene/solr/
 
-Unpack the tarball somewhere not visible to the web (not in your apache docroot
-and not inside of your drupal directory).
+Apache Lucene 3.1, 3.2 or 3.3, have a possible index corruption bug on
+server crash or power loss (LUCENE-3418). Solr 3.4 has a problem
+with SortMissingLast so Solr  3.5.0 is preferred.
+
+Unpack the tarball somewhere not visible to the web (not in your webserver
+docroot and not inside of your Drupal directory).
 
 The Solr download comes with an example application that you can use for
 testing, development, and even for smaller production sites. This
 application is found at apache-solr-1.4.1/example.
 
 Move apache-solr-1.4.1/example/solr/conf/schema.xml and rename it to
-something like schema.bak. Then move the schema.xml that comes with the
-ApacheSolr Drupal module to take its place.
+something like schema.bak. Then move the solr-conf/schema.xml that
+comes with this Drupal module to take its place. If you are using
+Solr 3.5 or later, you can use solr-conf/schema-solr3x.xml instead.
 
 Similarly, move apache-solr-1.4.1/example/solr/conf/solrconfig.xml and rename
-it like solrconfig.bak. Then move the solrconfig.xml that comes with the
-ApacheSolr Drupal module to take its place.
+it like solrconfig.bak. Then move the solr-conf/solrconfig.xml that comes
+with this module to take its place.
 
 Finally, move apache-solr-1.4.1/example/solr/conf/protwords.txt and rename
-it like protwords.bak. Then move the protwords.txt that comes with the
-ApacheSolr Drupal module to take its place.
+it like protwords.bak. Then move the solr-conf/protwords.txt that comes
+with this module to take its place.
+
+Make sure that the conf directory includes the following files - the Solr core
+may not load if you don't have at least an empty file present:
+solrconfig.xml
+schema.xml
+elevate.xml
+mapping-ISOLatin1Accent.txt
+protwords.txt
+stopwords.txt
+synonyms.txt
 
 Now start the solr application by opening a shell, changing directory to
 apache-solr-1.4.1/example, and executing the command java -jar start.jar
@@ -98,7 +78,7 @@ apache-solr-1.4.1/example, and executing the command java -jar start.jar
 Test that your solr server is now available by visiting
 http://localhost:8983/solr/admin/
 
-Now, you should enable the "Apache Solr framework" and "Apache Solr search" 
+Now, you should enable the "Apache Solr framework" and "Apache Solr search"
 modules. Check that you can connect to Solr at ?q=admin/setting/apachesolr
 Now run cron on your Drupal site until your content is indexed. You
 can monitor the index at ?q=admin/settings/apachesolr/index
@@ -107,8 +87,11 @@ The solrconfig.xml that comes with this modules defines auto-commit, so
 it may take a few minutes between running cron and when the new content
 is visible in search.
 
-Enable blocks for facets first at Administer > Site configuration > Apache Solr > Enabled filters,
-then position them as you like at Administer > Site building > Blocks.   
+To use facets you should download facetapi http://drupal.org/project/facetapi
+This module will allow you to define and set facets next to your search pages.
+Once this module is enabled, enable blocks for facets first at
+Administer > Site configuration > Apache Solr > Enabled filters
+then position them as you like at Administer > Site building > Blocks.
 
 Configuration variables
 --------------
@@ -123,7 +106,7 @@ behavior:
  - apachesolr_tags_to_index: the list of HTML tags that the module will index
    (see apachesolr_add_tags_to_document()).
 
-- apachesolr_exclude_nodeapi_types: an array of node types each of which is
+ - apachesolr_exclude_nodeapi_types: an array of node types each of which is
    an array of one or more module names, such as 'comment'.  Any type listed
    will have any listed modules' hook_node_update_index() implementation skipped
    when indexing. This can be useful for excluding comments or taxonomy links.
@@ -138,11 +121,8 @@ behavior:
    the module will requery the Apache Solr for the index structure. Set it to
    your autocommit delay plus a few seconds.
 
- - apachesolr_service_class: the Apache_Solr_Service class used for communicating
-   with the Apache Solr server.
-
  - apachesolr_query_class: the default query class to use.
- 
+
  - apachesolr_index_comments_with_node: TRUE | FALSE. Whether to index comments
    along with each node.
 
@@ -163,11 +143,18 @@ generated at all times when nodes are indexed.  Alternately, set up a re-direct
 in .htaccess to prevent site visitors from accessing the site via more than one
 site address.
 
+Problem:
+The 'Solr Index Queries' test fails with file permission errors.
+
+Solution:
+When running this test you should have your tomcat/jetty running as the same user
+as the user under which PHP runs (often the same as the webserver). This is
+important because of the on-the-fly folder creation within PHP.
 
 
 Themers
 ----------------
 
-See inline docs in apachesolr_theme and apachesolr_search_theme functions 
+See inline docs in apachesolr_theme and apachesolr_search_theme functions
 within apachesolr.module and apachesolr_search.module.
 

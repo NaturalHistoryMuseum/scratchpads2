@@ -81,4 +81,25 @@ class RelationRulesTestCase extends RelationTestCase {
       $this->assertTrue($correct, 'Relation was created by fetching endpoints from another relation and saving it.');
     }
   }
+
+  function testRelationLoadRelatedRules() {
+    if (module_exists('rules')) {
+      $nid = $this->node1->nid;
+      variable_set('relation_rules_test_nid', $nid);
+      module_enable(array('relation_rules_test'));
+      $this->node6 = $this->drupalCreateNode(array('type' => 'article'));
+      for ($i = 1; $i <= 6; $i++) {
+        $property = "node$i";
+        $node = $this->$property;
+        if ($node->nid == $nid) {
+          $this->assertFalse(db_query('SELECT COUNT(*) FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchField(), t('The right node is deleted'));
+        }
+        else {
+          $nids[] = $node->nid;
+        }
+      }
+      $count = count($nids);
+      $this->assertEqual($count, db_query('SELECT COUNT(*) FROM {node} WHERE nid IN (:nids)', array(':nids' => $nids))->fetchField(), t('@count other nodes are found', array('@count' => $count)));
+    }
+  }
 }

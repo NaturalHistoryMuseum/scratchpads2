@@ -1,0 +1,192 @@
+<?php
+
+/**
+ * @file
+ * Determination of user's Country based on IP
+ *
+ * This module uses the IP Address that a user is connected from to deduce
+ * the Country where the user is located.  This method is not foolproof,
+ * because a user may connect through an anonymizing proxy, or may be in
+ * an unusual case, such as getting service from a neighboring country,
+ * or using an IP block leased from a company in another country.
+ * Additionaly, users accessing a server on a local network may be using
+ * an IP that is not assigned to any country (e.g. 192.168.x.x).
+ *
+ * Country determination occurs upon user login.  If a country can be
+ * determined from the IP address, the ISO 3166 2-character country code
+ * is stored in the Drupal $user object as $user->country_iso_code_2.
+ * If no country can be determined, this member is left unset.
+ *
+ * The database used is maintained by ARIN, the American Registry for
+ * Internet Numbers (http://www.arin.net/about_us/index.html), which is
+ * one of the 5 official Regional Internet Registries (RIR) responsible
+ * for assigning IP addresses.  The claim is the database is 98% accurate,
+ * with most of the problems coming from users in less-developed countries.
+ * Regardless, there's no more-authoritive source of this information.
+ *
+ * @author Tim Rohaly.    <http://drupal.org/user/202830>
+ */
+
+
+/** Utility functions for loading IP/Country DB from external sources */
+module_load_include('inc', 'ip2country', 'ip2country');
+
+
+/******************************************************************************
+ * Drupal Hooks                                                               *
+ ******************************************************************************/
+
+
+/**
+ * Implements hook_help().
+ */
+function ip2country_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#ip2country':
+      return t('Detects Country of user based on IP address.');
+      break;
+
+    case 'admin/config/people/ip2country':
+      return t('Configuration settings for the ip2country module.');
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function ip2country_permission() {
+  return array(
+    'administer ip2country' => array(
+      'title'       => t('Administer IP lookup settings'),
+      'description' => t('Configure IP database and module test settings.'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_cron().
+ *
+ * Updates the IP to Country database automatically on a periodic
+ * basis.  Default period is 1 week.
+ */
+function ip2country_cron() {
+  if (variable_get('ip2country_last_update', 0) <=
+      REQUEST_TIME - variable_get('ip2country_update_interval', 604800)) {
+    ip2country_update_database(variable_get('ip2country_rir', 'arin'));
+    variable_set('ip2country_last_update', REQUEST_TIME);
+    if (variable_get('ip2country_watchdog', 1)) {
+      watchdog('ip2country', 'Database updated from @registry server.', array('@registry' => drupal_strtoupper(variable_get('ip2country_rir', 'arin'))), WATCHDOG_NOTICE);
+    }
+  }
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function ip2country_menu() {
+  $items = array();
+
+  $items['admin/config/people/ip2country'] = array(
+    'title'            => 'User location',
+    'description'      => 'Settings for determining user location from IP address.',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('ip2country_admin_settings'),
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'ip2country.admin.inc',
+  );
+  $items['admin/config/people/ip2country/update'] = array(
+    'title'            => 'Update Database',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => '_ip2country_update',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'ip2country.admin.inc',
+  );
+  $items['admin/config/people/ip2country/lookup'] = array(
+    'title'            => 'Lookup IP Address in Database',
+    'access arguments' => array('administer ip2country'),
+    'page callback'    => '_ip2country_lookup',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'ip2country.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_user_login().
+ *
+ * Detects IP and determines country upon user login.
+ */
+function ip2country_user_login(&$edit, &$account) {
+  // Successful login. First determine user's country based on IP
+  $ip = ip_address();
+  $country_code = ip2country_get_country($ip);
+
+  // Now check to see if this user has "administer ip2country" permission
+  // and if debug mode set.  If both are TRUE, use debug information
+  // instead of real information
+  if (user_access('administer ip2country') &&
+      variable_get('ip2country_debug', FALSE)) {
+    $type = variable_get('ip2country_test_type', 0);
+    if ($type == 0) {  // Debug Country entered
+      $country_code = variable_get('ip2country_test_country', 'US');
+    }
+    else {  // Debug IP entered
+      $ip = variable_get('ip2country_test_ip', $ip);
+      $country_code = ip2country_get_country($ip);
+    }
+    drupal_set_message(t('Using DEBUG value for Country - @country', array('@country' => $country_code)));
+  }
+
+  // Finally, save country, if it has been determined
+  if ($country_code) {
+    // Store the ISO country code in the $user object
+    user_save($account, array('country_iso_code_2' => $country_code));
+  }
+}
+
+
+/******************************************************************************
+ * Module Functions                                                           *
+ ******************************************************************************/
+
+
+/**
+ * Gets the ISO 3166 2-character country code from the IP address.
+ *
+ * @param
+ *   IP address.
+ *
+ * @return
+ *   ISO 3166-1 2-character country code for this IP address, or
+ *   FALSE if the lookup failed to find a country.
+ */
+function ip2country_get_country($ip_address) {
+  $ipl = ip2long($ip_address);
+  if (is_long($ip_address)) {
+    $ipl = ip_address;
+  }
+
+  // Locate IP within range
+  $sql    = "SELECT country FROM {ip2country}
+             WHERE (:start >= ip_range_first AND :end <= ip_range_last) LIMIT 1";
+  $result = db_query($sql, array(':start' => $ipl, ':end' => $ipl))->fetchField();
+
+  return $result;
+}
+
+
+/**
+ * Gets the total count of IP ranges in database.
+ */
+function ip2country_get_count() {
+  $sql   = "SELECT COUNT(*) FROM {ip2country}";
+  $count = db_query($sql)->fetchField();
+  return (int) $count;
+}

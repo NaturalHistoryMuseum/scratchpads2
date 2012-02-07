@@ -11,8 +11,6 @@ var dataView;
 
     // Slickgrid class implementation
     function Slickgrid(container, viewName, viewDisplayID, callbackPath) {
-
-
         var columnFilters = {};
         var objHttpDataRequest;
         var checkboxSelector;
@@ -27,13 +25,13 @@ var dataView;
         
         // Controls
         var undoControl;
+        var tabs;
 
         function init() {
-          
+
             // Set up an ajax commmand to handle any modal form responses
             Drupal.ajax.prototype.commands.slickgrid = handleModalResponse;
-            
-            
+
             $status = $('#slickgrid-status');
             
             // Add row checkboxes if multi edit, delete or clone is enabled
@@ -75,8 +73,8 @@ var dataView;
                 var deleteControl = new Slick.Controls.Delete(dataView, grid, $("#slickgrid-delete"));
             }
             
-            // export control (requires row selection checkbox)                   
-            if (options['export'] && options['row_selection_checkbox']) {
+            // export control                  
+            if (options['export']) {
                 var exportControl = new Slick.Controls.Export(dataView, grid, $("#slickgrid-export"));
             }
 
@@ -110,8 +108,14 @@ var dataView;
             
             // Add tabs control (Needs to come after columnpicker control & hidden columns is added)  
             if (options['tabs']) {
-                var tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"));
+                tabs = new Slick.Controls.Tabs(dataView, grid, $("#slickgrid-tabs"), options['default_active_tab']);
             }
+            
+            if(options['default_filter']){
+              setColumnFilter(options['default_filter']['field'], options['default_filter']['value']);
+            }
+            
+            
             
             // Does the grid have filters that need adding?
             if (options['filterable']) {
@@ -166,18 +170,20 @@ var dataView;
             
             }
 
-
-            
-            
             dataView.endUpdate();
             
             addGridEventHandlers();
+            
+            
 
             // If has_filter is true, there are header filters being used
             // Apply the filter to the dataView
             if (options['filterable']) {
                 dataView.setFilter(filter);
             }
+
+            $(container).trigger('onSlickgridInit');
+            
 
         }
 
@@ -394,13 +400,21 @@ var dataView;
             }
           
           });
-          
+
           return entityIDs;
           
         }
       
 
         function initFilters() {
+          
+            $('#slickgrid-toggle-search-panel').click(function(){              
+              if ($(grid.getHeaderRow()).is(":visible")) {
+                grid.hideHeaderRowColumns();
+              } else {
+                grid.showHeaderRowColumns();
+              }
+            });
 
             updateFilters();
 
@@ -644,6 +658,7 @@ var dataView;
 
           updateStatus(true, errorMessage);
           
+          
         }
         
         function callbackSuccess(response, status){
@@ -734,14 +749,26 @@ var dataView;
             }
 
             updateStatus(status, response.messages);
-            
+          
             
             // If the callback has returned a new data array (which will happen on node clone & node add) reload the data
             if(typeof response.data === 'object'){
               reload(response.data);
             }
             
+            // If the callback has returned a column array, update the columns
+             if(typeof response.columns === 'string'){
+               
+               updateColumns(response.columns);
+               
+             }
+            
           }
+          
+          $(container).trigger('onSlickgridCallback', {
+            status: status,
+            response: response 
+          });
 
         }
         
@@ -828,7 +855,7 @@ var dataView;
             width: 200,
             trigger : 'none',  // Already clicked so manually activate
             cornerRadius: 0,
-            overlap: 7,
+            overlap: 3,
           };
 
           if(typeof content == 'object'){
@@ -855,8 +882,18 @@ var dataView;
           dataView.refresh();
         }
         
+        function updateColumns(updatedColumns){
+          columns = eval('(' + updatedColumns + ')');
+          grid.setColumns(columns);
+          tabs.rebuild();          
+        }
+        
         function setColumnFilter(field, value){
           columnFilters[field] = value;  
+        }
+        
+        function getContainer(){
+          return container;
         }
                 
         
@@ -867,12 +904,13 @@ var dataView;
            "getViewName":            getViewName,
            "getViewDisplayID":       getViewDisplayID,
            "getEntityIDs":           getEntityIDs,
+           "getContainer":           getContainer,
            "openDialog":             openDialog,
            "closeDialog":            closeDialog,
            "getCallbackPath":        getCallbackPath,
            "reload":                 reload,
            'setColumnFilter':        setColumnFilter,
-            'updateFilters':         updateFilters
+           'updateFilters':         updateFilters
         });
 
         init();

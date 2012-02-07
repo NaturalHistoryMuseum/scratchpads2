@@ -1,0 +1,5 @@
+name = Scratchpads blocks
+description = Custom blocks for the scratchpads theme.
+package = "Scratchpads theme"
+core = 7.x
+dependencies[] = prepopulate

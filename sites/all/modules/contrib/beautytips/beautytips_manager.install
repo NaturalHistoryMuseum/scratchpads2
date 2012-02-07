@@ -21,7 +21,7 @@ function beautytips_manager_schema() {
       ),
       'element' => array(
         'type' => 'varchar',
-        'length' => 255, 
+        'length' => 64, 
         'description' => t('The element to which this beautytips will be applied.'),
       ), 
       'content_type' => array(
@@ -33,19 +33,27 @@ function beautytips_manager_schema() {
         'type' => 'text',
         'description' => t('The content that will be displayed. Depends on content type.'),
       ),
+      'disable_link' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'decription' => t('Whether to disable link or not.'),
+      ),
       'trigger_on' => array(
         'type' => 'varchar',
-        'length' => 255, 
+        'length' => 32, 
         'description' => t('The event that will turn the beautytips on.'),
       ),
       'trigger_off' => array(
         'type' => 'varchar',
-        'length' => 255, 
+        'length' => 32, 
         'description' => t('The event that will turn the beautytips off.'),
       ),
       'style' => array(
         'type' => 'varchar',
-        'length' => 255, 
+        'length' => 64, 
         'description' => t('The style of the beautytip.'),
       ),
       'shrink' => array(
@@ -82,6 +90,12 @@ function beautytips_manager_schema() {
         'type' => 'text',
         'not null' => TRUE,
         'description' => t('Contains a list of paths on which to include/exclude the beautytip, depending on "visibility" setting.'),
+      ),
+      'enabled' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'description' => t('Whether or not this tip is enabled'),
       ),
     ),
     'primary key' => array('id'),
@@ -201,3 +215,46 @@ function beautytips_manager_schema() {
   return $schema;
 }
 
+/**
+ * Update to add enabled field.
+ */
+function beautytips_manager_update_7000() {
+  $ret = array();
+
+  // Make sure this field doesn't already exist.
+  if (db_field_exists('beautytips_custom_tips', 'enabled')) {
+    return $ret;
+  }
+
+  $spec = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'description' => t('Whether or not this tip is enabled'),
+  );
+  db_add_field('beautytips_custom_tips', 'enabled', $spec);
+  return $ret;
+}
+
+/**
+ * Update to add enabled field.
+ */
+function beautytips_manager_update_7001() {
+  $ret = array();
+
+  // Make sure this field doesn't already exist.
+  if (db_field_exists('beautytips_custom_tips', 'disable_link')) {
+    return $ret;
+  }
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'decription' => t('Whether to disable link or not.'),
+  );
+
+  db_add_field('beautytips_custom_tips', 'disable_link', $spec);
+  return $ret;
+}

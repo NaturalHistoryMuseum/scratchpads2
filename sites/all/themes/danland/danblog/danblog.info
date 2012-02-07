@@ -1,0 +1,36 @@
+; $Id: danblog.info,v 1.4.2.3 2010/11/25 01:16:24 danprobo Exp $
+
+name = Danblog
+description = Danland sub theme. Danland with no frontpage image banner and slideshow.
+engine = phptemplate
+base theme = danland
+stylesheets[all][] = danblog.css
+regions[search_box] = Search region
+regions[superfish_menu] = Superfish menu
+regions[page_top] = Page top
+regions[highlighted] = Highlighted
+regions[preface_first] = Preface first
+regions[preface_middle] = Preface middle
+regions[preface_last] = Preface last
+regions[sidebar_first] = Left sidebar
+regions[sidebar_second] = Right sidebar
+regions[content_top] = Content top
+regions[help] = Help
+regions[content] = Main content
+regions[content_bottom] = Content bottom
+regions[bottom_first] = Bottom first
+regions[bottom_middle] = Bottom middle
+regions[bottom_last] = Bottom last
+regions[bottom_1] = Bottom 1
+regions[bottom_2] = Bottom 2
+regions[bottom_3] = Bottom 3
+regions[bottom_4] = Bottom 4
+regions[footer] = Footer
+regions[page_bottom] = Page bottom
+core = "7.x"
+; Information added by drupal.org packaging script on 2011-01-06
+version = "7.x-1.0"
+core = "7.x"
+project = "danland"
+datestamp = "1294312858"
+

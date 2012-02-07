@@ -1,0 +1,646 @@
+/* This file will hold the main styles for your website. */
+
+html,
+body{
+	margin:0;
+	padding:0;
+	height:100%;
+}
+
+#page{
+  min-height: 100%;
+  position: relative;
+}
+
+#section-content{
+  padding-bottom: 20em;
+}
+
+#section-footer{
+  position:absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Typography */
+
+@font-face {
+    font-family: 'FontinSansBoldItalic';
+    src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot');
+    src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.woff') format('woff'),
+         url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.ttf') format('truetype'),
+         url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.svg#FontinSansBoldItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'FontinSansRegular';
+    src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot');
+    src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.woff') format('woff'),
+         url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.ttf') format('truetype'),
+         url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.svg#FontinSansRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body, h2, #region-sidebar h3{
+    font: 12px/1.5 Verdana,Helvetica,Arial,sans-serif;
+}
+
+h2,
+#region-sidebar h3{
+  text-transform: uppercase;
+  font: 14px/1 Verdana,Helvetica,Arial,sans-serif!important;
+  letter-spacing: normal;
+}
+
+#region-sidebar h2,
+#region-sidebar h3{
+  padding: 0 0 5px 0;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid #D6D6D6;
+}
+
+
+#region-content h2{
+ color: #fff;
+ line-height: 14px;
+ padding: 7px 10px 9px 10px;
+ margin-bottom: 15px;
+}
+
+#region-content article header h2{
+  margin-top: 35px; 
+}
+
+h1, h2, h3, h4, h5, h6{
+  font-weight: normal!important;
+}
+
+h1, 
+h1.site-name, 
+h2.site-name,
+h3{
+	font-family: 'FontinSansRegular', Georgia, serif;
+}
+
+h1, 
+h1.site-name, 
+h2.site-name{
+	font-size: 2.8em!important;
+	line-height: 1.2em;
+	text-transform: none!important;  
+}
+
+h3{
+  font-size: 1.6em;
+  margin: 10px 0 5px 0;
+}
+
+.site-name{
+  letter-spacing: normal;
+}
+
+h1#page-title{
+  line-height: 1.1em;
+  margin: 0 0 17px 0;
+  position: relative;
+  top: -3px;
+  padding-bottom: 3px;
+  border-bottom-style: solid;
+  border-bottom-width: 3px;
+}
+
+h1#front-page-title{
+  font-size: 2.4em!important;
+}
+
+.node-type-biblio h1#page-title{
+  font-size: 2em!important;
+  padding-bottom: 8px;
+}
+
+
+/* Subtitle */
+h1 span{
+  font-size: 0.5em;
+  padding-left: 6px;
+  letter-spacing: normal;
+}
+
+
+.front h1{
+  font-size: 2em;
+}
+
+body,
+#main-menu a:active, 
+#main-menu a.active,
+#main-menu a:hover,
+#main-menu a:focus,
+#main-menu a.active-trail{
+  color: #3E3E3E;
+  letter-spacing: normal;
+}
+
+.section-header .site-name a,
+.section-header h6.site-slogan{
+  color: #fff;
+}
+
+.section-header h6.site-slogan{
+  font-style: italic;
+  letter-spacing: normal;
+  font-size: 1.2em;
+  font-style: italic;
+  word-spacing: 0.1em;
+}
+
+/* Tables */
+table th a{
+  text-decoration: none!important;
+  color: #3E3E3E!important;
+}
+
+table th a img{
+  position: relative;
+  top: -2px;
+  margin-left: 2px;
+}
+
+/************************ Layout *********************/ 
+
+
+
+/* Slide top & bottom */
+
+
+#zone-slide-top-wrapper,
+#zone-slide-bottom-wrapper{
+  background: #262626;
+  text-align: right;
+}
+
+#zone-slide-top-wrapper form#user-login-form{
+  padding: 20px 0 30px 0;
+}
+
+#zone-slide-top-wrapper form#user-login-form .item-list{
+  display: block;
+  margin-top: 10px;
+}
+
+#zone-slide-top-wrapper form#user-login-form .item-list li{
+  display: inline;
+  font-size: 0.9em;
+}
+
+#zone-slide-top-wrapper a, #zone-slide-top-wrapper label{
+  color: #fff;
+}
+
+#zone-slide-top-wrapper form#user-login-form label{
+  display: inline-block;
+  margin-left: 40px;
+  margin-right: 5px;
+}
+
+#zone-slide-top-wrapper form#user-login-form #edit-actions{
+  margin-left: 20px;
+}
+
+#zone-slide-top-wrapper form#user-login-form div{
+  display: inline-block;
+}
+
+a.scratchpads-slide-toggle{
+  position: absolute;
+  right: 0;
+  padding: 0 10px;
+  text-align: center;
+  height: 20px;
+  font-size: 11px;
+  line-height: 16px;
+  background: #262626;
+  text-decoration: none;
+}
+
+#zone-slide-top-wrapper a.scratchpads-slide-toggle{ 
+  bottom: -20px;
+  -khtml-border-radius-bottomleft: 8px;
+  -khtml-border-radius-bottomright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  -moz-border-radius-bottomright: 8px;
+  -webkit-border-bottom-left-radius: 8px;
+  -webkit-border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}  
+
+#zone-slide-bottom-wrapper a.scratchpads-slide-toggle{
+  top: -20px;
+  -khtml-border-radius-topleft: 8px;
+  -khtml-border-radius-topright: 8px;
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -webkit-border-top-left-radius: 8px;
+  -webkit-border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  line-height: 14px;
+}
+
+
+/* Header */
+
+#zone-header{
+  padding-top: 25px;
+}
+
+h1.site-name, 
+h2.site-name {
+  font-size: 40px;
+  margin: 14px 0 8px 0;
+}
+
+.section-header h6.site-slogan{
+  margin: 8px 0 5px 0;
+}
+
+.section-header #region-menu{
+  margin-top: 10px;
+}
+
+#region-header{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#region-header #search-block-form{
+  max-width: 380px;
+}
+
+#region-header #search-block-form div.form-actions{
+  float: right;
+  margin: 0;
+}
+
+#region-header #search-block-form div.form-actions input{
+  margin-right: 0;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: none;
+  text-shadow: none;
+  padding: 7px 12px;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+#region-header #search-block-form .form-item{
+  margin: 0;
+  display: block;
+}
+
+#region-header #search-block-form .form-type-textfield{
+  margin-right: 100px;  
+}
+
+#region-header #search-block-form .form-item input.form-text{
+  height: 26px;
+  margin-top: 1px;
+  width: 100%;
+  background-position: 100% 6px;
+}
+
+#region-header #search-block-form .form-item input.throbbing{
+  background-position: 100% -14px;
+}
+
+#region-header #search-block-form .element-invisible{
+  height: 0;
+  margin: 0;
+}
+
+
+/* Footer */
+
+.zone-footer-wrapper{
+  background: #F1F1F1;
+  padding: 20px 0 30px 0  
+}
+
+/* Footer links & menu */
+
+.block-footer-menu{
+  margin-bottom: 40px;
+}
+
+.block-footer-logos{
+  margin-bottom: 30px;
+}
+
+.block-footer-menu ul,
+.block-footer-logos ul,
+.block-footer-links{
+  text-align: center;
+}
+
+.block-footer-menu ul li,
+.block-footer-logos ul li{
+  display: inline;
+  list-style: none;
+}
+
+.block-footer-menu ul li{
+  margin: 0!important;
+  padding: 0;
+  color: #ACACAC;
+}
+
+.block-footer-menu ul li:not(.last):after{
+  content: "|";
+}
+
+.block-footer-menu ul li a{
+  padding: 0 5px 0 1px;
+}
+
+.block-footer-logos ul li{
+  padding: 0 10px;
+}
+
+/* Creative commons licence */
+
+#block-creative-commons-creative-commons{
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#block-creative-commons-creative-commons p{
+  color: #000;
+}
+
+#block-creative-commons-creative-commons a img{
+  position: relative;
+  top: 3px;
+}
+
+/************************ Content *********************/ 
+
+#zone-content .region{
+  margin-bottom: 30px;
+}
+
+
+/* Breadcrumb */
+.breadcrumb{
+  margin: 13px 0 11px 0;
+  color: #898A8C;
+}
+
+/* Allow for no breadcrumb on front page*/
+.front #section-content{
+  margin-top: 30px;
+}
+
+/* Sidebar */
+#region-sidebar{
+  background-color: #EDEDED;
+}
+
+#region-sidebar .region-inner{
+  padding: 15px 15px 0px 15px;
+}
+
+#region-sidebar ul.menu li{
+  list-style: none;
+  padding: 0;
+}
+
+#region-sidebar ul.menu li a{
+  margin-bottom: 5px;
+  display: block;
+}
+
+ul.menu li{
+  margin-left: 10px;
+}
+
+/* Species pages*/
+
+.logged-in #block-views-species-spm-block{
+  position: relative;
+  top: -30px;
+}
+
+
+/************************ BLOCKS *********************/ 
+
+/* Content */
+
+#region-content .block{
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
+
+#tinytax-search-form{
+  display: none;
+}
+
+/* Sidebar */
+#region-sidebar ul{
+  margin: 8px 0 25px 0;
+  list-style: none!important;
+}
+
+#region-sidebar ul li{
+  margin:10px 0;
+  list-style: none!important;
+}
+
+#region-sidebar ul.facetapi-facetapi-links{
+  margin-bottom: 10px;
+}
+
+#region-sidebar ul.facetapi-facetapi-links li{
+  margin:5px 0;
+}
+
+#region-sidebar a.facetapi-limit-link{
+  display: block;
+  margin-bottom: 20px;
+  text-align: right;
+  font-size: 10px;
+}
+
+
+
+
+/************************ MEDIA GALLERY *********************/ 
+
+.view-species-media .view-content ul{
+  list-style: none;
+  margin-top: 20px;
+  clear: left;
+}
+
+.view-species-media .view-content ul li.views-row,
+.page-gallery .file-image{
+  float: left;
+  margin: 0 10px 10px 0;
+  border: 1px solid #999;
+  list-style: none;
+  background: none;
+}
+
+.view-species-media .attachment  ul li.views-row{
+  float: none;
+  border: 0;
+  margin: 0;
+}
+
+
+/************************ NODES *********************/ 
+
+.node .submitted,
+.eolapi-text-rights{
+  color: #888;
+  font-size: 0.9em;
+  text-align: right;
+}
+
+/* STRIPY DIV GROUPS */
+
+.node .stripy-div-group{
+  margin: 20px 0;
+  border-top: 1px solid #D9DADD;
+}
+
+.node .stripy-div-group .field{
+  border-width: 1px;
+  border-color: #D9DADD;
+  border-style: none solid solid solid;
+  clear: left;
+}
+
+.node .stripy-div-group .odd{
+  background: #F1F4FB;
+}
+
+.node .stripy-div-group .field-label{
+  float: left;
+  width: 200px;
+  text-align: right;
+  padding-right: 5px;
+  font-weight: bold;
+}
+
+.node .stripy-div-group .field-label,
+.node .stripy-div-group .field-items{
+  padding: 6px 0;
+}
+
+.node .stripy-div-group .field-items{
+  margin-left: 205px;
+}
+
+.node .stripy-div-group .field-items{ 
+  border-left: 1px solid #D9DADD;
+  padding-left: 5px;
+}
+
+.node div.item-list ul li{
+  list-style: disc;
+}
+
+
+/* Biblio */
+
+.node-biblio table,
+table.biblio,
+.biblio table{
+  width: 100%;
+  border-width: 1px;
+  border-color: #D9DADD;
+  border-style: solid solid none solid;
+}
+
+.biblio table thead tr,
+table.biblio thead tr{
+  background: #EBEDED;
+}
+
+
+.node-biblio table td.biblio-row-title,
+table.biblio td.biblio-row-title{
+  width: 200px;
+  text-align: right;
+  border-right: 1px solid #D9DADD;
+  font-weight: bold;
+}
+
+.node-biblio table td,
+table.biblio td,
+table.biblio th{
+  padding: 6px 5px;
+}
+
+.node-biblio table tr,
+.biblio table tr,
+table.biblio tr{
+ background: #fff;  
+}
+
+.node-biblio table tr.odd,
+.biblio table tr.odd,
+table.biblio tr.odd{
+ background: #F1F4FB;  
+}
+
+/* Just biblio view & solr table */
+
+.biblio table th,
+table.biblio th{
+  font-weight: bold;
+  vertical-align: middle;
+  border-bottom: 1px solid #D9DADD;
+}
+
+.biblio table td,
+.biblio table th{
+  border-right: 1px solid #D9DADD;
+  padding: 8px 6px;
+}
+
+.biblio table td.active{
+  background: none;
+}
+
+
+.biblio table td.views-field-biblio-authors{
+  width: 200px;
+}
+
+table.biblio td{
+  min-width: 100px;
+}
+
+/****************** SPM *****************/
+.node-spm .field-name-field-spm-map{
+  margin-top: 10px;
+}
+  
+/****************** ADMIN *****************/
+
+/* Fix the contextual links zindex*/
+div.contextual-links-wrapper{
+  z-index:1!important;
+}
+
+div.contextual-links-wrapper ul.contextual-links{
+   z-index:2!important;
+}

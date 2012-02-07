@@ -69,6 +69,7 @@ function ctools_export_ui_process(&$plugin, $info) {
     drupal_set_message(t('The plugin definition of @plugin uses %schema, but it has no export section.', array('%schema' => $plugin['schema'], '@plugin' => $plugin['name'])), 'error');
     return;
   }
+  $plugin['export'] += $schema['export'];
 
   $plugin['export'] += array(
     // Add the identifier key from the schema so we don't have to call

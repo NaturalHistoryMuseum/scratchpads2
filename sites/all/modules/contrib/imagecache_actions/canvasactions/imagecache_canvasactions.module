@@ -1,0 +1,143 @@
+<?php
+
+/**
+ * @file A collection of canvas (layer) type manipulations for imagecache -
+ * including "Watermark"
+ *
+ * Based on first draft of the code by Dimm (imagecache.module 5--1)
+ * http://drupal.org/node/184816
+ *
+ * Rewritten and ported to Imagecache actions API (imagecache.module 5--2) by
+ * dman http://coders.co.nz/
+ *
+ *
+ * Notes about imagecache action extensions. For each action:
+ *
+ * 1: Implement imagecache_HOOK_form($formdata) to define the config form.
+ *
+ * 1a: Implement theme_imagecache_HOOK_form if needed - optional
+ *
+ * 2: Implement imagecache_HOOK_image($image, $data) to DO the process
+ *
+ * 3: Implement theme_imagecache_HOOK($element) to return a text description of
+ * the setting
+ *
+ * 4: Declare the action in HOOK_imagecache_actions()
+ *
+ *
+ * API ref for hook_image()
+ *
+ * @param $image array defining an image file, including  :
+ *
+ *   $image- >source as the filename,
+ *
+ *   $image->info array
+ *
+ *   $image->resource handle on the image object
+ *
+ * @param $action array of settings as defined in your form.
+ *
+ */
+
+// During devel, caching is pointless. Flush it
+// imagecache_action_definitions(TRUE);
+
+if (! function_exists('imagecache_actions_calculate_relative_position') ) {
+  module_load_include('inc', 'imagecache_canvasactions', 'utility');
+}
+
+// @todo There doesn't seem to be a way to specify a file in hook_image_effect_info
+// so placing this here for the time being.
+module_load_include('inc', 'imagecache_canvasactions', 'canvasactions');
+module_load_include('inc', 'imagecache_canvasactions', 'rounded_corners');
+// imageapi extensions
+module_load_include('inc', 'imagcache_actions', 'imageapi_image_overlay.inc');
+
+
+function imagecache_canvasactions_image_effect_info() {
+  $effects = array();
+
+  $effects['canvasactions_definecanvas'] = array(
+    'label' => t('Define canvas'),
+    'help' => t('Define the size of the working canvas and background color, this controls the dimensions of the output image.'),
+    'effect callback' => 'canvasactions_definecanvas_image',
+    'form callback' => 'canvasactions_definecanvas_form',
+    'summary theme' => 'canvasactions_definecanvas_summary',
+  );
+
+  $effects['canvasactions_file2canvas'] = array(
+    'label' => t('Overlay (watermark)'),
+    'help' => t('Choose the file image you wish to use as an overlay, and position it in a layer on top of the canvas.'),
+    'effect callback' => 'canvasactions_file2canvas_image',
+    'form callback' => 'canvasactions_file2canvas_form',
+    'summary theme' => 'canvasactions_file2canvas_summary',
+  );
+
+  $effects['canvasactions_canvas2file'] = array(
+    'label' => t('Underlay (background)'),
+    'help' => t('Choose the file image you wish to use as an background, and position the processed image on it.'),
+    'effect callback' => 'canvasactions_canvas2file_image',
+    'form callback' => 'canvasactions_canvas2file_form',
+    'summary theme' => 'canvasactions_canvas2file_summary',
+  );
+
+  $effects['canvasactions_source2canvas'] = array(
+    'label' => t('Overlay: source image to canvas'),
+    'help' => t('Places the source image onto the canvas for compositing.'),
+    'effect callback' => 'canvasactions_source2canvas_image',
+    'form callback' => 'canvasactions_source2canvas_form',
+    'summary theme' => 'canvasactions_source2canvas_summary',
+  );
+
+  $effects['canvasactions_roundedcorners'] = array(
+    'label' => t('Rounded Corners'),
+    'help' => t('This is true cropping, not overlays, so the result <em>can</em> be transparent.'),
+    'effect callback' => 'canvasactions_roundedcorners_image',
+    'form callback' => 'canvasactions_roundedcorners_form',
+    'summary theme' => 'canvasactions_roundedcorners_summary',
+  );
+
+  $effects['canvasactions_aspect'] = array(
+    'label' => t('Aspect switcher'),
+    'help' => t('Use different effects depending on whether the image is landscape of portrait shaped. This re-uses other preset definitions, and just chooses between them based on the rule.'),
+    'effect callback' => 'canvasactions_aspect_image',
+    'form callback' => 'canvasactions_aspect_form',
+    'summary theme' => 'canvasactions_aspect_summary',
+  );
+
+  return $effects;
+}
+
+
+/**
+ * Need to register the theme functions we expect to use
+ */
+function imagecache_canvasactions_theme() {
+  $util_dir = drupal_get_path('module', 'imagecache_actions');
+  return array(
+    'canvasactions_definecanvas_summary' => array(
+      'file' => 'canvasactions.inc',
+      'variables' => array('data' => NULL),
+    ),
+    'canvasactions_file2canvas_summary' => array(
+      'file' => 'canvasactions.inc',
+      'variables' => array('data' => NULL),
+    ),
+    'canvasactions_source2canvas_summary' => array(
+      'file' => 'canvasactions.inc',
+      'variables' => array('data' => NULL),
+    ),
+    'canvasactions_canvas2file_summary' => array(
+      'file' => 'canvasactions.inc',
+      'variables' => array('data' => NULL),
+    ),
+    'canvasactions_roundedcorners_summary' => array(
+      'file' => 'rounded_corners.inc',
+      'variables' => array('data' => NULL),
+    ),
+    'canvasactions_aspect_summary' => array(
+      'file' => 'canvasactions.inc',
+      'variables' => array('data' => NULL),
+    ),
+  );
+}

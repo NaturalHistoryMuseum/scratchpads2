@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Removes fonts on disable.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function typekit_api_enable() {
+
+  // Weight must be above @font-your-face weight so preprocess comes after
+
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'typekit_api'");
+
+} // typekit_api_enable
+
+/**
+ * Implements hook_disable().
+ */
+function typekit_api_disable() {
+
+  fontyourface_provider_disable('typekit_api');
+  variable_del('typekit_api_token');
+
+} // typekit_api_disable

@@ -1,0 +1,225 @@
+
+
+/* The hierarchical select. */
+.hierarchical-select-wrapper .hierarchical-select .selects {
+  float: left; /* If a block is floated, it won't consume as much width as
+                  available, only just enough. This allows the grippie to
+                  perfectly scale with the with consumed by the selects. */ 
+}
+
+.hierarchical-select-wrapper .hierarchical-select .selects .grippie {
+  clear: left;
+  height: 9px;
+  overflow: hidden;
+  background: #eee url(images/grippie.png) no-repeat center 2px;
+  border: 1px solid #ddd;
+  border-top-width: 0;
+  cursor: s-resize;
+  margin-right: 0.5em; /* Give the grippie the same margin as each select. */
+  min-width: 50px; /* Hack for IE, makes the grip usable, but not yet the same as in other browsers. */
+}
+
+.hierarchical-select-wrapper .hierarchical-select select,
+.hierarchical-select-wrapper .hierarchical-select .add-to-dropbox,
+.hierarchical-select-wrapper .hierarchical-select .create-new-item {
+  margin: 0;
+  margin-right: .5em;
+  margin-bottom: 3px;
+  float: left;
+}
+
+
+/* The flat select (only used in GET forms). */
+.hierarchical-select-wrapper .flat-select {
+  display: none;
+}
+
+
+/* The pseudo-modal window for creating a new item or new level. */
+.hierarchical-select-wrapper .hierarchical-select .create-new-item {
+  padding: .7em;
+  border: 2px outset gray;
+}
+
+.hierarchical-select-wrapper .hierarchical-select .create-new-item {
+  width: 11em;
+}
+
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-create,
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-cancel {
+  float: right;
+  margin: 0;
+  margin-left: .4em;
+}
+
+.hierarchical-select-wrapper .hierarchical-select .create-new-item-input {
+  width: 10.5em;
+  margin: 0;
+  margin-bottom: 1em;
+  float: left;
+  clear: right;
+}
+
+
+/* Level labels styles. */
+.hierarchical-select-level-labels-style-bold .hierarchical-select select option.level-label {
+  font-weight: bold;
+}
+
+.hierarchical-select-level-labels-style-inversed .hierarchical-select select option.level-label {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.hierarchical-select-level-labels-style-underlined .hierarchical-select select option.level-label {
+  text-decoration: underline;
+}
+
+
+/* Child level indicator. */
+.hierarchical-select-wrapper .hierarchical-select option.has-children {
+  background: url(images/arrow.png) no-repeat right center;
+}
+
+
+/* Dropbox limit warning.*/
+p.hierarchical-select-dropbox-limit-warning {
+  padding: 0;
+  color: #F7A54F;
+  font-size: 110%;
+  padding-left: .5em;
+}
+
+
+/* The dropbox table. */
+.hierarchical-select-wrapper .dropbox-title {
+  font-size: 115%;
+  color: #898989;
+  margin-bottom: 0.2em;
+}
+
+.hierarchical-select-wrapper .dropbox {
+  display: inline-block;
+  margin: .5em 0;
+}
+
+.hierarchical-select-wrapper .dropbox table {
+  margin: 0;  
+  width: auto;
+  max-width: 100%;
+  min-width: 20em;
+  color: gray;
+  font-size: 90%;
+  border: 1px solid gray;
+}
+
+tr.dropbox-entry {
+  line-height: 1.3em;
+  padding: .3em .6em;
+}
+
+tr.dropbox-entry.even {
+  background-color: transparent;
+  border-bottom: 1px solid #CCCCCC;
+}
+
+tr.dropbox-entry.odd {
+  background-color: #EDF5FA;
+  border-bottom: 1px solid #CCCCCC;
+}
+
+tr.dropbox-entry.first {
+  border-top: 1px solid gray;
+}
+
+tr.dropbox-entry.last {
+  border-bottom: 1px solid gray;
+}
+
+.dropbox-selected-item {
+  font-weight: bold;
+}
+
+.hierarchical-select-item-separator {
+  padding-left: .5em;
+  padding-right: .5em;
+}
+
+td.dropbox-remove *,
+td.dropbox-remove a:link,
+td.dropbox-remove a:visited {
+  color: #F7A54F;
+  text-decoration: none;
+}
+
+td.dropbox-remove a:hover {
+  text-decoration: underline;
+}
+
+tr.dropbox-is-empty {
+  padding: .5em 1em;
+}
+
+
+/* The "Update" button and help text (used when Javascript is disabled). */
+.hierarchical-select-wrapper .nojs .update-button {
+  margin: 0 0 1em;
+}
+
+.hierarchical-select-wrapper .nojs .help-text {
+  font-size: 90%;
+  color: transparent;
+  display: block;
+  border: 1px dotted black;
+  overflow: hidden;
+  width: 34em;
+  height: 1.2em;
+  padding: .6em;
+  line-height: normal;
+}
+
+.hierarchical-select-wrapper .nojs .help-text:hover {
+  height: auto;
+  width: auto;
+  min-width: 25em;
+  max-width: 45em;
+  color: gray;
+}
+
+.hierarchical-select-wrapper .nojs .help-text .ask-to-hover {
+  color: gray;
+  font-style: italic;
+}
+
+.hierarchical-select-wrapper .nojs .help-text:hover .ask-to-hover {
+  display: none;
+}
+  
+.hierarchical-select-wrapper .nojs .help-text .highlight {
+  text-decoration: underline;
+}
+
+.hierarchical-select-wrapper .nojs .help-text .warning {
+  color: red;
+}
+
+.hierarchical-select-wrapper .nojs .help-text .solutions {
+  margin: 0;
+  padding: 0;
+}
+
+
+/* The 'waiting' class is set dynamically, during a callback to the server. */
+.hierarchical-select-wrapper.waiting {
+  opacity: 0.5;
+
+  /* IE doesn't support CSS 2 properly. */
+  zoom: 1;
+  filter: alpha(opacity=50);
+}
+
+
+/* Use a monospace font for the import/export config code text areas. */
+.hierarchical-select-config-code {
+  font-family: 'Monaco', 'Lucida Console', 'Consolas', monospace;
+}

@@ -6,10 +6,11 @@
     this.countries = new Object();
     // Add Regions sent from server.
     if(this.GM3.libraries.region.regions) {
-      this.add_polygons_by_ids(this.GM3.libraries.region.regions);
+      this.add_polygons_by_ids(this.GM3.libraries.region.regions, false, false, true);
     }
   }
-  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids){
+  // FIXME - Add content from the server and on the server.
+  Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content, autofit){
     if(typeof region_ids != 'object') {
       if(typeof region_ids == 'string') {
         region_ids = new Array(region_ids);
@@ -33,13 +34,13 @@
     if(region_ids_to_add.length) {
       // We need to do this x regions at a time, else the server will complain
       // that the URL is too long
-      if(region_ids_to_add.length > 10){
+      if(region_ids_to_add.length > 10) {
         var region_ids_copy = region_ids_to_add;
         var region_ids = new Array();
         var region_ids_index = -1;
-        for(var i in region_ids_copy){
-          if(i%10 == 0){
-            region_ids_index ++;
+        for( var i in region_ids_copy) {
+          if(i % 10 == 0) {
+            region_ids_index++;
             region_ids[region_ids_index] = new Array();
           }
           region_ids[region_ids_index][region_ids[region_ids_index].length] = region_ids_copy[i];
@@ -48,15 +49,28 @@
         var region_ids = new Array(region_ids);
       }
       var self = this;
-      for(var i in region_ids){
+      for( var i in region_ids) {
         $.getJSON(Drupal.settings.gm3_region.callback + '/' + region_ids[i].join(','), function(data, textStatus, jqXHR){
           for( var i in data) {
+            // "i" is the index of the region returned (0 if we asked for only
+            // one).
             for( var j in data[i]) {
-              for(var k in data[i][j]['coordinates']){
-                for(var l in data[i][j]['coordinates'][k]){
-                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['coordinates'][k][l], false);                  
+              // "j" becomes the ID of the region
+              for( var k in data[i][j]['shape']['coordinates']) {
+                if(data[i][j]['shape']['type'] == 'MultiPolygon') {
+                  for( var l in data[i][j]['shape']['coordinates'][k]) {
+                    // We have a region with multiple shapes.
+                    self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k][l], false);
+                  }
+                } else if(data[i][j]['shape']['type'] == 'Polygon') {
+                  self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k], false);
                 }
               }
+            }
+          }
+          if(typeof autofit != 'undefined' && autofit) {// Change this to be an autozoom option
+            if(self.GM3.max_lat) {
+              self.GM3.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(self.GM3.min_lat, self.GM3.min_lng), new google.maps.LatLng(self.GM3.max_lat, self.GM3.max_lng)));
             }
           }
         })

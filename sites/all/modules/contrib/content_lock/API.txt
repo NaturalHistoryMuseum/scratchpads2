@@ -1,0 +1,8 @@
+The API documentation has moved to using the API documentation
+services available at http://drupalcontrib.org/. Please view the
+documentation at:
+
+http://drupalcontrib.org/api/drupal/contributions--content_lock--content_lock.api.inc
+
+Alternatively, you may read content_lock.api.inc's Doxygen comments
+directly.

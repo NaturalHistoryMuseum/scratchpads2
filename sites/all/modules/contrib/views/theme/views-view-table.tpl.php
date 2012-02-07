@@ -7,7 +7,7 @@
  * - $header: An array of header labels keyed by field id.
  * - $header_classes: An array of header classes keyed by field id.
  * - $fields: An array of CSS IDs to use for each field id.
- * - $class: A class or classes to apply to the table, based on settings.
+ * - $classes: A class or classes to apply to the table, based on settings.
  * - $row_classes: An array of classes to apply to each row, indexed by row
  *   number. This matches the index in $rows.
  * - $rows: An array of row items. Each row is an array of content.
@@ -31,10 +31,10 @@
     </tr>
   </thead>
   <tbody>
-    <?php foreach ($rows as $count => $row): ?>
-      <tr class="<?php print implode(' ', $row_classes[$count]); ?>">
+    <?php foreach ($rows as $row_count => $row): ?>
+      <tr class="<?php print implode(' ', $row_classes[$row_count]); ?>">
         <?php foreach ($row as $field => $content): ?>
-          <td <?php if ($field_classes[$field][$count]) { print 'class="'. $field_classes[$field][$count] . '" '; } ?><?php print drupal_attributes($field_attributes[$field][$count]); ?>>
+          <td <?php if ($field_classes[$field][$row_count]) { print 'class="'. $field_classes[$field][$row_count] . '" '; } ?><?php print drupal_attributes($field_attributes[$field][$row_count]); ?>>
             <?php print $content; ?>
           </td>
         <?php endforeach; ?>

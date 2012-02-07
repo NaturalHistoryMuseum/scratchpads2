@@ -1,0 +1,97 @@
+@CHARSET "UTF-8";
+
+/***************** Overview page *******************/
+
+/* Nomenclature block */
+
+.block-views .item-list ul li.views-row{
+  line-height: 2em;
+  margin: 0;
+}
+
+#block-views-species-nomenclature-block div.label{
+  float:left;
+  clear: left;
+  padding-right: 5px;
+}
+
+#block-views-species-nomenclature-block strong{
+  font-weight: bold;
+}
+
+/* Slideshow */
+
+.view-species-slideshow .view-wrapper{
+  padding: 1px;
+  background: #fff;
+}
+
+.view-species-slideshow .views-slideshow-pager-field-item img{
+  margin-left: 2px;
+  margin-bottom: 2px;
+}
+
+.view-species-slideshow #views_slideshow_pager_field_item_bottom_species_page_slideshow-block_1_2 img{
+  margin-bottom: 0;
+}
+
+.view-species-slideshow .views_slideshow_cycle_main{
+  float: left;
+  position: relative;
+}
+
+.view-species-slideshow .views-field-filename{
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
+
+.view-species-slideshow .views-field-filename span {
+    padding: 0 10px;
+}
+
+#block-views-species-specimens-overview-block .view-content{
+  display: inline-block;
+}
+
+#block-views-species-specimens-overview-block .view-footer{
+  float:right;
+}
+
+/* Show fiew filter links and hide form if javascript is enabled */
+
+a.view-filter{
+  display: none;
+}
+
+.js .view-inline-filters .view-filters form{
+  display: none;
+}
+
+
+.js .view-inline-filters a.view-filter{
+  display: inline;
+}
+
+.attachment {
+margin-bottom: 15px;
+}
+
+.attachment .view-inline-filters,
+.attachment .view-inline-filters div,
+.attachment .view-inline-filters div ul,
+.attachment .view-inline-filters div ul li{
+  display: inline;
+}
+
+.attachment .view-inline-filters ul li{
+  padding-right: 10px;
+}
+
+
+  
+
+

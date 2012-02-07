@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_species_install(){
+	// Ensure my views are top
+  db_query("UPDATE {system} SET weight = -1 WHERE name = 'scratchpads_species'");
+}

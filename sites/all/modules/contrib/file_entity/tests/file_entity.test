@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Test integration for the file_entity module.
+ */
+
+class FileEntityTestHelper extends DrupalWebTestCase {
+  protected $files = array();
+
+  function setUp($modules = array()) {
+    $modules[] = 'file_entity';
+    parent::setUp($modules);
+
+    $this->setUpFiles();
+  }
+
+  function setUpFiles() {
+    $types = array('text', 'image');
+    foreach ($types as $type) {
+      foreach ($this->drupalGetTestFiles($type) as $file) {
+        $this->files[$type][] = file_save($file);
+      }
+    }
+  }
+}
+
+class FileEntityUnitTestCase extends FileEntityTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'File entity unit tests',
+      'description' => 'Test basic file entity funcitonality.',
+      'group' => 'File entity',
+    );
+  }
+
+  /**
+   * Regression tests for core issue http://drupal.org/node/1239376.
+   */
+  function testMimeTypeMappings() {
+    $tests = array(
+      'public://test.ogg' => 'audio/ogg',
+      'public://test.mkv' => 'video/x-m4v',
+      'public://test.mka' => 'audio/x-matroska',
+      'public://test.mkv' => 'video/x-matroska',
+      'public://test.webp' => 'image/webp',
+    );
+    foreach ($tests as $input => $expected) {
+      $this->assertEqual(file_get_mimetype($input), $expected);
+    }
+  }
+
+  function testFileEntity() {
+    $file = reset($this->files['text']);
+
+    // Test entity ID, revision ID, and bundle.
+    $ids = entity_extract_ids('file', $file);
+    $this->assertIdentical($ids, array($file->fid, NULL, 'text'));
+
+    // Test the entity URI callback.
+    $uri = entity_uri('file', $file);
+    $this->assertEqual($uri['path'], "file/{$file->fid}");
+  }
+}
+
+class FileEntityTokenTestCase extends FileEntityTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'File entity tokens',
+      'description' => 'Test the file entity tokens.',
+      'group' => 'File entity',
+    );
+  }
+
+  function testFileEntityTokens() {
+    $tokens = array(
+      'type' => 'Text',
+      'type:name' => 'Text',
+      'type:machine-name' => 'text',
+      'type:count' => count($this->files['text']),
+    );
+    $this->assertTokens('file', array('file' => $this->files['text'][0]), $tokens);
+
+    $tokens = array(
+      'type' => 'Image',
+      'type:name' => 'Image',
+      'type:machine-name' => 'image',
+      'type:count' => count($this->files['image']),
+    );
+    $this->assertTokens('file', array('file' => $this->files['image'][0]), $tokens);
+  }
+
+  function assertTokens($type, array $data, array $tokens, array $options = array()) {
+    $token_input = drupal_map_assoc(array_keys($tokens));
+    $values = token_generate($type, $token_input, $data, $options);
+    foreach ($tokens as $token => $expected) {
+      if (!isset($expected)) {
+        $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+      }
+      elseif (!isset($values[$token])) {
+        $this->fail(t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+      }
+      elseif (!empty($options['regex'])) {
+        $this->assertTrue(preg_match('/^' . $expected . '$/', $values[$token]), t("Token value for [@type:@token] was '@actual', matching regular expression pattern '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+      }
+      else {
+        $this->assertIdentical($values[$token], $expected, t("Token value for [@type:@token] was '@actual', expected value '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+      }
+    }
+
+    return $values;
+  }
+}

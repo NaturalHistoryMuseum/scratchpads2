@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_solr_install(){
+  // Set the search class to use our extended class.
+  variable_set('apachesolr_query_class', array(
+    'file' => 'Solr_Base_Query',
+    'module' => 'apachesolr',
+    'class' => 'ScratchpadsSolrBaseQuery'
+  ));
+  // Set the Solr server
+  db_update('apachesolr_environment')->fields(array(
+    'name' => 'Scratchpad solr server',
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2'
+  ))->condition('env_id', 'solr')->execute();
+  // Ensure we're indexing the requried content types.
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $key => $value){
+    // Note, we execute these separately to avoid errors.
+    @$query = db_insert('apachesolr_index_bundles')->fields(array(
+      'env_id' => 'solr',
+      'entity_type' => 'node',
+      'bundle' => $key
+    ))->execute();
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_solr_uninstall(){
+  // Reset the variable.
+  variable_del('apachesolr_query_class');
+}

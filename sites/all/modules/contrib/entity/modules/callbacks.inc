@@ -45,18 +45,12 @@ function entity_metadata_comment_get_properties($comment, array $options, $name)
     case 'edit_url':
       return url('comment/edit/' . $comment->cid, $options);
 
-    case 'node':
-      return node_load($comment->nid);
-
     case 'parent':
       if (!empty($comment->pid)) {
         return $comment->pid;
       }
       // There is no parent comment.
       return NULL;
-
-    case 'author':
-      return $comment->uid;
   }
 }
 
@@ -72,9 +66,6 @@ function entity_metadata_comment_setter($comment, $name, $value) {
       $node = node_load($value);
       $comment->node_type = 'comment_node_' . $node->type;
       break;
-
-    case 'author':
-      return $comment->uid = $value;
   }
 }
 
@@ -93,7 +84,18 @@ function entity_metadata_comment_get_node_properties($node, array $options, $nam
 }
 
 /**
+ * Return the options lists for the node and comment status property.
+ */
+function entity_metadata_status_options_list() {
+  return array(
+    NODE_PUBLISHED => t('Published'),
+    NODE_NOT_PUBLISHED => t('Unpublished'),
+  );
+}
+
+/**
  * Callback for getting node properties.
+ *
  * @see entity_metadata_node_entity_info_alter()
  */
 function entity_metadata_node_get_properties($node, array $options, $name, $entity_type) {
@@ -109,19 +111,6 @@ function entity_metadata_node_get_properties($node, array $options, $name, $enti
 
     case 'edit_url':
       return url('node/' . $node->nid . '/edit', $options);
-
-    case 'author':
-      return $node->uid;
-  }
-}
-
-/**
- * Callback for setting node properties.
- * @see entity_metadata_node_entity_info_alter()
- */
-function entity_metadata_node_set_properties($node, $name, $value) {
-  if ($name == 'author') {
-    $node->uid = $value;
   }
 }
 
@@ -204,7 +193,7 @@ function entity_metadata_system_get_properties($data = FALSE, array $options, $n
       return url('user', $options);
 
     case 'current_user':
-      return $GLOBALS['user']->uid;
+      return $GLOBALS['user']->uid ? $GLOBALS['user']->uid : drupal_anonymous_user();
 
     case 'current_date':
       return time();
@@ -254,6 +243,7 @@ function entity_metadata_system_get_file_properties($file, array $options, $name
 
 /**
  * Callback for getting term properties.
+ *
  * @see entity_metadata_taxonomy_entity_info_alter()
  */
 function entity_metadata_taxonomy_term_get_properties($term, array $options, $name) {
@@ -264,19 +254,25 @@ function entity_metadata_taxonomy_term_get_properties($term, array $options, $na
     case 'description':
       return check_markup($term->description, isset($term->format) ? $term->format : NULL, '', TRUE);
 
-    case 'vocabulary':
-      return $term->vid;
-
     case 'parent':
       if (isset($term->parent[0]) && !is_array(isset($term->parent[0]))) {
         return $term->parent;
       }
       return array_keys(taxonomy_get_parents($term->tid));
+
+    case 'parents_all':
+      // We have to return an array of ids.
+      $tids = array();
+      foreach (taxonomy_get_parents_all($term->tid) as $parent) {
+        $tids[] = $parent->tid;
+      }
+      return $tids;
   }
 }
 
 /**
  * Callback for setting term properties.
+ *
  * @see entity_metadata_taxonomy_entity_info_alter()
  */
 function entity_metadata_taxonomy_term_setter($term, $name, $value) {
@@ -309,6 +305,10 @@ function entity_metadata_taxonomy_vocabulary_get_properties($vocabulary, array $
  */
 function entity_metadata_user_get_properties($account, array $options, $name, $entity_type) {
   switch ($name) {
+    case 'last_access':
+      // In case there was no access the value is 0, but we have to return NULL.
+      return empty($account->access) ? NULL : $account->access;
+
     case 'last_login':
       return empty($account->login) ? NULL : $account->login;
 
@@ -354,6 +354,16 @@ function entity_metadata_user_roles($property_name = 'roles', $info = array(), $
 }
 
 /**
+ * Return the options lists for user status property.
+ */
+function entity_metadata_user_status_options_list() {
+  return array(
+    0 => t('Blocked'),
+    1 => t('Active'),
+  );
+}
+
+/**
  * Callback defining an options list for language properties.
  */
 function entity_metadata_language_list() {
@@ -392,7 +402,11 @@ function entity_metadata_field_property_get($entity, array $options, $name, $ent
 function entity_metadata_field_property_set($entity, $name, $value, $langcode, $entity_type) {
   $field = field_info_field($name);
   $columns = array_keys($field['columns']);
-  $langcode = isset($langcode) ? $langcode : LANGUAGE_NONE;
+  if (!isset($langcode)) {
+    // Try to figure out the default language used by the entity.
+    // @todo: Update once http://drupal.org/node/1260640 has been fixed.
+    $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+  }
   $values = $field['cardinality'] == 1 ? array($value) : (array) $value;
 
   $items = array();
@@ -443,7 +457,11 @@ function entity_metadata_field_verbatim_get($entity, array $options, $name, $ent
  */
 function entity_metadata_field_verbatim_set($entity, $name, $items, $langcode) {
   $field = field_info_field($name);
-  $langcode = isset($langcode) ? $langcode : LANGUAGE_NONE;
+  if (!isset($langcode)) {
+    // Try to figure out the default language used by the entity.
+    // @todo: Update once http://drupal.org/node/1260640 has been fixed.
+    $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+  }
   $value = $field['cardinality'] == 1 ? array($items) : (array) $items;
   // Filter out any items set to NULL.
   $entity->{$name}[$langcode] = array_filter($value);
@@ -701,7 +719,9 @@ function entity_metadata_delete_file($fid) {
  * Callback to view nodes.
  */
 function entity_metadata_view_node($entities, $view_mode = 'full', $langcode = NULL) {
-  return node_view_multiple($entities, $view_mode, 0, $langcode);
+  $result = node_view_multiple($entities, $view_mode, 0, $langcode);
+  // Make sure to key the result with 'node' instead of 'nodes'.
+  return array('node' => reset($result));
 }
 
 /**

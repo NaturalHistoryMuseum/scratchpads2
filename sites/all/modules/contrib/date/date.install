@@ -1,5 +1,4 @@
 <?php
-// $Id: date.install,v 1.25 2011/01/18 00:37:34 karens Exp $
 /**
  * @file
  * Installation code for CCK date module.
@@ -9,34 +8,36 @@ function date_field_schema($field) {
   switch ($field['type']) {
     case 'datestamp':
       $db_columns['value'] = array(
-        'type' => 'int', 
-        'not null' => FALSE, 
-        'sortable' => TRUE, 
+        'type' => 'int',
+        'not null' => FALSE,
+        'sortable' => TRUE,
         'views' => TRUE,
       );
       break;
     case 'datetime':
       $db_columns['value'] = array(
         'type' => 'datetime',
-        'mysql_type' => 'DATETIME',
-        'pgsql_type' => 'timestamp without time zone', 
-        'not null' => FALSE, 
-        'sortable' => TRUE, 
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp without time zone',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => FALSE,
+        'sortable' => TRUE,
         'views' => TRUE,
       );
       break;
     default:
       $db_columns['value'] = array(
-        'type' => 'varchar', 
-        'length' => 20, 
-        'not null' => FALSE, 
-        'sortable' => TRUE, 
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => FALSE,
+        'sortable' => TRUE,
         'views' => TRUE,
       );
       break;
   }
 
-  // If a second date is needed for 'To date', just make a copy of the first one.
+  // If a second date is needed for 'End date', just make a copy of the first one.
   if (!empty($field['settings']['todate'])) {
     $db_columns['value2'] = $db_columns['value'];
 
@@ -47,29 +48,29 @@ function date_field_schema($field) {
   // timezone and offset columns are used only if date-specific dates are chosen.
   if (isset($field['settings']['tz_handling']) && $field['settings']['tz_handling'] == 'date') {
     $db_columns['timezone'] = array(
-      'type' => 'varchar', 
-      'length' => 50, 
-      'not null' => FALSE, 
-      'sortable' => TRUE, 
+      'type' => 'varchar',
+      'length' => 50,
+      'not null' => FALSE,
+      'sortable' => TRUE,
       'views' => FALSE,
     );
     $db_columns['offset'] = array(
-      'type' => 'int', 
-      'not null' => FALSE, 
-      'sortable' => TRUE, 
+      'type' => 'int',
+      'not null' => FALSE,
+      'sortable' => TRUE,
       'views' => FALSE,
     );
     if (!empty($field['settings']['todate'])) $db_columns['offset2'] = array('type' => 'int', 'not null' => FALSE, 'sortable' => TRUE, 'views' => FALSE);
   }
   if (isset($field['settings']['repeat']) && $field['settings']['repeat'] == 1) {
     $db_columns['rrule'] = array(
-      'type' => 'text', 
-      'not null' => FALSE, 
-      'sortable' => FALSE, 
+      'type' => 'text',
+      'not null' => FALSE,
+      'sortable' => FALSE,
       'views' => FALSE,
     );
   }
-  return array('columns' => $db_columns);  
+  return array('columns' => $db_columns);
 }
 
 function date_update_last_removed() {
@@ -77,22 +78,73 @@ function date_update_last_removed() {
 }
 
 /**
- * Move settings that were stored in variables to field formatter settings.
+ * Get rid of the individual formatters for each format type,
+ * these are now settings in the default formatter.
  */
-// TODO, update field formatter settings with the variables, once we know
-// how the field update process will work.
+function date_update_7000() {
+  $instances = field_info_instances();
+  foreach ($instances as $entity_type => $entities) {
+    foreach ($entities as $bundle => $fields) {
+      foreach ($fields as $field_name => $instance) {
+        if (in_array($instance['widget']['type'], array('date_popup'))) {
+          $changed = FALSE;
+          foreach ($instance['display'] as $context => $display) {
+            if ($display['type'] != 'date_default' && $display['type'] != 'date_interval') {
+              $instance['display'][$context]['type'] = 'date_default';
+              $instance['display'][$context]['settings']['format_type'] = str_replace('date_', '', $display['type']);
+              $changed = TRUE;
+            }
+          }
+          if ($changed) {
+            field_update_instance($instance);
+          }
+        }
+      }
+    }
+  }
+}
 
 /**
- * A copy of a D6 function we can use to retrive the formatter settings
- * and return them as an option array.
+ * Get rid of the separate widgets for repeating dates. The code now handles
+ * repeating dates correctly using the regular widgets.
  */
-function date_formatter_get_settings($field_name, $bundle, $context) {
-  $options = array();
-  $value = 'date:' . $bundle . ':' . $context . ':' . $field_name;
-  $options['repeat']['show_repeat_rule'] = variable_get($value . '_show_repeat_rule', 'show');
-  $options['multiple']['multiple_number'] = variable_get($value . '_multiple_number', '');
-  $options['multiple']['multiple_from'] = variable_get($value . '_multiple_from', '');
-  $options['multiple']['multiple_to'] = variable_get($value . '_multiple_to', '');
-  $options['fromto']['fromto'] = variable_get($value . '_fromto', 'both');
-  return $options;
+function date_update_7001() {
+  $query = db_select('field_config_instance', 'fci', array('fetch' => PDO::FETCH_ASSOC));
+  $query->join('field_config', 'fc', 'fc.id = fci.field_id');
+  $query->fields('fci');
+  $query->condition(db_or()->condition('fc.type', 'date')->condition('fc.type', 'datestamp')->condition('fc.type', 'datetime'));
+  $results = $query->execute();
+
+  foreach ($results as $record) {
+    $instance = unserialize($record['data']);
+    if (in_array($instance['widget']['type'], array('date_popup_repeat', 'date_text_repeat', 'date_select_repeat'))) {
+      $instance['widget']['type'] = str_replace('_repeat', '', $instance['widget']['type']);
+      db_update('field_config_instance')
+        ->fields(array(
+          'data' => serialize($instance),
+        ))
+        ->condition('field_name', $record['field_name'])
+        ->condition('entity_type', $record['entity_type'])
+        ->condition('bundle', $record['bundle'])
+        ->execute();
+    }
+  }
+  field_cache_clear();
+  drupal_set_message(t('The widgets for repeating dates have changed. Please check the Display Fields page for each content type that has repeating date fields and confirm that the right widget has been selected.'), 'warning');
+}
+
+/**
+ * Add a notification that there is a new Date All Day module, and enable it.
+ */
+function date_update_7002() {
+  drupal_set_message(t("The <em>All Day</em> functionality has been moved into a separate module. This new module provides the option to add an <em>All Day</em> checkbox to toggle time on and off for date fields. It also contains the theme that displays the <em>All Day</em> text on fields that have no time. For consistency with prior code, it has been automatically enabled. If you don't want the <em>All Day</em> functionality you can disable this module."));
+  module_enable(array('date_all_day'));
+}
+
+/**
+ * Add a notification that there is a new Date Repeat Field module, and enable it.
+ */
+function date_update_7003() {
+  drupal_set_message(t("The <em>Date Repeat</em> integration for Date fields is being moved into a separate module. For consistency with prior code, it has been automatically enabled if the Date Repeat API module is enabled. If you don't use <em>Date Repeat</em> functionality in your fields, you can disable this module."));
+  if (module_exists('date_repeat')) module_enable(array('date_repeat_field'));
 }

@@ -1,0 +1,58 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *   Install and related hooks for apachesolr_indexer_taxonomy.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function apachesolr_term_schema() {
+  $types = array(
+      'term' => 'apachesolr_index_entities_term',
+  );
+  foreach ($types as $type) {
+    $schema[$type] = array(
+      'description' => t('Stores a record of when an entity changed to determine if it needs indexing by Solr.'),
+      'fields' => array(
+        'entity_type' => array(
+          'description' => t('The type of entity.'),
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'entity_id' => array(
+          'description' => t('The primary identifier for an entity.'),
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'bundle' => array(
+          'description' => t('The bundle to which this entity belongs.'),
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'status' => array(
+          'description' => t('Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).'),
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 1,
+        ),
+        'changed' => array(
+          'description' => t('The Unix timestamp when an entity was changed.'),
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+      ),
+      'indexes' => array(
+        'changed' => array('changed', 'status'),
+      ),
+      'primary key' => array('entity_id'),
+    );
+  }
+  return $schema;
+}

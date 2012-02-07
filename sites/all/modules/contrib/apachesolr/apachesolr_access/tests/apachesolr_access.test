@@ -1,7 +1,11 @@
 <?php
-
+/**
+ * @file
+ *   Unit tests for the access control functionalities that are added by
+ *   apachesolr_access.
+ */
 class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Node Access',
       'description' => 'Test Access Control',
@@ -21,6 +25,15 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
       'edit own article content',
     );
     $this->basic_user = $this->drupalCreateUser($permissions);
+    // Create an admin user.
+    $permissions = array(
+      'access content',
+      'search content',
+      'administer nodes',
+      'administer search',
+      'access administration pages',
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
   function testIndexing() {
@@ -61,32 +74,34 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     node_access_write_grants($author_restricted_node, array($author_grant));
 
     // This loads the document class too.
-    $solr = apachesolr_get_solr();
+    $env_id = apachesolr_default_environment();
+    $solr = apachesolr_get_solr($env_id);
 
-    $document = new Apache_Solr_Document();
-    apachesolr_access_apachesolr_update_index($document, $role_restricted_node, 'apachesolr_search');
+    $document = new ApacheSolrDocument();
+    apachesolr_access_apachesolr_index_document_build_node($document, $role_restricted_node, $env_id);
     $field = 'access_node_' . apachesolr_site_hash() . '_nodeaccess_rid';
-    $this->assertEqual($document->{$field}[0], $assigned_role, 'Solr Document being indexed is restricted by the proper role' . print_r(db_query('SELECT * FROM {node_access}')->fetchAllAssoc('nid'),1));
+    $this->assertEqual($document->{$field}[0], $assigned_role, 'Solr Document being indexed is restricted by the proper role' . print_r(db_query('SELECT * FROM {node_access}')->fetchAllAssoc('nid'), 1));
     $this->drupalGet('node');
 
-    $document = new Apache_Solr_Document();
-    apachesolr_access_apachesolr_update_index($document, $author_restricted_node, 'apachesolr_search');
+    $document = new ApacheSolrDocument();
+    apachesolr_access_apachesolr_index_document_build_node($document, $author_restricted_node, $env_id);
     $field = 'access_node_' . apachesolr_site_hash() . '_nodeaccess_author';
     $this->assertEqual($document->{$field}[0], $basic_user->uid, 'Solr Document being indexed is restricted by the proper author');
- 
+
     // Test addition of filters to query.
     $subquery = apachesolr_access_build_subquery($basic_user);
 
     $expected_criterion = array(
       'access__all' => 0,
       'access_node_' . apachesolr_site_hash() . '_all' => 0,
+      // The node access_test module writes this as of core 7.3.
+      'access_node_' . apachesolr_site_hash() . '_node_access_test_author' => $basic_user->uid,
       // @todo - we need to check grants provided by node_access_test module.
  //     'access_node_' . apachesolr_site_hash() . '_nodeaccess_rid' => array(2, $assigned_role),
  //     'access_node_' . apachesolr_site_hash() . '_nodeaccess_uid' => $basic_user->uid,
- //     'access_node_' . apachesolr_site_hash() . '_nodeaccess_author' => $basic_user->uid,
     );
 
-    $fields = $subquery->get_filters();
+    $fields = $subquery->getFilters();
 
     foreach ($fields as $field) {
       if (is_array($expected_criterion[$field['#name']])) {
@@ -101,5 +116,33 @@ class DrupalApacheSolrNodeAccess extends DrupalWebTestCase {
     }
 
     $this->assertEqual($expected_criterion, $found_criterion, 'All Criteria was accounted for in fields. If not accounted for, Unaccounted Criteria [' . var_export(array_diff($expected_criterion, $found_criterion), 1) . ']');
+    // Run a query through the MLT code to be sure access filters are added.
+    $solr = new DummySolr();
+    $settings = apachesolr_search_mlt_block_defaults();
+    // Dummy value
+    $id = apachesolr_document_id($author_restricted_node->nid);
+    drupal_save_session(FALSE);
+    $GLOBALS['user'] = $basic_user;
+    $response = apachesolr_search_mlt_suggestions($settings, $id, $solr);
+    $search = $solr->getLastSearch();
+    // Should only be one fq
+    $this->assertEqual(count($search['params']['fq']), 1, 'One fq param found');
+    // Do some manipulation to avoid having to guess the order.
+    $filter = trim(end($search['params']['fq']), ')(');
+    $parts = explode(' OR ', $filter);
+    $this->assertEqual(count($expected_criterion), count($parts), 'Number of parts is the same as the number of critera');
+    foreach ($expected_criterion as $k => $v) {
+      $this->assertTrue(in_array("$k:$v", $parts), "Filter $k:$v found in the parts");
+    }
+    // Test reset of index position.
+    $this->drupalLogin($this->admin_user);
+    $env_id = apachesolr_default_environment();
+    apachesolr_set_last_index_position($env_id, 'node', 1, 1);
+    $empty = serialize(array());
+    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $this->assertNotEqual($value, $empty, 'value is not empty array');
+    $this->drupalPost('admin/reports/status/rebuild', array(), t('Rebuild permissions'));
+    $value = db_query('SELECT value FROM {variable} WHERE name = :name', array(':name' => 'apachesolr_index_last'))->fetchField();
+    $this->assertEqual($value, $empty, 'value is empty array');
   }
 }

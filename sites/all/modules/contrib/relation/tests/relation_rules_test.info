@@ -1,0 +1,12 @@
+name = "Relation Tests"
+description = "Support module for the Relation - Rules integration tests."
+package = Testing
+core = 7.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2012-02-01
+version = "7.x-1.0-beta3+58-dev"
+core = "7.x"
+project = "relation"
+datestamp = "1328057524"
+

@@ -2,13 +2,21 @@
  * The .bartik.css file is intended to contain styles that override declarations
  * in the Bartik theme.
  */
- 
+
+/* @group Lists */
+
+.views-display-top .secondary .action-list {
+  padding-left: 0; /* LTR */
+}
+
+/* @end */
+
 /* @group Attachment details tabs
  *
  * The tabs that switch between sections
  */
 
-.views-displays .region-content .secondary, 
+.views-displays .region-content .secondary,
 .views-displays .region-content .secondary {
   padding-bottom: 0;
   padding-left: 0;
@@ -24,7 +32,7 @@
   border-radius: 5px;
 }
 
-.views-displays .secondary > li.open a { 
+.views-displays .secondary > li.open a {
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-bottom-left-radius: 0;
   -webkit-border-bottom-right-radius: 0;
@@ -47,7 +55,7 @@
  *
  * The contents of the popup dialog on the views edit form.
  */
- 
+
 .views-filterable-options .even .form-type-checkbox {
   background-color: #F9F9F9;
 }

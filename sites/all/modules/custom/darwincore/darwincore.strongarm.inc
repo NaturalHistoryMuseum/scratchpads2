@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * darwincore.strongarm.inc
+ */
 
 /**
  * Implementation of hook_strongarm().

@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_media_gallery_install(){
+  db_insert('apachesolr_search_page')->fields(array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)'
+      ),
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  ))->execute();
+  // Ensure we're indexing the requried files
+  $query = db_insert('apachesolr_index_bundles')->fields(array(
+    'env_id',
+    'entity_type',
+    'bundle'
+  ));
+  $values = array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'image'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'video'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'audio'
+    )
+  );
+  foreach($values as $value){
+    $query->values($value);
+  }
+  try{
+    $query->execute();
+  }
+  catch(Exception $e){
+    // Do nothing, most likely as a result of this module being installed before.
+    ;
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_media_gallery_uninstall(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
+}

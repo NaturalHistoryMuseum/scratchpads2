@@ -1,0 +1,12 @@
+name = Profile2 group access
+description = Adds Organic groups permissions to control profile access on the group level.
+core = 7.x
+dependencies[] = profile2
+dependencies[] = og
+package = "Organic groups"
+; Information added by drupal.org packaging script on 2011-08-18
+version = "7.x-1.0"
+core = "7.x"
+project = "profile2"
+datestamp = "1313678524"
+

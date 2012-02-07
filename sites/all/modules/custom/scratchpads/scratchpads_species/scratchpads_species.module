@@ -1,0 +1,692 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_species_menu(){
+  $weight = 1;
+  foreach(scratchpads_species_get_tabs() as $tab => $label){
+    $items['taxonomy/term/%taxonomy_term/' . $tab] = array(
+      'title' => $label,
+      'page callback' => 'scratchpads_species_term_page',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'access callback' => 'scratchpads_species_access_callback',
+      'access arguments' => array(
+        2,
+        $tab
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => $weight++,
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    );
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_species_menu_alter(&$items){
+  $items['taxonomy/term/%taxonomy_term/view']['title callback'] = 'scratchpads_species_title_callback';
+  $items['taxonomy/term/%taxonomy_term/view']['title arguments'] = array(
+    2
+  );
+  $items['taxonomy/term/%taxonomy_term']['page callback'] = 'scratchpads_species_term_page';
+  $items['taxonomy/term/%taxonomy_term/edit']['context'] = MENU_CONTEXT_INLINE;
+  if(array_key_exists('taxonomy/term/%taxonomy_term/devel', $items)){
+    $items['taxonomy/term/%taxonomy_term/devel']['context'] = MENU_CONTEXT_INLINE;
+  }
+}
+
+/**
+ * 
+ * Implementation of hook_theme
+ */
+function scratchpads_species_theme(){
+  return array(
+    'scratchpads_species_name' => array(
+      'variables' => array(
+        'term' => NULL
+      )
+    )
+  );
+}
+
+/**
+ * 
+ * Implementation of hook_entity_info_alter
+ */
+function scratchpads_species_entity_info_alter(&$info){
+  foreach(array_keys($info) as $entity_type){
+    // Add the 'species page' view mode.
+    if(!empty($info[$entity_type]['view modes'])){
+      $info[$entity_type]['view modes']['species'] = array(
+        'label' => t('Species page'),
+        'custom settings' => FALSE
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
+  $type = $form['#node_type']->type;
+  $form_state['var'] = 'species_page_' . $type . '_tab';
+  $tab = scratchpads_species_variable_get($form_state['var']);
+  $defaults = scratchpads_species_variable_defaults();
+  // If i have specified defaults for this node type, don't allow user to change it
+  $disabled = (isset($defaults[$form_state['var']]) ? true : false);
+  $form['display']['species_page_display'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display on species pages.'),
+    '#default_value' => ($tab ? 1 : 0),
+    '#description' => t('Do you want to display this content on the species page?'),
+    '#disabled' => $disabled
+  );
+  $tabs = scratchpads_species_get_tabs();
+  if(isset($tabs[$type])){
+    unset($tabs[$type]);
+  }
+  $form['display']['tabs'] = array(
+    '#type' => 'radios',
+    '#title' => t('Tabs'),
+    '#default_value' => $tab,
+    '#options' => array_merge(array(
+      'own' => t('Own tab')
+    ), $tabs),
+    '#description' => t('In which tab on the species pages do you want to display this content type?'),
+    '#states' => array(
+      'invisible' => array(
+        'input[name="species_page_display"]' => array(
+          'checked' => FALSE
+        )
+      )
+    ),
+    '#disabled' => $disabled
+  );
+  $form['#validate'][] = 'scratchpads_species_node_type_form_validate';
+  $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
+}
+
+function scratchpads_species_node_type_form_validate($form, $form_state){
+  if($form_state['values']['species_page_display'] && empty($form_state['values']['tabs'])){
+    form_set_error('tabs', t("Please select where on the species page you want this content type to display."));
+  }
+}
+
+function scratchpads_species_node_type_form_submit($form, $form_state){
+  if($form_state['values']['species_page_display'] && !empty($form_state['values']['tabs'])){
+    variable_set($form_state['var'], $form_state['values']['tabs']);
+  }else{
+    variable_del($form_state['var']);
+  }
+  views_flush_caches();
+  menu_rebuild();
+}
+
+/*********************************************************************************************
+ * 
+ * MENU CALLBACKS
+ * 
+ ********************************************************************************************/
+function scratchpads_species_title_callback($term){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    return t("Overview");
+  }else{
+    return t("View");
+  }
+}
+
+/**
+ * 
+ * Access callback for species page
+ * Hide tabs on non-species pages & if there's no content 
+ * @param array $term
+ * @param string - tab $op
+ */
+function scratchpads_species_access_callback($term, $op = 'overview'){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    // Always show these tabs
+    if(in_array($op, array(
+      'overview',
+      'descriptions',
+      'media'
+    )) || scratchpads_blocks_show_placeholders()){
+      return user_access('access content');
+    }else{ // Check if there is content before displaying these tabs
+      $context = 'species_' . $op;
+      if(count($views = scratchpads_species_get_context_views($context))){
+        foreach($views as $view_name){
+          if($view = views_get_view($view_name)){
+            $view->execute();
+            if(count($view->result)){return user_access('access content');}
+          }
+        }
+      }
+      return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function scratchpads_species_term_page($term, $op = 'overview'){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    $path = drupal_get_path('module', 'scratchpads_species');
+    drupal_add_css($path . '/css/scratchpads_species.css');
+    // Copied from context_entity_prepare_view()
+    // Trigger the taxonomy viewing condition 
+    if($plugin = context_get_plugin('condition', 'taxonomy_term')){
+      $plugin->execute($term, 'view');
+    }
+    // Trigger the species tab condition
+    if($plugin = context_get_plugin('condition', 'species')){
+      $plugin->execute($op);
+    }
+    // Return a blank page contextual links
+    $build = array(
+      '#theme' => 'page',
+      '#type' => 'page',
+      'content' => array(
+        ''
+      ),
+      'subtitle' => (isset($term->field_authors[LANGUAGE_NONE][0]['safe_value']) ? $term->field_authors[LANGUAGE_NONE][0]['safe_value'] : NULL),
+      '#contextual_links' => array(
+        'taxonomy' => array(
+          'taxonomy',
+          array(
+            'term',
+            $term->tid
+          )
+        )
+      )
+    );
+  }else{
+    $build = taxonomy_term_page($term);
+  }
+  return $build;
+}
+
+/*********************************************************************************************
+ * 
+ * VIEWS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_species_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_species');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Implementation of hook_views_query_alter
+ */
+function scratchpads_species_views_query_alter(&$view, &$query){
+  // Rewrite the species media view to work with terms attached to both the file & related nodes
+  if($view->name == 'species_media'){
+    if($view->args){
+      $tid = reset($view->args);
+      $children = taxonomy_get_children($tid);
+      if($children){
+        $tid = array_merge(array(
+          $tid
+        ), array_keys($children));
+      }
+      $query->table_queue['node_file_usage__taxonomy_index']['join']->type = 'LEFT';
+      // If $tid is now an array(the taxon has children)
+      if(is_array($tid)){
+        foreach(array_keys($query->where[0]['conditions']) as $index){
+          if($query->where[0]['conditions'][$index]['field'] == 'node_file_usage__taxonomy_index.tid'){
+            $query->where[0]['conditions'][$index]['value'] = $tid;
+            $query->where[0]['conditions'][$index]['operator'] = 'in';
+            break;
+          }
+        }
+      }
+      $join = $query->get_join_data('field_data_field_taxonomic_name', 'file_managed');
+      $query->add_table('field_data_field_taxonomic_name', null, $join);
+      $query->add_where(1, 'field_data_field_taxonomic_name.field_taxonomic_name_tid', $tid);
+    }
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * THEME & PREPROCESS FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ * Add in edit links for species pages blocks
+ */
+function scratchpads_species_preprocess_block(&$vars){
+  $block = $vars['block'];
+  if(isset($block->context) && $block->context == 'species_overview' && $block->module == 'views'){
+    $explode = explode('-', $block->delta);
+    if(count($explode) != 2){return;}
+    list($name, $display_id) = $explode;
+    if($view = views_get_view($name)){
+      $view->execute();
+      // If there's only one result, we can try ans provide an edit link
+      if(count($view->result) === 1){
+        switch($view->base_field){
+          case 'tid':
+            $base_link = 'taxonomy/term/';
+            break;
+          case 'nid':
+            $base_link = 'node/';
+            break;
+        }
+        if(isset($base_link) && isset($view->result[0]->{$view->base_field})){
+          $vars['title_suffix']['contextual_links']['#contextual_links']['species'] = array(
+            $base_link . $view->result[0]->{$view->base_field},
+            array()
+          );
+        }
+      }
+    }
+    unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+  }
+}
+
+function scratchpads_species_preprocess_views_view(&$vars){
+  switch($vars['view']->name){
+    case 'species_nomenclature':
+      if(!scratchpads_blocks_show_placeholders()){
+        // If species slideshow is empty, expand this block
+        if($view = views_get_view('species_slideshow')){
+          $view->execute();
+          if(!count($view->result)){
+            $vars['classes_array'] = array(
+              'grid-8 alpha omega'
+            );
+          }
+        }
+      }
+      break;
+    case 'species_media':
+      $path = drupal_get_path('module', 'scratchpads_species');
+      drupal_add_js($path . '/js/scratchpads_species.js');
+      break;
+  }
+}
+
+function scratchpads_species_preprocess_views_view_field(&$vars){
+  if($vars['view']->name == 'species_nomenclature'){
+    if($vars['field']->table == 'taxonomy_term_data' && $vars['field']->field == 'name'){
+      $name = $vars['row']->{$vars['field']->field_alias};
+      if(isset($vars['field']->aliases['tid'])){
+        $tid_field = $vars['field']->aliases['tid'];
+        if(isset($vars['row']->{$tid_field})){
+          $term = taxonomy_term_load($vars['row']->{$tid_field});
+          $formatted_name = theme('scratchpads_species_name', array(
+            'term' => $term
+          ));
+          $vars['output'] = str_replace($name, $formatted_name, $vars['output']);
+        }
+      }
+    }
+  }
+}
+
+function theme_scratchpads_species_name($vars){
+  $term = $vars['term'];
+  // TODO- A whole load of crapness for species names
+  $name = $term->name;
+  switch($term->field_rank[LANGUAGE_NONE][0]['value']){
+    case 'Genus':
+    case 'Subgenus':
+    case 'Species':
+    case 'Subspecies':
+      $italicise = true;
+      break;
+  }
+  $italicise = true;
+  if($italicise){
+    $name = '<em>' . $name . '</em>';
+  }
+  return $name;
+}
+
+/*********************************************************************************************
+ * 
+ * CONTEXT
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_species_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_species_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_species_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_species_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/plugins',
+      'file' => 'scratchpads_species_context_condition.inc',
+      'class' => 'scratchpads_species_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_species_context_registry(){
+  return array(
+    'conditions' => array(
+      'species' => array(
+        'title' => t('Species page'),
+        'plugin' => 'scratchpads_species_context_condition'
+      )
+    )
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Check if a term is a biological classification
+ */
+function scratchpads_species_term_is_biological_classification($term){
+  global $conf;
+  if(property_exists($term, 'field_unit_name1')){
+    if(array_key_exists($term->vid, $conf['biological_vids'])){return true;}
+  }
+  return false;
+}
+
+/**
+ * Return a list of node types to display on the species page
+ * If tab is specified, only return items for that tab
+ */
+function scratchpads_species_get_species_node_types($tab = NULL){
+  $node_types = array();
+  $node_info = node_type_get_names();
+  foreach(array_keys($node_info) as $type){
+    if($node_type_species_tab = scratchpads_species_variable_get('species_page_' . $type . '_tab')){
+      if(is_null($tab) || $tab == $node_type_species_tab){
+        $node_types[$type] = $node_info[$type];
+      }
+    }
+  }
+  return $node_types;
+}
+
+/**
+ * Return a list of default species tabs
+ */
+function scratchpads_species_get_default_tabs(){
+  $tabs = array(
+    'descriptions' => t('Descriptions'),
+    'media' => t('Media'),
+    'literature' => t('Literature'),
+    'maps' => t('Maps'),
+    'specimens' => t('Specimens')
+  );
+  return $tabs;
+}
+
+/**
+ * Return a list of species tabs
+ */
+function scratchpads_species_get_tabs(){
+  return array_merge(scratchpads_species_get_default_tabs(), scratchpads_species_get_species_node_types('own'));
+}
+
+function scratchpads_species_get_context_views($context){
+  $views = array();
+  foreach(scratchpads_species_get_all_views() as $view){
+    if(!empty($view->context)){
+      if($view->context == $context){
+        $views[] = $view->name;
+      }
+    }
+  }
+  return $views;
+}
+
+/**
+ * 
+ * Get a list of all views
+ * Can't use views_get_all_views() as it's indexed & sorted by name
+ * Use the view definition order to provide block weight
+ */
+function scratchpads_species_get_all_views(){
+  views_module_include('views_default');
+  static $views = array();
+  if(!count($views)){
+    $views = module_invoke_all('views_default_views');
+  }
+  return $views;
+}
+
+/**
+ * 
+ * Usort comparison function for ordering field groups
+ * @param object $a
+ * @param object $b
+ */
+function scratchpads_species_usort_comparison($a, $b){
+  if($a->weight == $b->weight){
+    return 0;
+  }else{
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
+
+/**
+ * 
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_species_variable_get($name){
+  $default = scratchpads_species_variable_defaults($name);
+  return variable_get($name, $default);
+}
+
+/**
+ * 
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_species_variable_defaults($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'species_page_spm_tab' => 'descriptions',
+      'species_page_biblio_tab' => 'literature',
+      'species_page_specimen_observation_tab' => 'specimens',
+      'species_page_location_tab' => 'maps'
+    );
+  }
+  if(!isset($name)){
+    return $defaults;
+  }else{
+    return (isset($defaults[$name]) ? $defaults[$name] : NULL);
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * IMAGE STYLES
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_species_styles_default_styles(){
+  $styles = array();
+  // Exported style: species_slideshow_large
+  $styles['file']['styles']['species_slideshow_large'] = array(
+    'label' => 'species_slideshow_large',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_large'
+        )
+      ),
+      'default' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  // Exported style: species_slideshow_thumbnail
+  $styles['file']['styles']['species_slideshow_thumbnail'] = array(
+    'label' => 'species_slideshow_thumbnail',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_thumbnail'
+        )
+      ),
+      'default' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_species_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['species_slideshow_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_large'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+  if($styles['file']['styles']['species_slideshow_thumbnail']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_thumbnail'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_image_default_styles().
+ */
+function scratchpads_species_image_default_styles(){
+  $styles = array();
+  // Exported image style: species_slideshow_large
+  $styles['species_slideshow_large'] = array(
+    'name' => 'species_slideshow_large',
+    'effects' => array(
+      2 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '284',
+          'height' => '211'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  // Exported image style: species_slideshow_thumbnail
+  $styles['species_slideshow_thumbnail'] = array(
+    'name' => 'species_slideshow_thumbnail',
+    'effects' => array(
+      1 => array(
+        'label' => 'Scale and crop',
+        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
+        'effect callback' => 'image_scale_and_crop_effect',
+        'dimensions callback' => 'image_resize_dimensions',
+        'form callback' => 'image_resize_form',
+        'summary theme' => 'image_resize_summary',
+        'module' => 'image',
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => '92',
+          'height' => '69'
+        ),
+        'weight' => '1'
+      )
+    )
+  );
+  return $styles;
+}
+
+

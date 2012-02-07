@@ -9,8 +9,8 @@
 
         function init()
         {
+            
             constructUI();
-
         }
 
         function confirmDialog() {

@@ -10,18 +10,20 @@
 /**
  * Get the entity property info array of an entity type.
  *
- * @see hook_entity_property_info()
- * @see hook_entity_property_info_alter()
- *
  * @param $entity_type
  *   The entity type, e.g. node, for which the info shall be returned, or NULL
  *   to return an array with info about all types.
+ *
+ * @see hook_entity_property_info()
+ * @see hook_entity_property_info_alter()
  */
 function entity_get_property_info($entity_type = NULL) {
   // Use the advanced drupal_static() pattern, since this is called very often.
-  static $drupal_static = array();
-  isset($drupal_static[__FUNCTION__]) || ($drupal_static[__FUNCTION__] = &drupal_static(__FUNCTION__));
-  $info = &$drupal_static[__FUNCTION__];
+  static $drupal_static_fast;
+  if (!isset($drupal_static_fast)) {
+    $drupal_static_fast['info'] = &drupal_static(__FUNCTION__);
+  }
+  $info = &$drupal_static_fast['info'];
 
   // hook_entity_property_info() includes translated strings, so each language
   // is cached separately.
@@ -39,6 +41,21 @@ function entity_get_property_info($entity_type = NULL) {
     }
   }
   return empty($entity_type) ? $info : (isset($info[$entity_type]) ? $info[$entity_type] : array());
+}
+
+/**
+ * Returns the default information for an entity property.
+ *
+ * @return
+ *   An array of optional property information keys mapped to their defaults.
+ *
+ * @see hook_entity_property_info()
+ */
+function entity_property_info_defaults() {
+  return array(
+    'type' => 'text',
+    'getter callback' => 'entity_property_verbatim_get',
+  );
 }
 
 /**
@@ -93,7 +110,13 @@ function entity_get_all_property_info($entity_type = NULL) {
  */
 function entity_property_query($entity_type, $property, $value, $limit = 30) {
   $properties = entity_get_all_property_info($entity_type);
-  $info = $properties[$property] + array('type' => 'text', 'query callback' => isset($properties[$property]['schema field']) ? 'entity_metadata_table_query' : FALSE);
+  $info = $properties[$property] + array('type' => 'text', 'queryable' => !empty($properties[$property]['schema field']));
+
+  // We still support the deprecated query callback, so just add in EFQ-based
+  // callbacks in case 'queryable' is set to TRUE and make use of the callback.
+  if ($info['queryable'] && empty($info['query callback'])) {
+    $info['query callback'] = !empty($info['field']) ? 'entity_metadata_field_query' : 'entity_metadata_table_query';
+  }
 
   $type = $info['type'];
   // Make sure an entity or a list of entities are passed on as identifiers
@@ -209,8 +232,17 @@ function entity_field_update_instance() {
  *   Whether the data is valid for the given type.
  */
 function entity_property_verify_data_type($data, $type) {
+  // As this may be called very often statically cache the entity info using
+  // the fast pattern.
+  static $drupal_static_fast;
+  if (!isset($drupal_static_fast)) {
+    // Make use of the same static as entity info.
+    entity_get_info();
+    $drupal_static_fast['entity_info'] = &drupal_static('entity_get_info');
+  }
+  $info = &$drupal_static_fast['entity_info'];
+
   // First off check for entities, which may be represented by their ids too.
-  $info = entity_get_info();
   if (isset($info[$type])) {
     $nameKey = isset($info[$type]['entity keys']['name']);
     return is_object($data) || ($nameKey && entity_property_verify_data_type($data, 'token')) || (!$nameKey  && entity_property_verify_data_type($data, 'integer'));
@@ -311,9 +343,26 @@ function entity_property_list_extract_type($type) {
 }
 
 /**
+ * Extracts the innermost type for a type string like list<list<date>>.
+ *
+ * @param $type
+ *   The type to examine.
+ *
+ * @return
+ *   For list types, the innermost type. The type itself otherwise.
+ */
+function entity_property_extract_innermost_type($type) {
+  while (strpos($type, 'list<') === 0 && $type[strlen($type)-1] == '>') {
+    $type = substr($type, 5, -1);
+  }
+  return $type;
+}
+
+/**
  * Gets the property just as it is set in the data.
  */
-function entity_property_verbatim_get($data, array $options, $name) {
+function entity_property_verbatim_get($data, array $options, $name, $type, $info) {
+  $name = isset($info['schema field']) ? $info['schema field'] : $name;
   if ((is_array($data) || (is_object($data) && $data instanceof ArrayAccess)) && isset($data[$name])) {
     return $data[$name];
   }
@@ -324,16 +373,18 @@ function entity_property_verbatim_get($data, array $options, $name) {
 }
 
 /**
- * Date values are converted from ISO strings to timestamp, if needed.
+ * Date values are converted from ISO strings to timestamp if needed.
  */
-function entity_property_verbatim_date_get($data, array $options, $name) {
+function entity_property_verbatim_date_get($data, array $options, $name, $type, $info) {
+  $name = isset($info['schema field']) ? $info['schema field'] : $name;
   return is_numeric($data[$name]) ? $data[$name] : strtotime($data[$name], time());
 }
 
 /**
  * Sets the property to the given value. May be used as 'setter callback'.
  */
-function entity_property_verbatim_set(&$data, $name, $value) {
+function entity_property_verbatim_set(&$data, $name, $value, $langcode, $type, $info) {
+  $name = isset($info['schema field']) ? $info['schema field'] : $name;
   if (is_array($data) || (is_object($data) && $data instanceof ArrayAccess)) {
     $data[$name] = $value;
   }
@@ -496,12 +547,12 @@ function entity_property_field_item_image_info() {
   );
   $properties['alt'] = array(
     'type' => 'text',
-    'label' => t('The <em>Alt</em> attribute text'),
+    'label' => t('The "Alt" attribute text'),
     'setter callback' => 'entity_property_verbatim_set',
   );
   $properties['title'] = array(
     'type' => 'text',
-    'label' => t('The <em>Title</em> attribute text'),
+    'label' => t('The "Title" attribute text'),
     'setter callback' => 'entity_property_verbatim_set',
   );
   return $properties;

@@ -1,0 +1,100 @@
+<?php
+
+
+/**
+ * @file
+ * Allow subscribing to groups during the user registration.
+ */
+
+/**
+ * Group register field.
+ */
+define('OG_REGISTER_FIELD', 'group_register');
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ *
+ * Get all the groups that should appear in the user registration, and if they
+ * exist, attach the user's field to the form.
+ */
+function og_register_form_user_register_form_alter(&$form, $form_state) {
+  global $user;
+  if ($gids = og_register_get_groups()) {
+    $account = clone $user;
+    field_attach_form('user', $account, $form, $form_state);
+  }
+}
+
+
+/**
+ * Implements hook_og_audience_alter().
+ */
+function og_register_og_audience_options_alter(&$options, $opt_group, $account) {
+  if (!$account->uid && $gids = og_register_get_groups()) {
+    $options['content groups'] = array_merge($options['content groups'], $gids);
+  }
+}
+
+/**
+ * Implements og_fields_info().
+ */
+function og_register_og_fields_info() {
+  $allowed_values = array(
+    0 => 'Do not show on registration page',
+    1 => 'Show on registration page',
+  );
+  $items[OG_REGISTER_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Add Group register field group types.'),
+    'field' => array(
+      'field_name' => OG_REGISTER_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'settings' => array('allowed_values' => $allowed_values, 'allowed_values_function' => ''),
+    ),
+    'instance' => array(
+      'label' => t('Group register'),
+      'default_value' => array(0 => array('value' => 0)),
+      'widget_type' => 'options_select',
+      'required' => TRUE,
+      'view modes' => array(
+        'full' => array(
+          'label' => 'above',
+          'type' => 'options_onoff',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'options_onoff',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ *  Get all the groups node IDs that should appear in the user registration.
+ */
+function og_register_get_groups() {
+  $gids = &drupal_static(__FUNCTION__, array());
+
+  if (!$gids && $field = field_info_field(OG_REGISTER_FIELD)) {
+    $query = new EntityFieldQuery;
+    $result = $query
+      ->fieldCondition(OG_REGISTER_FIELD, 'value', 1, '=')
+      ->execute();
+
+    if ($result) {
+      foreach ($result as $entity_type => $ids) {
+        $ids = array_keys($ids);
+
+        // Get the group IDs of the IDs.
+        $gids = array_merge($gids, og_get_group_ids($entity_type, $ids));
+      }
+    }
+  }
+
+  return $gids;
+}

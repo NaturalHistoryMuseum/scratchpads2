@@ -1,0 +1,208 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: demo.module\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2007-09-29 01:25+0100\n"
+"Last-Translator: unleashed mind <dev@unleashedmind.com>\n"
+"Language-Team: unleashed mind <dev@unleashedmind.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: demo.module:40
+msgid "Demonstration site"
+msgstr "Demo-Site"
+
+#: demo.module:41
+msgid "Administer reset interval, create new dumps and manually reset this site."
+msgstr "Konfiguration des Zeitintervalls für automatisches Zurücksetzen, neue Schnappschüsse erstellen und manuelles Zurücksetzen der Site."
+
+#: demo.module:48
+#: ;116
+msgid "Status"
+msgstr "Status"
+
+#: demo.module:54
+msgid "Manage snapshots"
+msgstr "Schnappschüsse verwalten"
+
+#: demo.module:63
+msgid "Create snapshot"
+msgstr "Schnappschuss erstellen"
+
+#: demo.module:72
+msgid "Reset site"
+msgstr "Site zurücksetzen"
+
+#: demo.module:81
+msgid "Demo Site autocomplete"
+msgstr ""
+
+#: demo.module:95
+msgid "Demo site reset"
+msgstr "Demo-Site zurücksetzen"
+
+#: demo.module:104
+msgid "Reset demo"
+msgstr "Demo zurücksetzen"
+
+#: demo.module:123
+msgid "Never"
+msgstr "Nie"
+
+#: demo.module:126
+msgid "<p><strong>Last reset:</strong> !date</p>"
+msgstr "<p><strong>Zuletzt zurückgesetzt:</strong> !date</p>"
+
+#: demo.module:129
+msgid "<p><strong>Default snapshot:</strong> !snapshot</p>"
+msgstr "<p><strong>Standard-Schnappschuss:</strong> !snapshot</p>"
+
+#: demo.module:129
+msgid "None"
+msgstr "Keine"
+
+#: demo.module:136
+msgid "Dump settings"
+msgstr "Einstellungen für Schnappschüsse"
+
+#: demo.module:141
+msgid "disabled"
+msgstr "deaktiviert"
+
+#: demo.module:144
+msgid "Automatically reset site every"
+msgstr "Site automatisch zurücksetzen alle"
+
+#: demo.module:147
+msgid "Select how often this demonstration site is automatically reset. Ensure that you have chosen a snapshot for cron runs in <a href=\"!manage\">Manage snapshots</a> first. <strong>Note:</strong> This requires cron to run at least within this interval."
+msgstr "Zeitintervall, wie oft diese Demo-Site automatisch zurückgesetzt werden soll. Dafür zunächst einen Schnappschuss für Cron-Läufe auf der Seite <a href=\"!manage\">Schnappschüsse verwalten</a> auswählen. <strong>Hinweis:</strong> Cron muss so konfiguriert sein, dass es mindestens einmal innerhalb der gewählten Zeitspanne ausgeführt wird."
+
+#: demo.module:152
+msgid "Dump path"
+msgstr "Pfad für Schnappschüsse"
+
+#: demo.module:155
+msgid "Enter a writable directory where dump files of this demonstration site are stored, f.e. %files. The name of this site (e.g. %confpath) is automatically appended to this directory.<br /><br /><strong>Note: For security reasons you should store site dumps outside of the document root of your webspace!</strong>"
+msgstr "Beschreibbares Verzeichnis angeben, in das die Schnappschüsse für diese site gespeichert werden sollen, z.B. %files. Der Name dieser Site (d.h. %confpath) wird automatisch an den Verzeichnisnamen angehängt.<br /><br /><strong>Hinweis: Aus Sicherheitsgründen sollten Schnappschüsse immer außerhalb des Webserververzeichnisses gespeichert werden!</strong>"
+
+#: demo.module:159
+msgid "Save"
+msgstr "Speichern"
+
+#: demo.module:167
+msgid "Dump could not be created. The directory %directory has not been properly configured."
+msgstr "Der Schnappschuss konnte nicht erstellt werden. Das Verzeichnis %directory wurde nicht korrekt konfiguriert."
+
+#: demo.module:178
+#: ;260
+msgid "Available snapshots"
+msgstr "Verfügbare Schnappschüsse"
+
+#: demo.module:183
+#: ;195
+msgid "Set as default snapshot for cron"
+msgstr "Als Standard-Schnappschuss für Cron-Läufe festlegen"
+
+#: demo.module:187
+#: ;200
+msgid "Delete selected snapshot"
+msgstr "Ausgewählten Schnappschuss löschen"
+
+#: demo.module:197
+msgid "Snapshot %title will be used for upcoming cron runs."
+msgstr "Der Schnappschuss %title wird für kommende Cron-Läufe verwendet."
+
+#: demo.module:205
+msgid "Snapshot %title has been deleted."
+msgstr "Der Schnappschuss %title wurde gelöscht."
+
+#: demo.module:213
+msgid "File name"
+msgstr "Dateiname"
+
+#: demo.module:218
+msgid "Enter the snapshot file name without file extension. Allowed characters are a-z, 0-9, dashes (\"-\"), underscores (\"_\") and dots."
+msgstr "Dateiname ohne Erweiterung für den Schnappschuss eingeben. Erlaubte Zeichen sind a-z, 0-9, Bindestrich (\"-\"), Unterstrich (\"_\") und der Punkt."
+
+#: demo.module:221
+msgid "Description"
+msgstr "Beschreibung"
+
+#: demo.module:224
+msgid "Optionally enter a description for this snapshot here. If no description is given and a snapshot with the same filename already exists, the previous description is used."
+msgstr "Optionale Angabe einer Beschreibung des Schnappschusses. Wenn keine Beschreibung angegeben wird und ein Schnappschuss mit dem selben Dateinamen bereits existiert, wird die vorherige Beschreibung übernommen."
+
+#: demo.module:226
+msgid "Are you sure you want to create a new snapshot?"
+msgstr "Neuen Schnappschuss erstellen?"
+
+#: demo.module:226
+msgid "If the above filename already exists, creating a new snapshot will overwrite the existing snapshot. This action cannot be undone."
+msgstr "Wenn ein Schnappschuss mit dem selben Dateinamen bereits existiert, wird der neue den alten Schnappschuss überschreiben. Diese Aktion kann nicht rückgängig gemacht werden."
+
+#: demo.module:226
+msgid "Create"
+msgstr "Erstellen"
+
+#: demo.module:226
+#: ;264
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: demo.module:264
+msgid "Are you sure you want to reset the site?"
+msgstr "Site zurücksetzen?"
+
+#: demo.module:264
+msgid "Resetting the site will overwrite all changes that have been made to this Drupal installation since the chosen snapshot.<br /><br /><div style=\"color: red; font-weight: bold; font-size: 18px;\"><center>THIS ACTION CANNOT BE UNDONE!</center><br /></div>"
+msgstr "Das Zurücksetzen der Site bewirkt, dass alle Änderungen seit der Erstellung des Schnappschusses überschrieben werden.<br /><br /><div style=\"color: red; font-weight: bold; font-size: 18px;\"><center>DIESE AKTION KANN NICHT RÜCKGÄNGIG GEMACHT WERDEN!</center><br /></div>"
+
+#: demo.module:264
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#: demo.module:291
+msgid "Active snapshot: !snapshot"
+msgstr "Aktiver Schnappschuss: !snapshot"
+
+#: demo.module:295
+msgid "Reset now"
+msgstr "Jetzt zurücksetzen"
+
+#: demo.module:340
+msgid "Successfully restored database from %filename."
+msgstr "Datenbank erfolgreich wiederhergestellt aus %filename."
+
+#: demo.module:343
+msgid "Failed restoring database from %filename."
+msgstr "Konnte Datenbank nicht aus %filename wiederherstellen."
+
+#: demo.module:354
+msgid "Unable to open dump file %filename."
+msgstr "Konnte die Schnappschussdatei %filename nicht öffnen."
+
+#: demo.module:415
+msgid "Snapshot"
+msgstr "Schnappschuss"
+
+#: demo.module:440
+msgid "Modules: "
+msgstr "Module:"
+
+#: demo.module:483
+msgid "Dump filename %title must contain alphanumeric characters, dots, dashes and underscores only. Other characters, including blanks (spaces), are not allowed."
+msgstr "Der Dateiname für den Schnappschuss %title darf nur alphanumerische Zeichen, Punkte, Bindestriche und Unterstriche enthalten. Ander Zeichen, inklusive Leerzeichen, sind nicht erlaubt."
+
+#: demo.module:348
+#: ;358;0
+msgid "demo"
+msgstr ""
+
+#: demo.module:27
+msgid "administer demo settings"
+msgstr "Demo-Site verwalten"
+

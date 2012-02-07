@@ -125,7 +125,11 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
       // (Default) Configure the field.
       $edit = isset($options['settings']) ? $options['settings'] : array();
       $this->drupalPost(NULL, $edit, 'Save field settings');
-      $this->assertText('Updated field ' . $label);
+      $this->assertText('Updated field ' . $label . ' field settings.');
+
+      $edit = isset($options['instance_settings']) ? $options['instance_settings'] : array();
+      $this->drupalPost(NULL, $edit, 'Save settings');
+      $this->assertText('Saved ' . $label . ' configuration.');
     }
 
     return $typename;

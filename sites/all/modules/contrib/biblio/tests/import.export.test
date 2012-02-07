@@ -28,7 +28,7 @@ class BiblioImportExportUnitTest extends BiblioImportExportWebTestCase {
   }
 
   function getRISString() {
-    return "TY  - BOOK\r\nTI  - Biblio Title\r\nY1  - 2009\r\nN1  - biblio_notes\r\nAU  - Ron J. Jeromezzzzzz\r\nAU  - John Smithzzzzzz\r\nAU  - George W. Bushzzzzzz\r\nKW  - biblio_keywords\r\nSP  - 1\r\nEP  - 2\r\nJO  - biblio_short_title\r\nJ1  - biblio_short_title\r\nJ2  - biblio_short_title\r\nVL  - biblio_volume\r\nIS  - biblio_issue\r\nT2  - biblio_secondary_title\r\nCY  - biblio_place_published\r\nPB  - biblio_publisher\r\nU1  - biblio_custom1\r\nU2  - biblio_custom2\r\nU3  - biblio_custom3\r\nU4  - biblio_custom4\r\nU5  - biblio_custom5\r\nT3  - biblio_tertiary_title\r\nAB  - biblio_abst_e\r\nSN  - biblio_isbn\r\nUR  - biblio_url\r\nER  - \r\n\r\n";
+    return "TY  - BOOK\r\nTI  - Biblio Title\r\nY1  - 2009\r\nN1  - biblio_notes\r\nAU  - Ron J. Jeromezzzzzz\r\nAU  - John Smithzzzzzz\r\nAU  - George W. Bushzzzzzz\r\nKW  - biblio_keywords\r\nSP  - 1\r\nEP  - 2\r\nJO  - biblio_short_title\r\nVL  - biblio_volume\r\nIS  - biblio_issue\r\nT2  - biblio_secondary_title\r\nCY  - biblio_place_published\r\nPB  - biblio_publisher\r\nU1  - biblio_custom1\r\nU2  - biblio_custom2\r\nU3  - biblio_custom3\r\nU4  - biblio_custom4\r\nU5  - biblio_custom5\r\nT3  - biblio_tertiary_title\r\nAB  - biblio_abst_e\r\nSN  - biblio_isbn\r\nUR  - biblio_url\r\nER  - \r\n\r\n";
   }
 
   function testBiblioNodeExport() {

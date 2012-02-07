@@ -143,6 +143,10 @@ Features provides several useful drush commands:
   If called with no arguments, display a list of available components.
   If called with one argument, take the argument as a component name and 
   attempt to create a feature with the same name.
+  
+  The option '--destination=foo' may be used to specify the path (from Drupal
+  root) where the feature should be created. The default destination is
+  'sites/all/modules'.
 
 - `drush features-update [feature name]`
 

@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implementation of hook_apachesolr_update_index().
+ */
+function apachesolr_cc_apachesolr_update_index(&$document, $node) {
+  // Index group posts
+  if (!empty($node->cc->name)) {
+    $key = apachesolr_cc_key();
+    $document->$key = $node->cc->name;
+  }
+}
+
+/**
+ * Apachesolr index name for Creative Commons license name
+ */
+function apachesolr_cc_key() {
+  $cc_name = array(
+    'name'       => 'cc_name',
+    'multiple'   => FALSE,
+    'index_type' => 'string',
+  );
+  // Returns s_cc_name
+  return apachesolr_index_key($cc_name);
+}
+
+/**
+ * Implementation of hook_apachesolr_facets().
+ */
+function apachesolr_cc_apachesolr_facets() {
+  $key = apachesolr_cc_key();
+  $facets[$key] = array(
+    'info' => t('Apache Solr CC: Filter by License'),
+    'facet_field' => $key,
+  );
+  return $facets;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function apachesolr_cc_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $enabled_facets = apachesolr_get_enabled_facets('apachesolr_cc');
+      $facets = apachesolr_cc_apachesolr_facets();
+      // Add the blocks
+      $blocks = array();
+      foreach ($enabled_facets as $delta => $facet_field) {
+        if (isset($facets[$delta])) {
+          $blocks[$delta] = $facets[$delta] + array('cache' => BLOCK_CACHE_PER_PAGE,);
+        }
+      }
+      return $blocks;
+
+    case 'view':
+      if (apachesolr_has_searched()) {
+        if ($delta != apachesolr_cc_key()) {
+          return;
+        }
+
+        $response = apachesolr_static_response_cache();
+        if (empty($response)) {
+          return;
+        }
+        $query = apachesolr_current_query();
+
+        return apachesolr_facet_block($response, $query, 'apachesolr_cc', $delta, $delta, t('Filter by License'), NULL);
+      }
+      break;
+
+    case 'configure':
+      return apachesolr_facetcount_form('apachesolr_cc', $delta);
+    case 'save':
+      apachesolr_facetcount_save($edit);
+      break;
+  }
+}
+

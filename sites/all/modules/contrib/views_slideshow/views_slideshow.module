@@ -1,0 +1,475 @@
+<?php
+
+/**
+ * @file
+ * Provides Slideshow style options for Views.
+ */
+
+/**
+ * Implement hook_theme().
+ */
+function views_slideshow_theme($existing, $type, $theme, $path) {
+  return array(
+    'views_slideshow_main_section' => array(
+      'variables' => array('vss_id' => NULL, 'slides' => NULL, 'plugin' => NULL),
+      'file' => 'theme/views_slideshow.theme.inc',
+    ),
+    'views_slideshow_pager_widget_render' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
+      'file' => 'theme/views_slideshow.theme.inc',
+    ),
+    'views_slideshow_pager_fields' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'attributes' => array()),
+      'template' => 'theme/views-slideshow-pager-fields',
+    ),
+    'views_slideshow_pager_field_field' => array(
+      'variables' => array('view' => NULL, 'field' => NULL, 'count' => NULL),
+      'template' => 'theme/views-slideshow-pager-field-field',
+      'file' => 'theme/views_slideshow.theme.inc',
+    ),
+    'views_slideshow_pager_field_item' => array(
+      'variables' => array('vss_id' => NULL, 'item' => NULL, 'count' => NULL, 'location' => NULL),
+      'template' => 'theme/views-slideshow-pager-field-item',
+    ),
+    'views_slideshow_controls_widget_render' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
+      'file' => 'theme/views_slideshow.theme.inc',
+    ),
+    'views_slideshow_controls_text' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
+      'template' => 'theme/views-slideshow-controls-text',
+    ),
+    'views_slideshow_controls_text_previous' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
+      'template' => 'theme/views-slideshow-controls-text-previous',
+    ),
+    'views_slideshow_controls_text_pause' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
+      'template' => 'theme/views-slideshow-controls-text-pause',
+    ),
+    'views_slideshow_controls_text_next' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
+      'template' => 'theme/views-slideshow-controls-text-next',
+    ),
+    'views_slideshow_slide_counter_widget_render' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
+      'file' => 'theme/views_slideshow.theme.inc',
+    ),
+    'views_slideshow_slide_counter' => array(
+      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
+      'template' => 'theme/views-slideshow-slide-counter',
+    ),
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function views_slideshow_views_api() {
+  return array(
+    'api' => '3',
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function views_slideshow_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#views_slideshow':
+      return '<p>Check the Views Slideshow project page documentation for tutorials and videos on how to use this module.</p>';
+  }
+}
+
+/**
+ * Implements hook_init().
+ */
+function views_slideshow_init() {
+  // Load javascript on the page in init to help fool caching.
+  drupal_add_js(drupal_get_path('module', 'views_slideshow') . '/js/views_slideshow.js');
+
+  $vs_path = drupal_get_path('module', 'views_slideshow');
+  drupal_add_css($vs_path . '/views_slideshow.css');
+}
+
+/**
+ * Implementation of hook_views_slideshow_skin_info().
+ */
+function views_slideshow_views_slideshow_skin_info() {
+  return array(
+    'default' => array(
+      'name' => t('Default'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_views_slideshow_widget_info().
+ */
+function views_slideshow_views_slideshow_widget_info() {
+  return array(
+    'views_slideshow_pager' => array(
+      'name' => t('Pager'),
+      'accepts' => array(
+        'transitionBegin' => array('required' => TRUE),
+        'goToSlide',
+        'previousSlide',
+        'nextSlide',
+      ),
+      'calls' => array(
+        'goToSlide',
+        'pause',
+        'play',
+      ),
+    ),
+    'views_slideshow_controls' => array(
+      'name' => t('Controls'),
+      'accepts' => array(
+        'pause' => array('required' => TRUE),
+        'play' => array('required' => TRUE),
+      ),
+      'calls' => array(
+        'nextSlide',
+        'pause',
+        'play',
+        'previousSlide',
+      ),
+    ),
+    'views_slideshow_slide_counter' => array(
+      'name' => t('Slide Counter'),
+      'accepts' => array(
+        'transitionBegin' => array('required' => TRUE),
+        'goToSlide',
+        'previousSlide',
+        'nextSlide',
+      ),
+      'calls' => array(),
+    ),
+  );
+}
+
+/**
+ * Implements [widget]_views_slideshow_widget_form_options().
+ */
+function views_slideshow_pager_views_slideshow_widget_form_options(&$form, &$form_state, &$view, $defaults, $dependency) {
+  // Get all the pager info from other modules.
+  // hook_views_slideshow_pager_info($view, $option_values, $dependency_prefix)
+  $pagers = module_invoke_all('views_slideshow_widget_pager_info', $view);
+
+  if (!empty($pagers)) {
+    $pager_options = array();
+    foreach($pagers as $pager_id => $pager_info) {
+      $pager_options[$pager_id] = $pager_info['name'];
+    }
+    asort($pager_options);
+
+    // Need to wrap this so it indents correctly.
+    $form['views_slideshow_pager_wrapper'] = array(
+      '#markup' => '<div class="vs-dependent">',
+    );
+
+    // Add field to see if they would like to hide pager if there is only one
+    // slide.
+    $form['hide_on_single_slide'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Hide pager if there is only one slide'),
+      '#default_value' => $defaults['hide_on_single_slide'],
+      '#description' => t('Should the pager be hidden if there is only one slide.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
+    // Create the widget type field.
+    $form['type'] = array(
+      '#type' => 'select',
+      '#title' => t('Pager Type'),
+      '#description' => t('Style of the pager'),
+      '#default_value' => $defaults['type'],
+      '#options' => $pager_options,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  
+    // Add any additional form elements
+    // Build our arguments to pass to
+    // [pager-type]_views_slideshow_widget_pager_form_options
+    $arguments = array(
+      &$form,
+      &$form_state,
+      &$view,
+      $defaults,
+      $dependency,
+    );
+
+    foreach ($pagers as $pager_key => $pager_info) {
+      $function = $pager_key . '_views_slideshow_widget_pager_form_options';
+      if (function_exists($function)) {
+        call_user_func_array($function, $arguments);
+      }
+    }
+    
+    $form['views_slideshow_pager_wrapper_close'] = array(
+      '#markup' => '</div>',
+    );
+  }
+  else {
+    $form['enable_pager'] = array(
+      '#markup' => 'There are no pagers available.',
+    );
+  }
+}
+
+/**
+ * Implementation of hook_views_slideshow_widget_pager_info
+ */
+function views_slideshow_views_slideshow_widget_pager_info($view) {
+  $settings = array();
+  // Settings for fields pager.
+  // First verfiy that the view is using fields.
+  if ($view->row_plugin->uses_fields()) {
+    $settings = array(
+      'views_slideshow_pager_fields' => array(
+        'name' => t('Fields'),
+      ),
+    );
+  }
+
+  return $settings;
+}
+
+/**
+ * Implementation [widget-type]_views_slideshow_pager_form_options
+ */
+function views_slideshow_pager_fields_views_slideshow_widget_pager_form_options(&$form, &$form_state, &$view, $defaults, $dependency) {
+  // Settings for fields pager.
+  $options = array();
+  // Get each field and it's name.
+  foreach ($view->display->handler->get_handlers('field') as $field => $handler) {
+    $options[$field] = $handler->ui_name();
+  }
+  // Need to wrap this so it indents correctly.
+  $form['views_slideshow_pager_fields_wrapper'] = array(
+    '#markup' => '<div class="vs-dependent">',
+  );
+  // Add ability to choose which fields to show in the pager.
+  $form['views_slideshow_pager_fields_fields'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Pager fields'),
+    '#options' => $options,
+    '#default_value' => $defaults['views_slideshow_pager_fields_fields'],
+    '#description' => t("Choose the fields that will appear in the pager."),
+    '#process' => array(
+      'form_process_checkboxes',
+    ),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ':input[name="' . $dependency . '[type]"]' => array('value' => 'views_slideshow_pager_fields'),
+      ),
+    ),
+  );
+
+  // Add field to see if they would like to activate slide and pause on pager
+  // hover
+  $form['views_slideshow_pager_fields_hover'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Activate Slide and Pause on Pager Hover'),
+    '#default_value' => $defaults['views_slideshow_pager_fields_hover'],
+    '#description' => t('Should the slide be activated and paused when hovering over a pager item.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ':input[name="' . $dependency . '[type]"]' => array('value' => 'views_slideshow_pager_fields'),
+      ),
+    ),
+  );
+
+  $form['views_slideshow_pager_fields_wrapper_close'] = array(
+    '#markup' => '</div>',
+  );
+}
+
+/**
+ * Implements [widget]_views_slideshow_widget_form_options().
+ */
+function views_slideshow_controls_views_slideshow_widget_form_options(&$form, &$form_state, &$view, $defaults, $dependency) {
+  // Get all the control info from other modules.
+  // hook_views_slideshow_controls_settings($view, $option_values, $dependency_prefix)
+  $controls = module_invoke_all('views_slideshow_widget_controls_info', $view);
+
+  if (!empty($controls)) {
+    $control_type_options = array();
+    foreach($controls as $control_id => $control_info) {
+      $control_type_options[$control_id] = $control_info['name'];
+    }
+    asort($control_type_options);
+
+    // Need to wrap this so it indents correctly.
+    $form['views_slideshow_controls_wrapper'] = array(
+      '#markup' => '<div class="vs-dependent">',
+    );
+    
+    // Add field to see if they would like to hide controls if there is only one
+    // slide
+    $form['hide_on_single_slide'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Hide controls if there is only one slide'),
+      '#default_value' => $defaults['hide_on_single_slide'],
+      '#description' => t('Should the controls be hidden if there is only one slide.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
+    // Create the widget type field.
+    $form['type'] = array(
+      '#type' => 'select',
+      '#title' => t('Controls Type'),
+      '#description' => t('Style of the controls'),
+      '#default_value' => $defaults['type'],
+      '#options' => $control_type_options,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $dependency . '[enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
+    // Add any additional form elements
+    // Build our arguments to pass to
+    // [pager-type]_views_slideshow_widget_pager_form_options
+    $arguments = array(
+      &$form,
+      &$form_state,
+      &$view,
+      $defaults,
+      $dependency,
+    );
+
+    foreach ($controls as $control_key => $control_info) {
+      $function = $control_key . '_views_slideshow_widget_controls_form_options';
+      if (function_exists($function)) {
+        call_user_func_array($function, $arguments);
+      }
+    }
+
+    $form['controls_wrapper_close'] = array(
+      '#markup' => '</div>',
+    );
+  }
+  else {
+    $form['enable_controls'] = array(
+      '#markup' => 'There are no controls available.',
+    );
+  }
+}
+
+/**
+ * Implementation of hook_views_slideshow_controls_info
+ */
+function views_slideshow_views_slideshow_widget_controls_info($view) {
+  return array(
+    'views_slideshow_controls_text' => array(
+      'name' => t('Text'),
+    )
+  );
+}
+
+/**
+ * Implements hook_views_slideshow_option_definition.
+ */
+function views_slideshow_views_slideshow_option_definition() {
+
+  // Default slideshow type and skins
+  $options['slideshow_type'] = array('default' => '');
+  $options['slideshow_skin'] = array('default' => '');
+  $options['skin_info'] = array(
+    'default' => array(
+      'class' => 'default',
+      'name' => t('Untitled skin'),
+      'module' => 'views_slideshow',
+      'path' => '',
+      'stylesheets' => array(),
+    ),
+  );
+
+  // Set default widgets and weight values.
+  $widgets = module_invoke_all('views_slideshow_widget_info');
+  if ($widgets) {
+    $locations = array('top', 'bottom');
+    foreach ($locations as $location) {
+      foreach ($widgets as $widget_id => $widget_name) {
+        $options['widgets']['contains'][$location]['contains'][$widget_id]['contains']['enable'] = array('default' => 0);
+        $options['widgets']['contains'][$location]['contains'][$widget_id]['contains']['weight'] = array('default' => 1);
+      }
+    }
+  }
+
+  // Defaults for the pager widget.
+  foreach ($locations as $location) {
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['hide_on_single_slide'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['type'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_numbered_hover'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_numbered_click_to_page'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_thumbnails_hover'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_thumbnails_click_to_page'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_fields_fields'] = array('default' => array());
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_pager']['contains']['views_slideshow_pager_fields_hover'] = array('default' => 0);
+
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_controls']['contains']['hide_on_single_slide'] = array('default' => 0);
+    $options['widgets']['contains'][$location]['contains']['views_slideshow_controls']['contains']['type'] = array('default' => 0);
+  }
+
+  return $options;
+}
+
+/**
+ * Need to have preprocess functions here because drupal doesn't cache them 
+ * correctly in the theme.inc file.
+ * 
+ * If you would like to override the preprocess functions make sure to look at
+ * the associated function in theme.inc.
+ */
+
+// Trying to make sure the theme.inc get's loaded.
+include_once('theme/views_slideshow.theme.inc');
+
+function template_preprocess_views_slideshow(&$vars) {
+  _views_slideshow_preprocess_views_slideshow($vars);
+}
+
+function template_preprocess_views_slideshow_pager_fields(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_pager_fields($vars);
+}
+
+function template_preprocess_views_slideshow_pager_field_item(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_pager_field_item($vars);
+}
+
+function template_preprocess_views_slideshow_controls_text(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_controls_text($vars);
+}
+
+function template_preprocess_views_slideshow_controls_text_previous(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_controls_text_previous($vars);
+}
+
+function template_preprocess_views_slideshow_controls_text_pause(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_controls_text_pause($vars);
+}
+
+function template_preprocess_views_slideshow_controls_text_next(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_controls_text_next($vars);
+}
+
+function template_preprocess_views_slideshow_slide_counter(&$vars) {
+  _views_slideshow_preprocess_views_slideshow_slide_counter($vars);
+}

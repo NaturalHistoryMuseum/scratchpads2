@@ -67,23 +67,34 @@ function beautytips_textinput_form_change(&$form, $form_state, $form_id) {
       $options = array();
       $options['bt_text_field'] = array(
         'cssSelect' => 'input.form-text',
-        'trigger' => array(0 => 'focus', 1 => 'blur'),
+        'trigger' => array('focus', 'blur'),
         'contentSelector' => "$(this).nextAll('.description:eq(0)').hide().html()",
         'width' => '275px',
         'positions' => array(0 => variable_get('beautytips_position', 'bottom')),
         'preEval' => TRUE,
       );
+
+      // Text areas can have format text with description or just a description.
+      // The html structure is different depending on which one is chosen.
+      // It would be nice to have a slightly better way of doing this.
+      $content = "
+        if ($(this).parent('.form-textarea-wrapper').nextAll('.description:eq(0)').length !== 0) {
+          $(this).parent('.form-textarea-wrapper').nextAll('.description:eq(0)').hide().html();
+        }
+        else if ($(this).parent('.form-textarea-wrapper').parent('.form-item').nextAll('.description:eq(0)').length !== 0) {
+          $(this).parent('.form-textarea-wrapper').parent('.form-item').nextAll('.description:eq(0)').hide().html();
+        }";
       $options['bt_text_area'] = array(
         'cssSelect' => 'textarea.form-textarea',
-        'trigger' => array(0 => 'focus', 1 => 'dblclick'),
-        'contentSelector' => "$(this).parents('.form-item').find('.description').hide().html()",
+        'trigger' => array('focus', 'dblclick'),
+        'contentSelector' => $content,
         'width' => '275px',
         'positions' => array(0 => variable_get('beautytips_position', 'bottom')),
         'preEval' => TRUE,
       );
       beautytips_add_beautytips($options);
     }
-  }  
+  }
 }
 
 /**

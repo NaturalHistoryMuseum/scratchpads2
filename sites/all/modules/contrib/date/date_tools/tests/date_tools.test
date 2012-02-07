@@ -1,5 +1,4 @@
 <?php
-// $Id: date_tools.test,v 1.2 2011/01/18 00:37:35 karens Exp $
 class DateToolsTestCase extends DrupalWebTestCase {
   protected $privileged_user;
 
@@ -67,17 +66,17 @@ class DateToolsTestCase extends DrupalWebTestCase {
   // Create a date field using the Date Wizard,
   function createDateWizard($edit) {
     $edit += array(
-      'bundle' => 'story', 
-      'name' => 'Story', 
-      'type_description' => 'A test content type.', 
-      'field_name' => 'test', 
-      'label' => 'Test', 
+      'bundle' => 'story',
+      'name' => 'Story',
+      'type_description' => 'A test content type.',
+      'field_name' => 'test',
+      'label' => 'Test',
       'widget_type' => 'date_select',
       'todate' => 'optional',
-      'field_type' => 'date', 
-      'granularity[]' => array('year', 'month', 'day', 'hour', 'minute'), 
+      'field_type' => 'date',
+      'granularity[]' => array('year', 'month', 'day', 'hour', 'minute'),
       'tz_handling' => 'site',
-      'year_range' => '2010:+2', 
+      'year_range' => '2010:+2',
     );
     $this->drupalPost('admin/structure/date/date_wizard', $edit, t('Save'));
     $this->assertText('Your date field Test has been created.', 'Create a date field using the Date Wizard.');

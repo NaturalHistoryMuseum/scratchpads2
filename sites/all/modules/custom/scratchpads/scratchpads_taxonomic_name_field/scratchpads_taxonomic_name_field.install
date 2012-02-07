@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_taxonomic_name_field_install(){
+  $field = array(
+    'active' => '1',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'entity_types' => array(),
+    'field_name' => 'field_taxonomic_name',
+    'foreign keys' => array(
+      'tid' => array(
+        'columns' => array(
+          'tid' => 'tid'
+        ),
+        'table' => 'taxonomy_term_data'
+      )
+    ),
+    'indexes' => array(
+      'tid' => array(
+        0 => 'tid'
+      )
+    ),
+    'module' => 'taxonomy',
+    'settings' => array(
+      'allowed_values' => array()
+    ),
+    'translatable' => '1',
+    'type' => 'taxonomy_term_reference'
+  );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => 'temporary'
+    );
+  }
+  field_create_field($field);
+}

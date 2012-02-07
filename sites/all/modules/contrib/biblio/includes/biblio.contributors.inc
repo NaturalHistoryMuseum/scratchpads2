@@ -51,7 +51,7 @@ function biblio_load_contributors($vid) {
   return biblio_load_contributors_multiple($vids);
 }
 
-function biblio_load_contributors_multiple($vids = array()) {
+function biblio_load_contributors_multiple($vids = array(), $auth_category = 0) {
   $contributors = array();
   if (empty($vids)) return $contributors;
 
@@ -67,6 +67,10 @@ function biblio_load_contributors_multiple($vids = array()) {
   else {
     $query->condition('bc.vid', $vids, 'IN');
   }
+  if ($auth_category) {
+    $query->condition('bc.auth_category', $auth_category);
+  }
+  $query->addMetaData('base_table', 'biblio_contributor');
   $query->addTag('node_access');
   $result = $query->execute();
 
@@ -176,11 +180,30 @@ function biblio_get_orphan_authors() {
 
 function biblio_delete_orphan_authors($force = FALSE) {
   if (variable_get('biblio_auto_orphaned_author_delete', 0) || $force) {
-//    db_query('DELETE FROM {biblio_contributor_data} WHERE cid NOT IN (SELECT DISTINCT(cid) FROM {biblio_contributor})');
-    $sub_select = db_select('biblio_contributor', 'bc')->fields('bc', array('cid'))->distinct();
-    db_delete('biblio_contributor_data')
-      ->condition('cid', $sub_select, 'NOT IN')
-      ->execute();
+    //    db_query('DELETE FROM {biblio_contributor_data} WHERE cid NOT IN (SELECT DISTINCT(cid) FROM {biblio_contributor})');
+    //    $sub_select = db_select('biblio_contributor', 'bc')->fields('bc', array('cid'))->distinct();
+
+    $query = db_select('biblio_contributor', 'bc');
+    $active_cids = $query
+      ->fields('bc', array('cid'))
+      ->groupBy('cid')
+      ->execute()
+      ->fetchCol();
+
+    $query = db_select('biblio_contributor_data', 'bcd');
+    $all_cids = $query
+      ->fields('bcd', array('cid'))
+      ->groupBy('cid')
+      ->execute()
+      ->fetchCol();
+
+    $orphans = array_diff($all_cids, $active_cids);
+
+    if (!empty($orphans)) {
+      db_delete('biblio_contributor_data')
+        ->condition('cid', $orphans, 'IN')
+        ->execute();
+    }
   }
 }
 
@@ -207,7 +230,19 @@ function biblio_update_contributor(&$author) {
   if (!isset($author['cid'])) return FALSE;
   return drupal_write_record('biblio_contributor_data', $author, 'cid');
 }
-
+function _biblio_contributor_sort(&$authors) {
+  foreach($authors as $key => $author) {
+    if(!isset($author['rank']) || empty($author['rank'])) {
+      $authors[$key]['rank'] = $key;
+    }
+  }
+  usort($authors, '_biblio_contributor_usort');
+}
+function _biblio_contributor_usort($a, $b) {
+  if(empty($a['name'])) return 1;
+  if(empty($b['name'])) return -1;
+  return ($a['rank'] < $b['rank']) ? -1 : 1;
+}
 /**
  * Save contributors to the database
  * @param $authors
@@ -219,10 +254,13 @@ function biblio_update_contributor(&$author) {
 function _save_contributors(&$contributors, $nid, $vid, $update = FALSE) {
   $md5 = _loadMD5();
   $rank = 0;
-  //  db_query('DELETE FROM {biblio_contributor} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid));
+
   db_delete('biblio_contributor')
-  ->condition(db_and()->condition('nid', $nid)->condition('vid', $vid))
-  ->execute();
+      ->condition(db_and()->condition('nid', $nid)->condition('vid', $vid))
+      ->execute();
+
+  _biblio_contributor_sort($contributors);// re-sort the authors by rank because the rank may have changed due to tabledrag on the input form
+
   foreach ($contributors as  $key => $author) {
  //   foreach ($authors as $key => $author) {
       if (!empty($author['name'])) {
@@ -298,6 +336,7 @@ function biblio_parse_author($author_array, $cat = 0) {
     $author_array['initials'] = '';
     $author_array['lastname'] = trim($author_array['name']);
     $author_array['prefix'] = '';
+    $author_array['literal'] = 1;
   }
   else {
     $value = trim($author_array['name']);

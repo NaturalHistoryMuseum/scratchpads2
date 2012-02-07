@@ -1,0 +1,165 @@
+<?php
+
+/**
+ * @file
+ *   Provides a multi-site search implementation for use with the Apache Solr module
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function apachesolr_multisitesearch_menu() {
+  $items = array();
+  $items['admin/config/search/apachesolr/multisite-index'] = array(
+    'title' => 'Multisite index',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apachesolr_multisitesearch_settings'),
+    'weight' => -8,
+    'access arguments' => array('administer search'),
+    'file' => 'apachesolr_multisitesearch.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_apachesolr_process_results().
+ */
+function apachesolr_multisitesearch_apachesolr_process_results(&$results, $query) {
+  $env_id = $query->solr('getId');
+  if (apachesolr_environment_variable_get($env_id, 'multisitesearch')) {
+    foreach ($results as $key => $result) {
+      $results[$key]['extra']['hash'] = theme('apachesolr_multisitesearch_breadcrumb_hash', array('hash' => $result['fields']['hash']));
+      // Use an absolute URL.
+      $results[$key]['link'] = url($result['fields']['url'], array('absolute' => TRUE));
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function apachesolr_multisitesearch_cron() {
+  apachesolr_multisitesearch_refresh_metadata();
+}
+
+function apachesolr_multisitesearch_refresh_metadata() {
+  // Update meta data 1x per hour max.
+  // Fetch meta data 1x per 5 minutes max.
+  // TODO - make these intervals controllable.
+  $last_update = variable_get('apachesolr_multisitesearch_last_metadata_update', 0);
+  $last_fetch = variable_get('apachesolr_multisitesearch_last_metadata_fetch', 0);
+  $time = time();
+  module_load_include('inc', 'apachesolr_multisitesearch', 'apachesolr_multisitesearch.admin');
+  if ($time - $last_update > 60*60) {
+    if (apachesolr_multisitesearch_update_metadata()) {
+      variable_set('apachesolr_multisitesearch_last_metadata_update', $time);
+    }
+  }
+  if ($time - $last_fetch > 60*5) {
+    apachesolr_multisitesearch_get_metadata();
+  }
+  $env_id = apachesolr_default_environment();
+  apachesolr_set_last_index_updated($env_id, $time);
+}
+
+/**
+ * Implements hook_apachesolr_query_alter().
+ */
+function apachesolr_multisitesearch_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  $env_id = $query->solr('getId');
+  $multisite = apachesolr_environment_variable_get($env_id, 'multisitesearch');
+  if (empty($multisite)) {
+    // Limit single site searchs via the site hash.
+    $query->addFilter('hash', apachesolr_site_hash());
+     //'url', 'is_uid', 'tos_name', 'site', 'hash'
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function apachesolr_multisitesearch_theme() {
+  return array(
+    'apachesolr_multisitesearch_username' => array(
+      'variables' => array('doc' => NULL),
+    ),
+    'apachesolr_multisitesearch_breadcrumb_hash' => array(
+      'variables' => array('hash' => NULL, 'exclude' => FALSE),
+    ),
+  );
+}
+
+function theme_apachesolr_multisitesearch_breadcrumb_hash($variables) {
+  $hash = $variables['hash'];
+  static $meta;
+  if (!isset($meta)) {
+    $meta = variable_get('apachesolr_multisitesearch_metadata', array());
+  }
+  if ($hash == apachesolr_site_hash()) {
+    return t('This site (!site)', array('!site' => variable_get('site_name', 'Drupal')));
+  }
+  elseif (isset($meta[$hash]['ss_multisite_meta_sitename'])) {
+    return $meta[$hash]['ss_multisite_meta_sitename'];
+  }
+  return $hash;
+}
+
+/**
+ * Modified username theme function.
+ *
+ * @see theme_username()
+ */
+function theme_apachesolr_multisitesearch_username($variables) {
+  $doc = $variables['doc'];
+  if ($doc->name) {
+    // Shorten the name when it is too long or it will break many tables.
+    if (drupal_strlen($doc->name) > 20) {
+      $name = drupal_substr($doc->name, 0, 15) .'...';
+    }
+    else {
+      $name = $doc->name;
+    }
+    // Only make links for local users.
+    if ($doc->is_uid && apachesolr_site_hash() == $doc->hash && user_access('access user profiles')) {
+      $output = l($name, 'user/'. $doc->is_uid, array('attributes' => array('title' => t('View user profile.'))));
+    }
+    else {
+      $output = check_plain($name);
+    }
+  }
+  else {
+    $output = check_plain(variable_get('anonymous', t('Anonymous')));
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_apachesolr_delete_index_alter()
+ */
+function apachesolr_multisitesearch_apachesolr_delete_index_alter(&$query) {
+  // Limit to the current site.
+  $query = "($query) AND hash:" . apachesolr_site_hash();
+}
+
+/**
+ * Implements hook_facetapi_facet_info().
+ */
+function apachesolr_multisitesearch_facet_info($searcher_info) {
+  $facets = array();
+  $facets['hash'] = array(
+    'label' => t('Site'),
+    'description' => t('Filter by site.'),
+    'field' => 'hash',
+    'map callback' => 'apachesolr_multisitesearch_map_hash',
+  );
+  return $facets;
+}
+
+function apachesolr_multisitesearch_map_hash() {
+  $data = variable_get('apachesolr_multisitesearch_metadata', array());
+  foreach ($data as $key => $value) {
+    $data[$key] = $value['ss_multisite_meta_sitename'];
+  }
+  return $data;
+}

@@ -238,7 +238,11 @@ class FeedsExcelParser extends FeedsParser{
       )), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array(
         '!columns' => implode(', ', $uniques)
       ))),
-      $items[] = l(t('Download a template'), 'import/' . $this->id . '/template')
+      $items[] = l(t('Download a template'), 'import/' . $this->id . '/template', array(
+        'attributes' => array(
+          'target' => '_blank'
+        )
+      ))
     );
     $form['help']['#markup'] = '<div class="help"><p>' . $output . '</p>' . theme('item_list', array(
       'items' => $items

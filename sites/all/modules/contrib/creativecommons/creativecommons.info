@@ -1,0 +1,26 @@
+name = Creative Commons
+description = Allows users to add Creative Commons license to selected content.
+package = Search and Metadata
+core = 7.x
+php = 5.2
+
+configure = admin/config/search/creativecommons
+
+files[] = creativecommons.actions.inc
+files[] = creativecommons.class.php
+files[] = creativecommons.install
+files[] = creativecommons.module
+files[] = includes/creativecommons.views.inc
+files[] = includes/creativecommons.views_default.inc
+files[] = includes/creativecommons_views_handler_argument_nid.inc
+files[] = includes/creativecommons_views_handler_field_attribution.inc
+files[] = includes/creativecommons_views_handler_field_license_uri.inc
+files[] = includes/creativecommons_views_handler_filter_license_uri.inc
+files[] = theme/theme.inc
+
+; Information added by drupal.org packaging script on 2011-04-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "creativecommons"
+datestamp = "1304121987"
+

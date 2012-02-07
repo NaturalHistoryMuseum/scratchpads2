@@ -4,50 +4,65 @@
     this.GM3 = map;
     this.points = new Array();
     this.markers = new Array();
-    // Icon
     // FIXME - Add a way of setting this image.
-    this.marker_image = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(16, 16), new google.maps.Point(0, 44), new google.maps.Point(8, 8));
+    this.marker_images = new Array();
+    for( var i = 0; i < 8; i++) {
+      this.marker_images[i] = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(18, 25), new google.maps.Point(11 + (i * 18), 0), new google.maps.Point(9, 25));
+    }
     // Add points sent from server.
     if(this.GM3.libraries.point.points) {
       for( var i in this.GM3.libraries.point.points) {
-        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), false, this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
+        // Default editable to false
+        var editable = typeof (this.GM3.libraries.point.points[i]['editable']) != 'undefined' ? this.GM3.libraries.point.points[i]['editable'] : false;
+        this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), editable, false, this.GM3.libraries.point.points[i]['colour'], this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
       }
     }
     // Clusterer
     this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
-    this.autofit = typeof (this.GM3.libraries.point.autofit) != 'undefined' ? this.GM3.libraries.point.autofit : false;
-    if(this.autofit) {
-      this.clusterer.fitMapToMarkers();
-    }
   }
   Drupal.GM3.point.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
   }
-  Drupal.GM3.point.prototype.add_marker = function(latLng, redraw, title, content){
-    redraw = typeof (redraw) != 'undefined' ? redraw : false;
-    title = typeof (title) != 'undefined' ? title : '';
-    content = typeof (content) != 'undefined' ? content : '';
-    var current_point = this.points.length;
-    this.points[current_point] = new google.maps.Marker({position: latLng, draggable: true, title: title + " :: " + latLng.toString(), icon: this.marker_image});
-    if(content) {
-      google.maps.event.addListener(this.points[current_point], "click", function(event){
-        var info_window = new InfoBubble({map: this.map, content: content, position: latLng, shadowStyle: 1, padding: 0, borderRadius: 4, arrowSize: 10, borderWidth: 1, borderColor: '#2c2c2c', disableAutoPan: true, hideCloseButton: true, arrowPosition: 30, backgroundClassName: 'phoney', arrowStyle: 2});
-        info_window.open();
-      });
+  Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, colour, title, content){
+    if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
+      this.GM3.add_latlng(latLng);
+      redraw = typeof (redraw) != 'undefined' ? redraw : false;
+      title = typeof (title) != 'undefined' ? title : '';
+      content = typeof (content) != 'undefined' ? content : '';
+      var current_point = this.points.length;
+      if(typeof (colour) == 'undefined') {
+        colour = this.points.length % 8;
+      }
+      this.points[current_point] = new google.maps.Marker({position: latLng, draggable: editable, title: title + " :: " + latLng.toString(), icon: this.marker_images[colour]});
+      // Add transfer listeners so the added points can be rightclicked.
+      this.GM3.add_listeners_helper(this.points[current_point]);
+      if(content) {
+        this.GM3.add_popup(this.points[current_point], content, title);
+      }
+      if(redraw) {
+        this.clusterer.addMarker(this.points[current_point], true);
+        this.clusterer.repaint();
+      }
+      this.GM3.num_objects++;
+    } else {
+      alert(Drupal.t('Please delete an object from the map before adding another'));
     }
-    if(redraw) {
-      this.clusterer.addMarker(this.points[current_point], true);
-      this.clusterer.repaint();
-    }
-    // Add transfer listeners so the added points can be rightclicked.
-    this.GM3.add_listeners_helper(this.points[current_point]);
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
+    if(event_type == 'zoom_changed' || event_type == 'bounds_changed') {
+      // Looks like we're stealing a listener from the clusterer. We'll do
+      // things
+      // ourselves.
+      this.clusterer.repaint();
+    }
     switch(this.GM3.active_class){
       case 'point':
         switch(event_type){
           case 'click':
-            this.add_marker(event.latLng, true);
+            this.add_marker(event.latLng, true, true);
+            if(this.update_field) {
+              this.update_field();
+            }
             break;
           case 'rightclick':
             switch(event_object.getClass()){
@@ -62,6 +77,7 @@
                     this.clusterer.removeMarker(this.points[i], true);
                     this.points[i].setMap(null);
                     this.points[i] = undefined;
+                    this.GM3.num_objects--;
                   }
                 }
                 // Finally, close up the array, which seems pretty clunky, but
@@ -75,6 +91,9 @@
                   }
                 }
                 this.points = new_points;
+                if(this.update_field) {
+                  this.update_field();
+                }
                 break;
             }
             break;

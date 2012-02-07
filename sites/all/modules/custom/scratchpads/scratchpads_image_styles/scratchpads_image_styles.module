@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implements hook_image_default_styles().
+ */
+function scratchpads_image_styles_image_default_styles(){
+  $styles = array();
+  $styles['square_thumbnail'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => 85,
+          'height' => 85
+        ),
+        'weight' => 0
+      )
+    )
+  );
+  $styles['square_thumbnail_large'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale_and_crop',
+        'data' => array(
+          'width' => 200,
+          'height' => 200
+        ),
+        'weight' => 0
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_image_styles_styles_default_styles(){
+  $styles = array();
+  $styles['file']['styles']['square_thumbnail_large'] = array(
+    'label' => t("Large square thumbnail"),
+    'description' => 'A 200x200 square thumbnail.',
+  
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_image_styles_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['square_thumbnail_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['square_thumbnail_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'square_thumbnail_large'
+    );
+    $presets['file']['containers']['audio']['styles']['square_thumbnail_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['square_thumbnail_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['square_thumbnail_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+}

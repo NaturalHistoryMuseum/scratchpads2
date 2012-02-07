@@ -1,0 +1,5 @@
+core = "7.x"
+dependencies[] = "image"
+description = "Scratchpad default image styles"
+name = "scratchpads_image_styles"
+package = "Scratchpads"

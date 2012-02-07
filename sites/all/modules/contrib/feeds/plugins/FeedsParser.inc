@@ -264,14 +264,40 @@ class FeedsEnclosure extends FeedsElement {
   }
 
   /**
+   * Use this method instead of FeedsElement::getValue() when fetching the file
+   * from the URL.
+   *
+   * @return
+   *   Value with encoded space characters to safely fetch the file from the URL.
+   *
+   * @see FeedsElement::getValue()
+   */
+  public function getUrlEncodedValue() {
+    return str_replace(' ', '%20', $this->getValue());
+  }
+
+  /**
+   * Use this method instead of FeedsElement::getValue() to get the file name
+   * transformed for better local saving (underscores instead of spaces)
+   *
+   * @return
+   *   Value with space characters changed to underscores.
+   *
+   * @see FeedsElement::getValue()
+   */
+  public function getLocalValue() {
+    return str_replace(' ', '_', $this->getValue());
+  }
+
+  /**
    * @return
    *   The content of the referenced resource.
    */
   public function getContent() {
     feeds_include_library('http_request.inc', 'http_request');
-    $result = http_request_get($this->getValue());
+    $result = http_request_get($this->getUrlEncodedValue());
     if ($result->code != 200) {
-      throw new Exception(t('Download of @url failed with code !code.', array('@url' => $this->getValue(), '!code' => $result->code)));
+      throw new Exception(t('Download of @url failed with code !code.', array('@url' => $this->getUrlEncodedValue(), '!code' => $result->code)));
     }
     return $result->data;
   }
@@ -318,7 +344,7 @@ class FeedsEnclosure extends FeedsElement {
         }
       }
       else {
-        $filename = basename($this->getValue());
+        $filename = basename($this->getLocalValue());
         if (module_exists('transliteration')) {
           require_once drupal_get_path('module', 'transliteration') . '/transliteration.inc';
           $filename = transliteration_clean_filename($filename);
@@ -534,7 +560,10 @@ class FeedsDateTime extends DateTime {
   public function __construct($time = '', $tz = NULL) {
     // Assume UNIX timestamp if numeric.
     if (is_numeric($time)) {
-      $time = "@" . $time;
+      // Make sure it's not a simple year
+      if ((is_string($time) && strlen($time) > 4) || is_int($time)) {
+        $time = "@" . $time;
+      }
     }
 
     // PHP < 5.3 doesn't like the GMT- notation for parsing timezones.

@@ -1,0 +1,69 @@
+@CHARSET "UTF-8";
+
+/* Slideshow */
+
+.view-front-page-slideshow{
+/*  padding: 1px;*/
+  background: #fff;
+}
+
+.view-front-page-slideshow .views-slideshow-pager-field-item img{
+  margin-right: 1px;
+  margin-bottom: 1px;
+}
+
+#views_slideshow_pager_field_item_bottom_front_page_slideshow-default_3 img{
+  margin-right: 0!important;
+}
+
+.view-front-page-slideshow #views_slideshow_pager_field_item_bottom_home_page_slideshow-block_1_3 img{
+  margin-bottom: 0;
+}
+
+.view-front-page-slideshow .views_slideshow_cycle_main{
+  float: left;
+  position: relative;
+  margin-right: 1px;
+  margin-bottom: 1px;
+}
+
+.view-front-page-slideshow .views-field-filename{
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
+
+.view-front-page-slideshow .views-field-filename span{
+  padding: 0 10px;
+}
+
+/* Slideshow controls */
+.views-slideshow-pager-field-item{
+  float: left;
+}
+
+.views-slideshow-controls-bottom{
+  min-width: 620px;
+}
+
+/* Large text block */
+.view-front-page-content li{
+  margin: 0!important;
+}
+
+.view-front-page-content li h2{
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+/* Small blocks */
+.view-front-page-blocks li{
+  margin: 2px 0 10px 10px!important;
+}
+
+.view-front-page-blocks li p{
+  margin: 5px 0;
+}

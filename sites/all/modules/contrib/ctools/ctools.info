@@ -6,9 +6,9 @@ files[] = includes/context.inc
 files[] = includes/math-expr.inc
 files[] = includes/stylizer.inc
 
-; Information added by drupal.org packaging script on 2011-07-28
-version = "7.x-1.0-rc1"
+; Information added by drupal.org packaging script on 2011-12-10
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "ctools"
-datestamp = "1311894415"
+datestamp = "1323476127"
 

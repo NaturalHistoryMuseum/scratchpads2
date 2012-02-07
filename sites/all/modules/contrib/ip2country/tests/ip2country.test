@@ -1,0 +1,352 @@
+<?php
+
+/**
+ * @file
+ * Tests suite for the ip2country module.
+ *
+ * @author Tim Rohaly.    <http://drupal.org/user/202830>
+ */
+
+
+/**
+ * Need 1 class for unit tests, 1 class for functional tests
+ * 1 function for DB tests because filling takes so long
+ */
+class ip2countryTestCase extends DrupalWebTestCase {
+
+  /** Admin user */
+  protected $admin_user;
+
+  /** Authenticated but unprivileged user */
+  protected $unpriv_user;
+
+
+  /**
+   * Implements DrupalWebTestCase::getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name'        => 'IP/Country lookup',
+      'description' => 'Test operations of IP to Country module.',
+      'group'       => 'IP to Country',
+    );
+  }
+
+
+  /**
+   * Overrides DrupalWebTestCase::setUp().
+   */
+  function setUp() {
+    //
+    // Don't install ip2country! parent::setUp() creates a clean
+    // environment, so we can influence the install before we call setUp().
+    // We don't want the DB populated, so we'll manually install ip2country.
+    //
+    parent::setUp();
+
+    //
+    // Set a run-time long enough so the script won't break
+    //
+    $this->timeLimit = 15 * 60;  // 15 minutes!
+    drupal_set_time_limit($this->timeLimit);
+
+    // Turn off automatic DB download when module is installed.
+    variable_set('ip2country_populate_database_on_install', FALSE);
+
+    // Explicitly enable the module so that it will have access
+    // to the variable we set above.
+    $status = module_enable(array('ip2country'), FALSE);
+    $this->resetAll();  // The secret ingredient
+
+    $this->assertTrue(
+      $status,
+      t('Module %module enabled.', array('%module' => 'ip2country'))
+    );
+    $this->assertTrue(
+      (ip2country_get_count() == 0),
+      t('Database is empty.')
+    );
+
+    // Create and log in our test user.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'administer site configuration',
+      'access administration pages',
+      'access site reports',
+      'administer ip2country',
+    ));
+    $this->unpriv_user = $this->drupalCreateUser();
+  }
+
+
+  /**
+   * Tests IP lookup for addresses in / not in the database.
+   */
+  function testIPLookup() {
+    ip2country_update_database('arin');
+
+    $this->assertTrue(
+      ($count = ip2country_get_count()) != 0,
+      t('Database has been updated with @rows rows.', array('@rows' => $count))
+    );
+
+    // Real working IPs
+    $ip_array = array(
+      '125.29.33.201', '212.58.224.138',
+      '184.51.240.110', '210.87.9.66'
+    );
+    foreach ($ip_array as $ip_address) {
+      $country = ip2country_get_country($ip_address);
+      $this->assertTrue(
+        $country,
+        t('@ip found, resolved to @country.', array('@ip' => $ip_address, '@country' => $country))
+      );
+      $this->pass(t('Valid IP found in database.'));
+    }
+
+    // Invalid and reserved IPs
+    $ip_array = array(
+      '127.0.0.1', '358.1.1.0'
+    );
+    foreach ($ip_array as $ip_address) {
+      $country = ip2country_get_country($ip_address);
+      $this->assertFalse(
+        $country,
+        t('@ip not found in database.', array('@ip' => $ip_address))
+      );
+      $this->pass(t('Invalid IP not found in database.'));
+    }
+
+    ip2country_empty_database();
+    $this->assertTrue(
+      (ip2country_get_count() == 0),
+      t('Database is Empty.')
+    );
+  }
+
+  /**
+   * Tests injecting IP data via hook_ip2country_alter()
+   */
+  function testAlterHook() {
+    $this->pass(t('testAlterHook passed.'));
+  }
+
+  /**
+   * Tests Default country
+   */
+  function testDefaultCountry() {
+    $this->pass(t('testDefaultCountry passed.'));
+  }
+
+  /**
+   * Tests module permissions / access to configuration page.
+   */
+  function testUserAccess() {
+    //
+    // Test as anonymous user
+    //
+    $this->drupalGet('admin/config');
+    $this->assertText(t('Access denied'));
+    $this->assertText(t('You are not authorized to access this page.'));
+
+    $this->drupalGet('admin/config/people/ip2country');
+    $this->assertText(t('Access denied'));
+    $this->assertText(t('You are not authorized to access this page.'));
+
+    // Try to trigger DB update as anonymous
+    $this->drupalGet('admin/config/people/ip2country/update/arin');
+    $this->assertText(t('Access denied'));
+    $this->assertText(t('You are not authorized to access this page.'));
+
+    //
+    // Test as authenticated but unprivileged user
+    //
+    $this->drupalLogin($this->unpriv_user);
+    $this->drupalGet('admin/config');
+    $this->assertText(t('Access denied'));
+    $this->assertText(t('You are not authorized to access this page.'));
+
+    $this->drupalGet('admin/config/people/ip2country');
+    $this->assertText(t('Access denied'));
+    $this->assertText(t('You are not authorized to access this page.'));
+    $this->drupalLogout();
+
+    //
+    // As admin user
+    //
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config');
+    $this->assertText(t('User location'));
+    $this->assertText(t('Settings for determining user location from IP address.'));
+
+    $this->drupalGet('admin/config/people/ip2country');
+    $this->assertText(t('User location'));
+    $this->assertText(t('Configuration settings for the ip2country module.'));
+    $this->assertText(t('Database is empty.'));
+    $this->assertFieldByName(
+      'ip2country_watchdog',
+      1,
+      t('Database updates are being logged to watchdog.')
+    );
+    $this->assertFieldByName(
+      'ip2country_rir',
+      'arin',
+      t('Database updates from arin.')
+    );
+
+    // Update database via UI - choose a random RIR
+    // (Actually short-circuiting the UI here because of the Ajax call)
+    $rir = array_rand(array(
+      'afrinic' => 'AFRINIC',
+      'arin'    => 'ARIN',
+      'apnic'   => 'APNIC',
+      'lacnic'  => 'LACNIC',
+      'ripe'    => 'RIPE'
+    ));
+    $this->drupalGet('admin/config/people/ip2country/update/' . $rir);
+    $this->assertText(
+      t('The IP to Country database has been updated from @rir.', array('@rir' => strtoupper($rir)))
+    );
+
+    // Check watchdog
+    $this->drupalGet('admin/reports/dblog');
+    $this->assertText(t('Recent log messages'));
+    $this->assertText('ip2country');
+    $this->assertLink(t('Database updated from @rir server.', array('@rir' => strtoupper($rir))));
+
+    // Drill down
+    $this->clickLink(t('Database updated from @rir server.', array('@rir' => strtoupper($rir))));
+    $this->assertText(t('Details'));
+    $this->assertText('ip2country');
+    $this->assertText(t('Database updated from @rir server.', array('@rir' => strtoupper($rir))));
+    
+    $this->drupalLogout();
+  }
+
+  /**
+   * Tests $user object for proper value
+   */
+  function testUserObject() {
+    $this->pass(t('testUserObject passed.'));
+  }
+
+  /**
+   * Tests UI
+   */
+  function testUI() {
+    $this->pass(t('testUI passed.'));
+  }
+
+  /**
+   * Tests IP Spoofing
+   * -- anonymous vs authenticated users
+   * Check for info $messages
+   */
+  function testIPSpoofing() {
+    $this->pass(t('testIPSpoofing passed.'));
+  }
+
+  /**
+   * Tests Country Spoofing
+   * -- anonymous vs authenticated users
+   * Check for info $messages
+   */
+  function testCountrySpoofing() {
+    $this->pass(t('testCountrySpoofing passed.'));
+  }
+
+  /**
+   * Tests manual lookup
+   */
+  function testIPManualLookup() {
+    //$this->clickLink(t('Lookup'));
+    $this->pass(t('testIPManualLookup passed.'));
+  }
+
+  /**
+   * Tests DB download
+   */
+  function testDBDownload() {
+    ip2country_empty_database();
+
+    $this->assertTrue(
+      (ip2country_get_count() == 0),
+      t('Database is Empty.')
+    );
+
+    // Choose a random RIR
+    $rir = array_rand(array(
+//    'afrinic' => 'AFRINIC', // Don't use AFRINIC because it's incomplete
+      'arin'    => 'ARIN',
+      'apnic'   => 'APNIC',
+      'lacnic'  => 'LACNIC',
+      'ripe'    => 'RIPE'
+    ));
+    ip2country_update_database($rir);
+
+    $this->assertTrue(
+      ($count = ip2country_get_count()) != 0,
+      t('Database has been updated from %rir with @rows rows.', array('%rir' => strtoupper($rir), '@rows' => $count))
+    );
+
+    ip2country_empty_database();
+    $this->assertTrue(
+      (ip2country_get_count() == 0),
+      t('Database is Empty.')
+    );
+  }
+
+  /**
+   * Tests manual DB update.
+   */
+  function testDBManualUpdate() {
+    //$this->clickLink(t('Update'));
+    $rows = db_select('ip2country')->countQuery()->execute()->fetchField();
+    //$this->assertText(
+    //  t('The IP to Country database has been updated from @rir. @rows rows affected.', array('@rir' => $rir, '@rows' => $rows)),
+    //  t('Database was updated manually.')
+    //);
+    $this->pass(t('testDBManualUpdate passed.'));
+  }
+
+  /**
+   * Tests cron DB update.
+   */
+  function testDBCronUpdate() {
+    $this->pass(t('testDBCronUpdate passed.'));
+  }
+
+  /**
+   * Tests logging of DB updates.
+   */
+  function testDBUpdateLogging() {
+    // Turn off logging
+
+    // Turn on logging
+    $edit = array(
+      'ip2country_watchdog' => array('test' => TRUE),
+    );
+    //$this->drupalPost(
+    //  'admin/store/settings/countries/edit',
+    //  $edit,
+    //  t('Import')
+    //);
+    //$this->assertText(
+    //  t('Database updated from @rir server.', array('@rir' => $rir)),
+    //  t('Watchdog reported database update.')
+    //);
+
+    $this->pass(t('testDBUpdateLogging passed.'));
+  }
+
+  /**
+   * Overrides DrupalWebTestCase::tearDown().
+   */
+  function tearDown() {
+    // Perform any clean-up tasks.
+    variable_del('ip2country_populate_database_on_install');
+
+    // Finally...
+    parent::tearDown();
+  }
+
+}

@@ -38,6 +38,7 @@ class BiblioEntrezPubmedArticle
   {
     $this->biblio = array();
     $this->article = $pubmedArticle->MedlineCitation;
+    $this->pubmeddata = $pubmedArticle->PubmedData;
     $this->id = (int)$pubmedArticle->MedlineCitation->PMID;
     $this->md5 = md5($pubmedArticle->asXML());
     return $this;
@@ -77,6 +78,18 @@ class BiblioEntrezPubmedArticle
           $citekey = $this->id;
         }
 
+        // Attempts to extract the name of the journal from MedlineTA if
+        // available.
+        if (!empty($this->article->MedlineJournalInfo->MedlineTA)) {
+          $journal = (string)$this->article->MedlineJournalInfo->MedlineTA;
+        }
+        elseif (!empty($this->article->Article->Journal->ISOAbbreviation)) {
+          $journal = (string)$this->article->Article->Journal->ISOAbbreviation;
+        }
+        else {
+          $journal = (string)$this->article->Article->Journal->Title;
+        }
+
         $this->biblio = array(
         'title'           => (string)$this->article->Article->ArticleTitle,
         'biblio_citekey'  => $citekey,
@@ -87,7 +100,7 @@ class BiblioEntrezPubmedArticle
         'biblio_type'     => 102,
         'biblio_date'     => $this->date(),
         'biblio_year'     => substr($this->date(), 0, 4),
-        'biblio_secondary_title' => (string)$this->article->Article->Journal->Title,
+        'biblio_secondary_title' => $journal,
         'biblio_alternate_title' => (string)$this->article->Article->Journal->ISOAbbreviation,
         'biblio_volume'   => (string)$this->article->Article->Journal->JournalIssue->Volume,
         'biblio_issue'    => (string)$this->article->Article->Journal->JournalIssue->Issue,
@@ -99,9 +112,9 @@ class BiblioEntrezPubmedArticle
         'biblio_lang'     => $this->lang(),
       );
 
-      $doi = $this->article->xpath('//ELocationID[@EIdType="doi"]/text()');
+      $doi = $this->article->xpath('.//ELocationID[@EIdType="doi"]/text()');
       if (empty($doi)) {
-        $doi = $this->article->xpath('//ArticleId[@IdType="doi"]/text()');
+        $doi = $this->pubmeddata->xpath('.//ArticleId[@IdType="doi"]/text()');
       }
       if (!empty($doi)) {
         $this->biblio['biblio_doi'] = (string)$doi[0];

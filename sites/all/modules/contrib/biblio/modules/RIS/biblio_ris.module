@@ -3,28 +3,27 @@
  * @file biblio_ris.module
  *
  */
-/*function biblio_ris_menu() {
-  global $user;
-  $items = array();
-  $base = variable_get('biblio_base', 'biblio');
-
-  $items["$base/export/ris"] = array(
-    'title'             => '',
-    'page callback'     => 'biblio_ris_biblio_export',
-    'access callback'   => 'user_access',
-    'access arguments'  => array('show export links'),
-    'type'              => MENU_CALLBACK
+function biblio_ris_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_ris') . '/views',
   );
-
-  return $items;
 }
-*//*
+/*
  *   add the ris option to the option list of the biblio_import_form
  *   the key is the module name use by module_invoke to call hook_biblio_import
  *   module_invoke('biblio_ris', 'biblio_import',...)
  */
 function biblio_ris_biblio_import_options() {
   return array('biblio_ris' => t('RIS'));
+}
+function biblio_ris_biblio_mapper_options() {
+  return  array(
+    'ris' => array(
+      'title' => t('RIS'),
+      'export' => TRUE,
+      )
+    );
 }
 
 function biblio_ris_biblio_export_options() {
@@ -73,7 +72,7 @@ function biblio_ris_form_biblio_node_form_submit($form, &$form_state) {
   }
   if (!empty($node_data) && is_object($node_data)) {
     $form_state['values'] = array_merge($form_state['values'], (array)$node_data);
-    $form_state['input']['biblio_type'] = $node_data->biblio_type;
+    $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data->biblio_type;
   }
   $form_state['rebuild'] = TRUE;
   return;
@@ -162,9 +161,8 @@ function biblio_ris_biblio_export($nids) {
     drupal_add_http_header('Content-Disposition', 'attachment; filename="Drupal-Biblio.ris"');
   }
 
-  foreach ($nids as $nid)  {
-
-    $node = node_load($nid, FALSE, TRUE);
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
     if (variable_get('biblio_hide_bibtex_braces', 0) ) {
       $node->title = biblio_remove_brace($node->title);
     }
@@ -219,6 +217,7 @@ function _biblio_ris_import_string($string) {
 }
 
 function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
+  ini_set('auto_detect_line_endings', true);
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open RIS input file for reading."), 'error');
     return;
@@ -227,6 +226,7 @@ function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id
   $tag = '';
   $nids = array();
   $dups = array();
+  $unmapped = array();
   $node = new stdClass();
 
   while (!feof($fp)) {
@@ -260,17 +260,28 @@ function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id
         $node->biblio_contributors = array();
       }
       else {
-        _biblio_ris_parse_line($tag, $data, $node);
+        _biblio_ris_parse_line($tag, $data, $node, $unmapped);
       }
 
     }
   } // end while
-    fclose($fp);
 
-    return array($nids, $dups);
+  fclose($fp);
+
+  if (!empty($unmapped)) {
+    $ignored_tags = array_unique($unmapped);
+    $message = t("The following elements were ignored because they do not map to any biblio fields: ");
+    $message .= implode(', ',$ignored_tags);
+    if (user_access('administer biblio')) {
+      $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
+    }
+    drupal_set_message($message, 'warning');
   }
 
-function _biblio_ris_parse_line($tag, $data, $node) {
+  return array($nids, $dups);
+}
+
+function _biblio_ris_parse_line($tag, $data, $node, &$unmapped) {
   switch ($tag) {
     case 'TY' :
       $node->biblio_type = _biblio_ris_type_map($data);
@@ -316,8 +327,14 @@ function _biblio_ris_parse_line($tag, $data, $node) {
       }
       break;
     default :
-      $field = _biblio_ris_field_map($tag);
-      if ($field) $node->$field .= $data;
+      if ($field = _biblio_ris_field_map($tag)) {
+        $node->$field .= $data;
+      }
+      else {
+        if (!in_array($tag, $unmapped)) {
+          $unmapped[] = $tag;
+        }
+      }
   }
 }
 

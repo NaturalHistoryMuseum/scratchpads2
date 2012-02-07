@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Organic groups migrate
+ * module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function og_migrate_schema() {
+  $schema = array();
+
+  $schema['og_migrate'] = array(
+    'description'     => 'Store information related to the organic groups migration.',
+    'fields'          => array(
+      'plugin' => array(
+        'description' => "The plugin name.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'description' => "The plugin's status. Not executed, executed or failed.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'small',
+      ),
+    ),
+    'primary key' => array('plugin'),
+  );
+
+   return $schema;
+}

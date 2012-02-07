@@ -1,0 +1,40 @@
+diff --git a/relation.admin.inc b/relation.admin.inc
+index f12ddc9..d2d7914 100644
+--- a/relation.admin.inc
++++ b/relation.admin.inc
+@@ -342,9 +342,7 @@ function relation_admin_content() {
+ 
+   // Grab all relations.
+   $query = db_select('relation', 'r')->extend('PagerDefault')->extend('TableSort');
+-  $query->join('relation_type', 'rt', 'r.relation_type = rt.relation_type');
+   $query->fields('r', array('rid', 'relation_type'))
+-    ->fields('rt', array('directional'))
+     ->limit(50)
+     ->orderByHeader($header);
+   $relations = $query->execute();
+@@ -358,6 +356,7 @@ function relation_admin_content() {
+ function theme_relation_admin_content($variables) {
+   $relations = $variables['relations'];
+   $header = $variables['header'];
++  $types = relation_get_types();
+ 
+   $rows = array();
+   if (empty($relations)) {
+@@ -374,6 +373,8 @@ function theme_relation_admin_content($variables) {
+       $r = relation_load($relation->rid);
+       // Get the endpoints for this relation.
+       $endpoints = field_get_items('relation', $r, 'endpoints');
++      // Get the type for this relation
++      $type = $types[$r->relation_type];
+ 
+       if (!empty($endpoints)) {
+         $relation_entities = array();
+@@ -406,7 +407,7 @@ function theme_relation_admin_content($variables) {
+       $rows[] = array(
+         l(t('Relation') . ' ' . $relation->rid, 'relation/' . $relation->rid),
+         $relation->relation_type,
+-        implode(($relation->directional) ? " -> " : " -- ", $relation_column),
++        implode(($type->directional) ? " -> " : " -- ", $relation_column),
+         user_access('edit relations') ? l(t('Edit'), 'relation/' . $relation->rid . '/edit') : '',
+         user_access('delete relations') ? l(t('Delete'), 'relation/' . $relation->rid . '/delete') : '',
+       );

@@ -1,0 +1,44 @@
+HS core:
+✓ port: initial port
+✓ fix: JS code cleanup (remove hardcoded hacks)
+✓ fix: title + description (i.e. something's off with the theme wrapper)
+✓ fix: #value_callback may be necessary? (see file.module) OR: ensure #return_value works
+✓ fix: #element_validate callback: _hierarchical_select_validate() — verify this still works
+✓ port: support multiple HS on the same page
+✓ port: admin UI
+✓ port: "dropbox" support
+✓ upgrade path: delete cache_hierarchical_select
+✓ upgrade path: documentation
+✓ port: "create new item" support — see http://drupal.org/node/1087620
+✓ port: status report
+- port: render_flat_select support
+- port: client-side caching (use _hierarchical_select_json_convert_hierarchy_to_cache())
+- feature: live preview of HS on the common config form
+- refactor: use the proper #value_callback -> #process callback -> #after_build callback pipeline as described in the documentation for form_builder() in form.inc
+
+Taxonomy:
+✓ port: admin UI
+✓ port: "dropbox" support
+✓ port: "save lineage" support (i.e. support multiple parents, automatic warning shown through hs_taxonomy_hierarchical_select_root_level())
+✓ port: field formatters (from content_taxonomy)
+✓ port: taxonomy term (create/edit) form should be altered to include HS
+✓ upgrade path: migrate settings (no migration necessary)
+✓ upgrade path: documentation (no migration, no docs)
+✓ port: "create new item" support — see http://drupal.org/node/1087620
+- port: "entity_count" support — see http://drupal.org/node/1068462
+- refactor: use the vocabulary machine name internally instead of the vid
+- port: token support — see http://drupal.org/node/1248908
+- port: forum support
+- refactor: optimize HS API implementation: take advantage of improvements in Taxonomy
+
+HS Taxonomy Views: 
+- everything — see http://drupal.org/node/1170192
+
+Menu: 
+✓ everything
+
+Flat List:
+✓ everything
+
+Small Hierarchy:
+✓ everything

@@ -1,0 +1,411 @@
+<?php
+/**
+ * @file
+ *   Unit test class that provides tests for base functionality of the Apachesolr
+ *   Module without having the need of a Solr Server
+ */
+class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalWebTestCase {
+  /**
+   * A global basic user who can search.
+   */
+  var $basic_user;
+
+  /**
+   * A global administrative user who can administer search.
+   */
+  var $admin_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Solr Search Environments',
+      'description' => 'Tests search environments functionality of the Solr module',
+      'group' => 'ApacheSolr',
+    );
+  }
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    parent::setUp('apachesolr', 'search', 'apachesolr_test');
+    // Create a basic user, which is subject to moderation.
+    $permissions = array(
+      'access content',
+      'search content',
+    );
+    $basic_user = $this->drupalCreateUser($permissions);
+
+    // Create an admin user that can bypass revision moderation.
+    $permissions = array(
+      'access content',
+      'search content',
+      'administer nodes',
+      'administer search',
+    );
+    $admin_user = $this->drupalCreateUser($permissions);
+
+    // Assign users to their test suite-wide properties.
+    $this->basic_user = $basic_user;
+    $this->admin_user = $admin_user;
+  }
+
+  /**
+   *	Asserts that the module was installed and that a notice appears that the server is offline
+   */
+  function testServerOffline() {
+    // Load the default server.
+    $env_id = apachesolr_default_environment();
+    $environment = apachesolr_environment_load($env_id);
+    $environment['url'] = 'http://localhost/solr/core_that_should_not_exist';
+    apachesolr_environment_save($environment);
+    $status = apachesolr_server_status($environment['url']);
+    $this->assertFalse($status, t('A false URL could not be loaded and is offline'));
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr');
+    $text = t('The server seems to be unavailable. Please verify the server settings');
+    $this->assertText($text, t('When checking the status of the server it gives the correct message to inform the user that the server is not reachable'));
+  }
+
+  /**
+   *	Asserts that the module was installed and that a notice appears that the server is offline
+   */
+  function testIndexFileIncluded() {
+    $paths = array(
+      'user',
+      'node',
+      'admin/config/search/apachesolr',
+      'admin/config/search/apachesolr/search-pages',
+      'admin/config/search/apachesolr/search-pages/core_search/edit',
+      'admin/structure/block/manage/apachesolr_search/mlt-001/configure',
+      'admin/config/search/apachesolr/settings/solr/bias',
+      'admin/config/search/apachesolr/settings/solr/index',
+      'admin/config/search/apachesolr/settings/solr/edit',
+      'admin/reports/apachesolr',
+      'admin/reports/apachesolr/conf',
+      'search/site',
+    );
+    $this->drupalLogin($this->admin_user);
+    foreach ($paths as $path) {
+      $this->drupalGet($path);
+      $text = 'apachesolr.index.inc was included';
+      $this->assertNoText($text, t('Apachesolr.index.inc was not included'));
+    }
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testEditSearchEnvironment() {
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->clickLink(t('Edit'));
+    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+    $edit = array('name' => 'new description foo bar', 'url' => 'http://localhost:8983/solr/core_does_not_exists');
+    $this->drupalPost($this->getUrl(), $edit, t('Save'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_load_all_environments');
+    drupal_static_reset('apachesolr_get_solr');
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('new description foo bar'), t('Search environment description was succesfully edited'));
+    $this->assertText('http://localhost:8983/solr/core_does_not_exists', t('Search environment url was succesfully edited'));
+  }
+
+  /**
+   *	Asserts that we can use various url forms for the search environment
+   */
+  function testEditSearchEnvironmentURLs() {
+    // Set the various url schemes that will be tested
+    $urls = array(
+      'http://user@localhost:8983/solr/core_does_not_exists',
+      'http://user:pass@localhost:8983/solr/core_does_not_exists',
+      'http://user:pass@localhost/solr/core_does_not_exists',
+      'https://localhost:8983/solr/core_does_not_exists'
+    );
+    $this->drupalLogin($this->admin_user);
+    foreach ($urls as $url) {
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->clickLink(t('Edit'));
+      $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+      $edit = array('url' => $url);
+      $this->drupalPost($this->getUrl(), $edit, t('Save'));
+      $this->assertResponse(200);
+      drupal_static_reset('apachesolr_load_all_environments');
+      drupal_static_reset('apachesolr_get_solr');
+      $this->drupalGet('admin/config/search/apachesolr/settings');
+      $this->assertText($url, t('Search environment url was succesfully set to !url', array('!url' => $url)));
+    }
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testCloneSearchEnvironment() {
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('Clone'), t('Clone button is available'));
+    $this->drupalGet('admin/config/search/apachesolr/settings/solr/clone');
+    $this->assertText(t('Are you sure you want to clone search environment localhost server'), t('Clone confirmation page was succesfully loaded'));
+    $this->drupalPost($this->getUrl(), array(), t('Clone'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_load_all_environments');
+    drupal_static_reset('apachesolr_get_solr');
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('localhost server [cloned]'), t('Search Environment was succesfully cloned'));
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testCreateNewSearchEnvironment() {
+    // Create a new environment
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('Add search environment'), t('Create new environment link is available'));
+    $this->clickLink(t('Add search environment'));
+    $this->assertText(t('Make this Solr search environment the default'), t('Environment creation page succesfully added'));
+    $edit = array('url' => 'http://localhost:8983/solr', 'name' => 'my test description', 'env_id' => 'solr_test');
+    $this->drupalPost($this->getUrl(), $edit, t('Save'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_load_all_environments');
+    drupal_static_reset('apachesolr_get_solr');
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('my test description'), t('Search Environment was succesfully created'));
+
+    // Make this new search environment the default
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    // Click on the second environment edit link
+    $this->clickLink(t('Edit'), 1);
+    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+    $edit = array('make_default' => 1, 'conf[apachesolr_read_only]' => APACHESOLR_READ_ONLY);
+    $this->drupalPost($this->getUrl(), $edit, t('Save'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_load_all_environments');
+    drupal_static_reset('apachesolr_get_solr');
+    $this->drupalGet('admin/config/search/apachesolr/settings');
+    $this->assertText(t('my test description (Default)'), t('New Search environment was succesfully changed to default environment'));
+    // Load it, to fill our cache.
+    apachesolr_environment_load('solr_test');
+    $mode = apachesolr_environment_variable_get('solr_test', 'apachesolr_read_only', APACHESOLR_READ_WRITE);
+    $this->assertEqual($mode, APACHESOLR_READ_ONLY, t('Environment succesfully changed to read only'));
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+}
+
+/**
+ * @file
+ *   Unit test class that provides tests for base functionality of the Apachesolr
+ *   Module without having the need of a Solr Server
+ */
+class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalWebTestCase {
+  /**
+   * A global basic user who can search.
+   */
+  var $basic_user;
+
+  /**
+   * A global administrative user who can administer search.
+   */
+  var $admin_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Solr Search Pages',
+      'description' => 'Tests search pages functionality of the Solr module',
+      'group' => 'ApacheSolr',
+    );
+  }
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    parent::setUp('apachesolr', 'apachesolr_search', 'search', 'apachesolr_test');
+    // Create a basic user, which is subject to moderation.
+    $permissions = array(
+      'access content',
+      'search content',
+    );
+    $basic_user = $this->drupalCreateUser($permissions);
+
+    // Create an admin user that can bypass revision moderation.
+    $permissions = array(
+      'access content',
+      'search content',
+      'administer nodes',
+      'administer search',
+    );
+    $admin_user = $this->drupalCreateUser($permissions);
+
+    // Assign users to their test suite-wide properties.
+    $this->basic_user = $basic_user;
+    $this->admin_user = $admin_user;
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testCheckCoreSearchPage() {
+    // Create a new environment
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Core Search'), t('Core Search page is available'));
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testEditSearchPage() {
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->clickLink(t('Edit'));
+    $this->assertText(t('The human-readable name of the search page configuration'), t('Edit page was succesfully loaded'));
+    $edit = array(
+      'label' => 'Test Search Page',
+      'description' => 'Test Description',
+      'page_title' => 'Test Title',
+      'search_path' => 'search/searchdifferentpath',
+    );
+    $this->drupalPost($this->getUrl(), $edit, t('Save configuration'));
+    $this->assertResponse(200);
+    // Make sure the menu is recognized
+    drupal_static_reset('apachesolr_search_page_load');
+    menu_cache_clear_all();
+    menu_rebuild();
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Test Search Page'), t('Search page was succesfully edited'));
+    $this->assertText('search/searchdifferentpath', t('Search path was updated'));
+    $this->drupalGet('search/searchdifferentpath');
+    $this->assertText(t('The Apache Solr search engine is not available. Please contact your site administrator.'), t('Search path was sucessfully created and is accessible'));
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testCloneSearchPage() {
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Clone'), t('Clone button is available'));
+    $this->drupalGet('admin/config/search/apachesolr/search-pages/core_search/clone');
+    $this->assertText(t('Are you sure you want to clone search page Core Search?'), t('Clone confirmation page was succesfully loaded'));
+    $this->drupalPost($this->getUrl(), array(), t('Clone'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_search_page_load');
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Core Search [cloned]'), t('Search Environment was succesfully cloned'));
+  }
+
+  /**
+   *	Asserts that we can edit a search environment
+   */
+  function testNewAndRemoveSearchPage() {
+    // Create a new search page
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Add search page'), t('Create new search page link is available'));
+    $this->clickLink(t('Add search page'));
+    $this->assertText(t('The human-readable name of the search page configuration.'), t('Search page creation page succesfully added'));
+    $edit = array(
+      'page_id' => 'solr_testingsuite',
+      'env_id' => 'solr',
+      'label' => 'Test Search Page',
+      'description' => 'Test Description',
+      'page_title' => 'Test Title',
+      'search_path' => 'search/searchdifferentpath',
+    );
+    $this->drupalPost($this->getUrl(), $edit, t('Save configuration'));
+    $this->assertResponse(200);
+    // Make sure the menu is recognized
+    drupal_static_reset('apachesolr_search_page_load');
+    menu_cache_clear_all();
+    menu_rebuild();
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertText(t('Test Search Page'), t('Search Page was succesfully created'));
+
+    // Remove the same environment
+    $this->clickLink(t('Delete'));
+    $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was succesfully loaded'));
+    $this->drupalPost($this->getUrl(), array(), t('Delete page'));
+    $this->assertResponse(200);
+    drupal_static_reset('apachesolr_search_page_load');
+    $this->drupalGet('admin/config/search/apachesolr/search-pages');
+    $this->assertNoText(t('Test Search Page'), t('Search Environment was succesfully deleted'));
+  }
+
+  function tearDown() {
+    parent::tearDown();
+  }
+}
+
+class DrupalSolrOfflineUnitTestCase extends DrupalUnitTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Solr Base Framework Tests Unit Test',
+      'description' => 'Unit test functionality of the Solr module',
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  protected function setUp() {
+    parent::setUp();
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.module';
+
+    $this->script_content = <<<EOF
+<p>GOOD_CONTENT</p>
+<script type="text/javascript" >
+$(document).ready(function(){
+  $('.accordion_teachers').accordion({ collapsible:true, autoHeight:false });
+});
+</script>
+
+EOF;
+
+    $this->embed_content = <<<EOF
+<p>GOOD_CONTENT</p>
+<object width="425" height="349"><param name="movie" value="http://www.youtube.com/v/8Vmnq5dBF7Y?version=3&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/8Vmnq5dBF7Y?version=3&amp;hl=en_US" type="application/x-shockwave-flash" width="425" height="349" allowscriptaccess="always" allowfullscreen="true"></embed></object>
+OTHER_CONTENT
+
+EOF;
+
+    $this->iframe_content = <<<EOF
+<iframe width="425" height="349" src="http://www.youtube.com/embed/8Vmnq5dBF7Y" frameborder="0" allowfullscreen></iframe>
+<p><a href="#">GOOD_CONTENT</a></p><iframe></iframe>
+
+EOF;
+
+    $this->comment_content = <<<EOF
+<p><em>GOOD_CONTENT</em></p><!-- COMMENT -->
+OTHER_CONTENT
+
+EOF;
+  }
+
+  /**
+   * Test ordering of parsed filter positions.
+   *
+   * Regression test for http://drupal.org/node/891962
+   */
+  function testContentFilters() {
+    $cleaned = apachesolr_clean_text($this->script_content);
+    $this->assertFalse(strpos($cleaned, 'script'), 'Script tags removed');
+    $this->assertFalse(strpos($cleaned, 'accordion_teachers'), 'Script tags conent removed');
+    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+
+    $cleaned = apachesolr_clean_text($this->embed_content);
+    $this->assertFalse(strpos($cleaned, 'object'), 'object tags removed');
+    $this->assertFalse(strpos($cleaned, 'embed'), 'embed tags removed');
+    $this->assertFalse(strpos($cleaned, '8Vmnq5dBF7Y'), 'object tags conent removed');
+    $this->assertFalse(strpos($cleaned, 'shockwave-flash'), 'embed tags conent removed');
+    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+    $this->assertTrue(strpos($cleaned, 'OTHER_CONTENT') > 0, 'Other content retained');
+
+    $cleaned = apachesolr_clean_text($this->iframe_content);
+    $this->assertFalse(strpos($cleaned, 'iframe'), 'iframe tags removed');
+    $this->assertFalse(strpos($cleaned, '8Vmnq5dBF7Y'), 'iframe tags conent removed');
+    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+
+    $cleaned = apachesolr_clean_text($this->comment_content);
+    $this->assertFalse(strpos($cleaned, 'COMMENT'), 'html comment content removed ');
+    $this->assertTrue(strpos(trim($cleaned), 'GOOD_CONTENT') === 0, 'Real content retained');
+  }
+}

@@ -1,94 +1,90 @@
 <?php
 
 /**
- * Replacement function for taxonomy_get_tree!
+ * 
  */
-function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $start = 0, $max_terms = 1000){
-  // Only use this function if the leftandright module is installed.
-  if(!module_exists('leftandright')){
-    return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);
-  }
-  // We need to prepare the lft and rgt values for the query, and also calculate
-  // the max depth if required.
-  if(!$parent){
-    $lft = 0;
-    $rgt = (2 * current(db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
-      ':vid' => $vid
-    ))->fetchCol())) + 1;
-    $depth_diff = 0;
-  }else{
-    // We have a parent set, lets get the lft and rgt
-    $row = db_select('taxonomy_leftandright', 'l')->fields('l', array(
-      'lft',
-      'rgt',
-      'depth'
-    ))->condition('tid', $parent)->execute()->fetch();
-    $lft = $row->lft;
-    $rgt = $row->rgt;
-    $depth_diff = $row->depth + 1;
-  }
-  $query = db_select('taxonomy_term_data', 't');
-  $query->fields('t')->fields('l', array(
-    'depth'
-  ))->fields('h', array(
-    'parent'
-  ));
-  $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
-  $query->join('taxonomy_leftandright', 'l', 'l.tid = t.tid');
-  $query->range($start, $max_terms);
-  $query->addTag('translatable')->addTag('term_access');
-  $query->condition('l.lft', $lft, '>')->condition('l.rgt', $rgt, '<')->condition('t.vid', $vid);
-  if($max_depth){
-    $query->condition('depth', $depth_diff + $max_depth, '<');
-  }
-  $query->orderBy('l.lft');
-  $result = $query->execute();
-  $terms = array();
-  foreach($result as $term){
-    $parents[$vid][$term->tid][] = $term->parent;
-    $terms[$vid][$term->tid] = $term;
-    unset($terms[$vid][$term->tid]->parent);
-    $terms[$vid][$term->tid]->parents = $parents[$vid][$term->tid];
-    $terms[$vid][$term->tid]->depth -= $depth_diff;
-  }
-  // Load full entities, if necessary.
-  if($load_entities){
-    if(isset($terms[$vid])){
-      $term_entities = taxonomy_term_load_multiple(array_keys($terms[$vid]));
-    }
-  }
-  $tree = array();
-  if(isset($terms[$vid])){
-    foreach($terms[$vid] as $tid => $term){
-      $tree[] = $load_entities ? $term_entities[$tid] : $term;
-    }
-  }
-  return $tree;
-}
-
-/**
- * Ensure that we always have consistent ordering of terms with the same name
- * and weight
- */
-function taxonomy_get_children($tid, $vid = 0) {
-  $children = &drupal_static(__FUNCTION__, array());
-
-  if ($tid && !isset($children[$tid])) {
+function taxonomy_get_tree($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $max_terms = 1000){
+  $result = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+    ':vid' => $vid
+  ))->fetchCol();
+  if(array_pop($result) < $max_terms){return taxonomy_get_tree_original($vid, $parent, $max_depth, $load_entities);}
+  // We've a large number of terms.  We can attempt the tree if the $max_depth 
+  // is 1, which it almost always is.
+  if($max_depth == 1){
     $query = db_select('taxonomy_term_data', 't');
     $query->join('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
     $query->addField('t', 'tid');
-    $query->condition('h.parent', $tid);
-    if ($vid) {
-      $query->condition('t.vid', $vid);
-    }
+    $query->condition('h.parent', $parent);
+    $query->condition('t.vid', $vid);
     $query->addTag('term_access');
     $query->orderBy('t.weight');
     $query->orderBy('t.name');
-    // Following added line is the only change to this function
-    $query->orderBy('t.tid', 'DESC');
     $tids = $query->execute()->fetchCol();
-    $children[$tid] = taxonomy_term_load_multiple($tids);
+    return taxonomy_term_load_multiple($tids);
   }
+  // We're asking too much. Set an error, and return an empty tree.
+  watchdog('taxonomy', 'Attempted to get a large tree.', array(), WATCHDOG_ERROR);
+  return array();
+}
 
-  return isset($children[$tid]) ? $children[$tid] : array();
+/**
+ * Implements hook_field_settings_form().
+ */
+function taxonomy_field_settings_form($field, $instance, $has_data){
+  // Get proper values for 'allowed_values_function', which is a core setting.
+  $vocabularies = taxonomy_get_vocabularies();
+  $form['allowed_values'] = array(
+    '#tree' => TRUE
+  );
+  $i = 0;
+  $default_values = array();
+  if(isset($field['settings']['allowed_values'])){
+    foreach($field['settings']['allowed_values'] as $value){
+      $default_values[$value['vocabulary']] = $value;
+    }
+  }
+  foreach($vocabularies as $vocabulary){
+    $form['allowed_values'][$i]['vocabulary'] = array(
+      '#type' => 'checkbox',
+      '#title' => check_plain($vocabulary->name),
+      '#default_value' => isset($default_values[$vocabulary->machine_name]['vocabulary']) ? $default_values[$vocabulary->machine_name]['vocabulary'] : 0,
+      '#return_value' => $vocabulary->machine_name,
+      '#disabled' => $has_data
+    );
+    $form['allowed_values'][$i]['parent'] = array(
+      '#type' => 'value',
+      '#value' => isset($default_values[$vocabulary->machine_name]['parent']) ? $default_values[$vocabulary->machine_name]['parent'] : 0
+    );
+    $i++;
+  }
+  return $form;
+}
+
+/**
+ * Implementations of hook_form_FORM_ID_alter
+ */
+function taxonomy_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id){
+  taxonomy_form_field_ui_field_settings_form_alter($form, $form_state, $form_id);
+}
+
+function taxonomy_form_field_ui_field_settings_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['field']['type']) && $form['field']['type']['#value'] == 'taxonomy_term_reference'){
+    // We tweak the submit so that we can alter the values array early on.
+    $form['#submit'] = array_merge(array(
+      'taxonomy_field_ui_field_settings_form_submit'
+    ), $form['#submit']);
+  }
+}
+
+/**
+ * Tweak the submitted values to ensure the array is keyed from 0.
+ */
+function taxonomy_field_ui_field_settings_form_submit(&$form, &$form_state){
+  $new_settings = array();
+  foreach($form_state['values']['field']['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary']){
+      $new_settings[] = $value;
+    }
+  }
+  $form_state['values']['field']['settings']['allowed_values'] = $new_settings;
 }

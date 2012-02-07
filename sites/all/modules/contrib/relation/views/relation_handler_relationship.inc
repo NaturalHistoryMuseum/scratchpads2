@@ -44,62 +44,102 @@ class relation_handler_relationship extends views_handler_relationship {
       1 => t('Target'),
     ) : array();
   }
-}
 
-class relation_handler_join extends views_join {
-  /**
-   * Build the SQL for the join this object represents.
-   */
-  function build_join($select_query, $table, $view_query) {
+  function query() {
     $field = field_info_field('endpoints');
     $relation_data_table_name = _field_sql_storage_tablename($field);
     $entity_id_field_name = _field_sql_storage_columnname('endpoints', 'entity_id');
     $entity_type_field_name = _field_sql_storage_columnname('endpoints', 'entity_type');
     $r_index_field_name = _field_sql_storage_columnname('endpoints', 'r_index');
+    $join_type = empty($this->options['required']) ? 'LEFT' : 'INNER';
+    $endpoints_twice = isset($this->definition['entity_type_left']) && isset($this->definition['entity_type_right']);
+
+    $this->ensure_my_table();
     // Join the left table with the entity type to the endpoints field data table.
-    $left = $view_query->get_table_info($this->left_table);
-    $entity_type_left = $this->definition['entity_type_left'];
-    $conditions = "$left[alias].$this->left_field = %alias.$entity_id_field_name AND %alias.$entity_type_field_name = '$entity_type_left'";
-    if ($this->definition['directional'] && $this->options['r_index'] > -1) {
-      $conditions .= " AND %alias.$r_index_field_name = " . $this->options['r_index'];
+    $join = new views_join();
+    $join->definition = array(
+      'left_table' => $this->table_alias,
+      'left_field' => $this->real_field,
+      'table'      => $relation_data_table_name,
+      'field'      => isset($this->definition['entity_type_left']) ? $entity_id_field_name : 'entity_id',
+      'type'       => $join_type,
+      'extra'      => array(
+        array(
+          'field' => 'bundle',
+          'value' => $this->definition['relation_type'],
+        ),
+      ),
+    );
+    if (isset($this->definition['entity_type_left'])) {
+      $join->definition['extra'][] = array(
+        'field' => $entity_type_field_name,
+        'value' => $this->definition['entity_type_left'],
+      );
     }
-    // Left join alias.
-    $l = $select_query->addJoin($this->type, $relation_data_table_name, NULL, $conditions);
+    if ($this->definition['directional'] && $this->options['r_index'] > -1) {
+      $join->definition['extra'][] = array(
+        'field' => $r_index_field_name,
+        'value' => $this->options['r_index'],
+      );
+    }
+    $join->construct();
+    $join->adjusted = TRUE;
+    $l = $this->query->add_table($relation_data_table_name, $this->relationship, $join);
 
-    // Execute a self-join.
-    $entity_type_right = $this->definition['entity_type_right'];
-    // entity_id here is the ID of the relation entity.
-    $relation_type = $this->definition['relation_type'];
-    $conditions = "%alias.entity_id = $l.entity_id AND %alias.$r_index_field_name != $l.$r_index_field_name AND %alias.$entity_type_field_name = '$entity_type_right' AND %alias.bundle = '$relation_type'";
-    // Right join alias.
-    $r = $select_query->addJoin($this->type, $relation_data_table_name, NULL, $conditions);
+    if ($endpoints_twice) {
+      // Execute a self-join.
+      $join = new views_join();
+      $join->definition = array(
+        'left_table' => $l,
+        'left_field' => 'entity_id',
+        'table'      => $relation_data_table_name,
+        'field'      => 'entity_id',
+        'type'       => $join_type,
+        'extra'      => array(
+          array(
+            'field' => $entity_type_field_name,
+            'value' => $this->definition['entity_type_right'],
+          ),
+        ),
+      );
+      $join->construct();
+      $join->adjusted = TRUE;
+      $r = $this->query->add_table($relation_data_table_name, $this->relationship, $join);
+    }
+    else {
+      $r = $l;
+    }
+    $join = new views_join();
+    $join->definition = array(
+      'left_table' => $r,
+      'left_field' => isset($this->definition['entity_type_right']) ? $entity_id_field_name : 'entity_id',
+      'table'      => $this->definition['base'],
+      'field'      => $this->definition['base field'],
+      'type'       => $join_type,
+    );
+    // There is no query where these conditions could be added earlier:
+    // $r might be just $l.
+    if ($endpoints_twice && $this->definition['entity_type_left'] == $this->definition['entity_type_right']) {
+      $join->definition['extra'][] = array(
+        // This definition is a bit funny but there's no other way to tell
+        // Views to use this as it is.
+        'table' => NULL,
+        'field' => "$r.$r_index_field_name != $l.$r_index_field_name AND 1",
+        'value' => 1,
+      );
+    }
+    if (isset($this->definition['entity_type_right'])) {
+      $join->definition['extra'][] = array(
+        'table' => $r,
+        'field' => $entity_type_field_name,
+        'value' => $this->definition['entity_type_right'],
+      );
+    }
 
-    // Join the right table to the relation_data table.
-    $conditions = "%alias.$this->field = $r.$entity_id_field_name";
-    $select_query->addJoin($this->type, $table['table'], $table['alias'], $conditions);
-  }
-}
-
-class relation_handler_base_join extends views_join {
-  /**
-   * Build the SQL for the join this object represents.
-   */
-  function build_join($select_query, $table, $view_query) {
-    $field = field_info_field('endpoints');
-    $relation_data_table_name = _field_sql_storage_tablename($field);
-    $entity_id_field_name = _field_sql_storage_columnname('endpoints', 'entity_id');
-    $entity_type_field_name = _field_sql_storage_columnname('endpoints', 'entity_type');
-    $r_index_field_name = _field_sql_storage_columnname('endpoints', 'r_index');
-    // Join the left table with the entity type to the relation table.
-    $left = $view_query->get_table_info($this->left_table);
-    $entity_type_left = $this->definition['entity_type_left'];
-    $conditions = "$left[alias].$this->left_field = %alias.$entity_id_field_name AND %alias.$entity_type_field_name = '$entity_type_left'";
-    // Left join alias.
-    $l = $select_query->addJoin($this->type, $relation_data_table_name, NULL, $conditions);
-    // Execute a self-join.
-    // entity_id here is the ID of the relation entity.
-    $relation_type = $this->definition['relation_type'];
-    $conditions = "%alias.rid = $l.entity_id AND %alias.relation_type = '$relation_type'";
-    $select_query->addJoin($this->type, 'relation', $table['alias'], $conditions);
+    $join->construct();
+    $join->adjusted = TRUE;
+    // use a short alias for this:
+    $alias = $this->definition['base'] . '_' . $this->table;
+    $this->alias = $this->query->add_relationship($alias, $join, $this->definition['base'], $this->relationship);
   }
 }

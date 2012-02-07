@@ -1,0 +1,16 @@
+name = Lexicon
+description = Maintain one or more lexicons on your site and optionally mark term from one or more lexicons in the content of the website.
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = field
+files[] = lexicon.admin.inc
+files[] = lexicon.pages.inc
+files[] = lexicon.install
+files[] = lexicon.module
+configure = admin/config/system/lexicon
+; Information added by drupal.org packaging script on 2011-10-15
+version = "7.x-1.8"
+core = "7.x"
+project = "lexicon"
+datestamp = "1318694199"
+

@@ -110,18 +110,41 @@ function tui_sort_access(){
 }
 
 /**
+ * Implementation of hook_module_implements_alter(){
+ */
+function tui_module_implements_alter(&$imps, $hook){
+  if(isset($imps['tui'])){
+    $tui = $imps['tui'];
+    unset($imps['tui']);
+    $imps['tui'] = $tui;
+  }
+}
+
+/**
  * Implementation of hook_form_FORM_ID_alter().
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if(arg(5) == 'form_callback'){
+    // Hide the alias and breadcrumb fields
+    $form['path']['alias']['#type'] = 'hidden';
+    $form['taxonomy_breadcrumb_path']['#type'] = 'hidden';
+    // Alter the submit.
     $form['actions']['submit']['#ajax'] = array(
       'path' => 'tui/ajax',
       'callback' => 'tui_ajax_form_callback_callback',
       'wrapper' => 'taxonomy-form-term'
     );
-    if(isset($_POST['tid']) && isset($form['relations']['parent']['#options'][$_POST['tid']])){
+    // Hide the relations fieldset.
+    $form['relations']['#attributes'] = array(
+      'style' => 'display:none'
+    );
+    // Add a parent if we have one.
+    if(isset($_POST['tid'])){
       $parent_term = taxonomy_term_load($_POST['tid']);
-      $form['relations']['parent']['#default_value'] = $_POST['tid'];
+      $form['relations']['parent'] = array(
+        '#type' => 'value',
+        '#value' => $_POST['tid']
+      );
       $form['parent_message'] = array(
         '#weight' => -1000,
         '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>' . t('This term will be added as a child of "@term_name"', array(
@@ -129,9 +152,26 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
         )) . '</div>'
       );
     }
+    // Add the destination as a value so that we can use it later.
+    if(isset($_GET['destination'])){
+      $form['tui_destination'] = array(
+        '#type' => 'value',
+        '#value' => $_GET['destination']
+      );
+    }
   }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
+    // Redirect to the taxonomy editor if trying to edit a single term.
     if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
-      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid']);
+      $options = array();
+      if(isset($_GET['destination'])){
+        $options = array(
+          'query' => array(
+            'destination' => $_GET['destination']
+          )
+        );
+        unset($_GET['destination']);
+      }
+      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid'], $options);
       exit();
     }
   }

@@ -76,8 +76,8 @@ function biblio_import_form($form, &$form_state) {
         '#title' => t('File Type'),
         '#default_value' => 0,
         '#options' => array(
-          '0'        => t('Select type'),
-          )
+          '0' => t('Select type'),
+        )
       );
 
       $form['filetype']['#options'] = array_merge($form['filetype']['#options'], $import_options);
@@ -120,10 +120,10 @@ function biblio_import_form($form, &$form_state) {
       if (variable_get('biblio_keyword_freetagging', 0)) {
         $freetag_vocab = $vocabularies[variable_get('biblio_keyword_vocabulary', 0)];
         unset($vocabularies[variable_get('biblio_keyword_vocabulary', 0)]);
-        $msg = t('<b>NOTE:</b> Keyword "free tagging" is turned on, consequently all incomming keywords will be added to the <b>@name</b> vocabulary as specified in the "Keyword" section of the !url page.', array('@name' => $freetag_vocab->name, '!url' => l(t('admin/config/biblio'), 'admin/config/biblio')));
+        $msg = t('<b>NOTE:</b> Keyword "free tagging" is turned on, consequently all incomming keywords will be added to the <b>@name</b> vocabulary as specified in the "Keyword" section of the !url page.', array('@name' => $freetag_vocab->name, '!url' => l(t('admin/config/content/biblio'), 'admin/config/content/biblio')));
       }
       else {
-        $msg = t('<b>NOTE:</b> Keyword "free tagging" is turned off, consequently keywords will <b>NOT</b> be added to the vocabulary as specified in the Taxonomy section of the !url page.', array('!url' => l(t('admin/config/biblio'), 'admin/config/biblio')));
+        $msg = t('<b>NOTE:</b> Keyword "free tagging" is turned off, consequently keywords will <b>NOT</b> be added to the vocabulary as specified in the Taxonomy section of the !url page.', array('!url' => l(t('admin/config/content/biblio'), 'admin/config/content/biblio')));
       }
       $i = 0;
       $form += array('#parents' => array());
@@ -203,8 +203,8 @@ function biblio_import_form_validate($form, & $form_state) {
     }
   }
 
-  if ($op == t('Import') && $filetype == "none") {
-    form_set_error('biblio_import_form', t("Error: You must select a file type"));
+  if ($op == t('Import') && $filetype == "0") {
+    form_set_error('biblio_import_form', t("Error: You did not select the file type"));
   }
 }
 /**
@@ -503,6 +503,7 @@ function biblio_export($format = "tagged", $nid = NULL, $popup = FALSE) {
   $params = array();
   $nids = array();
   $arg_list = array();
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   if ($nid === NULL ) {
     module_load_include('inc', 'biblio', 'includes/biblio.pages');
     $uri = drupal_parse_url(request_uri());
@@ -553,7 +554,13 @@ function biblio_save_node($node, $terms = array(), $batch = FALSE, $session_id =
   }
 
   $node->type = 'biblio';
+  // Persist the node revision log since it will be overridden by
+  // node_object_prepare().
+  $created = !empty($node->created)? $node->created : NULL;
+  $revision_log = !empty($node->log)? $node->log : NULL;
   node_object_prepare($node);
+  $node->created = $created;
+  $node->log = $revision_log;
 
   if (!empty($terms)) {
     foreach ($terms as $key => $value) {
@@ -575,11 +582,17 @@ function biblio_save_node($node, $terms = array(), $batch = FALSE, $session_id =
 
 
   if ($save_node) { // $save_node = TRUE, the normal save path
-    if (strlen($node->title) > 255) {
-      $node->title = substr($node->title, 0, 255);
-      watchdog('biblio - import', 'Title value truncated to 255 characters', array(), WATCHDOG_ALERT, l($node->title, 'node/' . $node->nid));
-    }
+    $validation_errors = array();
+    $validation_errors = biblio_save_node_validate($node);
     node_save($node);
+    if (!empty($validation_errors)) {
+      foreach($validation_errors as $field => $value) {
+        $message = $field . t(' was truncated to fit into the database column');
+        $link = l('node/' . $node->nid, 'node/' . $node->nid);
+        drupal_set_message($message . '; ' . $link, 'warning');
+        watchdog('biblio - import', $message, array(), WATCHDOG_ALERT, $link);
+      }
+    }
     return; // (isset($node->nid)) ? $node->nid : 0;
   }
   else { // $save_node = FALSE, primarily used to parse data and return it to the input form
@@ -587,7 +600,47 @@ function biblio_save_node($node, $terms = array(), $batch = FALSE, $session_id =
   }
 }
 
+function biblio_save_node_validate($node) {
+  static $schema = array();
+  $error = array();
 
+  if (empty($schema)) {
+    $schema['biblio'] = drupal_get_schema('biblio');
+  }
+  if (isset($node->title) && strlen($node->title) > 255) {
+    $error['title'] = $node->title;
+    $node->title = substr($node->title, 0, 255);
+  }
+  if (isset($node->biblio_keywords) && is_array($node->biblio_keywords)) {
+    foreach($node->biblio_keywords as $key => $word) {
+      if (strlen($word) > 255) {
+        $error['keyword'] = $word;
+        $node->biblio_keywords[$key] = substr($word, 0, 255);
+      }
+    }
+  }
+  if (isset($node->biblio_contributors) && is_array($node->biblio_contributors)) {
+    foreach($node->biblio_contributors as $key => $author) {
+      if (strlen($author['name']) > 255) {
+        $error['author'] = $author['name'];
+        $node->biblio_contributors[$key]['name'] = substr($author['name'], 0, 255);
+      }
+    }
+  }
+  foreach ($schema['biblio']['fields'] as $field => $spec) {
+    if (isset($node->$field)) {
+      switch ($spec['type']) {
+        case 'varchar':
+          if (strlen($node->$field) > $spec['length']) {
+            $error[$field] = $node->$field;
+            $node->$field = substr($node->$field, 0, $spec['length']);
+          }
+          break;
+      }
+    }
+  }
+  return $error;
+}
 
 
 function biblio_csv_export_2($result, $bfields) {

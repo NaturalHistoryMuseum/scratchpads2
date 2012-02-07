@@ -1,0 +1,10 @@
+1. If you are using the relation dummy field, delete every field of 'relation'
+   type then run cron. This is the same as deleting any other field. 
+2. You also need to disable and uninstall every other module depending on the
+   Relation Endpoints module in the order allowed.
+3. Once relation module itself is disabled and uninstalled it marks the
+   endpoints field for deletion. You need to run cron to remove the contents
+   of the endpoints table. This might require several cron runs. You will see
+   on the modules page how relation endpoints can not be uninstalled because
+   there are fields using it.
+4. Now you can disable and uninstall relation endpoints itself.

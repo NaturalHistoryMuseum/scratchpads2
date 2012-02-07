@@ -45,7 +45,6 @@ function file_menu() {
   );
   $items['file/progress'] = array(
     'page callback' => 'file_ajax_progress',
-    'delivery callback' => 'ajax_deliver',
     'access arguments' => array('access content'),
     'theme callback' => 'ajax_base_page_theme',
     'type' => MENU_CALLBACK,
@@ -57,7 +56,7 @@ function file_menu() {
 /**
  * Implements hook_element_info().
  *
- * The managed file element may be used independently anywhere in Drupal.
+ * The managed file element may be used anywhere in Drupal.
  */
 function file_element_info() {
   $file_path = drupal_get_path('module', 'file');
@@ -318,7 +317,7 @@ function file_ajax_progress($key) {
 }
 
 /**
- * Determine the preferred upload progress implementation.
+ * Determines the preferred upload progress implementation.
  *
  * @return
  *   A string indicating which upload progress system is available. Either "apc"
@@ -384,7 +383,9 @@ function file_managed_file_process($element, &$form_state, $form) {
     '#weight' => -5,
   );
 
-  $ajax_settings['progress']['type'] ? $ajax_settings['progress']['type'] == 'bar' : 'throbber';
+  // Force the progress indicator for the remove button to be either 'none' or
+  // 'throbber', even if the upload button is using something else.
+  $ajax_settings['progress']['type'] = ($element['#progress_indicator'] == 'none') ? 'none' : 'throbber';
   $ajax_settings['progress']['message'] = NULL;
   $ajax_settings['effect'] = 'none';
   $element['remove_button'] = array(
@@ -412,6 +413,9 @@ function file_managed_file_process($element, &$form_state, $form) {
         '#type' => 'hidden',
         '#value' => $upload_progress_key,
         '#attributes' => array('class' => array('file-progress')),
+        // Uploadprogress extension requires this field to be at the top of the
+        // form.
+        '#weight' => -20,
       );
     }
     elseif ($implementation == 'apc') {
@@ -419,6 +423,9 @@ function file_managed_file_process($element, &$form_state, $form) {
         '#type' => 'hidden',
         '#value' => $upload_progress_key,
         '#attributes' => array('class' => array('file-progress')),
+        // Uploadprogress extension requires this field to be at the top of the
+        // form.
+        '#weight' => -20,
       );
     }
 
@@ -563,7 +570,9 @@ function file_managed_file_validate(&$element, &$form_state) {
 }
 
 /**
- * Submit handler for upload and remove buttons of managed_file elements.
+ * Form submission handler for upload / remove buttons of managed_file elements.
+ *
+ * @see file_managed_file_process()
  */
 function file_managed_file_submit($form, &$form_state) {
   // Determine whether it was the upload or the remove button that was clicked,
@@ -604,10 +613,11 @@ function file_managed_file_submit($form, &$form_state) {
 }
 
 /**
- * Given a managed_file element, save any files that have been uploaded into it.
+ * Saves any files that have been uploaded into a managed_file element.
  *
  * @param $element
  *   The FAPI element whose values are being saved.
+ *
  * @return
  *   The file object representing the file that was saved, or FALSE if no file
  *   was saved.
@@ -754,13 +764,14 @@ function theme_file_icon($variables) {
 }
 
 /**
- * Given a file object, create a URL to a matching icon.
+ * Creates a URL to the icon for a file object.
  *
  * @param $file
  *   A file object.
  * @param $icon_directory
  *   (optional) A path to a directory of icons to be used for files. Defaults to
  *   the value of the "file_icon_directory" variable.
+ *
  * @return
  *   A URL string to the icon, or FALSE if an appropriate icon cannot be found.
  */
@@ -772,13 +783,14 @@ function file_icon_url($file, $icon_directory = NULL) {
 }
 
 /**
- * Given a file object, create a path to a matching icon.
+ * Creates a path to the icon for a file object.
  *
  * @param $file
  *   A file object.
  * @param $icon_directory
  *   (optional) A path to a directory of icons to be used for files. Defaults to
  *   the value of the "file_icon_directory" variable.
+ *
  * @return
  *   A string to the icon as a local path, or FALSE if an appropriate icon could
  *   not be found.
@@ -824,10 +836,11 @@ function file_icon_path($file, $icon_directory = NULL) {
 }
 
 /**
- * Determine the generic icon MIME package based on a file's MIME type.
+ * Determines the generic icon MIME package based on a file's MIME type.
  *
  * @param $file
  *   A file object.
+ *
  * @return
  *   The generic icon MIME package expected for this file.
  */
@@ -955,7 +968,7 @@ function file_icon_map($file) {
  */
 
 /**
- * Gets a list of references to a file.
+ * Retrieves a list of references to a file.
  *
  * @param $file
  *   A file object.

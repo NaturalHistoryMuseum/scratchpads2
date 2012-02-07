@@ -1,0 +1,124 @@
+<?php
+
+/**
+ * Implements hook_fontyourface_info().
+ */
+function common_fonts_fontyourface_info() {
+
+  return array(
+    'name' => 'Common Fonts',
+    'url' => 'http://en.wikipedia.org/wiki/Web_typography#Web-safe_fonts',
+  );
+
+} // common_fonts_fontyourface_info
+
+/**
+ * Implements hook_fontyourface_preview().
+ */
+function common_fonts_fontyourface_preview($font, $text) {
+
+  return '<span style="' . fontyourface_font_css($font) . ' font-size: 24px;">' . $text . '</span>';
+
+} // common_fonts_fontyourface_preview
+
+/**
+ * Implements hook_fontyourface_view().
+ */
+function common_fonts_fontyourface_view($font, $text) {
+
+  $output = '';
+  $sizes = array(32, 24, 18, 14, 12, 10);
+
+  foreach ($sizes as $size) {
+
+    $output .= '<div style="' . fontyourface_font_css($font) . ' font-size: ' . $size . 'px; line-height: ' . $size . 'px;">' . $text . '</div>';
+
+  } // foreach
+
+  return $output;
+
+} // common_fonts_fontyourface_preview
+
+/**
+ * Implements hook_fontyourface_import().
+ */
+function common_fonts_fontyourface_import() {
+
+  $helvetica = new stdClass;
+  $helvetica->name = 'Helvetica';
+  $helvetica->url = 'http://new.myfonts.com/fonts/adobe/helvetica/';
+  $helvetica->provider = 'common_fonts';
+  $helvetica->css_family = 'Helvetica';
+  $helvetica->foundry = 'Adobe';
+  $helvetica->license = 'Adobe Standard License Agreement';
+  $helvetica->license_url = 'http://new.myfonts.com/viewlicense.php?lid=614';
+  $helvetica->tags = array('sans-serif');
+
+  fontyourface_save_font($helvetica);
+
+  $verdana = new stdClass;
+  $verdana->name = 'Verdana';
+  $verdana->url = 'http://new.myfonts.com/fonts/microsoft/verdana/';
+  $verdana->provider = 'common_fonts';
+  $verdana->css_family = 'Verdana';
+  $verdana->foundry = 'Microsoft';
+  $verdana->tags = array('sans-serif');
+
+  fontyourface_save_font($verdana);
+
+  $arial = new stdClass;
+  $arial->name = 'Arial';
+  $arial->url = 'http://new.myfonts.com/fonts/microsoft/arial/';
+  $arial->css_family = 'Arial';
+  $arial->provider = 'common_fonts';
+  $arial->foundry = 'Microsoft';
+  $arial->tags = array('sans-serif');
+
+  fontyourface_save_font($arial);
+
+  $times = new stdClass;
+  $times->name = 'Times';
+  $times->url = 'http://new.myfonts.com/fonts/adobe/times/';
+  $times->provider = 'common_fonts';
+  $times->css_family = 'Times';
+  $times->foundry = 'Adobe';
+  $times->license = 'Adobe Standard License Agreement';
+  $times->license_url = 'http://new.myfonts.com/viewlicense.php?lid=614';
+  $times->tags = array('serif');
+
+  fontyourface_save_font($times);
+
+  $georgia = new stdClass;
+  $georgia->name = 'Georgia';
+  $georgia->url = 'http://new.myfonts.com/fonts/microsoft/georgia/';
+  $georgia->provider = 'common_fonts';
+  $georgia->css_family = 'Georgia';
+  $georgia->foundry = 'Microsoft';
+  $georgia->tags = array('serif');
+
+  fontyourface_save_font($georgia);
+
+  $courier = new stdClass;
+  $courier->name = 'Courier';
+  $courier->url = 'http://www.linotype.com/298/courier-family.html';
+  $courier->provider = 'common_fonts';
+  $courier->css_family = 'Courier';
+  $courier->foundry = 'Howard G. Kettler';
+  $courier->foundry_url = 'http://www.graphos.org/courier.html';
+  $courier->tags = array('monospace');
+
+  fontyourface_save_font($courier);
+
+  $comic_sans = new stdClass;
+  $comic_sans->name = 'Comic Sans';
+  $comic_sans->url = 'http://new.myfonts.com/fonts/ascender/comic-sans/';
+  $comic_sans->provider = 'common_fonts';
+  $comic_sans->css_family = 'Comic Sans MS';
+  $comic_sans->foundry = 'Ascender Corp.';
+  $comic_sans->license = 'Ascender Corporation Standard End User License Agreement';
+  $comic_sans->license_url = 'http://new.myfonts.com/viewlicense.php?lid=476';
+  $comic_sans->tags = array('cursive');
+
+  fontyourface_save_font($comic_sans);
+
+} // common_fonts_fontyourface_import

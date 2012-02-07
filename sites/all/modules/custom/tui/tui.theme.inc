@@ -81,6 +81,7 @@ function theme_tui_page($variables){
   	</div></div>
   </div>
   <div id="tui-form">
+  	<div id="tui-name-live"><h2>&nbsp;</h2></div>
   	<div id="tui-form-container">
       <div id="tui-form-noform">' . tui_help('admin/structure/taxonomy/%', array(
       3 => $variables['vocabulary']->machine_name
@@ -167,10 +168,19 @@ function theme_tui_term_name($variables){
   if(!is_array($variables['highlight_tids'])){
     $variables['highlight_tids'] = array();
   }
-  if(is_object($variables['term'])){return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
+  if(is_object($variables['term'])){
+    $query = array();
+    if(isset($_GET['destination'])){
+      $query = array(
+        'destination' => $_GET['destination']
+      );
+    }
+    return '<div' . (in_array($variables['term']->tid, $variables['highlight_tids']) ? ' class="tui-highlight"' : '') . '><span>&nbsp;</span>' . check_plain($variables['term']->name) . l('edit', 'admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/edit-form/' . $variables['term']->tid, array(
       'attributes' => array(
         'class' => 'edit-term-link use-ajax',
         'data-tui-this-term' => $variables['term']->tid
-      )
-    )) . '</div>';}
+      ),
+      'query' => $query
+    )) . '</div>';
+  }
 }

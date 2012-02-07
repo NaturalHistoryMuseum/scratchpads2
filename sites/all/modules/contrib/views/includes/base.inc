@@ -13,14 +13,14 @@ class views_object {
    * Except for displays, options for the object will be held here.
    */
   var $options = array();
-  
+
   /**
    * The top object of a view.
-   * 
+   *
    * @var view
    */
   var $view = NULL;
-  
+
   /**
    * Handler's definition
    *
@@ -265,7 +265,7 @@ class views_object {
    * This function run's through all suboptions recursive.
    *
    * @param $translatable
-   *   Stores all availible translatable items.
+   *   Stores all available translatable items.
    * @param $storage
    * @param $option
    * @param $definition

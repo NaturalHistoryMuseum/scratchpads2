@@ -1,0 +1,9 @@
+<?php
+
+function scratchpads_front_enable(){
+	variable_set('site_frontpage', 'scratchpads-front');
+}
+
+function scratchpads_front_disable(){
+	variable_set('site_frontpage', 'node');
+}

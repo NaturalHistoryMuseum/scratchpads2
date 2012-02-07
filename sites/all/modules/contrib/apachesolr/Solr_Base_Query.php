@@ -1,66 +1,14 @@
 <?php
+/**
+ * This class allows you to make operations on a query that will be sent to
+ * Apache Solr. methods such as adding and removing sorts, remove and replace
+ * parameters, adding and removing filters, getters and setters for various
+ * parameters and more
+ * @file
+ *   Class that defines the base query for the Apache Solr Drupal module.
+ */
 
-class SolrBaseQuery implements DrupalSolrQueryInterface {
-
-  /**
-   * Extract all uses of one named field from a filter string e.g. 'bundle:book'
-   */
-  public function filter_extract(&$filterstring, $name) {
-    $extracted = array();
-    $name = preg_quote($name, '/');
-    // Range queries.  The "TO" is case-sensitive.
-    $patterns[] = '/(^| |-)'. $name .':([\[\{](\S+) TO (\S+)[\]\}])/';
-    // Match quoted values.
-    $patterns[] = '/(^| |-)'. $name .':"([^"]*)"/';
-    // Match unquoted values.
-    $patterns[] = '/(^| |-)'. $name .':([^ ]*)/';
-    foreach ($patterns as $p) {
-      if (preg_match_all($p, $filterstring, $matches, PREG_SET_ORDER)) {
-        // Sort matches longest to shortest to avoid accidentally
-        // removing a sub-string.
-        usort($matches, array($this, 'filter_extract_cmp'));
-        foreach ($matches as $match) {
-          $filter = array();
-          $filter['#query'] = $match[0];
-          $filter['#exclude'] = ($match[1] == '-');
-          $filter['#value'] = trim($match[2]);
-          // Empty values cause Lucene parse errors, so skip them.
-          if (strlen($filter['#value'])) {
-            if (isset($match[3])) {
-              // Extra data for range queries
-              $filter['#start'] = $match[3];
-              $filter['#end'] = $match[4];
-            }
-            $extracted[] = $filter;
-          }
-          // Update the local copy of $filters by removing the match.
-          $filterstring = str_replace($match[0], '', $filterstring);
-        }
-      }
-    }
-    return $extracted;
-  }
-
-  public function filter_extract_cmp($a, $b) {
-    if (strlen($a[0]) == strlen($b[0])) {
-      return 0;
-    }
-    return (strlen($a[0]) > strlen($b[0])) ? -1 : 1;
-  }
-
-  /**
-   * Takes an array $field and combines the #name and #value in a way
-   * suitable for use in a Solr query.
-   */
-  public function make_filter(array $filter) {
-    // If the field value has spaces, or : in it, wrap it in double quotes.
-    // unless it is a range query.
-    if (preg_match('/[ :]/', $filter['#value']) && !isset($filter['#start']) && !preg_match('/[\[\{]\S+ TO \S+[\]\}]/', $filter['#value'])) {
-      $filter['#value'] = '"' . $filter['#value'] . '"';
-    }
-    $prefix = empty($filter['#exclude']) ? '' : '-';
-    return $prefix . $filter['#name'] . ':' . $filter['#value'];
-  }
+class SolrFilterSubQuery {
 
   /**
    * Static shared by all instances, used to increment ID numbers.
@@ -68,14 +16,10 @@ class SolrBaseQuery implements DrupalSolrQueryInterface {
   protected static $idCount = 0;
 
   /**
-   * Each query/subquery will have a unique ID
+   * Each query/subquery will have a unique ID.
    */
   public $id;
-
-  /**
-   * The parameters that get sent to Solr.
-   */
-  public $params = array('start' => 0, 'rows' => 10);
+  public $operator;
 
   /**
    * A keyed array where the key is a position integer and the value
@@ -84,81 +28,22 @@ class SolrBaseQuery implements DrupalSolrQueryInterface {
    * for anonymous content.
    */
   protected $fields = array();
-  protected $fields_added = array();
-  protected $fields_removed = array();
-
-  /**
-   * The complete filter string for a query.  Usually from $_GET['filters']
-   * Contains name:value pairs for filter queries.  For example,
-   * "bundle:book" for book nodes.
-   */
-  protected $filterstring;
-
-  /**
-   * A mapping of field names from the URL to real index field names.
-   */
-  protected $field_map = array();
 
   /**
    * An array of subqueries.
    */
   protected $subqueries = array();
 
-  /**
-   * The search keywords.
-   */
-  protected $keys;
-
-  /**
-   * The search base path.
-   */
-  protected $base_path;
-
-  /**
-   * Apache_Solr_Service object
-   */
-  protected $solr;
-
-  protected $available_sorts;
-
-  // Makes sure we always have a valid sort.
-  protected $solrsort = array('#name' => 'score', '#direction' => 'desc');
-
-  /**
-   * @param $solr
-   *   An instantiated Apache_Solr_Service Object.
-   *   Can be instantiated from apachesolr_get_solr().
-   *
-   * @param $keys
-   *   The string that a user would type into the search box. Suitable input
-   *   may come from search_get_keys().
-   *
-   * @param $filterstring
-   *   Key and value pairs that are applied as filter queries.
-   *
-   * @param $sortstring
-   *   Visible string telling solr how to sort - added to GET query params.
-   *
-   * @param $base_path
-   *   The search base path (without the keywords) for this query, without trailing slash.
-   */
-  function __construct($solr, $keys, $filterstring, $sortstring, $base_path) {
-    $this->solr = $solr;
-    $this->keys = trim($keys);
-    $this->filterstring = trim($filterstring);
-    $this->parse_filters();
-    $this->available_sorts = $this->default_sorts();
-    $this->sortstring = trim($sortstring);
-    $this->parse_sortstring();
-    $this->base_path = $base_path;
-    $this->id = ++self::$idCount;
+  function __construct($operator = 'OR') {
+    $this->operator = $operator;
+    $this->id = ++SolrFilterSubQuery::$idCount;
   }
 
   function __clone() {
-    $this->id = ++self::$idCount;
+    $this->id = ++SolrFilterSubQuery::$idCount;
   }
 
-  public function get_filters($name = NULL) {
+  public function getFilters($name = NULL) {
     if (empty($name)) {
       return $this->fields;
     }
@@ -172,41 +57,34 @@ class SolrBaseQuery implements DrupalSolrQueryInterface {
     return $matches;
   }
 
-  public function has_filter($name, $value) {
+  public function hasFilter($name, $value, $exclude = FALSE) {
     foreach ($this->fields as $pos => $values) {
-      if (isset($values['#name']) && isset($values['#value']) && $values['#name'] == $name && $values['#value'] == $value) {
+      if ($values['#name'] == $name && $values['#value'] == $value && $values['#exclude'] == $exclude) {
         return TRUE;
       }
     }
     return FALSE;
   }
 
-  public function add_filter($name, $value, $exclude = FALSE, $callbacks = array()) {
-    $filter = array('#exclude' => $exclude, '#name' => $name, '#value' => trim($value), '#callbacks' => $callbacks);
-    // Record the addition.
-    $this->fields_added[] = $filter;
-    // Add to the public list of filters.
+  public function addFilter($name, $value, $exclude = FALSE, $local = '') {
+    // @todo - escape the value if it has spaces in it and is not a range query or parenthesized.
+    $filter = array(
+      '#exclude' => (bool) $exclude,
+      '#name' => trim($name),
+      '#value' => trim($value),
+      '#local' => trim($local),
+    );
     $this->fields[] = $filter;
-    // Remove from the record of removed filters.
-    $this->unset_filter($this->fields_removed, $name, $value);
     return $this;
   }
 
-  public function remove_filter($name, $value = NULL) {
-    // We can only remove named fields.
-    if (empty($name)) {
-      return;
-    }
-    // Record the removal.
-    $this->fields_removed[$name][] = $value;
+  public function removeFilter($name, $value = NULL, $exclude = FALSE) {
     // Remove from the public list of filters.
-    $this->unset_filter($this->fields, $name, $value);
-    // Remove from the record of added filters.
-    $this->unset_filter($this->fields_added, $name, $value);
+    $this->unsetFilter($this->fields, $name, $value, $exclude);
     return $this;
   }
 
-  protected function unset_filter(&$fields, $name, $value) {
+  protected function unsetFilter(&$fields, $name, $value, $exclude) {
     if (!isset($value)) {
       foreach ($fields as $pos => $values) {
         if ($values['#name'] == $name) {
@@ -216,91 +94,223 @@ class SolrBaseQuery implements DrupalSolrQueryInterface {
     }
     else {
       foreach ($fields as $pos => $values) {
-        if ($values['#name'] == $name && $values['#value'] == $value) {
+        if ($values['#name'] == $name && $values['#value'] == $value && $values['#exclude'] == $exclude) {
           unset($fields[$pos]);
         }
       }
     }
   }
 
-  /**
-   * Handle aliases for field to make nicer URLs
-   *
-   * @param $field_map
-   *   An array keyed with real Solr index field names, with value being the alias.
-   *
-   * @return SolrBaseQuery
-   *   The called object.
-   */
-  public function add_field_aliases($field_map) {
-    $this->field_map = array_merge($this->field_map, $field_map);
-    // We have to re-parse the filters.
-    $this->parse_filters();
+  public function getFilterSubQueries() {
+    return $this->subqueries;
+  }
+
+  public function addFilterSubQuery(SolrFilterSubQuery $query) {
+    $this->subqueries[$query->id] = $query;
     return $this;
   }
 
-  public function get_field_aliases() {
-    return $this->field_map;
-  }
-
-  public function clear_field_aliases() {
-    $this->field_map = array();
-    // We have to re-parse the filters.
-    $this->parse_filters();
-    return $this;
-  }
-
-  public function get_keys() {
-    return $this->keys;
-  }
-
-  public function set_keys($keys) {
-    $this->keys = $keys;
-    return $this;
-  }
-
-  public function remove_keys() {
-    $this->keys = '';
-    return $this;
-  }
-
-  public function add_subquery(DrupalSolrQueryInterface $query, $fq_operator = 'OR', $q_operator = 'AND') {
-    $this->subqueries[$query->id] = array('#query' => $query, '#fq_operator' => $fq_operator, '#q_operator' => $q_operator);
-    return $this;
-  }
-
-  public function remove_subquery(DrupalSolrQueryInterface $query) {
+  public function removeFilterSubQuery(SolrFilterSubQuery $query) {
     unset($this->subqueries[$query->id]);
     return $this;
   }
 
-  public function remove_subqueries() {
+  public function removeFilterSubQueries() {
     $this->subqueries = array();
     return $this;
   }
 
-  protected function parse_sortstring() {
-    // Substitute any field aliases with real field names.
-    $sortstring = strtr($this->sortstring, array_flip($this->field_map));
-    // Score is a special case - it's the default sort for Solr.
-    if ('' == $sortstring) {
-      $this->set_solrsort('score', 'desc');
+  public function makeFilterQuery(array $filter) {
+    $prefix = empty($filter['#exclude']) ? '' : '-';
+    if ($filter['#local']) {
+      $prefix = '{!' . $filter['#local'] . '}' . $prefix;
     }
-    else {
-      // Validate and set sort parameter
-      $fields = implode('|', array_keys($this->available_sorts));
-      if (preg_match('/^(?:('. $fields .') (asc|desc),?)+$/', $sortstring, $matches)) {
-        // We only use the last match.
-        $this->set_solrsort($matches[1], $matches[2]);
-      }
+    // If the field value contains a colon or a space, wrap it in double quotes,
+    // unless it is a range query or is already wrapped in double quotes or
+    // parentheses.
+    if (preg_match('/[ :]/', $filter['#value']) && !preg_match('/^[\[\{]\S+ TO \S+[\]\}]$/', $filter['#value']) && !preg_match('/^["\(].*["\)]$/', $filter['#value'])) {
+      $filter['#value'] = '"' . $filter['#value'] . '"';
     }
+    return $prefix . $filter['#name'] . ':' . $filter['#value'];
   }
 
   /**
-   * Returns a default list of sorts.
+   * Make sure our query matches the pattern name:value or name:"value"
+   * Make sure that if we are ranges we use name:[ AND ]
+   * allowed inputs :
+   * a. bundle:article
+   * b. date:[1970-12-31T23:59:59Z TO NOW]
+   * Split the text in 4 different parts
+   * 1. name, eg.: bundle or date
+   * 2. The first opening bracket (or nothing), eg.: [
+   * 3. The value of the field, eg. article or 1970-12-31T23:59:59Z TO NOW
+   * 4. The last closing bracket, eg.: ]
+   * @param string $filter
+   *   The filter to validate
+   * @return boolean
    */
-  protected function default_sorts() {
-    // The array keys must always be real Solr index fields.
+  public static function validFilterValue($filter) {
+    $opening = 0;
+    $closing = 0;
+    $name = NULL;
+    $value = NULL;
+
+    if (preg_match('/(?P<name>[^:]+):(?P<value>.+)?$/', $filter, $matches)) {
+      foreach ($matches as $match_id => $match) {
+        switch($match_id) {
+          case 'name' :
+            $name = $match;
+            break;
+          case 'value' :
+            $value = $match;
+            break;
+        }
+      }
+
+      // For the name we allow any character that fits between the A-Z0-9 range and
+      // any alternative for this in other languages. No special characters allowed
+      if (!preg_match('/^[a-zA-Z0-9_\x7f-\xff]+$/', $name)) {
+        return FALSE;
+      }
+
+      // For the value we allow anything that is UTF8
+      if (!drupal_validate_utf8($value)) {
+        return FALSE;
+      }
+
+      // Check our bracket count. If it does not match it is also not valid
+      $valid_brackets = TRUE;
+      $brackets['opening']['{'] = substr_count($value, '{');
+      $brackets['closing']['}'] = substr_count($value, '}');
+      $valid_brackets = ($brackets['opening']['{'] != $brackets['closing']['}']) ? FALSE : TRUE;
+      $brackets['opening']['['] = substr_count($value, '[');
+      $brackets['closing'][']'] = substr_count($value, ']');
+      $valid_brackets = ($brackets['opening']['['] != $brackets['closing'][']']) ? FALSE : TRUE;
+      $brackets['opening']['('] = substr_count($value, '(');
+      $brackets['closing'][')'] = substr_count($value, ')');
+      $valid_brackets = ($brackets['opening']['('] != $brackets['closing'][')']) ? FALSE : TRUE;
+      if (!$valid_brackets) {
+        return FALSE;
+      }
+
+      // Check the date field inputs
+      if (preg_match('/\[(.+) TO (.+)\]$/', $value, $datefields)) {
+        // Only Allow a value in the form of
+        // http://lucene.apache.org/solr/api/org/apache/solr/schema/DateField.html
+        // http://lucene.apache.org/solr/api/org/apache/solr/util/DateMathParser.html
+        // http://wiki.apache.org/solr/SolrQuerySyntax
+        // 1976-03-06T23:59:59.999Z (valid)
+        // * (valid)
+        // 1995-12-31T23:59:59.999Z (valid)
+        // 2007-03-06T00:00:00Z (valid)
+        // NOW-1YEAR/DAY (valid)
+        // NOW/DAY+1DAY (valid)
+        // 1976-03-06T23:59:59.999Z (valid)
+        // 1976-03-06T23:59:59.999Z+1YEAR (valid)
+        // 1976-03-06T23:59:59.999Z/YEAR (valid)
+        // 1976-03-06T23:59:59.999Z (valid)
+        // 1976-03-06T23::59::59.999Z (invalid)
+        if (!empty($datefields[1]) && !empty($datefields[2])) {
+          // Do not check to full value, only the splitted ones
+          unset($datefields[0]);
+          // Check if both matches are valid datefields
+          foreach ($datefields as $datefield) {
+            if (!preg_match('/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:[\d\.]{2,6}Z(\S)*)|(^([A-Z\*]+)(\A-Z0-9\+\-\/)*)/', $datefield, $datefield_match)) {
+              return FALSE;
+            }
+          }
+        }
+      }
+    }
+    return TRUE;
+  }
+
+  /**
+   * Builds a set of filter queries from $this->fields and all subqueries.
+   *
+   * Returns an array of strings that can be combined into
+   * a URL query parameter or passed to Solr as fq paramters.
+   */
+  protected function rebuildFq() {
+    $fq = array();
+    foreach ($this->fields as $pos => $field) {
+      $fq[] = $this->makeFilterQuery($field);
+    }
+    foreach ($this->subqueries as $subquery) {
+      $subfq = $subquery->rebuildFq();
+      if ($subfq) {
+        $operator = $subquery->operator;
+        $fq[] = "(" . implode(" $operator ", $subfq) . ")";
+      }
+    }
+    return $fq;
+  }
+
+}
+
+class SolrBaseQuery extends SolrFilterSubQuery implements DrupalSolrQueryInterface {
+
+  /**
+   * The parameters that get sent to Solr.
+   */
+  protected $params = array('start' => 0, 'rows' => 10, 'fq' => array());
+
+  /**
+   * The search base path.
+   */
+  protected $base_path;
+  protected $field_map = array();
+
+  /**
+   * DrupalApacheSolrService object
+   */
+  protected $solr;
+  // The array keys must always be real Solr index fields.
+  protected $available_sorts;
+
+  /**
+   * The query name is used to construct a searcher string. Mostly the
+   * environment id
+   */
+  protected $name;
+
+  // Makes sure we always have a valid sort.
+  protected $solrsort = array('#name' => 'score', '#direction' => 'desc');
+  // A flag to allow the search to be aborted.
+  public $abort_search = FALSE;
+  
+  // A flag to check if need to retrieve another page of the result set
+  public $page = 0;
+
+  /**
+   * @param $env_id
+   *   The environment where you are calling the query from.  Typically the default environment.
+   *
+   * @param $solr
+   *   An instantiated DrupalApacheSolrService Object.
+   *   Can be instantiated from apachesolr_get_solr().
+   *
+   * @param $params
+   *   Array of params to initialize the object (typically 'q' and 'fq').
+   *
+   * @param $sortstring
+   *   Visible string telling solr how to sort - added to GET query params.
+   *
+   * @param $base_path
+   *   The search base path (without the keywords) for this query, without trailing slash.
+   */
+  function __construct($name, $solr, array $params = array(), $sortstring = '', $base_path = '') {
+    parent::__construct();
+    $this->name = $name;
+    $this->solr = $solr;
+    $this->addParams($params);
+    $this->available_sorts = $this->defaultSorts();
+    $this->sortstring = trim($sortstring);
+    $this->parseSortString();
+    $this->base_path = $base_path;
+  }
+
+  protected function defaultSorts() {
     return array(
       'score' => array('title' => t('Relevancy'), 'default' => 'desc'),
       'sort_label' => array('title' => t('Title'), 'default' => 'asc'),
@@ -310,220 +320,286 @@ class SolrBaseQuery implements DrupalSolrQueryInterface {
     );
   }
 
-  public function get_available_sorts() {
-    return $this->available_sorts;
-  }
-
-  public function set_available_sort($name, $sort) {
-    // We expect non-aliased sorts to be added.
-    $this->available_sorts[$name] = $sort;
-    // Re-parse the sortstring.
-    $this->parse_sortstring();
-    return $this;
-  }
-
-  public function remove_available_sort($name) {
-    unset($this->available_sorts[$name]);
-    // Re-parse the sortstring.
-    $this->parse_sortstring();
-    return $this;
-  }
-
-  public function get_solrsort() {
-    return $this->solrsort;
-  }
-
-  public function set_solrsort($name, $direction) {
-    if (isset($this->available_sorts[$name])) {
-      $this->solrsort = array('#name' => $name, '#direction' => $direction);
-    }
-    return $this;
+  /**
+   * Get query name.
+   */
+  public function getName() {
+    return $this->name;
   }
 
   /**
-   * Return the search path (including the search keywords).
-   *
-   * @param string $new_keywords
-   *   Optional. When set, this string overrides the query's current keywords.
+   * Get query searcher name (for facetapi, views, pages, etc).
    */
-  public function get_path($new_keywords = NULL) {
+  public function getSearcher() {
+    return $this->name . '@' . $this->solr->getId();
+  }
+
+  protected $single_value_params = array(
+    'q' => TRUE, // http://wiki.apache.org/solr/SearchHandler#q
+    'q.op' => TRUE, // http://wiki.apache.org/solr/SearchHandler#q.op
+    'q.alt' => TRUE, // http://wiki.apache.org/solr/SearchHandler#q
+    'df' => TRUE,
+    'qt' => TRUE,
+    'defType' => TRUE,
+    'timeAllowed' => TRUE,
+    'omitHeader' => TRUE,
+    'debugQuery' => TRUE,
+    'start' => TRUE,
+    'rows' => TRUE,
+    'stats' => TRUE,
+    'facet' => TRUE,
+    'facet.prefix' => TRUE,
+    'facet.limit' => TRUE,
+    'facet.offset' => TRUE,
+    'facet.mincount' => TRUE,
+    'facet.missing' => TRUE,
+    'facet.method' => TRUE,
+    'facet.enum.cache.minDf' => TRUE,
+    'facet.date.start' => TRUE,
+    'facet.date.end' => TRUE,
+    'facet.date.gap' => TRUE,
+    'facet.date.hardend' => TRUE,
+    'facet.date.other' => TRUE,
+    'facet.date.include' => TRUE,
+    'hl' => TRUE,
+    'hl.snippets' => TRUE,
+    'hl.fragsize' => TRUE,
+    'hl.mergeContiguous' => TRUE,
+    'hl.requireFieldMatch' => TRUE,
+    'hl.maxAnalyzedChars' => TRUE,
+    'hl.alternateField' => TRUE,
+    'hl.maxAlternateFieldLength' => TRUE,
+    'hl.formatter' => TRUE,
+    'hl.simple.pre/hl.simple.post' => TRUE,
+    'hl.fragmenter' => TRUE,
+    'hl.fragListBuilder' => TRUE,
+    'hl.fragmentsBuilder' => TRUE,
+    'hl.useFastVectorHighlighter' => TRUE,
+    'hl.usePhraseHighlighter' => TRUE,
+    'hl.highlightMultiTerm' => TRUE,
+    'hl.regex.slop' => TRUE,
+    'hl.regex.pattern' => TRUE,
+    'hl.regex.maxAnalyzedChars' => TRUE,
+    'spellcheck' => TRUE,
+  );
+
+  public function getParam($name) {
+    if ($name == 'fq') {
+      return $this->rebuildFq();
+    }
+    $empty = isset($this->single_value_params[$name]) ? NULL : array();
+    return isset($this->params[$name]) ? $this->params[$name] : $empty;
+  }
+
+  public function getParams() {
+    $params = $this->params;
+    $params['fq'] = $this->rebuildFq();
+    return $params;
+  }
+
+  public function getSolrParams() {
+    $params = $this->getParams();
+    // For certain fields Solr prefers a comma separated list.
+    foreach (array('fl', 'hl.fl', 'sort', 'mlt.fl') as $name) {
+      if (isset($params[$name])) {
+        $params[$name] = implode(',', $params[$name]);
+      }
+    }
+    return $params;
+  }
+
+  protected function addFq($string, $index = NULL) {
+    $string = trim($string);
+    $local = '';
+    $exclude = FALSE;
+    $name = NULL;
+    $value = NULL;
+
+    // Check if we are dealing with an exclude
+    if (preg_match('/^-(.*)/', $string, $matches)) {
+      $exclude = TRUE;
+      $string = $matches[1];
+    }
+
+    // If {!something} is found as first character then this is a local value
+    if (preg_match('/\{!([^}]+)\}(.*)/', $string, $matches)) {
+      $local = $matches[1];
+      $string = $matches[2];
+    }
+
+    // Anything that has a name and value
+    // check if we have a : in the string
+    if (strstr($string, ':')) {
+      list($name, $value) = explode(":", $string, 2);
+    }
+    else {
+      $value = $string;
+    }
+    $this->addFilter($name, $value, $exclude, $local);
+    return $this;
+  }
+
+  public function addParam($name, $value) {
+    if (isset($this->single_value_params[$name])) {
+      if (is_array($value)) {
+        $value = end($value);
+      }
+      $this->params[$name] = trim($value);
+      return $this;
+    }
+    // We never actually populate $this->params['fq'].  Instead
+    // we manage everything via the filter methods.
+    if ($name == 'fq') {
+      if (is_array($value)) {
+        array_walk_recursive($value, array($this, 'addFq'));
+        return $this;
+      }
+      else {
+        return $this->addFq($value);
+      }
+    }
+
+    if (!isset($this->params[$name])) {
+      $this->params[$name] = array();
+    }
+
+    if (is_array($value)) {
+      $this->params[$name] = array_merge($this->params[$name], array_values($value));
+    }
+    else {
+      $this->params[$name][] = $value;
+    }
+    return $this;
+  }
+
+  public function addParams(Array $params) {
+    foreach ($params as $name => $value) {
+      $this->addParam($name, $value);
+    }
+    return $this;
+  }
+
+  public function removeParam($name) {
+    unset($this->params[$name]);
+    if ($name == 'fq') {
+      $this->fields = array();
+      $this->subqueries = array();
+    }
+    return $this;
+  }
+
+  public function replaceParam($name, $value) {
+    $this->removeParam($name);
+    return $this->addParam($name, $value);
+  }
+
+  public function addFieldAliases($field_map) {
+    $this->field_map = array_merge($this->field_map, $field_map);
+    // We have to re-parse the filters.
+    $this->parseSortString();
+    return $this;
+  }
+
+  public function getFieldAliases() {
+    return $this->field_map;
+  }
+
+  public function clearFieldAliases() {
+    $this->field_map = array();
+    // We have to re-parse the filters.
+    $this->parseSortString();
+    return $this;
+  }
+
+  protected function parseSortString() {
+    // Substitute any field aliases with real field names.
+    $sortstring = strtr($this->sortstring, $this->field_map);
+    // Score is a special case - it's the default sort for Solr.
+    if ('' == $sortstring || 'score desc' == $sortstring) {
+      $this->solrsort['#name'] = 'score';
+      $this->solrsort['#direction'] = 'desc';
+      unset($this->params['sort']);
+    }
+    else {
+      // Validate and set sort parameter
+      $fields = implode('|', array_keys($this->available_sorts));
+      if (preg_match('/^(?:(' . $fields . ') (asc|desc),?)+$/', $sortstring, $matches)) {
+        // We only use the last match.
+        $this->solrsort['#name'] = $matches[1];
+        $this->solrsort['#direction'] = $matches[2];
+        $this->params['sort'] = array($sortstring);
+      }
+    }
+  }
+
+  public function getAvailableSorts() {
+    return $this->available_sorts;
+  }
+
+  public function setAvailableSort($name, $sort) {
+    // We expect non-aliased sorts to be added.
+    $this->available_sorts[$name] = $sort;
+    // Re-parse the sortstring.
+    $this->parseSortString();
+    return $this;
+  }
+
+  public function setAvailableSorts($sorts) {
+    // We expect a complete array of valid sorts.
+    $this->available_sorts = $sorts;
+    $this->parseSortString();
+    return $this;
+  }
+
+  public function removeAvailableSort($name) {
+    unset($this->available_sorts[$name]);
+    // Re-parse the sortstring.
+    $this->parseSortString();
+    return $this;
+  }
+
+  public function getSolrsort() {
+    return $this->solrsort;
+  }
+
+  public function setSolrsort($name, $direction) {
+    $this->sortstring = trim($name) . ' ' . trim($direction);
+    $this->parseSortString();
+    return $this;
+  }
+
+  public function getPath($new_keywords = NULL) {
     if (isset($new_keywords)) {
       return $this->base_path . '/' . $new_keywords;
     }
-    return $this->base_path . '/' . $this->get_query_basic();
+    return $this->base_path . '/' . $this->getParam('q');
   }
 
-  public function get_url_queryvalues() {
+  public function getSolrsortUrlQuery() {
     $queryvalues = array();
-    $filters = array();
-    foreach ($this->fields as $pos => $field) {
-      // Look for a field alias.
-      if (isset($this->field_map[$field['#name']])) {
-        $field['#name'] = $this->field_map[$field['#name']];
-      }
-      $filters[] = $this->make_filter($field);
-    }
-    if ($filters) {
-      $queryvalues['filters'] = implode(' ', $filters);
-    }
     $solrsort = $this->solrsort;
-    if ($solrsort && ($solrsort['#name'] != 'score' || $solrsort['#direction'] != 'desc')) {
+    if ($solrsort && ($solrsort['#name'] != 'score')) {
       if (isset($this->field_map[$solrsort['#name']])) {
         $solrsort['#name'] = $this->field_map[$solrsort['#name']];
       }
-      $queryvalues['solrsort'] = $solrsort['#name'] .' '. $solrsort['#direction'];
+      $queryvalues['solrsort'] = $solrsort['#name'] . ' ' . $solrsort['#direction'];
+    }
+    else {
+      // Return to default relevancy sort.
+      unset($queryvalues['solrsort']);
     }
     return $queryvalues;
   }
 
-  public function get_query_basic() {
-    return $this->rebuild_query();
+  public function search($keys = NULL) {
+    if ($this->abort_search) {
+      return NULL;
+    }
+    return $this->solr->search($keys, $this->getSolrParams());
   }
 
-  public function get_fq() {
-    return $this->rebuild_fq();
-  }
-
-  /**
-   * Build additional breadcrumb elements relative to $base.
-   */
-  public function get_breadcrumb($base = NULL) {
-    $breadcrumb = array();
-
-    $progressive_crumb = array();
-    if (!isset($base)) {
-      $base = $this->get_path();
-    }
-
-    $search_keys = $this->get_query_basic();
-    if ($search_keys) {
-      $breadcrumb[] = l($search_keys, $base);
-    }
-
-    foreach ($this->fields as $field) {
-      $name = $field['#name'];
-      // Look for a field alias.
-      if (isset($this->field_map[$name])) {
-        $field['#name'] = $this->field_map[$name];
-      }
-      $progressive_crumb[] = $this->make_filter($field);
-      $options = array('query' => array('filters' => implode(' ', $progressive_crumb)));
-      $breadcrumb_name = 'apachesolr_breadcrumb_' . $name;
-      // Modules utilize this alter to consolidate several fields into one
-      // theme function. This is how CCK breadcrumbs are handled.
-      drupal_alter('apachesolr_theme_breadcrumb', $breadcrumb_name);
-      if ($themed = theme($breadcrumb_name, array('field' => $field))) {
-        $breadcrumb[] = l($themed, $base, $options);
-      }
-      else {
-        $breadcrumb[] = l($field['#value'], $base, $options);
-      }
-    }
-
-    if (!empty($breadcrumb)) {
-      // The last breadcrumb is the current page, so it shouldn't be a link.
-      $last = count($breadcrumb) - 1;
-      $breadcrumb[$last] = strip_tags($breadcrumb[$last]);
-    }
-
-    return $breadcrumb;
-  }
-
-  /**
-   * Parse the filter string in $this->filters into $this->fields.
-   *
-   * Builds an array of field name/value pairs.
-   */
-  protected function parse_filters() {
-    $this->fields = array();
-    $parsed_fields = array();
-    $filterstring = $this->filterstring;
-
-    // Gets information about the fields already in solr index.
-    $index_fields = $this->solr->getFields();
-    foreach ((array) $index_fields as $name => $data) {
-      // Look for a field alias.
-      $alias = isset($this->field_map[$name]) ? $this->field_map[$name] : $name;
-      // Get the values for $name
-      $extracted = $this->filter_extract($filterstring, $alias);
-      if (count($extracted)) {
-        // A trailing space is required since we match all individual
-        // filter terms using a trailing space.
-        $filter_pos_string = $this->filterstring . ' ';
-        foreach ($extracted as $filter) {
-          // The trailing space on $filter['#query'] avoids incorrect
-          //  matches to a substring. See http://drupal.org/node/891962
-          $pos = strpos($filter_pos_string, $filter['#query'] . ' ');
-          // $solr_keys and $solr_crumbs are keyed on $pos so that query order
-          // is maintained. This is important for breadcrumbs.
-          $filter['#name'] = $name;
-          $parsed_fields[$pos] = $filter;
-        }
-      }
-    }
-    // Even though the array has the right keys they are likely in the wrong
-    // order. ksort() sorts the array by key while maintaining the key.
-    ksort($parsed_fields);
-    foreach ($this->fields_removed as $name => $values) {
-      foreach ($values as $val) {
-        $this->unset_filter($parsed_fields, $name, $val);
-      }
-    }
-    $this->fields = array_merge(array_values($parsed_fields), $this->fields_added);
-  }
-
-  /**
-   * Builds a set of filter queries from $this->fields and all subqueries.
-   *
-   * Returns an array of strings that can be combined into
-   * a URL query parameter or passed to Solr as fq paramters.
-   */
-  protected function rebuild_fq($aliases = FALSE) {
-    $fq = array();
-    $fields = array();
-    foreach ($this->fields as $pos => $field) {
-      // Look for a field alias.
-      if ($aliases && isset($this->field_map[$field['#name']])) {
-        $field['#name'] = $this->field_map[$field['#name']];
-      }
-      $fq[$field['#name']][] = $this->make_filter($field);
-    }
-    foreach ($this->subqueries as $id => $data) {
-      $subfq = $data['#query']->rebuild_fq($aliases);
-      if ($subfq) {
-        $operator = $data['#fq_operator'];
-        $subqueries = array();
-        foreach ($subfq as $key => $values) {
-          foreach ($values as $value) {
-            $subqueries[] = $value;
-          }
-        }
-        $fq['subqueries'][$id] =  " (" . implode(" $operator " , $subqueries) . ")";
-      }
-    }
-    return $fq;
-  }
-
-  protected function rebuild_query() {
-    $query = $this->keys;
-    foreach ($this->subqueries as $id => $data) {
-      $operator = $data['#q_operator'];
-      $subquery = $data['#query']->get_query_basic();
-      if ($subquery) {
-        $query .= " {$operator} ({$subquery})";
-      }
-    }
-    return $query;
-  }
-
-  function search($keys = NULL) {
-    if (!isset($keys)) {
-      $keys = $this->rebuild_query();
-    }
-    return $this->solr->search($keys, $this->params);
-  }
-
-  function solr($method) {
+  public function solr($method) {
     return $this->solr->$method();
   }
+
 }

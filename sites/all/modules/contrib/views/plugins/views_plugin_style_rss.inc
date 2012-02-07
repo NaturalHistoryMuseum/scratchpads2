@@ -56,6 +56,7 @@ class views_plugin_style_rss extends views_plugin_style {
       '#title' => t('RSS description'),
       '#default_value' => $this->options['description'],
       '#description' => t('This will appear in the RSS feed itself.'),
+      '#maxlength' => 1024,
     );
   }
 
@@ -78,7 +79,7 @@ class views_plugin_style_rss extends views_plugin_style {
 
     // This will be filled in by the row plugin and is used later on in the
     // theming output.
-    $this->namespaces = array();
+    $this->namespaces = array('xmlns:dc' => 'http://purl.org/dc/elements/1.1/');
 
     // Fetch any additional elements for the channel and merge in their
     // namespaces.

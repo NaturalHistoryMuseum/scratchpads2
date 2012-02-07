@@ -1,0 +1,12 @@
+name = Hierarchical Select Flat List
+description = Allows Hierarchical Select's dropbox to be used for selecting multiple items in a flat list of options.
+dependencies[] = hierarchical_select
+package = Form Elements
+core = 7.x
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "7.x-3.0-alpha5"
+core = "7.x"
+project = "hierarchical_select"
+datestamp = "1316201202"
+

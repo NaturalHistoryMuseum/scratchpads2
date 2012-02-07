@@ -81,14 +81,14 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     // It is very important to call the parent function here:
     parent::options_summary($categories, $options);
 
-    $categories['page']['title'] = t('Export settings');
+    $categories['page']['title'] = t('Data export settings');
 
     $options['use_batch'] = array(
       'category' => 'page',
       'title' => t('Batched export'),
       'value' => ($this->get_option('use_batch') ? t('Yes') : t('No')),
     );
-    
+
     if (!$this->is_compatible() && $this->get_option('use_batch')) {
       $options['use_batch']['value'] .= ' <strong>' . t('(Warning: incompatible)') . '</strong>';
     }
@@ -274,7 +274,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     // We do not return, so update database sandbox now
     views_data_export_update($this->batched_execution_state);
 
-    $final_destination = $this->get_option('path');
+    $final_destination = $this->view->get_url();
 
     // Provide a way in for others at this point
     // e.g. Drush to grab this batch and yet execute it in
@@ -430,6 +430,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
         case VIEWS_DATA_EXPORT_FOOTER:
           // Tell views its been executed.
           $this->view->executed = TRUE;
+
           // Grab our results from the index, and push them into the view result.
           // TODO: Handle external databases.
           $result = db_query_range('SELECT * FROM {' . $this->index_tablename() . '} ORDER BY ' . $this->batched_execution_state->sandbox['weight_field_alias'] . ' ASC', 0, 100);
@@ -449,6 +450,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
             // Push the restored $item in the views result array.
             $this->view->result[] = $item;
           }
+          $this->view->_post_execute();
           break;
       }
     }
@@ -467,7 +469,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     );
 
     return theme('views_data_export_complete_page', array(
-      'file' => url($this->get_option('path'), array('query' => $query)),
+      'file' => url($this->view->get_url(), array('query' => $query)),
       'errors' => $this->errors,
       'return_url' => $return_path));
   }
@@ -503,6 +505,10 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
   function transfer_file() {
     // Build the view so we can set the headers.
     $this->view->build();
+    // Arguments can cause the style to not get built.
+    if (!$this->view->init_style()) {
+      $this->view->build_info['fail'] = TRUE;
+    }
     // Set the headers.
     $this->add_http_headers();
     file_transfer($this->outputfile_path(), array());
@@ -687,7 +693,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
       return t('Time remaining: about @interval.', array('@interval' => format_interval($stamp)));
     }
   }
-  
+
   /**
    * Checks the driver of the database underlying
    * this query and returns FALSE if it is imcompatible
@@ -701,7 +707,7 @@ class views_data_export_plugin_display_export extends views_plugin_display_feed 
     $db_driver = $this->_get_database_driver();
     return !in_array($db_driver, $incompatible_drivers);
   }
-  
+
   function  _get_database_driver() {
     $name = !empty($this->view->base_database) ? $this->view->base_database : 'default';
     $conn_info = Database::getConnectionInfo($name);
@@ -740,9 +746,18 @@ class views_data_export_plugin_query_default_batched extends views_plugin_query_
     $items = array();
     if ($query) {
       $additional_arguments = module_invoke_all('views_query_substitutions', $view);
-      // Build the count query. db_select::countQuery does not work with groupby.
+
+      // Count queries must be run through the preExecute() method.
+      // If not, then hook_query_node_access_alter() may munge the count by
+      // adding a distinct against an empty query string
+      // (e.g. COUNT DISTINCT(1) ...) and no pager will return.
+      // See pager.inc > PagerDefault::execute()
+      // http://api.drupal.org/api/drupal/includes--pager.inc/function/PagerDefault::execute/7
+      // See http://drupal.org/node/1046170.
+      $count_query->preExecute();
+
+      // Build the count query.
       $count_query = $count_query->countQuery();
-      //  $count_query->distinct = FALSE;
 
       // Add additional arguments as a fake condition.
       // XXX: this doesn't work... because PDO mandates that all bound arguments
@@ -750,12 +765,6 @@ class views_data_export_plugin_query_default_batched extends views_plugin_query_
       if (!empty($additional_arguments)) {
         // $query->where('1 = 1', $additional_arguments);
         // $count_query->where('1 = 1', $additional_arguments);
-      }
-
-      // Detect an external database.
-      if (isset($view->base_database)) {
-        db_set_active($view->base_database);
-        $external = TRUE;
       }
 
       $start = microtime(TRUE);
@@ -791,6 +800,7 @@ class views_data_export_plugin_query_default_batched extends views_plugin_query_
         }
 
         // TODO: this could probably be replaced with a query extender and new query type.
+        $query->preExecute();
         $args = $query->getArguments();
         $insert_query = 'CREATE TABLE {' . $display_handler->index_tablename() . '} SELECT @row := @row + 1 AS ' . $display_handler->batched_execution_state->sandbox['weight_field_alias'] . ', ' . implode(', ', $select_aliases) . ' FROM (' . (string)$query . ') AS cl, (SELECT @row := 0) AS r';
         db_query($insert_query, $args);
@@ -811,10 +821,6 @@ class views_data_export_plugin_query_default_batched extends views_plugin_query_
       catch (Exception $e) {
         $view->result = array();
         debug('Exception: ' . $e->getMessage());
-      }
-
-      if ($external) {
-        db_set_active();
       }
 
     }

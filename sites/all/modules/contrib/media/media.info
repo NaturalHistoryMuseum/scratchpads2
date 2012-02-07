@@ -1,0 +1,24 @@
+name = Media
+description = Provides the core Media API
+package = Media
+core = 7.x
+
+dependencies[] = file_entity (>1.99)
+dependencies[] = image
+dependencies[] = views
+
+files[] = includes/MediaReadOnlyStreamWrapper.inc
+
+files[] = includes/media.browser.inc
+files[] = includes/MediaBrowserLibrary.inc
+files[] = includes/MediaBrowserUpload.inc
+files[] = includes/MediaBrowserView.inc
+
+files[] = includes/media_views_plugin_display_media_browser.inc
+files[] = includes/media_views_plugin_style_media_browser.inc
+
+files[] = tests/media.test
+files[] = tests/media.types.test
+files[] = tests/media.entity.test
+
+testing_api = 2.x

@@ -1,0 +1,4 @@
+name = Scratchpads colour switcher
+description = Allow user to switch colour
+package = "Scratchpads theme"
+core = 7.x

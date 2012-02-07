@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ */
+function scratchpads_width_and_height_theme_registry_alter(&$theme_registry){
+  $theme_registry['image']['function'] = 'scratchpads_width_and_height_theme_image';
+}
+
+/**
+ * Returns HTML for an image.
+ *
+ * @param $variables
+ * An associative array containing:
+ * - path: Either the path of the image file (relative to base_path()) or a
+ * full URL.
+ * - width: The width of the image (if known).
+ * - height: The height of the image (if known).
+ * - alt: The alternative text for text-based browsers. HTML 4 and XHTML 1.0
+ * always require an alt attribute. The HTML 5 draft allows the alt
+ * attribute to be omitted in some cases. Therefore, this variable defaults
+ * to an empty string, but can be set to NULL for the attribute to be
+ * omitted. Usually, neither omission nor an empty string satisfies
+ * 
+ * accessibility requirements, so it is strongly encouraged for code calling
+ * theme('image') to pass a meaningful value for this variable.
+ * - http://www.w3.org/TR/REC-html40/struct/objects.html#h-13.8
+ * - http://www.w3.org/TR/xhtml1/dtds.html
+ * - http://dev.w3.org/html5/spec/Overview.html#alt
+ * - title: The title text is displayed when the image is hovered in some
+ * popular browsers.
+ * - attributes: Associative array of attributes to be placed in the img tag.
+ */
+function scratchpads_width_and_height_theme_image($variables){
+  if((!isset($variables['width']) || !$variables['width']) || (!isset($variables['height']) || !$variables['height'])){
+    $image_info = cache_get(md5($variables['path']), 'cache_image_sizes');
+    if(!$image_info){
+      // Set $image_info to false in case we fail to load the image.
+      $image_info = FALSE;
+      if(substr($variables['path'], 0, 4) == 'http'){
+        $file = file_unmanaged_save_data(@file_get_contents($variables['path']), 'temporary://');
+        $path = drupal_realpath($file);
+        $image = image_load($path);
+        unlink($path);
+      }else{
+        $image = image_load($variables['path']);
+      }
+      // We only cache images with a file size (in case the file failed to download).
+      if($image && $image->info && $image->info['file_size']){
+        $image_info = $image->info;
+        cache_set(md5($variables['path']), $image_info, 'cache_image_sizes');
+      }
+    }else{
+      $image_info = $image_info->data;
+    }
+    if($image_info){
+      $variables['height'] = $image_info['height'];
+      $variables['width'] = $image_info['width'];
+    }
+  }
+  $attributes = $variables['attributes'];
+  $attributes['src'] = file_create_url($variables['path']);
+  foreach(array(
+    'width',
+    'height',
+    'alt',
+    'title'
+  ) as $key){
+    if(isset($variables[$key])){
+      $attributes[$key] = $variables[$key];
+    }
+  }
+  return '<img' . drupal_attributes($attributes) . ' />';
+}

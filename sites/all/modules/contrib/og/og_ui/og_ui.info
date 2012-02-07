@@ -1,0 +1,15 @@
+name = Organic groups UI
+description = "Organic groups UI."
+package = "Organic groups"
+dependencies[] = og
+core = 7.x
+version = VERSION
+files[] = og_ui.test
+configure = admin/config/group
+
+; Information added by drupal.org packaging script on 2011-12-05
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "og"
+datestamp = "1323088183"
+

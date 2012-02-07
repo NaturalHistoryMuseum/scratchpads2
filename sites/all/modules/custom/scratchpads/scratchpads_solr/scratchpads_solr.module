@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_solr_form_node_type_form_alter(&$form, &$form_state, $form_id){
+  // Add an additional submit function to the form, so that we can react to any
+  // changes to the content type.
+  $form['#submit'][] = 'scratchpads_solr_node_type_form_submit';
+}
+
+/**
+ * Submit function for the node_type_form.
+ */
+function scratchpads_solr_node_type_form_submit($form, $form_state){
+  if(isset($form_state['values']['page_display_type']) && $form_state['values']['page_display_type'] == 'solr'){
+    if($form_state['values']['type'] != 'biblio'){
+      // We create a search page for this content type.
+      $fields = array(
+        'page_id' => 'content_type_' . $form_state['values']['type'] . '_search',
+        'label' => t('@content_label Search', array(
+          '@content_label' => $form_state['values']['name']
+        )),
+        'description' => t('Content type search for @content_label', array(
+          '@content_label' => $form_state['values']['name']
+        )),
+        'search_path' => $form_state['values']['type'],
+        'env_id' => 'solr',
+        'page_title' => $form_state['values']['name'],
+        'settings' => serialize(array(
+          'fq' => array(
+            'bundle:' . $form_state['values']['type']
+          ),
+          'apachesolr_search_search_type' => 'custom',
+          'apachesolr_search_search_box' => 1,
+          'apachesolr_search_per_page' => '50',
+          'apachesolr_search_browse' => 'browse',
+          'apachesolr_search_spellcheck' => 1
+        ))
+      );
+      try{
+        db_insert('apachesolr_search_page')->fields($fields)->execute();
+      }
+      catch(Exception $e){
+        ; // Do nothing, most likely a result of the entry in the DB already 
+      // existing.
+      }
+    }
+  }else{
+    scratchpads_solr_node_type_delete(array(
+      'type' => $form_state['values']['type']
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_node_type_insert().
+ */
+function scratchpads_solr_node_type_insert($info){
+  $transaction = db_transaction();
+  try{
+    $entity_info = entity_get_info('node');
+    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->execute();
+    $query = db_insert('apachesolr_index_bundles')->fields(array(
+      'env_id',
+      'entity_type',
+      'bundle'
+    ));
+    $env_id = apachesolr_default_environment();
+    foreach($entity_info['bundles'] as $key => $value){
+      $query->values(array(
+        'env_id' => $env_id,
+        'entity_type' => 'node',
+        'bundle' => $key
+      ));
+    }
+    $query->values(array(
+      'env_id' => $env_id,
+      'entity_type' => 'node',
+      'bundle' => $info->type
+    ));
+    $query->execute();
+  }
+  catch(Exception $e){
+    // This is thrown on install.  We don't do anything though!
+    $transaction->rollback();
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_solr_theme(){
+  return array(
+    'scratchpads_solr_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_solr.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_page_alter().
+ */
+function scratchpads_solr_page_alter(&$page){
+  // FIXME - Here we should add the empty results themes (if they're required).
+  try{
+    if(isset($page['content']['system_main']['search_results']['#theme'])){
+      $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
+    }
+  }
+  catch(Exception $e){
+    ;
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_solr_menu_alter(&$items){
+  $content_type_settings = variable_get('scratchpads_pages_display', array());
+  $node_types = node_type_get_types();
+  foreach($content_type_settings as $content_type => $type){
+    if($type == 'solr' && isset($node_types[$content_type]) && isset($items[$content_type])){
+      $items[$content_type]['menu_name'] = PRIMARY_MENU_NAME;
+      $items[$content_type]['weight'] = 1;
+      $items[$content_type]['type'] = MENU_NORMAL_ITEM;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_type_delete().
+ */
+function scratchpads_solr_node_type_delete($info){
+  if(is_object($info) && isset($info->type)){
+    // Attempt to delete this content type from the apachesolr_search_page table.
+    db_delete('apachesolr_search_page')->condition('page_id', 'content_type_' . $info->type . '_search')->execute();
+    // Also stop indexing this bundle type.
+    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->condition('bundle', $info->type)->execute();
+  }
+}

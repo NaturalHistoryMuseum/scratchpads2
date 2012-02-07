@@ -1,0 +1,6 @@
+name = DarwinCore Archive (DwC-A) export
+description = Creates a DarwinCore Archive of this scratchpad
+package = "Scratchpads"
+core = 7.x
+dependencies[] = views_data_export
+dependencies[] = darwincore

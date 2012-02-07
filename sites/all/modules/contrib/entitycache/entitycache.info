@@ -9,9 +9,9 @@ files[] = entitycache.comment.inc
 files[] = entitycache.taxonomy.inc
 files[] = entitycache.test
 
-; Information added by drupal.org packaging script on 2011-05-09
-version = "7.x-1.0"
+; Information added by drupal.org packaging script on 2011-09-13
+version = "7.x-1.1"
 core = "7.x"
 project = "entitycache"
-datestamp = "1304944915"
+datestamp = "1315901203"
 

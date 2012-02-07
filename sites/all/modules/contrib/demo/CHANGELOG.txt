@@ -1,0 +1,122 @@
+// $Id: CHANGELOG.txt,v 1.57 2011/01/09 03:25:29 sun Exp $
+
+Demo 7.x-1.x, xxxx-xx-xx
+------------------------
+
+
+Demo 7.x-1.0, 2010-01-09
+------------------------
+#915936 by sun: Updated for easier radios/checkboxes options.
+#759584 by sun: Revamped administration pages.
+#901954 by sun: Updated for removed file_directory_path().
+by sun: Updated for new Drupal core cache tables.
+by sun: Added list of system variables to retain after reset.
+by sun: Added proper Drupal behavior for collapsible snapshots.
+#866700 by sun: Updated for $db_prefix.
+#688840 by sun: Updated for new configure link on modules page.
+by sun: Updated for renamed DRUPAL_NO_CACHE constant.
+#584988 by sun: Fixed paths in README.txt.
+by sun: Updated for new File API, Database API, Form API, and removed registry.
+#345866 by sun: Updated for removed $op in hook_block().
+#521474 by sun: Updated for admin/build renamed to admin/structure.
+#361301 by cwgordon7: Updated/Fixed reset functionality.
+by sun: Fixed PHP notices for non-existing key $meta->native_type.
+by sun: Updated for drupal_add_js().
+#361301 by sun: Ported to 7.x.
+
+
+Demo 6.x-1.x, xxxx-xx-xx
+------------------------
+#312215 by sethfisher, sun: Fixed foreign key checks prevent dropping of tables.
+#765186 by sun: Fixed collation not dumped for tables.
+by sun: Fixed file permissions of new .info and .sql files.
+#294879 by sun: Splitted module into API and demo_reset module.
+#375507 by sun: Added hook_uninstall().
+by sun: Fixed table engine, charset, and comment not contained in snapshot.
+#505800 by smk-ka: Fixed SQL VIEWS are causing faulty dump.
+#535754 by smk-ka, sun: Added API functions/hooks to perform dumps and resets.
+by sun: Fixed length of form button captions on snapshot management form.
+#370402 by sun: Added option to download snapshot files.
+#496620 by evoltech: Fixed paths in README.txt.
+by smk-ka: Added admin_menu cache table to exclude list.
+#489666 by stella: Added hook invocation after successful reset.
+by sun: Fixed coding-style.
+#256714 by sun: Fixed site name sub-folder no longer appended.
+#256714 by smk-ka, sun: Removed site name sub-folder from dump directory path.
+#393186 by sun: Fixed fatal error: Only variables can be passed by reference.
+#372113 by sun: Fixed not all cache tables are skipped.
+
+
+Demo 6.x-1.2, 2009-02-06
+------------------------
+by smk-ka: Made watchdog messages translatable (fixed a potx warning).
+#369711 by smk-ka: Added confirmation before deleting a snapshot.
+#369642 by smk-ka: Added checkbox to define new snapshot as default.
+#329182 by sun: Moved menu items below admin/build.
+#299841 by sun: Fixed wrong function arguments for watchdog().
+#286781 by alex_b: Added function return value for demo_reset().
+#272820 by sun: Increased maxlength for snapshot file names.
+#269561 by smk-ka: Performance: Disable indices to speed up import.
+#272526 by smk-ka: Added file size to snapshot list.
+#268056 by sun: Fixed incomplete snapshots due to max_execution_time reached.
+#265801 by smk-ka: Added exclusion of data in cache tables for snapshots.
+#312215 by rondp: Added foreign key support.
+#294879 by smk-ka: Moved admin functions into include file.
+
+
+Demo 6.x-1.1, 2008-04-29
+------------------------
+#226135 by smk-ka: Added MySQLi support. Setting SQL_MODE for new dumps to
+  avoid generating auto values when encountering a zero value for a serial
+  field.
+by smk-ka: Fixed generation of table list for multiple database prefixes.
+
+
+Demo 6.x-1.0, 2008-02-14
+------------------------
+#221386 by sun: Ported Demo Site to Drupal 6.
+
+
+Demo 5.x-1.3, 2008-02-24
+------------------------
+by smk-ka: Export excluded tables' structure (using IF NOT EXISTS) to facilitate
+  the creation of a new site from an exsiting demo dump.
+
+
+Demo 5.x-1.2, 2007-11-15
+------------------------
+#191179 by sun: Fixed no information displayed after saving settings.
+Fixed the new version check for legacy dumps.
+Fixed wrong revision tagged with 5.x-1.1.
+
+
+Demo 5.x-1.1, 2007-11-11
+------------------------
+Added translation template and German translation.
+#175498 by smk-ka: Added version number to dumps to distinguish new-style from
+  legacy dumps that included the watchdog table.
+Added sort snapshots by date.
+#163309 by dman: Demo directory is not created on first run config.
+#132753 by smk-ka: Removed dependency on dba module.
+Excluding watchdog table from dump/restore. Watchdog will stay intact even after
+  restore.
+Added snapshot name autocomplete feature.
+Added usage of previous snapshot description if identical filename already
+  exists.
+Added removal of core modules and sorting of modules in module list.
+Fixed malformed serialized strings after reset
+  (see http://drupal.org/node/106576).
+Added 'Reset now' block.
+#132470 by sun: Added support for multiple snapshots.
+Added multisite support.
+#132455 by sun: Fixed New tables are not deleted at reset.
+Fixed default dump path for not configured sites (now files/demo).
+Fixed status dates in settings on a fresh installation.
+Fixed storage of last reset time in status of module settings.
+
+
+Demo 5.x-1.0, 2007-03-28
+------------------------
+Initial commit of Demo module.
+
+

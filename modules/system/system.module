@@ -46,6 +46,13 @@ define('DRUPAL_OPTIONAL', 1);
 define('DRUPAL_REQUIRED', 2);
 
 /**
+ * Maximum number of values in a weight select element.
+ *
+ * If the number of values is over the maximum, a text field is used instead.
+ */
+define('DRUPAL_WEIGHT_SELECT_MAX', 100);
+
+/**
  * Return only visible regions.
  *
  * @see system_region_list()
@@ -969,7 +976,7 @@ function system_menu() {
   );
   $items['admin/config/system/site-information'] = array(
     'title' => 'Site information',
-    'description' => t('Change site name, e-mail address, slogan, default front page, and number of posts per page, error pages.'),
+    'description' => 'Change site name, e-mail address, slogan, default front page, and number of posts per page, error pages.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_site_information_settings'),
     'access arguments' => array('administer site configuration'),
@@ -977,8 +984,8 @@ function system_menu() {
     'weight' => -20,
   );
   $items['admin/config/system/cron'] = array(
-    'title' => t('Cron'),
-    'description' => t('Manage automatic site maintenance tasks.'),
+    'title' => 'Cron',
+    'description' => 'Manage automatic site maintenance tasks.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_cron_settings'),
     'access arguments' => array('administer site configuration'),
@@ -2465,6 +2472,18 @@ function _system_update_bootstrap_status() {
 function _system_rebuild_theme_data() {
   // Find themes
   $themes = drupal_system_listing('/^' . DRUPAL_PHP_FUNCTION_PATTERN . '\.info$/', 'themes');
+  // Allow modules to add further themes.
+  if ($module_themes = module_invoke_all('system_theme_info')) {
+    foreach ($module_themes as $name => $uri) {
+      // @see file_scan_directory()
+      $themes[$name] = (object) array(
+        'uri' => $uri,
+        'filename' => pathinfo($uri, PATHINFO_FILENAME),
+        'name' => $name,
+      );
+    }
+  }
+
   // Find theme engines
   $engines = drupal_system_listing('/^' . DRUPAL_PHP_FUNCTION_PATTERN . '\.engine$/', 'themes/engines');
 

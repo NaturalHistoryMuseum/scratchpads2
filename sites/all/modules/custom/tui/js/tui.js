@@ -1,4 +1,8 @@
 (function($){
+  // Extend the jQuery object to allow us to redirect.
+  $.prototype.tui_goto = function(url){
+    window.location.href = url;
+  }
   // TUI object.
   Drupal.tui = Drupal.tui || {};
   // Resize frame/window function.
@@ -42,16 +46,6 @@
     $('#tui', context).change(function(){
       Drupal.tui.resize_frame();
     });
-    // ALTER THE AJAX FOR THE SUBMIT OF THE TERM FORM.  WE'LL UPDATE THE TREE
-    // AFTER IT!
-    /*
-    $('#tui-form-container .form-submit').each(function(){
-      console.log('Adding to: '+$(this).attr('id'));
-      Drupal.ajax[$(this).attr('id')].commands.tui = function(ajax, response, status){
-        console.log('Special shit here');
-      }
-    });
-    */
     // ADD A TERM LINKS
     Drupal.ajax['tui-add-link'].beforeSend = function(xmlhttprequest, options){
       if($('.tui-highlight').length) {
@@ -60,9 +54,12 @@
         }
       }
     }
+    // UPDATE THE NAME LISTENER
+    $('#edit-name', context).keyup(function(event){
+      $('#tui-name-live h2').html($('#edit-name').val());
+    });
     // THIS IS A DIRECT COPY FROM ajax.js, with the resize_frame function
     // added.
-    console.log(Drupal.ajax["tui-add-link"]);
     Drupal.ajax["tui-add-link"].commands.insert = function(ajax, response, status){
       var wrapper = response.selector ? $(response.selector) : $(ajax.wrapper);
       var method = response.method || ajax.method;
@@ -135,8 +132,9 @@
       }
     });
     // OPENING AND CLOSING
-    $('li.tui-has-children>div>span', context).unbind('click');
-    $('li.tui-has-children>div>span', context).bind('click', function(e){
+    // Slightly lazy programming here, but makes the Ajax reply easier.
+    $('li.tui-has-children>div>span').unbind('click');
+    $('li.tui-has-children>div>span').bind('click', function(e){
       if($(this).parent().parent().hasClass('tui-closed') && $(this).parent().parent().hasClass('tui-never-opened')) {
         $(this).parent().parent().removeClass('tui-never-opened');
         $(this).parent().parent().removeClass('tui-closed');

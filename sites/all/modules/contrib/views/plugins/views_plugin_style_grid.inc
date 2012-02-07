@@ -33,6 +33,8 @@ class views_plugin_style_grid extends views_plugin_style {
       '#type' => 'textfield',
       '#title' => t('Number of columns'),
       '#default_value' => $this->options['columns'],
+      '#required' => TRUE,
+      '#element_validate' => array('views_element_validate_integer'),
     );
     $form['alignment'] = array(
       '#type' => 'radios',
@@ -41,7 +43,7 @@ class views_plugin_style_grid extends views_plugin_style {
       '#default_value' => $this->options['alignment'],
       '#description' => t('Horizontal alignment will place items starting in the upper left and moving right. Vertical alignment will place items starting in the upper left and moving down.'),
     );
-    
+
     $form['fill_single_line'] = array(
       '#type' => 'checkbox',
       '#title' => t('Fill up single line'),
@@ -57,4 +59,3 @@ class views_plugin_style_grid extends views_plugin_style {
     );
   }
 }
-
