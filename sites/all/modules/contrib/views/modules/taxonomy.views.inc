@@ -366,7 +366,7 @@ function taxonomy_field_views_data($field){
       if(isset($field_data['filter']) && $field_name != 'delta'){
         $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_term_node_tid';
         if(!isset($field['settings']['allowed_values'][0])){
-          watchdog('taxonomy_term_field', 'Inappropriate settings for: @$field', array(
+          watchdog('taxonomy_term_field', "Inappropriate settings for:\n@field", array(
             '@field' => print_r($field, 1)
           ));
         }
