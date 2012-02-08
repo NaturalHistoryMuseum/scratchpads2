@@ -1462,7 +1462,7 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => '11',
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1533,7 +1533,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '9',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1599,7 +1599,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '16',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1677,7 +1677,7 @@ function darwincore_field_default_fields() {
             'show_repeat_rule' => 'show',
           ),
           'type' => 'date_default',
-          'weight' => '12',
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1764,7 +1764,7 @@ function darwincore_field_default_fields() {
             'show_repeat_rule' => 'show',
           ),
           'type' => 'date_default',
-          'weight' => '8',
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1848,7 +1848,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '17',
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1922,7 +1922,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '6',
+          'weight' => '3',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2008,7 +2008,7 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => '7',
+          'weight' => '4',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2153,7 +2153,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '15',
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2239,7 +2239,7 @@ function darwincore_field_default_fields() {
             'node_reference_view_mode' => 'linked_node',
           ),
           'type' => 'node_reference_node',
-          'weight' => '21',
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2308,7 +2308,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '13',
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2382,7 +2382,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '10',
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2454,7 +2454,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '18',
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2526,7 +2526,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '19',
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2603,7 +2603,7 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '14',
+          'weight' => '11',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2679,7 +2679,7 @@ function darwincore_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => '5',
+          'weight' => '2',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2757,7 +2757,7 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '20',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
