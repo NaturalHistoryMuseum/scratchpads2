@@ -1,0 +1,5 @@
+<?php
+
+//Let's do all our stuff after ITIS
+//$weight = db_result(db_query("SELECT weight FROM {system} WHERE name = 'itis_term'"));
+//db_query("UPDATE {system} SET weight = %d WHERE name = 'mymodule'", $weight + 1);
