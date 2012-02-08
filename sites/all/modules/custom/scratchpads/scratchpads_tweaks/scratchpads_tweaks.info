@@ -48,3 +48,4 @@ dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
 dependencies[] = spm
+dependencies[] = tui
