@@ -37,6 +37,7 @@
 
 .view-front-page-slideshow .views-field-filename span{
   padding: 0 10px;
+  display: block;
 }
 
 /* Slideshow controls */
