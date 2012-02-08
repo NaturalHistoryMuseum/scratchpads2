@@ -75,12 +75,12 @@
 .responsive-layout-narrow .views-slideshow-cycle-main-frame,
 .responsive-layout-narrow .views-slideshow-cycle-main-frame-row{
   width: 492px!important;
-  height: 368px!important;
+  height: 375px!important;
 }
 
 
 .responsive-layout-narrow .views_slideshow_pager_field_item img,
 .responsive-layout-normal .views_slideshow_pager_field_item img{
-  width: 112px!important;
-  height: 91px!important;
+  width: 126px!important;
+  height: 93px!important;
 }
