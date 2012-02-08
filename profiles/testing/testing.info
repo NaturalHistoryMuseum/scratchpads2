@@ -3,3 +3,9 @@ description = Minimal profile for running tests. Includes absolutely required mo
 version = VERSION
 core = 7.x
 hidden = TRUE
+
+; Information added by drupal.org packaging script on 2012-02-01
+version = "7.12"
+project = "drupal"
+datestamp = "1328134560"
+

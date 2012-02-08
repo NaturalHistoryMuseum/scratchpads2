@@ -6,3 +6,9 @@ version = VERSION
 files[] = dashboard.test
 dependencies[] = block
 configure = admin/dashboard/customize
+
+; Information added by drupal.org packaging script on 2012-02-01
+version = "7.12"
+project = "drupal"
+datestamp = "1328134560"
+

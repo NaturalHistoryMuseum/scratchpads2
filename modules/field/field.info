@@ -9,3 +9,9 @@ files[] = tests/field.test
 dependencies[] = field_sql_storage
 required = TRUE
 stylesheets[all][] = theme/field.css
+
+; Information added by drupal.org packaging script on 2012-02-01
+version = "7.12"
+project = "drupal"
+datestamp = "1328134560"
+
