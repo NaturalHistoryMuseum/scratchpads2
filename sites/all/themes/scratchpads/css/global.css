@@ -633,6 +633,45 @@ table.biblio td{
 .node-spm .field-name-field-spm-map{
   margin-top: 10px;
 }
+
+/****************** Overlay *****************/
+  
+.field-name-field-image-caption,
+.field-name-field-image-caption div{
+  max-width: 400px;
+}
+
+.field-name-field-image-caption div{
+  padding: 6px 0;
+}
+
+#cboxContent .file{
+  position: static;
+}
+
+#cboxContent .file .content span.file-styles{
+  text-align: center;
+  display: block;
+}
+.field-name-field-cc{
+  text-align: right;
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+}
+
+#cboxClose{
+  top: 0;
+  right: 0;
+  bottom: inherit;
+  background: url('../images/close.png') no-repeat;
+  width: 22px;
+  height: 22px;
+}
+
+#cboxClose:hover{
+  background-position: 0;
+}
   
 /****************** ADMIN *****************/
 
@@ -644,3 +683,4 @@ div.contextual-links-wrapper{
 div.contextual-links-wrapper ul.contextual-links{
    z-index:2!important;
 }
+
