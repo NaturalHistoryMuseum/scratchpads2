@@ -113,6 +113,43 @@ function darwincore_field_group_info() {
   $field_group = new stdClass;
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
+  $field_group->identifier = 'group_location_display|node|location|default';
+  $field_group->group_name = 'group_location_display';
+  $field_group->entity_type = 'node';
+  $field_group->bundle = 'location';
+  $field_group->mode = 'default';
+  $field_group->parent_name = '';
+  $field_group->data = array(
+    'label' => 'BLANK',
+    'weight' => '0',
+    'children' => array(
+      0 => 'field_continent_or_ocean',
+      1 => 'field_coordinate_system',
+      2 => 'field_coordinate_uncertainty',
+      3 => 'field_country',
+      4 => 'field_county',
+      5 => 'field_geodetic_datum',
+      6 => 'field_georeference_protocol',
+      7 => 'field_georeference_remarks',
+      8 => 'field_island',
+      9 => 'field_locality',
+      10 => 'field_map',
+      11 => 'field_max_depth',
+      12 => 'field_max_elevation',
+      13 => 'field_min_depth',
+      14 => 'field_min_elevation',
+      15 => 'field_state_province',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+    ),
+  );
+  $export['group_location_display|node|location|default'] = $field_group;
+
+  $field_group = new stdClass;
+  $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
+  $field_group->api_version = 1;
   $field_group->identifier = 'group_location|node|specimen_observation|form';
   $field_group->group_name = 'group_location';
   $field_group->entity_type = 'node';
