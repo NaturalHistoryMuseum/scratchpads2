@@ -20,7 +20,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Conservation',
+    'label' => '',
     'weight' => '0',
     'children' => array(
       0 => 'field_conservation_status',
@@ -78,7 +78,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Description',
+    'label' => '',
     'weight' => '1',
     'children' => array(
       0 => 'field_behavious',
@@ -146,7 +146,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Ecology and Distribution',
+    'label' => '',
     'weight' => '3',
     'children' => array(
       0 => 'field_associations',
@@ -216,7 +216,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Evolution and Systematics',
+    'label' => '',
     'weight' => '2',
     'children' => array(
       0 => 'field_evolution',
@@ -266,7 +266,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Overview',
+    'label' => '',
     'weight' => '-1',
     'children' => array(
       0 => 'field_biology',
@@ -316,7 +316,7 @@ function spm_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Relevance',
+    'label' => '',
     'weight' => '4',
     'children' => array(
       0 => 'field_diseases',
