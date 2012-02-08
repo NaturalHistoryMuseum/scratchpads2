@@ -2,6 +2,18 @@
 CHANGELOG for field_group for Drupal 7
 
 Field_group 7.x-1.x-dev
+    o Issue #1095316: Field Groups disappear when Content Type is renamed.
+    o Issue #1095316 by swentel: Support for Entity API.
+    o Issue #1095002 by animelion: Upgrading removes all existing field groups.
+    o Issue #1095130 by willvincent: Features export not working with rc2.
+    
+Field_group 7.x-1.0-rc2
+    o Ran through coder, minor.
+    o Issue #1033036 by Stalski, swentel: Create a field_group.api.php.
+    o Made the summary descriptions more human readable.
+    o Issue #1086450: Cannot see red star on some field groups even required fields are set to 1.
+    o #1072292 by shadow_jh, stalski: Using on user settings page but need to hid on registration page.
+    o #1092360 by dww: Move field_group_update_7000 functionality to hook_install().
     o #1061228 Rewrite the field_group_field_group_is_empty function.
     o Added ID's to fieldgroups.
     o Removed unused field_group.admin.inc + menu item. Required asterix moving to field_group setting.
@@ -26,5 +38,3 @@ Field_group 7.x-1.0-rc1
       postpone saving until the save button is hit.
     o Changed some important variable name, so it makes more sense and easier to read.
     o Add basic crud functions.
-    
-Field_group 7.x-1.0-rc1

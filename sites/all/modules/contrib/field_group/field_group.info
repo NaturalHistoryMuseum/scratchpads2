@@ -2,6 +2,7 @@ name = Fieldgroup
 description = Fieldgroup
 package = Fields
 dependencies[] = field
+dependencies[] = ctools
 core = 7.x
 files[] = field_group.install
 files[] = field_group.module
@@ -9,9 +10,9 @@ files[] = field_group.field_ui.inc
 files[] = field_group.form.inc
 files[] = field_group.features.inc
 files[] = field_group.test
-; Information added by drupal.org packaging script on 2011-02-25
+; Information added by drupal.org packaging script on 2012-01-11
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "field_group"
-datestamp = "1298619254"
+datestamp = "1326241462"
 

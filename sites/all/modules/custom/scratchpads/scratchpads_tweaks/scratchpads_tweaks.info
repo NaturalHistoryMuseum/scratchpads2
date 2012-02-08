@@ -45,3 +45,5 @@ dependencies[] = scratchpads_species
 dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
+
+; Custom modules

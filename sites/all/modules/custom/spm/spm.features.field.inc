@@ -1,7 +1,11 @@
 <?php
+/**
+ * @file
+ * spm.features.field.inc
+ */
 
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function spm_field_default_fields() {
   $fields = array();
@@ -24,7 +28,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -44,6 +48,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 20,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -90,7 +100,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -110,6 +120,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 9,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -156,7 +172,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -176,6 +192,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 2,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -222,7 +244,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -242,6 +264,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 3,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -288,7 +316,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -308,6 +336,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 21,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -354,7 +388,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -374,6 +408,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 10,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -420,7 +460,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -440,6 +480,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 11,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -486,7 +532,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -506,6 +552,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 34,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -552,7 +604,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -572,6 +624,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 22,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -618,7 +676,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -638,6 +696,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 23,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -684,7 +748,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -704,6 +768,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 24,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -750,7 +820,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -770,6 +840,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 32,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -816,7 +892,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -836,6 +912,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 1,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -882,7 +964,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -902,6 +984,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 12,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -948,7 +1036,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -968,6 +1056,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 13,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1014,7 +1108,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1034,6 +1128,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 25,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1080,7 +1180,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1100,6 +1200,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 4,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1146,7 +1252,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1166,6 +1272,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 26,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1212,7 +1324,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1232,6 +1344,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 27,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1278,7 +1396,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1298,6 +1416,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 14,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1344,7 +1468,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1364,6 +1488,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 5,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1410,7 +1540,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1430,6 +1560,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 28,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1476,7 +1612,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1496,6 +1632,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 15,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1542,7 +1684,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1562,6 +1704,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 16,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1608,7 +1756,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1628,6 +1776,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 33,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1674,7 +1828,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1694,6 +1848,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 17,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1740,7 +1900,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1760,6 +1920,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 30,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1806,7 +1972,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1826,6 +1992,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 6,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1872,7 +2044,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1892,6 +2064,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 31,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -1938,7 +2116,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -1958,6 +2136,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 35,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2004,7 +2188,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2024,6 +2208,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 18,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2070,7 +2260,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2090,6 +2280,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 19,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2136,7 +2332,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2156,6 +2352,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 7,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2202,7 +2404,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2222,6 +2424,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 8,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2268,7 +2476,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2288,6 +2496,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 29,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -2334,7 +2548,7 @@ function spm_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -2354,6 +2568,12 @@ function spm_field_default_fields() {
           'settings' => array(),
           'type' => 'text_default',
           'weight' => 36,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
