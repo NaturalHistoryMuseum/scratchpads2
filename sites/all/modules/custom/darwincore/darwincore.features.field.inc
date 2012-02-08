@@ -267,7 +267,7 @@ function darwincore_field_default_fields() {
       'bundle' => 'location',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The name of the country or major administrative unit in which the Location occurs. Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.',
       'display' => array(
         'default' => array(
           'label' => 'above',
