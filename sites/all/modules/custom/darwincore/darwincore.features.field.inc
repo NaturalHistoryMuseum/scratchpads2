@@ -2853,6 +2853,7 @@ function darwincore_field_default_fields() {
   t('The maximum or actual depth at which the collection or observation was made. Use positive values for locations below the surface. Examples: 10 (for a depth of up to 10m). 100 (for a depth between 50m and 100m).');
   t('The minimum distance in meters above (positive) or below sea level of the collecting locality.');
   t('The minimum or actual depth at which the collection or observation was made. Use positive values for locations below the surface. Examples: 0 (for a depth of up to 10m). 50 (for a depth between 50m and 100m).');
+  t('The name of the country or major administrative unit in which the Location occurs. Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.');
   t('The name of the system in which the verbatim geographic coordinates were recorded. Examples: "decimal degrees", "degrees minutes seconds", "degrees decimal minutes", "UTM"');
   t('The name(s) of the collector(s) of the original data for the cataloged item.');
   t('The name(s) of the person(s) who applied the ScientificName to the object or observation. Example: James Earl Jones.');

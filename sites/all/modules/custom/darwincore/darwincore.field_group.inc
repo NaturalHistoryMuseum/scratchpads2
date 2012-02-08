@@ -10,6 +10,7 @@
 function darwincore_field_group_info() {
   $export = array();
 
+  // ------------------ FORMS --------------------------------------------------
   $field_group = new stdClass;
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -291,6 +292,33 @@ function darwincore_field_group_info() {
     ),
   );
   $export['group_tabs|node|specimen_observation|form'] = $field_group;
+  
+  // ------------------ DISPLAY ------------------------------------------------
+  
+  $field_group = new stdClass;
+  $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
+  $field_group->api_version = 1;
+  $field_group->identifier = 'group_required_display|node|specimen_observation|default';
+  $field_group->group_name = 'group_required_display';
+  $field_group->entity_type = 'node';
+  $field_group->bundle = 'specimen_observation';
+  $field_group->mode = 'default';
+  $field_group->parent_name = '';
+  $field_group->data = array(
+    'label' => '',
+    'weight' => '0',
+    'children' => array(
+      0 => 'field_basis_of_record',
+      1 => 'field_catalogue_number',
+      2 => 'field_collection_code',
+      3 => 'field_institution_code',
+    ),
+    'format_type' => 'field_group_stripy_div',
+    'format_settings' => array(
+      'formatter' => 'open',
+    ),
+  );
+  $export['group_required_display|node|specimen_observation|default'] = $field_group;
 
   return $export;
 }
