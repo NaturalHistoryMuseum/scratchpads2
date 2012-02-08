@@ -65,8 +65,9 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
             $group['children'][$key] .= "_" . $form_state['vocabulary']->machine_name;
           }
         }
+        $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
         $group = (object)$group;
-        field_group_create_field_group($group);
+        field_group_group_save($group);
       }
     }
   }
