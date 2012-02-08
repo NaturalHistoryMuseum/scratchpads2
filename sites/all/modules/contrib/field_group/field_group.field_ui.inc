@@ -47,9 +47,6 @@ function field_group_field_ui_form_params($form, $display_overview) {
  */
 function field_group_field_ui_overview_form_alter(&$form, &$form_state, $display_overview = FALSE) {
 
-  // Add extra guidelines for webmaster.
-  $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . t('<p class="fieldgroup-help">Fields can be dragged into groups with unlimited nesting. Each fieldgroup format comes with a configuration form, specific for that format type.<br />Note that some formats come in pair. These types have a html wrapper to nest its fieldgroup children. E.g. Place accordion items into the accordion, vertical tabs in vertical tab group and horizontal tabs in the horizontal tab group. There is one exception to this rule, you can use a vertical tab without a wrapper when the additional settings tabs are available. E.g. node forms.</p>');
-
   // Only start altering the form if we need to.
   if (empty($form['#fields']) && empty($form['#extra'])) {
     return;
@@ -88,7 +85,10 @@ function field_group_field_ui_overview_form_alter(&$form, &$form_state, $display
   // Update existing rows accordingly to the parents.
   foreach (element_children($table) as $name) {
     $table[$name]['parent_wrapper']['parent']['#options'] = $table['#parent_options'];
-    $table[$name]['parent_wrapper']['parent']['#default_value'] = isset($params->parents[$name]) ? $params->parents[$name] : '';
+    // Inherit the value of the parent when default value is empty.
+    if (empty($table[$name]['parent_wrapper']['parent']['#default_value'])) {
+      $table[$name]['parent_wrapper']['parent']['#default_value'] = isset($params->parents[$name]) ? $params->parents[$name] : '';
+    }
   }
 
   $formatter_options = field_group_field_formatter_options($display_overview ? 'display' : 'form');
@@ -297,6 +297,10 @@ function field_group_field_ui_overview_form_alter(&$form, &$form_state, $display
 
   $form['#validate'][] = 'field_group_field_overview_validate';
   $form['#submit'][] = 'field_group_field_overview_submit';
+
+  // Create the settings for fieldgroup as vertical tabs (merged with DS).
+  field_group_field_ui_create_vertical_tabs($form, $form_state, $params);
+
 }
 
 /**
@@ -379,10 +383,27 @@ function field_group_format_settings_form(&$group) {
     '#type' => 'textfield',
     '#title' => t('Field group label'),
     '#default_value' => $group->label,
-    '#weight' => -5
+    '#weight' => -5,
+    '#element_validate' => array('field_group_format_settings_label_validate'),
   );
   $form += module_invoke_all('field_group_format_settings', $group);
+  $form['#validate'] = array('field_group_format_settings_form_validate');
   return $form;
+}
+
+/**
+ * Validate the label. Label is required for fieldsets that are collapsible.
+ */
+function field_group_format_settings_label_validate($element, &$form_state) {
+
+  $group = $form_state['values']['fields'][$element['#parents'][1]];
+  $settings = $group['format_settings']['settings'];
+  $name = $form_state['formatter_settings_edit'];
+  $form_state['values']['fields'][$name]['settings_edit_form']['settings'] = $settings;
+  if ($group['format']['type'] == 'fieldset' && ($settings['formatter'] == 'collapsed' || $settings['formatter'] == 'collapsible') && empty($settings['label'])) {
+    form_error($element, t('The label is required when formatter is collapsible or collapsed'));
+  }
+
 }
 
 /**
@@ -414,7 +435,7 @@ function field_group_formatter_settings_update(& $group, $settings) {
   // for format changes we load the defaults.
   if (empty($settings['format_settings']['settings'])) {
     $group->format_settings = array(
-      'formatter' => $formatter['default_formatter'],
+      'formatter' => isset($formatter['default_formatter']) ? $formatter['default_formatter'] : '',
       'instance_settings' => $formatter['instance_settings']
     );
   }
@@ -423,8 +444,9 @@ function field_group_formatter_settings_update(& $group, $settings) {
     $group->label = $settings['format_settings']['settings']['label'];
     $group->format_settings = $settings['format_settings']['settings'];
     // This is avoided now, cause of the form_state['field_group']
-    //field_group_update_field_group($group);
-    //cache_clear_all('field_groups', 'cache_field');
+    // ctools_include('export');
+    // ctools_export_crud_save('field_group', $group);
+    // cache_clear_all('field_groups', 'cache_field');
   }
 }
 
@@ -509,7 +531,7 @@ function field_group_field_overview_validate($form, &$form_state) {
       $group_name = $group['group_name'];
 
       // Add the 'group_' prefix.
-      if (substr($group_name, 0, 6) != 'group_') {
+      if (drupal_substr($group_name, 0, 6) != 'group_') {
         $group_name = 'group_' . $group_name;
         form_set_value($form['fields']['_add_new_group']['group_name'], $group_name, $form_state);
       }
@@ -518,7 +540,7 @@ function field_group_field_overview_validate($form, &$form_state) {
       if (!preg_match('!^group_[a-z0-9_]+$!', $group_name)) {
         form_set_error('fields][_add_new_group][group_name', t('Add new group: the group name %group_name is invalid. The name must include only lowercase unaccentuated letters, numbers, and underscores.', array('%group_name' => $group_name)));
       }
-      if (strlen($group_name) > 32) {
+      if (drupal_strlen($group_name) > 32) {
         form_set_error('fields][_add_new_group][group_name', t("Add new group: the group name %group_name is too long. The name is limited to 32 characters, including the 'group_' prefix.", array('%group_name' => $group_name)));
       }
 
@@ -536,6 +558,7 @@ function field_group_field_overview_validate($form, &$form_state) {
  * @param Array $form_state The state of the form.
  */
 function field_group_field_overview_submit($form, &$form_state) {
+
   $form_values = $form_state['values']['fields'];
   $entity_type = $form['#entity_type'];
   $bundle = $form['#bundle'];
@@ -557,6 +580,9 @@ function field_group_field_overview_submit($form, &$form_state) {
     }
   }
 
+  // Prepare storage with ctools.
+  ctools_include('export');
+
   // Create new group.
   if (!empty($form_values['_add_new_group']['group_name'])) {
     $values = $form_values['_add_new_group'];
@@ -565,6 +591,7 @@ function field_group_field_overview_submit($form, &$form_state) {
     $formatter = $field_group_types[($mode == 'form' ? 'form' : 'display')][$values['format']['type']];
 
     $new_group = (object) array(
+      'identifier' => $values['group_name'] . '|' . $entity_type . '|' . $bundle . '|' . $mode,
       'group_name' => $values['group_name'],
       'entity_type' => $entity_type,
       'bundle' => $bundle,
@@ -574,12 +601,16 @@ function field_group_field_overview_submit($form, &$form_state) {
       'weight' => $values['weight'],
       'label' => $values['label'],
       'format_type' => $values['format']['type'],
+      'disabled' => FALSE,
     );
     $new_group->format_settings = array('formatter' => isset($formatter['default_formatter']) ? $formatter['default_formatter'] : '');
     if (isset($formatter['instance_settings'])) {
       $new_group->format_settings['instance_settings'] = $formatter['instance_settings'];
     }
-    field_group_create_field_group($new_group);
+
+    // Save and enable it in ctools
+    ctools_export_crud_save('field_group', $new_group);
+    ctools_export_crud_enable('field_group', $new_group->identifier);
 
     // Store new group information for any additional submit handlers.
     $form_state['groups_added']['_add_new_group'] = $new_group->group_name;
@@ -607,7 +638,7 @@ function field_group_field_overview_submit($form, &$form_state) {
     if (isset($form_state['field_group'][$group_name]->format_settings)) {
       $group->format_settings = $form_state['field_group'][$group_name]->format_settings;
     }
-    field_group_update_field_group($group);
+    ctools_export_crud_save('field_group', $group);
   }
 
   cache_clear_all('field_groups', 'cache_field');
@@ -665,21 +696,125 @@ function field_group_delete_form($form, &$form_state, $group, $view_mode = 'form
  * @todo we'll have to reset all view mode settings - that will be fun :)
  */
 function field_group_delete_form_submit($form, &$form_state) {
+
   $group = $form['#group'];
   $bundle = $group->bundle;
   $entity_type = $group->entity_type;
-  $mode = $form_state['build_info']['args'][1];
+  $group->mode = $form_state['build_info']['args'][1];
 
   $bundles = field_info_bundles();
   $bundle_label = $bundles[$entity_type][$bundle]['label'];
 
-  field_group_delete_field_group($group, $mode);
+  ctools_include('export');
+  field_group_group_export_delete($group, FALSE);
+
   drupal_set_message(t('The group %group has been deleted from the %type content type.', array('%group' => t($group->label), '%type' => $bundle_label)));
 
   // Redirect.
   $form_state['redirect'] = $form['#redirect'];
 }
 
+/**
+ * Create vertical tabs.
+ */
+function field_group_field_ui_create_vertical_tabs(&$form, &$form_state, $params) {
+
+  $form_state['field_group_params'] = $params;
+
+  $entity_info = entity_get_info($params->entity_type);
+  $view_modes = array();
+  if ($params->mode != 'default') {
+    $view_modes['default'] = t('Default');
+  }
+  if ($params->mode != 'form') {
+    $view_modes['0'] = t('Form');
+  }
+  foreach ($entity_info['view modes'] as $view_mode => $data) {
+    if ($data['custom settings'] && $params->mode != $view_mode) {
+      $view_modes[$view_mode] = $data['label'];
+    }
+  }
+
+  // Add additional settings vertical tab.
+  if (!isset($form['additional_settings'])) {
+    $form['additional_settings'] = array(
+      '#type' => 'vertical_tabs',
+      '#theme_wrappers' => array('vertical_tabs'),
+      '#prefix' => '<div>',
+      '#suffix' => '</div>',
+      '#tree' => TRUE,
+    );
+    $form['#attached']['js'][] = 'misc/form.js';
+    $form['#attached']['js'][] = 'misc/collapse.js';
+  }
+
+  // Add extra guidelines for webmaster.
+  $form['additional_settings']['field_group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Fieldgroups'),
+    '#description' => t('<p class="fieldgroup-help">Fields can be dragged into groups with unlimited nesting. Each fieldgroup format comes with a configuration form, specific for that format type.<br />Note that some formats come in pair. These types have a html wrapper to nest its fieldgroup children. E.g. Place accordion items into the accordion, vertical tabs in vertical tab group and horizontal tabs in the horizontal tab group. There is one exception to this rule, you can use a vertical tab without a wrapper when the additional settings tabs are available. E.g. node forms.</p>'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#parents' => array('additional_settings'),
+  );
+  $form['additional_settings']['field_group']['fieldgroup_clone'] = array(
+    '#title' => t('Select source view mode or form'),
+    '#description' => t('Clone fieldgroups from selected view mode to the current display'),
+    '#type' => 'select',
+    '#options' => $view_modes,
+    '#default_value' => 'none'
+  );
+  $form['additional_settings']['field_group']['fieldgroup_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clone'),
+    '#submit' => array('field_group_field_ui_clone_field_groups')
+  );
+
+}
+
+/**
+ * Submit handler to save existing fieldgroups from one view mode or form to another.
+ */
+function field_group_field_ui_clone_field_groups($form, &$form_state) {
+
+  $source_mode = (!$form_state['values']['additional_settings']['fieldgroup_clone']) ? 'form' : $form_state['values']['additional_settings']['fieldgroup_clone'];
+  $groups_to_clone = field_group_read_groups(array('bundle' => $form_state['field_group_params']->bundle, 'entity_type' => $form_state['field_group_params']->entity_type));
+  if (!isset($groups_to_clone[$form_state['field_group_params']->entity_type], $groups_to_clone[$form_state['field_group_params']->entity_type][$form_state['field_group_params']->bundle], $groups_to_clone[$form_state['field_group_params']->entity_type][$form_state['field_group_params']->bundle][$source_mode])) {
+    drupal_set_message(t('There where no fieldgroups found to clone from @source', array('@source' => $source_mode)), 'warning');
+    return;
+  }
+
+  $source_groups = $groups_to_clone[$form_state['field_group_params']->entity_type][$form_state['field_group_params']->bundle][$source_mode];
+
+  $fields = array_keys($form_state['values']['fields']);
+
+  if (!empty($source_groups)) {
+
+    foreach ($source_groups as $source_group) {
+
+      if (in_array($source_group->group_name, $fields)) {
+        drupal_set_message(t('Fieldgroup @group is not cloned since a group already exists with the same name.', array('@group' => $source_group->group_name)), 'warning');
+        continue;
+      }
+
+      // Recreate the identifier and reset the id.
+      $source_group->id = NULL;
+      $source_group->mode = $form_state['field_group_params']->mode;
+      $source_group->identifier = $source_group->group_name . '|' . $source_group->entity_type . '|' . $source_group->bundle . '|' . $form_state['field_group_params']->mode;
+      $source_group->disabled = FALSE;
+      unset($source_group->export_type, $source_group->type, $source_group->table);
+
+      // Save and enable it in ctools.
+      ctools_include('export');
+      ctools_export_crud_save('field_group', $source_group);
+      ctools_export_crud_enable('field_group', $source_group->identifier);
+
+      drupal_set_message(t('Fieldgroup @group cloned successfully.', array('@group' => $source_group->group_name)));
+
+    }
+  }
+
+}
 /**
  * eof().
  */

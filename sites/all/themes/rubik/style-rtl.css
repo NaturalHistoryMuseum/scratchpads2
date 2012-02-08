@@ -1,0 +1,127 @@
+/**
+ * Branding ===========================================================
+ */
+#branding a { float:right; }
+
+#branding ul.links { float:left; }
+
+#branding .breadcrumb { float:right; }
+
+  #branding .breadcrumb a,
+  #branding .breadcrumb strong { float:right; }
+
+  #branding .breadcrumb .breadcrumb-link {
+    float:right;
+    padding-left:5px;
+    padding-right:0px;
+    background-image:url(images/sprite-rtl.png);
+    background-position:0% 100%;
+    }
+
+/**
+ * Page title =========================================================
+ */
+  #page-title .page-title span.icon {
+    float:right;
+    margin-left:10px;
+    margin-right:0;
+    }
+
+/**
+ * Tabs ===============================================================
+ */
+ul.primary-tabs {
+  left:60px;
+  right:auto;
+  }
+
+ul.primary-tabs li {
+  padding-left:0;
+  padding-right:5px;
+}
+
+ul.primary-tabs li.active a,
+ul.primary-tabs li.active a.active {
+  -moz-border-radius:3px 0px 0px 3px;
+  }
+
+  ul.secondary-tabs { float:left; }
+
+/**
+ * Footer =============================================================
+ */
+#footer .footer-message {
+  float:right;
+  }
+
+#footer .feed-icons {
+  float:left;
+  }
+
+  #footer .feed-icons label,
+  #footer .feed-icons a {
+    float:right;
+    }
+
+/**
+ * Help ===============================================================
+ */
+a#help-toggler {
+  left:30px;
+  right:auto;
+  }
+
+  #help-text.with-tabs {
+    -moz-border-radius:2px 0px 0px 2px;
+    }
+
+  #help-text .breadcrumb-link {
+    padding-left:0;
+    padding-right:20px;
+    }
+
+/**
+ * Content ============================================================
+ */
+#help-text,
+.help-page,
+div.comment,
+div.node { background-position:35% 0%; }
+
+#help-text .column-main .column-wrapper {
+  padding-left:0px;
+  padding-right:59px;
+  }
+
+  #help-text .column-main .column-wrapper span.icon {
+    left:auto;
+    right:15px;
+    }
+
+/**
+ * System =============================================================
+ */
+.admin .right {
+  padding-left:0;
+  padding-right:5px;
+  float:left;
+  }
+
+.admin .left {
+  padding-left:5px;
+  padding-right:0;
+  float:right;
+  }
+
+/* admin/content/node & admin/user/user */
+#content dl.multiselect,
+#content dl.multiselect dt,
+#content dl.multiselect dd { margin:0px 0px 0px 10px; }
+
+/* update options */
+.admin-options label,
+.admin-options .form-item {
+  margin-left:10px;
+  margin-right:0px;
+  float:right;
+  }

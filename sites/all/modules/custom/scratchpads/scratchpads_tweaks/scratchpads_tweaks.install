@@ -90,7 +90,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'node',
       'delta' => 'recent',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => 10,
       'region' => 'dashboard_main',
@@ -120,7 +120,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'system',
       'delta' => 'main',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => 0,
       'region' => 'content',
@@ -130,7 +130,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'system',
       'delta' => 'help',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => 0,
       'region' => 'help',
@@ -140,7 +140,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'user',
       'delta' => 'login',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => 10,
       'region' => 'content',
@@ -150,7 +150,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'user',
       'delta' => 'new',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => 0,
       'region' => 'dashboard_sidebar',
@@ -160,7 +160,7 @@ function scratchpads_tweaks_install(){
     array(
       'module' => 'search',
       'delta' => 'form',
-      'theme' => 'seven',
+      'theme' => 'rubik',
       'status' => 1,
       'weight' => -10,
       'region' => 'dashboard_sidebar',
@@ -258,8 +258,8 @@ function scratchpads_tweaks_install(){
   // Enable the admin theme.
   db_update('system')->fields(array(
     'status' => 1
-  ))->condition('type', 'theme')->condition('name', 'seven')->execute();
-  variable_set('admin_theme', 'seven');
+  ))->condition('type', 'theme')->condition('name', 'rubik')->execute();
+  variable_set('admin_theme', 'rubik');
   variable_set('node_admin_theme', '1');
   /*
    * Additional Scratchpad settings: 
