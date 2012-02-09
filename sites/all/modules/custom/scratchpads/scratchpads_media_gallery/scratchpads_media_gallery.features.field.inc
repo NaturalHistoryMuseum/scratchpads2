@@ -8,7 +8,6 @@
  * Implements hook_field_default_fields().
  */
 function scratchpads_media_gallery_field_default_fields(){
-  $file_extensions = 'png gif jpg jpeg'; // FIXME - Add additional file types.
   $fields = array();
   // Exported field: 'node-media_gallery-body'
   $fields['node-media_gallery-body'] = array(
@@ -137,7 +136,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',
-        'file_extensions' => $file_extensions,
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
         'max_filesize' => '',
         'user_register_form' => FALSE
       ),
@@ -222,7 +221,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',
-        'file_extensions' => $file_extensions,
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
         'max_filesize' => '',
         'user_register_form' => FALSE
       ),
