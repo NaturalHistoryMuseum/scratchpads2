@@ -66,7 +66,7 @@ function darwincore_field_default_fields() {
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',
-        'file_extensions' => $file_extensions,
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
         'max_filesize' => '',
         'user_register_form' => FALSE
       ),
