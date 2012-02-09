@@ -814,7 +814,6 @@ function scratchpads_species_views_default_views(){
   $view->tag = '';
   $view->base_table = 'node';
   $view->human_name = 'Species overview biblio';
-  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -981,6 +980,7 @@ function scratchpads_species_views_default_views(){
   $view->human_name = 'Species specimens overview';
   $view->core = 7;
   $view->api_version = '3.0';
+  $view->context = 'species_overview';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -997,6 +997,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['style_plugin'] = 'list';
   $handler->display->display_options['style_options']['group_rendered'] = 1;
   $handler->display->display_options['row_plugin'] = 'fields';
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = FALSE;
   /* Field: Content: Basis of record */
   $handler->display->display_options['fields']['field_basis_of_record']['id'] = 'field_basis_of_record';
   $handler->display->display_options['fields']['field_basis_of_record']['table'] = 'field_data_field_basis_of_record';
@@ -1164,6 +1169,14 @@ function scratchpads_species_views_default_views(){
   );
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = FALSE;
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+  $handler->display->display_options['empty']['area']['tokenize'] = 0;
   /* Display: Specimen count */
   $handler = $view->new_display('attachment', 'Specimen count', 'attachment_2');
   $handler->display->display_options['defaults']['title'] = FALSE;
