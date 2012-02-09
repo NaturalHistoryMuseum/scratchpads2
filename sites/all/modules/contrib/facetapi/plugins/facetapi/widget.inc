@@ -207,9 +207,11 @@ abstract class FacetapiWidget {
       $info['order'] = $settings['sort_order'][$name];
     }
 
-    // Orders the sorts, applies sorting algorithms in that order.
-    uasort($this->sorts, 'drupal_sort_weight');
-    $this->applySorts($build[$this->facet['field alias']]);
+    if ($this->sorts) {
+      // Orders the sorts, applies sorting algorithms in that order.
+      uasort($this->sorts, 'drupal_sort_weight');
+      $this->applySorts($build[$this->facet['field alias']]);
+    }
   }
 
   /**

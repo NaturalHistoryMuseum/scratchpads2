@@ -75,6 +75,13 @@ abstract class FacetapiAdapter {
   protected $searchPath;
 
   /**
+   * Stores whether each facet passed dependencies.
+   *
+   * @var array
+   */
+  protected $dependenciesPassed = array();
+
+  /**
    * Constructor, sets searcher and type of content being indexed.
    *
    * @param array $searcher_info
@@ -465,6 +472,9 @@ abstract class FacetapiAdapter {
         }
       }
 
+      // Stores whether this facet passed its dependencies.
+      $this->dependenciesPassed[$facet['name']] = $display;
+
       // Add query type plugin if dependencies were met, otherwise remove the
       // facet's active items so they don't display in the current search block
       // or appear as active in the breadcrumb trail.
@@ -473,6 +483,7 @@ abstract class FacetapiAdapter {
       }
       else {
         foreach ($this->activeItems['facet'][$facet['name']] as $item) {
+          $this->urlProcessor->removeParam($item['pos']);
           $filter = $item['field alias'] . ':' . $item['value'];
           unset($this->activeItems['filter'][$filter]);
         }
@@ -517,6 +528,20 @@ abstract class FacetapiAdapter {
   }
 
   /**
+   * Attempts to get the settings from the static cache.
+   *
+   * @param $name
+   *   The machine readable name of the settings.
+   *
+   * @return stdClass|FALSE
+   *   An object containing the settings, FALSE if settings are not cached.
+   */
+  public function getSettingsByName($name) {
+    $cached_settings = facetapi_get_searcher_settings($this->info['name']);
+    return isset($cached_settings[$name]) ? $cached_settings[$name] : FALSE;
+  }
+
+  /**
    * Returns realm specific settings for a facet.
    *
    * @param array $facet
@@ -532,7 +557,7 @@ abstract class FacetapiAdapter {
   public function getFacetSettings(array $facet, array $realm) {
     // Builds the unique name of the configuration settings and loads.
     $name = $this->info['name'] . ':' . $realm['name'] . ':' . $facet['name'];
-    if (!$settings = ctools_export_crud_load('facetapi', $name)) {
+    if (!$settings = $this->getSettingsByName($name)) {
       $settings = $this->initSettingsObject($name, $facet['name'], $realm['name']);
 
       // Use realm's default widget if facet doesn't define one.
@@ -600,7 +625,7 @@ abstract class FacetapiAdapter {
    */
   public function getFacetSettingsGlobal(array $facet) {
     $name = $this->info['name'] . '::' . $facet['name'];
-    if (!$settings = ctools_export_crud_load('facetapi', $name)) {
+    if (!$settings = $this->getSettingsByName($name)) {
       $settings = $this->initSettingsObject($name, $facet['name']);
 
       // Apply default settings.
@@ -791,6 +816,10 @@ abstract class FacetapiAdapter {
 
     // Builds each facet in the realm, merges into realm's render array.
     foreach ($this->getEnabledFacets($realm['name']) as $facet) {
+      // Continue to the next facet if this one failed its dependencies.
+      if (!$this->dependenciesPassed[$facet['name']]) {
+        continue;
+      }
 
       // Gets the initialized build.
       $field_alias = $facet['field alias'];
@@ -1176,7 +1205,7 @@ class FacetapiFacetProcessor {
 
     // Invoke the alter callbacks for the facet.
     foreach ($this->facet['alter callbacks'] as $callback) {
-      $callback($build, $adapter);
+      $callback($build, $adapter, $this->facet->getFacet());
     }
 
     // Iterates over the render array and merges in defaults.
@@ -1203,20 +1232,22 @@ class FacetapiFacetProcessor {
    */
   protected function mapValues(array $build) {
     if ($this->facet['map callback']) {
-      // Gets available items and active items, runs through map callback.
+      // Gets available items and active items, runs through map callback only
+      // when there are values to map.
       // NOTE: array_merge() doesn't work here when the values are numeric.
-      $values = array_unique(array_keys($build + $this->getActiveItems()));
-      $this->map = call_user_func($this->facet['map callback'], $values, $this->facet['map options']);
-      // Normalize all mapped values to a two element array.
-      foreach ($this->map as $key => $value) {
-        if (!is_array($value)) {
-          $this->map[$key] = array();
-          $this->map[$key]['#markup'] = $value;
-          $this->map[$key]['#html'] = FALSE;
-        }
-        if (isset($build[$key])) {
-          $build[$key]['#markup'] = $this->map[$key]['#markup'];
-          $build[$key]['#html'] = !empty($this->map[$key]['#html']);
+      if ($values = array_unique(array_keys($build + $this->getActiveItems()))) {
+        $this->map = call_user_func($this->facet['map callback'], $values, $this->facet['map options']);
+        // Normalize all mapped values to a two element array.
+        foreach ($this->map as $key => $value) {
+          if (!is_array($value)) {
+            $this->map[$key] = array();
+            $this->map[$key]['#markup'] = $value;
+            $this->map[$key]['#html'] = FALSE;
+          }
+          if (isset($build[$key])) {
+            $build[$key]['#markup'] = $this->map[$key]['#markup'];
+            $build[$key]['#html'] = !empty($this->map[$key]['#html']);
+          }
         }
       }
     }
