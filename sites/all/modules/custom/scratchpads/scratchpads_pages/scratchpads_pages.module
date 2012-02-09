@@ -363,6 +363,9 @@ function scratchpads_pages_variable_default($name = NULL){
   if(isset($defaults[$name])){return $defaults[$name];}
 }
 
+/**
+ * Pluralise a node name
+ */
 function scratchpads_pages_pluralise_node_name($name){
   switch($name){
     case 'image_gallery':
@@ -375,4 +378,23 @@ function scratchpads_pages_pluralise_node_name($name){
   return $plural;
 }
 
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_pages_menu_block_blocks() {
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_pages-1' => array(
+      'menu_name'   => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link'  => 0,
+      'admin_title' => 'Scratchpads secondary menu',
+      'level'       => 2,
+      'follow'      => 0,
+      'depth'       => 0,
+      'expanded'    => 0,
+      'sort'        => 0,
+    ),
+  );
+}
 
