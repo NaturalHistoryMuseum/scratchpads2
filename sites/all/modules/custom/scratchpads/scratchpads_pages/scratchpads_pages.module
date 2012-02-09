@@ -291,7 +291,7 @@ function scratchpads_pages_block_view($delta = ''){
             '#title' => $node_type_info->name
           )
         );
-        if(count($terms = taxonomy_breadcrumb_node_get_terms($node))){
+        if(count($terms = scratchpads_pages_node_get_terms($node))){
           foreach($terms as $term){
             if(!array_key_exists($term->vid, $block['content'])){
               $vocabulary = taxonomy_vocabulary_load($term->vid);
@@ -308,6 +308,28 @@ function scratchpads_pages_block_view($delta = ''){
       break;
   }
   return $block;
+}
+
+
+/**
+ * Finds all terms associated with a node.
+ * This is a D7 Replacement for Drupal 6 taxonomy_node_get_terms.
+ */
+function scratchpads_pages_node_get_terms($node, $key = 'tid') {
+  static $terms;
+  if (!isset($terms[$node->vid][$key])) {
+    $query = db_select('taxonomy_index', 'r');
+    $t_alias = $query->join('taxonomy_term_data', 't', 'r.tid = t.tid');
+    $v_alias = $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->fields( $t_alias );
+    $query->condition("r.nid", $node->nid);
+    $result = $query->execute();
+    $terms[$node->vid][$key] = array();
+    foreach ($result as $term) {
+      $terms[$node->vid][$key][$term->$key] = $term;
+    }
+  }
+  return $terms[$node->vid][$key];
 }
 
 /*********************************************************************************************
