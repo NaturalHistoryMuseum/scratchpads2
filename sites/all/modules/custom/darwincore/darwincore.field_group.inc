@@ -222,6 +222,7 @@ function darwincore_field_group_info() {
       3 => 'field_other_catalogue_numbers',
       4 => 'field_remarks',
       5 => 'field_sex',
+      6 => 'field_media',
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
@@ -249,6 +250,7 @@ function darwincore_field_group_info() {
       3 => 'field_other_catalogue_numbers',
       4 => 'field_remarks',
       5 => 'field_sex',
+      6 => 'field_media',
     ),
     'format_type' => 'tab',
     'format_settings' => array(

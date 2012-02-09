@@ -9,6 +9,92 @@
  */
 function darwincore_field_default_fields() {
   $fields = array();
+  
+  // Exported field: 'node-specimen_observation-field_media'
+  $fields['node-specimen_observation-field_media'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_media',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid'
+          ),
+          'table' => 'file_managed'
+        )
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid'
+        )
+      ),
+      'module' => 'file',
+      'settings' => array(
+        'display_default' => 0,
+        'display_field' => 0,
+        'uri_scheme' => 'public'
+      ),
+      'translatable' => '0',
+      'type' => 'file'
+    ),
+    'field_instance' => array(
+      'bundle' => 'specimen_observation',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'file',
+          'settings' => array(),
+          'type' => 'file_default',
+          'weight' => 1
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_media',
+      'label' => 'Media',
+      'required' => 1,
+      'settings' => array(
+        'description_field' => 0,
+        'file_directory' => '',
+        'file_extensions' => $file_extensions,
+        'max_filesize' => '',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'public' => 'public'
+          ),
+          'allowed_types' => array(
+            'audio' => 'audio',
+            'default' => 0,
+            'image' => 'image',
+            'video' => 'video'
+          ),
+          'browser_plugins' => array(
+            'library' => 0,
+            'media_default--media_browser_1' => 0,
+            'upload' => 0
+          ),
+          'progress_indicator' => 'throbber'
+        ),
+        'type' => 'media_generic',
+        'weight' => '-3'
+      )
+    )
+  );
 
   // Exported field: 'node-location-field_continent_or_ocean'
   $fields['node-location-field_continent_or_ocean'] = array(
