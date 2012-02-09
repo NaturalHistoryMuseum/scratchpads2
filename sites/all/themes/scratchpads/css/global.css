@@ -410,21 +410,40 @@ h2.site-name {
 }
 
 #region-sidebar .region-inner{
-  padding: 15px 15px 0px 15px;
+  padding: 15px 15px 15px 15px;
+}
+
+#region-sidebar ul.menu{
+  margin: 8px 0;
+  list-style: none!important;
 }
 
 #region-sidebar ul.menu li{
-  list-style: none;
+  margin:10px 0;
+  list-style: none!important;
   padding: 0;
 }
 
-#region-sidebar ul.menu li a{
-  margin-bottom: 5px;
-  display: block;
+#region-sidebar ul.menu ul li{
+  list-style: disc inside!important;
+  margin-left: 10px;
 }
 
-ul.menu li{
-  margin-left: 10px;
+/* Facets */
+
+#region-sidebar ul.facetapi-facetapi-links{
+  margin-bottom: 10px;
+}
+
+#region-sidebar ul.facetapi-facetapi-links li{
+  margin:5px 0;
+}
+
+#region-sidebar a.facetapi-limit-link{
+  display: block;
+  margin-bottom: 20px;
+  text-align: right;
+  font-size: 10px;
 }
 
 /* Species pages*/
@@ -447,35 +466,6 @@ ul.menu li{
 #tinytax-search-form{
   display: none;
 }
-
-/* Sidebar */
-#region-sidebar ul{
-  margin: 8px 0 25px 0;
-  list-style: none!important;
-}
-
-#region-sidebar ul li{
-  margin:10px 0;
-  list-style: none!important;
-}
-
-#region-sidebar ul.facetapi-facetapi-links{
-  margin-bottom: 10px;
-}
-
-#region-sidebar ul.facetapi-facetapi-links li{
-  margin:5px 0;
-}
-
-#region-sidebar a.facetapi-limit-link{
-  display: block;
-  margin-bottom: 20px;
-  text-align: right;
-  font-size: 10px;
-}
-
-
-
 
 /************************ MEDIA GALLERY *********************/ 
 
