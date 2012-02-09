@@ -1,0 +1,4 @@
+name = Taxonomy breadcrumb
+description = "Enables taxonomy based breadcrumbs on term pages."
+dependencies[] = taxonomy
+core = 7.x
