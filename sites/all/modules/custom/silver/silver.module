@@ -2,6 +2,19 @@
 include_once ('silver.features.inc');
 
 /**
+ * Implements hook_form_alter().
+ */
+function silver_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['#node_edit_form']) && $form['#node_edit_form']){
+    // We add a link to this content type's import page.
+    $form['link_to_import'] = array(
+      '#weight' => -100000,
+      '#markup' => '<div class="messages status">' . l(t('Import into this content type from an Excel file.'), 'admin/import//node_importer_' . $form['type']['#value']) . '</div>'
+    );
+  }
+}
+
+/**
  * hook_form_FORM_ID_alter().
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){
@@ -70,7 +83,7 @@ function silver_menu(){
  * * form_id
  */
 function silver_silver(){
-  // Here we tell ourselves about the Feeds module forms, and suck like.
+  // Here we tell ourselves about the Feeds module forms, and such like.
   return array(
     array(
       'type' => 'Nodes',
@@ -155,20 +168,42 @@ function silver_import_form(){
     $options[$info['type']][$i] = $info['name'];
     $i++;
   }
-  return array(
-    'silver_import_select' => array(
-      '#weight' => -100,
-      '#type' => 'select',
-      '#title' => '',
-      '#options' => $options,
-      '#empty_option' => t('Select import'),
-      '#ajax' => array(
-        'callback' => 'silver_ajax_callback',
-        'wrapper' => 'silver_import_subform'
+  if(arg(3)){
+    $alt = array(
+      'values' => array(
+        'silver_import_subform_feeds' => arg(3)
       )
-    ),
-    '#suffix' => '<div id="silver_import_subform"></div>'
-  );
+    );
+    return array(
+      'something' => array(
+        '#markup' => $alt ? silver_ajax_callback($alt, $alt) : '<div id="silver_import_subform"></div>'
+      )
+    );
+  }else{
+    $alt = FALSE;
+    if(arg(2)){
+      $alt = array(
+        'values' => array(
+          'silver_import_select' => arg(2)
+        )
+      );
+    }
+    return array(
+      'silver_import_select' => array(
+        '#weight' => -100,
+        '#type' => 'select',
+        '#title' => '',
+        '#options' => $options,
+        '#empty_option' => t('Select import'),
+        '#default_value' => arg(2),
+        '#ajax' => array(
+          'callback' => 'silver_ajax_callback',
+          'wrapper' => 'silver_import_subform'
+        )
+      ),
+      '#suffix' => $alt ? silver_ajax_callback($alt, $alt) : '<div id="silver_import_subform"></div>'
+    );
+  }
 }
 
 /**
@@ -184,7 +219,8 @@ function silver_ajax_callback($form, &$form_state){
         if(isset($info['file']) && $info['file']){
           require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
         }
-        return '<div id="silver_import_subform">' . drupal_render(drupal_get_form($info['form_id'])) . '</div>';
+        $new_form = drupal_get_form($info['form_id']);
+        return '<div id="silver_import_subform">' . drupal_render($new_form) . '</div>';
       }
       $i++;
     }
