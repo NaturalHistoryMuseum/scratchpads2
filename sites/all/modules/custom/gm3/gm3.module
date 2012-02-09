@@ -291,6 +291,12 @@ function gm3_theme(){
         'id' => 'gm3-map'
       ),
       'file' => 'gm3.theme.inc'
+    ),
+    'gm3_beautytip' => array(
+      'variables' => array(
+        'selector' => '',
+        'text' => ''
+      )
     )
   );
 }

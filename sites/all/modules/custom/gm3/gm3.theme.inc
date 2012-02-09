@@ -70,28 +70,66 @@ function theme_gm3_map($variables){
  * Polygon tools button
  */
 function theme_gm3_polygon_button($variables){
-  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>' . t('Shape') . ' +</p></div>';
+  theme('gm3_beautytip', array(
+    'selector' => '.gm3-tools-button[data-gm3-class="polygon"]',
+    'text' => t('Click to enable adding/removing polygons.')
+  ));
+  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>' . t('Add shape') . '</p></div>';
 }
 
 /**
  * Polyline tools button
  */
 function theme_gm3_polyline_button($variables){
-  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>' . t('Line') . ' +</p></div>';
+  theme('gm3_beautytip', array(
+    'selector' => '.gm3-tools-button[data-gm3-class="polyline"]',
+    'text' => t('Click to enable adding/removing lines.')
+  ));
+  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>' . t('Add line') . ' +</p></div>';
 }
 
 /**
  * Polyline tools button
  */
 function theme_gm3_rectangle_button($variables){
-  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>' . t('Rectangle') . ' +</p></div>';
+  theme('gm3_beautytip', array(
+    'selector' => '.gm3-tools-button[data-gm3-class="rectangle"]',
+    'text' => t('Click to enable adding/removing rectangles.<br/>Add a rectangle by clicking on the map at the top left of a rectangle, and then at the bottom right.')
+  ));
+  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>' . t('Add rectangle') . ' +</p></div>';
 }
 
 /**
  * Point tools button
  */
 function theme_gm3_point_button($variables){
-  return '<div data-gm3-class="point" class="gm3-tools-button"><p>' . t('Point') . ' +</p></div>';
+  theme('gm3_beautytip', array(
+    'selector' => '.gm3-tools-button[data-gm3-class="point"]',
+    'text' => t('Click to enable adding/removing points.<br/>Add points by left clicking the map.<br/>Remove a point by right clicking it.')
+  ));
+  return '<div data-gm3-class="point" class="gm3-tools-button"><p>' . t('Add point') . '</p></div>';
+}
+
+/**
+ * Theme a GM3 beautytip.
+ */
+function theme_gm3_beautytip($variables){
+  if(function_exists('beautytips_add_beautytips')){
+    $options['bt_drupal_help_page'] = array(
+      'cssSelect' => $variables['selector'],
+      'text' => $variables['text'],
+      'closeWhenOthersOpen' => TRUE,
+      'shrinkToFit' => TRUE,
+      'width' => '300px',
+      'spikeLength' => '10',
+      'overlap' => '3',
+      'positions' => 'right',
+      'fill' => '#eee',
+      'cornerRadius' => '3',
+      'shadow' => TRUE
+    );
+    beautytips_add_beautytips($options);
+  }
 }
 
 /**

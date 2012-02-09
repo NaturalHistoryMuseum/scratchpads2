@@ -29,14 +29,14 @@
  width:60px;
  padding:0;
  float:left;
- overflow:hidden;
+ /*overflow:hidden;*/
  border-radius: 4px 0 0 4px;
 }
 .gm3-tools ul{
  padding:0 !important;
  margin:0 !important;
 }
-.gm3-tools ul li{
+.gm3-tools>ul>li{
  padding:0 0 0 3px !important;
  margin:0 !important;
  list-style:none; 
@@ -54,32 +54,34 @@
  border-color:rgb(103, 138, 199);
  vertical-align:middle;
 }
-.gm3-tools ul li.gm3-clicked{
+.gm3-tools>ul>li.gm3-clicked p{
  color:white;
  font-weight:900;
+}
+.gm3-tools>ul>li.gm3-clicked{
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
  background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent; 
 }
-.gm3-tools ul li.gm3-clicked:hover{ 
+.gm3-tools>ul>li.gm3-clicked:hover{ 
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(123, 152, 217)), to(rgb(109, 138, 204)));
  background: -moz-linear-gradient(center top , rgb(123, 152, 217), rgb(109, 138, 204)) repeat scroll 0% 0% transparent; 
 }
-.gm3-tools ul li:hover{
+.gm3-tools>ul>li:hover{
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(254, 254, 254)), to(rgb(243, 243, 243)));
  background: -moz-linear-gradient(center top , rgb(254, 254, 254), rgb(243, 243, 243)) repeat scroll 0% 0% transparent;	
 }
-.gm3-tools ul li:last-child{
+.gm3-tools>ul>li:last-child{
  border-bottom-width:1px;
  border-bottom-left-radius: 5px;  
 }
-.gm3-tools ul li:first-child{ 
+.gm3-tools>ul>li:first-child{ 
  border-top-left-radius: 5px;
 }
-.gm3-tools ul li div p{
+.gm3-tools>ul>li div p{
  margin:0;
  padding:5px 0;
 }
-.gm3-tools ul li:hover{
+.gm3-tools>ul>li:hover{
  cursor:pointer;
 }
 .gm3-map-wrapper{
