@@ -166,6 +166,16 @@ function scratchpads_tweaks_install(){
       'region' => 'dashboard_sidebar',
       'pages' => '',
       'cache' => -1
+    ),
+    array(
+      'module' => 'menu_block',
+      'delta' => 'scratchpads_pages-1',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'sidebar',
+      'pages' => '',
+      'cache' => -1
     )
   );
   $query = db_insert('block')->fields(array(
