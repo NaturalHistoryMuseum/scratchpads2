@@ -141,9 +141,7 @@ function silvers_array_sort($a, $b){
  */
 function silver_import_form(){
   // Get the info from the other modules that support "silver".
-  $options = array(
-    0 => t('- SELECT IMPORT -')
-  );
+  $options = array();
   $i = 1;
   $silvers = silver_get_silvers();
   foreach($silvers as $info){
@@ -163,6 +161,7 @@ function silver_import_form(){
       '#type' => 'select',
       '#title' => '',
       '#options' => $options,
+      '#empty_option' => t('Select import'),
       '#ajax' => array(
         'callback' => 'silver_ajax_callback',
         'wrapper' => 'silver_import_subform'
@@ -243,9 +242,6 @@ function theme_silver_import_form($variables){
  */
 function silver_taxonomy_excel_form(){
   $vocabularies = taxonomy_get_vocabularies();
-  $taxonomies = array(
-    '- SELECT VOCABULARY -'
-  );
   foreach($vocabularies as $vocabulary){
     $taxonomies['taxonomy_importer_' . $vocabulary->machine_name] = $vocabulary->name;
   }
@@ -254,6 +250,7 @@ function silver_taxonomy_excel_form(){
       '#type' => 'select',
       '#title' => '',
       '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
       '#ajax' => array(
         'callback' => 'silver_ajax_callback',
         'wrapper' => 'silver_import_subform_feeds'
@@ -267,9 +264,7 @@ function silver_taxonomy_excel_form(){
  * silver_pages_excel_form
  */
 function silver_pages_excel_form(){
-  $content_types = array(
-    '- SELECT CONTENT TYPE -'
-  );
+  $content_types = array();
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
     $content_types['node_importer_' . $node_type] = $node_type_info['label'];
@@ -280,6 +275,7 @@ function silver_pages_excel_form(){
       '#type' => 'select',
       '#title' => '',
       '#options' => $content_types,
+      '#empty_option' => t('Select content type'),
       '#ajax' => array(
         'callback' => 'silver_ajax_callback',
         'wrapper' => 'silver_import_subform_feeds'

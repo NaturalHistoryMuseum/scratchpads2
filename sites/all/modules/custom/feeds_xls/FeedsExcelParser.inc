@@ -228,32 +228,24 @@ class FeedsExcelParser extends FeedsParser{
         $uniques[] = check_plain($mapping['source']);
       }
     }
-    $output = t('Import !excel_files with one or more of these columns: !columns.', array(
-      '!excel_files' => l(t('Excel files'), 'http://en.wikipedia.org/wiki/Microsoft_Excel'),
-      '!columns' => implode(', ', $sources)
-    ));
-    $items = array(
-      format_plural(count($uniques), t('Column <strong>!column</strong> is mandatory and considered unique: only one item per !column value will be created.', array(
-        '!column' => implode(', ', $uniques)
-      )), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array(
-        '!columns' => implode(', ', $uniques)
-      ))),
-      $items[] = l(t('Download a template'), 'import/' . $this->id . '/template', array(
+    $form['help']['#markup'] = '<div class="help"><p style="font-size:110%">' . t('<a href="!url">Download</a> an Excel template file for this import.  Your template file should contain the following column headers:', array(
+      '!url' => url('import/' . $this->id . '/template', array(
         'attributes' => array(
           'target' => '_blank'
         )
       ))
-    );
-    $form['help']['#markup'] = '<div class="help"><p>' . $output . '</p>' . theme('item_list', array(
-      'items' => $items
-    )) . '</div>';
+    )) . '<br/><span style="font-size:80%">'. implode(", ", $sources).'</span></p></div>';
     $form['no_headers'] = array(
+      '#prefix' => '<div style="display:none">',
+      '#suffix' => '</div>',
       '#type' => 'checkbox',
       '#title' => t('No Headers'),
       '#description' => t('Check if the imported Excel file does not start with a header row. If checked, mapping sources must be named \'0\', \'1\', \'2\' etc.'),
       '#default_value' => isset($source_config['no_headers']) ? $source_config['no_headers'] : 0
     );
     $form['all_worksheets'] = array(
+      '#prefix' => '<div style="display:none">',
+      '#suffix' => '</div>',
       '#type' => 'checkbox',
       '#title' => t('All worksheets'),
       '#description' => t('Check this box if you would like to import data from all worksheets, and not just the first sheet.'),
