@@ -239,10 +239,10 @@ function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, 
  * Implementation of hook_node_insert().
  */
 function scratchpads_media_gallery_node_insert($node){
-  if(isset($node->field_smg_media)){
+  if(isset($node->field_media)){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
-    foreach($node->field_smg_media[LANGUAGE_NONE] as $delta => $values){
+    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $files = entity_load('file', $new_fids);
@@ -263,7 +263,7 @@ function scratchpads_media_gallery_node_insert($node){
  * Implementation of hook_node_update().
  */
 function scratchpads_media_gallery_node_update($node){
-  if(isset($node->field_smg_media)){
+  if(isset($node->field_media)){
     // We edit the file entities to add this node id to their respective field.
     // We simply get a list of fids that currently have this node associated, and
     // remove the ones that have been removed, and add ones that have been added.
@@ -275,7 +275,7 @@ function scratchpads_media_gallery_node_update($node){
       $current_fids[$row->entity_id] = $row->entity_id;
     }
     $new_fids = array();
-    foreach($node->field_smg_media[LANGUAGE_NONE] as $delta => $values){
+    foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
       $new_fids[$values['fid']] = $values['fid'];
     }
     $fids_to_add = array_diff_key($new_fids, $current_fids);

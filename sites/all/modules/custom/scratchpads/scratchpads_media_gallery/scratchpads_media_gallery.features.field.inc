@@ -80,14 +80,14 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'node-media_gallery-field_smg_media'
-  $fields['node-media_gallery-field_smg_media'] = array(
+  // Exported field: 'node-media_gallery-field_media'
+  $fields['node-media_gallery-field_media'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_smg_media',
+      'field_name' => 'field_media',
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
@@ -130,7 +130,7 @@ function scratchpads_media_gallery_field_default_fields(){
         )
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_smg_media',
+      'field_name' => 'field_media',
       'label' => 'Media',
       'required' => 1,
       'settings' => array(
