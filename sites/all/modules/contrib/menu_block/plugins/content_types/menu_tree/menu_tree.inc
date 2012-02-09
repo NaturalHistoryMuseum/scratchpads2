@@ -97,7 +97,7 @@ function menu_block_menu_tree_content_type_render($subtype, $conf, $args, $conte
 /**
  * 'Edit form' callback for the content type.
  */
-function menu_block_menu_tree_content_type_edit_form(&$form, &$form_state) {
+function menu_block_menu_tree_content_type_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
   // Load the standard config form.
@@ -106,16 +106,20 @@ function menu_block_menu_tree_content_type_edit_form(&$form, &$form_state) {
   $sub_form_state = array('values' => $conf);
   $form += menu_block_configure_form($form, $sub_form_state);
 
+  // Hide the menu selector.
+  $form['menu_name']['#type'] = 'hidden';
+
   // Set the options to a simple list of menu links for the configured menu.
   $menus = menu_block_get_all_menus();
-  $form['parent']['#options'] = menu_parent_options(array($conf['menu_name'] => $menus[$conf['menu_name']]), array('mlid' => 0));
+  $form['parent_mlid']['#options'] = menu_parent_options(array($conf['menu_name'] => $menus[$conf['menu_name']]), array('mlid' => 0));
   // Hide the Parent item option for the special "active" menu.
   if ($conf['menu_name'] == MENU_TREE__CURRENT_PAGE_MENU) {
-    $form['parent']['#type'] = 'hidden';
-    $form['admin_title']['#suffix'] = '<div id="edit-parent-wrapper"><strong>' . t('Parent item:') . '</strong><br />' . t('<em>The menu selected by the page</em> can be customized on the <a href="!url">Menu block settings page</a>.', array('!url' => url('admin/config/user-interface/menu-block'))) . '</div>';
+    $form['parent_mlid']['#type'] = 'hidden';
   }
   // Remove CSS class hooks for jQuery script on parent select.
-  unset($form['parent']['#attributes']);
+  unset($form['parent_mlid']['#attributes']);
+
+  return $form;
 }
 
 /**

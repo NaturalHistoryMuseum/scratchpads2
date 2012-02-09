@@ -4,19 +4,12 @@
  * Provides configurable blocks of menu items.
  */
 
-// A core bug in Drupal 7.0 requires this fix.
-module_load_include('inc', 'menu_block', 'custom_menu_active_trail');
-
 /**
  * Denotes that the tree should use the menu picked by the curent page.
  */
 define('MENU_TREE__CURRENT_PAGE_MENU', '_active');
 
 // Off-load the following infrequently called hooks to another file.
-function menu_block_menu() {
-  module_load_include('inc', 'menu_block', 'menu_block.admin');
-  return _menu_block_menu();
-}
 function menu_block_theme(&$existing, $type, $theme, $path) {
   module_load_include('inc', 'menu_block', 'menu_block.admin');
   return _menu_block_theme($existing, $type, $theme, $path);
@@ -37,13 +30,72 @@ function menu_block_form_block_admin_display_form_alter(&$form, $form_state) {
   module_load_include('inc', 'menu_block', 'menu_block.admin');
   return _menu_block_form_block_admin_display_form_alter($form, $form_state);
 }
-/* -- temporarily remove until ctools is ported to D7.
 function menu_block_ctools_plugin_directory($module, $plugin) {
   module_load_include('inc', 'menu_block', 'menu_block.admin');
   return _menu_block_ctools_plugin_directory($module, $plugin);
 }
-*/
 
+/**
+ * Implements hook_menu().
+ */
+function menu_block_menu() {
+  // @todo Remove this check if block module is re-added as a dependency.
+  if (module_exists('block')) {
+    $items['admin/structure/block/add-menu-block'] = array(
+      'title' => 'Add menu block',
+      'description' => 'Add a new menu block.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('menu_block_add_block_form'),
+      'access arguments' => array('administer blocks'),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'menu_block.admin.inc',
+    );
+    $default_theme = variable_get('theme_default', 'bartik');
+    foreach (list_themes() as $key => $theme) {
+      if ($key != $default_theme) {
+        $items['admin/structure/block/list/' . $key . '/add-menu-block'] = array(
+          'title' => 'Add menu block',
+          'description' => 'Add a new menu block.',
+          'page callback' => 'drupal_get_form',
+          'page arguments' => array('menu_block_add_block_form'),
+          'access arguments' => array('administer blocks'),
+          'type' => MENU_LOCAL_ACTION,
+          'file' => 'menu_block.admin.inc',
+        );
+      }
+    }
+    $items['admin/structure/block/delete-menu-block'] = array(
+      'title' => 'Delete menu block',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('menu_block_delete'),
+      'access arguments' => array('administer blocks'),
+      'type' => MENU_CALLBACK,
+      'file' => 'menu_block.admin.inc',
+    );
+  }
+
+  $items['admin/config/user-interface/menu-block'] = array(
+    'title' => 'Menu block',
+    'description' => 'Configure menu block.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menu_block_admin_settings_form'),
+    'access arguments' => array('administer blocks'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'menu_block.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function menu_block_menu_alter(&$items) {
+  // Fake the necessary menu attributes necessary for a contextual link.
+  $items['admin/content/book/%node']['title'] = 'Edit book outline';
+  $items['admin/content/book/%node']['type'] = MENU_LOCAL_TASK;
+  $items['admin/content/book/%node']['context'] = (MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE);
+  $items['admin/content/book/%node']['tab_root'] = 'admin/content/book';
+}
 
 /**
  * Implements hook_help().
@@ -108,10 +160,6 @@ function menu_block_get_all_menus() {
     else {
       // Retrieve core's menus.
       $all_menus = menu_get_menus();
-      // Include book support.
-      if (module_exists('book')) {
-        module_load_include('inc', 'menu_block', 'menu_block.book');
-      }
       // Retrieve all the menu names provided by hook_menu_block_get_menus().
       $all_menus = array_merge($all_menus, module_invoke_all('menu_block_get_menus'));
       // Add an option to use the menu for the active menu item.
@@ -228,11 +276,11 @@ function menu_tree_build($config) {
       else {
         // Check if the menu matches one of the available patterns.
         foreach (array_keys($patterns) as $pattern) {
-          if (preg_match($pattern, $item['menu_name'])) {
+          if (preg_match($pattern, $item->menu_name)) {
             // Mark the menu.
             $menu_order[$pattern] = MENU_TREE__CURRENT_PAGE_MENU;
             // Store the actual menu name.
-            $patterns[$pattern] = $item['menu_name'];
+            $patterns[$pattern] = $item->menu_name;
           }
         }
       }
@@ -255,9 +303,6 @@ function menu_tree_build($config) {
   $menu_names = menu_block_get_all_menus();
   menu_block_set_title(t($menu_names[$config['menu_name']]));
 
-  // @TODO: Remove work-around for core bug #942782.
-  __menu_block_set_menu_trail($config['menu_name']);
-
   if ($config['expanded'] || $config['parent_mlid']) {
     // Get the full, un-pruned tree.
     $tree = menu_tree_all_data($config['menu_name']);
@@ -269,15 +314,12 @@ function menu_tree_build($config) {
     $tree = menu_tree_page_data($config['menu_name']);
   }
 
-  // @TODO: Remove work-around for core bug #942782.
-  __menu_block_set_menu_trail();
-
   // Allow alteration of the tree and config before we begin operations on it.
   drupal_alter('menu_block_tree', $tree, $config);
 
   // Localize the tree.
-  if (module_exists('i18nmenu')) {
-    i18nmenu_localize_tree($tree);
+  if (module_exists('i18n_menu')) {
+    $tree = i18n_menu_localize_tree($tree);
   }
 
   // Prune the tree along the active trail to the specified level.
@@ -672,4 +714,24 @@ function menu_block_tree_output(&$tree, $config = array()) {
   }
 
   return $build;
+}
+
+/**
+ * Implements hook_menu_block_get_menus() on behalf of book.module.
+ */
+function book_menu_block_get_menus() {
+  $menus = array();
+  foreach (book_get_books() AS $book) {
+    $menus[$book['menu_name']] = $book['title'];
+  }
+  return $menus;
+}
+
+/**
+ * Implements hook_menu_block_get_sort_menus() on behalf of book.module.
+ */
+function book_menu_block_get_sort_menus() {
+  return array(
+    '/^book\-toc\-.+/' => t('Book navigation'),
+  );
 }
