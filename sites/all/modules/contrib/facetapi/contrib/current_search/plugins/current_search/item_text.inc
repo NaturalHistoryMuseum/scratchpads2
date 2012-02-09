@@ -14,10 +14,22 @@ class CurrentSearchItemText extends CurrentSearchItem {
    * Implements CurrentSearchItem::execute().
    */
   public function execute(FacetapiAdapter $adapter) {
-    $text = $this->translate('text', $this->settings['text']);
     $data = array('facetapi_adapter' => $adapter);
+
+    // Determines plurality of string.
+    if ($this->settings['plural']) {
+      $condition = '[' . $this->settings['plural_condition'] . ']';
+      $count = (int) token_replace($condition, $data);
+      $raw_text = ($count != 1) ? $this->settings['text_plural'] : $this->settings['text'];
+    }
+    else {
+      $raw_text = $this->settings['text'];
+    }
+
+    // Translates text, returns themed output.
+    $translated_text = $this->translate('text', $raw_text);
     $variables = array(
-      'text' => filter_xss(token_replace($text, $data)),
+      'text' => filter_xss(token_replace($translated_text, $data)),
       'wrapper' => $this->settings['wrapper'],
       'element' => $this->settings['element'],
       'css' => $this->settings['css'],
@@ -40,6 +52,42 @@ class CurrentSearchItemText extends CurrentSearchItem {
       '#description' => t('Custom text displayed in the text box. Token replacement patterns are allowed.'),
     );
 
+    $form['plural'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Add plural text'),
+      '#default_value' => $this->settings['plural'],
+    );
+
+    $form['text_plural'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Plural text'),
+      '#default_value' => $this->settings['text_plural'],
+      '#maxlength' => 255,
+      '#description' => t('Plural equivalent of the custom text displayed in the text box. Token replacement patterns are allowed.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_settings[' . $this->name . '][plural]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
+    $form['plural_condition'] = array(
+      '#type' => 'select',
+      '#title' => t('Plural condition'),
+      '#options' => array(
+        'facetapi_results:result-count' => t('Total number of results'),
+        'facetapi_results:page-number' => t('Page number'),
+        'facetapi_results:page-limit' => t('Results per page'),
+      ),
+      '#default_value' => $this->settings['plural_condition'],
+      '#description' => t('The condition that determines whether the singular or plural string is used.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_settings[' . $this->name . '][plural]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
     // Adds HTML wrapper elements.
     $this->wrapperForm($form, $form_state);
 
@@ -51,6 +99,12 @@ class CurrentSearchItemText extends CurrentSearchItem {
    * Implements CurrentSearchItem::getDefaultSettings().
    */
   public function getDefaultSettings() {
-    return array('text' => '') + $this->wrapperDefaults();
+    $defaults = array(
+      'plural' => 0,
+      'plural_condition' => 'facetapi_results:result-count',
+      'text' => '',
+      'text_plural' => '',
+    );
+    return $defaults + $this->wrapperDefaults();
   }
 }

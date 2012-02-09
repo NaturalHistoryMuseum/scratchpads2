@@ -5,9 +5,9 @@ package = Testing
 core = 7.x
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2011-12-29
-version = "7.x-1.0-rc1"
+; Information added by drupal.org packaging script on 2012-01-30
+version = "7.x-1.0-rc2"
 core = "7.x"
 project = "facetapi"
-datestamp = "1325129740"
+datestamp = "1327885553"
 

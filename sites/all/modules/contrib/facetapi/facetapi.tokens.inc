@@ -176,7 +176,7 @@ function facetapi_tokens($type, $tokens, array $data = array(), array $options =
 
         case 'active-value':
           $markup = $adapter->getMappedValue($item['facets'][0], $item['value']);
-          $text = ($markup['#html']) ? $markup['#markup'] : check_plain($markup['#markup']);
+          $text = empty($markup['#html']) ? check_plain($markup['#markup']) : $markup['#markup'];
           $replacements[$original] = $text;
           break;
 

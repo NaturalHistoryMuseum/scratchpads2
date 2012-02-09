@@ -15,9 +15,11 @@ class FacetapiDependencyRole extends FacetapiDependency {
    */
   public function execute() {
     global $user;
-    $roles = array_filter($this->settings['roles']);
-    if ($roles && !array_intersect_key($user->roles, $roles)) {
-      return FALSE;
+    if (1 != $user->uid) {
+      $roles = array_filter($this->settings['roles']);
+      if ($roles && !array_intersect_key($user->roles, $roles)) {
+        return FALSE;
+      }
     }
   }
 

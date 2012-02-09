@@ -603,73 +603,101 @@ function facetapi_get_facet_info($searcher) {
 
   // Gets facet info if we haven't gotten it already.
   if (!isset($facet_info[$searcher])) {
-    $searcher_info = facetapi_get_searcher_info();
-    $facet_info[$searcher] = array();
 
-    // Invokes hook_facetapi_facet_info(), normalizes facets.
-    foreach (module_implements('facetapi_facet_info') as $module) {
-      $facets = call_user_func($module . '_facetapi_facet_info', $searcher_info[$searcher]);
-      if (!$facets || !is_array($facets)) {
-        $facets = array();
-      }
+    // Builds cache ID.
+    global $language;
+    $cid = 'facetapi:facet_info:' . $searcher . ':' . $language->language;
 
-      // Iterates over facet definitions, merges defaults.
-      foreach($facets as $facet_name => $info) {
-
-        // @see http://drupal.org/node/1161434
-        // Converts "query type" to an array and stores in "query types".
-        // @todo Remove in later versions.
-        if (isset($info['query type']) && !isset($info['query types'])) {
-          $info['query types'] = array($info['query type']);
-        }
-
-        $facet_info[$searcher][$facet_name] = $info;
-        $facet_info[$searcher][$facet_name] += array(
-          'name' => $facet_name,
-          'label' => $facet_name,
-          'description' => '',
-          'field' => $facet_name,
-          'field alias' => isset($info['field']) ? $info['field'] : $facet_name,
-          'field api name' => FALSE,
-          'field api bundles' => array(),
-          'query types' => array('term'),
-          'alter callbacks' => array(),
-          'dependency plugins' => array(),
-          'default widget' => FALSE,
-          'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE, FACETAPI_OPERATOR_OR => TRUE),
-          'facet missing allowed' => FALSE,
-          'facet mincount allowed' => FALSE,
-          'weight' => 0,
-          'map callback' => FALSE,
-          'map options' => array(),
-          'hierarchy callback' => FALSE,
-          'values callback' => FALSE,
-          'min callback' => FALSE,
-          'max callback' => FALSE,
-          'default sorts' => array(
-            array('active', SORT_DESC),
-            array('count', SORT_DESC),
-            array('display', SORT_ASC),
-          ),
-        );
-
-        // @see http://drupal.org/node/1161434
-        // Makes sure old style "query type" is present.
-        // @todo Remove in later versions.
-        if (!isset($facet_info[$searcher][$facet_name]['query type'])) {
-          $type = key($facet_info[$searcher][$facet_name]['query types']);
-          $facet_info[$searcher][$facet_name]['type'] = $type;
-        }
-      }
+    // Checks if our results are cached.
+    $cache = cache_get($cid);
+    if (!empty($cache->data)) {
+      $facet_info[$searcher] = $cache->data;
     }
+    else {
+      $searcher_info = facetapi_get_searcher_info();
+      $facet_info[$searcher] = array();
 
-    // Invokes alter hook, sorts and returns.
-    drupal_alter('facetapi_facet_info', $facet_info[$searcher], $searcher_info[$searcher]);
-    array_walk($facet_info[$searcher], 'facetapi_map_assoc', 'field api bundles');
-    uasort($facet_info[$searcher], 'drupal_sort_weight');
+      // Invokes hook_facetapi_facet_info(), normalizes facets.
+      foreach (module_implements('facetapi_facet_info') as $module) {
+        $facets = call_user_func($module . '_facetapi_facet_info', $searcher_info[$searcher]);
+        if (!$facets || !is_array($facets)) {
+          $facets = array();
+        }
+
+        // Iterates over facet definitions, merges defaults.
+        foreach($facets as $facet_name => $info) {
+
+          // @see http://drupal.org/node/1161434
+          // Converts "query type" to an array and stores in "query types".
+          // @todo Remove in later versions.
+          if (isset($info['query type']) && !isset($info['query types'])) {
+            $info['query types'] = array($info['query type']);
+          }
+
+          $facet_info[$searcher][$facet_name] = $info;
+          $facet_info[$searcher][$facet_name] += array(
+            'name' => $facet_name,
+            'label' => $facet_name,
+            'description' => '',
+            'field' => $facet_name,
+            'field alias' => isset($info['field']) ? $info['field'] : $facet_name,
+            'field api name' => FALSE,
+            'field api bundles' => array(),
+            'query types' => array('term'),
+            'alter callbacks' => array(),
+            'dependency plugins' => array(),
+            'default widget' => FALSE,
+            'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE, FACETAPI_OPERATOR_OR => TRUE),
+            'facet missing allowed' => FALSE,
+            'facet mincount allowed' => FALSE,
+            'weight' => 0,
+            'map callback' => FALSE,
+            'map options' => array(),
+            'hierarchy callback' => FALSE,
+            'values callback' => FALSE,
+            'min callback' => FALSE,
+            'max callback' => FALSE,
+            'default sorts' => array(
+              array('active', SORT_DESC),
+              array('count', SORT_DESC),
+              array('display', SORT_ASC),
+            ),
+          );
+
+          // @see http://drupal.org/node/1161434
+          // Makes sure old style "query type" is present.
+          // @todo Remove in later versions.
+          if (!isset($facet_info[$searcher][$facet_name]['query type'])) {
+            $type = key($facet_info[$searcher][$facet_name]['query types']);
+            $facet_info[$searcher][$facet_name]['type'] = $type;
+          }
+        }
+      }
+
+      // Invokes alter hook, sorts and returns.
+      drupal_alter('facetapi_facet_info', $facet_info[$searcher], $searcher_info[$searcher]);
+      array_walk($facet_info[$searcher], 'facetapi_map_assoc', 'field api bundles');
+      uasort($facet_info[$searcher], 'drupal_sort_weight');
+
+      // Caches the result.
+      cache_set($cid, $facet_info[$searcher], 'cache', CACHE_TEMPORARY);
+    }
   }
-
   return $facet_info[$searcher];
+}
+
+/**
+ * Implements hook_field_create_instance().
+ */
+function facetapi_field_create_instance($instance) {
+  cache_clear_all('facetapi:facet_info:', 'cache', TRUE);
+}
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function facetapi_field_delete_instance($instance) {
+  cache_clear_all('facetapi:facet_info:', 'cache', TRUE);
 }
 
 /**
@@ -757,6 +785,31 @@ function facetapi_get_filters(array $facet) {
 }
 
 /**
+ * Gets raw settings from the datbase, caches as a satic variable.
+ *
+ * Avoid using this function directly as it will not load default settings. Use
+ * the FacetapiAdapter::getFacetSettings*() method instead.
+ *
+ * @param $searcher
+ *   A string containing the searcher.
+ *
+ * @return array
+ *   An array of settings keyed by name.
+ *
+ * @see FacetapiAdapter::getFacetSettings()
+ * @see FacetapiAdapter::getFacetSettingsGlobal()
+ */
+function facetapi_get_searcher_settings($searcher) {
+  $settings = &drupal_static(__FUNCTION__, array());
+  if (!isset($settings[$searcher])) {
+    ctools_include('export');
+    $args = array('searcher' => $searcher);
+    $settings[$searcher] = ctools_export_load_object('facetapi', 'conditions', $args);
+  }
+  return $settings[$searcher];
+}
+
+/**
  * Returns all enabled facet definitions available to the searcher.
  *
  * If a realm is passed, this function returns all facets enabled in the realm.
@@ -778,20 +831,15 @@ function facetapi_get_enabled_facets($searcher, $realm_name = NULL) {
   $enabled_facets = &drupal_static(__FUNCTION__, array());
   $cid = $searcher . ':' . (string) $realm_name;
   if (!isset($enabled_facets[$cid])) {
-    // Builds array of aruments to pass to ctools_export_load_object().
-    $args = array('searcher' => $searcher,  'enabled' => 1);
-    if (NULL !== $realm_name) {
-      $args['realm'] = $realm_name;
-    }
-
-    // Loads settings for enabled facets.
-    ctools_include('export');
-    $results = ctools_export_load_object('facetapi', 'conditions', $args);
-
-    // Builds an array keyed by the names of enabled facets.
     $facets = array();
-    foreach ($results as $result) {
-      $facets[$result->facet] = $result->facet;
+
+    // Gets cached settings, finds enabled facets.
+    $cached = facetapi_get_searcher_settings($searcher);
+    foreach ($cached as $name => $settings) {
+      $test_enabled = (NULL === $realm_name || $realm_name == $settings->realm);
+      if ($test_enabled && $settings->enabled) {
+        $facets[$settings->facet] = $settings->facet;
+      }
     }
 
     // Gets facet definitions for all enabled facets.
