@@ -223,7 +223,7 @@ function scratchpads_colour_preprocess_html(&$vars){
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h1#page-title{ border-bottom-color: #' . $colour . ';}' . PHP_EOL;
+    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}' . PHP_EOL;
     // Couple of default classes for colouring stuff
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
     $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
