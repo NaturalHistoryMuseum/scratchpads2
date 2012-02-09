@@ -271,6 +271,7 @@ function spm_field_group_info() {
     'children' => array(
       0 => 'field_biology',
       1 => 'field_general_description',
+      2 => 'field_media',
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
@@ -295,6 +296,7 @@ function spm_field_group_info() {
     'children' => array(
       0 => 'field_general_description',
       1 => 'field_biology',
+      2 => 'field_media',
     ),
     'format_type' => 'tab',
     'format_settings' => array(

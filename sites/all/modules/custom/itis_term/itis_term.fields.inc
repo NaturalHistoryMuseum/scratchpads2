@@ -1087,7 +1087,7 @@ function itis_term_fields(){
         'settings' => array(
           'description_field' => 0,
           'file_directory' => '',
-          'file_extensions' => 'png jpg gif mp3',
+          'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
           'max_filesize' => '',
           'user_register_form' => FALSE
         ),
