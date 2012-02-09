@@ -3,7 +3,6 @@ description = "Scratchpads pages"
 name = "Scratchpads pages"
 package = "Scratchpads"
 dependencies[] = scratchpads_species
-dependencies[] = taxonomy_breadcrumb
 dependencies[] = slickgrid
 dependencies[] = views_data_export
 dependencies[] = menu_block
