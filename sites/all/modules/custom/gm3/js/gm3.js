@@ -126,7 +126,7 @@
   Drupal.GM3.prototype.active = function(){
     this.google_map.setOptions({draggableCursor: 'pointer'});
     // Remove the information block (currently only used by the region module).
-    $('.gm3_information').remove();
+    $('#'+this.id+' .gm3_information').remove();
   }
   Drupal.GM3.prototype.set_active_class = function(active_class){
     $('.gm3-clicked', '#toolbar-' + this.id).removeClass('gm3-clicked');
