@@ -162,7 +162,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_point':
       $new_items = array();
       if(count($items)){
-        _gm3_field_get_array_from_points_string($items[0], $new_items);
+        _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
       }
       $items = $new_items;
       break;
@@ -171,14 +171,14 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_polyline':
       $new_items = array();
       if(count($items)){
-        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+        _gm3_field_get_array_from_poly_string($items[0]['map'], $new_items, substr($field['type'], 4));
       }
       $items = $new_items;
       break;
     case 'gm3_combination':
       $new_items = array();
       if(count($items)){
-        foreach($items[0]['children'] as $type => $value){
+        foreach($items[0]['map']['children'] as $type => $value){
           switch($type){
             case 'gm3_point':
               _gm3_field_get_array_from_points_string($value, $new_items, 'point');
@@ -850,6 +850,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ))
           ),
+          'num_objects' => count($items),
           'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
@@ -903,6 +904,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                 'id' => $element['#field_name']
               ))
             ),
+            'num_objects' => count($items),
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         ))),
@@ -925,6 +927,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         'id' => $element['#field_name'],
         'libraries' => array(),
         'tools' => array(),
+        'num_objects' => count($items),
         'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
       );
       $widget += array(

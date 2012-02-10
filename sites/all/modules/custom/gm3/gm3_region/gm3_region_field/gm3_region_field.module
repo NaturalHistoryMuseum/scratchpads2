@@ -25,7 +25,7 @@ function gm3_region_field_field_info(){
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_region':
-      $items = array_keys($items[0]);
+      $items = array_keys($items[0]['map']);
       $num_items = count($items);
       for($i = 0; $i < $num_items; $i++){
         $items[$i] = array(
@@ -291,7 +291,9 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
             theme('gm3_region_button', array(
               'id' => $element['#field_name']
             ))
-          )
+          ),
+          'num_objects' => count($items),
+          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
       $widget += array(

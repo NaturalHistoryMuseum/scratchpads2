@@ -296,7 +296,8 @@ function gm3_theme(){
       'variables' => array(
         'selector' => '',
         'text' => ''
-      )
+      ),
+      'file' => 'gm3.theme.inc'
     )
   );
 }
