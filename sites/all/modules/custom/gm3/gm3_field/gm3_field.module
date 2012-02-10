@@ -119,6 +119,19 @@ function gm3_field_field_info(){
  * Implementation of hook_field_settings_form().
  */
 function gm3_field_field_settings_form($field, $instance, $has_data){
+  $form = array(
+    'allow_text_entry' => array(
+      '#type' => 'radios',
+      '#title' => t('Allow text entry'),
+      '#options' => array(
+        'No',
+        'Yes'
+      ),
+      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0,
+      '#required' => TRUE,
+      '#description' => t('Select whether a user can also enter data using a text field')
+    )
+  );
   switch($field['type']){
     case 'gm3_combination':
       $options = array(
@@ -128,18 +141,17 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
         'gm3_rectangle' => 'Rectangle'
       );
       drupal_alter('gm3_combination_field_options', $options);
-      return array(
-        'field_types' => array(
-          '#type' => 'select',
-          '#title' => t('Field types'),
-          '#options' => $options,
-          '#multiple' => TRUE,
-          '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
-          '#required' => TRUE,
-          '#description' => t('Select the types of Widget you would like to use')
-        )
+      $form['field_types'] = array(
+        '#type' => 'select',
+        '#title' => t('Field types'),
+        '#options' => $options,
+        '#multiple' => TRUE,
+        '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
+        '#required' => TRUE,
+        '#description' => t('Select the types of Widget you would like to use')
       );
   }
+  return $form;
 }
 
 /**
@@ -766,6 +778,13 @@ function _gm3_field_get_points_string_from_array($items){
  * Implements hook_field_widget_form().
  */
 function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  // Data field type
+  $data_field_type = isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0;
+  if($data_field_type){
+    $data_field_type = 'textfield';
+  } else {
+    $data_field_type = 'hidden';
+  }
   $widget = $element;
   // FIXME - Is this "delta" required? I don't think so.
   $widget['#delta'] = $delta;
@@ -809,7 +828,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => _gm3_field_get_points_string_from_array($items),
-        '#type' => 'hidden'
+        '#type' => $data_field_type
       );
       break;
     case 'gm3_polyline_gm3':
@@ -860,7 +879,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => $default_value_string,
-        '#type' => 'hidden'
+        '#type' => $data_field_type
       );
       break;
     case 'gm3_combination_gm3':
@@ -923,7 +942,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_point'] = array(
-              '#type' => 'hidden',
+              '#type' => $data_field_type,
               '#attributes' => array(
                 'class' => array(
                   $element['#field_name'] . '-point'
@@ -943,7 +962,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_' . $poly_type] = array(
-              '#type' => 'hidden',
+              '#type' => $data_field_type,
               '#attributes' => array(
                 'class' => array(
                   $element['#field_name'] . '-' . $poly_type
