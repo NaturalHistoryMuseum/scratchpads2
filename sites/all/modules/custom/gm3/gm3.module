@@ -41,7 +41,7 @@ function gm3_views_api(){
  */
 function gm3_library(){
   // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'gm3' => array(
       'title' => t('Google Maps Javascript API V3'),
