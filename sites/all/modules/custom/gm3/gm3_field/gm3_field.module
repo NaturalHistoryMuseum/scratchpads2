@@ -774,6 +774,9 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       // We need to add a GM3 map to the page.
       // We'll also need some additional JS to record the points and save them
       // actually into a form element.
+      foreach($items as $key => $item){
+        $items[$key]['editable'] = TRUE;
+      }
       $content = theme('gm3_map', array(
         'map' => array(
           'id' => $element['#field_name'],

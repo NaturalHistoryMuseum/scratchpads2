@@ -2,6 +2,9 @@
   Drupal.GM3.point = function(map){
     // Point object.
     this.GM3 = map;
+    // We add "dragend" to the other_events array so that we can update the
+    // field when a point is moved.
+    this.GM3.other_events[this.GM3.other_events.length] = "dragend";
     this.points = new Array();
     this.markers = new Array();
     // FIXME - Add a way of setting this image.
@@ -54,6 +57,11 @@
       // things
       // ourselves.
       this.clusterer.repaint();
+    }
+    if(event_type == 'dragend') {
+      if(this.update_field) {
+        this.update_field();
+      }
     }
     switch(this.GM3.active_class){
       case 'point':
