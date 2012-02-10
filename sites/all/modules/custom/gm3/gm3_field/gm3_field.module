@@ -207,6 +207,41 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
 }
 
 /**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  $map_types = array(
+    'gm3_point',
+    'gm3_polygon',
+    'gm3_polyline',
+    'gm3_rectangle',
+    'gm3_combination'
+  );
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if(in_array($info['type'], $map_types)){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'gm3_field_feeds_set_target_text',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback to set the value for a GM3 field.
+ */
+function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+  $info = field_info_field($target);
+  $field = isset($entity->$target) ? $entity->$target : array();
+  $field['und'][] = $value;
+  $entity->{$target} = $field;
+}
+
+/**
  * Helper function to get values from a polygon/polyline/rectangle string
  */
 function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $type = FALSE){
@@ -233,6 +268,9 @@ function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE)
     foreach($lat_lngs as $lat_lng){
       $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
       $lat_lng = explode(", ", $lat_lng);
+      if(count($lat_lng) == 1){
+        $lat_lng = explode(",", $lat_lng[0]);
+      }
       $lat_lng = array(
         'latitude' => $lat_lng[0],
         'longitude' => $lat_lng[1]
@@ -782,7 +820,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
   $data_field_type = isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0;
   if($data_field_type){
     $data_field_type = 'textfield';
-  } else {
+  }else{
     $data_field_type = 'hidden';
   }
   $widget = $element;
