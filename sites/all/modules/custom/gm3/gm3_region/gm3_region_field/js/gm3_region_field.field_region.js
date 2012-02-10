@@ -86,9 +86,6 @@
               this.selecting_level = this.get_level_from_zoom(this.GM3.google_map.getZoom());
               $('#' + this.GM3.id + ' .gm3_information p').html(this.get_message_from_level(this.selecting_level));
               break;
-            case 'rightclick':
-              this.GM3.set_active_class('default');
-              break;
           }
           break;
       }
