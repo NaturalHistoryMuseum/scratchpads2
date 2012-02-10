@@ -1027,6 +1027,17 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       );
       break;
   }
-  $element['map'] = $widget;
+  $title = $widget['#title'];
+  unset($widget['#title']);
+  $element['map'] = array(
+    '#type' => 'fieldset',
+    '#title' => $title,
+    '#attributes' => array(
+      'class' => array(
+        'gm3_fieldset'
+      )
+    ),
+    'map' => $widget
+  );
   return $element;
 }

@@ -16,6 +16,18 @@
  border-color:rgb(103, 138, 199);
  vertical-align:middle;	
 }
+.gm3_fieldset{
+ padding:0 !important;
+}
+.gm3_fieldset .form-item{
+  margin:10px 0 0 0 !important;
+  width:100%;
+}
+.gm3_fieldset .form-item select{
+  margin:0 !important;
+  padding:0;
+  width:100%;
+}
 .gm3_message{
  position:absolute;
  top:0px;

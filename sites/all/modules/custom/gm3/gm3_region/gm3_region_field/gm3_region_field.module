@@ -296,6 +296,7 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       ));
       $widget += array(
         '#prefix' => drupal_render($theme_array),
+        '#suffix' => '<p style="text-align:right"><a href="#" onclick="jQuery(this).parent().siblings().children(\'select\').toggle(); return false">' . t('Toggle manual selection') . '</a></p>',
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
@@ -305,7 +306,7 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
           'class' => array(
             $element['#field_name'] . '-region'
           ),
-          'style' => (isset($field['settings']['allow_text_entry']) && $field['settings']['allow_text_entry']) ? '' : 'display:none'
+          'style' => 'display:none'
         ),
         '#default_value' => $regions,
         '#options' => _gm3_region_field_get_options(),
@@ -315,6 +316,17 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       );
       break;
   }
-  $element['map'] = $widget;
+  $title = $widget['#title'];
+  unset($widget['#title']);
+  $element['map'] = array(
+    '#type' => 'fieldset',
+    '#title' => $title,
+    '#attributes' => array(
+      'class' => array(
+        'gm3_fieldset'
+      )
+    ),
+    'map' => $widget
+  );
   return $element;
 }
