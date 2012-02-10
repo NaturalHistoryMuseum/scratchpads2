@@ -214,6 +214,21 @@
       }
     }
   }
+  Drupal.GM3.prototype.message = function(message, type, delay){
+    // Display an alert message which disappears after a short time. This is
+    // intended as an alternative to the JavaScript alert function.
+    // type can be one of: "status", "warning", "error" as supported by Drupal.
+    if(typeof type == 'undefined') {
+      type = 'status';
+    }
+    if(typeof delay == 'undefined') {
+      delay = 4000;
+    }
+    $('#' + this.id).parent().prepend('<div class="gm3_message messages ' + type + '">' + message + '</div>');
+    $('.gm3_message').delay(delay).slideUp(1000, function(){
+      $('.gm3_message').remove();
+    });
+  }
   Drupal.GM3.prototype.default_settings = function(){
     // MapTypeID
     this.settings['mapTypeId'] = eval(this.settings['mapTypeId']);

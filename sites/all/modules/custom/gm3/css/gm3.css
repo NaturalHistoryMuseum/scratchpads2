@@ -16,6 +16,15 @@
  border-color:rgb(103, 138, 199);
  vertical-align:middle;	
 }
+.gm3_message{
+ position:absolute;
+ top:0px;
+ left:10px;
+ right:10px;
+ text-align:center;
+ z-index:1000;
+ padding:10px;
+}
 .gm3_infobubble p, .gm3_information p{
  padding:0;
  margin:0;
@@ -87,6 +96,7 @@
 .gm3-map-wrapper{
  border-radius: 5px;
  overflow:hidden;
+ position:relative;
 }
 .gm3-map-wrapper, .gm3-tools{
  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);	

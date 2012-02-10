@@ -74,7 +74,7 @@ function theme_gm3_polygon_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="polygon"]',
     'text' => t('Click to enable adding/removing polygons.')
   ));
-  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>' . t('Add shape') . '</p></div>';
+  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>+ ' . t('Polygon') . '</p></div>';
 }
 
 /**
@@ -85,7 +85,7 @@ function theme_gm3_polyline_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="polyline"]',
     'text' => t('Click to enable adding/removing lines.')
   ));
-  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>' . t('Add line') . ' +</p></div>';
+  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>+ ' . t('Line') . ' +</p></div>';
 }
 
 /**
@@ -96,7 +96,7 @@ function theme_gm3_rectangle_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="rectangle"]',
     'text' => t('Click to enable adding/removing rectangles.<br/>Add a rectangle by clicking on the map at the top left of a rectangle, and then at the bottom right.')
   ));
-  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>' . t('Add rectangle') . ' +</p></div>';
+  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>+ ' . t('Rectangle') . '</p></div>';
 }
 
 /**
@@ -107,7 +107,7 @@ function theme_gm3_point_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="point"]',
     'text' => t('Click to enable adding/removing points.<br/>Add points by left clicking the map.<br/>Remove a point by right clicking it.')
   ));
-  return '<div data-gm3-class="point" class="gm3-tools-button"><p>' . t('Add point') . '</p></div>';
+  return '<div data-gm3-class="point" class="gm3-tools-button"><p>+ ' . t('Point') . '</p></div>';
 }
 
 /**

@@ -45,7 +45,7 @@
       }
       this.GM3.num_objects++;
     } else {
-      alert(Drupal.t('Please delete an object from the map before adding another'));
+      this.GM3.message(Drupal.t('Please delete an object from the map before adding another.'), 'warning');
     }
   }
   Drupal.GM3.point.prototype.event = function(event_type, event, event_object){

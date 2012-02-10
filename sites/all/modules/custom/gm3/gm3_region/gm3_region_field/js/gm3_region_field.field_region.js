@@ -39,7 +39,7 @@
                     }
                   }
                 } else if(status === 'OVER_QUERY_LIMIT') {
-                  alert(Drupal.t('Woah, slow down, Google is getting annoyed.'));
+                  this.GM3.message(Drupal.t('Woah, slow down, Google is getting annoyed.'), 'warning');
                 } else if(status === 'ZERO_RESULTS') {
                   // Could be one of the following:
                   // Kosovo, Kashmir, St Vincent and the Grenadines, Anguilla
