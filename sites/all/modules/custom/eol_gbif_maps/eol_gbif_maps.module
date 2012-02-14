@@ -62,8 +62,6 @@ function eol_gbif_maps_taxonomy_term_delete($term){
  * Implementation of hook_library().
  */
 function eol_gbif_maps_library(){
-  // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'eol_gbif_maps_overlay' => array(
       'title' => t('EOL/GBIF taxon data overlay'),
@@ -71,7 +69,7 @@ function eol_gbif_maps_library(){
       'version' => '1',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'eol_gbif_maps') . "/js/eol_gbif_maps$min.js"
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . "/js/eol_gbif_maps.js"
         ),
         array(
           'data' => array(

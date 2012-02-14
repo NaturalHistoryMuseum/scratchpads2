@@ -106,8 +106,6 @@ function gm3_region_field_field_update($entity_type, $entity, $field, $instance,
  * Implementation of hook_library().
  */
 function gm3_region_field_library(){
-  // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'field_region' => array(
       'title' => t('Google Maps Javascript API V3: Region field'),
@@ -115,7 +113,7 @@ function gm3_region_field_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3_region_field') . "/js/gm3_region_field.field_region$min.js"
+          'data' => drupal_get_path('module', 'gm3_region_field') . "/js/gm3_region_field.field_region.js"
         )
       ),
       'dependencies' => array(

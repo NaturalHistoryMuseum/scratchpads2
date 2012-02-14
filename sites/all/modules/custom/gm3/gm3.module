@@ -40,8 +40,6 @@ function gm3_views_api(){
  * Implementation of hook_library().
  */
 function gm3_library(){
-  // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'gm3' => array(
       'title' => t('Google Maps Javascript API V3'),
@@ -54,10 +52,10 @@ function gm3_library(){
           'preprocess' => FALSE
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.js"
         ),
         array(
           'data' => array(
@@ -91,7 +89,7 @@ function gm3_library(){
         * Posted issue to http://code.google.com/p/google-maps-utility-library-v3/issues/detail?id=105&q=size%20infobubble&colspec=ID%20Type%20Status%20Priority%20Fixed%20Owner%20Summary%20Stars
         */
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble.js"
         )
       )
     ),
@@ -116,7 +114,7 @@ function gm3_library(){
       'version' => '1',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.convexhull$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.convexhull.js"
         )
       )
     ),
@@ -146,7 +144,7 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point.js"
         )
       ),
       'dependencies' => array(
@@ -171,10 +169,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.lib$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.lib.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.js"
         )
       ),
       'dependencies' => array(
@@ -195,7 +193,7 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.rectangle$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.rectangle.js"
         )
       ),
       'dependencies' => array(
@@ -212,10 +210,10 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.lib$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.lib.js"
         ),
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline$min.js"
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.js"
         )
       ),
       'dependencies' => array(
