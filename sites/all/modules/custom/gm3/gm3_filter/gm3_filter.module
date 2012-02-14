@@ -32,7 +32,7 @@ function gm3_filter_menu(){
  */
 function gm3_filter_library(){
   // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'filter_helper' => array(
       'title' => t('Filter helper code'),

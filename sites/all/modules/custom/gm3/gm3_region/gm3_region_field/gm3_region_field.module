@@ -25,7 +25,7 @@ function gm3_region_field_field_info(){
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_region':
-      $items = array_keys($items[0]);
+      $items = array_keys($items[0]['map']);
       $num_items = count($items);
       for($i = 0; $i < $num_items; $i++){
         $items[$i] = array(
@@ -107,7 +107,7 @@ function gm3_region_field_field_update($entity_type, $entity, $field, $instance,
  */
 function gm3_region_field_library(){
   // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'field_region' => array(
       'title' => t('Google Maps Javascript API V3: Region field'),
@@ -242,6 +242,25 @@ function _gm3_region_field_array_sort($a, $b){
 }
 
 /**
+ * Implementation of hook_field_settings_form().
+ */
+function gm3_region_field_field_settings_form($field, $instance, $has_data){
+  return array(
+    'allow_text_entry' => array(
+      '#type' => 'radios',
+      '#title' => t('Allow text entry'),
+      '#options' => array(
+        'No',
+        'Yes'
+      ),
+      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : 0,
+      '#required' => TRUE,
+      '#description' => t('Select whether a user can also enter data using a text field')
+    )
+  );
+}
+
+/**
  * Implements hook_field_widget_form().
  */
 function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
@@ -255,27 +274,31 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       foreach($items as $item){
         $regions[] = $item['region_id'];
       }
-      $widget += array(
-        '#prefix' => drupal_render(theme('gm3_map', array(
-          'map' => array(
-            'id' => $element['#field_name'],
-            'libraries' => array(
-              'region' => array(
-                'module' => 'gm3_region',
-                'regions' => $regions
-              ),
-              'polygon' => array(),
-              'field_region' => array(
-                'module' => 'gm3_region_field'
-              )
+      $theme_array = theme('gm3_map', array(
+        'map' => array(
+          'id' => $element['#field_name'],
+          'libraries' => array(
+            'region' => array(
+              'module' => 'gm3_region',
+              'regions' => $regions
             ),
-            'tools' => array(
-              theme('gm3_region_button', array(
-                'id' => $element['#field_name']
-              ))
+            'polygon' => array(),
+            'field_region' => array(
+              'module' => 'gm3_region_field'
             )
-          )
-        ))),
+          ),
+          'tools' => array(
+            theme('gm3_region_button', array(
+              'id' => $element['#field_name']
+            ))
+          ),
+          'num_objects' => count($items),
+          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
+        )
+      ));
+      $widget += array(
+        '#prefix' => drupal_render($theme_array),
+        '#suffix' => '<p style="text-align:right"><a href="#" onclick="jQuery(this).parent().siblings().children(\'select\').toggle(); return false">' . t('Toggle manual selection') . '</a></p>',
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
@@ -295,6 +318,17 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       );
       break;
   }
-  $element['map'] = $widget;
+  $title = $widget['#title'];
+  unset($widget['#title']);
+  $element['map'] = array(
+    '#type' => 'fieldset',
+    '#title' => $title,
+    '#attributes' => array(
+      'class' => array(
+        'gm3_fieldset'
+      )
+    ),
+    'map' => $widget
+  );
   return $element;
 }

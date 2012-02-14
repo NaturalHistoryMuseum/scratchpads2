@@ -41,7 +41,7 @@ function gm3_views_api(){
  */
 function gm3_library(){
   // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'gm3' => array(
       'title' => t('Google Maps Javascript API V3'),
@@ -289,6 +289,13 @@ function gm3_theme(){
     'gm3_polyline_button' => array(
       'variables' => array(
         'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_beautytip' => array(
+      'variables' => array(
+        'selector' => '',
+        'text' => ''
       ),
       'file' => 'gm3.theme.inc'
     )

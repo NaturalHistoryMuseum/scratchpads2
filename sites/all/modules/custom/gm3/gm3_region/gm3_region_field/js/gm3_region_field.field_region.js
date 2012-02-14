@@ -24,61 +24,122 @@
         case 'region':
           switch(event_type){
             case 'click':
+              if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
+                var self = this;
+                this.geo.geocode({location: event.latLng}, function(result, status){
+                  if(status === 'OK') {
+                    for(i in result) {
+                      if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
+                        var region_code = result[i].address_components[0]['short_name'];
+                        $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/" + self.selecting_level, function(data){
+                          self.add_region_from_click(data);
+                        });
+                      }
+                    }
+                  } else if(status === 'OVER_QUERY_LIMIT') {
+                    this.GM3.message(Drupal.t('Woah, slow down, Google is getting annoyed.'), 'warning');
+                  } else if(status === 'ZERO_RESULTS') {
+                    // Could be one of the following:
+                    // Kosovo, Kashmir, St Vincent and the Grenadines, Anguilla
+                    // or the Sea.
+                    $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/UNKNOWN/" + self.selecting_level, function(data){
+                      self.add_region_from_click(data);
+                    });
+                  } else {
+                    // Likely to be an error, although given the total lack of
+                    // documentation, it could well be something else.
+                  }
+                });
+              } else {
+                this.GM3.message(Drupal.t('Please delete an object from the map before adding another.'), 'warning');
+              }
+              break;
+            case 'rightclick':
               var self = this;
               this.geo.geocode({location: event.latLng}, function(result, status){
                 if(status === 'OK') {
                   for(i in result) {
                     if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
                       var region_code = result[i].address_components[0]['short_name'];
-                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/" + self.selecting_level, function(data){
-                        if(data) {
-                          self.add_polygons_by_ids(data);
-                          self.update_field();
-                        }
+                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/4", function(data){
+                        self.remove_region_from_click(data);
                       });
                     }
                   }
                 } else if(status === 'OVER_QUERY_LIMIT') {
-                  alert(Drupal.t('Woah, slow down, Google is getting annoyed.'));
+                  this.GM3.message(Drupal.t('Woah, slow down, Google is getting annoyed.'), 'warning');
                 } else if(status === 'ZERO_RESULTS') {
                   // Could be one of the following:
                   // Kosovo, Kashmir, St Vincent and the Grenadines, Anguilla
                   // or the Sea.
-                  $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/UNKNOWN/" + self.selecting_level, function(data){
-                    if(data) {
-                      self.add_polygons_by_ids(data);
-                      self.update_field();
-                    }
+                  $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/UNKNOWN/4", function(data){
+                    self.remove_region_from_click(data);
                   });
                 } else {
                   // Likely to be an error, although given the total lack of
                   // documentation, it could well be something else.
                 }
               });
+
               break;
             case 'zoom_changed':
               this.selecting_level = this.get_level_from_zoom(this.GM3.google_map.getZoom());
               $('#' + this.GM3.id + ' .gm3_information p').html(this.get_message_from_level(this.selecting_level));
-              break;
-            case 'rightclick':
-              this.GM3.set_active_class('default');
               break;
           }
           break;
       }
     }
   }
+  Drupal.GM3.region.prototype.add_region_from_click = function(data){
+    if(data) {
+      // We add this ID if we haven't already done so.
+      var notfound = true;
+      for( var i in this.countries) {
+        if(this.countries[i] == data) {
+          notfound = false;
+        }
+      }
+      if(notfound) {
+        this.add_polygons_by_ids(data);
+        this.update_field();
+        this.GM3.num_objects++;
+      } else {
+        this.GM3.message(Drupal.t('Already selected that region'));
+      }
+    }
+  }
+  Drupal.GM3.region.prototype.remove_region_from_click = function(data){
+    if(data) {
+      // Split the string, and attempt to remove each one.
+      data = data.split(':');
+      data[1] = data[0] + ':' + data[1];
+      data[2] = data[1] + ':' + data[2];
+      data[3] = data[2] + ':' + data[3];
+      var found_region = false;
+      for( var i in data) {
+        if(this.countries[data[i]] != undefined) {
+          found_region = true;
+          this.remove_polygons_by_id(data[i]);
+          this.GM3.num_objects--;
+        }
+      }
+      if(found_region) {
+        this.update_field();
+      }
+    }
+  }
   Drupal.GM3.region.prototype.get_message_from_level = function(level){
     switch(level){
       case 1:
-        return "Selecting by continent (Level 1)";
+        return Drupal.t("Selecting by continent (Level 1)");
       case 2:
-        return "Selecting by sub-continent (Level 2)";
+        return Drupal.t("Selecting by sub-continent (Level 2)");
       case 3:
-        return "Selecting by country/subcountry (Level 3)";
+        return Drupal.t("Selecting by country/subcountry (Level 3)");
       case 4:
       default:
-        return "Selecting by country/subcountry (Level 4)";
+        return Drupal.t("Selecting by country/subcountry (Level 4)");
     }
   }
   Drupal.GM3.region.prototype.get_level_from_zoom = function(zoom){

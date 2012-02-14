@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implementation of hook_gm3_alter().
+ */
+function eol_gbif_maps_gm3_map_alter(&$map){
+  // We add special data to a google map on taxonomy term pages only.
+  if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
+    $ns = 'http://portal.gbif.org/ws/response/gbif';
+    // Now we need to calculate the GBIF taxon id for this term name, and then
+    // add the eol/gbif library to the map.
+    $term = taxonomy_term_load(arg(2));
+    $xml = new SimpleXMLElement('http://data.gbif.org/ws/rest/taxon/list?scientificname=' . urlencode($term->name), 0, TRUE);
+    $xml->registerXPathNamespace('gbif', 'http://portal.gbif.org/ws/response/gbif');
+    $xml->registerXPathNamespace('tc', 'http://rs.tdwg.org/ontology/voc/TaxonConcept#');
+    $result = $xml->xpath("gbif:dataProviders/gbif:dataProvider[@gbifKey='1']/gbif:dataResources/gbif:dataResource/gbif:taxonConcepts/tc:TaxonConcept[1]");
+    if(count($result)){
+      $result = array_shift($result);
+      foreach($result->attributes() as $key => $value){
+        if($key == 'gbifKey'){
+          $map['libraries']['eol_gbif_maps_overlay'] = array(
+            'module' => 'eol_gbif_maps',
+            'taxon_id' => "$value"
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function eol_gbif_maps_library(){
+  // Whether or not to use the minified versions of the code.
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
+  return array(
+    'eol_gbif_maps_overlay' => array(
+      'title' => t('EOL/GBIF taxon data overlay'),
+      'website' => 'http://eol.org/',
+      'version' => '1',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . "/js/eol_gbif_maps$min.js"
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'eol_gbif_maps' => array(
+                  'tile_url' => 'http://maps.eol.org/php/map/getEolTile.php?tile='
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'css' => array(
+        array(
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . '/css/eol_gbif_maps.css'
+        )
+      )
+    )
+  );
+}

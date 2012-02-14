@@ -119,6 +119,19 @@ function gm3_field_field_info(){
  * Implementation of hook_field_settings_form().
  */
 function gm3_field_field_settings_form($field, $instance, $has_data){
+  $form = array(
+    'allow_text_entry' => array(
+      '#type' => 'radios',
+      '#title' => t('Allow text entry'),
+      '#options' => array(
+        'No',
+        'Yes'
+      ),
+      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0,
+      '#required' => TRUE,
+      '#description' => t('Select whether a user can also enter data using a text field')
+    )
+  );
   switch($field['type']){
     case 'gm3_combination':
       $options = array(
@@ -128,18 +141,17 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
         'gm3_rectangle' => 'Rectangle'
       );
       drupal_alter('gm3_combination_field_options', $options);
-      return array(
-        'field_types' => array(
-          '#type' => 'select',
-          '#title' => t('Field types'),
-          '#options' => $options,
-          '#multiple' => TRUE,
-          '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
-          '#required' => TRUE,
-          '#description' => t('Select the types of Widget you would like to use')
-        )
+      $form['field_types'] = array(
+        '#type' => 'select',
+        '#title' => t('Field types'),
+        '#options' => $options,
+        '#multiple' => TRUE,
+        '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
+        '#required' => TRUE,
+        '#description' => t('Select the types of Widget you would like to use')
       );
   }
+  return $form;
 }
 
 /**
@@ -150,7 +162,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_point':
       $new_items = array();
       if(count($items)){
-        _gm3_field_get_array_from_points_string($items[0], $new_items);
+        _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
       }
       $items = $new_items;
       break;
@@ -159,14 +171,14 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_polyline':
       $new_items = array();
       if(count($items)){
-        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+        _gm3_field_get_array_from_poly_string($items[0]['map'], $new_items, substr($field['type'], 4));
       }
       $items = $new_items;
       break;
     case 'gm3_combination':
       $new_items = array();
       if(count($items)){
-        foreach($items[0]['children'] as $type => $value){
+        foreach($items[0]['map']['children'] as $type => $value){
           switch($type){
             case 'gm3_point':
               _gm3_field_get_array_from_points_string($value, $new_items, 'point');
@@ -192,6 +204,41 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
       $items = $new_items;
       break;
   }
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  $map_types = array(
+    'gm3_point',
+    'gm3_polygon',
+    'gm3_polyline',
+    'gm3_rectangle',
+    'gm3_combination'
+  );
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if(in_array($info['type'], $map_types)){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'gm3_field_feeds_set_target_text',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback to set the value for a GM3 field.
+ */
+function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+  $info = field_info_field($target);
+  $field = isset($entity->$target) ? $entity->$target : array();
+  $field['und'][] = $value;
+  $entity->{$target} = $field;
 }
 
 /**
@@ -221,6 +268,9 @@ function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE)
     foreach($lat_lngs as $lat_lng){
       $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
       $lat_lng = explode(", ", $lat_lng);
+      if(count($lat_lng) == 1){
+        $lat_lng = explode(",", $lat_lng[0]);
+      }
       $lat_lng = array(
         'latitude' => $lat_lng[0],
         'longitude' => $lat_lng[1]
@@ -766,6 +816,13 @@ function _gm3_field_get_points_string_from_array($items){
  * Implements hook_field_widget_form().
  */
 function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  // Data field type
+  $data_field_type = isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0;
+  if($data_field_type){
+    $data_field_type = 'textfield';
+  }else{
+    $data_field_type = 'hidden';
+  }
   $widget = $element;
   // FIXME - Is this "delta" required? I don't think so.
   $widget['#delta'] = $delta;
@@ -774,6 +831,9 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       // We need to add a GM3 map to the page.
       // We'll also need some additional JS to record the points and save them
       // actually into a form element.
+      foreach($items as $key => $item){
+        $items[$key]['editable'] = TRUE;
+      }
       $content = theme('gm3_map', array(
         'map' => array(
           'id' => $element['#field_name'],
@@ -790,6 +850,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ))
           ),
+          'num_objects' => count($items),
           'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
@@ -806,7 +867,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => _gm3_field_get_points_string_from_array($items),
-        '#type' => 'hidden'
+        '#type' => $data_field_type
       );
       break;
     case 'gm3_polyline_gm3':
@@ -843,6 +904,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
                 'id' => $element['#field_name']
               ))
             ),
+            'num_objects' => count($items),
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         ))),
@@ -857,7 +919,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => $default_value_string,
-        '#type' => 'hidden'
+        '#type' => $data_field_type
       );
       break;
     case 'gm3_combination_gm3':
@@ -865,6 +927,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         'id' => $element['#field_name'],
         'libraries' => array(),
         'tools' => array(),
+        'num_objects' => count($items),
         'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
       );
       $widget += array(
@@ -920,7 +983,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_point'] = array(
-              '#type' => 'hidden',
+              '#type' => $data_field_type,
               '#attributes' => array(
                 'class' => array(
                   $element['#field_name'] . '-point'
@@ -940,7 +1003,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_' . $poly_type] = array(
-              '#type' => 'hidden',
+              '#type' => $data_field_type,
               '#attributes' => array(
                 'class' => array(
                   $element['#field_name'] . '-' . $poly_type
@@ -967,6 +1030,17 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       );
       break;
   }
-  $element['map'] = $widget;
+  $title = $widget['#title'];
+  unset($widget['#title']);
+  $element['map'] = array(
+    '#type' => 'fieldset',
+    '#title' => $title,
+    '#attributes' => array(
+      'class' => array(
+        'gm3_fieldset'
+      )
+    ),
+    'map' => $widget
+  );
   return $element;
 }
