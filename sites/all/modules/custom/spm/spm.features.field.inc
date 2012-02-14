@@ -9,6 +9,92 @@
  */
 function spm_field_default_fields() {
   $fields = array();
+  
+  // Exported field: 'node-specimen_observation-field_media'
+  $fields['node-spm-field_media'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_media',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid'
+          ),
+          'table' => 'file_managed'
+        )
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid'
+        )
+      ),
+      'module' => 'file',
+      'settings' => array(
+        'display_default' => 0,
+        'display_field' => 0,
+        'uri_scheme' => 'public'
+      ),
+      'translatable' => '0',
+      'type' => 'file'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'file',
+          'settings' => array(),
+          'type' => 'file_default',
+          'weight' => 100
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 100
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_media',
+      'label' => 'Media',
+      'required' => 1,
+      'settings' => array(
+        'description_field' => 0,
+        'file_directory' => '',
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
+        'max_filesize' => '',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'public' => 'public'
+          ),
+          'allowed_types' => array(
+            'audio' => 'audio',
+            'default' => 0,
+            'image' => 'image',
+            'video' => 'video'
+          ),
+          'browser_plugins' => array(
+            'library' => 0,
+            'media_default--media_browser_1' => 0,
+            'upload' => 0
+          ),
+          'progress_indicator' => 'throbber'
+        ),
+        'type' => 'media_generic',
+        'weight' => '100'
+      )
+    )
+  );
 
   // Exported field: 'node-spm-field_associations'
   $fields['node-spm-field_associations'] = array(
@@ -47,7 +133,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 20,
+          'weight' => '20',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -119,7 +205,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 9,
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -191,7 +277,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 2,
+          'weight' => '2',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -263,7 +349,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 3,
+          'weight' => '3',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -335,7 +421,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 21,
+          'weight' => '21',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -407,7 +493,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 10,
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -479,7 +565,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 11,
+          'weight' => '11',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -551,7 +637,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 34,
+          'weight' => '34',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -623,7 +709,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 22,
+          'weight' => '22',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -695,7 +781,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 23,
+          'weight' => '23',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -767,7 +853,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 24,
+          'weight' => '24',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -839,7 +925,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 32,
+          'weight' => '32',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -911,7 +997,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
+          'weight' => '1',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -983,7 +1069,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 12,
+          'weight' => '12',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1055,7 +1141,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 13,
+          'weight' => '13',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1127,7 +1213,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 25,
+          'weight' => '25',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1199,7 +1285,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 4,
+          'weight' => '4',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1271,7 +1357,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 26,
+          'weight' => '26',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1343,7 +1429,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 27,
+          'weight' => '27',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1415,7 +1501,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 14,
+          'weight' => '14',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1487,7 +1573,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 5,
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1559,7 +1645,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 28,
+          'weight' => '28',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1631,7 +1717,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 15,
+          'weight' => '15',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1703,7 +1789,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 16,
+          'weight' => '16',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1775,7 +1861,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 33,
+          'weight' => '33',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1847,7 +1933,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 17,
+          'weight' => '17',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1919,7 +2005,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 30,
+          'weight' => '30',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1991,7 +2077,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 6,
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2063,7 +2149,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 31,
+          'weight' => '31',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2135,7 +2221,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 35,
+          'weight' => '35',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2207,7 +2293,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 18,
+          'weight' => '18',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2279,7 +2365,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 19,
+          'weight' => '19',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2351,7 +2437,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 7,
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2423,7 +2509,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 8,
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2495,7 +2581,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 29,
+          'weight' => '29',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2567,7 +2653,7 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 36,
+          'weight' => '36',
         ),
         'linked_node' => array(
           'label' => 'above',

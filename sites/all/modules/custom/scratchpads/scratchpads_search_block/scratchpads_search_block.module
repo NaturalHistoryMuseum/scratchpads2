@@ -11,23 +11,62 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
   $form[$form_id]['#autocomplete_path'] = 'scratchpads_search_block';
   $options = array(
     '_all' => t('All'),
-    '_taxonomy' => t('Taxonomy'),
-    '_user' => t('User')
-  );
+    '_taxonomy' => t('Taxonomy')
+  )// FIXME - Possibly add a search by user option in the future.
+  //'_user' => t('User')
+  ;
   $default_value = '_all';
   if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    // If we're on a taxonomy page, we add additional options.
     switch(arg(3)){
       case 'media':
-        $options['media'] = t('Media');
-        $default_value = 'media';
+        $options['entity_type:file'] = t('Media');
+        $default_value = 'entity_type:file';
         break;
-      case 'literature':
-        $options['biblio'] = t('Literature');
-        $default_value = 'biblio';
+      default:
+        $info = entity_get_info('node');
+        if(arg(3) && isset($info['bundles'][arg(3)])){
+          $options['bundle:' . arg(3)] = $info['bundles'][arg(3)]['label'];
+          $default_value = 'bundle:' . arg(3);
+        }else{
+          $default_value = '_taxonomy';
+        }
         break;
     }
+  }else if(arg(0) == 'node' && is_numeric(arg(1))){
+    // If we're viewing a node, we add the content type
+    $node = node_load(arg(1));
+    if($node){
+      $info = entity_get_info('node');
+      $options['bundle:' . $node->type] = $info['bundles'][$node->type]['label'];
+      $default_value = 'bundle:' . $node->type;
+    }
+  }else{
+    // Finally, if we're viewing a search results page.
+    if(isset($_GET['f']) && is_array($_GET['f']) && isset($_GET['f'][0])){
+      // We ONLY check the first facet.  If more have been set, we don't need to
+      // check them.
+      // Split on the : and switch on the first part
+      $facet_parts = explode(":", $_GET['f'][0]);
+      switch($facet_parts[0]){
+        case 'bundle':
+          $info = entity_get_info('node');
+          $options['bundle:' . $facet_parts[1]] = $info['bundles'][$facet_parts[1]]['label'];
+          $default_value = 'bundle:' . $facet_parts[1];
+          break;
+        case 'entity_type':
+          if($facet_parts[1] == 'file'){
+            $options['entity_type:file'] = t('Media');
+            $default_value = 'entity_type:file';
+          }
+          break;
+        case 'im_field_taxonomic_name':
+          $default_value = '_taxonomy';
+          break;
+      }
+    }
   }
-  $form['entity_type'] = array(
+  $form['facet'] = array(
     '#title' => '',
     '#type' => 'radios',
     '#default_value' => $default_value,
@@ -41,7 +80,6 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
       )
     )
   );
-
   // Alter the submit function so that we can add facet magic.
   $form['#submit'][0] = 'scratchpads_search_block_form_submit';
   $form['#theme'][0] = 'scratchpads_search_block_form';
@@ -71,15 +109,38 @@ function scratchpads_search_block_form_submit($form, &$form_state){
   $info = search_get_default_module_info();
   if($info){
     $query = array();
-    if($form_state['values']['entity_type'] != '_all'){
-      $query = array(
-        'query' => array(
-          'f[0]' => 'bundle:' . $form_state['values']['entity_type']
-        )
-      );
+    $search_string = trim($form_state['values'][$form_id]);
+    switch($form_state['values']['facet']){
+      case '_taxonomy':
+        // We attempt to load a term with the name sent.
+        $terms = taxonomy_get_term_by_name(trim($form_state['values'][$form_id]));
+        if($terms){
+          $term = array_shift($terms);
+          $query = array(
+            'query' => array(
+              'f' => array(
+                'im_field_taxonomic_name:' . $term->tid
+              )
+            )
+          );
+          $search_string = '';
+        }else{
+          $search_string = trim($form_state['values'][$form_id]);
+        }
+        break;
+      default:
+        $query = array(
+          'query' => array(
+            'f' => array(
+              $form_state['values']['facet']
+            )
+          )
+        );
+      case '_all':
+        break;
     }
     $form_state['redirect'] = array(
-      'search/' . $info['path'] . '/' . trim($form_state['values'][$form_id]),
+      'search/' . $info['path'] . '/' . $search_string,
       $query
     );
   }else{
@@ -139,9 +200,7 @@ function template_preprocess_scratchpads_search_block_form(&$variables){
   }
   // Hidden form elements have no value to themers. No need for separation.
   $variables['search']['hidden'] = implode($hidden);
-  // Additional to the standard preprocess function  
-//  $variables['entity_types'] = $variables['search']['entity_type'];
-//  unset($variables['search']['entity_type']);
+  // Additional to the standard preprocess function
   // Collect all form elements to make it easier to print the whole form.
   $variables['search_form'] = implode($variables['search']);
 }

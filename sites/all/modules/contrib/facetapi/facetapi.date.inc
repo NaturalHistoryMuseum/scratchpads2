@@ -199,13 +199,17 @@ function facetapi_format_timestamp($timestamp, $gap = FACETAPI_DATE_YEAR) {
  * @param $gap
  *   A string containing the gap, see FACETAPI_DATE_* constants for valid
  *   values, defaults to YEAR.
+ * @param $callback
+ *   The formatting callback, defaults to "facetapi_format_timestamp".
  *
  * @return
  *   A gap-appropriate display date used in the facet link.
+ *
+ * @see facetapi_format_timestamp()
  */
-function facetapi_format_date($date, $gap = FACETAPI_DATE_YEAR) {
+function facetapi_format_date($date, $gap = FACETAPI_DATE_YEAR, $callback = 'facetapi_format_timestamp') {
   $timestamp = strtotime($date);
-  return facetapi_format_timestamp($timestamp, $gap);
+  return $callback($timestamp, $gap);
 }
 
 /**

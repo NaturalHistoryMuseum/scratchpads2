@@ -6,33 +6,6 @@
  */
 
 /**
- * Implements hook_menu().
- */
-function _menu_block_export_menu() {
-  $items['admin/config/user-interface/menu-block/config'] = array(
-    'title' => 'Configure',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items['admin/config/user-interface/menu-block/export'] = array(
-    'title' => 'export',
-    'description' => 'Export menu blocks.',
-    'access arguments' => array('administer blocks'),
-    'page callback' => 'menu_block_export_export',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'menu_block_export.admin.inc',
-  );
-  $items['admin/config/user-interface/menu-block/export/results'] = array(
-    'title' => 'Menu block bulk export results',
-    'description' => 'Exported menu blocks.',
-    'access arguments' => array('administer blocks'),
-    'page callback' => 'menu_block_export_export',
-    'type' => MENU_CALLBACK,
-    'file' => 'menu_block_export.admin.inc',
-  );
-  return $items;
-}
-
-/**
  * Page callback to export menu blocks in bulk.
  */
 function menu_block_export_export() {

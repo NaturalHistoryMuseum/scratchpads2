@@ -3,6 +3,8 @@ description = Provides the core Media API
 package = Media
 core = 7.x
 
+version = "7.x-2.0"
+
 dependencies[] = file_entity (>1.99)
 dependencies[] = image
 dependencies[] = views

@@ -28,6 +28,7 @@ dependencies[] = rdf
 ; Contrib
 dependencies[] = globalredirect
 dependencies[] = feeds_oai_pmh
+dependencies[] = taxonomy_breadcrumb_lite
 
 ; Scratchpads modules
 dependencies[] = scratchpads_biblio_search
@@ -47,3 +48,5 @@ dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
 
 ; Custom modules
+dependencies[] = spm
+dependencies[] = tui

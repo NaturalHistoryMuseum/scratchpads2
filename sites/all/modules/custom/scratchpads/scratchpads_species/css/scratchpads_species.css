@@ -19,6 +19,10 @@
   font-weight: bold;
 }
 
+#block-views-species-nomenclature-block ul{
+  margin-bottom: 0;
+}
+
 /* Slideshow */
 
 .view-species-slideshow .view-wrapper{
@@ -51,6 +55,8 @@
 
 .view-species-slideshow .views-field-filename span {
     padding: 0 10px;
+    display: block;
+    font-size: 0.9em;
 }
 
 #block-views-species-specimens-overview-block .view-content{
@@ -92,6 +98,29 @@ margin-bottom: 15px;
 }
 
 
-  
+/* Responsive */
+.responsive-layout-normal .views_slideshow_cycle_main img,
+.responsive-layout-normal .views-slideshow-cycle-main-frame,
+.responsive-layout-normal .views-slideshow-cycle-main-frame-row,
+.responsive-layout-narrow .views_slideshow_cycle_main img,
+.responsive-layout-narrow .views-slideshow-cycle-main-frame,
+.responsive-layout-narrow .views-slideshow-cycle-main-frame-row{
+  width: 224px!important;
+  height: 167px!important;
+}
+
+
+.responsive-layout-narrow .views_slideshow_pager_field_item img,
+.responsive-layout-normal .views_slideshow_pager_field_item img{
+  width: 73px!important;
+  height: 55px!important;
+}
+
+.responsive-layout-narrow .view-species-slideshow .views-slideshow-pager-field-item img,
+.responsive-layout-normal .view-species-slideshow .views-slideshow-pager-field-item img{
+  margin-bottom: 1px;
+  margin-left: 1px;
+}
+
 
 

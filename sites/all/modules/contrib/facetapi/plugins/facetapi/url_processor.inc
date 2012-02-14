@@ -111,6 +111,13 @@ abstract class FacetapiUrlProcessor {
   }
 
   /**
+   * Removes an item from the $this->params array.
+   */
+  public function removeParam($pos) {
+    unset($this->params[$this->filterKey][$pos]);
+  }
+
+  /**
    * Returns the filter key.
    *
    * @return string

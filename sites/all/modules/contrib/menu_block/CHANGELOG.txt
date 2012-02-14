@@ -1,3 +1,18 @@
+Menu Block 7.x-2.3, 2012-02-04
+------------------------------
+- #1105372 by mikl, fabsor and JohnAlbin: Add menu tree ctools content type to D7
+- #1425342 by JohnAlbin and Dave Reid: Menu block fails with Drupal core 7.12; remove work-around for core bug #942782.
+- #1243978 by Dave Reid: Fixed menu_block_export_menu() items were not translatable since they were not located in menu_block_export.module.
+- #1243978 by Dave Reid: Fixed menu_block_menu() items were not translatable since they were not located in menu_block.module.
+- by Dave Reid: Moved menu_block_menu_alter() to menu_block.menu so that it doesn't cause a module hook cache miss.
+- #1155052 by Dave Reid: Fixed errors if block module is not enabled.
+- #1162038 by Dave Reid: Fixed 'Add menu block' local action only appears on default theme.
+- #1114722 by dropcube: Fixed i18n menu support
+- #1154122 by Dave Reid: Moved block module hook implementations to menu_block.module to prevent problems with hook implementation caching.
+- #1078806 by Dave Reid: Fixed string untranslated warning from coder.
+- #1139530 by Dave Reid: Add a base form ID of block_add_block_form to menu_block_add_block_form so other modules can properly and easily alter it.
+- #1139522 by Dave Reid: Fixed fatal error with current page menu trees.
+
 Menu Block 7.x-2.2, 2011-03-09
 ------------------------------
 - #1086376: Custom menu fix doesn't work for new installations

@@ -421,17 +421,22 @@ function module_enable($module_list, $enable_dependencies = TRUE) {
       module_list(TRUE);
       module_implements('', FALSE, TRUE);
       _system_update_bootstrap_status();
-      // Refresh the schema to include it.
-      drupal_get_schema(NULL, TRUE);
+      // Ensure the tables are installed first.  Some hooks rely on tables being
+      // present during registry_update.
+      $install_module = FALSE;
+      if (drupal_get_installed_schema_version($module, TRUE) == SCHEMA_UNINSTALLED) {
+        $install_module = TRUE;
+        drupal_install_schema($module);
+      }
       // Update the registry to include it.
       registry_update();
+      // Refresh the schema to include it.
+      drupal_get_schema(NULL, TRUE);
       // Clear entity cache.
       entity_info_cache_clear();
 
       // Now install the module if necessary.
-      if (drupal_get_installed_schema_version($module, TRUE) == SCHEMA_UNINSTALLED) {
-        drupal_install_schema($module);
-
+      if ($install_module) {
         // Set the schema version to the number of the last update provided
         // by the module.
         $versions = drupal_get_schema_versions($module);
@@ -539,6 +544,7 @@ function module_disable($module_list, $disable_dependents = TRUE) {
     system_list_reset();
     module_list(TRUE);
     module_implements('', FALSE, TRUE);
+    entity_info_cache_clear();
     // Invoke hook_modules_disabled before disabling modules,
     // so we can still call module hooks to get information.
     module_invoke_all('modules_disabled', $invoke_modules);
@@ -1017,4 +1023,3 @@ function drupal_alter($type, &$data, &$context1 = NULL, &$context2 = NULL) {
     $function($data, $context1, $context2);
   }
 }
-

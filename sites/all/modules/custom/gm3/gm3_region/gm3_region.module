@@ -47,7 +47,7 @@ function gm3_region_menu(){
  */
 function gm3_region_library(){
   // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', false) ? '.min' : '';
+  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     // Enable the clicking of countries.
     'region' => array(

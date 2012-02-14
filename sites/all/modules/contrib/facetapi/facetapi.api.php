@@ -442,6 +442,7 @@ function hook_facetapi_url_processors() {
  *   associative array keyed by "handler" containing:
  *   - label: The human readable name of the plugin displayed in the admin UI.
  *   - class: The name of the plugin class.
+ *   - query types: An array of query-types that this widget is compatible with
  *
  * @see FacetapiFilter
  */
@@ -451,6 +452,7 @@ function hook_facetapi_widgets() {
       'handler' => array(
         'label' => t('Links'),
         'class' => 'FacetapiWidgetLinks',
+        'query types' => array('term', 'date'),
       ),
     ),
   );

@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_page_alter().
+ */
+function taxonomy_breadcrumb_lite_page_alter(&$page){
+  // Set the breadcrumb on taxonomy term pages.
+  if($term = menu_get_object('taxonomy_term', 2)){
+    // Get the current breadcrumb.  We'll add onto the end of it.  If another
+    // module has already tweaked the breadcrumb, then we may have issues.
+    $breadcrumb = drupal_get_breadcrumb();
+    // Generate the TERM breadcrumb.
+    $parent_terms = array_reverse(taxonomy_get_parents_all($term->tid));
+    foreach($parent_terms as $parent_term){
+      $uri = entity_uri('taxonomy_term', $parent_term);
+      // Do not create links to own self if we are on a taxonomy/term page.
+      if($parent_term->tid != $term->tid){
+        $breadcrumb[] = l(check_plain($parent_term->name), $uri['path']);
+      }
+    }
+    drupal_set_breadcrumb($breadcrumb);
+  }
+}

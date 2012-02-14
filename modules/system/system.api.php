@@ -1019,7 +1019,11 @@ function hook_menu_get_item_alter(&$router_item, $path, $original_map) {
  * @endcode
  * This 'abc' object will then be passed into the callback functions defined
  * for the menu item, such as the page callback function mymodule_abc_edit()
- * to replace the integer 1 in the argument array.
+ * to replace the integer 1 in the argument array. Note that a load function
+ * should return FALSE when it is unable to provide a loadable object. For 
+ * example, the node_load() function for the 'node/%node/edit' menu item will
+ * return FALSE for the path 'node/999/edit' if a node with a node ID of 999
+ * does not exist. The menu routing system will return a 404 error in this case.
  *
  * You can also define a %wildcard_to_arg() function (for the example menu
  * entry above this would be 'mymodule_abc_to_arg()'). The _to_arg() function
@@ -1903,11 +1907,19 @@ function hook_image_toolkits() {
  *  - 'language':
  *     The language object used to build the message before hook_mail_alter()
  *     is invoked.
+ *  - 'send':
+ *     Set to FALSE to abort sending this email message.
  *
  * @see drupal_mail()
  */
 function hook_mail_alter(&$message) {
   if ($message['id'] == 'modulename_messagekey') {
+    if (!example_notifications_optin($message['to'], $message['id'])) {
+      // If the recipient has opted to not receive such messages, cancel
+      // sending.
+      $message['send'] = FALSE;
+      return;
+    }
     $message['body'][] = "--\nMail sent out from " . variable_get('site_name', t('Drupal'));
   }
 }
@@ -3230,13 +3242,10 @@ function hook_install() {
  *
  * A good rule of thumb is to remove updates older than two major releases of
  * Drupal. See hook_update_last_removed() to notify Drupal about the removals.
+ * For further information about releases and release numbers see:
+ * @link http://drupal.org/node/711070 Maintaining a drupal.org project with Git @endlink
  *
  * Never renumber update functions.
- *
- * Further information about releases and release numbers:
- * - @link http://drupal.org/handbook/version-info http://drupal.org/handbook/version-info @endlink
- * - @link http://drupal.org/node/93999 http://drupal.org/node/93999 @endlink (Overview of contributions branches and tags)
- * - @link http://drupal.org/handbook/cvs/releases http://drupal.org/handbook/cvs/releases @endlink
  *
  * Implementations of this hook should be placed in a mymodule.install file in
  * the same directory as mymodule.module. Drupal core's updates are implemented

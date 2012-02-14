@@ -125,9 +125,8 @@ function tui_module_implements_alter(&$imps, $hook){
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   if(arg(5) == 'form_callback'){
-    // Hide the alias and breadcrumb fields
+    // Hide the alias field.
     $form['path']['alias']['#type'] = 'hidden';
-    $form['taxonomy_breadcrumb_path']['#type'] = 'hidden';
     // Alter the submit.
     $form['actions']['submit']['#ajax'] = array(
       'path' => 'tui/ajax',

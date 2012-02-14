@@ -163,6 +163,21 @@ function eolapi_taxonomy_term_delete($term = FALSE){
   foreach($results as $record){
     entity_delete('eolapi', $record->eid);
   }
+  // Delete the files
+  // SELECT eolapi_image_fid FROM field_data_eolapi_image WHERE entity_id NOT IN (SELECT eid FROM eolapi);
+  $subquery = db_select('eolapi', 'e')->fields('e', array(
+    'eid'
+  ));
+  $results = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+    'eolapi_image_fid'
+  ))->condition('entity_id', $subquery, 'NOT IN')->execute();
+  foreach($results as $record){
+    entity_delete('file', $record->eolapi_image_fid);
+  }
+  $subquery = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ));
+  db_delete('field_data_eolapi_image')->condition('eolapi_image_fid', $subquery, 'NOT IN')->execute();
 }
 
 /**

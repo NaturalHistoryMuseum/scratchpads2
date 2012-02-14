@@ -69,7 +69,7 @@
               if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
                 this.GM3.num_objects++;
               } else {
-                alert(Drupal.t('Please delete an object from the map before adding another'));
+                this.GM3.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
                 break;
               }
             }

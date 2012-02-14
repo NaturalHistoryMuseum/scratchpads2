@@ -9,6 +9,92 @@
  */
 function darwincore_field_default_fields() {
   $fields = array();
+  
+  // Exported field: 'node-specimen_observation-field_media'
+  $fields['node-specimen_observation-field_media'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_media',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid'
+          ),
+          'table' => 'file_managed'
+        )
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid'
+        )
+      ),
+      'module' => 'file',
+      'settings' => array(
+        'display_default' => 0,
+        'display_field' => 0,
+        'uri_scheme' => 'public'
+      ),
+      'translatable' => '0',
+      'type' => 'file'
+    ),
+    'field_instance' => array(
+      'bundle' => 'specimen_observation',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'file',
+          'settings' => array(),
+          'type' => 'file_default',
+          'weight' => 1
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_media',
+      'label' => 'Media',
+      'required' => 1,
+      'settings' => array(
+        'description_field' => 0,
+        'file_directory' => '',
+        'file_extensions' => FIELD_MEDIA_FILE_EXTENSIONS,
+        'max_filesize' => '',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'public' => 'public'
+          ),
+          'allowed_types' => array(
+            'audio' => 'audio',
+            'default' => 0,
+            'image' => 'image',
+            'video' => 'video'
+          ),
+          'browser_plugins' => array(
+            'library' => 0,
+            'media_default--media_browser_1' => 0,
+            'upload' => 0
+          ),
+          'progress_indicator' => 'throbber'
+        ),
+        'type' => 'media_generic',
+        'weight' => '-3'
+      )
+    )
+  );
 
   // Exported field: 'node-location-field_continent_or_ocean'
   $fields['node-location-field_continent_or_ocean'] = array(
@@ -59,7 +145,7 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '2',
+          'weight' => '3',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -87,7 +173,7 @@ function darwincore_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '17',
+        'weight' => '2',
       ),
     ),
   );
@@ -131,7 +217,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '6',
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -162,7 +248,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '24',
+        'weight' => '10',
       ),
     ),
   );
@@ -198,7 +284,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '8',
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -235,7 +321,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '22',
+        'weight' => '8',
       ),
     ),
   );
@@ -267,14 +353,14 @@ function darwincore_field_default_fields() {
       'bundle' => 'location',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The name of the country or major administrative unit in which the Location occurs. Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.',
       'display' => array(
         'default' => array(
           'label' => 'above',
           'module' => 'countries',
           'settings' => array(),
           'type' => 'country_default',
-          'weight' => 16,
+          'weight' => '4',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -300,7 +386,7 @@ function darwincore_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '31',
+        'weight' => '3',
       ),
     ),
   );
@@ -344,7 +430,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '4',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -375,7 +461,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '20',
+        'weight' => '6',
       ),
     ),
   );
@@ -419,7 +505,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '5',
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -450,7 +536,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '23',
+        'weight' => '9',
       ),
     ),
   );
@@ -494,7 +580,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '10',
+          'weight' => '12',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -525,7 +611,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '25',
+        'weight' => '11',
       ),
     ),
   );
@@ -567,7 +653,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '9',
+          'weight' => '11',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -598,7 +684,82 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '26',
+        'weight' => '12',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-location-field_island_group'
+  $fields['node-location-field_island_group'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_island_group',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '1',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'location',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The full, unabbreviated name of the island group from which the catalogued item was collected.',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '5',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_island_group',
+      'label' => 'Island group',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '4',
       ),
     ),
   );
@@ -642,7 +803,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '3',
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -673,7 +834,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '18',
+        'weight' => '4',
       ),
     ),
   );
@@ -715,7 +876,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '0',
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -746,7 +907,7 @@ function darwincore_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '21',
+        'weight' => '7',
       ),
     ),
   );
@@ -786,7 +947,7 @@ function darwincore_field_default_fields() {
             'display_convex_hull' => FALSE,
           ),
           'type' => 'gm3_entity_map',
-          'weight' => '-1',
+          'weight' => '1',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -816,7 +977,7 @@ function darwincore_field_default_fields() {
         'module' => 'gm3_field',
         'settings' => array(),
         'type' => 'gm3_point_gm3',
-        'weight' => '1',
+        'weight' => '2',
       ),
     ),
   );
@@ -852,7 +1013,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '14',
+          'weight' => '16',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -889,7 +1050,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '29',
+        'weight' => '15',
       ),
     ),
   );
@@ -925,7 +1086,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '12',
+          'weight' => '14',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -962,7 +1123,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '28',
+        'weight' => '14',
       ),
     ),
   );
@@ -998,7 +1159,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '13',
+          'weight' => '15',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1035,7 +1196,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '30',
+        'weight' => '16',
       ),
     ),
   );
@@ -1071,7 +1232,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '11',
+          'weight' => '13',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1108,7 +1269,7 @@ function darwincore_field_default_fields() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '27',
+        'weight' => '13',
       ),
     ),
   );
@@ -1152,7 +1313,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '1',
+          'weight' => '2',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1183,7 +1344,7 @@ function darwincore_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '19',
+        'weight' => '5',
       ),
     ),
   );
@@ -1462,7 +1623,7 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => '11',
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1533,7 +1694,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '9',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1599,7 +1760,7 @@ function darwincore_field_default_fields() {
             'thousand_separator' => ' ',
           ),
           'type' => 'number_integer',
-          'weight' => '16',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1677,7 +1838,7 @@ function darwincore_field_default_fields() {
             'show_repeat_rule' => 'show',
           ),
           'type' => 'date_default',
-          'weight' => '12',
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1764,7 +1925,7 @@ function darwincore_field_default_fields() {
             'show_repeat_rule' => 'show',
           ),
           'type' => 'date_default',
-          'weight' => '8',
+          'weight' => '5',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1848,7 +2009,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '17',
+          'weight' => '7',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1922,7 +2083,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '6',
+          'weight' => '3',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2008,7 +2169,7 @@ function darwincore_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => '7',
+          'weight' => '4',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2153,7 +2314,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '15',
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2239,7 +2400,7 @@ function darwincore_field_default_fields() {
             'node_reference_view_mode' => 'linked_node',
           ),
           'type' => 'node_reference_node',
-          'weight' => '21',
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2308,7 +2469,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '13',
+          'weight' => '8',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2382,7 +2543,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '10',
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2454,7 +2615,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '18',
+          'weight' => '9',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2526,7 +2687,7 @@ function darwincore_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '19',
+          'weight' => '10',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2603,7 +2764,7 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '14',
+          'weight' => '11',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2679,7 +2840,7 @@ function darwincore_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => '5',
+          'weight' => '2',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2757,7 +2918,7 @@ function darwincore_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '20',
+          'weight' => '6',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2853,6 +3014,7 @@ function darwincore_field_default_fields() {
   t('The maximum or actual depth at which the collection or observation was made. Use positive values for locations below the surface. Examples: 10 (for a depth of up to 10m). 100 (for a depth between 50m and 100m).');
   t('The minimum distance in meters above (positive) or below sea level of the collecting locality.');
   t('The minimum or actual depth at which the collection or observation was made. Use positive values for locations below the surface. Examples: 0 (for a depth of up to 10m). 50 (for a depth between 50m and 100m).');
+  t('The name of the country or major administrative unit in which the Location occurs. Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.');
   t('The name of the system in which the verbatim geographic coordinates were recorded. Examples: "decimal degrees", "degrees minutes seconds", "degrees decimal minutes", "UTM"');
   t('The name(s) of the collector(s) of the original data for the cataloged item.');
   t('The name(s) of the person(s) who applied the ScientificName to the object or observation. Example: James Earl Jones.');

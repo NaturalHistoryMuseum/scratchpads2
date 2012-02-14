@@ -42,7 +42,10 @@ function current_search_current_search_default_items() {
       'results' => array(
         'id' => 'text',
         'label' => 'Results',
-        'text' => 'Search found [facetapi_results:result-count] items',
+        'text' => 'Search found [facetapi_results:result-count] item',
+        'plural' => 1,
+        'text_plural' => 'Search found [facetapi_results:result-count] items',
+        'plural_condition' => 'facetapi_results:result-count',
         'wrapper' => 1,
         'element' => 'h3',
         'css' => 0,

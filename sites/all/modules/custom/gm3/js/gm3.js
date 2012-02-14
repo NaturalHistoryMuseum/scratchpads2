@@ -7,7 +7,7 @@
     this.min_lng = false;
     // Max objects (for when editing a field)
     this.max_objects = typeof (map.max_objects) != 'undefined' ? map.max_objects : 1000000;
-    this.num_objects = 0;
+    this.num_objects = typeof (map.num_objects) != 'undefined' ? map.num_objects : 0;
     this.settings = map.settings;
     this.id = map.id;
     this.initialized = false;
@@ -125,6 +125,8 @@
   }
   Drupal.GM3.prototype.active = function(){
     this.google_map.setOptions({draggableCursor: 'pointer'});
+    // Remove the information block (currently only used by the region module).
+    $('#'+this.id+' .gm3_information').remove();
   }
   Drupal.GM3.prototype.set_active_class = function(active_class){
     $('.gm3-clicked', '#toolbar-' + this.id).removeClass('gm3-clicked');
@@ -213,6 +215,21 @@
         this.children[i]['clear_listeners']();
       }
     }
+  }
+  Drupal.GM3.prototype.message = function(message, type, delay){
+    // Display an alert message which disappears after a short time. This is
+    // intended as an alternative to the JavaScript alert function.
+    // type can be one of: "status", "warning", "error" as supported by Drupal.
+    if(typeof type == 'undefined') {
+      type = 'status';
+    }
+    if(typeof delay == 'undefined') {
+      delay = 4000;
+    }
+    $('#' + this.id).parent().prepend('<div class="gm3_message messages ' + type + '">' + message + '</div>');
+    $('.gm3_message').delay(delay).slideUp(1000, function(){
+      $('.gm3_message').remove();
+    });
   }
   Drupal.GM3.prototype.default_settings = function(){
     // MapTypeID

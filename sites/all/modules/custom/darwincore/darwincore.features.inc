@@ -5,9 +5,13 @@
  */
 
 /**
- * Implementation of hook_ctools_plugin_api().
+ * Implements hook_ctools_plugin_api().
  */
 function darwincore_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "field_group" && $api == "field_group") {
+    return array("version" => "1");
+  }
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
@@ -15,14 +19,14 @@ function darwincore_ctools_plugin_api() {
 }
 
 /**
- * Implementation of hook_node_info().
+ * Implements hook_node_info().
  */
 function darwincore_node_info() {
   $items = array(
     'location' => array(
       'name' => t('Location'),
       'base' => 'node_content',
-      'description' => t('A location which conforms to Darwincore 1.2.1, and can be associated with multiple specimens'),
+      'description' => t('A location which conforms to Darwincore, and can be associated with multiple specimens'),
       'has_title' => '1',
       'title_label' => t('Location identifier'),
       'help' => '',
@@ -30,7 +34,7 @@ function darwincore_node_info() {
     'specimen_observation' => array(
       'name' => t('Specimen/Observation'),
       'base' => 'node_content',
-      'description' => t('A Specimen content type based upon Darwincore 1.2.1'),
+      'description' => t('A Specimen content type based upon Darwincore'),
       'has_title' => '1',
       'title_label' => t('Specimen identifier'),
       'help' => '',

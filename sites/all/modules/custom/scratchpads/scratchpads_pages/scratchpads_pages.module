@@ -291,7 +291,7 @@ function scratchpads_pages_block_view($delta = ''){
             '#title' => $node_type_info->name
           )
         );
-        if(count($terms = taxonomy_breadcrumb_node_get_terms($node))){
+        if(count($terms = scratchpads_pages_node_get_terms($node))){
           foreach($terms as $term){
             if(!array_key_exists($term->vid, $block['content'])){
               $vocabulary = taxonomy_vocabulary_load($term->vid);
@@ -308,6 +308,28 @@ function scratchpads_pages_block_view($delta = ''){
       break;
   }
   return $block;
+}
+
+
+/**
+ * Finds all terms associated with a node.
+ * This is a D7 Replacement for Drupal 6 taxonomy_node_get_terms.
+ */
+function scratchpads_pages_node_get_terms($node, $key = 'tid') {
+  static $terms;
+  if (!isset($terms[$node->vid][$key])) {
+    $query = db_select('taxonomy_index', 'r');
+    $t_alias = $query->join('taxonomy_term_data', 't', 'r.tid = t.tid');
+    $v_alias = $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->fields( $t_alias );
+    $query->condition("r.nid", $node->nid);
+    $result = $query->execute();
+    $terms[$node->vid][$key] = array();
+    foreach ($result as $term) {
+      $terms[$node->vid][$key][$term->$key] = $term;
+    }
+  }
+  return $terms[$node->vid][$key];
 }
 
 /*********************************************************************************************
@@ -363,6 +385,9 @@ function scratchpads_pages_variable_default($name = NULL){
   if(isset($defaults[$name])){return $defaults[$name];}
 }
 
+/**
+ * Pluralise a node name
+ */
 function scratchpads_pages_pluralise_node_name($name){
   switch($name){
     case 'image_gallery':
@@ -375,4 +400,23 @@ function scratchpads_pages_pluralise_node_name($name){
   return $plural;
 }
 
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_pages_menu_block_blocks() {
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_pages-1' => array(
+      'menu_name'   => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link'  => 0,
+      'admin_title' => 'Scratchpads secondary menu',
+      'level'       => 2,
+      'follow'      => 0,
+      'depth'       => 0,
+      'expanded'    => 0,
+      'sort'        => 0,
+    ),
+  );
+}
 

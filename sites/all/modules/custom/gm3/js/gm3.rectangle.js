@@ -54,7 +54,7 @@
                 // click.
                 var points = new Array({'lat': this.first_click.latLng.lat(), 'long': this.first_click.latLng.lng()}, {'lat': this.first_click.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': event.latLng.lng()}, {'lat': event.latLng.lat(), 'long': this.first_click.latLng.lng()});
                 this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(points, false);
-                this.GM3.num_objects ++;
+                this.GM3.num_objects++;
                 this.GM3.set_active_class('default');
                 this.followlineN.setMap(null);
                 this.followlineE.setMap(null);
@@ -67,7 +67,7 @@
                 this.first_click = event;
               }
             } else {
-              alert(Drupal.t('Please delete an object from the map before adding another'));
+              this.GM3.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
             }
             break;
           case 'mousemove':

@@ -194,6 +194,9 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     if($plugin = context_get_plugin('condition', 'species')){
       $plugin->execute($op);
     }
+    $name = theme('scratchpads_species_name', array(
+      'term' => $term
+    ));
     // Return a blank page contextual links
     $build = array(
       '#theme' => 'page',
@@ -201,6 +204,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       'content' => array(
         ''
       ),
+      'title' => $name,
       'subtitle' => (isset($term->field_authors[LANGUAGE_NONE][0]['safe_value']) ? $term->field_authors[LANGUAGE_NONE][0]['safe_value'] : NULL),
       '#contextual_links' => array(
         'taxonomy' => array(
@@ -347,19 +351,52 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
 
 function theme_scratchpads_species_name($vars){
   $term = $vars['term'];
-  // TODO- A whole load of crapness for species names
+  // Give the default name as the term name, we will try and overwite this below
   $name = $term->name;
-  switch($term->field_rank[LANGUAGE_NONE][0]['value']){
-    case 'Genus':
-    case 'Subgenus':
-    case 'Species':
-    case 'Subspecies':
-      $italicise = true;
+  $rank = (isset($term->field_rank[LANGUAGE_NONE][0]['value']) ? strtolower($term->field_rank[LANGUAGE_NONE][0]['value']) : null);
+  $unit1 = (isset($term->field_unit_name1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name1[LANGUAGE_NONE][0]['value'] : null);
+  $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
+  $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
+  $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
+  switch($rank){
+    case 'genus':
+      if($unit1){
+        $name = t('<em>!unit1</em>', array(
+          '!unit1' => $unit1
+        ));
+      }
       break;
-  }
-  $italicise = true;
-  if($italicise){
-    $name = '<em>' . $name . '</em>';
+    case 'species':
+      // This species has a subgenus (in brackets)
+      if($unit1 && $unit2 && $unit3){
+        $name = t('<em>!unit1</em> (<em>!unit2</em>) <em>!unit3</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3
+        ));
+      }elseif($unit1 && $unit2){
+        $name = t('<em>!unit1</em> <em>!unit2</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2
+        ));
+      }
+      break;
+    case 'subspecies':
+      if($unit1 && $unit2 && $unit3 && $unit4){
+        $name = t('<em>!unit1</em> (<em>!unit2</em>) <em>!unit3</em> <em>!unit4</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!unit4' => $unit4
+        ));
+      }elseif($unit1 && $unit2 && $unit3){
+        $name = t('<em>!unit1</em> <em>!unit2</em> <em>!unit3</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3
+        ));
+      }
+      break;
   }
   return $name;
 }

@@ -107,12 +107,9 @@ h3{
 
 h1#page-title{
   line-height: 1.1em;
-  margin: 0 0 17px 0;
+  margin: 0 0 8px 0;
   position: relative;
   top: -3px;
-  padding-bottom: 3px;
-  border-bottom-style: solid;
-  border-bottom-width: 3px;
 }
 
 h1#front-page-title{
@@ -413,21 +410,40 @@ h2.site-name {
 }
 
 #region-sidebar .region-inner{
-  padding: 15px 15px 0px 15px;
+  padding: 15px 15px 15px 15px;
+}
+
+#region-sidebar ul.menu{
+  margin: 8px 0;
+  list-style: none!important;
 }
 
 #region-sidebar ul.menu li{
-  list-style: none;
+  margin:10px 0;
+  list-style: none!important;
   padding: 0;
 }
 
-#region-sidebar ul.menu li a{
-  margin-bottom: 5px;
-  display: block;
+#region-sidebar ul.menu ul li{
+  list-style: disc inside!important;
+  margin-left: 10px;
 }
 
-ul.menu li{
-  margin-left: 10px;
+/* Facets */
+
+#region-sidebar ul.facetapi-facetapi-links{
+  margin-bottom: 10px;
+}
+
+#region-sidebar ul.facetapi-facetapi-links li{
+  margin:5px 0;
+}
+
+#region-sidebar a.facetapi-limit-link{
+  display: block;
+  margin-bottom: 20px;
+  text-align: right;
+  font-size: 10px;
 }
 
 /* Species pages*/
@@ -450,35 +466,6 @@ ul.menu li{
 #tinytax-search-form{
   display: none;
 }
-
-/* Sidebar */
-#region-sidebar ul{
-  margin: 8px 0 25px 0;
-  list-style: none!important;
-}
-
-#region-sidebar ul li{
-  margin:10px 0;
-  list-style: none!important;
-}
-
-#region-sidebar ul.facetapi-facetapi-links{
-  margin-bottom: 10px;
-}
-
-#region-sidebar ul.facetapi-facetapi-links li{
-  margin:5px 0;
-}
-
-#region-sidebar a.facetapi-limit-link{
-  display: block;
-  margin-bottom: 20px;
-  text-align: right;
-  font-size: 10px;
-}
-
-
-
 
 /************************ MEDIA GALLERY *********************/ 
 
@@ -633,6 +620,45 @@ table.biblio td{
 .node-spm .field-name-field-spm-map{
   margin-top: 10px;
 }
+
+/****************** Overlay *****************/
+  
+.field-name-field-image-caption,
+.field-name-field-image-caption div{
+  max-width: 400px;
+}
+
+.field-name-field-image-caption div{
+  padding: 6px 0;
+}
+
+#cboxContent .file{
+  position: static;
+}
+
+#cboxContent .file .content span.file-styles{
+  text-align: center;
+  display: block;
+}
+.field-name-field-cc{
+  text-align: right;
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+}
+
+#cboxClose{
+  top: 0;
+  right: 0;
+  bottom: inherit;
+  background: url('../images/close.png') no-repeat;
+  width: 22px;
+  height: 22px;
+}
+
+#cboxClose:hover{
+  background-position: 0;
+}
   
 /****************** ADMIN *****************/
 
@@ -644,3 +670,4 @@ div.contextual-links-wrapper{
 div.contextual-links-wrapper ul.contextual-links{
    z-index:2!important;
 }
+

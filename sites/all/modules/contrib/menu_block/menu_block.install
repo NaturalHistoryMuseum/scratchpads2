@@ -37,8 +37,6 @@ function menu_block_uninstall() {
  */
 function menu_block_enable() {
   drupal_set_message(t('To use menu blocks, find the "Add menu block" link on the <a href="@url">administer blocks page</a>.', array('@url' => url('admin/structure/block'))));
-  // @TODO Remove this when after this core bug is fixed: #942782.
-  menu_block_fix_custom_menus();
 }
 
 /**
