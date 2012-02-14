@@ -332,7 +332,15 @@ function scratchpads_species_preprocess_views_view(&$vars){
       if($vars['view']->current_display == 'block'){
         // Fix bug with view title still showing if there are 0 specimens
         if($vars['view']->result[0]->nid == 0){
+          // Get rid of the result and rows
           $vars['view']->result = array();
+          $vars['rows'] = null;
+          // Empty text will be missing, so build it now
+          if(scratchpads_blocks_show_placeholders() && $link = scratchpads_blocks_views_add_link($vars['view'], arg(2))){
+            $vars['empty'] = $link;
+          }else{
+            $vars['empty'] = '';
+          }
         }
       }
       break;
