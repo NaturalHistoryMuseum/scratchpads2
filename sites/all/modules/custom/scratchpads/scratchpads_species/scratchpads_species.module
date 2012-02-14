@@ -328,6 +328,14 @@ function scratchpads_species_preprocess_views_view(&$vars){
       $path = drupal_get_path('module', 'scratchpads_species');
       drupal_add_js($path . '/js/scratchpads_species.js');
       break;
+    case 'species_specimens_overview':
+      if($vars['view']->current_display == 'block'){
+        // Fix bug with view title still showing if there are 0 specimens
+        if($vars['view']->result[0]->nid == 0){
+          $vars['view']->result = array();
+        }
+      }
+      break;
   }
 }
 
