@@ -9,7 +9,7 @@ function silver_form_alter(&$form, &$form_state, $form_id){
     // We add a link to this content type's import page.
     $form['link_to_import'] = array(
       '#weight' => -100000,
-      '#markup' => '<div class="messages status">' . l(t('Import into this content type from an Excel file.'), 'admin/import//node_importer_' . $form['type']['#value']) . '</div>'
+      '#markup' => '<div class="messages status">' . l(t('Import into this content type from an Excel file.'), 'import/node_importer_' . $form['type']['#value']) . '</div>'
     );
   }
 }
@@ -19,9 +19,23 @@ function silver_form_alter(&$form, &$form_state, $form_id){
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){
   // Alter the form a little, if we're viewing it on the slashEye page.
-  $form['source_status']['#weight'] = 10;
-  $form['feeds']['#weight'] = -10;
-  $form['submit']['#weight'] = 0;
+  $form['source_status'] = array();
+  $source = db_select('feeds_source', 'f')->fields('f')->condition('id', $form['#importer_id'])->execute()->fetch();
+  if($source){
+    $state = unserialize($source->state);
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Import')
+    );
+    $form['feeds']['#weight'] = -10;
+    $form['submit']['#weight'] = 10;
+    $form['source_status'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
+        '!interval' => format_interval(time() - $state['start_time'])
+      )) . '</div>'
+    );
+  }
 }
 
 /**
