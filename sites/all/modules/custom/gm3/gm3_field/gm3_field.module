@@ -984,6 +984,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             ));
             $widget['children']['gm3_point'] = array(
               '#type' => $data_field_type,
+              '#title' => t('Point'),
               '#attributes' => array(
                 'class' => array(
                   $element['#field_name'] . '-point'
@@ -1004,6 +1005,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             ));
             $widget['children']['gm3_' . $poly_type] = array(
               '#type' => $data_field_type,
+              '#title' => $poly_type,
               '#maxlength' => 10000000,
               '#attributes' => array(
                 'class' => array(
