@@ -7,8 +7,17 @@
  * The construct method needs to be overridden to provide a list of options;
  * alternately, the value_form and admin_summary methods need to be overriden
  * to provide something that isn't just a select list.
+ *
+ * @ingroup views_filter_handlers
  */
 class views_handler_filter_many_to_one extends views_handler_filter_in_operator {
+  /**
+   * @var views_many_to_one_helper
+   *
+   * Stores the Helper object which handles the many_to_one complexity.
+   */
+  var $helper = NULL;
+
   function init(&$view, &$options) {
     parent::init($view, $options);
     $this->helper = new views_many_to_one_helper($this);

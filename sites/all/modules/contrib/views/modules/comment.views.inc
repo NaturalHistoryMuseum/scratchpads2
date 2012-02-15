@@ -256,6 +256,9 @@ function comment_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_boolean',
       'click sortable' => TRUE,
+      'output formats' => array(
+        'approved-not-approved' => array(t('Approved'), t('Not Approved')),
+      ),
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_boolean_operator',
@@ -606,6 +609,7 @@ function comment_views_plugins() {
         'theme' => 'views_view_row_rss',
         'path' => drupal_get_path('module', 'views') . '/modules/comment', // not necessary for most modules
         'base' => array('comment'), // only works with 'comment' as base.
+        'uses options' => TRUE,
         'type' => 'feed',
         'help topic' => 'style-comment-rss',
       ),

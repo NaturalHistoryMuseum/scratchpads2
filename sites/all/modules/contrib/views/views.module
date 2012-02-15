@@ -58,7 +58,7 @@ function views_api_minimum_version() {
  */
 function views_theme($existing, $type, $theme, $path) {
   $path = drupal_get_path('module', 'views');
-  include_once $path . '/theme/theme.inc';
+  ctools_include('theme', 'views', 'theme');
 
   // Some quasi clever array merging here.
   $base = array(
@@ -90,6 +90,10 @@ function views_theme($existing, $type, $theme, $path) {
   $hooks['views_view_field'] = $base + array(
     'pattern' => 'views_view_field__',
     'variables' => array('view' => NULL, 'field' => NULL, 'row' => NULL),
+  );
+  $hooks['views_view_grouping'] = $base + array(
+    'pattern' => 'views_view_grouping__',
+    'variables' => array('view' => NULL, 'grouping' => NULL, 'grouping_level' => NULL, 'rows' => NULL, 'title' => NULL),
   );
 
   $plugins = views_fetch_plugin_data();
@@ -1091,6 +1095,7 @@ function views_get_handler($table, $field, $key, $override = NULL) {
 
   $data = views_fetch_data($table, FALSE);
   $handler = NULL;
+  views_include('handlers');
 
   // Support old views_data entries conversion.
 
@@ -1422,7 +1427,7 @@ function views_get_views_as_options($views_only = FALSE, $filter = 'all', $exclu
   foreach ($views as $view) {
     // Return only views.
     if ($views_only && $view->name != $exclude_view_name) {
-      $options[$view->name] = $view->name;
+      $options[$view->name] = $view->get_human_name();
     }
     // Return views with display ids.
     else {
@@ -1591,16 +1596,13 @@ function views_debug($message, $placeholders = array()) {
       $output = $message;
       watchdog('views_logging', $output, $placeholders);
     }
-    else if ($devel_region == 'message') {
-      $output = empty($output) ? t($message, $placeholders) : $output;
-      dpm($output);
-    }
     else if ($devel_region == 'drupal_debug') {
       $output = empty($output) ? t($message, $placeholders) : $output;
       dd($output);
     }
     else {
-      drupal_add_region_content($devel_region, $output);
+      $output = empty($output) ? t($message, $placeholders) : $output;
+      dpm($output);
     }
   }
   elseif (isset($GLOBALS['drupal_test_info'])) {
@@ -1739,6 +1741,15 @@ function views_form_views_form($form, &$form_state, $view, $output) {
 
   $substitutions = array();
   foreach ($view->field as $field_name => $field) {
+    $form_element_name = $field_name;
+    if (method_exists($field, 'form_element_name')) {
+      $form_element_name = $field->form_element_name();
+    }
+    $method_form_element_row_id_exists = FALSE;
+    if (method_exists($field, 'form_element_row_id')) {
+      $method_form_element_row_id_exists = TRUE;
+    }
+
     // If the field provides a views form, allow it to modify the $form array.
     $has_form = FALSE;
     if (property_exists($field, 'views_form_callback')) {
@@ -1754,10 +1765,17 @@ function views_form_views_form($form, &$form_state, $view, $output) {
     // Build the substitutions array for use in the theme function.
     if ($has_form) {
       foreach ($view->result as $row_id => $row) {
+        if ($method_form_element_row_id_exists) {
+          $form_element_row_id = $field->form_element_row_id($row_id);
+        }
+        else {
+          $form_element_row_id = $row_id;
+        }
+
         $substitutions[] = array(
-          'placeholder' => '<!--form-item-' . $field_name . '--' . $row_id . '-->',
-          'field_name' => $field_name,
-          'row_id' => $row_id,
+          'placeholder' => '<!--form-item-' . $form_element_name . '--' . $form_element_row_id . '-->',
+          'field_name' => $form_element_name,
+          'row_id' => $form_element_row_id,
         );
       }
     }
@@ -2285,7 +2303,7 @@ function views_process_check_options($element, &$form_state) {
  * @param $alter
  *   - max_length: Maximum lenght of the string, the rest gets truncated.
  *   - word_boundary: Trim only on a word boundary.
- *   - ellipsis: Trim only on a word boundary.
+ *   - ellipsis: Show an ellipsis (...) at the end of the trimmed string.
  *   - html: Take sure that the html is correct.
  *
  * @param $value
@@ -2320,6 +2338,22 @@ function views_trim_text($alter, $value) {
   }
 
   return $value;
+}
+
+/**
+ * Adds one to each key of the array.
+ *
+ * For example array(0 => 'foo') would be array(1 => 'foo').
+ */
+function views_array_key_plus($array) {
+  $keys = array_keys($array);
+  rsort($keys);
+  foreach ($keys as $key) {
+    $array[$key+1] = $array[$key];
+    unset($array[$key]);
+  }
+  asort($array);
+  return $array;
 }
 
 /**

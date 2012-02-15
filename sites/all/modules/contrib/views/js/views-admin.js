@@ -1,5 +1,17 @@
 Drupal.viewsUi = {};
 
+Drupal.behaviors.viewsUiEditView = {};
+
+/**
+ * Improve the user experience of the views edit interface.
+ */
+Drupal.behaviors.viewsUiEditView.attach = function (context, settings) {
+  // Only show the SQL rewrite warning when the user has chosen the
+  // corresponding checkbox.
+  jQuery('#edit-query-options-disable-sql-rewrite').click(function () {
+    jQuery('.sql-rewrite-warning').toggleClass('js-hide');
+  });
+};
 
 Drupal.behaviors.viewsUiAddView = {};
 
@@ -547,7 +559,7 @@ Drupal.viewsUi.rearrangeFilterHandler.prototype.duplicateGroupsOperator = functi
   dropdowns = this.operator;
 
   // Move the operator to a new row just above the second group.
-  titleRow = $('tr#views-group-title-1');
+  titleRow = $('tr#views-group-title-2');
   newRow = $('<tr class="filter-group-operator-row"><td colspan="5"></td></tr>');
   newRow.find('td').append(this.operator);
   newRow.insertBefore(titleRow);

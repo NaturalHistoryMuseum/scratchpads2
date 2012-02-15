@@ -373,6 +373,9 @@ function field_views_field_default_views_data($field) {
           'title short' => $title_short_delta,
           'help' => t('Delta - Appears in: @bundles.', array('@bundles' => implode(', ', $bundles_names))),
         );
+        $data[$table]['delta']['field'] = array(
+          'handler' => 'views_handler_field_numeric',
+        );
         $data[$table]['delta']['argument'] = array(
           'field' => 'delta',
           'table' => $table,
@@ -412,6 +415,9 @@ function list_field_views_data($field) {
     foreach ($table_data as $field => $field_data) {
       if (isset($field_data['filter']) && $field != 'delta') {
         $data[$table_name][$field]['filter']['handler'] = 'views_handler_filter_field_list';
+      }
+      if (isset($field_data['argument']) && $field != 'delta') {
+        $data[$table_name][$field]['argument']['handler'] = 'views_handler_argument_field_list';
       }
     }
   }

@@ -331,6 +331,9 @@ class views_handler_field extends views_handler {
   /**
    * Get the value that's supposed to be rendered.
    *
+   * This api exists so that other modules can easy set the values of the field
+   * without having the need to change the render method as well.
+   *
    * @param $values
    *   An object containing all retrieved values.
    * @param $field
@@ -369,6 +372,9 @@ class views_handler_field extends views_handler {
         'max_length' => array('default' => ''),
         'word_boundary' => array('default' => TRUE),
         'ellipsis' => array('default' => TRUE),
+        'more_link' => array('default' => FALSE),
+        'more_link_text' => array('default' => '', 'translatable' => TRUE),
+        'more_link_path' => array('default' => ''),
         'strip_tags' => array('default' => FALSE),
         'trim' => array('default' => FALSE),
         'preserve_tags' => array('default' => ''),
@@ -788,6 +794,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
         '#dependency' => array(
           'edit-options-alter-make-link' => array(1),
           'edit-options-alter-alter-text' => array(1),
+          'edit-options-alter-more-link' => array(1),
         ),
       );
 
@@ -828,6 +835,39 @@ If you would like to have the characters %5B and %5D please use the html entity 
         ),
       );
 
+      $form['alter']['more_link'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Add a read-more link if output is trimmed.'),
+        '#description' => t('If checked, a read-more link will be added at the end of the trimmed output'),
+        '#default_value' => $this->options['alter']['more_link'],
+        '#dependency' => array(
+          'edit-options-alter-trim' => array(1),
+        ),
+      );
+
+      $form['alter']['more_link_text'] = array(
+        '#type' => 'textfield',
+        '#title' => t('More link text'),
+        '#default_value' => $this->options['alter']['more_link_text'],
+        '#description' => t('The text which will be displayed on the more link. You may enter data from this view as per the "Replacement patterns" above.'),
+        '#dependency_count' => 2,
+        '#dependency' => array(
+          'edit-options-alter-trim' => array(1),
+          'edit-options-alter-more-link' => array(1),
+        ),
+      );
+      $form['alter']['more_link_path'] = array(
+        '#type' => 'textfield',
+        '#title' => t('More link path'),
+        '#default_value' => $this->options['alter']['more_link_path'],
+        '#description' => t('The path which is used for the more link. You may enter data from this view as per the "Replacement patterns" above.'),
+        '#dependency_count' => 2,
+        '#dependency' => array(
+          'edit-options-alter-trim' => array(1),
+          'edit-options-alter-more-link' => array(1),
+        ),
+      );
+
       $form['alter']['html'] = array(
         '#type' => 'checkbox',
         '#title' => t('Field can contain HTML'),
@@ -844,12 +884,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
         '#description' => t('If checked, all HTML tags will be stripped.'),
         '#default_value' => $this->options['alter']['strip_tags'],
       );
-      $form['alter']['trim_whitespace'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Remove whitespace'),
-        '#description' => t('If checked, all whitespaces at the beginning and the end of the output will be removed.'),
-        '#default_value' => $this->options['alter']['trim_whitespace'],
-      );
+
       $form['alter']['preserve_tags'] = array(
         '#type' => 'textfield',
         '#title' => t('Preserve certain tags'),
@@ -858,6 +893,13 @@ If you would like to have the characters %5B and %5D please use the html entity 
         '#dependency' => array(
           'edit-options-alter-strip-tags' => array(1),
         ),
+      );
+
+      $form['alter']['trim_whitespace'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Remove whitespace'),
+        '#description' => t('If checked, all whitespaces at the beginning and the end of the output will be removed.'),
+        '#default_value' => $this->options['alter']['trim_whitespace'],
       );
 
       $form['alter']['nl2br'] = array(
@@ -1007,16 +1049,23 @@ If you would like to have the characters %5B and %5D please use the html entity 
    */
   function render_text($alter) {
     $value = $this->last_render;
-    if (!empty($this->options['alter']['trim_whitespace'])) {
-      $value = trim($value);
-    }
 
     if (!empty($alter['alter_text']) && $alter['text'] !== '') {
       $tokens = $this->get_render_tokens($alter);
       $value = $this->render_altered($alter, $tokens);
     }
 
-    if ((($this->options['hide_empty'] && empty($value)) || ($this->options['hide_alter_empty'] && empty($this->original_value))) && ($value !== 0 || $this->options['empty_zero'])) {
+    if (!empty($this->options['alter']['trim_whitespace'])) {
+      $value = trim($value);
+    }
+
+    // Check whether the value is empty and return nothing, so the field isn't rendered.
+    // First check whether the field should be hidden if the value(hide_alter_empty = TRUE) /the rewrite is empty (hide_alter_empty = FALSE).
+    // For numeric values you can specify whether "0"/0 should be empty.
+    if ((($this->options['hide_empty'] && empty($value))
+        || ($this->options['hide_alter_empty'] && empty($this->original_value)))
+      && (($value !== 0 && $value !== '0')
+        || $this->options['empty_zero'])) {
       return '';
     }
 
@@ -1024,8 +1073,28 @@ If you would like to have the characters %5B and %5D please use the html entity 
       $value = strip_tags($value, $alter['preserve_tags']);
     }
 
+    $suffix = '';
     if (!empty($alter['trim']) && !empty($alter['max_length'])) {
+      $length = strlen($value);
       $value = $this->render_trim_text($alter, $value);
+      if ($this->options['alter']['more_link'] && strlen($value) < $length) {
+        $tokens = $this->get_render_tokens($alter);
+        $more_link_text = $this->options['alter']['more_link_text'] ? $this->options['alter']['more_link_text'] : t('more');
+        $more_link_text = strtr(filter_xss_admin($more_link_text), $tokens);
+        $more_link_path = $this->options['alter']['more_link_path'];
+        $more_link_path = strip_tags(decode_entities(strtr($more_link_path, $tokens)));
+
+        // Take sure that paths which was runned through url() does work as well.
+        $base_path = base_path();
+        // Checks whether the path starts with the base_path.
+        if (strpos($more_link_path, $base_path) === 0) {
+          $more_link_path = drupal_substr($more_link_path, drupal_strlen($base_path));
+        }
+
+        $more_link = l($more_link_text, $more_link_path);
+
+        $suffix .= " " . $more_link;
+      }
     }
 
     if (!empty($alter['nl2br'])) {
@@ -1039,7 +1108,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
       $value = $this->render_as_link($alter, $value, $tokens);
     }
 
-    return $value;
+    return $value . $suffix;
   }
 
   /**
@@ -1324,6 +1393,8 @@ If you would like to have the characters %5B and %5D please use the html entity 
 
 /**
  * A special handler to take the place of missing or broken handlers.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_broken extends views_handler_field {
   function ui_name($short = FALSE) {
@@ -1346,6 +1417,8 @@ class views_handler_field_broken extends views_handler_field {
 
 /**
  * Render a numeric value as a size.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_file_size extends views_handler_field {
   function option_definition() {
@@ -1386,7 +1459,9 @@ class views_handler_field_file_size extends views_handler_field {
 }
 
 /**
- * A handler to run a field through simple XSS filtering
+ * A handler to run a field through simple XSS filtering.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_xss extends views_handler_field {
   function render($values) {

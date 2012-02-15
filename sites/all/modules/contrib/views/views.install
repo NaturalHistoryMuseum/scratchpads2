@@ -600,12 +600,32 @@ function views_schema_7300() {
 /**
  * Make sure the human_name field is added to the views_view table.
  *
- * If you updated from 6.x-2.x-dev to 7.x-3.x you had already schema
- * version 6014, so the update 6013 isn't runned, and never was.
- * As a result the human_name field is missing in the database.
+ * If you updated from 6.x-2.x-dev to 7.x-3.x you already had schema
+ * version 6014, so update 6013 never was nor will be run. As a result,
+ * the human_name field is missing from the database.
  *
- * Add the human_name field if it doesn't exists before.
+ * This will add the human_name field if it doesn't already exist.
  */
 function views_update_7300() {
   views_update_6013();
+}
+
+function views_schema_7301() {
+  $schema = views_schema(__FUNCTION__);
+  $schema['views_view']['fields']['name']['length'] = 128;
+  return $schema;
+}
+
+/**
+ * Enlarge the name column
+ */
+function views_update_7301() {
+  $new_field = array(
+    'type' => 'varchar',
+    'length' => '128',
+    'default' => '',
+    'not null' => TRUE,
+    'description' => 'The unique name of the view. This is the primary field views are loaded from, and is used so that views may be internal and not necessarily in the database. May only be alphanumeric characters plus underscores.',
+  );
+  db_change_field('views_view', 'name', 'name', $new_field);
 }
