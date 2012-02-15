@@ -45,6 +45,11 @@ function tui_ajax_form_callback_callback(&$form, &$form_state){
     '#type' => 'ajax',
     '#commands' => array()
   );
+  if(isset($form_state['values']['tid'])){
+    $ajax['#commands'][] = ajax_command_replace('[data-tui-this-term="' . $form_state['values']['tid'] . '"] div', theme('tui_term_name', array(
+      'term' => taxonomy_term_load($form_state['values']['tid'])
+    )));
+  }
   foreach($form_state['values']['parent'] as $parent_tid){
     $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"]', 'removeClass', array(
       'tui-no-children tui-open'
@@ -54,6 +59,9 @@ function tui_ajax_form_callback_callback(&$form, &$form_state){
     ));
     $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"] div span', 'click');
   }
+  // Unfortunately, we unset the actions as the form must be reloaded before
+  // it can be used for editing again!
+  unset($form['actions']);
   $ajax['#commands'][] = ajax_command_insert(NULL, drupal_render($form));
   $ajax['#commands'][] = ajax_command_prepend(NULL, theme('status_messages'));
   return $ajax;
