@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * FIXME - Remove the horrible deltas added by the facetapi module, and replace
+ * them with the improved code in the scratchpads_image_extension module.
+ */
+
+/**
  * Implementation of hook_menu_alter().
  */
 function scratchpads_biblio_search_menu_alter(&$items){
@@ -293,7 +298,7 @@ function scratchpads_biblio_search_facetapi_default_facet_settings(){
       'soft_limit' => 20,
       'show_expanded' => 0
     );
-    $facets[] = $facet;
+    $facets[$facet_id] = $facet;
   }
   return $facets;
 }

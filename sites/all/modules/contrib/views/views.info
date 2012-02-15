@@ -10,6 +10,7 @@ stylesheets[all][] = css/views.css
 dependencies[] = ctools
 ; Handlers
 files[] = handlers/views_handler_area.inc
+files[] = handlers/views_handler_area_result.inc
 files[] = handlers/views_handler_area_text.inc
 files[] = handlers/views_handler_area_view.inc
 files[] = handlers/views_handler_argument.inc
@@ -32,6 +33,7 @@ files[] = handlers/views_handler_field_numeric.inc
 files[] = handlers/views_handler_field_prerender_list.inc
 files[] = handlers/views_handler_field_time_interval.inc
 files[] = handlers/views_handler_field_serialized.inc
+files[] = handlers/views_handler_field_machine_name.inc
 files[] = handlers/views_handler_field_url.inc
 files[] = handlers/views_handler_filter.inc
 files[] = handlers/views_handler_filter_boolean_operator.inc
@@ -92,6 +94,7 @@ files[] = modules/comment/views_plugin_row_comment_view.inc
 files[] = modules/contact/views_handler_field_contact_link.inc
 files[] = modules/field/views_handler_field_field.inc
 files[] = modules/field/views_handler_relationship_entity_reverse.inc
+files[] = modules/field/views_handler_argument_field_list.inc
 files[] = modules/field/views_handler_filter_field_list.inc
 files[] = modules/filter/views_handler_field_filter_format_name.inc
 files[] = modules/locale/views_handler_argument_locale_group.inc
@@ -191,6 +194,7 @@ files[] = modules/user/views_handler_filter_user_roles.inc
 files[] = modules/user/views_plugin_argument_default_current_user.inc
 files[] = modules/user/views_plugin_argument_default_user.inc
 files[] = modules/user/views_plugin_argument_validate_user.inc
+files[] = modules/user/views_plugin_row_user_view.inc
 ; Plugins
 files[] = plugins/views_plugin_access.inc
 files[] = plugins/views_plugin_access_none.inc
@@ -210,12 +214,13 @@ files[] = plugins/views_plugin_display.inc
 files[] = plugins/views_plugin_display_attachment.inc
 files[] = plugins/views_plugin_display_block.inc
 files[] = plugins/views_plugin_display_default.inc
+files[] = plugins/views_plugin_display_embed.inc
 files[] = plugins/views_plugin_display_extender.inc
 files[] = plugins/views_plugin_display_feed.inc
+files[] = plugins/views_plugin_display_page.inc
 files[] = plugins/views_plugin_exposed_form_basic.inc
 files[] = plugins/views_plugin_exposed_form.inc
 files[] = plugins/views_plugin_exposed_form_input_required.inc
-files[] = plugins/views_plugin_display_page.inc
 files[] = plugins/views_plugin_localization_core.inc
 files[] = plugins/views_plugin_localization.inc
 files[] = plugins/views_plugin_localization_none.inc
@@ -287,9 +292,9 @@ files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
 
-; Information added by drupal.org packaging script on 2011-12-18
-version = "7.x-3.0"
+; Information added by drupal.org packaging script on 2012-02-14
+version = "7.x-3.1+57-dev"
 core = "7.x"
 project = "views"
-datestamp = "1324170450"
+datestamp = "1329180208"
 

@@ -182,6 +182,15 @@ function user_views_data() {
     ),
   );
 
+  // link
+  $data['users']['view_user'] = array(
+    'field' => array(
+      'title' => t('Link'),
+      'help' => t('Provide a simple link to the user.'),
+      'handler' => 'views_handler_field_user_link',
+    ),
+  );
+
   // created field
   $data['users']['created'] = array(
     'title' => t('Created date'), // The item it appears as on the UI,
@@ -293,6 +302,9 @@ function user_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_boolean',
       'click sortable' => TRUE,
+      'output formats' => array(
+        'active-blocked' => array(t('Active'), t('Blocked')),
+      ),
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_boolean_operator',
@@ -377,6 +389,7 @@ function user_views_data() {
     'filter' => array(
       'handler' => 'views_handler_filter_user_roles',
       'numeric' => TRUE,
+      'allow empty' => TRUE,
     ),
     'argument' => array(
       'handler' => 'views_handler_argument_users_roles_rid',
@@ -513,6 +526,17 @@ function user_views_data() {
 function user_views_plugins() {
   return array(
     'module' => 'views', // This just tells our themes are elsewhere.
+    'row' => array(
+      'user' => array(
+        'title' => t('User'),
+        'help' => t('Display the user with standard user view.'),
+        'handler' => 'views_plugin_row_user_view',
+        'base' => array('users'), // only works with 'users' as base.
+        'uses options' => TRUE,
+        'type' => 'normal',
+        'help topic' => 'style-users',
+      ),
+    ),
     'argument default' => array(
       'user' => array(
         'title' => t('User ID from URL'),

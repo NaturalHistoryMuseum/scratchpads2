@@ -277,7 +277,7 @@ function hook_views_plugins_alter(&$plugins) {
  */
 function hook_views_api() {
   return array(
-    'api' => 2,
+    'api' => 3,
     'path' => drupal_get_path('module', 'example') . '/includes/views',
     'template path' => drupal_get_path('module', 'example') . 'themes',
   );
@@ -741,6 +741,20 @@ function hook_views_preview_info_alter(&$rows, $view) {
 function hook_views_ui_display_top_links_alter(&$links, $view, $display_id) {
   // example code here
 }
+
+/**
+ * This hook allows to alter the commands which are used on a views ajax
+ * request.
+ *
+ * @param $commands
+ *   An array of ajax commands
+ * @param $view view
+ *   The view which is requested.
+ */
+function hook_views_ajax_data_alter(&$commands, $view) {
+}
+
+
 
 /**
  * @}
