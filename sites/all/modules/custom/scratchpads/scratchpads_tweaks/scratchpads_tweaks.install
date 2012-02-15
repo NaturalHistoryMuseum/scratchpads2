@@ -176,6 +176,27 @@ function scratchpads_tweaks_install(){
       'region' => 'sidebar',
       'pages' => '',
       'cache' => -1
+    ),
+    // Admin theme blocks
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 1,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'scratchpads_help',
+      'delta' => 'scratchpads_help',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1
     )
   );
   $query = db_insert('block')->fields(array(
