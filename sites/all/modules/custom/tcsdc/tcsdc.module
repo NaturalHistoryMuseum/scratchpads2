@@ -270,6 +270,12 @@ function tcsdc_generate_tab_file(){
   tcsdc_generate_tab_file_recurse($id, $file_resource, $batch);
   fclose($file_resource);
   db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
+  // Delete the batch, as we're now done with it.
+  db_delete('batch')->condition('bid', $batch['id'])->execute();
+  // FIXME - Added for debugging. REMOVE!
+  drupal_set_message('Created file: '.$filename);
+  // Redirect to the correct location.
+  drupal_goto('');
 }
 
 /** 
