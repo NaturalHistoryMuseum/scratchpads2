@@ -1,6 +1,9 @@
 /* AJAX */
 .progress-disabled,.ajax-progress,.throbber,.edit-term-link{
- float:right;
+ float:right !important;
+}
+.ajax-progress-throbber{
+ display:none;
 }
 #tui-tree-form .progress-disabled{
  float:none !important;
