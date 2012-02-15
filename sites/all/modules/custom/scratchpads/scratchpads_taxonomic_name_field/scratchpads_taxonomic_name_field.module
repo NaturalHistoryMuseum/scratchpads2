@@ -115,7 +115,7 @@ function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
     'show_expanded' => 0
   );
   return array(
-    $facet
+    'im_field_taxonomic_name' => $facet
   );
 }
 
