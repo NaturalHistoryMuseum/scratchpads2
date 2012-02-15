@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function actions_permissions_permission() {
+  $permissions = array();
+  $actions = actions_list() + _actions_permissions_advanced_actions_list();
+  foreach ($actions as $callback => $action) {
+    $key = !empty($action['key']) ? $action['key'] : $callback;
+    $permission = actions_permissions_get_perm($action['label'], $key);
+
+    $permissions[$permission] = array(
+      'title' => t('Execute %label', array('%label' => $action['label'])),
+      'description' => t('Execute action %label (!key).', array('%label' => $action['label'], '!key' => $key)),
+    );
+  }
+  return $permissions;
+}
+
+/**
+ * Get a list of advanced actions (created through the Action UI).
+ *
+ * Intentionally not using the "list callback" of the action plugin, so that
+ * this module doesn't need to depend on Views Bulk Operations.
+ */
+function _actions_permissions_advanced_actions_list() {
+  $actions = array();
+  $result = db_query("SELECT * FROM {actions} WHERE parameters > ''");
+  foreach ($result as $action) {
+    $parameters = unserialize($action->parameters);
+    $actions[$action->aid] = array(
+      'label' => $action->label,
+      'type' => $action->type,
+      'key' => $action->callback . (empty($parameters) ? '' : ':'. md5($action->parameters)),
+    );
+  }
+  return $actions;
+}
+
+/**
+ * Returns the permission name used in user_access().
+ */
+function actions_permissions_get_perm($label, $callback) {
+  return "execute $callback";
+}
