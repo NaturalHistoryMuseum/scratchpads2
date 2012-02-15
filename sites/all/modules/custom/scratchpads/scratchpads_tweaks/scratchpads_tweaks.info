@@ -51,3 +51,5 @@ dependencies[] = scratchpads_image_extension
 ; Custom modules
 dependencies[] = spm
 dependencies[] = tui
+dependencies[] = silver
+dependencies[] = eol
