@@ -293,7 +293,7 @@ function scratchpads_biblio_search_facetapi_default_facet_settings(){
       'soft_limit' => 20,
       'show_expanded' => 0
     );
-    $facets[] = $facet;
+    $facets[$facet_id] = $facet;
   }
   return $facets;
 }
