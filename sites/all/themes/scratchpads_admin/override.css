@@ -1,3 +1,5 @@
+/* Forms */
+
 .form-layout-default .column-main .form-actions {
 	display: block;
 }
@@ -8,4 +10,53 @@
 
 .form-layout-default {
 	background: none;
+}
+
+
+/* Help system */
+
+#overlay-titlebar{
+  position: absolute;
+  right: 0;
+}
+
+#overlay-titlebar #overlay-title-wrapper{
+  position: absolute;
+  right: 25px;
+  top: 5px;
+  min-width: 300px;
+}
+#overlay-titlebar #overlay-title-wrapper div.add-or-remove-shortcuts{
+  position: static;
+  float: right;
+}
+
+#overlay-titlebar #overlay-title-wrapper .help-shortcut a{
+  background-image: url('images/help.png')!important;
+  background-position: 5px 6px;
+}
+
+.region-help{
+  padding: 10px 5px;
+}
+
+.region-help,
+.region-help .block,
+.region-help .block-content{
+  background-color: #5CA2B6!important;
+  border: none;
+  color: #fff;
+}
+
+.region-help .block{
+  margin-bottom: 0!important;
+}
+
+.region-help .block-content a{
+  color: #C2DCE3;
+  text-decoration: underline;
+}
+
+.js #overlay-content .region-help{
+  display: none;
 }

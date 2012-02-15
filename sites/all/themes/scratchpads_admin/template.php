@@ -23,3 +23,22 @@ function scratchpads_admin_theme_registry_alter(&$theme_registry){
     }
   }
 }
+
+/**
+ * Postprocessor for theme('page').
+ */
+function scratchpads_admin_process_page(&$variables){
+  // If help text exists, add the help shortcut icon
+  if(isset($variables['page']['help']) && count($variables['page']['help'])){
+    $variables['title_suffix']['help'] = array(
+      '#prefix' => '<div class="add-or-remove-shortcuts help-shortcut">',
+      '#type' => 'link',
+      '#title' => '<span class="icon"></span><span class="text">Help</span>',
+      '#href' => request_path(),
+      '#options' => array(
+        'html' => TRUE
+      ),
+      '#suffix' => '</div>'
+    );
+  }
+}
