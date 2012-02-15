@@ -30,6 +30,9 @@ function scratchpads_admin_theme_registry_alter(&$theme_registry){
 function scratchpads_admin_process_page(&$variables){
   // If help text exists, add the help shortcut icon
   if(isset($variables['page']['help']) && count($variables['page']['help'])){
+  	// Ensure the shortcut.css is available as we want to use some of the styles
+    $path = drupal_get_path('theme', 'rubik');
+    drupal_add_css($path . '/shortcut.css');
     $variables['title_suffix']['help'] = array(
       '#prefix' => '<div class="add-or-remove-shortcuts help-shortcut">',
       '#type' => 'link',
