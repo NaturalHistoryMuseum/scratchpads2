@@ -11,7 +11,10 @@ function scratchpads_admin_js_alter(&$javascript){
 }
 
 /**
- * Theme function
+ * Implements hook_theme_registry_alter().
+ * 
+ * Loop through the theme registry to remove rubik/templates/form-default, and
+ * replace it with ours.
  */
 function scratchpads_admin_theme_registry_alter(&$theme_registry){
   foreach($theme_registry as $key => $value){
