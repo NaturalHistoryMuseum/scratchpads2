@@ -1,6 +1,148 @@
 <?php
+
 /**
  * @file
  */
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_image_extension_facetapi_facet_info($searcher_info = FALSE){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_field_imaging_technique' => array(
+      'name' => 'im_field_imaging_technique',
+      'label' => t('Imaging technique'),
+      'description' => t('Imaging technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_keywords' => array(
+      'name' => 'im_field_keywords',
+      'label' => t('Image keywords'),
+      'description' => t('Image keywords'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_preparation_technique' => array(
+      'name' => 'im_field_preparation_technique',
+      'label' => t('Preparation technique'),
+      'description' => t('Preparation technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    )
+  );
+}
 
-// Drupal needs this blank file.
+/**
+ * Implements hook_ctools_plugin_api().
+ * 
+ * Magic happens just because this function exists (fucked up, I know).
+ */
+function scratchpads_image_extension_ctools_plugin_api(){}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_image_extension_facetapi_default_facet_settings(){
+  $facet_infos = scratchpads_image_extension_facetapi_facet_info();
+  $facets = array();
+  foreach($facet_infos as $key => $facet_info){
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $key;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $key;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'count' => -49,
+        'display' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'none',
+      'soft_limit' => 20,
+      'nofollow' => 1,
+      'show_expanded' => 0
+    );
+    $facets[$key] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_image_extension_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_image_extension_facetapi_facet_info();
+    foreach(scratchpads_image_extension_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_image_extension_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'media_gallery_page_image_extensions';
+  $context->description = t('Media gallery page image extensions');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'gallery*' => 'gallery*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_image_extension_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['media_gallery_page_image_extensions'] = $context;
+  return $export;
+}
