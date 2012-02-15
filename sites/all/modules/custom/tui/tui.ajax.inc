@@ -254,17 +254,21 @@ function tui_taxonomy_form_term_delete($form, $form_state, $tids = ''){
       '#type' => 'value',
       '#value' => $tids
     ),
-    'cancel' => array(
-      '#type' => 'button',
-      '#title' => t('Cancel'),
-      '#value' => t('Cancel'),
-      '#ajax' => $ajax
-    ),
-    'submit' => array(
-      '#type' => 'submit',
-      '#title' => t('Delete'),
-      '#value' => t('Delete'),
-      '#ajax' => $ajax
+    array(
+      '#prefix' => '<div id="edit-actions" class="form-actions form-wrapper">',
+      '#suffix' => '</div>',
+      'cancel' => array(
+        '#type' => 'button',
+        '#title' => t('Cancel'),
+        '#value' => t('Cancel'),
+        '#ajax' => $ajax
+      ),
+      'submit' => array(
+        '#type' => 'submit',
+        '#title' => t('Delete'),
+        '#value' => t('Delete'),
+        '#ajax' => $ajax
+      )
     )
   );
 }

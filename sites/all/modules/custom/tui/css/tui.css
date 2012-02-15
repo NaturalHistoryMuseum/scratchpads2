@@ -178,6 +178,9 @@
  padding:5px;
  margin:5px 3px 0 0;
 }
+input.button-no{
+ padding:2px 10px 2px 25px !important;
+}
 #tui-tree-form input.form-autocomplete{
  padding:2px;
 }
