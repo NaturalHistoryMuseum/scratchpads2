@@ -217,7 +217,7 @@ input.button-no{
 #edit-tui-search-input-button, #edit-tui-cancel-input-button{
  border:none;
  background-repeat:no-repeat;
- backgrond-position:50% 50%;
+ background-position:50% 50% !important;
  width:20px !important;
  margin:0 !important;
  padding:0 !important;
@@ -234,6 +234,9 @@ input.button-no{
 #tui-search-form, #tui-search-form .form-item, #tui-search-form .form-submit{
  padding:0 !important;
  margin:0 !important;
+}
+#tui-search-form .form-item-tui-search-input{
+ border:none !important;
 }
 .tui-form #autocomplete{
  font-size:90%;
