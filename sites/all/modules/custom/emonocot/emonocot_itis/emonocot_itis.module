@@ -55,7 +55,6 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       
       //We need to add our new groups to the groups in itis_term
       module_load_include('fields.inc', 'itis_term');      
-      $emonocot_groups = emonocot_itis_groups();
       foreach(itis_term_groups() as $itis_group){
       	foreach(emonocot_itis_groups() as $em_group){
       	  if($em_group['parent_name'] == $itis_group['group_name']) {
@@ -65,7 +64,14 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       	  }
       	}
       }
-      
+      //...and do the same for fields
+      foreach(emonocot_itis_fields_groups() as $key => $fields){
+        $group = field_group_load_field_group($key, 'taxonomy_term', $form_state['vocabulary']->machine_name, 'form');
+        foreach($fields as $field){
+          $group->children[] = $field;
+        }
+        field_group_group_save($group);
+      }
     //}
   }
 }

@@ -1,6 +1,6 @@
 <?php
-define('EMONOCOT_QUERY_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=search&search=');
-define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=details_tcs&id=');
+define('EMONOCOT_QUERY_URL', 'http://test.e-monocot.org/wcsTaxonExtractor/endpoint?scratchpad=scratchpad&function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://test.e-monocot.org/wcsTaxonExtractor/endpoint?scratchpad=scratchpad&function=details_tcs&id=');
 
 /**
  * Implementation of hook_classification_import_form
