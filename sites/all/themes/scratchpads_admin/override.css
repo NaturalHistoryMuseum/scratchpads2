@@ -1,0 +1,11 @@
+.form-layout-default .column-main .form-actions {
+	display: block;
+}
+
+.column-main {
+	width: 100% !important;
+}
+
+.form-layout-default {
+	background: none;
+}

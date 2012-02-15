@@ -1,0 +1,5 @@
+name = Scratchpads Admin
+description = Scratchpads administration theme.
+base theme = rubik
+core = 7.x
+stylesheets[screen][] = override.css

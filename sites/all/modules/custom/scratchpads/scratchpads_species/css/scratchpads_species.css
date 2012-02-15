@@ -59,12 +59,14 @@
     font-size: 0.9em;
 }
 
-#block-views-species-specimens-overview-block .view-content{
-  display: inline-block;
+#block-views-species-specimens-overview-block .attachment-before{
+  float: left;
+  max-width: 250px;
 }
 
-#block-views-species-specimens-overview-block .view-footer{
-  float:right;
+#block-views-species-specimens-overview-block .view-content,
+#block-views-species-specimens-overview-block .attachment-after{
+  text-align: right;
 }
 
 /* Show fiew filter links and hide form if javascript is enabled */

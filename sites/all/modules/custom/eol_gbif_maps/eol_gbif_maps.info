@@ -1,0 +1,5 @@
+name = EOL/GBIF taxon distribution maps.
+description = "Adds an overlay to a Google map on a taxon page which pulls data from a service provided by EOL/GBIF."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = gm3

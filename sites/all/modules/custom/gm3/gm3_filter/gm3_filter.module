@@ -31,8 +31,6 @@ function gm3_filter_menu(){
  * Implementation of hook_library().
  */
 function gm3_filter_library(){
-  // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     'filter_helper' => array(
       'title' => t('Filter helper code'),
@@ -40,7 +38,7 @@ function gm3_filter_library(){
       'version' => 1,
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3_filter') . "/js/gm3_filter$min.js"
+          'data' => drupal_get_path('module', 'gm3_filter') . "/js/gm3_filter.js"
         )
       ),
       'dependencies' => array(

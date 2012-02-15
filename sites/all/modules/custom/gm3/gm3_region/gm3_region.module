@@ -46,8 +46,6 @@ function gm3_region_menu(){
  * select the subregions (TDWG 4).
  */
 function gm3_region_library(){
-  // Whether or not to use the minified versions of the code.
-  $min = variable_get('gm3_use_minified', TRUE) ? '.min' : '';
   return array(
     // Enable the clicking of countries.
     'region' => array(
@@ -56,7 +54,7 @@ function gm3_region_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3_region') . "/js/gm3_region.region$min.js"
+          'data' => drupal_get_path('module', 'gm3_region') . "/js/gm3_region.region.js"
         ),
         array(
           'data' => array(

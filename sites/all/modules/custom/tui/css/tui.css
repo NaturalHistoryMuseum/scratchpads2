@@ -1,6 +1,9 @@
 /* AJAX */
-.progress-disabled,.ajax-progress,.throbber,.edit-term-link{
- float:right;
+#tui-tree .progress-disabled,#tui-tree .ajax-progress,#tui-tree .throbber,#tui-tree .edit-term-link{
+ float:right !important;
+}
+#tui-tree .ajax-progress-throbber{
+ display:none;
 }
 #tui-tree-form .progress-disabled{
  float:none !important;
@@ -178,6 +181,9 @@
  padding:5px;
  margin:5px 3px 0 0;
 }
+input.button-no{
+ padding:2px 10px 2px 25px !important;
+}
 #tui-tree-form input.form-autocomplete{
  padding:2px;
 }
@@ -211,7 +217,7 @@
 #edit-tui-search-input-button, #edit-tui-cancel-input-button{
  border:none;
  background-repeat:no-repeat;
- backgrond-position:50% 50%;
+ background-position:50% 50% !important;
  width:20px !important;
  margin:0 !important;
  padding:0 !important;
@@ -228,6 +234,9 @@
 #tui-search-form, #tui-search-form .form-item, #tui-search-form .form-submit{
  padding:0 !important;
  margin:0 !important;
+}
+#tui-search-form .form-item-tui-search-input{
+ border:none !important;
 }
 .tui-form #autocomplete{
  font-size:90%;

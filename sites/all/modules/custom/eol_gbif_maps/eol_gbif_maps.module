@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * Implementation of hook_gm3_alter().
+ */
+function eol_gbif_maps_gm3_map_alter(&$map){
+  // We add special data to a google map on taxonomy term pages only.
+  if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
+    // Now we need to calculate the GBIF taxon id for this term name, and then
+    // add the eol/gbif library to the map.
+    // First we check to see if we've loaded this term before, and if so, we
+    // use that data.
+    $results = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute();
+    if(count($results)){
+      foreach($results as $result){
+        $map['libraries']['eol_gbif_maps_overlay'] = array(
+          'module' => 'eol_gbif_maps',
+          'taxon_id' => $result->taxon_id
+        );
+      }
+    }else{
+      $term = taxonomy_term_load(arg(2));
+      $xml = new SimpleXMLElement('http://data.gbif.org/ws/rest/taxon/list?scientificname=' . urlencode($term->name), 0, TRUE);
+      $xml->registerXPathNamespace('gbif', 'http://portal.gbif.org/ws/response/gbif');
+      $xml->registerXPathNamespace('tc', 'http://rs.tdwg.org/ontology/voc/TaxonConcept#');
+      $result = $xml->xpath("gbif:dataProviders/gbif:dataProvider[@gbifKey='1']/gbif:dataResources/gbif:dataResource/gbif:taxonConcepts/tc:TaxonConcept[1]");
+      if(count($result)){
+        $result = array_shift($result);
+        foreach($result->attributes() as $key => $value){
+          if($key == 'gbifKey'){
+            $map['libraries']['eol_gbif_maps_overlay'] = array(
+              'module' => 'eol_gbif_maps',
+              'taxon_id' => "$value"
+            );
+            // Insert into the eol_gbif_maps_tid_map table.
+            db_insert('eol_gbif_maps_tid_map')->fields(array(
+              'tid' => $term->tid,
+              'taxon_id' => "$value"
+            ))->execute();
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_term_update().
+ */
+function eol_gbif_maps_taxonomy_term_update($term){
+  db_delete('eol_gbif_maps_tid_map')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Implementation of hook_taxonomy_term_delete($term).
+ */
+function eol_gbif_maps_taxonomy_term_delete($term){
+  eol_gbif_maps_taxonomy_term_update($term);
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function eol_gbif_maps_library(){
+  return array(
+    'eol_gbif_maps_overlay' => array(
+      'title' => t('EOL/GBIF taxon data overlay'),
+      'website' => 'http://eol.org/',
+      'version' => '1',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . "/js/eol_gbif_maps.js"
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'eol_gbif_maps' => array(
+                  'tile_url' => 'http://maps.eol.org/php/map/getEolTile.php?tile='
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'css' => array(
+        array(
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . '/css/eol_gbif_maps.css'
+        )
+      )
+    )
+  );
+}

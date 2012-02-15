@@ -29,7 +29,7 @@
     this.followline.setPath([]);
     this.followline.setMap(this.GM3.google_map);
   }
-  Drupal.GM3.polygon.prototype.add_polyline = function(points, editable, content, title){
+  Drupal.GM3.polyline.prototype.add_polyline = function(points, editable, content, title){
     var path_points = new Array();
     for( var i = 0; i < points.length; i++) {
       if(points[i]['lat'] == undefined) {

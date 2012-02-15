@@ -1,0 +1,4 @@
+.eol_gbif_map_tile {
+	opacity: 0.5;
+	filter: alpha(opacity = 50);
+}
