@@ -1,7 +1,7 @@
 name = "emonocot_spm"
 description = "Additional fields for SPM as required by the eMonocot project"
 core = "7.x"
-package = "Features"
+package="eMonocot"
 php = "5.2.4"
 dependencies[] = "ctools"
 dependencies[] = "features"
