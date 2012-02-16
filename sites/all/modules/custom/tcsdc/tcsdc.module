@@ -266,10 +266,16 @@ function tcsdc_generate_tab_file(){
   $id = db_query('SELECT id FROM {tcsdc_data} WHERE bid = :bid AND parent NOT IN (SELECT id FROM {tcsdc_data} WHERE bid = :bid)', array(
     ':bid' => $batch['id']
   ))->fetchField();
-  fwrite($file_resource, "guid\tname\tparent guid\trank\n");
+  fwrite($file_resource, "GUID\tTerm name\tParent GUID\tRank\n");
   tcsdc_generate_tab_file_recurse($id, $file_resource, $batch);
   fclose($file_resource);
   db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
+  // Delete the batch, as we're now done with it.
+  db_delete('batch')->condition('bid', $batch['id'])->execute();
+  // FIXME - Added for debugging. REMOVE!
+  drupal_set_message('Created file: ' . $filename);
+  // Redirect to the correct location.
+  drupal_goto('');
 }
 
 /** 
