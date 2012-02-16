@@ -1,0 +1,27 @@
+diff --git a/sites/all/modules/contrib/feeds/feeds.module b/sites/all/modules/contrib/feeds/feeds.module
+index 420c6b5..8ffce5d 100644
+--- a/sites/all/modules/contrib/feeds/feeds.module
++++ b/sites/all/modules/contrib/feeds/feeds.module
+@@ -640,13 +640,15 @@ function feeds_form_node_form_alter(&$form, $form_state) {
+  */
+ function feeds_field_extra_fields() {
+   $extras = array();
+-  foreach (node_type_get_names() as $type => $name) {
+-    if (feeds_get_importer_id($type)) {
+-      $extras['node'][$type]['form']['feeds'] = array(
+-        'label' => t('Feed'),
+-        'description' => t('Feeds module form elements'),
+-        'weight' => 0,
+-      );
++  if (drupal_get_installed_schema_version('feeds', TRUE) == SCHEMA_INSTALLED){
++    foreach (node_type_get_names() as $type => $name) {
++      if (feeds_get_importer_id($type)) {
++        $extras['node'][$type]['form']['feeds'] = array(
++          'label' => t('Feed'),
++          'description' => t('Feeds module form elements'),
++          'weight' => 0,
++        );
++      }
+     }
+   }
+   return $extras;
