@@ -51,6 +51,7 @@ function tcsdc_primary_form($form, &$form_state){
   // First, we need to get the TCS form definitions from the respective modules.
   // We do this by getting the tcsdc defintions and looping through each.
   $form = module_invoke_all('tcsdc_form', $form, $form_state);
+  $form['#action'] = url('admin/structure/taxonomy/tcs-import');
   if(count($form)){
     if(count($form) == 1){
       foreach($form as $key => $value){
@@ -269,13 +270,6 @@ function tcsdc_generate_tab_file(){
   fwrite($file_resource, "GUID\tTerm name\tParent GUID\tRank\n");
   tcsdc_generate_tab_file_recurse($id, $file_resource, $batch);
   fclose($file_resource);
-  db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
-  // Delete the batch, as we're now done with it.
-  db_delete('batch')->condition('bid', $batch['id'])->execute();
-  // FIXME - Added for debugging. REMOVE!
-  drupal_set_message('Created file: ' . $filename);
-  // Redirect to the correct location.
-  drupal_goto('');
 }
 
 /** 

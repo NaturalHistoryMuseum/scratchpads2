@@ -1,6 +1,7 @@
 <?php
-define('EMONOCOT_QUERY_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=search&search=');
-define('EMONOCOT_REQUEST_URL', 'http://129.67.24.160/latest/checklist/endpoint?scratchpad=scratchpad&function=details_tcs&id=');
+global $base_url;
+define('EMONOCOT_QUERY_URL', 'http://apps.kew.org/wcsTaxonExtractor/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://apps.kew.org/wcsTaxonExtractor/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
 
 /**
  * Implementation of hook_classification_import_form
@@ -15,7 +16,7 @@ function emonocot_tcs_tcsdc_form($form, $form_state){
     'emonocot' => array(
       '#type' => 'fieldset',
       '#title' => 'emonocot',
-      '#description' => 'Import a classification directly from emonocot' . theme('advanced_help_topic', 'emonocot', 'overview'),
+      '#description' => 'Import a classification directly from "The World Checklist of Monocots"' . theme('advanced_help_topic', 'emonocot', 'overview'),
       '#collapsed' => TRUE,
       '#collapsible' => TRUE,
       'emonocot-status' => array(
