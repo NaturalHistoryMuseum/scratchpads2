@@ -73,6 +73,9 @@ function feeds_cron_job_scheduler_info() {
   $info['feeds_importer_expire'] = array(
     'queue name' => 'feeds_importer_expire',
   );
+  $info['feeds_push_unsubscribe'] = array(
+    'queue name' => 'feeds_push_unsubscribe',
+  );
   return $info;
 }
 
@@ -91,6 +94,10 @@ function feeds_cron_queue_info() {
   );
   $queues['feeds_importer_expire'] = array(
     'worker callback' => 'feeds_importer_expire',
+    'time' => 15,
+  );
+  $queues['feeds_push_unsubscribe'] = array(
+    'worker callback' => 'feeds_push_unsubscribe',
     'time' => 15,
   );
   return $queues;
@@ -145,6 +152,15 @@ function feeds_importer_expire($job) {
     $importer->log('expire', $e->getMessage(), array(), WATCHDOG_ERROR);
   }
   $importer->scheduleExpire();
+}
+
+/**
+ * Scheduler callback for unsubscribing from PuSH hubs.
+ */
+function feeds_push_unsubscribe($job) {
+  $source = feeds_source($job['type'], $job['id']);
+  $fetcher = feeds_plugin('FeedsHTTPFetcher', $source->importer->id);
+  $fetcher->unsubscribe($source);
 }
 
 /**
@@ -395,6 +411,15 @@ function feeds_page_access() {
  * Implements hook_exit().
  */
 function feeds_exit() {
+  // Process any pending PuSH subscriptions.
+  $jobs = feeds_get_subscription_jobs();
+  foreach ($jobs as $job) {
+    if (!isset($job['fetcher']) || !isset($job['source'])) {
+      continue;
+     }
+    $job['fetcher']->subscribe($job['source']);
+  }
+
   if (drupal_static('feeds_log_error', FALSE)) {
     watchdog('feeds', 'Feeds reported errors, visit the Feeds log for details.', array(), WATCHDOG_ERROR, 'admin/reports/dblog/feeds');
   }
@@ -1005,4 +1030,37 @@ function feeds_valid_url($url, $absolute = FALSE) {
   else {
     return (bool) preg_match("/^(?:[\w#!:\.\?\+=&@$'~*,;\/\(\)\[\]\-]|%[0-9a-f]{2})+$/i", $url);
   }
+}
+
+/**
+ * Registers a feed subscription job for execution on feeds_exit().
+ *
+ * @param array $job
+ *   Information about a new job to queue; or if set to NULL (default), leaves
+ *   the current queued jobs unchanged.
+ *
+ * @return
+ *   An array of subscribe jobs to process.
+ *
+ * @see feeds_exit()
+ * @see feeds_get_subscription_jobs()
+ */
+function feeds_set_subscription_job(array $job = NULL) {
+  $jobs = &drupal_static(__FUNCTION__, array());
+  if (isset($job)) {
+    $jobs[] = $job;
+  }
+  return $jobs;
+}
+
+/**
+ * Returns the list of queued jobs to be run.
+ *
+ * @return
+ *   An array of subscribe jobs to process.
+ *
+ * @see feeds_set_subscription_job()
+ */
+function feeds_get_subscription_jobs() {
+  return feeds_set_subscription_job();
 }
