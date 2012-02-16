@@ -1,5 +1,4 @@
-name = Taxon Concept Schema - Downloader and Converter
-description = "Allows a user to specify the URL to a TCS file, or to search a number of repositories, downloading the linked files and converting them to a single CSV file for import via the Feeds module."
+name = Taxon Concept Schema - Downloader and Importer
+description = "Allows a user to specify the URL to a TCS file, or to search a number of repositories, downloading the linked files and importing them into a taxonomy."
 package = "Scratchpads"
-dependencies[] = feeds
 core = 7.x
