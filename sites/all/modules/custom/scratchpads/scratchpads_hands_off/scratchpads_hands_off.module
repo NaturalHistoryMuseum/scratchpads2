@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_hands_off_form_block_admin_display_form_alter(&$form, &$form_state, $form_id){
+  drupal_set_message($form_id);
+}

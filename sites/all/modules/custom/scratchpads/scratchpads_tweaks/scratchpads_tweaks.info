@@ -47,6 +47,7 @@ dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
 dependencies[] = scratchpads_image_extension
+dependencies[] = scratchpads_hands_off
 
 ; Custom modules
 dependencies[] = spm
