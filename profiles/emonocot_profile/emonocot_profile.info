@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name = eMonocot
 description = Install with commonly used features pre-configured.
 version = VERSION
@@ -24,3 +25,10 @@ dependencies[] = field_ui
 dependencies[] = file
 dependencies[] = rdf
 files[] = emonocot_profile.profile
+=======
+name = eMonocot Scratchpad 2
+description = Install an eMonocot Scratchpad 2 site
+core = 7.x
+dependencies[] = emonocot_tweaks
+files[] = emonocot_profile.profile
+>>>>>>> master

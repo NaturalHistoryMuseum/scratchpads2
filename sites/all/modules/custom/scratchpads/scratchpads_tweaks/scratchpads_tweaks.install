@@ -179,16 +179,6 @@ function scratchpads_tweaks_install(){
     ),
     // Admin theme blocks
     array(
-      'module' => 'system',
-      'delta' => 'help',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => 1,
-      'region' => 'help',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
       'module' => 'scratchpads_help',
       'delta' => 'scratchpads_help',
       'theme' => 'scratchpads_admin',

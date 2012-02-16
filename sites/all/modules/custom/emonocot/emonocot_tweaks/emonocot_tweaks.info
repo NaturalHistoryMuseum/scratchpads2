@@ -1,0 +1,9 @@
+name = eMonocot tweaks
+description = Tweaks a Scratchpad into an eMonocot Scratchpad
+core = 7.x
+
+; Make sure we have a Scratchpad
+dependencies[] = scratchpads_tweaks
+
+; eMoncocot-ise
+dependencies[] = emonocot_tweaks
