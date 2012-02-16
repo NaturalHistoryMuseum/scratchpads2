@@ -142,14 +142,18 @@ function eol_submit($form, $form_state){
           array(
             EOL_REQUEST_URL . $parts[0]
           ),
-          $parts[1]
+          $parts[1],
+          $form_state['values']['taxonomy_vid']
         )
       ),
       array(
-        'tcsdc_generate_tab_file',
-        array()
+        'tcsdc_import_terms',
+        array(
+          $form_state['values']['taxonomy_vid']
+        )
       )
     ),
+    'finished' => 'tcsdc_finished_batch',
     'title' => t('Importing'),
     // We use a single multi-pass operation, so the default
     // 'Remaining x of y operations' message will be confusing here.

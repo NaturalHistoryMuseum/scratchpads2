@@ -20,6 +20,11 @@ function tcsdc_schema(){
           'unsigned' => TRUE,
           'not null' => TRUE
         ),
+        'vid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
         'parent' => array(
           'type' => 'varchar',
           'length' => 255
@@ -41,6 +46,27 @@ function tcsdc_schema(){
         ),
         'tcsdc_data_name_index' => array(
           'name'
+        )
+      )
+    ),
+    'tcsdc_ids' => array(
+      'fields' => array(
+        'tid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'id' => array(
+          'type' => 'varchar',
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'tid'
+      ),
+      'indexes' => array(
+        'tcsdc_ids_id' => array(
+          'id'
         )
       )
     )

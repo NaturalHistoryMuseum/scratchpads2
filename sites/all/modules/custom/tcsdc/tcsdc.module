@@ -97,6 +97,18 @@ function tcsdc_primary_form($form, &$form_state){
 }
 
 /**
+ * Implements hook_drupal_goto_alter().
+ */
+function tcsdc_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if($batch['source_url'] == 'admin/structure/taxonomy/tcs-import'){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
  * Helper function for setting variables that need to be accessed in different
  * functions.
  */
@@ -112,7 +124,7 @@ function tcsdc_variable($name, $value = NULL){
  * Batch downloader.  This does the recursive downloading of the XML.  The XML
  * is converted and saved in the database, eventually to be output as CSV.
  */
-function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
+function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
   if(!isset($context['sandbox']['progress'])){
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = $total;
@@ -128,7 +140,7 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
   tcsdc_variable('tcsdc_urls', $context['sandbox']['urls']);
   tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
   tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
-  tcsdc_batch_downloader_helper($url);
+  tcsdc_batch_downloader_helper($url, $vid);
   $context['sandbox']['urls'] = tcsdc_variable('tcsdc_urls');
   $context['sandbox']['vernacular_urls'] = tcsdc_variable('tcsdc_vernaculars');
   $context['sandbox']['synonym_urls'] = tcsdc_variable('tcsdc_synonyms');
@@ -160,9 +172,80 @@ function tcsdc_batch_downloader($urls, $total = 1000000, &$context){
 }
 
 /**
+ * Import the terms
+ */
+function tcsdc_import_terms($vid, &$context){
+  $batch = batch_get();
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->execute();
+  foreach($results as $term){
+    $id = $term->id;
+    $parent = $term->parent;
+    $data = unserialize($term->data);
+    unset($term->data, $term->id, $term->bid, $term->parent);
+    $previously_imported = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $id)->execute()->fetch();
+    if($previously_imported){
+      $term->tid = $previously_imported->tid;
+    }
+    $parent_tid = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $parent)->execute()->fetch();
+    if($parent_tid){
+      if(taxonomy_term_load($parent_tid->tid)){
+        $term->parent = $parent_tid->tid;
+      }
+    }
+    taxonomy_term_save($term);
+    if(!$previously_imported){
+      db_insert('tcsdc_ids')->fields(array(
+        'tid' => $term->tid,
+        'id' => $id
+      ))->execute();
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ */
+function tcsdc_taxonomy_term_delete($term){
+  db_delete('tcsdc_ids')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Implements hook_taxonomy_term_update().
+ */
+function tcsdc_taxonomy_term_update($term){
+  // Note, we delete a from the list of ids if it is updated.  This means that
+  // if the classification is refreshed, the update is not lost (although an
+  // additional term with the same name will be imported).
+  tcsdc_taxonomy_term_delete($term);
+}
+
+/**
+ * Finish function
+ */
+function tcsdc_finished_batch(&$context){
+  $batch = batch_get();
+  // We get the vid from the tcsdc_data table (clunky I know).
+  $vid = db_select('tcsdc_data', 't')->fields('t', array(
+    'vid'
+  ))->condition('bid', $batch['id'])->execute()->fetch();
+  db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
+  if($vid){
+    $tree = taxonomy_get_tree($vid->vid, 0, 1);
+    $term = array_shift($tree);
+    $vocabulary = taxonomy_vocabulary_load($vid->vid);
+    drupal_goto('taxonomy/term/' . $term->tid, array(
+      'fragment' => 'overlay=admin/structure/taxonomy/' . $vocabulary->machine_name
+    ));
+  }else{
+    drupal_set_message(t('There has been an error with the import', 'error'));
+    drupal_goto();
+  }
+}
+
+/**
  * Helper for the above function
  */
-function tcsdc_batch_downloader_helper($url){
+function tcsdc_batch_downloader_helper($url, $vid){
   $xml = new SimpleXMLElement($url, 0, TRUE);
   $batch = &batch_get();
   $data = array();
@@ -249,6 +332,7 @@ function tcsdc_batch_downloader_helper($url){
       'id' => $url,
       'name' => $data['simple'],
       'bid' => $batch['id'],
+      'vid' => $vid,
       'parent' => $data['parent'],
       'data' => serialize($data)
     ))->execute();
@@ -258,7 +342,6 @@ function tcsdc_batch_downloader_helper($url){
 /**
  * Final step of the download.  This outputs the data into a tab delimitted file
  * which can then be imported using the feeds module.
- */
 function tcsdc_generate_tab_file(){
   $batch = &batch_get();
   $filename = file_create_filename('tcsdc', 'public://');
@@ -271,10 +354,10 @@ function tcsdc_generate_tab_file(){
   tcsdc_generate_tab_file_recurse($id, $file_resource, $batch);
   fclose($file_resource);
 }
+ */
 
 /** 
  * Recursive function to ensure that the terms are in the correct order.
- */
 function tcsdc_generate_tab_file_recurse($id, $file_resource, &$batch){
   // Get the data for this id
   $results = db_select('tcsdc_data', 't')->fields('t')->condition('id', $id)->condition('bid', $batch['id'])->execute();
@@ -289,3 +372,4 @@ function tcsdc_generate_tab_file_recurse($id, $file_resource, &$batch){
     }
   }
 }
+ */
