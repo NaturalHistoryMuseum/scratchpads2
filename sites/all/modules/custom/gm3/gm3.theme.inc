@@ -4,6 +4,14 @@
  * Simple theme function
  */
 function theme_gm3_map($variables){
+  $map = gm3_get_map($variables);
+  return drupal_render($map);
+}
+
+/**
+ * Function to return a renderable array for a map.
+ */
+function gm3_get_map($variables){
   // No need to use drupal_static here!
   static $info = array();
   if(!isset($variables['map']['id'])){

@@ -678,7 +678,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
           $items[$key]['editable'] = FALSE;
           $items[$key]['colour'] = variable_get('gm3_default_point_colour', 0);
         }
-        $element = theme('gm3_map', array(
+        module_load_include('theme.inc', 'gm3');
+        $element = gm3_get_map(array(
           'map' => array(
             'id' => $id,
             'libraries' => array(
@@ -704,7 +705,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             'editable' => FALSE
           );
         }
-        $element = theme('gm3_map', array(
+        module_load_include('theme.inc', 'gm3');
+        $element = gm3_get_map(array(
           'map' => array(
             'id' => $id,
             'libraries' => array(
@@ -770,9 +772,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         }
       }
       if($display_map){
-        $element = theme('gm3_map', array(
-          'map' => $map
-        ));
+        module_load_include('theme.inc', 'gm3');
+        $element = gm3_get_map($map);
       }
       break;
     default:
@@ -833,27 +834,26 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
       foreach($items as $key => $item){
         $items[$key]['editable'] = TRUE;
       }
-      $content = theme('gm3_map', array(
-        'map' => array(
-          'id' => $element['#field_name'],
-          'libraries' => array(
-            'point' => array(
-              'points' => $items
-            ),
-            'field_point' => array(
-              'module' => 'gm3_field'
-            )
-          ),
-          'tools' => array(
-            theme('gm3_point_button', array(
-              'id' => $element['#field_name']
-            ))
-          ),
-          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-        )
-      ));
       $widget += array(
-        '#prefix' => drupal_render($content),
+        '#prefix' => theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              'point' => array(
+                'points' => $items
+              ),
+              'field_point' => array(
+                'module' => 'gm3_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_point_button', array(
+                'id' => $element['#field_name']
+              ))
+            ),
+            'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
+          )
+        )),
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
@@ -885,27 +885,26 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           $polys = array_merge($polys, gm3_convert_polygon_string($item[$poly_type]));
         }
       }
-      $theme_array = theme('gm3_map', array(
-        'map' => array(
-          'id' => $element['#field_name'],
-          'libraries' => array(
-            $poly_type => array(
-              $poly_type . 's' => $polys
-            ),
-            'field_' . $poly_type => array(
-              'module' => 'gm3_field'
-            )
-          ),
-          'tools' => array(
-            theme('gm3_' . $poly_type . '_button', array(
-              'id' => $element['#field_name']
-            ))
-          ),
-          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-        )
-      ));
       $widget += array(
-        '#prefix' => drupal_render($theme_array),
+        '#prefix' => theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              $poly_type => array(
+                $poly_type . 's' => $polys
+              ),
+              'field_' . $poly_type => array(
+                'module' => 'gm3_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_' . $poly_type . '_button', array(
+                'id' => $element['#field_name']
+              ))
+            ),
+            'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
+          )
+        )),
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
@@ -1022,11 +1021,10 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             break;
         }
       }
-      $to_render = theme('gm3_map', array(
-        'map' => $map
-      ));
       $widget += array(
-        '#prefix' => drupal_render($to_render)
+        '#prefix' => theme('gm3_map', array(
+          'map' => $map
+        ))
       );
       break;
   }
