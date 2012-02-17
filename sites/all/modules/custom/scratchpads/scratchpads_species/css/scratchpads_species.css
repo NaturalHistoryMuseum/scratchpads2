@@ -1,5 +1,7 @@
 @CHARSET "UTF-8";
 
+body{position:static !important;}
+
 /***************** Overview page *******************/
 
 /* Nomenclature block */
