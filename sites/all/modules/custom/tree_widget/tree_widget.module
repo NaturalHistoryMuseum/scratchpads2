@@ -164,17 +164,21 @@ function theme_options_tree_expand_button($variables){
  * - element: An associative array containing the properties of the element.
  */
 function theme_options_tree($variables){
+  $root_terms = array();
   if(!isset($variables['vid'])){
-    $vocabulary = taxonomy_vocabulary_machine_name_load($variables['element']['#vocabulary']);
-    $variables['vid'] = $vocabulary->vid;
-    $variables['tid'] = 0;
+    $vocabularies = array();
+    foreach($variables['element']['#vocabularies'] as $voc_name){
+      $vocabulary = taxonomy_vocabulary_machine_name_load($voc_name);
+      $root_terms = array_merge($root_terms, taxonomy_get_tree($vocabulary->vid, 0, 1));
+    }
   }
-  // Get the root terms.
-  $root_terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1);
+  // Get the root terms.  
   $output = "<ul>";
   // Get the terms that need to be displayed
   $variables['ancestors'] = _tree_widget_get_ancestors_and_siblings($variables['element']['#default_value']);
   foreach($root_terms as $term){
+    // Missing variables for:
+    // vid, tid
     $variables['term'] = $term;
     $output .= theme('options_tree_term', $variables);
   }
@@ -250,6 +254,12 @@ function tree_widget_field_widget_form(&$form, &$form_state, $field, $instance, 
   foreach($items as $item){
     $default_value[] = $item['tid'];
   }
+  $vocabularies = array();
+  foreach($field['settings']['allowed_values'] as $voc){
+    if($voc['vocabulary']){
+      $vocabularies[] = $voc['vocabulary'];
+    }
+  }
   $element += array(
     '#type' => 'options_tree',
     '#attached' => array(
@@ -274,7 +284,7 @@ function tree_widget_field_widget_form(&$form, &$form_state, $field, $instance, 
       )
     ),
     '#multiple' => $field['cardinality'],
-    '#vocabulary' => $field['settings']['allowed_values'][0]['vocabulary'],
+    '#vocabularies' => $vocabularies,
     '#tid' => 0,
     '#value_callback' => '_tree_widget_widget_set_values',
     '#default_value' => $default_value,
