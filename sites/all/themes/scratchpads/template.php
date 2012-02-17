@@ -51,7 +51,7 @@ function scratchpads_contextual_links_view_alter(&$element, &$items){
 
 function scratchpads_form_user_login_block_alter(&$form, &$form_state, $form_id){
   $form['links']['#weight'] = 100;
-  $form['#suffix'] = l('Log in', '', array(
+  $form['#suffix'] = l('Log in', 'user', array(
     'attributes' => array(
       'class' => array(
         'scratchpads-slide-toggle'
