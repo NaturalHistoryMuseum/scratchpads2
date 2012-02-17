@@ -1,0 +1,9 @@
+/* Pagers Positioning */
+
+.item-list .pager{
+  padding-top: 10px!important;
+}
+
+.pager li.pager-current {
+  font-weight: normal;
+}

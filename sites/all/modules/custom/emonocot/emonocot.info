@@ -1,0 +1,8 @@
+core = "7.x"
+dependencies[] = "itis_term"
+description = "Customisations for eMonocot Scratchpads"
+name = "eMonocot Scratchpad"
+package = "eMonocot"
+project = "emonocot"
+project status url = "http://modules.scratchpads.eu/"
+version = "7.x-1.0"

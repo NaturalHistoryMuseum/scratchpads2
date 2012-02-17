@@ -7,7 +7,7 @@
  * @param array $blocks
  * @param array $data
  */
-function scratchpads_block_view_alter(&$data, $block){
+function scratchpads_em_block_view_alter(&$data, $block){
   if(isset($data['content']) && $block->module == 'views'){
     // Move the view classes to the block classes
     if(preg_match('/(grid-[0-9])/', $data['content']['#markup'], $matches)){
@@ -30,7 +30,7 @@ function scratchpads_block_view_alter(&$data, $block){
   }
 }
 
-function scratchpads_contextual_links_view_alter(&$element, &$items){
+function scratchpads_em_contextual_links_view_alter(&$element, &$items){
   if(isset($element['#element']['#block'])){
     // Remove contextual links for some blocks
     switch($element['#element']['#block']->module){
@@ -41,35 +41,35 @@ function scratchpads_contextual_links_view_alter(&$element, &$items){
             break;
         }
         break;
-      case 'scratchpads_colour':
-      case 'scratchpads_blocks':
+      case 'scratchpads_em_em_colour':
+      case 'scratchpads_em_em_blocks':
         unset($element['#links']);
         break;
     }
   }
 }
 
-function scratchpads_form_user_login_block_alter(&$form, &$form_state, $form_id){
+function scratchpads_em_form_user_login_block_alter(&$form, &$form_state, $form_id){
   $form['links']['#weight'] = 100;
-  $form['#suffix'] = l('Log in', 'user', array(
+  $form['#suffix'] = l('Log in', '', array(
     'attributes' => array(
       'class' => array(
-        'scratchpads-slide-toggle'
+        'scratchpads_em_em-slide-toggle'
       )
     )
   ));
-  $form['#validate'][] = 'scratchpads_user_login_form_validate';
+  $form['#validate'][] = 'scratchpads_em_em_user_login_form_validate';
   $form['#attributes']['style'] = 'display:none';
 }
 
-function scratchpads_user_login_form_validate(&$form, &$form_state){
+function scratchpads_em_user_login_form_validate(&$form, &$form_state){
   // If there's validation errors, we don't want to display
   if(form_get_errors()){
     unset($form['#attributes']['style']);
   }
 }
 
-function scratchpads_preprocess_breadcrumb(&$variables){
+function scratchpads_em_preprocess_breadcrumb(&$variables){
   if(count($variables['breadcrumb'])){
     $variables['breadcrumb'][] = drupal_get_title();
   }
@@ -78,7 +78,7 @@ function scratchpads_preprocess_breadcrumb(&$variables){
 /**
  * Implements hook_process_region().
  */
-function scratchpads_process_region(&$vars){
+function scratchpads_em_process_region(&$vars){
   $theme = alpha_get_theme();
   switch($vars['elements']['#region']){
     case 'content':
@@ -87,33 +87,30 @@ function scratchpads_process_region(&$vars){
       }else{
         $vars['subtitle'] = NULL;
       }
-      if(isset($theme->page['page']['title'])){
-        $vars['title'] = $theme->page['page']['title'];
-      }
       break;
   }
 }
 
-function scratchpads_form_search_block_form_alter(&$form, &$form_state, $form_id){
+function scratchpads_em_form_search_block_form_alter(&$form, &$form_state, $form_id){
   $form['actions']['#weight'] = -10;
 }
 
-function scratchpads_preprocess_node(&$variables){
+function scratchpads_em_preprocess_node(&$variables){
   if($variables['view_mode'] == 'linked_node'){
     $node_info = node_type_load($variables['type']);
     $variables['title'] = $node_info->name;
     $variables['display_submitted'] = false;
-  }
+  }  
 }
 
-function scratchpads_preprocess_field(&$variables, $hook){
+function scratchpads_em_preprocess_field(&$variables, $hook){
   if(isset($variables['element']['#stripe'])){
     $variables['classes_array'][] = $variables['element']['#stripe'];
     $variables['classes_array'][] = 'clearfix';
   }
 }
 
-function scratchpads_biblio_tabular($variables){
+function scratchpads_em_biblio_tabular($variables){
   module_load_include('inc', 'biblio', '/includes/biblio.contributors');
   $node = $variables['node'];
   $base = $variables['base'];
@@ -219,7 +216,7 @@ function scratchpads_biblio_tabular($variables){
 /**
  * Implements hook_preprocess_page().
  */
-function scratchpads_preprocess_page(&$vars){
+function scratchpads_em_preprocess_page(&$vars){
   if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
     $vars['tabs'] = array();
   }

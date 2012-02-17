@@ -1,0 +1,51 @@
+<?php
+define('EMONOCOT_THEME_NAME', 'scratchpads_em');
+
+function emonocot_blocks_block_info(){
+  $blocks['footer_logos'] = array(
+    'info' => t('eMonocot footer logos'),
+    'region' => 'footer',
+    'weight' => 2,
+    'theme' => EMONOCOT_THEME_NAME,
+    'status' => 1
+  );
+  return $blocks;
+}
+
+//Get rid of those pesky Scratchpads footer logos
+function emonocot_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
+  switch($theme){
+    case EMONOCOT_THEME_NAME:
+      // Turn of all the blocks we know we don't want
+      $blocks['scratchpads_blocks']['footer_logos']['status'] = 0;
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function emonocot_blocks_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'footer_logos':
+      $options = array(
+        'html' => true,
+        'absolute' => true
+      );
+      $links = array(
+        l(theme('image', array(
+          'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
+          'alt' => 'Scratchpads logo',
+          'title' => 'Scratchpads'
+        )), 'http://scratchpads.eu/', $options)
+      );
+      $block['content'] = array(
+        '#theme' => 'item_list',
+        '#items' => $links
+      );
+      break;
+  }
+  return $block;
+}
