@@ -52,23 +52,26 @@
       google.maps.event.trigger(self.google_map, 'resize');
     })
     if(true) {// Change this to be an autozoom option
-      if(this.max_lat) {
-        this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
-      }
+      this.autozoom();
     }
     return this;
   }
-  Drupal.GM3.prototype.add_latlng = function(latLng){
-    if(!this.max_lat || this.max_lat < latLng.lat()) {
+  Drupal.GM3.prototype.autozoom = function(){
+    if(this.max_lat) {
+      this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
+    }
+  }
+  Drupal.GM3.prototype.add_latlng = function(latLng, reset){
+    if(reset || !this.max_lat || this.max_lat < latLng.lat()) {
       this.max_lat = latLng.lat();
     }
-    if(!this.max_lng || this.max_lng < latLng.lng()) {
+    if(reset || !this.max_lng || this.max_lng < latLng.lng()) {
       this.max_lng = latLng.lng();
     }
-    if(!this.min_lat || this.min_lat > latLng.lat()) {
+    if(reset || !this.min_lat || this.min_lat > latLng.lat()) {
       this.min_lat = latLng.lat();
     }
-    if(!this.min_lng || this.min_lng > latLng.lng()) {
+    if(reset || !this.min_lng || this.min_lng > latLng.lng()) {
       this.min_lng = latLng.lng();
     }
   }
@@ -126,7 +129,7 @@
   Drupal.GM3.prototype.active = function(){
     this.google_map.setOptions({draggableCursor: 'pointer'});
     // Remove the information block (currently only used by the region module).
-    $('#'+this.id+' .gm3_information').remove();
+    $('#' + this.id + ' .gm3_information').remove();
   }
   Drupal.GM3.prototype.set_active_class = function(active_class){
     $('.gm3-clicked', '#toolbar-' + this.id).removeClass('gm3-clicked');
