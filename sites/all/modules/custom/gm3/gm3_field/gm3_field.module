@@ -849,7 +849,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ))
           ),
-          'num_objects' => count($items),
           'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
@@ -902,7 +901,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ))
           ),
-          'num_objects' => count($items),
           'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
@@ -927,7 +925,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         'id' => $element['#field_name'],
         'libraries' => array(),
         'tools' => array(),
-        'num_objects' => count($items),
         'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
       );
       $widget += array(

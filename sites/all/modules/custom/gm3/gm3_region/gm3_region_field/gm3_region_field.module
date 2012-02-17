@@ -290,7 +290,6 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
               'id' => $element['#field_name']
             ))
           ),
-          'num_objects' => count($items),
           'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
         )
       ));
