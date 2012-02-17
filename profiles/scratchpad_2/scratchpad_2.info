@@ -1,5 +1,57 @@
 name = Scratchpad 2
 description = Install a Scratchpad 2 site
 core = 7.x
-dependencies[] = scratchpads_tweaks
 files[] = scratchpad_2.profile
+
+; Drupal core
+dependencies[] = block
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = taxonomy
+dependencies[] = dblog
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = toolbar
+dependencies[] = overlay
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = rdf
+
+; Contrib
+dependencies[] = globalredirect
+dependencies[] = feeds_oai_pmh
+dependencies[] = taxonomy_breadcrumb_lite
+
+; Scratchpads modules
+dependencies[] = scratchpads_biblio_search
+dependencies[] = scratchpads_blocks
+dependencies[] = scratchpads_colour
+dependencies[] = scratchpads_file_colorboxed
+dependencies[] = scratchpads_front
+dependencies[] = scratchpads_image_styles
+dependencies[] = scratchpads_media_gallery
+dependencies[] = scratchpads_pages
+dependencies[] = scratchpads_search_block
+dependencies[] = scratchpads_solr
+dependencies[] = scratchpads_apachesolr_instant
+dependencies[] = scratchpads_species
+dependencies[] = scratchpads_taxonomic_name_field
+dependencies[] = scratchpads_user
+dependencies[] = scratchpads_width_and_height
+dependencies[] = scratchpads_image_extension
+dependencies[] = scratchpads_hands_off
+
+; Custom modules
+dependencies[] = spm
+dependencies[] = tui
+dependencies[] = silver
+dependencies[] = eol
