@@ -97,6 +97,8 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
       if($term){
         module_load_include('admin.inc', 'taxonomy');
         $form = drupal_get_form('taxonomy_form_term', $term);
+        // Remove the delete button, as the user should use the "delete" icon.
+        unset($form['actions']['delete']);
         print ajax_render(array(
           ajax_command_html('#tui-form-container', drupal_render($form)),
           ajax_command_html('#tui-name-live h2', $term->name)

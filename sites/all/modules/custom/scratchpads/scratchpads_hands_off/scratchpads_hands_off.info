@@ -1,0 +1,3 @@
+core = "7.x"
+name = "Scratchpads Hands Off"
+package = "Scratchpads"
