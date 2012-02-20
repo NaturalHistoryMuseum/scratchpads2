@@ -2,19 +2,6 @@
 include_once ('silver.features.inc');
 
 /**
- * Implements hook_form_alter().
- */
-function silver_form_alter(&$form, &$form_state, $form_id){
-  if(isset($form['#node_edit_form']) && $form['#node_edit_form']){
-    // We add a link to this content type's import page.
-    $form['link_to_import'] = array(
-      '#weight' => -100000,
-      '#markup' => '<div class="messages status">' . l(t('Import into this content type from an Excel file.'), 'import/node_importer_' . $form['type']['#value']) . '</div>'
-    );
-  }
-}
-
-/**
  * hook_form_FORM_ID_alter().
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){
@@ -36,6 +23,13 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
       )) . '</div>'
     );
   }
+}
+
+/**
+ * hook_form_FORM_ID_alter().
+ */
+function silver_form_biblio_import_form_alter(&$form, &$form_state, $form_id){
+  $form['#action'] = url(variable_get('biblio_base', 'biblio') . '/import');
 }
 
 /**
@@ -67,6 +61,7 @@ function silver_admin_paths(){
 function silver_admin_paths_alter(&$paths){
   $paths['import'] = TRUE;
   $paths['import/*'] = TRUE;
+  $paths[variable_get('biblio_base', 'biblio') . '/import'] = TRUE;
 }
 
 /**
@@ -121,6 +116,23 @@ function silver_silver(){
 }
 
 /**
+ * Implementation of hook_silver for the biblio module.
+ */
+function biblio_silver(){
+  return array(
+    array(
+      'type' => 'Nodes',
+      'name' => 'Biblio file import',
+      'access arguments' => array(
+        'import from file'
+      ),
+      'form_id' => 'biblio_import_form',
+      'file' => 'includes/biblio.import.export.inc'
+    )
+  );
+}
+
+/**
  * If one import method that supports silver allows access to this user, then
  * we allow the user to view the form.
  */
@@ -151,6 +163,7 @@ function silver_get_silvers(){
     }
   }
   usort($silvers_we_can_access, 'silvers_array_sort');
+  drupal_alter('silver', $silvers_we_can_access);
   return $silvers_we_can_access;
 }
 
@@ -317,7 +330,12 @@ function silver_pages_excel_form(){
   $content_types = array();
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
-    $content_types['node_importer_' . $node_type] = $node_type_info['label'];
+    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
+      'biblio',
+      'media_gallery'
+    )))){
+      $content_types['node_importer_' . $node_type] = $node_type_info['label'];
+    }
   }
   return array(
     'silver_import_subform_feeds' => array(
