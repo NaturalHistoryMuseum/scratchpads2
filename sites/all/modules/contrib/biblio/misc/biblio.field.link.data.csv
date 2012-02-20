@@ -20,21 +20,21 @@ fid,title,hint, common, autocomplete, required, weight, visible,field name,type,
 19,Pagination,,0,0,0,17,0,biblio_pages,textfield,24,128,2
 20,Date Published,(mm/yyyy),0,0,0,18,0,biblio_date,textfield,16,16,2
 21,Publication Language,,0,0,0,23,0,biblio_lang,textfield,24,24,2
-22,Abstract,,1,0,0,155,1,biblio_abst_e,textarea,60,65535,1
-23,French Abstract,,0,0,0,156,0,biblio_abst_f,textarea,60,65535,9
+22,Abstract,,1,0,0,155,1,biblio_abst_e,text_format,60,65535,1
+23,French Abstract,,0,0,0,156,0,biblio_abst_f,text_format,60,65535,9
 24,Keywords,,1,1,0,154,0,biblio_keywords,textfield,60,1000,6
 25,Type of Work,Masters Thesis,0,0,0,22,0,biblio_type_of_work,textfield,60,255,2
 26,URL,,1,0,0,158,1,biblio_url,textfield,60,255,5
-27,Notes,,0,0,0,157,0,biblio_notes,textarea,60,65535,7
+27,Notes,,0,0,0,157,0,biblio_notes,text_format,60,65535,7
 28,Issue,,0,0,0,15,0,biblio_issue,textfield,10,128,2
-29,Reseach Notes,,0,0,0,160,0,biblio_research_notes,textarea,60,65535,7
-30,Custom 1,,0,0,0,161,0,biblio_custom1,textarea,60,65535,9
-31,Custom 2,,0,0,0,162,0,biblio_custom2,textarea,60,65535,9
-32,Custom 3,,0,0,0,163,0,biblio_custom3,textarea,60,65535,9
-33,Custom 4,,0,0,0,164,0,biblio_custom4,textarea,60,65535,9
-34,Custom 5,,0,0,0,165,0,biblio_custom5,textarea,60,65535,9
-35,Custom 6,,0,0,0,167,0,biblio_custom6,textarea,60,65535,9
-36,Custom 7,,0,0,0,168,0,biblio_custom7,textarea,60,65535,9
+29,Reseach Notes,,0,0,0,160,0,biblio_research_notes,text_format,60,65535,7
+30,Custom 1,,0,0,0,161,0,biblio_custom1,text_format,60,65535,9
+31,Custom 2,,0,0,0,162,0,biblio_custom2,text_format,60,65535,9
+32,Custom 3,,0,0,0,163,0,biblio_custom3,text_format,60,65535,9
+33,Custom 4,,0,0,0,164,0,biblio_custom4,text_format,60,65535,9
+34,Custom 5,,0,0,0,165,0,biblio_custom5,text_format,60,65535,9
+35,Custom 6,,0,0,0,167,0,biblio_custom6,text_format,60,65535,9
+36,Custom 7,,0,0,0,168,0,biblio_custom7,text_format,60,65535,9
 37,Number of Volumes,,0,0,0,15,0,biblio_number_of_volumes,textfield,10,128,2
 38,Short Title,,0,0,0,169,0,biblio_short_title,textfield,60,255,8
 39,Alternate Title,,0,0,0,170,0,biblio_alternate_title,textfield,60,255,8
@@ -43,10 +43,10 @@ fid,title,hint, common, autocomplete, required, weight, visible,field name,type,
 42,Reprint Edition,,0,0,0,172,0,biblio_reprint_edition,textfield,120,255,2
 43,Section,,0,0,0,15,0,biblio_section,textfield,10,128,2
 44,Citation Key,,0,0,0,175,0,biblio_citekey,textfield,16,255,4
-45,COinS Data,This will be automatically generated,0,0,0,176,0,biblio_coins,textarea,60,65535,9
+45,COinS Data,This will be automatically generated,0,0,0,176,0,biblio_coins,text_format,60,65535,9
 46,ISSN Number,,0,0,0,150,0,biblio_issn,textfield,24,128,4
 47,DOI,,1,0,0,159,1,biblio_doi,textfield,60,255,5
-48,Author Address,,0,0,0,178,0,biblio_auth_address,textarea,60,65535,9
+48,Author Address,,0,0,0,178,0,biblio_auth_address,text_format,60,65535,9
 49,Remote Database Name,,0,0,0,176,0,biblio_remote_db_name,textfield,60,255,9
 50,Remote Database Provider,,0,0,0,177,0,biblio_remote_db_provider,textfield,60,255,9
 51,Label,,0,0,0,178,0,biblio_label,textfield,60,255,9

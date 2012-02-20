@@ -63,21 +63,21 @@ function biblio_import_form($form, &$form_state) {
   if (biblio_access('import')) { // && !user_access('administer nodes')) {
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['biblio_import_file'] = array(
-      '#type' => 'file',
-      '#title' => t('Import file'),
-      '#default_value' => '',
-      '#size' => 60
+        '#type' => 'file',
+        '#title' => t('Import file'),
+        '#default_value' => '',
+        '#size' => 60
     );
 
     $import_options = module_invoke_all('biblio_import_options');
     if (count($import_options) > 1) {
       $form['filetype'] = array(
-        '#type' => 'select',
-        '#title' => t('File Type'),
-        '#default_value' => 0,
-        '#options' => array(
-          '0' => t('Select type'),
-        )
+          '#type' => 'select',
+          '#title' => t('File Type'),
+          '#default_value' => 0,
+          '#options' => array(
+              '0' => t('Select type'),
+          )
       );
 
       $form['filetype']['#options'] = array_merge($form['filetype']['#options'], $import_options);
@@ -86,16 +86,21 @@ function biblio_import_form($form, &$form_state) {
     elseif (count($import_options) == 1) {
       $form['biblio_import_file']['#description'] = t('Import type: @option', array('@option' => current($import_options)));
       $form['filetype'] = array(
-        '#type' => 'value',
-        '#value' => key($import_options),
+          '#type' => 'value',
+          '#value' => key($import_options),
       );
+    }
+    elseif (count($import_options) == 0) {
+      $form['biblio_import_file']['#disabled'] = TRUE;
+      drupal_set_message(t("You won't be able to select a file until you enable at least one import module."), 'error');
+
     }
 
     $form['batch_process'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Batch Process'),
-      '#default_value' => 1,
-      '#description' => t('You should use batch processing if your import file contains more than about 20 records, or if you are experiencing script timeouts during import'),
+        '#type' => 'checkbox',
+        '#title' => t('Batch Process'),
+        '#default_value' => 1,
+        '#description' => t('You should use batch processing if your import file contains more than about 20 records, or if you are experiencing script timeouts during import'),
     );
     $form ['userid'] = _biblio_admin_build_user_select($user->uid);
     // Get the vocabularies  attached to the biblio node type ...
@@ -110,11 +115,11 @@ function biblio_import_form($form, &$form_state) {
 
     // ... and print a form to select the terms in each of them
     $form['import_taxonomy'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#title' => t('Taxonomy Settings'),
-      '#description' => t('Typically you don\'t have to do anything here, however if you wish, you may select terms to be assigned to imported records. This effectively adds a keyword to all entries being imported.'));
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#title' => t('Taxonomy Settings'),
+        '#description' => t('Typically you don\'t have to do anything here, however if you wish, you may select terms to be assigned to imported records. This effectively adds a keyword to all entries being imported.'));
     if (count($biblio_vocabs)) {
       $vocabularies = module_invoke('taxonomy', 'get_vocabularies', 'biblio');
       if (variable_get('biblio_keyword_freetagging', 0)) {
@@ -143,15 +148,15 @@ function biblio_import_form($form, &$form_state) {
       }
       if (!empty($term_refs)) {
         $form['term_refs'] = array(
-          '#type' => 'hidden',
-          '#value' => $term_refs,
+            '#type' => 'hidden',
+            '#value' => $term_refs,
         );
         $form['import_taxonomy']['copy_to_biblio'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Copy these terms to the biblio keyword database'),
-          '#return_value' => 1,
-          '#default_value' =>  variable_get('biblio_copy_taxo_terms_to_keywords', 0),
-          '#description' => t('If this option is selected, the selected taxonomy terms will be copied to the ' . check_plain(variable_get('biblio_base_title', 'Biblio')) . ' keyword database and be displayed as keywords (as well as taxonomy terms) for this entry.')
+            '#type' => 'checkbox',
+            '#title' => t('Copy these terms to the biblio keyword database'),
+            '#return_value' => 1,
+            '#default_value' =>  variable_get('biblio_copy_taxo_terms_to_keywords', 0),
+            '#description' => t('If this option is selected, the selected taxonomy terms will be copied to the ' . check_plain(variable_get('biblio_base_title', 'Biblio')) . ' keyword database and be displayed as keywords (as well as taxonomy terms) for this entry.')
         );
       }
     }
@@ -164,11 +169,11 @@ function biblio_import_form($form, &$form_state) {
 
       }
       $form['import_taxonomy']['vocabulary_message'] = array(
-        '#markup' => '<p><div>' . $vocab_msg . '</div></p>'
+          '#markup' => '<p><div>' . $vocab_msg . '</div></p>'
       );
     }
     $form['import_taxonomy']['freetagging_information'] = array(
-      '#markup' => '<p><div>' . $msg . '</div></p>'
+        '#markup' => '<p><div>' . $msg . '</div></p>'
     );
     $form['button'] = array('#type' => 'submit', '#value' => t('Import'));
     return $form;
@@ -184,8 +189,8 @@ function biblio_import_form($form, &$form_state) {
  */
 function biblio_import_form_validate($form, & $form_state) {
   $op = $form_state['values']['op'];
-  $filetype = $form_state['values']['filetype'];
-  if ($error = $_FILES['files']['error']['biblio_import_file']) {
+  $filetype = isset($form_state['values']['filetype']) ? $form_state['values']['filetype'] : 0;
+  if ($error = isset($_FILES['files']) ? $_FILES['files']['error']['biblio_import_file'] : '') {
     switch ($error) {
       case 1: form_set_error('biblio_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
       break;
@@ -204,7 +209,7 @@ function biblio_import_form_validate($form, & $form_state) {
   }
 
   if ($op == t('Import') && $filetype == "0") {
-    form_set_error('biblio_import_form', t("Error: You did not select the file type"));
+    form_set_error('biblio_import_form', t("You did not select the file type"));
   }
 }
 /**

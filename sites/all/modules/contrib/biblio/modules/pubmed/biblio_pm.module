@@ -119,7 +119,7 @@ function biblio_pm_import_ids($pmids, $terms = array(), $batch = FALSE, $session
   $Eclient->setReturnMax($retmax);
   $nids = array();
   $dups = array();
-  while (($result = $Eclient->fetchRecords($start)) && $start < $resmax ) {
+  while ($start < $resmax && ($result = $Eclient->fetchRecords($start))) {
     $start += count($result->xpath('//PubmedArticle'));
     list($nid, $dup) =  _biblio_pm_create_node_from_xml($result, $terms, $batch, $session_id);
     $nids = array_merge($nids, $nid);
