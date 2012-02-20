@@ -1,0 +1,7 @@
+name = "'O'xford e-research centre 'B'atch 'O'peration 'E'ngine"
+description = "Interfaces with the ViBRANT OBOE service."
+core = 7.x
+dependencies[] = entity_admin
+files[] = OboeUIController.inc
+files[] = Oboe.inc
+files[] = oboe.functions.inc

@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function oboe_menu(){
+  return array(
+    'admin/services' => array(
+      'title' => 'Services',
+      'description' => 'Create and view service jobs.',
+      'position' => 'left',
+      'weight' => 100,
+      'page callback' => 'system_admin_menu_block_page',
+      'access arguments' => array(
+        'access administration pages'
+      ),
+      'file' => drupal_get_path('module', 'system') . '/system.admin.inc'
+    ),
+    'admin/services/oboe' => array(),
+    'admin/services/oboe/add/%oboe_type' => array(),
+    'admin/services/oboe/%oboe' => array()
+  );
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function oboe_entity_info(){
+  $info = array(
+    'oboe' => array(
+      'label' => t('OBOE Job'),
+      'entity class' => 'Oboe',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'oboe',
+      'fieldable' => TRUE,
+      'bundles' => array(),
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'oid',
+        'name' => 'type',
+        'label' => 'label',
+        'status' => 'status',
+        'module' => 'module'
+      ),
+      'access callback' => 'oboe_entity_access',
+      'module' => 'oboe'
+    )
+  );
+  // Add the OBOE services
+  /*
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $info['bundles'][$key] = array(
+      'label' => $job_type
+    );
+  }
+  return $info;
+  */
+}
+
+/**
+ * Entity access callback
+ */
+function oboe_entity_access($a = TRUE, $b = TRUE){
+  return TRUE;
+}
