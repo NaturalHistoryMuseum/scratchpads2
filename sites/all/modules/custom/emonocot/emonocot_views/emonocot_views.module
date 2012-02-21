@@ -1,0 +1,24 @@
+<?php
+
+function emonocot_views_views_api(){
+  $path = drupal_get_path('module', 'emonocot_views');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+function emonocot_views_context_load_alter(&$context) {
+  if ($context->name === 'species_overview' && isset($context->reactions['block'])) {
+    //Remove default Scratchpads nomenclature block
+    unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
+    //Replace with the eMonocot one
+    $context->reactions['block']['blocks']['views-em_species_nomenclature-block'] = array(
+      'module' => 'views',
+      'delta'  => 'em_species_nomenclature-block',
+      'region' => 'content',
+      'weight' => -10,
+    );
+    $dog = $context;
+  }
+}
