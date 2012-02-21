@@ -20,13 +20,14 @@ function oboe_add_job(){
  * Returns an OBOE submission form.
  */
 function oboe_add($type){
+  $types = OBOEService::get_job_types();
   global $user;
   $oboe = (object)array(
     'uid' => $user->uid,
     'type' => $type
   );
-  drupal_set_title(t('Create @name', array(
-    '@name' => $types[$type]->name
+  drupal_set_title(t('Create @name job', array(
+    '@name' => $types[$type]
   )), PASS_THROUGH);
   $output = drupal_get_form($type . '_oboe_form', $oboe);
   return $output;
@@ -38,9 +39,93 @@ function oboe_add($type){
 function oboe_job_form($form, &$form_state, $oboe){
   // Firstly, we need to get the parameters for this oboe type.
   $parameters = OBOEService::get_parameters_by_type(FALSE, $oboe->type);
-  return array(
-    'something' => array(
-      '#markup' => print_r($parameters, 1)
-    )
+  foreach($parameters as $key => $parameter){
+    if(isset($parameter['format']) && (!isset($parameter['hidden']) || $parameter['hidden'] == 'no')){
+      $format = $parameter['format'];
+      $colon_position = strpos($parameter['format'], ':');
+      if($colon_position){
+        $format = substr($format, 0, $colon_position);
+      }
+      switch($format){
+        case 'URL':
+        case 'text':
+        case 'integer':
+          $form[$key] = array(
+            '#type' => 'textfield',
+            '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+            '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+            '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE)
+          );
+          break;
+        case 'boolean':
+          $options = array();
+          if(isset($parameter['required']) && $parameter['required'] == 'no'){
+            $options[] = 'Use default';
+          }
+          $options['yes'] = t('Yes');
+          $options['no'] = t('No');
+          $form[$key] = array(
+            '#type' => 'radios',
+            '#options' => $options,
+            '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+            '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+            '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE),
+            '#default_value' => '0'
+          );
+          break;
+        case 'array':
+          $array_data = json_decode(trim(str_replace("'", '"', substr($parameter['format'], $colon_position + 1))));
+          $array_data = drupal_map_assoc($array_data);
+          $form[$key] = array(
+            '#type' => 'select',
+            '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+            '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+            '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE),
+            '#empty_option' => 'Select: ' . (isset($parameter['name']) ? $parameter['name'] : $key),
+            '#options' => $array_data,
+            '#default_value' => count($array_data) == 1 ? current($array_data) : ''
+          );
+          break;
+        case 'free text':
+          $form[$key] = array(
+            '#type' => 'textarea',
+            '#title' => isset($parameter['name']) ? $parameter['name'] : $key,
+            '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+            '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE)
+          );
+          break;
+        default:
+          drupal_set_message('A field type that we do not understand.  Please contact the Scratchpad team.');
+          break;
+      }
+    }else{
+      switch($key){
+        case 'infile':
+          if($parameter['required'] == 'yes' || $parameter['required'] == 'optional'){
+            $form[$key] = array(
+              '#type' => 'file',
+              '#title' => t('Input file'),
+              '#description' => isset($parameter['description']) ? $parameter['description'] : '',
+              '#required' => ((isset($parameter['required']) && $parameter['required'] == 'yes') ? TRUE : FALSE)
+            );
+          }
+          break;
+        default:
+          if($parameter['required'] == 'yes'){
+            // We have a hidden field that is required. WTF!
+            drupal_set_message('Hidden required field.  Please contact the Scratchpad team.');
+          }
+      }
+    }
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create')
   );
+  return $form;
 }
+
+/**
+ * Submit for the above function
+ */
+function oboe_job_form_submit(&$form, &$form_state){}
