@@ -54,8 +54,8 @@ table.scratchpads-admin-content tr td:nth-child(1){
 }
 
 /* VBO tables */
-#views-form-admin-node-page table tr td.views-field-edit-node a,
-#views-form-admin-file-page table tr td.views-field-fid a{
+#views-form-admin-vbo-node-page table tr td.views-field-edit-node a,
+#views-form-admin-vbo-file-page table tr td.views-field-fid a{
   margin: 0 5px;
 }
 
