@@ -47,7 +47,7 @@ function scratchpads_backend_admin_content(){
           ;
           $operations = array(
             l(t('View'), $view_url),
-            l(t('Add'), 'node/add/' . $bundle),
+            l(t('Add'), 'node/add/' . str_replace('_', '-', $bundle)),
             l(t('Import'), 'import/node_importer_' . $bundle)
           );
           // If there's a grid editor for this view, add a link
