@@ -2139,9 +2139,10 @@ function apachesolr_hook_info() {
   $hooks['apachesolr_index_document_build'] = array(
     'group' => 'apachesolr',
   );
+  return $hooks;
   if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE === 'install') {
     return $hooks;
-  }  
+  }
   foreach (entity_get_info() as $entity_type => $info) {
     $hooks['apachesolr_index_document_build_' . $entity_type] = array(
         'group' => 'apachesolr',

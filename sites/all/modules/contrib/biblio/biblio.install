@@ -895,7 +895,8 @@ function biblio_schema() {
     'description' => 'Contains Author information for each publication',
     'fields' => array(
       'cid' => array(
-        'type' => 'serial',
+        'type' => 'int',
+        'auto_increment' => TRUE,
         'not null' => TRUE,
         'unsigned' => TRUE,
         'description' => 'Primary Key: Author ID',
@@ -2068,4 +2069,22 @@ function biblio_update_7016() {
       ->fields(array('type' => 'text_format'))
       ->condition('type', 'textarea')
       ->execute();
+}
+
+/**
+ * Remove views export handlers in sub-modules (if they still exist)
+ */
+function biblio_update_7017() {
+  $dirs = array('bibtexParse', 'endnote', 'RIS', 'rtf');
+  foreach ($dirs as $dir) {
+    $path = drupal_get_path('module', 'biblio') . '/modules/'.$dir.'/views';
+    $files = file_scan_directory($path, '/..*.inc$/');
+    foreach ($files as $file) {
+      drupal_unlink($file->uri);
+    }
+    drupal_rmdir($path);
+  }
+  if (module_exists('views')) { // rebuild the data tables
+    views_invalidate_cache();
+  }
 }

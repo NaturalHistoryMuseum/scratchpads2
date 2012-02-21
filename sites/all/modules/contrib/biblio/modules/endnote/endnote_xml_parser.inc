@@ -246,7 +246,7 @@ class EndNoteXMLParser {
 
   function endnote8_characterData($parser, $data) {
     //    global $this->node, $this->element, $this->contributors_type, $this->contrib_count, $this->dates, $this->urls, $this->keyword_count;
-    if (trim($data)) {
+    if (trim(htmlspecialchars_decode($data))) {
       switch ($this->element) {
         //Author information
         case 'author' :

@@ -983,14 +983,17 @@ function _get_biblio_filters() {
   $taxo_joins = implode(' ', $taxo_join);
 
   $result = db_query("SELECT $fields FROM $table $join ORDER BY $order");
-  $authors = db_query("SELECT firstname, initials, lastname, cid FROM {biblio_contributor_data} ORDER BY lastname ASC");
+  $authors = db_query("SELECT DISTINCT firstname, initials, lastname, bcd.cid
+                       FROM {biblio_contributor_data} as bcd
+                       INNER JOIN {biblio_contributor} as bc on bc.cid = bcd.cid
+                       ORDER BY lastname ASC");
   $keywords = db_query("SELECT word, kid FROM {biblio_keyword_data} ORDER BY word ASC");
   $taxoresult = db_query("SELECT $taxo_fields FROM $table $taxo_joins ORDER BY $taxo_order");
-  $pub_years['[any]'] = t('any');
-  $pub_type['[any]']  = t('any');
-  $pub_authors['[any]']  = t('any');
-  $pub_keywords['[any]']  = t('any');
-  $pub_taxo['[any]']  = t('any');
+  $pub_years['any'] = t('any');
+  $pub_type['any']  = t('any');
+  $pub_authors['any']  = t('any');
+  $pub_keywords['any']  = t('any');
+  $pub_taxo['any']  = t('any');
   foreach ($result as $option) {
     if (isset ($option->biblio_year)) {
       $option->biblio_year = _biblio_text_year($option->biblio_year);
@@ -1085,7 +1088,7 @@ function biblio_form_filter() {
       '#type' => 'select',
       '#options' => $filter['options'],
       '#title' => $filter['title'],
-      '#default_value' => '[any]',
+      '#default_value' => 'any',
     );
   }
 
@@ -1133,7 +1136,7 @@ function biblio_form_filter_submit($form, &$form_state) {
         $uri = drupal_parse_url(request_uri());
         $uri['path'] = variable_get('biblio_base', 'biblio');
       foreach ($filters as $filter => $options) {
-        if (isset($form_state['values'][$filter]) && $form_state['values'][$filter] != '[any]') {
+        if (isset($form_state['values'][$filter]) && $form_state['values'][$filter] != 'any') {
           // Flatten the options array to accommodate hierarchical/nested options.
           $flat_options = form_options_flatten($filters[$filter]['options']);
           // Only accept valid selections offered on the dropdown, block bad input.
@@ -1209,10 +1212,16 @@ function _biblio_get_authors($filter = NULL) {
   }
 
   $suspects = array();
-  $result = db_query('SELECT lastname FROM {biblio_contributor_data} '
-                      . (isset($where['filter']) ? 'WHERE '  . $where['filter'] : '') .
-                      ' GROUP BY lastname HAVING COUNT(*) > 1', array(':filter' => $filter)
-             );
+  $query = db_select('biblio_contributor_data', 'bcd')
+              ->fields('bcd', array('lastname'))
+              ->groupBy('lastname')
+              ->having('COUNT(*) > 1');
+
+  if ($filter) {
+    $filter = strtoupper($filter);
+    $query->where("UPPER(SUBSTRING(lastname,1,1)) = :filter ", array(':filter' => $filter));
+   }
+  $result = $query->execute();
 
   foreach ($result as $author) {
     $suspects[] = $author->lastname;
@@ -1229,7 +1238,6 @@ function _biblio_get_authors($filter = NULL) {
                             GROUP BY bd.cid, bd.drupal_uid, bd.name, bd.lastname,
                                      bd.firstname, bd.prefix, bd.suffix,
                                      bd.initials, bd.affiliation, bd.md5, bd.literal
-                            HAVING COUNT(*) > 0
                             ORDER BY  lastname ASC, SUBSTRING(firstname,1,1) ASC,
                             initials ASC', array(':filter' => $filter));
 
@@ -1358,9 +1366,9 @@ function _biblio_get_keywords($filter = NULL) {
   $db_result = db_query('SELECT bkd.kid, bkd.word, COUNT(*) AS cnt
                          FROM {biblio_keyword} bk
                          LEFT JOIN {biblio_keyword_data} bkd ON bkd.kid = bk.kid
-                         LEFT JOIN {node} n ON n.vid = bk.vid
+                         INNER JOIN {node} n ON n.vid = bk.vid
                          '. $where_clause . '
-                         GROUP BY bkd.kid, bkd.word HAVING COUNT(*) > 0
+                         GROUP BY bkd.kid, bkd.word
                          ORDER BY  word ASC', array(':filter' => $filter));
 
   foreach ($db_result as $keyword) {

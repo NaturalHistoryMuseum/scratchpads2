@@ -76,6 +76,9 @@ function biblio_views_data() {
       unset($data[$field->name]['filter']);
       unset($data[$field->name]['argument']);
     }
+    if ($field->type == 'text_format') {
+      $data[$field->name]['field']['handler'] = 'biblio_handler_field_markup';
+    }
   }
   $data['biblio_year']['argument']  = array('handler' => 'views_handler_argument_numeric');  // biblio_year is an int
   $data['biblio_year']['filter']    = array('handler' => 'views_handler_filter_numeric');  // biblio_year is an int
@@ -143,7 +146,7 @@ function biblio_views_data() {
     'node' => array(
       'left_field' => 'vid',
       'field' => 'vid',
-      'type'       => 'left',
+      'type'       => 'inner',
     ),
     'node_revision' => array(
       'left_field' => 'vid',
@@ -153,7 +156,7 @@ function biblio_views_data() {
     'biblio' => array(
       'field' => 'vid',
       'left_field' => 'vid',
-      'type'       => 'left',
+      'type'       => 'inner',
     ),
     'users' => array(
       'left_table' => 'biblio_contributor_data',
@@ -386,6 +389,21 @@ function biblio_views_data() {
 
 
   $viewsdata['biblio_keyword_data'] = $data;
+
+  $export_links = module_invoke_all('biblio_export_options');
+  foreach ($export_links as $type => $name) {
+    $viewsdata['biblio'][$type.'_export'] = array(
+        'title' => t('Export link - ' . $name),
+        'help'  => t("Provides a link to export the data in ") . $name . t(" format"),
+        'field' => array(
+          'handler' => 'biblio_handler_field_export_link',
+          'group' => t('Biblio'),
+          'format' => $type,
+          'format name' => $name,
+       ),
+    );
+
+  }
 
   return $viewsdata;
 }

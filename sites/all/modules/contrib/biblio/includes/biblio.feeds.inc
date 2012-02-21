@@ -68,8 +68,7 @@ function _biblio_feeds_set__keyword_target($source, $entity, $target, $value) {
   }
 }
 
-function _biblio_feeds_importer_default() {
-  $export = array();
+function _biblio_feeds_oai_importer_default() {
 
   $feeds_importer = new stdClass;
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
@@ -77,7 +76,7 @@ function _biblio_feeds_importer_default() {
   $feeds_importer->id = 'biblio_oai_pmh';
   $feeds_importer->config = array(
     'name' => 'Biblio OAI-PMH',
-    'description' => 'This is a default configuration to import an oai-pmh feed into the Biblio node type.',
+    'description' => 'Import an OAI-PMH feed into the Biblio node type.',
     'fetcher' => array(
       'plugin_key' => 'FeedsOAIHTTPFetcher',
       'config' => array(
@@ -169,7 +168,7 @@ function _biblio_feeds_importer_default() {
     'process_in_background' => 0,
   );
 
-  $export['biblio'] = $feeds_importer;
-
-  return $export;
+  return array(
+  	'biblio_oai' => $feeds_importer
+  );
 }
