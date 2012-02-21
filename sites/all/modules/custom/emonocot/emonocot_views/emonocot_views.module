@@ -4,7 +4,7 @@ function emonocot_views_views_api(){
   $path = drupal_get_path('module', 'emonocot_views');
   return array(
     'api' => '3',
-    'path' => $path . '/views'
+    'path' => $path
   );
 }
 
@@ -19,6 +19,5 @@ function emonocot_views_context_load_alter(&$context) {
       'region' => 'content',
       'weight' => -10,
     );
-    $dog = $context;
   }
 }
