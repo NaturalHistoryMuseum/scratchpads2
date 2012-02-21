@@ -115,7 +115,7 @@ class OBOEService{
   // Static function to get a list of job types
   static function get_job_types($at = FALSE){
     $at = self::get_auth_token($at);
-    return (array)json_decode(file_get_contents(self::$service . 'types?auth_token=' . $at));
+    return json_decode(file_get_contents(self::$service . 'types?auth_token=' . $at), TRUE);
   }
 
   // Static function to get the help data.
@@ -132,7 +132,7 @@ class OBOEService{
         '@type' => $type
       )));
     }else{
-      return (array)json_decode(file_get_contents(self::$service . 'parameters/' . $type . '?auth_token=' . $at));
+      return json_decode(file_get_contents(self::$service . 'parameters/' . $type . '?auth_token=' . $at), TRUE);
     }
   }
 }

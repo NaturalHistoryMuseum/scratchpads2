@@ -4,22 +4,56 @@
  * Implements hook_menu().
  */
 function oboe_menu(){
-  return array(
-    'admin/services' => array(
-      'title' => 'Services',
-      'description' => 'Create and view service jobs.',
-      'position' => 'left',
-      'weight' => 100,
-      'page callback' => 'system_admin_menu_block_page',
-      'access arguments' => array(
-        'access administration pages'
-      ),
-      'file' => drupal_get_path('module', 'system') . '/system.admin.inc'
-    ),
-    'admin/services/oboe' => array(),
-    'admin/services/oboe/add/%oboe_type' => array(),
-    'admin/services/oboe/%oboe' => array()
+  $menu = array(
+    'admin/services' => array(), // List the Jobs.
+    'oboe/add' => array(
+      'title' => 'Add OBOE job',
+      'page callback' => 'oboe_add_job', //node_add_page
+      'access callback' => 'oboe_add_access', //_node_add_access
+      'file' => 'oboe.pages.inc'
+    )
   );
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $menu['oboe/add/' . $key] = array(
+      'title' => $job_type,
+      'title callback' => 'check_plain',
+      'page callback' => 'oboe_add',
+      'page arguments' => array(
+        $key
+      ),
+      'access callback' => 'oboe_access',
+      'access arguments' => array(
+        'create',
+        $key
+      ),
+      'file' => 'oboe.pages.inc'
+    );
+  }
+  return $menu;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function oboe_admin_paths(){
+  return array(
+    'oboe/add' => TRUE,
+    'oboe/add/*' => TRUE,
+    'oboe/*/edit' => TRUE
+  );
+}
+
+/**
+ * Implements hook_forms().
+ */
+function oboe_forms($form_id, $args){
+  $forms = array();
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $forms[$key . '_oboe_form'] = array(
+      'callback' => 'oboe_job_form' // Note, we don't use oboe_form here due to it being a hook name.
+    );
+  }
+  return $forms;
 }
 
 /**
@@ -47,14 +81,28 @@ function oboe_entity_info(){
     )
   );
   // Add the OBOE services
-  /*
   foreach(OBOEService::get_job_types() as $key => $job_type){
-    $info['bundles'][$key] = array(
+    $info['oboe']['bundles'][$key] = array(
       'label' => $job_type
     );
   }
   return $info;
-  */
+}
+
+/**
+ * Callback for access to the oboe add page.
+ */
+function oboe_add_access(){
+  return TRUE;
+  if(user_access('create any oboe job')){return TRUE;}
+  return FALSE;
+}
+
+/**
+ * Callback for access to a specific oboe job type.
+ */
+function oboe_access($op, $type, $entity_id = FALSE){
+  return TRUE;
 }
 
 /**
