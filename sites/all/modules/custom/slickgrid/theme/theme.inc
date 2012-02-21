@@ -2,6 +2,9 @@
 
 function slickgrid_preprocess_views_view_slickgrid(&$variables){
   global $user;
+  $class = array(
+    'views-view-grid'
+  );
   $path = drupal_get_path('module', 'slickgrid');
   $view = & $variables['view'];
   // Get any attached export links
@@ -20,7 +23,12 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
   }
   // Set the entity type
   if(!isset($view->style_plugin->options['entity_type'])){
-    $view->style_plugin->options['entity_type'] = $view->base_table;
+    foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
+      if($entity_info['base table'] == $view->base_table){
+        $view->style_plugin->options['entity_type'] = $entity_type;
+        break;
+      }
+    }
   }
   $handlers = $view->style_plugin->display->handler->get_handlers('field');
   // arrays to store ordered / unordered columns in
@@ -175,6 +183,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       'columns' => $view->columns,
       'view' => $view
     ));
+    $class[] = 'grid-with-tabs';
   }
   $parents = array(); // array of tid => array(nid => nid, indent => indent) so we can retrive the nid & indentation of a parent node
   $view->data = array(); // The array of data to be used by slickgrid
@@ -260,7 +269,8 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
       'view' => $view
     ));
   }
-  $variables['class'] = 'views-view-grid cols-' . count($view->columns);
+  $class[] = 'cols-' . count($view->columns);
+  $variables['class'] = implode(' ', $class);
 }
 
 /**
@@ -361,7 +371,6 @@ function theme_slickgrid_controls($variables){
     drupal_add_js($path . '/js/controls/slickgrid.delete.js');
     $output .= '<div class="slickgrid-control" id="slickgrid-delete"></div>';
   }
-  $view->style_plugin->options['export'] = true;
   if(isset($view->style_plugin->options['export'])){
     drupal_add_js($path . '/js/controls/slickgrid.export.js');
     $output .= '<div class="slickgrid-control" id="slickgrid-export"></div>';
