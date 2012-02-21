@@ -118,6 +118,7 @@ function oboe_job_form($form, &$form_state, $oboe){
       }
     }
   }
+  $form['#oboe'] = $oboe;
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Create')
@@ -128,4 +129,6 @@ function oboe_job_form($form, &$form_state, $oboe){
 /**
  * Submit for the above function
  */
-function oboe_job_form_submit(&$form, &$form_state){}
+function oboe_job_form_submit(&$form, &$form_state){
+  dpm($form_state);
+}
