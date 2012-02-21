@@ -878,13 +878,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['arguments']['type']['limit'] = '0';
   $handler->display->display_options['arguments']['type']['transform_dash'] = 0;
   $handler->display->display_options['arguments']['type']['break_phrase'] = 0;
-  /* Filter criterion: File: Status */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = array(
-    1 => '1'
-  );
   /* Display: Default */
   $handler = $view->new_display('page', 'Default', 'page');
   $handler->display->display_options['path'] = 'admin/file/%';
