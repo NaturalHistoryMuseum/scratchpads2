@@ -1,0 +1,131 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_backend_menu_alter(&$items){
+  // Overwite the admin/content callback node_admin_content() with one showing all entity types 
+  $items['admin/content']['page callback'] = 'scratchpads_backend_admin_content';
+  $items['admin/content']['module'] = 'scratchpads_backend';
+  unset($items['admin/content']['page arguments']);
+  $items['admin/content']['file'] = 'scratchpads_backend.admin.inc';
+  unset($items['admin/content/node']);
+  unset($items['node/add']);
+  // Remove the tabs for these items
+  $items['admin/content/character-editor/projects']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/comment']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/file']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/relation']['type'] = MENU_NORMAL_ITEM;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_backend_admin_paths(){
+  $paths = array(
+    'file/add' => TRUE
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function scratchpads_backend_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  switch($root_path){
+    case 'admin/content/%':
+      $node_type = str_replace('_', '-', arg(2));
+      $local_tasks = array(
+        'node/add/' . arg(2),
+        'import/node_importer_' . $node_type
+      );
+      break;
+    case 'node/add/' . arg(2):
+      $node_type = str_replace('_', '-', arg(2));
+      $local_tasks = array(
+        'import/node_importer_' . $node_type
+      );
+      break;
+    case 'admin/file/%':
+      $local_tasks = array(
+        'file/add',
+        'admin/content/file/import'
+      );
+      break;
+  }
+  if(isset($local_tasks)){
+    foreach($local_tasks as $local_task){
+      $item = menu_get_item($local_task);
+      if($item['access']){
+        $data['actions']['output'][] = array(
+          '#theme' => 'menu_local_action',
+          '#link' => $item
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_backend_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/*********************************************************************************************
+ * 
+ * VIEWS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_backend_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_backend');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Implementation of hook_views_pre_view
+ */
+function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
+  if($view->name == 'admin_node'){
+    $bundle_name = reset($view->args);
+    $entity_type = 'node';
+    $instances = field_info_instances($entity_type, $bundle_name);
+    $field = $view->display_handler->get_handler('field', 'views_bulk_operations');
+    foreach(array_keys($instances) as $field_name){
+      if($field_name == 'title_field' && isset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title'])){
+        unset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title']);
+      }
+      $edit_field = $bundle_name . '::' . $field_name;
+      $field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values'][$edit_field] = $edit_field;
+    }
+  }
+}
+
+/**
+ * 
+ * Usort comparison function for ordering field groups
+ * @param object $a
+ * @param object $b
+ */
+function scratchpads_backend_usort_comparison($a, $b){
+  if($a->weight == $b->weight){
+    return 0;
+  }else{
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
