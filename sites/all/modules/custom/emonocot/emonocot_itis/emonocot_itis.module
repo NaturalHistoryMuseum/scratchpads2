@@ -32,16 +32,17 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
         field_create_instance($field['field_instance']);
       }
       // Associate all the other fields with this instance.
-      foreach(emonocot_itis_fields() as $field){
-        // Create the field if it hasn't already been created.
+      foreach(emonocot_itis_fields($form_state['vocabulary']->machine_name) as $field){
+      	// Create the field if it hasn't already been created.
         if(!field_info_field($field['field_config']['field_name'])){
           field_create_field($field['field_config']);
         }
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
+
         field_create_instance($field['field_instance']);
       }
 
-      foreach(emonocot_itis_groups() as $group){
+      foreach(emonocot_itis_groups($form_state['vocabulary']->machine_name) as $group){
         $group['bundle'] = $form_state['vocabulary']->machine_name;
         foreach($group['children'] as $key => $child){
           if(in_array($child, $field_names_in_groups_to_change)){
@@ -65,7 +66,7 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       	}
       }
       //...and do the same for fields
-      foreach(emonocot_itis_fields_groups() as $key => $fields){
+      foreach(emonocot_itis_fields_groups($form_state['vocabulary']->machine_name) as $key => $fields){
         $group = field_group_load_field_group($key, 'taxonomy_term', $form_state['vocabulary']->machine_name, 'form');
         foreach($fields as $field){
           $group->children[] = $field;
