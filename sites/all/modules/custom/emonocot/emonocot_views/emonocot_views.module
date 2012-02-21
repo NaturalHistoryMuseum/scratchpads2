@@ -8,16 +8,21 @@ function emonocot_views_views_api(){
   );
 }
 
-function emonocot_views_context_load_alter(&$context) {
-  if ($context->name === 'species_overview' && isset($context->reactions['block'])) {
+function emonocot_views_context_load_alter(&$context){
+  if($context->name === 'species_overview' && isset($context->reactions['block'])){
     //Remove default Scratchpads nomenclature block
     unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
-    //Replace with the eMonocot one
-    $context->reactions['block']['blocks']['views-em_species_nomenclature-block'] = array(
-      'module' => 'views',
-      'delta'  => 'em_species_nomenclature-block',
-      'region' => 'content',
-      'weight' => -10,
-    );
+    //Replace with the eMonocot one(s)
+    global $conf;
+    $bio_ids = $conf['biological_vids'];
+    $bio_names = array(); //of machine names of biologocal vocabs
+    foreach($bio_names as $bio_name){
+      $context->reactions['block']['blocks']['views-em_species_nomenclature_'.$bio_name.'-block'] = array(
+        'module' => 'views',
+        'delta' => 'em_species_nomenclature_'.$bio_name.'-block',
+        'region' => 'content',
+        'weight' => -10
+      );
+    }
   }
 }
