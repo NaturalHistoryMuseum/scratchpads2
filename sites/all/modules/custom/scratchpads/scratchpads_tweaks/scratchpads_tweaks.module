@@ -10,3 +10,12 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
     unset($form[$tid]);
   }
 }
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_tweaks_menu_alter(&$items){
+  if(isset($items['node/%node/clone'])){
+    $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
+  }
+}
