@@ -11,6 +11,8 @@ class OBOEService{
 
   private $type;
 
+  private $id;
+
   private $response;
 
   private $status;
@@ -21,105 +23,169 @@ class OBOEService{
 
   private static $service = 'https://oboe.oerc.ox.ac.uk/';
 
-  // Standard constructor.  Must be passed the auth token for the service, else
-  // we'll throw an error.
-  function __construct($at = FALSE, $type = FALSE, $job_name = FALSE, $job_description = ''){
-    $at = self::get_auth_token($at);
+  /**
+   * Standard constructor for the OBOEService class.  A user should pass either
+   * an ID, or an array of job details.
+   * 
+   * @param unknown_type $job_details
+   * 
+   * This should either be an ID of a job that has already been created on the
+   * OBOE server, or an array of new job details
+   * 
+   * @param String $at
+   * 
+   * Auth token.
+   */
+  function __construct($job_details = FALSE, $at = FALSE){
     // Check for the PECL extension.
     if(!function_exists('http_post_data')){throw new OBOEServiceException(t('PECL pecl_http is not installed.'));}
-    $this->auth_token = $at;
-    if(!$job_name){
-      // Generate a job name based on the requesting user, and the time.
-    }
-    $this->job_description = $job_description;
-    if($type){
-      $this->type = $type;
+    $this->auth_token = self::get_auth_token($at);
+    if($id){
+      if(is_array($job_details)){
+        foreach($job_details as $key => $value){
+          $this->{$key} = $value;
+        }
+      }else{
+        $this->id = $job_details;
+      }
     }
   }
 
-  // Set the job type that we intend to run
-  // Set additional parameters for this job
+  /**
+   * Set the parameters for an OBOE Job
+   * @param array $parameters
+   * A keyed array of parameters
+   * @param unknown_type $reset
+   * Whether to append, or replace all.
+   */
   function set_parameters($parameters, $reset = FALSE){
     if($reset){
       $this->parameters = array();
     }
     // inputurl is a special parameter, so we pull it out (if set).
-    if(isset($parameters['inputurl'])){
+    if(isset($parameters['inputurl']) && is_string($parameters['inputurl'])){
       $this->inputurl = $parameters['inputurl'];
       unset($parameters['inputurl']);
     }
     // job_name is a special parameter, so we pull it out (if set).
-    if(isset($parameters['job_name'])){
+    if(isset($parameters['job_name']) && is_string($parameters['job_name'])){
       $this->job_name = $parameters['job_name'];
       unset($parameters['job_name']);
     }
     // job_name is a special parameter, so we pull it out (if set).
-    if(isset($parameters['job_description'])){
+    if(isset($parameters['job_description']) && is_string($parameters['job_description'])){
       $this->job_description = $parameters['job_description'];
       unset($parameters['job_description']);
     }
-    $this->parameters = $parameters;
+    foreach($parameters as $key => $value){
+      $this->parameters[$key] = $value;
+    }
   }
 
+  /**
+   * Return the parameters that have been set.
+   */
   function get_parameters(){
     return $this->parameters;
   }
 
-  // Set and get the inputurl
+  /**
+   * Set the input URL for a job.
+   * @param unknown_type $inputurl
+   */
   function set_inputurl($inputurl){
-    $this->inputurl = $inputurl;
+    if(is_string($inputurl)){
+      $this->inputurl = $inputurl;
+    }
   }
 
+  /**
+   * Get the currently set inputurl.
+   */
   function get_inputurl(){
     return $this->inputurl;
   }
 
-  // Set and get the job_name
+  /**
+   * Set the job name.
+   * @param unknown_type $job_name
+   */
   function set_job_name($job_name){
-    $this->job_name = $job_name;
+    if(is_string($job_name)){
+      $this->job_name = $job_name;
+    }
   }
 
+  /**
+   * Get the job name.
+   */
   function get_job_name(){
     return $this->job_name;
   }
 
-  // Set and get the job_description
+  /**
+   * Set the job description.
+   * @param string $job_description
+   */
   function set_job_description($job_description){
-    $this->job_description = $job_description;
+    if(is_string($job_description)){
+      $this->job_description = $job_description;
+    }
   }
 
+  /**
+   * Get the job description.
+   */
   function get_job_description(){
     return $this->job_description;
   }
 
-  // Set and get the type
+  /**
+   * Set the job type.  This checks that the type is in the array of job types.
+   * @param unknown_type $type
+   */
   function set_type($type){
-    $this->type = $type;
+    if(is_string($type) && in_array($type, array_keys(self::get_job_types()))){
+      $this->type = $type;
+    }
   }
 
+  /**
+   * Return the currently set job type.
+   */
   function get_type(){
     return $this->type;
   }
 
-  // Get the response
-  function get_response(){
-    return $this->response;
+  /**
+   * Return the response for this job.  If the response isn't set, we update it.
+   * @param unknown_type $update
+   */
+  function get_response($update = FALSE){
+    if($this->response && !$update){
+      return $this->response;
+    }else{
+      // We don't have a response set, or we want to update it.
+      if($this->id){
+        return json_decode(file_get_contents(self::$service . 'jobs/' . $this->id . '.json?auth_token=' . $this->auth_token), TRUE);
+      }else{
+        return FALSE;
+      }
+    }
   }
 
-  // Get the response
+  /**
+   * Get the status.
+   * Enter description here ...
+   */
   function get_status(){
     return $this->status;
   }
 
-  // Validate that we have the correct parameters for the job that we're
-  // attempting to run.
-  private function validate(){
-    return TRUE;
-  }
-
-  // Do the do!
-  function run(){ // We've failed validation, we should set an error message.
-    if(!$this->validate()){throw new OBOEServiceException(t('Failed validation.'));}
+  /**
+   * Submit the job to the OBOE server.
+   */
+  function run(){
     $this->job_description = $this->job_description ? $this->job_description : date('c');
     $this->job_name = $this->job_name ? $this->job_name : microtime();
     $fields = array(
@@ -151,7 +217,22 @@ class OBOEService{
     return FALSE;
   }
 
-  // Static function to get an auth_token
+  /**
+   * Return a download URL for this job.
+   */
+  function get_download_url(){
+    if($this->id){
+      return self::$service . 'download/' . $this->id . '?auth_token=' . $this->auth_token;
+    }else{
+      return FALSE;
+    }
+  }
+
+  /**
+   * Static function to simply return an auth token.  This function will attempt
+   * to read an auth token from a file.
+   * @param string/boolean $at
+   */
   static function get_auth_token($at = FALSE){
     // Check that we're been given an auth token.
     if(!$at){
@@ -170,25 +251,31 @@ class OBOEService{
     return $at;
   }
 
-  // Static function to get the status of an OBOE job
-  static function get_job($id, $at = FALSE){
-    $at = self::get_auth_token($at);
-    return json_decode(file_get_contents(self::$service . 'jobs/' . $id . '.json?auth_token=' . $at), TRUE);
-  }
-
-  // Static function to get a list of job types
+  /**
+   * Simple function to return an array of job types as returned from the OBOE
+   * service.
+   * @param auth_token.
+   */
   static function get_job_types($at = FALSE){
     $at = self::get_auth_token($at);
     return json_decode(file_get_contents(self::$service . 'types?auth_token=' . $at), TRUE);
   }
 
-  // Static function to get the help data.
+  /**
+   * Simply returns the documentation as provided by the OBOE service.
+   * @param unknown_type $at
+   * @throws OBOEServiceException
+   */
   static function get_documentation($at = FALSE){
     $at = self::get_auth_token($at);
     return file_get_contents(self::$service . 'docs?auth_token=' . $at);
   }
 
-  // Static function to get the parameters for a job type.
+  /**
+   * Return the parameters for a job_type.
+   * @param unknown_type $type
+   * @param unknown_type $auth_token
+   */
   static function get_parameters_by_type($type = FALSE, $at = FALSE){
     $at = self::get_auth_token($at);
     if(!$type || !in_array($type, array_keys(self::get_job_types($at)))){
@@ -198,12 +285,6 @@ class OBOEService{
     }else{
       return json_decode(file_get_contents(self::$service . 'parameters/' . $type . '?auth_token=' . $at), TRUE);
     }
-  }
-
-  // Static function to return a download URL.
-  static function get_download_url($id, $at = FALSE){
-    $at = self::get_auth_token($at);
-    return self::$service . 'download/' . $id . '?auth_token=' . $at;
   }
 }
 

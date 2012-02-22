@@ -289,8 +289,7 @@ function theme_gm3_view_gm3($variables){
       }
     }
   }
-  $render = theme('gm3_map', array(
+  return theme('gm3_map', array(
     'map' => $map
   ));
-  return drupal_render($render);
 }

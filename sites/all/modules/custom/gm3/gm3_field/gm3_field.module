@@ -773,7 +773,9 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       }
       if($display_map){
         module_load_include('theme.inc', 'gm3');
-        $element = gm3_get_map($map);
+        $element = gm3_get_map(array(
+          'map' => $map
+        ));
       }
       break;
     default:

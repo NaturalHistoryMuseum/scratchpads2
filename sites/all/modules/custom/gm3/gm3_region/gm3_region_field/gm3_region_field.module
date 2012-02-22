@@ -162,18 +162,22 @@ function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instan
     foreach($items as $item){
       $regions[] = $item['region_id'];
     }
-    $element = theme('gm3_map', array(
+    $element = array(
       'map' => array(
-        'id' => $id,
-        'libraries' => array(
-          'region' => array(
-            'module' => 'gm3_region',
-            'regions' => $regions
-          ),
-          'polygon'
-        )
+        '#markup' => theme('gm3_map', array(
+          'map' => array(
+            'id' => $id,
+            'libraries' => array(
+              'region' => array(
+                'module' => 'gm3_region',
+                'regions' => $regions
+              ),
+              'polygon'
+            )
+          )
+        ))
       )
-    ));
+    );
   }
   return $element;
 }
@@ -272,29 +276,28 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       foreach($items as $item){
         $regions[] = $item['region_id'];
       }
-      $theme_array = theme('gm3_map', array(
-        'map' => array(
-          'id' => $element['#field_name'],
-          'libraries' => array(
-            'region' => array(
-              'module' => 'gm3_region',
-              'regions' => $regions
-            ),
-            'polygon' => array(),
-            'field_region' => array(
-              'module' => 'gm3_region_field'
-            )
-          ),
-          'tools' => array(
-            theme('gm3_region_button', array(
-              'id' => $element['#field_name']
-            ))
-          ),
-          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-        )
-      ));
       $widget += array(
-        '#prefix' => drupal_render($theme_array),
+        '#prefix' => theme('gm3_map', array(
+          'map' => array(
+            'id' => $element['#field_name'],
+            'libraries' => array(
+              'region' => array(
+                'module' => 'gm3_region',
+                'regions' => $regions
+              ),
+              'polygon' => array(),
+              'field_region' => array(
+                'module' => 'gm3_region_field'
+              )
+            ),
+            'tools' => array(
+              theme('gm3_region_button', array(
+                'id' => $element['#field_name']
+              ))
+            ),
+            'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
+          )
+        )),
         '#suffix' => '<p style="text-align:right"><a href="#" onclick="jQuery(this).parent().siblings().children(\'select\').toggle(); return false">' . t('Toggle manual selection') . '</a></p>',
         '#attached' => array(
           'css' => array(

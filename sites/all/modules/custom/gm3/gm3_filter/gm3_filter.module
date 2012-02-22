@@ -85,8 +85,7 @@ function gm3_filter_library(){
         array(
           'gm3_region',
           'region'
-        ),
-        
+        )
       )
     )
   );
@@ -125,9 +124,9 @@ function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cach
   foreach($matches[0] as $key => $match_text){
     // Decode middle!
     if($map = json_decode(trim($matches[1][$key]), TRUE)){
-      $text = str_replace($match_text, drupal_render(theme('gm3_map', array(
+      $text = str_replace($match_text, theme('gm3_map', array(
         'map' => $map
-      ))), $text);
+      )), $text);
     }else{
       // Failed to decode the JSON, give an error message instead.
       $text = str_replace($match_text, '<p class="error">' . t('The google map you have provided is invalid.') . '</p>', $text);

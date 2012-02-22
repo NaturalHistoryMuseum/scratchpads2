@@ -812,7 +812,8 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'location' => 'location'
+    'location' => 'location',
+    'spm' => 'spm'
   );
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
