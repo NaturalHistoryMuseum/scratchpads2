@@ -16,12 +16,14 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
     );
     $form['feeds']['#weight'] = -10;
     $form['submit']['#weight'] = 10;
-    $form['source_status'] = array(
-      '#type' => 'markup',
-      '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
-        '!interval' => format_interval(time() - $state['start_time'])
-      )) . '</div>'
-    );
+    if(isset($state['start_time']) && $state['start_time']){
+      $form['source_status'] = array(
+        '#type' => 'markup',
+        '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
+          '!interval' => format_interval(time() - $state['start_time'])
+        )) . '</div>'
+      );
+    }
   }
 }
 
