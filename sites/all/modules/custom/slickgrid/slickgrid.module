@@ -512,8 +512,21 @@ function slickgrid_editor_form($form, &$form_state){
   // Use the first entity - this will be used as the default value for all selected entities 
   foreach($editor->entities as $entity){
     list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
-    // Create an instance of the field
-    if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+    $info = entity_get_info($editor->entity_type);
+    $label_key = $info['entity keys']['label'];
+    // Is this the label we're editing?
+    if($editor->field_id == $label_key){
+      $form[$editor->field_id] = array(
+        '#type' => 'textfield',
+        '#title' => ucfirst($label_key),
+        '#default_value' => $entity->{$label_key},
+        '#size' => 60,
+        '#maxlength' => 128,
+        '#required' => TRUE
+      );
+      $form['#entity_property'] = true;
+       // Create an instance of the field
+    }elseif(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
       $editor->set_error($id, t('Field doesn\'t exist'), 'form');
       return;
     }elseif($instance['required']){ // If any field instance is required, set required to true
@@ -566,7 +579,8 @@ function slickgrid_editor_form($form, &$form_state){
   }
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save')
+    '#value' => t('Save'),
+    '#weight' => 100
   );
   return $form;
 }
@@ -595,13 +609,15 @@ function slickgrid_editor_form_validate($form, &$form_state){
           $error .= $field_errors;
         }
       }
-    }else{
+    }elseif(!isset($form['#entity_property'])){
       $error = t('Field doesn\'t exist');
     }
-    // If got to this point the bundle failed validation
-    $editor->set_error($id, $error);
-    // Set form error to prevent form submission
-    form_set_error($editor->field_id, t('Validation error'));
+    if(isset($error)){
+      // If got to this point the bundle failed validation
+      $editor->set_error($id, $error);
+      // Set form error to prevent form submission
+      form_set_error($editor->field_id, t('Validation error'));
+    }
   }
 }
 
@@ -611,10 +627,12 @@ function slickgrid_editor_form_submit($form, &$form_state){
     // Get the entity ids
     list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
     // Create an instance of the field
-    if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
-      // Add entity to the editor's error array
-      $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
-      continue;
+    if(!isset($form['#entity_property'])){
+      if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+        // Add entity to the editor's error array
+        $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
+        continue;
+      }
     }
     // Populate the entity with the submitted values
     entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);

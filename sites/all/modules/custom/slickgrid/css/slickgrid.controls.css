@@ -162,10 +162,10 @@ opacity: 1;
 
 /* Tabs */
 #slickgrid-tabs span{
-  width: 100px;
+  min-width: 100px;
   height: 30px;
   line-height: 30px;
-  padding-left: 10px;
+  padding: 0 10px;
   display: inline-block;
   -webkit-border-top-left-radius: 5px;
   -webkit-border-top-right-radius: 5px;
