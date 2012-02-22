@@ -3,7 +3,8 @@ description = Tweaks a Scratchpad into an eMonocot Scratchpad
 core = 7.x
 package="eMonocot"
 
-dependencies[] = scratchpad_tweaks
+dependencies[] = scratchpads_tweaks
 dependencies[] = emonocot_blocks
 dependencies[] = emonocot_itis
 dependencies[] = emonocot_spm
+dependencies[] = emonocot_views

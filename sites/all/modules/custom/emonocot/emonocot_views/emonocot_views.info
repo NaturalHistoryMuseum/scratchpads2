@@ -1,0 +1,6 @@
+core = "7.x"
+description = "Provides custom views and customises for eMonocot Scratchpads"
+name = "eMonocot Views"
+package = "eMonocot"
+dependencies[] = scratchpads_species
+
