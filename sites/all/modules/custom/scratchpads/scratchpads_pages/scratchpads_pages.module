@@ -310,22 +310,21 @@ function scratchpads_pages_block_view($delta = ''){
   return $block;
 }
 
-
 /**
  * Finds all terms associated with a node.
  * This is a D7 Replacement for Drupal 6 taxonomy_node_get_terms.
  */
-function scratchpads_pages_node_get_terms($node, $key = 'tid') {
+function scratchpads_pages_node_get_terms($node, $key = 'tid'){
   static $terms;
-  if (!isset($terms[$node->vid][$key])) {
+  if(!isset($terms[$node->vid][$key])){
     $query = db_select('taxonomy_index', 'r');
     $t_alias = $query->join('taxonomy_term_data', 't', 'r.tid = t.tid');
     $v_alias = $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
-    $query->fields( $t_alias );
+    $query->fields($t_alias);
     $query->condition("r.nid", $node->nid);
     $result = $query->execute();
     $terms[$node->vid][$key] = array();
-    foreach ($result as $term) {
+    foreach($result as $term){
       $terms[$node->vid][$key][$term->$key] = $term;
     }
   }
@@ -377,7 +376,8 @@ function scratchpads_pages_variable_default($name = NULL){
         'specimen_observation' => 'view',
         'biblio' => 'solr',
         'media_gallery' => 'solr',
-        'location' => 'none'
+        'location' => 'none',
+        'forum' => 'none'
       )
     );
   }
@@ -403,20 +403,20 @@ function scratchpads_pages_pluralise_node_name($name){
 /**
  * Implements hook_menu_block_blocks().
  */
-function scratchpads_pages_menu_block_blocks() {
+function scratchpads_pages_menu_block_blocks(){
   // The array key is the block delta used by menu block.
   return array(
     'scratchpads_pages-1' => array(
-      'menu_name'   => 'main-menu',
+      'menu_name' => 'main-menu',
       'parent_mlid' => 0,
-      'title_link'  => 0,
+      'title_link' => 0,
       'admin_title' => 'Scratchpads secondary menu',
-      'level'       => 2,
-      'follow'      => 0,
-      'depth'       => 0,
-      'expanded'    => 0,
-      'sort'        => 0,
-    ),
+      'level' => 2,
+      'follow' => 0,
+      'depth' => 0,
+      'expanded' => 0,
+      'sort' => 0
+    )
   );
 }
 
