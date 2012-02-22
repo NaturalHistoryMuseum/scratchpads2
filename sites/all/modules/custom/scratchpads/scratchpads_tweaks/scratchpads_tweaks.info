@@ -29,6 +29,7 @@ dependencies[] = rdf
 dependencies[] = globalredirect
 dependencies[] = feeds_oai_pmh
 dependencies[] = taxonomy_breadcrumb_lite
+dependencies[] = node_clone
 
 ; Scratchpads modules
 dependencies[] = scratchpads_biblio_search
