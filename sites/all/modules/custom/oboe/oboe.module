@@ -138,7 +138,7 @@ function oboe_view($oboe, $view_mode, $langcode){
   if($oboe->data['status'] == 'finished' && $oboe->data['proper_outfilename'] && (!isset($oboe->fid) || !$oboe->fid)){
     // We've got a file, but have not yet downloaded it.  Lets do so now, and
     // we'll save it to the database.
-    $file = file_save_data(@file_get_contents(OBOEService::get_url($oboe->data['id'])));
+    $file = file_save_data(@file_get_contents(OBOEService::get_download_url($oboe->data['id'])));
     $file = file_move($file, 'public://' . $oboe->data['proper_outfilename']);
     $file->filename = $oboe->data['proper_outfilename'];
     file_save($file);

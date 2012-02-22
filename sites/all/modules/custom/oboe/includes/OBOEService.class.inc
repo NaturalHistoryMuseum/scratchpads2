@@ -134,6 +134,7 @@ class OBOEService{
     if(isset($this->inputurl)){
       $fields['job']['inputurl'] = $this->inputurl;
     }
+    $info = array();
     $this->response = http_post_data(self::$service . 'jobs.json', http_build_query($fields), array(
       'timeout' => 10
     ), $info);
@@ -200,7 +201,7 @@ class OBOEService{
   }
 
   // Static function to return a download URL.
-  static function get_url($id, $at = FALSE){
+  static function get_download_url($id, $at = FALSE){
     $at = self::get_auth_token($at);
     return self::$service . 'download/' . $id . '?auth_token=' . $at;
   }
