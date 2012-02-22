@@ -46,15 +46,14 @@ class FeedsExcelParser extends FeedsParser{
           break;
         }
       }
-      // Get the number of rows per sheet.  Note, sheets with only one row are
-      // considered empty.
+      // Get the number of rows per sheet
       $this->row_counts = array();
       foreach($this->PHPExcel_ws as $sheet){
         $number_of_rows = $sheet->getHighestRow();
-        if(empty($source_config['no_headers'])){
+        if(isset($source_config['no_headers'])){
           $number_of_rows--;
         }
-        if($number_of_rows > 1){
+        if($number_of_rows >= 1){
           $this->row_counts[] = $number_of_rows;
         }else{
           // We stop at the first empty sheet, to make things simpler.
