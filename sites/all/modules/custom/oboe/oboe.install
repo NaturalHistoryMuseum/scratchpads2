@@ -14,17 +14,34 @@ function oboe_schema(){
           'not null' => TRUE
         ),
         'uid' => array(
-          'description' => 'User',
+          'description' => '{user}.uid',
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
           'default' => 0
+        ),
+        'fid' => array(
+          'description' => '{file_managed}.fid',
+          'type' => 'int',
+          'unsigned' => TRUE
         ),
         'label' => array(
           'description' => 'The label for this OBOE job.',
           'type' => 'varchar',
           'length' => 255,
           'not null' => TRUE
+        ),
+        'description' => array(
+          'description' => 'The description for this OBOE job.',
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'data' => array(
+          'description' => 'The response data for this OBOE job.',
+          'type' => 'blob',
+          'not null' => TRUE,
+          'size' => 'big',
+          'translatable' => TRUE
         ),
         'type' => array(
           'description' => 'The type of this OBOE job.',
