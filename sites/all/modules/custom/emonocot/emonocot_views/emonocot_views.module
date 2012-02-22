@@ -16,12 +16,17 @@ function emonocot_views_context_load_alter(&$context){
     global $conf;
     $bio_ids = $conf['biological_vids'];
     $bio_names = array(); //of machine names of biologocal vocabs
-    foreach($bio_ids as $bio_id => $discard){
+    global $_GET;
+    $args = explode('/', $_GET['q']);
+    if($args[0]=='taxonomy' && $args[1]=='term' && is_int((int)$args[2])){
+      $result = db_query("SELECT vid FROM {taxonomy_term_data} WHERE tid = :tid", array (':tid' => $args[2]));
+      $bio_id  =$result->fetchObject()->vid;
+    
       $result = db_query('SELECT machine_name FROM {taxonomy_vocabulary} WHERE vid = :vid', array(':vid' => $bio_id));
       $bio_name = $result->fetchObject()->machine_name;
-      $context->reactions['block']['blocks']['views-em_species_nomenclature_'.$bio_name.'-block'] = array(
+      $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_name . '-block'] = array(
         'module' => 'views',
-        'delta' => 'em_species_nomenclature_'.$bio_name.'-block',
+        'delta' => 'em_species_nomenclature_' . $bio_name . '-block',
         'region' => 'content',
         'weight' => -10
       );

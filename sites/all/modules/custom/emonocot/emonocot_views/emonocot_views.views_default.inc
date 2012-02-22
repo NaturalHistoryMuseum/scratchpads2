@@ -1,7 +1,7 @@
 <?php
 
 function emonocot_views_nomenclature($machine_name){
-  //$views = array();
+
   $view = new view();
   $view->name = 'em_species_nomenclature_'.$machine_name;
   $view->description = '';
@@ -348,7 +348,9 @@ function emonocot_views_nomenclature($machine_name){
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['id'] = 'field_hybrid_parents_'.$machine_name;
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['table'] = 'field_data_field_hybrid_parents_'.$machine_name;
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['field'] = 'field_hybrid_parents_'.$machine_name;
-  $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['label'] = '';
+  $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['text'] = '<strong>Hybrid parents:</strong> [field_hybrid_parents_'.$machine_name.']';
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['field_hybrid_parents_'.$machine_name]['alter']['external'] = 0;
@@ -375,7 +377,7 @@ function emonocot_views_nomenclature($machine_name){
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['arguments']['tid']['field'] = 'tid';
-  $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'not found';
   $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
   $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
   $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
@@ -468,7 +470,6 @@ function emonocot_views_nomenclature($machine_name){
     'block' => 'block'
   );
   $handler->display->display_options['attachment_position'] = 'after';
-  //$views[$view->name] = $view;
-  //return $views;
+
   return $view;
 }
