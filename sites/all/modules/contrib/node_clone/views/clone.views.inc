@@ -1,4 +1,5 @@
 <?php
+// $Id: clone.views.inc,v 1.1 2008/10/14 23:16:56 pwolanin Exp $
 
 /**
 * Implementation of hook_views_handlers()

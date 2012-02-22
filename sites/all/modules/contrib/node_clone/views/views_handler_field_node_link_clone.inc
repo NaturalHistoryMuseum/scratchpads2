@@ -1,4 +1,5 @@
 <?php
+// $Id: views_handler_field_node_link_clone.inc,v 1.1 2008/10/14 23:16:56 pwolanin Exp $
 
 /**
 * Field handler to present a clone node link.

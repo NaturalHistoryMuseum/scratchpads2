@@ -1,53 +1,105 @@
 <?php
 
 /**
- * Generates the profile type editing form.
+ * Callback to display all the oboe oboes.
  */
-function oboe_form($form, &$form_state, $oboe, $op = 'edit'){
-  if($op == 'clone'){
-    $profile_type->label .= ' (cloned)';
-    $profile_type->type = '';
-  }
-  return array(
-    'label' => array(
-      '#title' => t('Job name'),
-      '#type' => 'textfield',
-      '#default_value' => $oboe->is_new ? '' : $oboe->label,
-      '#description' => t('A label for this job.'),
-      '#required' => TRUE,
-      '#size' => 30
+function oboe_admin_jobs(){
+  $admin_access = user_access('administer oboes');
+  // Build the sortable table header.
+  $header = array(
+    'title' => array(
+      'data' => t('Title'),
+      'field' => 'o.label'
     ),
     'type' => array(
-      '#title' => t('Job type'),
-      '#empty_option' => t('Select job type'),
-      '#required' => TRUE,
-      '#options' => OBOEService::get_job_types(),
-      '#type' => 'select',
-      '#default_value' => $oboe->is_new ? '' : $oboe->type
+      'data' => t('Type'),
+      'field' => 'o.type'
     ),
-    'actions' => array(
-      '#type' => 'actions',
-      'submit' => array(
-        '#type' => 'submit',
-        '#value' => t('Submit'),
-        '#weight' => 40
-      )
+    'author' => t('User'),
+    'status' => t('Status'),
+    'changed' => array(
+      'data' => t('Updated'),
+      'field' => 'o.changed',
+      'sort' => 'desc'
+    ),
+    'operations' => array(
+      'data' => t('Operations')
     )
   );
-}
-
-/**
- * Form API submit callback for the type form.
- */
-function oboe_form_submit(&$form, &$form_state){
-  $oboe = entity_ui_form_submit_build_entity($form, $form_state);
-  // Save and go back.
-  $oboe->save();
-}
-
-/**
- * Form API submit callback for the delete button.
- */
-function oboe_form_submit_delete(&$form, &$form_state){
-  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['oboe']->type . '/delete';
+  $query = db_select('oboe', 'o')->extend('PagerDefault')->extend('TableSort');
+  $oids = $query->fields('o', array(
+    'oid'
+  ))->limit(50)->orderByHeader($header)->execute()->fetchCol();
+  $oboes = oboe_load_multiple($oids);
+  // Prepare the list of oboes.
+  $destination = drupal_get_destination();
+  $options = array();
+  $job_types = OBOEService::get_job_types();
+  foreach($oboes as $oboe){
+    $options[$oboe->oid] = array(
+      'title' => array(
+        'data' => array(
+          '#type' => 'link',
+          '#title' => $oboe->label,
+          '#href' => 'oboe/' . $oboe->oid
+        )
+      ),
+      'type' => check_plain($job_types[$oboe->type]),
+      'author' => theme('username', array(
+        'account' => user_load($oboe->uid)
+      )),
+      'status' => $oboe->data['status'],
+      'changed' => format_date($oboe->changed, 'short')
+    );
+    // Build a list of all the accessible operations for the current oboe.
+    $operations = array();
+    if(oboe_access('delete', $oboe)){
+      $operations['delete'] = array(
+        'title' => t('delete'),
+        'href' => 'oboe/' . $oboe->oid . '/delete',
+        'query' => $destination
+      );
+    }
+    $options[$oboe->oid]['operations'] = array();
+    if(count($operations) > 1){
+      // Render an unordered list of operations links.
+      $options[$oboe->oid]['operations'] = array(
+        'data' => array(
+          '#theme' => 'links__node_operations',
+          '#links' => $operations,
+          '#attributes' => array(
+            'class' => array(
+              'links',
+              'inline'
+            )
+          )
+        )
+      );
+    }elseif(!empty($operations)){
+      // Render the first and only operation as a link.
+      $link = reset($operations);
+      $options[$oboe->oid]['operations'] = array(
+        'data' => array(
+          '#type' => 'link',
+          '#title' => $link['title'],
+          '#href' => $link['href'],
+          '#options' => array(
+            'query' => $link['query']
+          )
+        )
+      );
+    }
+  }
+  // Only use a tableselect when the current user is able to perform any
+  // operations.
+  $form['oboes'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $options,
+    '#empty' => t('No content available.')
+  );
+  $form['pager'] = array(
+    '#markup' => theme('pager')
+  );
+  return $form;
 }

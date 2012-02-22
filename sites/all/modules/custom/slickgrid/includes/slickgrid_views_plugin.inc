@@ -222,7 +222,13 @@ class slickgrid_views_plugin extends views_plugin_style{
           );
           continue;
         }
-        if(count($plugin_options = slickgrid_get_plugin_options_for_field($plugin_type, (isset($handlers[$field_id]->options['type']) ? $handlers[$field_id]->options['type'] : null)))){
+        // If this is an entity title field, use text_default as field type
+        if(!isset($handlers[$field_id]->options['type'])){
+          if($this->entity_label_field($handlers[$field_id])){
+            $handlers[$field_id]->options['type'] = 'text_default';
+          }
+        }
+        if(count($plugin_options = slickgrid_get_plugin_options_for_field($plugin_type, (isset($handlers[$field_id]->options['type']) ? $handlers[$field_id]->options['type'] : NULL)))){
           $form['columns'][$field_id][$plugin_type] = array(
             '#type' => 'select',
             '#default_value' => (isset($this->options['columns'][$field_id][$plugin_type]) ? $this->options['columns'][$field_id][$plugin_type] : ''),
@@ -301,7 +307,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     $form['tab_settings']['default_active_tab'] = array(
       '#type' => 'select',
       '#title' => t('Default active tab'),
-    	'#options' => $tabs,
+      '#options' => $tabs,
       '#default_value' => (isset($this->options['default_active_tab']) ? $this->options['default_active_tab'] : ''),
       '#parents' => array(
         'style_options',
@@ -552,6 +558,16 @@ class slickgrid_views_plugin extends views_plugin_style{
       }
     }
     return $entities;
+  }
+
+  function entity_label_field($field){
+    static $entity_labels = array();
+    if(!count($entity_labels)){
+      foreach($entities_info = entity_get_info() as $entity_info){
+        $entity_labels[$entity_info['base table']] = $entity_info['entity keys']['label'];
+      }
+    }
+    if(array_key_exists($field->options['table'], $entity_labels) && $entity_labels[$field->options['table']] == $field->options['field']){return true;}
   }
 
   function query(){

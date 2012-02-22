@@ -26,6 +26,9 @@ function scratchpads_help_block_view($delta = ''){
   return $block;
 }
 
+/**
+ * Implements hook_block_view().
+ */
 function scratchpads_help_add_help($data = NULL){
   $help = &drupal_static(__FUNCTION__, array());
   if(isset($data)){

@@ -29,6 +29,7 @@ dependencies[] = rdf
 dependencies[] = globalredirect
 dependencies[] = feeds_oai_pmh
 dependencies[] = taxonomy_breadcrumb_lite
+dependencies[] = clone
 
 ; Scratchpads modules
 dependencies[] = scratchpads_biblio_search
@@ -54,3 +55,4 @@ dependencies[] = spm
 dependencies[] = tui
 dependencies[] = silver
 dependencies[] = eol
+dependencies[] = femail

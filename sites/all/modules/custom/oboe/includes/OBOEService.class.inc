@@ -48,6 +48,16 @@ class OBOEService{
       $this->inputurl = $parameters['inputurl'];
       unset($parameters['inputurl']);
     }
+    // job_name is a special parameter, so we pull it out (if set).
+    if(isset($parameters['job_name'])){
+      $this->job_name = $parameters['job_name'];
+      unset($parameters['job_name']);
+    }
+    // job_name is a special parameter, so we pull it out (if set).
+    if(isset($parameters['job_description'])){
+      $this->job_description = $parameters['job_description'];
+      unset($parameters['job_description']);
+    }
     $this->parameters = $parameters;
   }
 
@@ -64,9 +74,41 @@ class OBOEService{
     return $this->inputurl;
   }
 
+  // Set and get the job_name
+  function set_job_name($job_name){
+    $this->job_name = $job_name;
+  }
+
+  function get_job_name(){
+    return $this->job_name;
+  }
+
+  // Set and get the job_description
+  function set_job_description($job_description){
+    $this->job_description = $job_description;
+  }
+
+  function get_job_description(){
+    return $this->job_description;
+  }
+
+  // Set and get the type
+  function set_type($type){
+    $this->type = $type;
+  }
+
+  function get_type(){
+    return $this->type;
+  }
+
   // Get the response
   function get_response(){
     return $this->response;
+  }
+
+  // Get the response
+  function get_status(){
+    return $this->status;
   }
 
   // Validate that we have the correct parameters for the job that we're
@@ -78,6 +120,8 @@ class OBOEService{
   // Do the do!
   function run(){ // We've failed validation, we should set an error message.
     if(!$this->validate()){throw new OBOEServiceException(t('Failed validation.'));}
+    $this->job_description = $this->job_description ? $this->job_description : date('c');
+    $this->job_name = $this->job_name ? $this->job_name : microtime();
     $fields = array(
       'auth_token' => $this->auth_token,
       'job' => array(
@@ -90,11 +134,25 @@ class OBOEService{
     if(isset($this->inputurl)){
       $fields['job']['inputurl'] = $this->inputurl;
     }
-    $this->response = http_post_data($this->service . 'jobs.json', http_build_query($fields));
+    $info = array();
+    $this->response = http_post_data(self::$service . 'jobs.json', http_build_query($fields), array(
+      'timeout' => 10
+    ), $info);
+    if($this->response){
+      $http_reply = http_parse_message($this->response);
+      if(isset($http_reply->body)){
+        $this->response = json_decode($http_reply->body, TRUE);
+        if($info['response_code'] == 201 || $info['response_code'] == 200){
+          $this->status = 1;
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
   }
 
   // Static function to get an auth_token
-  static function get_auth_token($at){
+  static function get_auth_token($at = FALSE){
     // Check that we're been given an auth token.
     if(!$at){
       // We try and read the authtoken from a configuration file.
@@ -112,6 +170,12 @@ class OBOEService{
     return $at;
   }
 
+  // Static function to get the status of an OBOE job
+  static function get_job($id, $at = FALSE){
+    $at = self::get_auth_token($at);
+    return json_decode(file_get_contents(self::$service . 'jobs/' . $id . '.json?auth_token=' . $at), TRUE);
+  }
+
   // Static function to get a list of job types
   static function get_job_types($at = FALSE){
     $at = self::get_auth_token($at);
@@ -125,7 +189,7 @@ class OBOEService{
   }
 
   // Static function to get the parameters for a job type.
-  static function get_parameters_by_type($at = FALSE, $type = FALSE){
+  static function get_parameters_by_type($type = FALSE, $at = FALSE){
     $at = self::get_auth_token($at);
     if(!$type || !in_array($type, array_keys(self::get_job_types($at)))){
       throw new OBOEServiceException(t('@type is not recognised by OBOE.', array(
@@ -134,6 +198,12 @@ class OBOEService{
     }else{
       return json_decode(file_get_contents(self::$service . 'parameters/' . $type . '?auth_token=' . $at), TRUE);
     }
+  }
+
+  // Static function to return a download URL.
+  static function get_download_url($id, $at = FALSE){
+    $at = self::get_auth_token($at);
+    return self::$service . 'download/' . $id . '?auth_token=' . $at;
   }
 }
 

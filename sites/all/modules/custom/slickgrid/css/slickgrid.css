@@ -35,7 +35,7 @@
 /* Header bar */
 
 #slickgrid .slick-header{
-  /* Allow 1px for the bottomc column border - overflow is hidden*/
+  /* Allow 1px for the bottom column border - overflow is hidden*/
   height: 31px!important; 
   border: none;
 }
@@ -82,13 +82,20 @@
 
 /************************** FILTER BAR ************************/
 
+
+
 #slickgrid-toggle-search-panel{
   position: absolute;
   right: 2px;
   z-index: 100;
-  top: 39px;
+  top: 7px;
   cursor: pointer;
 }
+
+.grid-with-tabs #slickgrid-toggle-search-panel{
+  top: 39px;
+}
+  
 
 .slick-headerrow{
   background: #cfcfcf!important;
@@ -106,15 +113,23 @@
 
 /* text filter boxes */
 
-.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter span input{
+.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter input{
   border: 1px solid #949494;
-  height: 20px;
+  background: #fff;
+  height: 18px;
   line-height: 8px;
-  width: 100%;
   font-size: 10px;
-  padding: 0;
   margin-top: 4px;
   border-radius:8px;
+  max-width: 200px;
+
+}
+
+.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter span,
+.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter input{
+  display: block;
+  width: 100%;
+  text-indent: 5px;
 }
 
 /**************************** VIEWPORT & CELLS  ***************************/
@@ -271,9 +286,10 @@ div.slick-cell-checkboxsel input{
   color: #fff;
   display: inline-block;
   line-height: 8px;
-  padding: 1px 2px 0 2px;
+  padding: 4px 2px 1px;
   min-width: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
+  font-size: 10px;
 }
 
 #slickgrid-status span.slickgrid-status-errors{
@@ -321,7 +337,7 @@ ul.slickgrid-messages{
 
 ul.slickgrid-messages li{
   list-style: none;
-  padding-left: 24px;
+  padding-left: 30px;
 }
 
 ul.slickgrid-messages li.status{

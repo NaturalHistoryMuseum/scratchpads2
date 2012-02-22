@@ -1,0 +1,153 @@
+# Swedish translation of node_clone (6.x-1.0)
+# Copyright (c) 2009 by the Swedish translation team
+# Generated from files:
+#  clone.pages.inc,v 1.3 2008/05/07 02:28:58 pwolanin
+#  clone.module,v 1.23 2008/10/15 18:39:44 pwolanin
+#  views_handler_field_node_link_clone.inc,v 1.1 2008/10/14 23:16:56 pwolanin
+#  clone.info,v 1.8 2008/04/09 01:14:24 pwolanin
+#  clone.views.inc,v 1.1 2008/10/14 23:16:56 pwolanin
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: node_clone (6.x-1.0)\n"
+"POT-Creation-Date: 2009-07-08 13:01+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: clone.pages.inc:91
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: clone.pages.inc:12
+msgid "General settings"
+msgstr "Allmänna inställningar"
+
+#: clone.pages.inc:91; clone.module:46
+msgid "Clone"
+msgstr "Klona"
+
+#: clone.module:0; views/views_handler_field_node_link_clone.inc:29
+msgid "clone"
+msgstr "klona"
+
+#: clone.pages.inc:16
+msgid "Method to use when cloning a node"
+msgstr "Metod att använda när en nod ska klonas"
+
+#: clone.pages.inc:17
+msgid "Pre-populate the node form fields"
+msgstr "Fyll i nodformulärets fält"
+
+#: clone.pages.inc:17
+msgid "Save as a new node then edit"
+msgstr "Spara som en ny nod och redigera därefter"
+
+#: clone.pages.inc:22
+msgid ""
+"Confirmation mode when using the \"Save as a new node then edit\" "
+"method"
+msgstr "Bekräftelsemetod när \"Spara som en ny nod och redigera därefter\" används."
+
+#: clone.pages.inc:24
+msgid "Require confirmation (recommended)"
+msgstr "Kräv bekräftelse (rekommenderas)"
+
+#: clone.pages.inc:24
+msgid "Bypass confirmation"
+msgstr "Hoppa över bekräftelse"
+
+#: clone.pages.inc:25
+msgid ""
+"A new node may be saved immediately upon clicking the \"clone\" tab "
+"when viewing a node, bypassing the normal confirmation form."
+msgstr "En ny nod kan sparas direkt när man klickar på en nods \"klona\"-flik, utan att visa ett bekräftelseformulär."
+
+#: clone.pages.inc:30
+msgid ""
+"Should the publishing options ( e.g. published, promoted, etc) be "
+"reset to the defaults?"
+msgstr "Ska publiceringsalternativ (såsom publicerad, visa på startsidan osv) återställas till standardvärden?"
+
+#: clone.pages.inc:37
+msgid "@s: reset publishing options when cloned"
+msgstr "@s: återställ publiceringsalternativ vid kloning"
+
+#: clone.pages.inc:44
+msgid ""
+"Content types that are not to be cloned - omitted due to "
+"incompatibility"
+msgstr "Innehållstyper som inte ska kunna klonas - uteslutna på grund av inkompatibilitet."
+
+#: clone.pages.inc:48
+msgid "Omitted content types"
+msgstr "Uteslutna innehållstyper"
+
+#: clone.pages.inc:51
+msgid ""
+"Select any node types which should <em>never</em> be cloned. Typically "
+"you should will want to select here all node types for which cloning "
+"fails (e.g. image nodes)."
+msgstr "Välj de nod typer som <em>aldrig</em> ska kunna klonas. Oftast väljer du här alla nodtyper som inte fungerar att klonas (till exempel bildnoder)."
+
+#: clone.pages.inc:89
+msgid "Are you sure you want to clone %title?"
+msgstr "Är du säker på att du vill klona %title?"
+
+#: clone.pages.inc:90
+msgid ""
+"This action will create a new node. You will then be redirected to "
+"the edit page for the new node."
+msgstr "Denna åtgärd kommer att skapa en ny nod. Du kommer sedan att vidarebefordras till redigeringssidan för den nya noden."
+
+#: clone.pages.inc:126,166
+msgid "Clone of !title"
+msgstr "Kopia av !title"
+
+#: clone.module:11
+msgid ""
+"The clone module allows users to make a copy of an existing node and "
+"then edit that copy. The authorship is set to the current user, the "
+"menu and url aliases are reset, and the words \"Clone of\" are "
+"inserted into the title to remind you that you are not editing the "
+"original node."
+msgstr "Modulen Node Clone låter användare göra kopior av befintliga noder och redigera dessa kopior. Den aktiva användaren anges som nodens skapare, menyer och url-alias återställs och texten \"Kopia av\" tillfogas i titeln för att påminna om att det inte är originalnoden som redigeras."
+
+#: clone.module:12
+msgid ""
+"Users with the \"clone node\" permission can utilize this "
+"functionality. A new tab will appear on node pages with the word "
+"\"Clone\"."
+msgstr "Användare med rättigheten \"klona noder \" kan använda denna funktionalitet. En ny flik med namnet \"Klona\" visas på nodsidor."
+
+#: clone.module:17
+msgid "This clone will not be saved to the database until you submit."
+msgstr "Denna klon kommer inte att sparas i databasen förrän du klickar på Spara."
+
+#: clone.module:26
+msgid "clone node"
+msgstr "klona noder"
+
+#: clone.module:26
+msgid "clone own nodes"
+msgstr "klona egna noder"
+
+#: clone.module:37; clone.info:0
+msgid "Clone module"
+msgstr "Modulen Node Clone"
+
+#: clone.module:39; clone.info:0
+msgid "Allows users to clone (copy then edit) an existing node."
+msgstr "Låter användare klona (kopiera och redigera) befintliga noder."
+
+#: views/clone.views.inc:26
+msgid "Clone link"
+msgstr "Klona-länk"
+
+#: views/clone.views.inc:27
+msgid "Provide a simple link to clone the node."
+msgstr "Skapa en enkel länk för att klona noden."
+

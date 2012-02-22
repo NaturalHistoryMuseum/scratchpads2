@@ -1,0 +1,133 @@
+# Copyright 2007 Alexander Hass
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: node_clone 6.x\n"
+"POT-Creation-Date: 2008-10-22 19:43+0200\n"
+"PO-Revision-Date: 2008-10-22 19:59+0100\n"
+"Last-Translator: Alexander Haß\n"
+"Language-Team: Alexander Hass\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Country: GERMANY\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: German\n"
+
+#: clone.pages.inc:12
+msgid "General settings"
+msgstr "Allgemeine Einstellungen"
+
+#: clone.pages.inc:16
+msgid "Method to use when cloning a node"
+msgstr "Die zu verwendende Methode bei der Duplizierung eines Beitrags"
+
+#: clone.pages.inc:17
+msgid "Pre-populate the node form fields"
+msgstr "Die Beitragsfelder vorausfüllen"
+
+#: clone.pages.inc:17
+msgid "Save as a new node then edit"
+msgstr "Einen neuen Beitrag speichern und dann Bearbeiten"
+
+#: clone.pages.inc:22
+msgid "Confirmation mode when using the \"Save as a new node then edit\" method"
+msgstr "Bestätigungsmodus bei der Verwendung der Methode „Einen neuen Beitrag speichern und dann Bearbeiten“"
+
+#: clone.pages.inc:24
+msgid "Require confirmation (recommended)"
+msgstr "Bestätigung erforderlich (Empfohlen)"
+
+#: clone.pages.inc:24
+msgid "Bypass confirmation"
+msgstr "Bestätigung umgehen"
+
+#: clone.pages.inc:25
+msgid "A new node may be saved immediately upon clicking the \"clone\" tab when viewing a node, bypassing the normal confirmation form."
+msgstr "Ein neuer Beitrag kann sofort beim Klicken des „Duplizieren“-Reiters in der Beitragsansicht gespeichert werden und damit das normale Bestätigungsformular umgehen."
+
+#: clone.pages.inc:30
+msgid "Should the publishing options ( e.g. published, promoted, etc) be reset to the defaults?"
+msgstr "Sollen die Veröffentlichungseinstellungen (z.b. Veröffentlicht, Auf der Startseite, etc.) auf die Standardeinstellungen zurückgesetzt werden?"
+
+#: clone.pages.inc:37
+msgid "@s: reset publishing options when cloned"
+msgstr "@s: Veröffentlichungseinstellungen beim Duplizieren zurücksetzen"
+
+#: clone.pages.inc:44
+msgid "Content types that are not to be cloned - omitted due to incompatibility"
+msgstr "Inhaltstypen die nicht zum duplizieren bereit sind, wurden Aufgrund von Inkompatibilität ausgelassen."
+
+#: clone.pages.inc:48
+msgid "Omitted content types"
+msgstr "Ausgelassene Inhaltstypen"
+
+#: clone.pages.inc:51
+msgid "Select any node types which should <em>never</em> be cloned. Typically you should will want to select here all node types for which cloning fails (e.g. image nodes)."
+msgstr "Alle Inhaltstypen auswählen, welche <em>nie</em> dupliziert werden sollen. Typischerweise sollten hier alle Beitrage ausgewählt werden, bei denen das Duplizieren fehlschlägt (z.b. Bildbeiträge)."
+
+#: clone.pages.inc:89
+msgid "Are you sure you want to clone %title?"
+msgstr "Soll %titel wirklich dupliziert werden?"
+
+#: clone.pages.inc:90
+msgid "This action will create a new node. You will then be redirected to the edit page for the new node."
+msgstr "Diese Aktion erstellt einen neuen Beitrag und leitet danach zur „Bearbeiten“-Seite des neuen Beitrages um."
+
+#: clone.pages.inc:91
+#: clone.module:46
+msgid "Clone"
+msgstr "Duplizieren"
+
+#: clone.pages.inc:91
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: clone.pages.inc:126;166
+msgid "Clone of !title"
+msgstr "Duplikat von !title"
+
+#: clone.module:11
+msgid "The clone module allows users to make a copy of an existing node and then edit that copy. The authorship is set to the current user, the menu and url aliases are reset, and the words \"Clone of\" are inserted into the title to remind you that you are not editing the original node."
+msgstr "Das „Duplizieren“-Modul erlaubt es Benutzern eine Kopie eines vorhanden Beitrages zu erstellen und diese anschließend zu bearbeiten. Der aktuelle Benutzer wird zum Author, das Menü sowie der URL-Alias wird zurückgesetzt und die Worte „Duplikat von“ werden in den Titel eingefügt, um daran zu erinnern, dass nicht der orginale Beitrag bearbeitet wird."
+
+#: clone.module:12
+msgid "Users with the \"clone node\" permission can utilize this functionality. A new tab will appear on node pages with the word \"Clone\"."
+msgstr "Benutzer mit der Berechtigung „Beitrag duplizieren“ können diese Funktionalität verwenden. Ein neuer „Duplizieren“-Reiter wird auf den Beitragseiten erscheinen."
+
+#: clone.module:17
+msgid "This clone will not be saved to the database until you submit."
+msgstr "Dieses Duplikat wird erst in der Datenbank gespeichert, wenn der Beitrag gespeichert wird."
+
+#: clone.module:26
+msgid "clone node"
+msgstr "Beitrag duplizieren"
+
+#: clone.module:26
+msgid "clone own nodes"
+msgstr "Eigenen Beitrag duplizieren"
+
+#: clone.module:37
+#: clone.info:0
+msgid "Clone module"
+msgstr "Duplizieren-Modul"
+
+#: clone.module:39
+#: clone.info:0
+msgid "Allows users to clone (copy then edit) an existing node."
+msgstr "Erlaubt Benutzern einen vorhanden Beitrag zu duplizieren (Kopieren und dann Bearbeiten)."
+
+#: clone.module:0
+#: views/views_handler_field_node_link_clone.inc:29
+msgid "clone"
+msgstr "Duplizieren"
+
+#: views/clone.views.inc:26
+msgid "Clone link"
+msgstr "‚Duplizieren‘-Link"
+
+#: views/clone.views.inc:27
+msgid "Provide a simple link to clone the node."
+msgstr "Bietet einen einfachen Link zum Duplizieren des Beitrags."
+

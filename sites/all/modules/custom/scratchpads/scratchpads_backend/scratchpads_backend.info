@@ -1,0 +1,6 @@
+core = "7.x"
+name = "Scratchpads admin backend"
+description = "Scratchpads admin tweaks"
+package = "Administration"
+dependencies[] = views_bulk_operations
+dependencies[] = ctools

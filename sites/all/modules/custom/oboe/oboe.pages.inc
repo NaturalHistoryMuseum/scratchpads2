@@ -34,11 +34,36 @@ function oboe_add($type){
 }
 
 /**
+ * Confirm delete an oboe entity.
+ */
+function oboe_delete_confirm($form, &$form_state, $oboe){
+  $form['#oboe'] = $oboe;
+  // Always provide entity id in the same form key as in the entity edit form.
+  $form['oid'] = array(
+    '#type' => 'value',
+    '#value' => $oboe->oid
+  );
+  return confirm_form($form, t('Are you sure you want to delete %title?', array(
+    '%title' => $oboe->label
+  )), 'oboe/' . $oboe->oid, t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+/**
+ * Execute oboe deletion
+ */
+function oboe_delete_confirm_submit($form, &$form_state){
+  if($form_state['values']['confirm']){
+    oboe_delete($form_state['values']['oid']);
+  }
+  $form_state['redirect'] = '<front>';
+}
+
+/**
  * Callback defined in hook_forms().
  */
 function oboe_job_form($form, &$form_state, $oboe){
   // Firstly, we need to get the parameters for this oboe type.
-  $parameters = OBOEService::get_parameters_by_type(FALSE, $oboe->type);
+  $parameters = OBOEService::get_parameters_by_type($oboe->type);
   foreach($parameters as $key => $parameter){
     if(isset($parameter['format']) && (!isset($parameter['hidden']) || $parameter['hidden'] == 'no')){
       $format = $parameter['format'];
@@ -118,6 +143,15 @@ function oboe_job_form($form, &$form_state, $oboe){
       }
     }
   }
+  $form['job_name'] = array(
+    '#type' => 'hidden',
+    '#value' => $oboe->type . '_' . time()
+  );
+  $form['job_description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description')
+  );
+  $form['#oboe'] = $oboe;
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Create')
@@ -128,4 +162,33 @@ function oboe_job_form($form, &$form_state, $oboe){
 /**
  * Submit for the above function
  */
-function oboe_job_form_submit(&$form, &$form_state){}
+function oboe_job_form_submit(&$form, &$form_state){
+  try{
+    $oboe_service = new OBOEService();
+    $oboe_service->set_type($form['#oboe']->type);
+    $parameters = $form_state['values'];
+    unset($parameters['op'], $parameters['form_id'], $parameters['form_token'], $parameters['form_build_id'], $parameters['submit']);
+    foreach($parameters as $key => $value){
+      if($value == ''){
+        unset($parameters[$key]);
+      }
+    }
+    $oboe_service->set_parameters($parameters);
+    if($oboe_service->run()){
+      // The job has run correctly, we can create the entity for this job.
+      $oboe = $form['#oboe'];
+      $oboe->label = $oboe_service->get_job_name();
+      $oboe->description = $oboe_service->get_job_description();
+      $oboe->data = serialize($oboe_service->get_response());
+      $oboe->created = time();
+      $oboe->changed = time();
+      entity_save('oboe', $oboe);
+      $form_state['redirect'] = 'oboe/' . $oboe->oid;
+    }else{
+      drupal_set_message('Your submission failed.  Please try again later.  If you continue to experience problems, then please consult the user support.', 'error');
+    }
+  }
+  catch(OBOEServiceException $e){
+    drupal_set_message('Your submission failed.  Please try again later.  If you continue to experience problems, then please consult the user support.', 'error');
+  }
+}
