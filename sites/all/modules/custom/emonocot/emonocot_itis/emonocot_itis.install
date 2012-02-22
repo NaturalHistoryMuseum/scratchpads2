@@ -1,6 +1,6 @@
-<?php 
-
+<?php
 //Do stuff after itis_term has done its stuff
-db_query("UPDATE {system} SET weight = :weight WHERE name = 'emonocot_itis'", array(':weight' => 1));
-
+db_query("UPDATE {system} SET weight = :weight WHERE name = 'emonocot_itis'", array(
+  ':weight' => 1
+));
 ?>

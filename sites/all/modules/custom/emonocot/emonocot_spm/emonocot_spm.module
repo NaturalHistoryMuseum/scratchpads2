@@ -3,5 +3,4 @@
  * @file
  * Code for the emonocot_spm feature.
  */
-
-include_once('emonocot_spm.features.inc');
+include_once ('emonocot_spm.features.inc');

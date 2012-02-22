@@ -22,7 +22,6 @@ function emonocot_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
   }
 }
 
-
 /**
  * Implements hook_block_view().
  */

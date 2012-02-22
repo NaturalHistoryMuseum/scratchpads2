@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * emonocot_spm.views_default.inc
  */
-
 /**
  * Implements hook_views_default_views().
  */
-function emonocot_spm_views_default_views() {
+function emonocot_spm_views_default_views(){
   $export = array();
-
-  $view = new view;
+  $view = new view();
   $view->name = 'biblio_citation';
   $view->description = '';
   $view->tag = 'default';
@@ -19,7 +18,6 @@ function emonocot_spm_views_default_views() {
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['access']['type'] = 'perm';
@@ -124,9 +122,8 @@ function emonocot_spm_views_default_views() {
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'biblio' => 'biblio',
+    'biblio' => 'biblio'
   );
-
   /* Display: References */
   $handler = $view->new_display('references', 'References', 'references_1');
   $handler->display->display_options['defaults']['title'] = FALSE;
@@ -140,12 +137,11 @@ function emonocot_spm_views_default_views() {
   $handler->display->display_options['row_options']['inline'] = array(
     'biblio_authors' => 'biblio_authors',
     'biblio_year' => 'biblio_year',
-    'title' => 'title',
+    'title' => 'title'
   );
   $handler->display->display_options['row_options']['hide_empty'] = 0;
   $handler->display->display_options['row_options']['default_field_elements'] = 1;
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $export['biblio_citation'] = $view;
-
   return $export;
 }

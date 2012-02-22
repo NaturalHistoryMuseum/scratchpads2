@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * emonocot_spm.field_group.inc
  */
-
 /**
  * Implements hook_field_group_info().
  */
-function emonocot_spm_field_group_info() {
+function emonocot_spm_field_group_info(){
   $export = array();
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_conservation|node|spm|form';
@@ -34,19 +33,18 @@ function emonocot_spm_field_group_info() {
       8 => 'field_spm_em_manage_ref',
       9 => 'field_spm_em_proc_ref',
       10 => 'field_spm_em_threats_ref',
-      11 => 'field_spm_em_trends_ref',
+      11 => 'field_spm_em_trends_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_conservation|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_description|node|spm|form';
@@ -80,19 +78,18 @@ function emonocot_spm_field_group_info() {
       18 => 'field_spm_em_morph_ref',
       19 => 'field_sm_em_phys_ref',
       20 => 'field_spm_em_size_ref',
-      21 => 'field_spm_em_tb_ref',
+      21 => 'field_spm_em_tb_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_description|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_eco_and_distro|node|spm|form';
@@ -128,19 +125,18 @@ function emonocot_spm_field_group_info() {
       20 => 'field_spm_em_migration_ref',
       21 => 'field_spm_em_ts_ref',
       22 => 'field_spm_em_popbio_ref',
-      23 => 'field_spm_em_repro_ref',
+      23 => 'field_spm_em_repro_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_eco_and_distro|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_evol_and_systematics|node|spm|form';
@@ -156,19 +152,18 @@ function emonocot_spm_field_group_info() {
       0 => 'field_evolution',
       1 => 'field_phylogeny',
       2 => 'field_spm_em_phylo_ref',
-      3 => 'field_spm_em_evo_ref',
+      3 => 'field_spm_em_evo_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_evol_and_systematics|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_overview|node|spm|form';
@@ -184,19 +179,18 @@ function emonocot_spm_field_group_info() {
       0 => 'field_biology',
       1 => 'field_general_description',
       2 => 'field_spm_em_gd_ref',
-      3 => 'field_spm_em_bio_ref',
+      3 => 'field_spm_em_bio_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_overview|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_relevance|node|spm|form';
@@ -214,19 +208,18 @@ function emonocot_spm_field_group_info() {
       2 => 'field_uses',
       3 => 'field_spm_em_diseases_ref',
       4 => 'field_spm_em_rs_ref',
-      5 => 'field_spm_em_uses_ref',
+      5 => 'field_spm_em_uses_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_relevance|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_spm_em_misc|node|spm|form';
@@ -246,7 +239,7 @@ function emonocot_spm_field_group_info() {
       4 => 'field_spm_em_pollination',
       5 => 'field_spm_em_poll_ref',
       6 => 'field_spm_em_anatomy',
-      7 => 'field_spm_em_anatomy_ref',
+      7 => 'field_spm_em_anatomy_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -254,13 +247,12 @@ function emonocot_spm_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_spm_em_misc|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_spm_em_taxonomy|node|spm|form';
@@ -274,7 +266,7 @@ function emonocot_spm_field_group_info() {
     'weight' => '6',
     'children' => array(
       0 => 'field_spm_em_taxonomic_notes',
-      1 => 'field_spm_em_tn_ref',
+      1 => 'field_spm_em_tn_ref'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -282,13 +274,12 @@ function emonocot_spm_field_group_info() {
       'instance_settings' => array(
         'description' => '',
         'classes' => '',
-        'required_fields' => 1,
-      ),
-    ),
+        'required_fields' => 1
+      )
+    )
   );
   $export['group_spm_em_taxonomy|node|spm|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_vertical_tabs|node|spm|form';
@@ -308,17 +299,16 @@ function emonocot_spm_field_group_info() {
       4 => 'group_evol_and_systematics',
       5 => 'group_overview',
       6 => 'group_relevance',
-      7 => 'group_spm_em_taxonomy',
+      7 => 'group_spm_em_taxonomy'
     ),
     'format_type' => 'tabs',
     'format_settings' => array(
       'formatter' => '',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_vertical_tabs|node|spm|form'] = $field_group;
-
   return $export;
 }
