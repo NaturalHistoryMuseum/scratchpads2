@@ -1,0 +1,152 @@
+# Russian translation of node_clone (6.x-1.x-dev)
+# Copyright (c) 2009 by the Russian translation team
+# Generated from files:
+#  clone.pages.inc,v 1.3 2008/05/07 02:28:58 pwolanin
+#  views_handler_field_node_link_clone.inc,v 1.1 2008/10/14 23:16:56 pwolanin
+#  clone.views.inc,v 1.1 2008/10/14 23:16:56 pwolanin
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: node_clone (6.x-1.x-dev)\n"
+"POT-Creation-Date: 2009-02-08 00:37+0300\n"
+"PO-Revision-Date: 2008-10-25 18:13+0400\n"
+"Language-Team: Russian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+
+#: clone.pages.inc:91
+msgid "Cancel"
+msgstr "Отмена"
+
+#: clone.pages.inc:12
+msgid "General settings"
+msgstr "Основные настройки"
+
+#: clone.pages.inc:48
+msgid "Omitted content types"
+msgstr "Исключаемые типы материалов"
+
+#: clone.pages.inc:91
+msgid "Clone"
+msgstr "Клонировать"
+
+#: clone.pages.inc:30
+msgid ""
+"Should the publishing options ( e.g. published, promoted, etc) be "
+"reset to the defaults?"
+msgstr ""
+"Использовать для настроек публикации "
+"(Опубликовать, Помещать на главную и "
+"т.д.) значения по умолчанию?"
+
+#: clone.pages.inc:37
+msgid "@s: reset publishing options when cloned"
+msgstr ""
+"@s: сбрасывать настройки публикации "
+"при клонировании"
+
+#: clone.pages.inc:51
+msgid ""
+"Select any node types which should <em>never</em> be cloned. Typically "
+"you should will want to select here all node types for which cloning "
+"fails (e.g. image nodes)."
+msgstr ""
+"Выберите типы содержимого, которые "
+"<em>никогда</em> не следует клонировать. "
+"Здесь вы можете выбрать типы "
+"материалов, для которых функция "
+"клонирования не доступна (например, "
+"материалы типа Image node)."
+
+#: views/views_handler_field_node_link_clone.inc:29
+msgid "clone"
+msgstr "клонировать"
+
+#: clone.pages.inc:89
+msgid "Are you sure you want to clone %title?"
+msgstr ""
+"Вы уверены, что хотите клонировать "
+"%title?"
+
+#: clone.pages.inc:90
+msgid ""
+"This action will create a new node. You will then be redirected to "
+"the edit page for the new node."
+msgstr ""
+"Эта операция позволит создать новый "
+"материал. Вы будете перенаправлены на "
+"его страницу редактирования."
+
+#: clone.pages.inc:166,126
+msgid "Clone of !title"
+msgstr "Клонировать !title"
+
+#: clone.pages.inc:16
+msgid "Method to use when cloning a node"
+msgstr ""
+"Метод, используемый при клонировании "
+"материала"
+
+#: clone.pages.inc:17
+msgid "Pre-populate the node form fields"
+msgstr ""
+"Предварительное заполнение полей "
+"формы материала"
+
+#: clone.pages.inc:17
+msgid "Save as a new node then edit"
+msgstr ""
+"Сохранить как новый материал и "
+"редактировать"
+
+#: clone.pages.inc:44
+msgid ""
+"Content types that are not to be cloned - omitted due to "
+"incompatibility"
+msgstr ""
+"Содержит представления, которые не "
+"будут клонированы - пропущен из-за "
+"несовместимости"
+
+#: clone.pages.inc:22
+msgid ""
+"Confirmation mode when using the \"Save as a new node then edit\" "
+"method"
+msgstr ""
+"Режим подтверждение при "
+"использовании \"Сохранить как новый "
+"материал и редактировать\" метода"
+
+#: clone.pages.inc:24
+msgid "Require confirmation (recommended)"
+msgstr ""
+"Требовать подтверждения "
+"(рекомендуется)"
+
+#: clone.pages.inc:24
+msgid "Bypass confirmation"
+msgstr "Обход подтверждения"
+
+#: clone.pages.inc:25
+msgid ""
+"A new node may be saved immediately upon clicking the \"clone\" tab "
+"when viewing a node, bypassing the normal confirmation form."
+msgstr ""
+"Новый материал может быть сохранена "
+"сразу же после нажатия на вкладке "
+"\"клонировать\" при просмотре "
+"материала, в обход нормальной формы "
+"подтверждения."
+
+#: views/clone.views.inc:26
+msgid "Clone link"
+msgstr "Клонировать ссылку"
+
+#: views/clone.views.inc:27
+msgid "Provide a simple link to clone the node."
+msgstr ""
+"Предоставление простой ссылки на "
+"клонированние данного материала"
+

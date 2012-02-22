@@ -1,0 +1,78 @@
+# Copyright 2006 Christian Quest <drupal@cquest.org>
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: node_clone 5.x\n"
+"POT-Creation-Date: 2006-12-25 18:29+0100\n"
+"PO-Revision-Date: 2007-02-10 23:31+0100\n"
+"Last-Translator: Alexander Hass\n"
+"Language-Team: Christian Quest <drupal@cquest.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: clone.module:9
+msgid "The clone module allows users to make a copy of an existing node and then edit that copy. The authorship is set to the current user, the menu and url aliases are reset, and the words \"Clone of\" are inserted into the title to remind you that you are not editing the original node."
+msgstr "Le module 'clone' permet aux utilisateurs de créer une copie d'un contenu existant puis de modifier cette copie. L'utilisateur courant devient l'auteur, les alias d'url et le menu sont remis à zéro et le titre est préfixé par 'Clone de ' pour vous rappeler que vous ne modifiez pas le contenu original."
+
+#: clone.module:10
+msgid "Users with the \"clone node\" permission can utilize this functionality. A new tab will appear on node pages with the word \"clone\". Once you click this tab you have <em>already</em> created a new node that is a copy of the node you were viewing, and you will be redirected to an edit screen for that new node."
+msgstr "Les utilisateurs avec la permission 'cloner contenu' peuvent utiliser cette fonctionnalité. Un nouvel onglet 'cloner' apparaît sur les pages de contenu. En cliquant sur cet onglet, la copie du contenu est faite immédiatement et l'on accède à la modification de cette copie."
+
+#: clone.module:31
+#, fuzzy
+msgid "Clone module"
+msgstr "cloner un contenu"
+
+#: clone.module:32
+#: clone.info:0
+msgid "Allows users to clone (copy then edit) an existing node."
+msgstr "Permet aux utilisateurs de cloner (copier puis modifier) un contenu existant."
+
+#: clone.module:45
+#: ;0
+msgid "clone"
+msgstr "cloner"
+
+#: clone.module:62
+msgid "Configuration options for the clone module:"
+msgstr "Options pour le module 'clone':"
+
+#: clone.module:66
+msgid "Clone nodes without requiring confirmation"
+msgstr "Cloner les contenus sans demander de confirmation"
+
+#: clone.module:68
+msgid "If this is set, a new node will be created immediately upon clicking the \"clone\" tab when viewing a node."
+msgstr "Si cette option est sélectionnée, un nouveau contenu sera créé immédiatement dès que l'onglet 'cloner' est sélectionné."
+
+#: clone.module:73
+msgid "Should the publishing options ( e.g. published, promoted, etc) be reset to the defaults?"
+msgstr "Faut-il ré-initialiser les options de publication (ex: publié, page d'accueil, etc) ?"
+
+#: clone.module:79
+msgid "@s: reset publishing options when cloned"
+msgstr "@s: ré-initialiser les options de publication"
+
+#: clone.module:127
+msgid "Are you sure you want to clone %title?"
+msgstr "Etes-vous sûr de vouloir cloner %title ?"
+
+#: clone.module:128
+msgid "This action will create a new node. You will then be redirected to the edit page for the new node."
+msgstr "Cette action créera un nouveau contenu. Vous serez ensuite redirigé vers la page de modification du nouveau contenu."
+
+#: clone.module:129
+msgid "Clone"
+msgstr "Cloner"
+
+#: clone.module:158
+msgid "Clone of @title"
+msgstr "Clone de @title"
+
+#: clone.module:19
+#, fuzzy
+msgid "Clone node"
+msgstr "cloner un contenu"
+

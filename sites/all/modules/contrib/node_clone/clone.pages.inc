@@ -1,4 +1,5 @@
 <?php
+// $Id: clone.pages.inc,v 1.5 2011/02/01 01:22:56 pwolanin Exp $
 
 /**
  * Menu callback to configure module settings.

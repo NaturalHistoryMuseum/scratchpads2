@@ -1,3 +1,4 @@
+; $Id: clone.info,v 1.9 2011/02/01 01:22:56 pwolanin Exp $
 name = "Node clone"
 description = "Allows users to clone (copy then edit) an existing node."
 core = "7.x"
@@ -6,9 +7,9 @@ files[] = clone.module
 files[] = clone.pages.inc
 
 
-; Information added by drupal.org packaging script on 2011-02-25
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-beta1"
 core = "7.x"
 project = "node_clone"
-datestamp = "1298619758"
+datestamp = "1296525949"
 

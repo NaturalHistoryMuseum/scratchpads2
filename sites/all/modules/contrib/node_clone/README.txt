@@ -1,3 +1,4 @@
+$Id: README.txt,v 1.14 2011/02/01 01:50:59 pwolanin Exp $
 
 README file for "Node clone" (clone.module) for Drupal 7.x.
 
