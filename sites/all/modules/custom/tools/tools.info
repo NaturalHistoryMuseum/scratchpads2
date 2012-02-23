@@ -1,0 +1,8 @@
+name = "Tools"
+description = "An alternative, non-developer interface for turning on/off features."
+package = "Fields"
+dependencies[] = switch
+dependencies[] = features
+core = 7.x
+php = 5.x
+

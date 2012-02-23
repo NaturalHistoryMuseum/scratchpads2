@@ -6,8 +6,12 @@ dependencies[] = entity
 dependencies[] = relation_select
 dependencies[] = formflow
 ;dependencies[] = scratchpads_user
-package = Publication
+package = Scratchpad tools
 
 files[] = publication.admin.inc
 files[] = publication_type.admin.inc
 ;files[] = theme/theme.inc
+
+
+; Tools
+tool = true
