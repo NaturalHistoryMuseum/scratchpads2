@@ -11,11 +11,13 @@ function theme_scratchpads_biblio_search($variables){
   }
   foreach($variables['results'] as $result){
     $biblio_node = node_load($result['node']->entity_id);
-    $rows[] = array(
-      biblio_format_authors($biblio_node->biblio_contributors),
-      $biblio_node->biblio_year,
-      l($biblio_node->title, 'node/' . $biblio_node->nid)
-    );
+    if($biblio_node){
+      $rows[] = array(
+        biblio_format_authors($biblio_node->biblio_contributors),
+        $biblio_node->biblio_year,
+        l($biblio_node->title, 'node/' . $biblio_node->nid)
+      );
+    }
   }
   if($reset_author_links){
     variable_set('biblio_author_links', $reset_author_links);
