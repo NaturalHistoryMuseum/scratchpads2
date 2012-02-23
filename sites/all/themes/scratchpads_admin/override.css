@@ -106,3 +106,18 @@ table.scratchpads-admin-content tr td:nth-child(1){
 .js .region-help{
   display: none;
 }
+
+/* Tools */
+.page-content .tool-options span.tools-icon{
+    background: url("../rubik/images/icons.png") no-repeat -150px 0;
+    display: block;
+    height: 30px;
+    width: 30px;
+    float: left;
+    margin-top: 3px;
+}
+
+.page-content .tool-options .form-item{
+  margin-left: 38px;
+}
+
