@@ -140,7 +140,7 @@ function spm_field_default_fields() {
             'display_convex_hull' => FALSE,
           ),
           'type' => 'gm3_entity_map',
-          'weight' => 38,
+          'weight' => -38,
         ),
         'linked_node' => array(
           'label' => 'above',
