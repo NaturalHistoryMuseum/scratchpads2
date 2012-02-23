@@ -167,7 +167,7 @@ function spm_field_default_fields() {
         'module' => 'gm3_field',
         'settings' => array(),
         'type' => 'gm3_combination_gm3',
-        'weight' => '29',
+        'weight' => '-10',
       ),
     ),
   );
