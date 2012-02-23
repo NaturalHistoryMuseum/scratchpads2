@@ -104,6 +104,49 @@ class FeedsTermProcessor extends FeedsProcessor {
       form_set_error('vocabulary', t('Choose a vocabulary'));
     }
   }
+
+  /**
+   * Return available mapping targets.
+   */
+  public function getMappingTargets() {
+    $targets = parent::getMappingTargets();
+    $targets += array(
+      'name' => array(
+        'name' => t('Term name'),
+        'description' => t('Name of the taxonomy term.'),
+        'optional_unique' => TRUE,
+       ),
+      'description' => array(
+        'name' => t('Term description'),
+        'description' => t('Description of the taxonomy term.'),
+       ),
+      'parent' => array(
+        'name' => t('Parent Term Name'),
+        'description' => t('Name of the Parent Term.'),
+        'optional_unique' => TRUE,
+      ),
+      'parentguid' => array(
+        'name' => t('Parent GUID'),
+        'description' => t('The globally unique identifier of the item\'s parent term.'),
+        'optional_unique' => TRUE,
+      ),
+      'weight' => array(
+        'name' => t('Term Weight'),
+        'description' => t('Weight of the Term.'),
+        'optional_unique' => TRUE,
+      ),
+    );
+    // Let implementers of hook_feeds_term_processor_targets() add their targets.
+    try {
+      self::loadMappers();
+      feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $this->vocabulary()->machine_name);
+    }
+    catch (Exception $e) {
+      // Do nothing.
+    }
+    return $targets;
+  }
+  
   /**
    * Override the process function to ensure that we update a term, even if it
    * doesn't look like it needs updating.
@@ -231,16 +274,18 @@ class FeedsTermProcessor extends FeedsProcessor {
         }
         break;
       case 'parentguid':
-        $query = db_select('feeds_item')
-          ->fields('feeds_item', array('entity_id'))
-          ->condition('entity_type', $this->entityType());
-        $parent_tid = $query->condition('guid', $value)->execute()->fetchField();
-
-        if (!empty($parent_tid)) {
-          $target_node->parent = $parent_tid;
-        }
-        else {
-          $target_node->parent = 0;
+        if($value){
+          $query = db_select('feeds_item')
+            ->fields('feeds_item', array('entity_id'))
+            ->condition('entity_type', $this->entityType());
+          $parent_tid = $query->condition('guid', $value)->execute()->fetchField();
+  
+          if (!empty($parent_tid)) {
+            $target_node->parent = $parent_tid;
+          }
+          else {
+            $target_node->parent = 0;
+          }
         }
         break;
       case 'weight':
@@ -256,48 +301,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         parent::setTargetElement($source, $target_node, $target_element, $value);
         break;
     }
-  }
-
-  /**
-   * Return available mapping targets.
-   */
-  public function getMappingTargets() {
-    $targets = parent::getMappingTargets();
-    $targets += array(
-      'name' => array(
-        'name' => t('Term name'),
-        'description' => t('Name of the taxonomy term.'),
-        'optional_unique' => TRUE,
-       ),
-      'parent' => array(
-        'name' => t('Parent Term Name'),
-        'description' => t('Name of the Parent Term.'),
-        'optional_unique' => TRUE,
-      ),
-      'parentguid' => array(
-        'name' => t('Parent GUID'),
-        'description' => t('The globally unique identifier of the item\'s parent term.'),
-        'optional_unique' => TRUE,
-      ),
-      'weight' => array(
-        'name' => t('Term Weight'),
-        'description' => t('Weight of the Term.'),
-        'optional_unique' => TRUE,
-      ),
-      'description' => array(
-        'name' => t('Term description'),
-        'description' => t('Description of the taxonomy term.'),
-       ),
-    );
-    // Let implementers of hook_feeds_term_processor_targets() add their targets.
-    try {
-      self::loadMappers();
-      feeds_alter('feeds_processor_targets', $targets, 'taxonomy_term', $this->vocabulary()->machine_name);
-    }
-    catch (Exception $e) {
-      // Do nothing.
-    }
-    return $targets;
   }
 
   /**
