@@ -42,10 +42,10 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
       $field_names_in_groups_to_change = array();
       foreach($additional_fields as $field){
         $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
-        $field['field_config']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
+        $field['field_config']['field_name'] .= "_" . $form_state['vocabulary']->vid;
         $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $form_state['vocabulary']->machine_name;
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
-        $field['field_instance']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
+        $field['field_instance']['field_name'] .= "_" . $form_state['vocabulary']->vid;
         field_create_field($field['field_config']);
         field_create_instance($field['field_instance']);
       }
@@ -62,7 +62,7 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
         $group['bundle'] = $form_state['vocabulary']->machine_name;
         foreach($group['children'] as $key => $child){
           if(in_array($child, $field_names_in_groups_to_change)){
-            $group['children'][$key] .= "_" . $form_state['vocabulary']->machine_name;
+            $group['children'][$key] .= "_" . $form_state['vocabulary']->vid;
           }
         }
         $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
@@ -77,7 +77,7 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function itis_term_taxonomy_vocabulary_delete($vocabulary){
-  field_delete_field("field_aan_{$vocabulary->machine_name}");
+  field_delete_field("field_aan_{$vocabulary->vid}");
   $biological_vids = variable_get('biological_vids', array());
   foreach($biological_vids as $vid => $type){
     if(!taxonomy_vocabulary_load($vid)){

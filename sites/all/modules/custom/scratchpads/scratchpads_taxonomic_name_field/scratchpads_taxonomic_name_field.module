@@ -6,6 +6,7 @@
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
     // We have a biological classification.  We need to update the field.
+    field_cache_clear(TRUE);
     $field = field_info_field('field_taxonomic_name');
     $bio_vids = variable_get('biological_vids', array());
     $i = 0;

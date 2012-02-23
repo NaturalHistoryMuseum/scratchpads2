@@ -411,8 +411,7 @@ function itis_term_fields(){
         'module' => 'node_reference',
         'settings' => array(
           'referenceable_types' => array(
-            'article' => 0,
-            'page' => 0
+            'article' => 'biblio'
           )
         ),
         'translatable' => '1',
@@ -742,7 +741,7 @@ function itis_term_fields(){
         'entity_type' => 'taxonomy_term',
         'field_name' => 'field_unit_name1',
         'label' => 'Unit name 1',
-        'required' => 0,
+        'required' => 1,
         'settings' => array(
           'text_processing' => '0',
           'user_register_form' => FALSE

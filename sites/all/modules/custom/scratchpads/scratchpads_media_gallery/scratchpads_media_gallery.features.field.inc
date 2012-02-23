@@ -274,9 +274,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
-          'biblio' => 0,
-          'media_gallery' => 'media_gallery',
-          'page' => 0
+          'media_gallery' => 'media_gallery'
         ),
         'view' => array(
           'args' => array(),

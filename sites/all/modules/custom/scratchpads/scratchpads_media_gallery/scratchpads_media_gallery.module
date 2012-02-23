@@ -220,20 +220,22 @@ function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
 function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
   if($router_item['path'] == 'gallery' && $nid = scratchpads_media_gallery_is_gallery_node()){
     // Add a tab linking to node/add to all pages.
-    $data['tabs'][0]['output'][] = array(
-      '#theme' => 'menu_local_task',
-      '#link' => array(
-        'title' => t('Edit'),
-        'href' => 'node/' . $nid . '/edit',
-        'localized_options' => array(
-          'attributes' => array(
-            'title' => t('Edit this gallery')
+    if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $nid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this gallery')
+            )
           )
         )
-      )
-    );
-    $data['tabs'][0]['output'][0]['#active'] = TRUE;
-    $data['tabs'][0]['count'] = 2;
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
   }
 }
 
@@ -241,7 +243,7 @@ function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, 
  * Implementation of hook_node_insert().
  */
 function scratchpads_media_gallery_node_insert($node){
-  if(isset($node->field_media)){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
     foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
@@ -265,7 +267,7 @@ function scratchpads_media_gallery_node_insert($node){
  * Implementation of hook_node_update().
  */
 function scratchpads_media_gallery_node_update($node){
-  if(isset($node->field_media)){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     // We simply get a list of fids that currently have this node associated, and
     // remove the ones that have been removed, and add ones that have been added.

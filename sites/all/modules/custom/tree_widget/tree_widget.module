@@ -169,7 +169,9 @@ function theme_options_tree($variables){
     $vocabularies = array();
     foreach($variables['element']['#vocabularies'] as $voc_name){
       $vocabulary = taxonomy_vocabulary_machine_name_load($voc_name);
-      $root_terms = array_merge($root_terms, taxonomy_get_tree($vocabulary->vid, 0, 1));
+      if($vocabulary){
+        $root_terms = array_merge($root_terms, taxonomy_get_tree($vocabulary->vid, 0, 1));
+      }
     }
   }
   // Get the root terms.  

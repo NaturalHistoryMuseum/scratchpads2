@@ -9,8 +9,170 @@
  */
 function spm_field_default_fields() {
   $fields = array();
+
+  // Exported field: 'node-spm-field_taxonomic_name'
+  $fields['node-spm-field_taxonomic_name'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_taxonomic_name',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid',
+          ),
+          'table' => 'taxonomy_term_data',
+        ),
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid',
+        ),
+      ),
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'parent' => '0',
+            'vocabulary' => '',
+          ),
+        ),
+      ),
+      'translatable' => '1',
+      'type' => 'taxonomy_term_reference',
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'The full name of the lowest level taxon to which the organism has been identified in the most recent accepted determination, specified as precisely as possible',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => '2',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_taxonomic_name',
+      'label' => 'Taxonomic name',
+      'required' => 1,
+      'settings' => array(
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60,
+        ),
+        'type' => 'taxonomy_autocomplete',
+        'weight' => '-1000',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-spm-field_spm_map'
+  $fields['node-spm-field_spm_map'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_map',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'gm3_type' => array(
+          0 => 'gm3_type',
+        ),
+        'latitude' => array(
+          0 => 'latitude',
+        ),
+        'longitude' => array(
+          0 => 'longitude',
+        ),
+        'region_id' => array(
+          0 => 'region_id',
+        ),
+      ),
+      'module' => 'gm3_field',
+      'settings' => array(
+        'field_types' => array(
+          'gm3_polygon' => 'gm3_polygon',
+          'gm3_region' => 'gm3_region',
+        ),
+        'gm3_point' => 'Point',
+        'gm3_polygon' => 'Polygon',
+        'gm3_polyline' => 'Polyline',
+        'gm3_rectangle' => 'Rectangle',
+        'gm3_region' => 'Region',
+      ),
+      'translatable' => '0',
+      'type' => 'gm3_combination',
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'gm3_field',
+          'settings' => array(
+            'display_convex_hull' => FALSE,
+          ),
+          'type' => 'gm3_entity_map',
+          'weight' => 38,
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_map',
+      'label' => 'Map',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'gm3_field',
+        'settings' => array(),
+        'type' => 'gm3_combination_gm3',
+        'weight' => '29',
+      ),
+    ),
+  );
   
-  // Exported field: 'node-specimen_observation-field_media'
+  // Exported field: 'node-spm-field_media'
   $fields['node-spm-field_media'] = array(
     'field_config' => array(
       'active' => '1',
@@ -2761,6 +2923,7 @@ function spm_field_default_fields() {
   t('Trends');
   t('Trophic strategy');
   t('Uses');
+  t('Map');
 
   return $fields;
 }

@@ -640,15 +640,13 @@ function feeds_form_node_form_alter(&$form, $form_state) {
  */
 function feeds_field_extra_fields() {
   $extras = array();
-  if (drupal_get_installed_schema_version('feeds', TRUE) == SCHEMA_INSTALLED){
-    foreach (node_type_get_names() as $type => $name) {
-      if (feeds_get_importer_id($type)) {
-        $extras['node'][$type]['form']['feeds'] = array(
-          'label' => t('Feed'),
-          'description' => t('Feeds module form elements'),
-          'weight' => 0,
-        );
-      }
+  foreach (node_type_get_names() as $type => $name) {
+    if (feeds_get_importer_id($type)) {
+      $extras['node'][$type]['form']['feeds'] = array(
+        'label' => t('Feed'),
+        'description' => t('Feeds module form elements'),
+        'weight' => 0,
+      );
     }
   }
   return $extras;
