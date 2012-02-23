@@ -56,9 +56,11 @@ function oboe_menu(){
       'file' => 'oboe.pages.inc'
     )
   );
+  $oboe_information = OBOEService::get_information();
   foreach(OBOEService::get_job_types() as $key => $job_type){
     $menu['oboe/add/' . $key] = array(
       'title' => $job_type,
+      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : '',
       'title callback' => 'check_plain',
       'page callback' => 'oboe_add',
       'page arguments' => array(
@@ -374,9 +376,11 @@ function oboe_entity_info(){
     )
   );
   // Add the OBOE services
+  $oboe_information = OBOEService::get_information();
   foreach(OBOEService::get_job_types() as $key => $job_type){
     $info['oboe']['bundles'][$key] = array(
-      'label' => $job_type
+      'label' => $job_type,
+      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : ''
     );
   }
   return $info;

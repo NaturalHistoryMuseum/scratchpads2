@@ -272,6 +272,15 @@ class OBOEService{
   }
 
   /**
+   * Return information for all job types.
+   * @param unknown_type $auth_token
+   */
+  static function get_information($at = FALSE){
+    $at = self::get_auth_token($at);
+    return json_decode(file_get_contents(self::$service . 'information?auth_token=' . $at), TRUE);
+  }
+
+  /**
    * Return the parameters for a job_type.
    * @param unknown_type $type
    * @param unknown_type $auth_token
