@@ -411,8 +411,7 @@ function itis_term_fields(){
         'module' => 'node_reference',
         'settings' => array(
           'referenceable_types' => array(
-            'article' => 0,
-            'page' => 0
+            'article' => 'biblio'
           )
         ),
         'translatable' => '1',
