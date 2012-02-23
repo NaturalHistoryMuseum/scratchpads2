@@ -4,7 +4,6 @@
  * FIXME - Remove the horrible deltas added by the facetapi module, and replace
  * them with the improved code in the scratchpads_image_extension module.
  */
-
 /**
  * Implementation of hook_menu_alter().
  */
@@ -65,7 +64,10 @@ function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
       $_GET['f'] = array(
         'im_biblio_contributor:' . $_GET['f']['author']
       );
-    }elseif(isset($_GET['f']['keywords'])){
+    }elseif(isset($_GET['f']['keyword'])){
+      $_GET['f'] = array(
+        'im_biblio_keyword:' . $_GET['f']['keyword']
+      );
     }
   }
 }
