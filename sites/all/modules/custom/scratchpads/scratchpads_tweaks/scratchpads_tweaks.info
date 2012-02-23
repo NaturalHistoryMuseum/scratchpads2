@@ -32,23 +32,26 @@ dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = clone
 
 ; Scratchpads modules
+dependencies[] = scratchpads_apachesolr_instant
+dependencies[] = scratchpads_backend
+dependencies[] = scratchpads_biblio
 dependencies[] = scratchpads_biblio_search
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_colour
 dependencies[] = scratchpads_file_colorboxed
 dependencies[] = scratchpads_front
+dependencies[] = scratchpads_hands_off
+dependencies[] = scratchpads_help
+dependencies[] = scratchpads_image_extension
 dependencies[] = scratchpads_image_styles
 dependencies[] = scratchpads_media_gallery
 dependencies[] = scratchpads_pages
 dependencies[] = scratchpads_search_block
 dependencies[] = scratchpads_solr
-dependencies[] = scratchpads_apachesolr_instant
 dependencies[] = scratchpads_species
 dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
-dependencies[] = scratchpads_image_extension
-dependencies[] = scratchpads_hands_off
 
 ; Custom modules
 dependencies[] = spm

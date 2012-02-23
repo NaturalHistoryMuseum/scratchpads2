@@ -15,7 +15,18 @@ function scratchpads_backend_menu_alter(&$items){
   unset($items['admin/content']['page arguments']);
   $items['admin/content']['file'] = 'scratchpads_backend.admin.inc';
   unset($items['admin/content/node']);
-  unset($items['node/add']);
+  $items['node/add'] = array(
+    'title' => '',
+    'title callback' => FALSE,
+    'page callback' => 'drupal_goto',
+    'page arguments' => array(
+      'admin/content'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'access content overview'
+    )
+  );
   // Remove the tabs for these items
   $items['admin/content/character-editor/projects']['type'] = MENU_NORMAL_ITEM;
   $items['admin/content/comment']['type'] = MENU_NORMAL_ITEM;

@@ -305,13 +305,18 @@ function character_editor_field_widget_form_after_build($form){
 function character_editor_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
     case 'entity_admin_entity_form':
-      if($form['#entity_type'] == 'character_editor_character'){
-        $destination = drupal_get_destination();
-        $form['actions']['back'] = array(
-          '#type' => 'submit',
-          '#value' => t('Back'),
-          '#submit' => array()
-        );
+      switch($form['#entity_type']){
+        case 'character_editor_character':
+          $destination = drupal_get_destination();
+          $form['actions']['back'] = array(
+            '#type' => 'submit',
+            '#value' => t('Back'),
+            '#submit' => array()
+          );
+          break;
+        case 'character_editor_project':
+          $form['title']['#title'] = t('Title');
+          break;
       }
       break;
   }

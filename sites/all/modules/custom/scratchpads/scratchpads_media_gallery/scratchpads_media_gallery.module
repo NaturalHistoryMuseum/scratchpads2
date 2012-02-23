@@ -220,20 +220,22 @@ function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
 function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
   if($router_item['path'] == 'gallery' && $nid = scratchpads_media_gallery_is_gallery_node()){
     // Add a tab linking to node/add to all pages.
-    $data['tabs'][0]['output'][] = array(
-      '#theme' => 'menu_local_task',
-      '#link' => array(
-        'title' => t('Edit'),
-        'href' => 'node/' . $nid . '/edit',
-        'localized_options' => array(
-          'attributes' => array(
-            'title' => t('Edit this gallery')
+    if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $nid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this gallery')
+            )
           )
         )
-      )
-    );
-    $data['tabs'][0]['output'][0]['#active'] = TRUE;
-    $data['tabs'][0]['count'] = 2;
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
   }
 }
 
