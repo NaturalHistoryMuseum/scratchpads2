@@ -1169,14 +1169,16 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   $fields = field_info_instances($entity_type, $bundle);
   $groups = field_group_info_groups($entity_type, $bundle, 'form', true);
   $entity_info = entity_get_info($entity_type);
-  if(isset($entity_info['entity keys']['label'])){
-    if($groups){
-      $default_group = t('Default');
-      $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
-    }else{
-      $default_group = NULL;
+  $default_group = NULL;
+  // Specimen observation has a title field but it is auto-populated so ignore it
+  if($bundle != 'specimen_observation'){
+    if(isset($entity_info['entity keys']['label'])){
+      if($groups){
+        $default_group = t('Default');
+        $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
+      }
+      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], $default_group);
     }
-    scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], $default_group);
   }
   // If groups, display this content type in a tab
   if($groups){
