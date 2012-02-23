@@ -77,7 +77,7 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function itis_term_taxonomy_vocabulary_delete($vocabulary){
-  field_delete_field("field_aan_{$vocabulary->key}");
+  field_delete_field("field_aan_{$vocabulary->vid}");
   $biological_vids = variable_get('biological_vids', array());
   foreach($biological_vids as $vid => $type){
     if(!taxonomy_vocabulary_load($vid)){
