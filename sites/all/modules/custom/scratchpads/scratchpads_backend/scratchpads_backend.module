@@ -15,6 +15,7 @@ function scratchpads_backend_menu_alter(&$items){
   unset($items['admin/content']['page arguments']);
   $items['admin/content']['file'] = 'scratchpads_backend.admin.inc';
   unset($items['admin/content/node']);
+  unset($items['admin/content/file']);
   $items['node/add'] = array(
     'title' => '',
     'title callback' => FALSE,
