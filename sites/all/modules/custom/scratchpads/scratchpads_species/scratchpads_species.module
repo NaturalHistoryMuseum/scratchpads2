@@ -135,6 +135,20 @@ function scratchpads_species_node_type_form_submit($form, $form_state){
   menu_rebuild();
 }
 
+/**
+ * Implements hook_taxonomy_term_insert().
+ */
+function scratchpads_species_taxonomy_term_insert($term){
+  // Get the number of terms in the taxonomy_term_data table with this vid.  If
+  // less than 2, then we clear the context cache.
+  $row = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+    ':vid' => $term->vid
+  ))->fetchAssoc();
+  if(array_pop($row) < 2){
+    cache_clear_all('context', 'cache');
+  }
+}
+
 /*********************************************************************************************
  * 
  * MENU CALLBACKS
