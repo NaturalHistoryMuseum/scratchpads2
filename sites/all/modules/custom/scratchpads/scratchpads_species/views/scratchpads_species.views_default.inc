@@ -823,7 +823,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 0;
+  $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -833,6 +833,19 @@ function scratchpads_species_views_default_views(){
     'location' => 'location',
     'spm' => 'spm'
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
+  /* Filter criterion: Content: Map (field_map:latitude) */
+  $handler->display->display_options['filters']['field_map_latitude']['id'] = 'field_map_latitude';
+  $handler->display->display_options['filters']['field_map_latitude']['table'] = 'field_data_field_map';
+  $handler->display->display_options['filters']['field_map_latitude']['field'] = 'field_map_latitude';
+  $handler->display->display_options['filters']['field_map_latitude']['operator'] = 'not empty';
+  $handler->display->display_options['filters']['field_map_latitude']['group'] = 2;
+  /* Filter criterion: Content: Map (field_spm_map:gm3_type) */
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['id'] = 'field_spm_map_gm3_type';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['table'] = 'field_data_field_spm_map';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['field'] = 'field_spm_map_gm3_type';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['operator'] = 'not empty';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['group'] = 2;
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
