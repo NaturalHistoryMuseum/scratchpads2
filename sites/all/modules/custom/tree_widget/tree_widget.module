@@ -222,7 +222,6 @@ function theme_options_tree_term($variables){
       }
     }
   }
-  dpm($checkbox_variables);
   return '<li>' . theme('options_tree_expand_button', array(
     'field_id' => $variables['element']['#name'],
     'term' => $variables['term'],
