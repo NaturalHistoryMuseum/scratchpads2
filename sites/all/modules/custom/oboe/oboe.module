@@ -98,13 +98,25 @@ function oboe_block_view($delta = 'user_jobs'){
       global $user;
       // Get a list of entity_ids
       $query = new EntityFieldQuery();
-      $results = $query->entityCondition('type', 'oboe')->propertyCondition('uid', $user->uid)->propertyOrderBy('created', 'DESC')->execute();
-      foreach($results as $row){
-        dpm($row);
+      $results = $query->entityCondition('entity_type', 'oboe')->propertyCondition('uid', $user->uid)->propertyOrderBy('created', 'DESC')->execute();
+      $ids = array();
+      foreach($results['oboe'] as $row){
+        $ids[] = $row->oid;
+        if(count($ids) >= 5){
+          break;
+        }
+      }
+      $entities = entity_load('oboe', $ids);
+      foreach($entities as $key => $entity){
+        $uri = entity_uri('oboe', $entity);
+        $entities[$key] = l($entity->label, $uri['path']) . ' (' . $entity->data['status'] . ')<br/>' . $entity->description;
       }
       return array(
         'subject' => t('My service jobs'),
-        'content' => array()
+        'content' => array(
+          '#theme' => 'item_list',
+          '#items' => $entities
+        )
       );
   }
 }
