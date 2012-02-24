@@ -1,22 +1,19 @@
-.form-type-options-tree li{
+.tree_widget li{
  list-style-type:none;
 }
-.form-type-options-tree ul{
- margin: 0 0 0 19px !important;
-}
-.form-type-options-tree input{
+.tree_widget input{
  margin:0 5px;
 }
-.form-type-options-tree{
-	
+.tree_widget label{
+	display:inline !important;
 }
-.form-type-options-tree label{
-	display:inline;
+.tree_widget ul{
+	padding:0 0 0 15px;
 }
 .options_tree_plus{
  padding:0;
  background-repeat:no-repeat;
- background-position:50% 50%;
+ background-position:50% 80%;
 }
 .options_tree_plus.plus,.options_tree_plus.minus{
  cursor:pointer;
