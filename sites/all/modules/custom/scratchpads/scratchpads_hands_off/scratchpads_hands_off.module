@@ -1,35 +1,39 @@
 <?php
 
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function scratchpads_hands_off_form_block_admin_display_form_alter(&$form, &$form_state, $form_id){
-  foreach($form['blocks'] as $form_block_key => $form_block){
-    switch($form_block['module']['#value']){
-      case 'facetapi':
-      case 'apachesolr_search':
-      case 'scratchpads_blocks':
-      case 'system':
-        unset($form['blocks'][$form_block_key]);
-      case 'views':
-        switch($form_block['delta']['#value']){
-          case 'front_page_content-block':
+
+function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
+  switch($form_id){
+    case 'dashboard_admin_display_form':
+    case 'block_admin_display_form':
+      foreach($form['blocks'] as $form_block_key => $form_block){
+        switch($form_block['module']['#value']){
+          case 'facetapi':
+          case 'apachesolr_search':
+          case 'scratchpads_blocks':
+          case 'system':
             unset($form['blocks'][$form_block_key]);
+          case 'views':
+            switch($form_block['delta']['#value']){
+              case 'front_page_content-block':
+                unset($form['blocks'][$form_block_key]);
+            }
         }
-    }
-  }
-  $contexts = context_enabled_contexts();
-  foreach($contexts as $context){
-    if(isset($context->reactions) && isset($context->reactions['block'])){
-      foreach($context->reactions['block']['blocks'] as $context_block_key => $context_block){
-        foreach($form['blocks'] as $form_block_key => $form_block){
-          if($form_block['module']['#value'] == $context_block['module'] && $form_block['delta']['#value'] == $context_block['delta']){
-            unset($form['blocks'][$form_block_key]);
+      }
+      $contexts = context_enabled_contexts();
+      foreach($contexts as $context){
+        if(isset($context->reactions) && isset($context->reactions['block'])){
+          foreach($context->reactions['block']['blocks'] as $context_block_key => $context_block){
+            foreach($form['blocks'] as $form_block_key => $form_block){
+              if($form_block['module']['#value'] == $context_block['module'] && $form_block['delta']['#value'] == $context_block['delta']){
+                unset($form['blocks'][$form_block_key]);
+              }
+            }
           }
         }
       }
-    }
+      // Unset certain regions
+      unset($form['block_regions']['#value']['slide_bottom'], $form['block_regions']['#value']['slide_top'], $form['block_regions']['#value']['content'], $form['block_regions']['#value']['menu'], $form['block_regions']['#value']['branding'], $form['block_regions']['#value']['header']);
+      break;
   }
-  // Unset certain regions
-  unset($form['block_regions']['#value']['slide_bottom'], $form['block_regions']['#value']['slide_top'], $form['block_regions']['#value']['content'], $form['block_regions']['#value']['menu'], $form['block_regions']['#value']['branding'], $form['block_regions']['#value']['header']);
+  dd($form_id);
 }
