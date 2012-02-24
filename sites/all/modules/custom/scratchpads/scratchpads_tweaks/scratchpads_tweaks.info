@@ -57,3 +57,4 @@ dependencies[] = spm
 dependencies[] = tui
 dependencies[] = silver
 dependencies[] = eol
+dependencies[] = tools

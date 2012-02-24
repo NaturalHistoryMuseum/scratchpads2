@@ -88,16 +88,6 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     ),
     array(
-      'module' => 'node',
-      'delta' => 'recent',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => 10,
-      'region' => 'dashboard_main',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
       'module' => 'user',
       'delta' => 'login',
       'theme' => 'scratchpads',
@@ -148,26 +138,6 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     ),
     array(
-      'module' => 'user',
-      'delta' => 'new',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => 0,
-      'region' => 'dashboard_sidebar',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
-      'module' => 'search',
-      'delta' => 'form',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => -10,
-      'region' => 'dashboard_sidebar',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
       'module' => 'menu_block',
       'delta' => 'scratchpads_pages-1',
       'theme' => 'scratchpads',
@@ -185,6 +155,67 @@ function scratchpads_tweaks_install(){
       'status' => 1,
       'weight' => 2,
       'region' => 'help',
+      'pages' => '',
+      'cache' => -1
+    ),
+    // Dashboard blocks
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'online',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'active',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'comment',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
       'pages' => '',
       'cache' => -1
     )

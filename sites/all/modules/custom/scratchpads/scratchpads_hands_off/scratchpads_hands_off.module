@@ -35,5 +35,4 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
       unset($form['block_regions']['#value']['slide_bottom'], $form['block_regions']['#value']['slide_top'], $form['block_regions']['#value']['content'], $form['block_regions']['#value']['menu'], $form['block_regions']['#value']['branding'], $form['block_regions']['#value']['header']);
       break;
   }
-  dd($form_id);
 }
