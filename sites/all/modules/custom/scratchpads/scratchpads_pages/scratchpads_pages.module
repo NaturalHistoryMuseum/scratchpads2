@@ -394,7 +394,7 @@ function scratchpads_pages_pluralise_node_name($name){
       $plural = 'image_galleries';
       break;
     case 'blog_entry':
-      $plural = 'blogs';
+      $plural = 'blog';
       break;
     default:
       $plural = $name . 's';
