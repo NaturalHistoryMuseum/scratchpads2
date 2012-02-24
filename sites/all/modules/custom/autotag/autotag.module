@@ -95,6 +95,7 @@ function autotag_search_text($text, $vid){
   $insert->execute();
   // Select the direct single word matches.
   $select = db_select('taxonomy_term_data', 't');
+  $select->condition('vid', $vid);
   $select->join($temporary_table_name, 'a', 'a.words LIKE t.name');
   $select->addField('t', 'tid');
   $select->addField('t', 'name');
@@ -104,6 +105,7 @@ function autotag_search_text($text, $vid){
   }
   // Next we need to get the multiple word terms
   $select = db_select('taxonomy_term_data', 't');
+  $select->condition('vid', $vid);
   $select->condition('name', '% %', 'LIKE');
   $select->addField('t', 'tid');
   $select->addField('t', 'name');

@@ -63,6 +63,11 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       $field_options[$key] = $instance['label'];
       if(substr($instance['widget']['type'], 0, 5) == 'text_'){
         $search_fields[$key] = $instance['label'];
+      }else{
+        $field_info = field_info_field($instance['field_name']);
+        if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
+          $search_fields[$key] = $instance['label'];
+        }
       }
     }
   }
@@ -289,14 +294,13 @@ function tagtag_add_tags(&$form_state){
         foreach($form_state['values']['tagtag'] as $tag){
           // Check that the tag hasn't already been saved to the field (yes, the
           // same tag can be saved multiple times to a taxonomy field).
-          $not_already_set = TRUE;
+          $already_set = FALSE;
           foreach($form_state['values'][$field][LANGUAGE_NONE] as $value){
             if($value['tid'] == $tag->tid){
-              $not_already_set = FALSE;
-              break;
+              $already_set = TRUE;
             }
           }
-          if($not_already_set){
+          if(!$already_set){
             $form_state['values'][$field][LANGUAGE_NONE][] = (array)$tag;
           }
         }
