@@ -224,6 +224,7 @@ a.scratchpads-slide-toggle{
   line-height: 16px;
   background: #262626;
   text-decoration: none;
+  z-index: 100;
 }
 
 #zone-slide-top-wrapper a.scratchpads-slide-toggle{ 
@@ -256,6 +257,28 @@ a.scratchpads-slide-toggle{
 
 #zone-header{
   padding-top: 25px;
+  position: relative;
+}
+
+#region-secondary-menu {
+  position: absolute;
+  right: 70px;
+  top: 0;
+  text-align: right;
+}
+
+.logged-in #region-secondary-menu{
+  right: 0;
+  top: 13px;
+}
+
+#region-secondary-menu ul.links li{
+  display: inline-block;
+  margin-left: 1em;
+}
+
+#region-secondary-menu ul.links li a{
+  color: #fff;
 }
 
 h1.site-name, 
@@ -273,7 +296,7 @@ h2.site-name {
 }
 
 #region-header{
-  margin-top: 10px;
+  margin-top: 20px;
   margin-bottom: 10px;
 }
 
