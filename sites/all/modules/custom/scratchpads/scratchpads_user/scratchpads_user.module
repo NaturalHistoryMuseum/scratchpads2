@@ -232,7 +232,8 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
   }
   if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
     $form['actions']['submit']['#submit'] = array(
-      'user_register_submit'
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit_clear_error'
     );
   }
 }
@@ -244,7 +245,6 @@ function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
  * @param array $form_state
  */
 function _scratchpads_user_form_alter(&$form, &$form_state){
-  global $user;
   $form['account']['#type'] = 'fieldset';
   $form['account']['#title'] = t('User account settings');
   $form['account']['#states'] = array(
@@ -264,7 +264,7 @@ function _scratchpads_user_form_alter(&$form, &$form_state){
   // Add the theme function to make this form look better
   array_unshift($form['#theme'], 'scratchpads_user_register_form');
   // If the user isn't creating a user account, limit the validation errors to email & extra fields
-  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account']) && (!$form['#user']->uid || $form_state['input']['name'] == '')){
     $form['actions']['submit']['#limit_validation_errors'] = array(
       array(
         'mail'
@@ -291,6 +291,13 @@ function scratchpads_user_register_form_pre_submit($form, &$form_state){
 }
 
 /**
+ * Submit function simply to clear the errors displayed in user_register_submit.
+ */
+function scratchpads_user_register_form_post_submit_clear_error($form, &$form_state){
+  drupal_get_messages('error');
+}
+
+/**
  * Submit function called after user_register_submit()
  * Used to manipulate the message displayed to the user
  * @param array $form
@@ -299,6 +306,9 @@ function scratchpads_user_register_form_pre_submit($form, &$form_state){
 function scratchpads_user_register_form_post_submit($form, &$form_state){
   // Reset the messages
   drupal_get_messages('status');
+  // Reset the error messages, as the following error is displayed:
+  // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
+  drupal_get_messages('error');
   drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
     '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
     '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
