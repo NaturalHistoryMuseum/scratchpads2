@@ -307,10 +307,6 @@ function scratchpads_tweaks_install(){
   menu_link_save($item);
   // Update the menu router information.
   menu_rebuild();
-  // Enable the admin theme.
-  db_update('system')->fields(array(
-    'status' => 1
-  ))->condition('type', 'theme')->condition('name', 'scratchpads_admin')->execute();
   variable_set('admin_theme', 'scratchpads_admin');
   variable_set('node_admin_theme', '1');
   /*
