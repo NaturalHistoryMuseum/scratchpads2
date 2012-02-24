@@ -40,7 +40,7 @@ class OBOEService{
     // Check for the PECL extension.
     if(!function_exists('http_post_data')){throw new OBOEServiceException(t('PECL pecl_http is not installed.'));}
     $this->auth_token = self::get_auth_token($at);
-    if($id){
+    if($job_details){
       if(is_array($job_details)){
         foreach($job_details as $key => $value){
           $this->{$key} = $value;

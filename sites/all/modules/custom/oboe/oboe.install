@@ -41,7 +41,8 @@ function oboe_schema(){
           'type' => 'blob',
           'not null' => TRUE,
           'size' => 'big',
-          'translatable' => TRUE
+          'translatable' => TRUE,
+          'serialize' => TRUE
         ),
         'type' => array(
           'description' => 'The type of this OBOE job.',

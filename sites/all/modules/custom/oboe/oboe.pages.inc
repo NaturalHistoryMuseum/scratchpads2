@@ -179,7 +179,7 @@ function oboe_job_form_submit(&$form, &$form_state){
       $oboe = $form['#oboe'];
       $oboe->label = $oboe_service->get_job_name();
       $oboe->description = $oboe_service->get_job_description();
-      $oboe->data = serialize($oboe_service->get_response());
+      $oboe->data = $oboe_service->get_response();
       $oboe->created = time();
       $oboe->changed = time();
       entity_save('oboe', $oboe);
