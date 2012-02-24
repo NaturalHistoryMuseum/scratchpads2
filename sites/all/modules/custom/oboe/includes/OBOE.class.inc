@@ -1,6 +1,6 @@
 <?php
 
-class Oboe extends Entity{
+class OBOE extends Entity{
 
   /**
    * isLocked

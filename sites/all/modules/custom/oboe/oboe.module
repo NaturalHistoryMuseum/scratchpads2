@@ -78,6 +78,38 @@ function oboe_menu(){
 }
 
 /**
+ * Implements hook_block_info().
+ */
+function oboe_block_info(){
+  return array(
+    'user_jobs' => array(
+      'info' => t('My service jobs'),
+      'cache' => DRUPAL_CACHE_PER_USER
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function oboe_block_view($delta = 'user_jobs'){
+  switch($delta){
+    default:
+      global $user;
+      // Get a list of entity_ids
+      $query = new EntityFieldQuery();
+      $results = $query->entityCondition('type', 'oboe')->propertyCondition('uid', $user->uid)->propertyOrderBy('created', 'DESC')->execute();
+      foreach($results as $row){
+        dpm($row);
+      }
+      return array(
+        'subject' => t('My service jobs'),
+        'content' => array()
+      );
+  }
+}
+
+/**
  * Menu callback; view a single OBOE job.
  */
 function oboe_page_view($oboe){
@@ -150,17 +182,16 @@ function oboe_view($oboe, $view_mode, $langcode){
   }
   if($oboe->data['status'] != 'finished'){
     // We've not finished, we should refresh the page every 30 seconds (or similar).
-    drupal_add_html_head(array(
+  /*drupal_add_html_head(array(
       '#tag' => 'meta',
       '#attributes' => array(
         'http-equiv' => 'refresh',
         'content' => variable_get('oboe_refresh_time', 30)
       )
-    ), 'oboe_refresh');
+    ), 'oboe_refresh');*/
   }
   if($save_entity){
     entity_save('oboe', $oboe);
-    dpm($oboe);
   }
   $rows_data = array();
   foreach($oboe->data as $key => $value){
@@ -281,26 +312,6 @@ function oboe_load_multiple($ids = array(), $conditions = array(), $reset = FALS
 }
 
 /**
- * Implementation of hook_entity_load().
- */
-function oboe_entity_load($entities, $type){
-  if($type == 'oboe'){
-    foreach($entities as $entity){
-      $entity->data = unserialize($entity->data);
-    }
-  }
-}
-
-/**
- * Implementation of hook_entity_insert().
- */
-function oboe_entity_insert($entity, $type){
-  if($type == 'oboe'){
-    $entity->data = serialize($entity->data);
-  }
-}
-
-/**
  * Implements hook_help().
  */
 function oboe_help($path, $arg){
@@ -357,7 +368,7 @@ function oboe_entity_info(){
   $info = array(
     'oboe' => array(
       'label' => t('OBOE Job'),
-      'entity class' => 'Oboe',
+      'entity class' => 'OBOE',
       'controller class' => 'EntityAPIController',
       'base table' => 'oboe',
       'fieldable' => TRUE,
