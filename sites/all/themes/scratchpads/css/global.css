@@ -683,6 +683,15 @@ table.biblio td{
 #cboxClose:hover{
   background-position: 0;
 }
+
+/****************** SLICKGRID *****************/
+  
+.bt-wrapper h2{
+  background: none!important;
+  margin: 0!important;
+  padding: 2px 0 6px 0!important;
+  font-size: 10px!important;
+}  
   
 /****************** ADMIN *****************/
 
