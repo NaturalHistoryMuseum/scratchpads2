@@ -17,6 +17,17 @@ function scratchpads_front_permission(){
 }
 
 /**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_front_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer front page'
+    )
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function scratchpads_front_menu(){
