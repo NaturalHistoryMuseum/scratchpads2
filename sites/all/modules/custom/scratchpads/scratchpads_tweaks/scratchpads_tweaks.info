@@ -32,6 +32,7 @@ dependencies[] = clone
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
+dependencies[] = scratchpads_autotag
 dependencies[] = scratchpads_backend
 dependencies[] = scratchpads_biblio
 dependencies[] = scratchpads_biblio_search
@@ -58,5 +59,3 @@ dependencies[] = tui
 dependencies[] = silver
 dependencies[] = eol
 dependencies[] = tools
-dependencies[] = autotag
-dependencies[] = tag_on_save

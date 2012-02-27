@@ -1,0 +1,6 @@
+name = Scratchpads autotag
+description = Settings for the Autotag/Tag/Tag-on-save modules.
+core = 7.x
+dependencies[] = autotag
+dependencies[] = tagtag
+dependencies[] = tag_on_save
