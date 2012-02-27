@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * spm.features.field.inc
  */
-
 /**
  * Implements hook_field_default_fields().
  */
-function spm_field_default_fields() {
+function spm_field_default_fields(){
   $fields = array();
-
   // Exported field: 'node-spm-field_taxonomic_name'
   $fields['node-spm-field_taxonomic_name'] = array(
     'field_config' => array(
@@ -21,27 +20,27 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
-            'tid' => 'tid',
+            'tid' => 'tid'
           ),
-          'table' => 'taxonomy_term_data',
-        ),
+          'table' => 'taxonomy_term_data'
+        )
       ),
       'indexes' => array(
         'tid' => array(
-          0 => 'tid',
-        ),
+          0 => 'tid'
+        )
       ),
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
           0 => array(
             'parent' => '0',
-            'vocabulary' => '',
-          ),
-        ),
+            'vocabulary' => ''
+          )
+        )
       ),
       'translatable' => '1',
-      'type' => 'taxonomy_term_reference',
+      'type' => 'taxonomy_term_reference'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -54,41 +53,40 @@ function spm_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => '2',
+          'weight' => '2'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
       'required' => 1,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'taxonomy',
         'settings' => array(
           'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60,
+          'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '-1000',
-      ),
-    ),
+        'weight' => '-1000'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_spm_map'
   $fields['node-spm-field_spm_map'] = array(
     'field_config' => array(
@@ -100,32 +98,32 @@ function spm_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'gm3_type' => array(
-          0 => 'gm3_type',
+          0 => 'gm3_type'
         ),
         'latitude' => array(
-          0 => 'latitude',
+          0 => 'latitude'
         ),
         'longitude' => array(
-          0 => 'longitude',
+          0 => 'longitude'
         ),
         'region_id' => array(
-          0 => 'region_id',
-        ),
+          0 => 'region_id'
+        )
       ),
       'module' => 'gm3_field',
       'settings' => array(
         'field_types' => array(
           'gm3_polygon' => 'gm3_polygon',
-          'gm3_region' => 'gm3_region',
+          'gm3_region' => 'gm3_region'
         ),
         'gm3_point' => 'Point',
         'gm3_polygon' => 'Polygon',
         'gm3_polyline' => 'Polyline',
         'gm3_rectangle' => 'Rectangle',
-        'gm3_region' => 'Region',
+        'gm3_region' => 'Region'
       ),
       'translatable' => '0',
-      'type' => 'gm3_combination',
+      'type' => 'gm3_combination'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -137,41 +135,40 @@ function spm_field_default_fields() {
           'label' => 'above',
           'module' => 'gm3_field',
           'settings' => array(
-            'display_convex_hull' => FALSE,
+            'display_convex_hull' => FALSE
           ),
           'type' => 'gm3_entity_map',
-          'weight' => -38,
+          'weight' => -38
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_spm_map',
       'label' => 'Map',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'gm3_field',
         'settings' => array(),
         'type' => 'gm3_combination_gm3',
-        'weight' => '-10',
-      ),
-    ),
+        'weight' => '-10'
+      )
+    )
   );
-  
   // Exported field: 'node-spm-field_media'
   $fields['node-spm-field_media'] = array(
     'field_config' => array(
@@ -209,10 +206,16 @@ function spm_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'file',
+          'module' => 'styles',
           'settings' => array(),
-          'type' => 'file_default',
-          'weight' => 100
+          'type' => 'styles_file_scratchpads_media_gallery_thumbnail',
+          'weight' => '100'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
@@ -257,7 +260,6 @@ function spm_field_default_fields() {
       )
     )
   );
-
   // Exported field: 'node-spm-field_associations'
   $fields['node-spm-field_associations'] = array(
     'field_config' => array(
@@ -269,20 +271,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -295,20 +297,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '20',
+          'weight' => '20'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_associations',
@@ -316,20 +318,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '25',
-      ),
-    ),
+        'weight' => '25'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_behavious'
   $fields['node-spm-field_behavious'] = array(
     'field_config' => array(
@@ -341,20 +342,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -367,20 +368,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '9',
+          'weight' => '9'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_behavious',
@@ -388,20 +389,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '12',
-      ),
-    ),
+        'weight' => '12'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_biology'
   $fields['node-spm-field_biology'] = array(
     'field_config' => array(
@@ -413,20 +413,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -439,20 +439,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '2',
+          'weight' => '2'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_biology',
@@ -460,20 +460,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '3',
-      ),
-    ),
+        'weight' => '3'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_conservation_status'
   $fields['node-spm-field_conservation_status'] = array(
     'field_config' => array(
@@ -485,20 +484,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -511,20 +510,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '3',
+          'weight' => '3'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_conservation_status',
@@ -532,20 +531,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '6',
-      ),
-    ),
+        'weight' => '6'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_cyclicity'
   $fields['node-spm-field_cyclicity'] = array(
     'field_config' => array(
@@ -557,20 +555,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -583,20 +581,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '21',
+          'weight' => '21'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_cyclicity',
@@ -604,20 +602,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '26',
-      ),
-    ),
+        'weight' => '26'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_cytology'
   $fields['node-spm-field_cytology'] = array(
     'field_config' => array(
@@ -629,20 +626,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -655,20 +652,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '10',
+          'weight' => '10'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_cytology',
@@ -676,20 +673,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '13',
-      ),
-    ),
+        'weight' => '13'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_diagnostic_description'
   $fields['node-spm-field_diagnostic_description'] = array(
     'field_config' => array(
@@ -701,20 +697,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -727,20 +723,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '11',
+          'weight' => '11'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_diagnostic_description',
@@ -748,20 +744,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '14',
-      ),
-    ),
+        'weight' => '14'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_diseases'
   $fields['node-spm-field_diseases'] = array(
     'field_config' => array(
@@ -773,20 +768,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -799,20 +794,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '34',
+          'weight' => '34'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_diseases',
@@ -820,20 +815,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '39',
-      ),
-    ),
+        'weight' => '39'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_dispersal'
   $fields['node-spm-field_dispersal'] = array(
     'field_config' => array(
@@ -845,20 +839,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -871,20 +865,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '22',
+          'weight' => '22'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_dispersal',
@@ -892,20 +886,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '27',
-      ),
-    ),
+        'weight' => '27'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_distribution'
   $fields['node-spm-field_distribution'] = array(
     'field_config' => array(
@@ -917,20 +910,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -943,20 +936,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '23',
+          'weight' => '23'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_distribution',
@@ -964,20 +957,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '28',
-      ),
-    ),
+        'weight' => '28'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_ecology'
   $fields['node-spm-field_ecology'] = array(
     'field_config' => array(
@@ -989,20 +981,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1015,20 +1007,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '24',
+          'weight' => '24'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_ecology',
@@ -1036,20 +1028,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '29',
-      ),
-    ),
+        'weight' => '29'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_evolution'
   $fields['node-spm-field_evolution'] = array(
     'field_config' => array(
@@ -1061,20 +1052,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1087,20 +1078,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '32',
+          'weight' => '32'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_evolution',
@@ -1108,20 +1099,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '37',
-      ),
-    ),
+        'weight' => '37'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_general_description'
   $fields['node-spm-field_general_description'] = array(
     'field_config' => array(
@@ -1133,20 +1123,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1159,20 +1149,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_general_description',
@@ -1180,20 +1170,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_genetics'
   $fields['node-spm-field_genetics'] = array(
     'field_config' => array(
@@ -1205,20 +1194,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1231,20 +1220,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '12',
+          'weight' => '12'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_genetics',
@@ -1252,20 +1241,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '15',
-      ),
-    ),
+        'weight' => '15'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_growth'
   $fields['node-spm-field_growth'] = array(
     'field_config' => array(
@@ -1277,20 +1265,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1303,20 +1291,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '13',
+          'weight' => '13'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_growth',
@@ -1324,20 +1312,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '16',
-      ),
-    ),
+        'weight' => '16'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_habitat'
   $fields['node-spm-field_habitat'] = array(
     'field_config' => array(
@@ -1349,20 +1336,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1375,20 +1362,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '25',
+          'weight' => '25'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_habitat',
@@ -1396,20 +1383,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '30',
-      ),
-    ),
+        'weight' => '30'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_legislation'
   $fields['node-spm-field_legislation'] = array(
     'field_config' => array(
@@ -1421,20 +1407,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1447,20 +1433,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '4',
+          'weight' => '4'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_legislation',
@@ -1468,20 +1454,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '7',
-      ),
-    ),
+        'weight' => '7'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_life_cycle'
   $fields['node-spm-field_life_cycle'] = array(
     'field_config' => array(
@@ -1493,20 +1478,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1519,20 +1504,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '26',
+          'weight' => '26'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_life_cycle',
@@ -1540,20 +1525,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '31',
-      ),
-    ),
+        'weight' => '31'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_life_expectancy'
   $fields['node-spm-field_life_expectancy'] = array(
     'field_config' => array(
@@ -1565,20 +1549,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1591,20 +1575,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '27',
+          'weight' => '27'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_life_expectancy',
@@ -1612,20 +1596,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '32',
-      ),
-    ),
+        'weight' => '32'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_look_alikes'
   $fields['node-spm-field_look_alikes'] = array(
     'field_config' => array(
@@ -1637,20 +1620,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1663,20 +1646,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '14',
+          'weight' => '14'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_look_alikes',
@@ -1684,20 +1667,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '17',
-      ),
-    ),
+        'weight' => '17'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_management'
   $fields['node-spm-field_management'] = array(
     'field_config' => array(
@@ -1709,20 +1691,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1735,20 +1717,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '5',
+          'weight' => '5'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_management',
@@ -1756,20 +1738,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '8',
-      ),
-    ),
+        'weight' => '8'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_migration'
   $fields['node-spm-field_migration'] = array(
     'field_config' => array(
@@ -1781,20 +1762,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1807,20 +1788,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '28',
+          'weight' => '28'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_migration',
@@ -1828,20 +1809,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '33',
-      ),
-    ),
+        'weight' => '33'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_molecular_biology'
   $fields['node-spm-field_molecular_biology'] = array(
     'field_config' => array(
@@ -1853,20 +1833,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1879,20 +1859,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '15',
+          'weight' => '15'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_molecular_biology',
@@ -1900,20 +1880,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '18',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_morphology'
   $fields['node-spm-field_morphology'] = array(
     'field_config' => array(
@@ -1925,20 +1904,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -1951,20 +1930,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '16',
+          'weight' => '16'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_morphology',
@@ -1972,20 +1951,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '19',
-      ),
-    ),
+        'weight' => '19'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_phylogeny'
   $fields['node-spm-field_phylogeny'] = array(
     'field_config' => array(
@@ -1997,20 +1975,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2023,20 +2001,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '33',
+          'weight' => '33'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_phylogeny',
@@ -2044,20 +2022,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '38',
-      ),
-    ),
+        'weight' => '38'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_physiology'
   $fields['node-spm-field_physiology'] = array(
     'field_config' => array(
@@ -2069,20 +2046,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2095,20 +2072,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '17',
+          'weight' => '17'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_physiology',
@@ -2116,20 +2093,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '20',
-      ),
-    ),
+        'weight' => '20'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_population_biology'
   $fields['node-spm-field_population_biology'] = array(
     'field_config' => array(
@@ -2141,20 +2117,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2167,20 +2143,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '30',
+          'weight' => '30'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_population_biology',
@@ -2188,20 +2164,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '35',
-      ),
-    ),
+        'weight' => '35'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_procedures'
   $fields['node-spm-field_procedures'] = array(
     'field_config' => array(
@@ -2213,20 +2188,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2239,20 +2214,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '6',
+          'weight' => '6'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_procedures',
@@ -2260,20 +2235,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '9',
-      ),
-    ),
+        'weight' => '9'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_reproduction'
   $fields['node-spm-field_reproduction'] = array(
     'field_config' => array(
@@ -2285,20 +2259,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2311,20 +2285,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '31',
+          'weight' => '31'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_reproduction',
@@ -2332,20 +2306,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '36',
-      ),
-    ),
+        'weight' => '36'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_risk_statement'
   $fields['node-spm-field_risk_statement'] = array(
     'field_config' => array(
@@ -2357,20 +2330,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2383,20 +2356,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '35',
+          'weight' => '35'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_risk_statement',
@@ -2404,20 +2377,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '40',
-      ),
-    ),
+        'weight' => '40'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_size'
   $fields['node-spm-field_size'] = array(
     'field_config' => array(
@@ -2429,20 +2401,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2455,20 +2427,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '18',
+          'weight' => '18'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_size',
@@ -2476,20 +2448,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '21',
-      ),
-    ),
+        'weight' => '21'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_taxon_biology'
   $fields['node-spm-field_taxon_biology'] = array(
     'field_config' => array(
@@ -2501,20 +2472,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2527,20 +2498,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '19',
+          'weight' => '19'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_taxon_biology',
@@ -2548,20 +2519,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '22',
-      ),
-    ),
+        'weight' => '22'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_threats'
   $fields['node-spm-field_threats'] = array(
     'field_config' => array(
@@ -2573,20 +2543,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2599,20 +2569,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '7',
+          'weight' => '7'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_threats',
@@ -2620,20 +2590,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '10',
-      ),
-    ),
+        'weight' => '10'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_trends'
   $fields['node-spm-field_trends'] = array(
     'field_config' => array(
@@ -2645,20 +2614,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2671,20 +2640,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '8',
+          'weight' => '8'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_trends',
@@ -2692,20 +2661,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '11',
-      ),
-    ),
+        'weight' => '11'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_trophic_strategy'
   $fields['node-spm-field_trophic_strategy'] = array(
     'field_config' => array(
@@ -2717,20 +2685,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2743,20 +2711,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '29',
+          'weight' => '29'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_trophic_strategy',
@@ -2764,20 +2732,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '34',
-      ),
-    ),
+        'weight' => '34'
+      )
+    )
   );
-
   // Exported field: 'node-spm-field_uses'
   $fields['node-spm-field_uses'] = array(
     'field_config' => array(
@@ -2789,20 +2756,20 @@ function spm_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -2815,20 +2782,20 @@ function spm_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '36',
+          'weight' => '36'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_uses',
@@ -2836,20 +2803,19 @@ function spm_field_default_fields() {
       'required' => 0,
       'settings' => array(
         'text_processing' => '1',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '41',
-      ),
-    ),
+        'weight' => '41'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('A comprehensive description of the characteristics of the taxon. To be used primarily when many of the subject categories are treated together in one object, but at length. Taxon biology is to be used if a brief summary.');
@@ -2924,6 +2890,5 @@ function spm_field_default_fields() {
   t('Trophic strategy');
   t('Uses');
   t('Map');
-
   return $fields;
 }
