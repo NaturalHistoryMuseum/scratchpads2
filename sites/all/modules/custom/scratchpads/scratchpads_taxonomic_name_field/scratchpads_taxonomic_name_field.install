@@ -46,7 +46,7 @@ function scratchpads_taxonomic_name_field_install(){
   if(!count($field['settings']['allowed_values'])){
     $field['settings']['allowed_values'][0] = array(
       'parent' => 0,
-      'vocabulary' => 'temporary'
+      'vocabulary' => '__temporary__'
     );
   }
   field_create_field($field);

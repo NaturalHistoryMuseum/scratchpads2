@@ -1,3 +1,13 @@
 <?php
+include_once ('spm.features.inc');
 
-include_once('spm.features.inc');
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
+  $field_info = field_info_field('field_taxonomic_name');
+  if(!$field_info['settings']['allowed_values'][0]['vocabulary'] || $field_info['settings']['allowed_values'][0]['vocabulary'] == '__temporary__'){
+    drupal_set_message(t('You must create a biological classification before you can add a taxon description.'), 'error');
+    drupal_goto('admin/content');
+  }
+}
