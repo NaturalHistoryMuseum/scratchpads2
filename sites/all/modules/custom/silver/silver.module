@@ -128,8 +128,7 @@ function biblio_silver(){
       'access arguments' => array(
         'import from file'
       ),
-      'form_id' => 'biblio_import_form',
-      'file' => 'includes/biblio.import.export.inc'
+      'redirect' => 'biblio/import'
     )
   );
 }
@@ -181,7 +180,7 @@ function silvers_array_sort($a, $b){
 /**
  * Form
  */
-function silver_import_form(){
+function silver_import_form($form, &$form_state){
   // Get the info from the other modules that support "silver".
   $options = array();
   $i = 1;
@@ -217,7 +216,18 @@ function silver_import_form(){
         )
       );
     }
+    if(count($_POST)){
+      $form_state['redirect'] = 'biblio/import';
+    }
     return array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'silver') . '/css/silver.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'silver') . '/js/silver.js'
+        )
+      ),
       'silver_import_select' => array(
         '#weight' => -100,
         '#type' => 'select',
@@ -245,6 +255,17 @@ function silver_ajax_callback($form, &$form_state){
     $subforms_output = '';
     foreach($silvers as $info){
       if($i == $form_state['values']['silver_import_select']){
+        if(isset($info['redirect'])){
+          echo ajax_deliver(array(
+            '#type' => 'ajax',
+            '#commands' => array(
+              ajax_command_invoke('html', 'silver_goto', array(
+                $info['redirect']
+              ))
+            )
+          ));
+          exit();
+        }
         if(isset($info['file']) && $info['file']){
           require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
         }
