@@ -58,3 +58,5 @@ dependencies[] = tui
 dependencies[] = silver
 dependencies[] = eol
 dependencies[] = tools
+dependencies[] = autotag
+dependencies[] = tag_on_save
