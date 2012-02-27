@@ -7,8 +7,10 @@ function scratchpads_apachesolr_instant_entity_insert($entity, $type){
   // If this is a biological classification & there is a menu item for it, rebuild the menu to check it's still useful
   $shutdown_registered = &drupal_static(__FUNCTION__);
   if(!$shutdown_registered){
-    $shutdown_registered = TRUE;
+    $shutdown_registered = 1;
     drupal_register_shutdown_function('scratchpads_apachesolr_instant_shutdown');
+  }else{
+    $shutdown_registered++;
   }
 }
 
@@ -31,7 +33,7 @@ function scratchpads_apachesolr_instant_entity_update($entity, $type){
  */
 function scratchpads_apachesolr_instant_shutdown(){
   $limit = variable_get('apachesolr_cron_limit', 50);
-  variable_set('apachesolr_cron_limit', 5);
+  variable_set('apachesolr_cron_limit', drupal_static('scratchpads_apachesolr_instant_entity_insert'));
   apachesolr_cron();
   variable_set('apachesolr_cron_limit', $limit);
 }
