@@ -4,7 +4,7 @@
  * hook_menu callback; 
  * Universal json callback - builds function name and returns error = true 
  */
-function slickgrid_callback($op){	
+function slickgrid_callback($op){
   $func = 'slickgrid_callback_' . $op;
   // Get any additonal arguments passed to the callback function & shift off the first one (the $op)  
   $args = func_get_args();
@@ -78,7 +78,7 @@ function slickgrid_callback_log(){
  */
 function slickgrid_callback_update(){
   ctools_include('plugins');
-  $plugin_definition = ctools_get_plugins('slickgrid', 'editor', $_POST['plugin']);  
+  $plugin_definition = ctools_get_plugins('slickgrid', 'editor', $_POST['plugin']);
   require_once DRUPAL_ROOT . '/' . drupal_get_path('module', $plugin_definition['plugin module']) . "/plugins/editors/handler.class.php";
   $class = ctools_plugin_get_class($plugin_definition, 'handler');
   if($class){
@@ -137,8 +137,8 @@ function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display
     $form = $form_callback_func();
   }
   $form_state = $_POST + array(
-    'title' => t('Add @label', array(
-      '@label' => $entity_info['label']
+    'title' => t('Add @bundle_label', array(
+      '@bundle_label' => strtolower($entity_info['bundles'][$bundle_type]['label'])
     ))
   );
   if($form['#validated'] && !form_get_errors()){

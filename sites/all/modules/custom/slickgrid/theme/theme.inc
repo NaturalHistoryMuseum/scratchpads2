@@ -355,12 +355,18 @@ function theme_slickgrid_controls($variables){
     drupal_add_js($library_path . '/slick.groupitemmetadataprovider.js');
   }
   $output .= '<div id="slickgrid-status"></div>';
-  if($view->style_plugin->options['add']){
-    $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $view->style_plugin->options['add'] . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
-    if(count($view->args)){
-      $add_path .= '/' . implode('/', $view->args);
+  if(array_filter($view->style_plugin->options['add'])){
+    $addable_entities = slickgrid_list_addable_entities();
+    foreach($view->style_plugin->options['add'] as $add){
+      $class = drupal_html_class('slickgrid-add-' . $add);
+      $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      if(count($view->args)){
+        $add_path .= '/' . implode('/', $view->args);
+      }
+      $output .= '<div class="slickgrid-control slickgrid-add-control ' . $class . '" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', $add_path, t("Add %type", array(
+        '%type' => strtolower($addable_entities[$add])
+      )), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
     }
-    $output .= '<div class="slickgrid-control" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', $add_path, t('Add'), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
   }
   // Add controls defined by our slickgrid module (undo, export, delete)
   if($view->style_plugin->options['undo']){
