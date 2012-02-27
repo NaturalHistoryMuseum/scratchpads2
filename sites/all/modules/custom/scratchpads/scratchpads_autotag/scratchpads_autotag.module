@@ -4,7 +4,14 @@
  * Implements hook_node_type_insert().
  */
 function scratchpads_autotag_node_type_insert($info){
-  _scratchpads_autotag_save_defaults_for_node_type($info->type);
+  drupal_register_shutdown_function('_scratchpads_autotag_save_defaults_for_node_type', $info->type);
+}
+
+/**
+ * Implements hook_node_type_update().
+ */
+function scratchpads_autotag_node_type_update($info){
+  drupal_register_shutdown_function('_scratchpads_autotag_save_defaults_for_node_type', $info->type);
 }
 
 /**
@@ -12,7 +19,7 @@ function scratchpads_autotag_node_type_insert($info){
  */
 function _scratchpads_autotag_save_defaults_for_node_type($node_type){
   $instances = field_info_instances('node', $node_type);
-  if(isset($instances['field_taxonomic_name'])){
+  if(isset($instances['field_taxonomic_name']) && !variable_get("tagtag_replace_$node_type", FALSE)){
     variable_set("tagtag_replace_$node_type", '1');
     variable_set("tagtag_field_$node_type", 'field_taxonomic_name');
     variable_set("tagtag_ui_$node_type", 'tag_on_save');
