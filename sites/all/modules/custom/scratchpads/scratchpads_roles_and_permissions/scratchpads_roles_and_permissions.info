@@ -1,0 +1,4 @@
+name = "Scratchpads users and roles"
+description = "Provides the default user roles and permissions for all Scratchpads."
+package = "Scratchpads"
+core = 7.x
