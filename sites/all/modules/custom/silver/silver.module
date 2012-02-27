@@ -40,6 +40,13 @@ function silver_form_biblio_import_form_alter(&$form, &$form_state, $form_id){
 function silver_batch_alter(&$batch){
   if(arg(0) == 'import'){
     $batch['redirect'] = 'admin/import';
+    if(substr(arg(1), 0, 18) == 'taxonomy_importer_' && substr($batch['redirect'], 0, 14) != 'taxonomy/term/'){
+      $machine_name = substr(arg(1), 18);
+      $vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
+      if($vocabulary){
+        $batch['redirect'] = 'admin/structure/taxonomy/' . $vocabulary->machine_name;
+      }
+    }
     $batch['css'] = array(
       drupal_get_path('module', 'silver') . '/css/silver-overlay-close.css'
     );
