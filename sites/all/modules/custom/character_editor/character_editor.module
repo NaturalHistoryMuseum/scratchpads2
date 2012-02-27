@@ -44,36 +44,6 @@ function character_editor_permission(){
   );
 }
 
-/** 
- * Implementation of hook_menu(). 
- */
-function character_editor_menu(){
-  // Menu callbacks
-  //  $items[SLICKGRID_CALLBACK_PATH . '/add/character_editor_character/%/%/%/%'] = array(
-  //    'page callback' => 'character_editor_callback_add_character',
-  //    'page arguments' => array(
-  //      3,
-  //      4,
-  //      5,
-  //      6,
-  //      7
-  //    ),
-  //    'access arguments' => array(
-  //      'edit character editor'
-  //    ),
-  //    'type' => MENU_CALLBACK,
-  //    'file' => 'slickgrid.callbacks.inc',
-  //    'file path' => drupal_get_path('module', 'slickgrid') . '/includes'
-  //  );
-  return $items;
-}
-
-/** 
- * Implementation of hook_menu_alter(). 
- */
-//function character_editor_menu_alter(&$items){
-//  $items['character-project/%']['page callback'] = 'character_editor_project_view';
-//}
 /**
  * Implements hook_theme().
  */
@@ -330,7 +300,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
             }
              // This is a normal character form  
           }else{
-          	// Add a back button
+            // Add a back button
             $destination = drupal_get_destination();
             $form['actions']['back'] = array(
               '#type' => 'submit',
@@ -461,14 +431,15 @@ function character_editor_entity_info(){
  * Entity access callback
  */
 function character_editor_entity_access($op){
-  // Settings should use the same perms as edit
-  //  if($op == 'settings'){
-  //    $op = 'edit';
-  //  }
-  //  $permission = $op . ' character editor';
-  //  
-  //  dd($permission);
-  return true;
+  switch($op){
+    case 'access':
+      $op = 'view';
+      break;
+    case 'settings':
+      $op = 'edit';
+      break;
+  }
+  $permission = $op . ' character editor';
   return user_access($permission);
 }
 
