@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_roles_and_permissions_install(){
+  // Firstly, we get the admin role and update the weight to 0 (just for OCD reasons).
+  $role = user_role_load_by_name('administrator');
+  $role->weight = 0;
+  user_role_save($role);
+  // Now we create the two additional roles.
+  foreach(array(
+    'contributor',
+    'editor',
+    'maintainer'
+  ) as $role_name){
+    if(!user_role_load_by_name($role_name)){
+      $role = new stdClass();
+      $role->name = $role_name;
+      user_role_save($role);
+    }
+  }
+  // Finally, we move the admin role to the end.
+  $role = user_role_load_by_name('administrator');
+  unset($role->weight);
+  user_role_save($role);
+}
