@@ -47,17 +47,6 @@ function silver_batch_alter(&$batch){
 }
 
 /**
- * Implementation of hook_admin_paths().
- */
-function silver_admin_paths(){
-  // Don't actually need to do this (as it is a child of admin), but hey, lets
-  // be complete.
-  return array(
-    'admin/import' => TRUE
-  );
-}
-
-/**
  * Implementation of hook_admin_paths_alter().
  */
 function silver_admin_paths_alter(&$paths){
