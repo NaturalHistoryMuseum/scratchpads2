@@ -5,15 +5,6 @@
  */
 class character_editor_views_plugin extends slickgrid_views_plugin{
 
-  function init(&$view, &$display, $options = NULL){
-    parent::init($view, $display, $options);
-    // We need a unique name for each char project, but there's only one view
-    // Add the char project ID to the view name
-    if(count($view->args)){
-      $view->name .= ':' . $view->args[0];
-    }
-  }
-
   function options_form(&$form, &$form_state){
     parent::options_form($form, $form_state);
     // Character editor cannot handle grouping so remove it from the form

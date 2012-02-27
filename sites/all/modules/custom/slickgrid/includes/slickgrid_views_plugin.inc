@@ -502,9 +502,10 @@ class slickgrid_views_plugin extends views_plugin_style{
       '#title' => t('Add'),
       '#options' => array_merge(array(
         '<none>'
-      ), $this->list_addable_entities()),
+      ), slickgrid_list_addable_entities()),
       '#description' => t('Allow users to add an entity from within slickgrid.'),
       '#default_value' => $this->options['add'],
+      '#multiple' => true,
       '#parents' => array(
         'style_options',
         'add'
@@ -548,17 +549,7 @@ class slickgrid_views_plugin extends views_plugin_style{
     return !in_array($field_name, $this->locked_fields);
   }
 
-  function list_addable_entities(){
-    $entities = array();
-    foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
-      if(isset($entity_info['form callback'])){
-        foreach($entity_info['bundles'] as $bundle_name => $bundle){
-          $entities[$entity_type . '/' . $bundle_name] = $entity_info['label'] . ': ' . $bundle['label'];
-        }
-      }
-    }
-    return $entities;
-  }
+
 
   function entity_label_field($field){
     static $entity_labels = array();

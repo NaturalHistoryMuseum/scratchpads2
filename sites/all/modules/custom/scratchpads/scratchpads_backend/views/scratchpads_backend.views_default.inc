@@ -1152,7 +1152,9 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     $handler->display->display_options['style_options']['undo'] = 0;
   }
   if($add_link){
-    $handler->display->display_options['style_options']['add'] = $add_link;
+    $handler->display->display_options['style_options']['add'] = array(
+      $add_link => $add_link
+    );
   }
   $handler->display->display_options['style_options']['autoEdit'] = 1;
   // Add the fields
