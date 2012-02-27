@@ -326,4 +326,6 @@ function scratchpads_tweaks_install(){
     'node' => 0,
     'user' => 0
   ));
+  // Delete all shortcut links - we'll allow users to edit these.  
+  menu_delete_links('shortcut-set-1');
 }
