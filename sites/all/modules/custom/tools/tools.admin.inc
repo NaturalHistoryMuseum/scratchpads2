@@ -59,6 +59,7 @@ function tools_admin_form_submit(&$form, &$form_state){
   // be re-enabled.
   module_disable($disable);
   features_install_modules($install);
+  drupal_flush_all_caches();
   drupal_set_message(t('The configuration options have been saved.'));
 }
 
