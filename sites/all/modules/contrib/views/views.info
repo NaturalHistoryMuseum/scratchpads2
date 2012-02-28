@@ -24,6 +24,7 @@ files[] = handlers/views_handler_argument_group_by_numeric.inc
 files[] = handlers/views_handler_field.inc
 files[] = handlers/views_handler_field_counter.inc
 files[] = handlers/views_handler_field_boolean.inc
+files[] = handlers/views_handler_field_contextual_links.inc
 files[] = handlers/views_handler_field_custom.inc
 files[] = handlers/views_handler_field_date.inc
 files[] = handlers/views_handler_field_entity.inc
@@ -247,6 +248,7 @@ files[] = plugins/views_plugin_style_table.inc
 ; Tests
 files[] = tests/handlers/views_handler_area_text.test
 files[] = tests/handlers/views_handler_argument_null.test
+files[] = tests/handlers/views_handler_field.test
 files[] = tests/handlers/views_handler_field_boolean.test
 files[] = tests/handlers/views_handler_field_custom.test
 files[] = tests/handlers/views_handler_field_counter.test
@@ -285,6 +287,7 @@ files[] = tests/views_upgrade.test
 files[] = tests/views_test.views_default.inc
 files[] = tests/comment/views_handler_argument_comment_user_uid.test
 files[] = tests/comment/views_handler_filter_comment_user_uid.test
+files[] = tests/user/views_handler_field_user_name.test
 files[] = tests/user/views_user_argument_default.test
 files[] = tests/user/views_user_argument_validate.test
 files[] = tests/user/views_user.test
@@ -292,9 +295,9 @@ files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
 
-; Information added by drupal.org packaging script on 2012-02-14
-version = "7.x-3.1+57-dev"
+; Information added by drupal.org packaging script on 2012-02-22
+version = "7.x-3.3"
 core = "7.x"
 project = "views"
-datestamp = "1329180208"
+datestamp = "1329946249"
 

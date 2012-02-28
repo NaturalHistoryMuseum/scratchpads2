@@ -147,7 +147,7 @@ class views_handler_field_field extends views_handler_field {
     }
     else {
       $this->field_alias = $this->query->add_field($this->base_table_alias, $entity_info['entity keys']['revision'], '', $params);
-      $this->aliases['entity id'] = $this->query->add_field($this->base_table_alias, $entity_info['entity keys']['id'], '', $params);
+      $this->aliases['entity_id'] = $this->query->add_field($this->base_table_alias, $entity_info['entity keys']['id'], '', $params);
     }
 
 
@@ -166,7 +166,7 @@ class views_handler_field_field extends views_handler_field {
       // Add the fields that we're actually grouping on.
       $options = array();
 
-      if ($this->options['group_column'] != 'entity id') {
+      if ($this->options['group_column'] != 'entity_id') {
         $options = array($this->options['group_column'] => $this->options['group_column']);
       }
 
@@ -195,11 +195,24 @@ class views_handler_field_field extends views_handler_field {
 
       // Filter by language, if field translation is enabled.
       $field = $this->field_info;
-      if (field_is_translatable($entity_type, $field) && !empty($this->query->options['field_language_add_to_query'])) {
+      if (field_is_translatable($entity_type, $field) && !empty($this->view->display_handler->options['field_language_add_to_query'])) {
         $column = $this->table_alias . '.language';
         // By the same reason as field_language the field might be LANGUAGE_NONE in reality so allow it as well.
         // @see this::field_language()
-        $this->query->add_where(0, $column, array($this->query->options['field_language'], LANGUAGE_NONE));
+        global $language_content;
+        $default_language = language_default('language');
+        $language = str_replace(array('***CURRENT_LANGUAGE***', '***DEFAULT_LANGUAGE***'),
+                                array($language_content->language, $default_language),
+                                $this->view->display_handler->options['field_language']);
+        $placeholder = $this->placeholder();
+        $language_fallback_candidates = array($language);
+        if (variable_get('locale_field_language_fallback', TRUE) && module_exists('locale')) {
+          $language_fallback_candidates = array_merge($language_fallback_candidates, language_fallback_get_candidates());
+        }
+        else {
+          $language_fallback_candidates[] = LANGUAGE_NONE;
+        }
+        $this->query->add_where_expression(0, "$column IN($placeholder) OR $column IS NULL", array($placeholder => $language_fallback_candidates));
       }
     }
 
@@ -520,7 +533,7 @@ class views_handler_field_field extends views_handler_field {
     // With "field API" fields, the column target of the grouping function
     // and any additional grouping columns must be specified.
     $group_columns = array(
-      'entity id' => t('Entity ID'),
+      'entity_id' => t('Entity ID'),
     ) + drupal_map_assoc(array_keys($this->field_info['columns']), 'ucfirst');
 
     $form['group_column'] = array(
@@ -569,7 +582,7 @@ class views_handler_field_field extends views_handler_field {
           }
           else {
             $revision_id = $object->{$this->field_alias};
-            $entity_id = $object->{$this->aliases['entity id']};
+            $entity_id = $object->{$this->aliases['entity_id']};
             $entities_by_type[$entity_type][$key] = array($entity_id, $revision_id);
           }
         }
@@ -697,9 +710,14 @@ class views_handler_field_field extends views_handler_field {
       // Offset is calculated differently when row grouping for a field is
       // not enabled. Since there are multiple rows, the delta needs to be
       // taken into account, so that different values are shown per row.
-      if (!$this->options['group_rows'] && isset($values->{$this->aliases['delta']})) {
+      if (!$this->options['group_rows'] && isset($this->aliases['delta']) && isset($values->{$this->aliases['delta']})) {
         $delta_limit = 1;
         $offset = $values->{$this->aliases['delta']};
+      }
+      // Single fields don't have a delta available so choose 0.
+      elseif (!$this->options['group_rows'] && !$this->multiple) {
+        $delta_limit = 1;
+        $offset = 0;
       }
       else {
         $delta_limit = $this->options['delta_limit'];

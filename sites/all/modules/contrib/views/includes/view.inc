@@ -34,6 +34,53 @@ class view extends views_db_object {
    */
   var $vid;
 
+  /**
+   * The description of the view, which is used only in the interface.
+   *
+   * @var string
+   */
+  var $description;
+
+  /**
+   * The "tags" of a view.
+   * The tags are stored as a single string, though it is used as multiple tags
+   * for example in the views overview.
+   *
+   * @var string
+   */
+  var $tag;
+
+  /**
+   * The human readable name of the view.
+   *
+   * @var string
+   */
+  var $human_name;
+
+  /**
+   * The core version the view was created for.
+   * @var int
+   */
+  var $core;
+
+  /**
+   * The views-api version this view was created by.
+   *
+   * Some examples of the variable are 3.0 or 3.0-alpha1
+   *
+   * @var string
+   */
+  var $api_version;
+
+  /**
+   * Is the view disabled.
+   *
+   * This value is used for exported view, to provide some default views which aren't enabled.
+   *
+   * @var bool
+   */
+  var $disabled;
+
   // State variables
   var $built = FALSE;
   var $executed = FALSE;
@@ -112,6 +159,21 @@ class view extends views_db_object {
    * @var views_plugin_style
    */
    var $style_plugin;
+
+  /**
+   * Stored the changed options of the style plugin.
+   *
+   * @deprecated Better use $view->style_plugin->options
+   * @var array
+   */
+  var $style_options;
+
+  /**
+   * Stores the current active row while rendering.
+   *
+   * @var int
+   */
+  var $row_index;
 
    /**
    * Allow to override the url of the current view.
@@ -2363,6 +2425,13 @@ class views_display extends views_db_object {
    * @var views_plugin_display
    */
   var $handler;
+
+  /**
+   * Stores all options of the display, like fields, filters etc.
+   *
+   * @var array
+   */
+  var $display_options;
 
   var $db_table = 'views_display';
   function views_display($init = TRUE) {
