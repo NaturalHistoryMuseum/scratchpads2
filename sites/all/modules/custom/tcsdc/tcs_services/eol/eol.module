@@ -15,7 +15,7 @@ function eol_tcsdc_form($form, $form_state){
     'eol' => array(
       '#type' => 'fieldset',
       '#title' => 'EOL',
-      '#description' => 'Import a classification directly from EOL' . theme('advanced_help_topic', 'eol', 'overview'),
+      '#description' => 'Import a classification directly from EOL',
       '#collapsed' => TRUE,
       '#collapsible' => TRUE,
       'eol-status' => array(

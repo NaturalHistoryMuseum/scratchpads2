@@ -121,3 +121,7 @@ table.scratchpads-admin-content tr td:nth-child(1){
   margin-left: 38px;
 }
 
+/* Fix for secondary tabs */
+.secondary-tabs{
+	z-index:100;
+}

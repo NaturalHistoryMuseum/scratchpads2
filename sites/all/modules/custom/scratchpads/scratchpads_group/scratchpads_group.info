@@ -27,3 +27,4 @@ features[variable][] = "og_group_type_page"
 name = "Group"
 package = "Groups"
 php = "5.2.4"
+tool = true

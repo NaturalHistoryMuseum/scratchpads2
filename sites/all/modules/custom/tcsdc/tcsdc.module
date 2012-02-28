@@ -181,6 +181,13 @@ function tcsdc_import_terms($vid, &$context){
     $id = $term->id;
     $parent = $term->parent;
     $data = unserialize($term->data);
+    foreach($data as $key => $value){
+      if(is_string($value)){
+        $term->{$key} = $value;
+        $key = "field_$key";
+        $term->{$key} = $value;
+      }
+    }
     unset($term->data, $term->id, $term->bid, $term->parent);
     $previously_imported = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $id)->execute()->fetch();
     if($previously_imported){
@@ -246,7 +253,15 @@ function tcsdc_finished_batch(&$context){
  * Helper for the above function
  */
 function tcsdc_batch_downloader_helper($url, $vid){
-  $xml = new SimpleXMLElement($url, 0, TRUE);
+  try{
+    $xml = new SimpleXMLElement($url, 0, TRUE);
+  }
+  catch(Exception $e){
+    drupal_set_message(t('Unable to parse <a href="!url">XML</a>', array(
+      '!url' => $url
+    )));
+    return;
+  }
   $batch = &batch_get();
   $data = array();
   // Check if we're operating on a vernacular URL.  If so, we add the data to
@@ -316,7 +331,6 @@ function tcsdc_batch_downloader_helper($url, $vid){
         $data['parent'] = (string)$relationship->ToTaxonConcept['ref'];
         break;
       default:
-        //dpm((string)$relationship['type']);
         break;
     }
   }
