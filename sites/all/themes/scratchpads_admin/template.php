@@ -91,3 +91,5 @@ function scratchpads_admin_breadcrumb($vars){
   }
   return $output;
 }
+
+
