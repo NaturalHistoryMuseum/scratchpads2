@@ -97,6 +97,8 @@ function toolbar_scratchpads_default_permissions(){
  * Implements hook_scratchpads_default_permissions().
  */
 function taxonomy_scratchpads_default_permissions(){
+  // Reset the vocabulary cache.
+  taxonomy_vocabulary_static_reset();
   $permissions = array(
     'maintainer' => array(
       'administer taxonomy'
@@ -242,6 +244,9 @@ function field_group_scratchpads_default_permissions(){
  * Implements hook_scratchpads_default_permissions().
  */
 function feeds_scratchpads_default_permissions(){
+  // Reset ctools cache.
+  drupal_static_reset('ctools_export_load_object_all');
+  drupal_static_reset('ctools_export_load_object');
   $perms = array(
     'maintainer' => array(
       'administer feeds'
@@ -249,7 +254,7 @@ function feeds_scratchpads_default_permissions(){
     'editor' => array(),
     'contributor' => array()
   );
-  foreach(feeds_importer_load_all() as $importer){
+  foreach(feeds_importer_load_all(TRUE) as $importer){
     $perms['contributor'][] = "import $importer->id feeds";
     $perms['editor'][] = "clear $importer->id feeds";
   }
@@ -369,6 +374,8 @@ function node_scratchpads_default_permissions(){
     ),
     'maintainer' => array()
   );
+  // Rebuild the node types
+  _node_types_build(TRUE);
   foreach(node_permissions_get_configured_types() as $type){
     $permissions['contributor'][] = "create $type content";
     $permissions['contributor'][] = "edit own $type content";

@@ -21,8 +21,6 @@ function scratchpads_roles_and_permissions_install(){
       user_role_save($role);
     }
   }
-  // We set the maintainer role as the admin role.
-  variable_set('user_admin_role', $role->rid);
   // We also add user 1 to this role, to ensure that all functions are available
   // to us if module's are checking permissions directly (and not using 
   // user_access).
