@@ -30,5 +30,15 @@ function scratchpads_media_gallery_file_default_displays(){
   $file_display->status = TRUE;
   $file_display->settings = '';
   $export['video__file_styles_scratchpads_media_gallery_thumbnail__file_field_styles_file_scratchpads_media_gallery_thumbnail'] = $file_display;
+  $file_display = new stdClass();
+  $file_display->api_version = 1;
+  $file_display->name = 'video__file_styles_square_thumbnail__file_field_mediaelement_link_video';
+  $file_display->weight = 0;
+  $file_display->status = TRUE;
+  $file_display->settings = array(
+    'width' => 85,
+    'height' => 85
+  );
+  $export['video__file_styles_square_thumbnail__file_field_mediaelement_link_video'] = $file_display;
   return $export;
 }

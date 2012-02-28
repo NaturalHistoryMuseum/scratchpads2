@@ -16,6 +16,7 @@ dependencies[] = "ctools"
 dependencies[] = "file_entity"
 dependencies[] = "libraries"
 dependencies[] = "creative_commons"
+dependencies[] = "mediaelement_link"
 
 features[field][] = "file-audio-field_media_galleries"
 features[field][] = "file-video-field_media_galleries"

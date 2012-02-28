@@ -1,6 +1,6 @@
 <?php
 // DEFINE the file extensions that we allow.
-DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'png gif jpg jpeg');
+DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'png gif jpg mp3 avi mp4');
 include_once ('scratchpads_media_gallery.features.inc');
 
 /**
