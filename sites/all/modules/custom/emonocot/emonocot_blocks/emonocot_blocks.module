@@ -16,6 +16,13 @@ function emonocot_blocks_block_info(){
     'theme' => EMONOCOT_THEME_NAME,
     'status' => 0
   );
+  $blocks['hybrid_children'] = array(
+   'info' => t('Hybrid children'),
+    'region' => 'none',
+    'weight' => 3,
+    'theme' => EMONOCOT_THEME_NAME,
+    'status' => 0
+  );
   return $blocks;
 }
 
@@ -108,8 +115,55 @@ function emonocot_blocks_block_view($delta = ''){
           	$block['content'] = $type_references;
           }
         }
-        break;
       }
-  }
+      break;
+    case 'hybrid_children':
+      global $_GET;
+      $args = explode('/', $_GET['q']);
+      if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
+      	
+      	$term  = (array)taxonomy_term_load($args[2]);
+      	$vocab = taxonomy_vocabulary_load($term['vid']);
+      	$hybrid_table ='field_data_field_hybrid_parents_'.$vocab->machine_name;
+      	$hybrid_field = 'field_hybrid_parents_'.$vocab->machine_name.'_tid';
+      	unset($vocab);
+      	
+      $block['subject'] = t('Hybrid relations');
+      //Get entity_id of taxa this is a hybrid parent of
+      $sql = "SELECT hp.entity_id FROM ".$hybrid_table." hp WHERE ".$hybrid_field." = :tid";
+      $results = db_query($sql, array(':tid' => $args[2]));
+      
+      $formula = NULL;
+      
+      //Get the hybrid....
+      foreach ($results as $result) {
+      	$sql = "SELECT name FROM taxonomy_term_data WHERE tid = :tid";
+      	$name = db_query($sql, array(':tid' => $result->entity_id));
+      	$hybrid = $name->fetchObject()->name;
+      	
+      	//...and the parent taxa
+      	$sql = "SELECT tid, name FROM ".$hybrid_table." INNER JOIN taxonomy_term_data ON ".$hybrid_field." = tid WHERE entity_id = :eid ORDER BY delta";
+      	$parents = db_query($sql, array(':eid' => $result->entity_id));
+      	$i =0;
+      	foreach($parents as $parent){
+      	  if ($parent->tid == $args[2]){
+      	  	$parent->name = '<strong>'.$parent->name.'</strong>';
+      	  }
+      	  if ($i == 0){
+      	  	$parents_text = '<a href="taxonomy/term/'.$parent->tid.'">'.$parent->name.'</a>';
+      	  } else {
+      	  	$parents_text .= ' x <a href="taxonomy/term/'.$parent->tid.'">'.$parent->name.'</a>';
+      	  }
+      	  $i++;
+      	}
+      	
+      	$block['content'] = $parents_text.' = <a href="taxonomy/term/'.$result->entity_id.'">'.$hybrid.'</a><br/>';
+      }
+      
+      break;
+      	
+      }
+ 
+      }
   return $block;
 }

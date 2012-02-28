@@ -10,8 +10,10 @@ function emonocot_views_views_api(){
 
 function emonocot_views_context_load_alter(&$context){
   if($context->name === 'species_overview' && isset($context->reactions['block'])){
-    //Remove default Scratchpads nomenclature block
+    //Remove default Scratchpads nomenclature and specimen blocks
     unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
+    unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
+    
     //Replace with the eMonocot one(s)
     global $_GET;
     $args = explode('/', $_GET['q']);
@@ -29,6 +31,18 @@ function emonocot_views_context_load_alter(&$context){
         'delta' => 'em_species_nomenclature_' . $bio_name . '-block',
         'region' => 'content',
         'weight' => -10
+      );
+      $context->reactions['block']['blocks']['typification_overview'] = array(
+        'module' => 'emonocot_blocks',
+        'delta' => 'typification_overview',
+        'region' => 'content',
+        'weight' => -8
+      );
+      $context->reactions['block']['blocks']['hybrid_children'] = array(
+        'module' => 'emonocot_blocks',
+        'delta' => 'hybrid_children',
+        'region' => 'content',
+        'weight' => -7
       );
     }
   }
