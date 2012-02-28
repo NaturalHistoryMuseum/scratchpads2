@@ -27,6 +27,114 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * Views module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function views_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer views',
+      'access all views'
+    )
+  );
+}
+
+/**
+ * User module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function user_scratchpads_default_permissions() {
+  // administer permissions
+  // select account cancellation method
+  return array(
+    'maintainer' => array(
+      'administer users'
+    ),
+    'anonymous user' => array(
+      'access user profiles'
+    ),
+    'authenticated user' => array(
+      'change own username',
+      'cancel account'
+    )
+  );
+}
+
+/**
+ * Toolbar module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function toolbar_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'access toolbar'
+    )
+  );
+}
+/**
+ * Taxonomy module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function taxonomy_scratchpads_default_permissions(){
+  $permissions = array(
+    'maintainer' => array(
+      'administer taxonomy'
+    ),
+    'editor' => array()
+  );
+  foreach (taxonomy_get_vocabularies() as $vocabulary) {
+    $permissions['editor'][] = 'edit terms in ' . $vocabulary->vid;
+    $permissions['editor'][] = 'delete terms in ' . $vocabulary->vid;
+  }
+  return $permissions;
+}
+
+/**
+ * System module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function system_scratchpads_default_permissions(){
+  // administer modules
+  // block IP addresses
+  // access site reports
+  // administer software updates
+  // administer actions
+  return array(
+    'maintainer' => array(
+      'administer site configuration',
+      'administer themes',
+      'access administration pages',
+      'access site in maintenance mode',
+    ),
+    'authenticated user' => array(
+      'view the administration theme'
+    )
+  );
+}
+
+/**
+ * Search module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function shortcut_scratchpads_default_permissions(){
+  // switch shortcut sets
+  return array(
+    'maintainer' => array(
+      'administer shortcuts'
+    ),
+    'contributor' => array(
+      'customize shortcut links'
+    )
+  );
+}
+
+/**
  * Search module
  * 
  * Implements hook_scratchpads_default_permissions().

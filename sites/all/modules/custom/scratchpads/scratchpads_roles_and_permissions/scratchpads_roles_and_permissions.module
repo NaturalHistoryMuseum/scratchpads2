@@ -25,7 +25,13 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'node' => FALSE,
       'clone' => FALSE,
       'overlay' => FALSE,
-      'search' => FALSE
+      'search' => FALSE,
+      'shortcut' => FALSE,
+      'system' => FALSE,
+      'taxonomy' => FALSE,
+      'toolbar' => FALSE,
+      'user' => FALSE,
+      'views' => FALSE
     ));
   }
 }
