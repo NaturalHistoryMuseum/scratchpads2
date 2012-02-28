@@ -18,7 +18,8 @@ function scratchpads_media_gallery_menu_alter(&$items){
 function scratchpads_media_gallery_scratchpads_solr_info(){
   return array(
     'gallery' => array(
-      'theme' => 'scratchpads_media_gallery'
+      'theme' => 'scratchpads_media_gallery',
+      'empty' => 'scratchpads_media_gallery_empty'
     )
   );
 }
@@ -192,6 +193,10 @@ function scratchpads_media_gallery_theme(){
         'results' => NULL,
         'module' => NULL
       ),
+      'file' => 'scratchpads_media_gallery.theme.inc'
+    ),
+    'scratchpads_media_gallery_empty' => array(
+      'variables' => array(),
       'file' => 'scratchpads_media_gallery.theme.inc'
     )
   );

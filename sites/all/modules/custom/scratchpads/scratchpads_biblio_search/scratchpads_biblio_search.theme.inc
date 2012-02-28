@@ -51,3 +51,10 @@ function theme_scratchpads_biblio_search($variables){
     'tags' => NULL
   ));
 }
+
+/**
+ * Theme function for an empty results page.
+ */
+function theme_scratchpads_biblio_search_empty($variables){
+  return t('<p>Either no literature content has been added to this site, or it has not yet been indexed. Indexing can take upto one hour, so please check back later.</p>');
+}

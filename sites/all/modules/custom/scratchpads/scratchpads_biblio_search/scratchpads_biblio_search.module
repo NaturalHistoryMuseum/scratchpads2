@@ -35,7 +35,8 @@ function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sor
 function scratchpads_biblio_search_scratchpads_solr_info(){
   return array(
     'biblio' => array(
-      'theme' => 'scratchpads_biblio_search'
+      'theme' => 'scratchpads_biblio_search',
+      'empty' => 'scratchpads_biblio_search_empty'
     )
   );
 }
@@ -148,6 +149,10 @@ function scratchpads_biblio_search_theme(){
         'results' => NULL,
         'module' => NULL
       ),
+      'file' => 'scratchpads_biblio_search.theme.inc'
+    ),
+    'scratchpads_biblio_search_empty' => array(
+      'variables' => array(),
       'file' => 'scratchpads_biblio_search.theme.inc'
     )
   );

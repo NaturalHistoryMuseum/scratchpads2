@@ -16,7 +16,7 @@ function theme_scratchpads_media_gallery($variables){
       drupal_set_title($gallery_node->title);
       $alpha_get_theme['scratchpads']->page['title'] = drupal_set_title();
       $breadcrumb = drupal_get_breadcrumb();
-      if($alpha_get_theme['scratchpads']->page['title'] == $breadcrumb[count($breadcrumb)-1]){
+      if($alpha_get_theme['scratchpads']->page['title'] == $breadcrumb[count($breadcrumb) - 1]){
         array_pop($breadcrumb);
       }
       $alpha_get_theme['scratchpads']->page['breadcrumb'] = theme('breadcrumb', array(
@@ -49,4 +49,11 @@ function theme_scratchpads_media_gallery($variables){
     ), $content_array);
   }
   return drupal_render($content_array);
+}
+
+/**
+ * Theme function for an empty results page.
+ */
+function theme_scratchpads_media_gallery_empty($variables){
+  return t('<p>Either no media has been uploaded to this site, or it has not yet been indexed. Indexing can take upto one hour, so please check back later.</p>');
 }

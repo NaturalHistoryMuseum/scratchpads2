@@ -118,6 +118,27 @@ function scratchpads_solr_page_alter(&$page){
 }
 
 /**
+ * Implements hook_theme_registry_alter(&$theme_registry)
+ */
+function scratchpads_solr_theme_registry_alter(&$theme_registry){
+  dpm($theme_registry);
+  $theme_registry['apachesolr_search_noresults_original'] = $theme_registry['apachesolr_search_noresults'];
+  $theme_registry['apachesolr_search_noresults']['function'] = 'theme_scratchpads_solr_apachesolr_search_noresults';
+}
+
+/**
+ * Empty search results theme function.
+ */
+function theme_scratchpads_solr_apachesolr_search_noresults($variables){
+  $info = module_invoke_all('scratchpads_solr_info');
+  if(isset($info[arg(0)]) && isset($info[arg(0)]['empty'])){
+    return theme($info[arg(0)]['empty']);
+  }else{
+    return theme('apachesolr_search_noresults_original');
+  }
+}
+
+/**
  * Implementation of hook_menu_alter().
  */
 function scratchpads_solr_menu_alter(&$items){
