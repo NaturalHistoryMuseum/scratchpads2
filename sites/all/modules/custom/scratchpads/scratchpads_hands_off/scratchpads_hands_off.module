@@ -1,6 +1,8 @@
 <?php
 
-
+/**
+ * Implements hook_form_alter
+ */
 function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
     case 'dashboard_admin_display_form':
