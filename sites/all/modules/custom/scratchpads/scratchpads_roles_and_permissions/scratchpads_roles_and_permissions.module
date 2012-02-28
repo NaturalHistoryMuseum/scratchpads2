@@ -23,6 +23,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'system' => FALSE,
       'taxonomy' => FALSE,
       'toolbar' => FALSE,
+      'tools' => FALSE,
       'user' => FALSE,
       'views' => FALSE
     ));

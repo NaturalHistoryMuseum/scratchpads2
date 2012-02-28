@@ -27,6 +27,22 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * Tools module
+ *
+ * Note, because this is a custom module that may be release to drupal.org, this specific
+ * Scratchpad code belongs here.
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function tools_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'access tools'
+    )
+  );
+}
+
+/**
  * Views module
  * 
  * Implements hook_scratchpads_default_permissions().
