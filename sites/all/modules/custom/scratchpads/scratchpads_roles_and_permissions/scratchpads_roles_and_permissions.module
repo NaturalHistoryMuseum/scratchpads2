@@ -1,13 +1,6 @@
 <?php
 
 /**
- * TESTING
- */
-function scratchpads_roles_and_permissions_init(){
-  scratchpads_roles_and_permissions_modules_enabled(FALSE);
-}
-
-/**
  * Implements hook_module_implements_alter().
  */
 function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
