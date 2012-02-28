@@ -45,6 +45,34 @@ function scratchpads_roles_and_permissions_hook_info(){
 }
 
 /**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_insert($vocabulary){
+  drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_delete($vocabulary){
+  drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_roles_and_permissions_node_type_insert($info){
+  drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function scratchpads_roles_and_permissions_node_type_delete($info){
+  drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+}
+
+/**
  * Implements hook_modules_enabled().
  */
 function scratchpads_roles_and_permissions_modules_enabled($modules){
@@ -62,7 +90,16 @@ function scratchpads_roles_and_permissions_shutdown(){
   foreach($default_permissions as $role => $permissions){
     // Load the role
     $role = user_role_load_by_name($role);
-    if($role){
+    if($role && count($permissions)){
+      // Due to issues during install, we need to check that the module a 
+      // permission is associated with is set.  If it isn't, then we remove it
+      // from the list.
+      $modules = user_permission_get_modules();
+      foreach($permissions as $key => $value){
+        if(!isset($modules[$value])){
+          unset($permissions[$key]);
+        }
+      }
       user_role_change_permissions($role->rid, drupal_map_assoc($permissions));
     }
   }
