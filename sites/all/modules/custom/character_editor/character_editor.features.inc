@@ -15,9 +15,9 @@ function character_editor_default_character_editor_character_type(){
     "rdf_mapping" : []
   }');
   $items['dna'] = entity_import('character_editor_character_type', '{ "type" : "dna", "label" : "DNA character", "rdf_mapping" : [] }');
-  $items['group'] = entity_import('character_editor_character_type', '{ "type" : "group", "label" : "Group", "rdf_mapping" : [] }');
   $items['numeric'] = entity_import('character_editor_character_type', '{ "type" : "numeric", "label" : "Numeric character", "rdf_mapping" : [] }');
   $items['text'] = entity_import('character_editor_character_type', '{ "type" : "text", "label" : "Text character", "rdf_mapping" : [] }');
+  $items['group'] = entity_import('character_editor_character_type', '{ "type" : "group", "label" : "Group", "rdf_mapping" : [] }');
   return $items;
 }
 

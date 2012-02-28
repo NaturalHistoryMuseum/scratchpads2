@@ -925,6 +925,27 @@ function theme_field__field_char_states(&$variables){
   return $output;
 }
 
+function theme_slickgrid_control__add($variables){
+	$output = '';
+  if(array_filter($variables['view']->style_plugin->options['add'])){
+    $addable_entities = slickgrid_list_addable_entities();
+    foreach($variables['view']->style_plugin->options['add'] as $add){
+      $class = drupal_html_class('slickgrid-add-' . $add);
+      $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      
+      $add_text = ucfirst(str_replace('character_editor_character/', '', $add));
+      
+      if(count($variables['view']->args)){
+        $add_path .= '/' . implode('/', $variables['view']->args);
+      }
+      $output .= '<div class="slickgrid-control slickgrid-add-control ' . $class . '" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled">' . $add_text . '</span>', $add_path, t("Add %type", array(
+        '%type' => strtolower($addable_entities[$add])
+      )), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
+    }
+  }
+  return $output;
+}
+
 /*********************************************************************************************
  * 
  * IMPORT

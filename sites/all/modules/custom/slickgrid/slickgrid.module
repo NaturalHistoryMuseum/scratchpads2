@@ -52,13 +52,35 @@ function slickgrid_theme(){
     'slickgrid' => array(
       'arguments' => array(
         'view' => array()
-      )
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
     ),
     // slickgrid controls theme function
     'slickgrid_controls' => array(
       'arguments' => array(
         'view' => array()
-      )
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // Theme individual control
+    'slickgrid_control' => array(
+      'arguments' => array(
+        'type' => null,
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // Theme add control differently
+    'slickgrid_control__add' => array(
+      'arguments' => array(
+        'type' => null,
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
     ),
     // slickgrid tabs theme function
     'slickgrid_tabs' => array(
@@ -688,3 +710,4 @@ function slickgrid_list_addable_entities(){
   }
   return $entities;
 }
+

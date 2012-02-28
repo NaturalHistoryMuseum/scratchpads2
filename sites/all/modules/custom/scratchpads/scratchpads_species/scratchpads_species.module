@@ -396,6 +396,14 @@ function theme_scratchpads_species_name($vars){
         ));
       }
       break;
+    case 'subgenus':
+      if($unit1 && $unit2){
+        $name = t('<em>!unit1</em> (<em>!unit2</em>)', array(
+          '!unit1' => $unit1,
+        	'!unit2' => $unit2
+        ));
+      }
+      break;
     case 'species':
       // This species has a subgenus (in brackets)
       if($unit1 && $unit2 && $unit3){

@@ -30,9 +30,9 @@ function character_editor_field_group_default_field_groups(){
       )
     )
   );
-  // Exported field_group: 'character_editor_project-default_character_project-form-group_char_proj_taxa'
-  $field_groups['character_editor_project-default_character_project-form-group_char_proj_taxa'] = array(
-    'group_name' => 'group_char_proj_taxa',
+  // Exported field_group: 'character_editor_project-default_character_project-form-group_taxonomic_name'
+  $field_groups['character_editor_project-default_character_project-form-group_taxonomic_name'] = array(
+    'group_name' => 'group_taxonomic_name',
     'entity_type' => 'character_editor_project',
     'bundle' => 'default_character_project',
     'mode' => 'form',
@@ -40,7 +40,7 @@ function character_editor_field_group_default_field_groups(){
     'label' => 'Taxa',
     'weight' => '1',
     'children' => array(
-      0 => 'field_char_proj_taxa'
+      0 => 'field_taxonomic_name'
     ),
     'format_type' => 'tab',
     'format_settings' => array(

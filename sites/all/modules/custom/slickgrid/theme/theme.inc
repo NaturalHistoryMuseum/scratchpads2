@@ -355,35 +355,47 @@ function theme_slickgrid_controls($variables){
     drupal_add_js($library_path . '/slick.groupitemmetadataprovider.js');
   }
   $output .= '<div id="slickgrid-status"></div>';
-  if(array_filter($view->style_plugin->options['add'])){
+  // Add controls
+  foreach(array(
+    'undo',
+    'delete',
+    'export',
+    'clone',
+  	'add'
+  ) as $control){
+    $output .= theme('slickgrid_control__' . $control, array(
+      'control' => $control,
+      'view' => $view,
+      'path' => $path
+    ));
+  }
+  return $output;
+}
+
+function theme_slickgrid_control($variables){
+  $output = '';
+  $control = $variables['control'];
+  if($variables['view']->style_plugin->options[$control]){
+    drupal_add_js($variables['path'] . '/js/controls/slickgrid.' . $control . '.js');
+    $output = '<div class="slickgrid-control" id="slickgrid-' . $control . '"></div>';
+  }
+  return $output;
+}
+
+function phptemplate_slickgrid_control__add($variables){
+  $output = '';
+  if(array_filter($variables['view']->style_plugin->options['add'])){
     $addable_entities = slickgrid_list_addable_entities();
-    foreach($view->style_plugin->options['add'] as $add){
+    foreach($variables['view']->style_plugin->options['add'] as $add){
       $class = drupal_html_class('slickgrid-add-' . $add);
       $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
-      if(count($view->args)){
-        $add_path .= '/' . implode('/', $view->args);
+      if(count($variables['view']->args)){
+        $add_path .= '/' . implode('/', $variables['view']->args);
       }
       $output .= '<div class="slickgrid-control slickgrid-add-control ' . $class . '" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', $add_path, t("Add %type", array(
         '%type' => strtolower($addable_entities[$add])
       )), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
     }
-  }
-  // Add controls defined by our slickgrid module (undo, export, delete)
-  if($view->style_plugin->options['undo']){
-    drupal_add_js($path . '/js/controls/slickgrid.undo.js');
-    $output .= '<div class="slickgrid-control" id="slickgrid-undo"></div>';
-  }
-  if($view->style_plugin->options['delete']){
-    drupal_add_js($path . '/js/controls/slickgrid.delete.js');
-    $output .= '<div class="slickgrid-control" id="slickgrid-delete"></div>';
-  }
-  if(isset($view->style_plugin->options['export'])){
-    drupal_add_js($path . '/js/controls/slickgrid.export.js');
-    $output .= '<div class="slickgrid-control" id="slickgrid-export"></div>';
-  }
-  if(isset($view->style_plugin->options['clone'])){
-    drupal_add_js($path . '/js/controls/slickgrid.clone.js');
-    $output .= '<div class="slickgrid-control" id="slickgrid-clone"></div>';
   }
   return $output;
 }

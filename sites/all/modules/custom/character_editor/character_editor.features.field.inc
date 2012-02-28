@@ -1110,14 +1110,14 @@ other|Other',
       )
     )
   );
-  // Exported field: 'character_editor_project-default_character_project-field_char_proj_taxa'
-  $fields['character_editor_project-default_character_project-field_char_proj_taxa'] = array(
+  // Exported field: 'character_editor_project-default_character_project-field_taxonomic_name'
+  $fields['character_editor_project-default_character_project-field_taxonomic_name'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_char_proj_taxa',
+      'field_name' => 'field_taxonomic_name',
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
@@ -1136,31 +1136,30 @@ other|Other',
         'allowed_values' => array(
           0 => array(
             'parent' => '0',
-            'vocabulary' => 'classification'
+            'vocabulary' => ''
           )
-        ),
-        'profile2_private' => FALSE
+        )
       ),
-      'translatable' => '0',
+      'translatable' => '1',
       'type' => 'taxonomy_term_reference'
     ),
     'field_instance' => array(
       'bundle' => 'default_character_project',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The taxa included in this character project.',
       'display' => array(
         'default' => array(
           'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => '1'
-        )
+          'weight' => '2'
+        ),
       ),
       'entity_type' => 'character_editor_project',
-      'field_name' => 'field_char_proj_taxa',
-      'label' => 'Taxa',
+      'field_name' => 'field_taxonomic_name',
+      'label' => 'Taxonomic name',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
@@ -1369,8 +1368,7 @@ other|Other',
       )
     )
   );
-  
-    // Exported field: 'relation-character-endpoints'
+  // Exported field: 'relation-character-endpoints'
   $fields['relation-character-endpoints'] = array(
     'field_config' => array(
       'active' => '1',
@@ -1383,13 +1381,13 @@ other|Other',
         'relation' => array(
           0 => 'entity_type',
           1 => 'entity_id',
-          2 => 'r_index',
-        ),
+          2 => 'r_index'
+        )
       ),
       'module' => 'relation_endpoint',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation_endpoint',
+      'type' => 'relation_endpoint'
     ),
     'field_instance' => array(
       'bundle' => 'character',
@@ -1402,25 +1400,24 @@ other|Other',
           'module' => 'relation_endpoint',
           'settings' => array(),
           'type' => 'relation_endpoint',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'endpoints',
       'label' => 'endpoints',
       'required' => FALSE,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'relation_endpoint',
         'settings' => array(),
         'type' => 'relation_endpoint',
-        'weight' => 0,
-      ),
-    ),
+        'weight' => 0
+      )
+    )
   );
-
   // Exported field: 'relation-character_state-endpoints'
   $fields['relation-character_state-endpoints'] = array(
     'field_config' => array(
@@ -1434,13 +1431,13 @@ other|Other',
         'relation' => array(
           0 => 'entity_type',
           1 => 'entity_id',
-          2 => 'r_index',
-        ),
+          2 => 'r_index'
+        )
       ),
       'module' => 'relation_endpoint',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'relation_endpoint',
+      'type' => 'relation_endpoint'
     ),
     'field_instance' => array(
       'bundle' => 'character_state',
@@ -1453,25 +1450,24 @@ other|Other',
           'module' => 'relation_endpoint',
           'settings' => array(),
           'type' => 'relation_endpoint',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'endpoints',
       'label' => 'endpoints',
       'required' => FALSE,
       'settings' => array(
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'relation_endpoint',
         'settings' => array(),
         'type' => 'relation_endpoint',
-        'weight' => '0',
-      ),
-    ),
+        'weight' => '0'
+      )
+    )
   );
-
   // Exported field: 'relation-character_state-field_character_state_data'
   $fields['relation-character_state-field_character_state_data'] = array(
     'field_config' => array(
@@ -1483,20 +1479,20 @@ other|Other',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'character_state',
@@ -1509,8 +1505,8 @@ other|Other',
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
-        ),
+          'weight' => 1
+        )
       ),
       'entity_type' => 'relation',
       'field_name' => 'field_character_state_data',
@@ -1518,20 +1514,19 @@ other|Other',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '1',
-      ),
-    ),
+        'weight' => '1'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Data');

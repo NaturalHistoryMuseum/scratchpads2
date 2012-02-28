@@ -43,10 +43,10 @@ function character_editor_views_default_views(){
   );
   $handler->display->display_options['style_options']['autoEdit'] = 1;
   /* Relationship: Taxonomy term: Character project using Taxa */
-  $handler->display->display_options['relationships']['reverse_field_char_proj_taxa_character_editor_project']['id'] = 'reverse_field_char_proj_taxa_character_editor_project';
-  $handler->display->display_options['relationships']['reverse_field_char_proj_taxa_character_editor_project']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['relationships']['reverse_field_char_proj_taxa_character_editor_project']['field'] = 'reverse_field_char_proj_taxa_character_editor_project';
-  $handler->display->display_options['relationships']['reverse_field_char_proj_taxa_character_editor_project']['required'] = 1;
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_character_editor_project']['id'] = 'reverse_field_taxonomic_name_character_editor_project';
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_character_editor_project']['table'] = 'taxonomy_term_data';
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_character_editor_project']['field'] = 'reverse_field_taxonomic_name_character_editor_project';
+  $handler->display->display_options['relationships']['reverse_field_taxonomic_name_character_editor_project']['required'] = 1;
   /* Field: Taxonomy term: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'taxonomy_term_data';
@@ -74,8 +74,7 @@ function character_editor_views_default_views(){
   $handler->display->display_options['arguments']['id']['id'] = 'id';
   $handler->display->display_options['arguments']['id']['table'] = 'character_editor_project';
   $handler->display->display_options['arguments']['id']['field'] = 'id';
-  $handler->display->display_options['arguments']['id']['relationship'] = 'reverse_field_char_proj_taxa_character_editor_project';
-  $handler->display->display_options['arguments']['id']['default_action'] = 'not found';
+  $handler->display->display_options['arguments']['id']['relationship'] = 'reverse_field_taxonomic_name_character_editor_project';
   $handler->display->display_options['arguments']['id']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['id']['default_argument_skip_url'] = 0;
   $handler->display->display_options['arguments']['id']['summary']['number_of_records'] = '0';
