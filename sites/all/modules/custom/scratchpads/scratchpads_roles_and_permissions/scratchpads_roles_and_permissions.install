@@ -6,8 +6,9 @@
 function scratchpads_roles_and_permissions_install(){
   // Firstly, we get the admin role and update the weight to 0 (just for OCD reasons).
   $role = user_role_load_by_name('administrator');
-  $role->weight = 0;
-  user_role_save($role);
+  if($role){
+    user_role_delete($role);
+  }
   // Now we create the two additional roles.
   foreach(array(
     'contributor',
@@ -20,8 +21,14 @@ function scratchpads_roles_and_permissions_install(){
       user_role_save($role);
     }
   }
-  // Finally, we move the admin role to the end.
-  $role = user_role_load_by_name('administrator');
-  unset($role->weight);
-  user_role_save($role);
+  // We set the maintainer role as the admin role.
+  variable_set('user_admin_role', $role->rid);
+  // We also add user 1 to this role, to ensure that all functions are available
+  // to us if module's are checking permissions directly (and not using 
+  // user_access).
+  // Assign user 1 the "administrator" role.
+  db_insert('users_roles')->fields(array(
+    'uid' => 1,
+    'rid' => $role->rid
+  ))->execute();
 }
