@@ -8,6 +8,29 @@ function scratchpads_roles_and_permissions_init(){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
+  if($hook == 'scratchpads_default_permissions'){
+    $implementations = array_merge($implementations, array(
+      'biblio' => FALSE,
+      'block' => FALSE,
+      'comment' => FALSE,
+      'contextual' => FALSE,
+      'dashboard' => FALSE,
+      'feeds' => FALSE,
+      'field_group' => FALSE,
+      'file_entity' => FALSE,
+      'menu' => FALSE,
+      'node' => FALSE,
+      'clone' => FALSE,
+      'overlay' => FALSE,
+      'search' => FALSE
+    ));
+  }
+}
+
+/**
  * Implements hook_hook_info().
  */
 function scratchpads_roles_and_permissions_hook_info(){
@@ -27,7 +50,6 @@ function scratchpads_roles_and_permissions_hook_info(){
 function scratchpads_roles_and_permissions_modules_enabled($modules){
   $default_permissions = module_invoke_all('scratchpads_default_permissions');
   drupal_alter('scratchpads_default_permissions', $default_permissions);
-  dpm($default_permissions);
   foreach($default_permissions as $role => $permissions){
     // Load the role
     $role = user_role_load_by_name($role);
