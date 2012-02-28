@@ -1,0 +1,7 @@
+name = "Switch"
+description = "Adds a switch field element."
+package = "Fields"
+dependencies[] = options
+core = 7.x
+php = 5.x
+

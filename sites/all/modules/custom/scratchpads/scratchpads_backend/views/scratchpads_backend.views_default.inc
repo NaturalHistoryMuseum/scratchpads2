@@ -508,16 +508,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
   $handler->display->display_options['filters']['status']['expose']['multiple'] = FALSE;
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
-  $handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
-  $handler->display->display_options['filters']['type']['expose']['operator'] = 'type_op';
-  $handler->display->display_options['filters']['type']['expose']['identifier'] = 'type';
-  $handler->display->display_options['filters']['type']['expose']['reduce'] = 0;
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'admin/content/%';
@@ -1162,21 +1152,25 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
     $handler->display->display_options['style_options']['undo'] = 0;
   }
   if($add_link){
-    $handler->display->display_options['style_options']['add'] = $add_link;
+    $handler->display->display_options['style_options']['add'] = array(
+      $add_link => $add_link
+    );
   }
   $handler->display->display_options['style_options']['autoEdit'] = 1;
   // Add the fields
   $fields = field_info_instances($entity_type, $bundle);
   $groups = field_group_info_groups($entity_type, $bundle, 'form', true);
   $entity_info = entity_get_info($entity_type);
-  if(isset($entity_info['entity keys']['label'])){
-    if($groups){
-      $default_group = t('Default');
-      $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
-    }else{
-      $default_group = NULL;
+  $default_group = NULL;
+  // Specimen observation has a title field but it is auto-populated so ignore it
+  if($bundle != 'specimen_observation'){
+    if(isset($entity_info['entity keys']['label'])){
+      if($groups){
+        $default_group = t('Default');
+        $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
+      }
+      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], $default_group);
     }
-    scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], $entity_info['entity keys']['label'], $default_group);
   }
   // If groups, display this content type in a tab
   if($groups){

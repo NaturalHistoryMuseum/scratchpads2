@@ -94,6 +94,33 @@ function scratchpads_process_region(&$vars){
   }
 }
 
+/**
+ * Implements hook_preprocess_region().
+ */
+function scratchpads_preprocess_region(&$vars){
+  global $user;
+  switch($vars['elements']['#region']){
+    case 'secondary_menu':
+      $links = array();
+      if(module_exists('contact') && user_access('access site-wide contact form')){
+        $links[] = array(
+          'href' => 'contact',
+          'title' => t("Contact us")
+        );
+      }
+      if(user_is_logged_in()){
+        $links[] = array(
+          'href' => url('help.scratchpads.eu'),
+          'title' => t("Help")
+        );
+      }
+      $vars['links'] = theme('links', array(
+        'links' => $links
+      ));
+      break;
+  }
+}
+
 function scratchpads_form_search_block_form_alter(&$form, &$form_state, $form_id){
   $form['actions']['#weight'] = -10;
 }

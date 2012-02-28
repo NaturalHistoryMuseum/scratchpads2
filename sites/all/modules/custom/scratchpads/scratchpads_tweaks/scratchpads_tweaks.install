@@ -65,6 +65,78 @@ function scratchpads_tweaks_install(){
   ));
   $full_html_format = (object)$full_html_format;
   filter_format_save($full_html_format);
+  // Set wysiwyg settings for each filter format.
+  $wysiwyg_settings = array(
+    'default' => 1,
+    'user_choose' => 1,
+    'show_toggle' => 1,
+    'theme' => 'advanced',
+    'language' => 'en',
+    'buttons' => array(
+      'default' => array(
+        'Bold' => 1,
+        'Italic' => 1,
+        'Underline' => 1,
+        'JustifyCenter' => 1,
+        'BulletedList' => 1,
+        'NumberedList' => 1,
+        'Undo' => 1,
+        'Redo' => 1,
+        'Link' => 1,
+        'Unlink' => 1,
+        'Superscript' => 1,
+        'Subscript' => 1,
+        'Blockquote' => 1,
+        'HorizontalRule' => 1,
+        'Cut' => 1,
+        'Copy' => 1,
+        'Paste' => 1,
+        'PasteText' => 1,
+        'PasteFromWord' => 1,
+        'RemoveFormat' => 1,
+        'SpecialChar' => 1,
+        'Table' => 1,
+        'Maximize' => 1,
+        'SpellChecker' => 1,
+        'Scayt' => 1
+      ),
+      'drupal' => array(
+        'media' => 1,
+        'break' => 1
+      )
+    ),
+    'toolbar_loc' => 'top',
+    'toolbar_align' => 'left',
+    'path_loc' => 'bottom',
+    'resizing' => 1,
+    'verify_html' => 1,
+    'preformatted' => 0,
+    'convert_fonts_to_spans' => 1,
+    'remove_linebreaks' => 1,
+    'apply_source_formatting' => 0,
+    'paste_auto_cleanup_on_paste' => 0,
+    'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+    'css_setting' => 'theme',
+    'css_path' => '',
+    'css_classes' => ''
+  );
+  $wysiwyg_settings = serialize($wysiwyg_settings);
+  $query = db_insert('wysiwyg')->fields(array(
+    'format',
+    'editor',
+    'settings'
+  ));
+  foreach(array(
+    'filtered_html',
+    'full_html'
+  ) as $format){
+    $query->values(array(
+      'format' => $format,
+      'editor' => 'ckeditor',
+      'settings' => $wysiwyg_settings
+    ));
+  }
+  $query->execute();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -88,16 +160,6 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     ),
     array(
-      'module' => 'node',
-      'delta' => 'recent',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => 10,
-      'region' => 'dashboard_main',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
       'module' => 'user',
       'delta' => 'login',
       'theme' => 'scratchpads',
@@ -148,26 +210,6 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     ),
     array(
-      'module' => 'user',
-      'delta' => 'new',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => 0,
-      'region' => 'dashboard_sidebar',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
-      'module' => 'search',
-      'delta' => 'form',
-      'theme' => 'scratchpads_admin',
-      'status' => 1,
-      'weight' => -10,
-      'region' => 'dashboard_sidebar',
-      'pages' => '',
-      'cache' => -1
-    ),
-    array(
       'module' => 'menu_block',
       'delta' => 'scratchpads_pages-1',
       'theme' => 'scratchpads',
@@ -185,6 +227,67 @@ function scratchpads_tweaks_install(){
       'status' => 1,
       'weight' => 2,
       'region' => 'help',
+      'pages' => '',
+      'cache' => -1
+    ),
+    // Dashboard blocks
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'online',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'active',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'comment',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
       'pages' => '',
       'cache' => -1
     )
@@ -237,7 +340,7 @@ function scratchpads_tweaks_install(){
   variable_set('user_pictures', '1');
   variable_set('user_picture_dimensions', '1024x1024');
   variable_set('user_picture_file_size', '800');
-  variable_set('user_picture_style', 'sp_square_thumbnail');
+  variable_set('user_picture_style', 'square_thumbnail');
   // Allow visitor account creation with administrative approval.
   variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
   // Enable default permissions for system roles.
@@ -254,19 +357,6 @@ function scratchpads_tweaks_install(){
     'skip comment approval',
     $filtered_html_permission
   ));
-  // Create a default role for site administrators, with all available permissions assigned.
-  $admin_role = new stdClass();
-  $admin_role->name = 'administrator';
-  $admin_role->weight = 2;
-  user_role_save($admin_role);
-  user_role_grant_permissions($admin_role->rid, array_keys(module_invoke_all('permission')));
-  // Set this as the administrator role.
-  variable_set('user_admin_role', $admin_role->rid);
-  // Assign user 1 the "administrator" role.
-  db_insert('users_roles')->fields(array(
-    'uid' => 1,
-    'rid' => $admin_role->rid
-  ))->execute();
   // Create a Home link in the main menu.
   $item = array(
     'link_title' => st('Home'),
@@ -276,10 +366,6 @@ function scratchpads_tweaks_install(){
   menu_link_save($item);
   // Update the menu router information.
   menu_rebuild();
-  // Enable the admin theme.
-  db_update('system')->fields(array(
-    'status' => 1
-  ))->condition('type', 'theme')->condition('name', 'scratchpads_admin')->execute();
   variable_set('admin_theme', 'scratchpads_admin');
   variable_set('node_admin_theme', '1');
   /*
@@ -299,4 +385,6 @@ function scratchpads_tweaks_install(){
     'node' => 0,
     'user' => 0
   ));
+  // Delete all shortcut links - we'll allow users to edit these.  
+  menu_delete_links('shortcut-set-1');
 }

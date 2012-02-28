@@ -47,6 +47,14 @@ function scratchpads_admin_process_page(&$variables){
 }
 
 /**
+ * Preprocessor for theme('page').
+ */
+function scratchpads_admin_preprocess_page(&$vars){
+  rubik_preprocess_page($vars);
+  _rubik_local_tasks($vars);
+}
+
+/**
  * Override of theme('breadcrumb').
  * rubik_breadcrumb doesn't use page title of current page if it's not a menu item (ie; a view)
  */

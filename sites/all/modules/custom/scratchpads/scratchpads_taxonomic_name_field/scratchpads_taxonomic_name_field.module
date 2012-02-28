@@ -43,7 +43,7 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary
       if(!count($field['settings']['allowed_values'])){
         $field['settings']['allowed_values'][0] = array(
           'parent' => 0,
-          'vocabulary' => $vocabulary->machine_name
+          'vocabulary' => '__temporary__'
         );
       }
       break;

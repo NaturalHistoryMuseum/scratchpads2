@@ -79,7 +79,18 @@
   display: inline;
   width: auto;
 }
+#controls .slickgrid-add-control{
+  display: none;
+}
 
+/* Hide non-group add character link if there are no groups */
+.slickgrid-has-tabs #controls .slickgrid-add-control,
+#controls .slickgrid-add-character-editor-character-group{
+  display: block!important;
+}
 
+.character-editor div.l0{
+  background: #F1F1F1;
+}
 
 

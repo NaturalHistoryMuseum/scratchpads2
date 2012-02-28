@@ -19,7 +19,6 @@ function tinytax_js($term){
 function tinytax_search_js($vocabulary, $tags_typed = ''){
   // lets get the tid this term refers to
   $tags_typed = drupal_explode_tags($tags_typed);
-  dpm($tags_typed);
   $open_tids = array();
   foreach($tags_typed as $tag){
     $terms = taxonomy_get_term_by_name($tag);

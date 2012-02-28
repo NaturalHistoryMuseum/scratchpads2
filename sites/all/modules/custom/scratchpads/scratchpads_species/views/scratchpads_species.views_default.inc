@@ -800,12 +800,30 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['limit'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['tid']['add_table'] = 0;
+  $handler->display->display_options['arguments']['tid']['require_value'] = 0;
+  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 0;
+  $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -815,6 +833,19 @@ function scratchpads_species_views_default_views(){
     'location' => 'location',
     'spm' => 'spm'
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
+  /* Filter criterion: Content: Map (field_map:latitude) */
+  $handler->display->display_options['filters']['field_map_latitude']['id'] = 'field_map_latitude';
+  $handler->display->display_options['filters']['field_map_latitude']['table'] = 'field_data_field_map';
+  $handler->display->display_options['filters']['field_map_latitude']['field'] = 'field_map_latitude';
+  $handler->display->display_options['filters']['field_map_latitude']['operator'] = 'not empty';
+  $handler->display->display_options['filters']['field_map_latitude']['group'] = 2;
+  /* Filter criterion: Content: Map (field_spm_map:gm3_type) */
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['id'] = 'field_spm_map_gm3_type';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['table'] = 'field_data_field_spm_map';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['field'] = 'field_spm_map_gm3_type';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['operator'] = 'not empty';
+  $handler->display->display_options['filters']['field_spm_map_gm3_type']['group'] = 2;
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;

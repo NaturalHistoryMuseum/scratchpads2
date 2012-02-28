@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function tools_menu(){
+  $items = array();
+  $items['admin/structure/tools'] = array(
+    'title' => 'Tools',
+    'description' => 'Manage tools.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'tools_admin_form'
+    ),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'tools.admin.inc',
+    'access arguments' => array(
+      'access tools'
+    )
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function tools_permission(){
+  return array(
+    'access tools' => array(
+      'title' => t('Access tools'),
+      'description' => t('Access tools interface.')
+    )
+  );
+}

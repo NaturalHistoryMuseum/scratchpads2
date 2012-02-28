@@ -3,6 +3,17 @@ define('SCRATCHPADS_THEME_NAME', 'scratchpads');
 define('TOGGLE_PLACEHOLDER_SESSION', 'show_placeholder_blocks');
 
 /**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_blocks_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'toggle placeholder blocks'
+    )
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function scratchpads_blocks_menu(){

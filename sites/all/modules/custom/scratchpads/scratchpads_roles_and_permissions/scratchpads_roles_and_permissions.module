@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
+  if($hook == 'scratchpads_default_permissions'){
+    $implementations = array_merge($implementations, array(
+      'biblio' => FALSE,
+      'block' => FALSE,
+      'comment' => FALSE,
+      'contextual' => FALSE,
+      'dashboard' => FALSE,
+      'feeds' => FALSE,
+      'field_group' => FALSE,
+      'file_entity' => FALSE,
+      'menu' => FALSE,
+      'node' => FALSE,
+      'clone' => FALSE,
+      'overlay' => FALSE,
+      'search' => FALSE,
+      'shortcut' => FALSE,
+      'system' => FALSE,
+      'taxonomy' => FALSE,
+      'toolbar' => FALSE,
+      'tools' => FALSE,
+      'user' => FALSE,
+      'views' => FALSE
+    ));
+  }
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function scratchpads_roles_and_permissions_hook_info(){
+  return array(
+    'scratchpads_default_permissions_alter' => array(
+      'group' => 'scratchpads'
+    ),
+    'scratchpads_default_permissions' => array(
+      'group' => 'scratchpads'
+    )
+  );
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_insert(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_delete(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_roles_and_permissions_node_type_insert(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function scratchpads_roles_and_permissions_node_type_delete(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+_scratchpads_roles_and_permissions_register_shutdown();
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function scratchpads_roles_and_permissions_modules_enabled(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_roles_and_permissions_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+  }
+}
+
+/**
+ * Shutdown function which actually changes the permissions for us.
+ * Enter description here ...
+ * @var unknown_type
+ */
+function scratchpads_roles_and_permissions_shutdown(){
+  $default_permissions = module_invoke_all('scratchpads_default_permissions');
+  drupal_alter('scratchpads_default_permissions', $default_permissions);
+  foreach($default_permissions as $role => $permissions){
+    // Load the role
+    $role = user_role_load_by_name($role);
+    if($role && count($permissions)){
+      // Due to issues during install, we need to check that the module a 
+      // permission is associated with is set.  If it isn't, then we remove it
+      // from the list.
+      $modules = user_permission_get_modules();
+      foreach($permissions as $key => $value){
+        if(!isset($modules[$value])){
+          unset($permissions[$key]);
+        }
+      }
+      $all_permissions = user_permission_get_modules();
+      $new_permissions = drupal_map_assoc($permissions);
+      foreach($all_permissions as $perm => $module){
+        if(!isset($new_permissions[$perm])){
+          $new_permissions[$perm] = FALSE;
+        }
+      }
+      user_role_change_permissions($role->rid, $new_permissions);
+    }
+  }
+}

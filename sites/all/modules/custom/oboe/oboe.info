@@ -1,7 +1,5 @@
 name = "'O'xford e-research centre 'B'atch 'O'peration 'E'ngine"
 description = "Interfaces with the ViBRANT OBOE service."
 core = 7.x
-dependencies[] = entity_admin
-files[] = includes/OboeUIController.class.inc
-files[] = includes/Oboe.class.inc
+files[] = includes/OBOE.class.inc
 files[] = includes/OBOEService.class.inc

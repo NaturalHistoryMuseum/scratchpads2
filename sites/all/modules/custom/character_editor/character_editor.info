@@ -73,4 +73,6 @@ dependencies[] = "ctools"
 dependencies[] = "views_data_export"
 dependencies[] = "field_group"
 
-package = Taxonomy
+package = Scratchpad tools
+
+tool = true

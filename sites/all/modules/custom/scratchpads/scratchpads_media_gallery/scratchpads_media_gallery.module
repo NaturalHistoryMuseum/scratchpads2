@@ -18,7 +18,8 @@ function scratchpads_media_gallery_menu_alter(&$items){
 function scratchpads_media_gallery_scratchpads_solr_info(){
   return array(
     'gallery' => array(
-      'theme' => 'scratchpads_media_gallery'
+      'theme' => 'scratchpads_media_gallery',
+      'empty' => 'scratchpads_media_gallery_empty'
     )
   );
 }
@@ -193,6 +194,10 @@ function scratchpads_media_gallery_theme(){
         'module' => NULL
       ),
       'file' => 'scratchpads_media_gallery.theme.inc'
+    ),
+    'scratchpads_media_gallery_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_media_gallery.theme.inc'
     )
   );
 }
@@ -243,7 +248,7 @@ function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, 
  * Implementation of hook_node_insert().
  */
 function scratchpads_media_gallery_node_insert($node){
-  if(isset($node->field_media)){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     $new_fids = array();
     foreach($node->field_media[LANGUAGE_NONE] as $delta => $values){
@@ -267,7 +272,7 @@ function scratchpads_media_gallery_node_insert($node){
  * Implementation of hook_node_update().
  */
 function scratchpads_media_gallery_node_update($node){
-  if(isset($node->field_media)){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
     // We edit the file entities to add this node id to their respective field.
     // We simply get a list of fids that currently have this node associated, and
     // remove the ones that have been removed, and add ones that have been added.

@@ -9,13 +9,16 @@ function theme_scratchpads_biblio_search($variables){
   if($reset_author_links){
     variable_set('biblio_author_links', 0);
   }
+  $rows = array();
   foreach($variables['results'] as $result){
     $biblio_node = node_load($result['node']->entity_id);
-    $rows[] = array(
-      biblio_format_authors($biblio_node->biblio_contributors),
-      $biblio_node->biblio_year,
-      l($biblio_node->title, 'node/' . $biblio_node->nid)
-    );
+    if($biblio_node){
+      $rows[] = array(
+        biblio_format_authors($biblio_node->biblio_contributors),
+        $biblio_node->biblio_year,
+        l($biblio_node->title, 'node/' . $biblio_node->nid)
+      );
+    }
   }
   if($reset_author_links){
     variable_set('biblio_author_links', $reset_author_links);
@@ -47,4 +50,11 @@ function theme_scratchpads_biblio_search($variables){
   )) . theme('pager', array(
     'tags' => NULL
   ));
+}
+
+/**
+ * Theme function for an empty results page.
+ */
+function theme_scratchpads_biblio_search_empty($variables){
+  return t('<p>Either no literature content has been added to this site, or it has not yet been indexed. Indexing can take upto one hour, so please check back later.</p>');
 }

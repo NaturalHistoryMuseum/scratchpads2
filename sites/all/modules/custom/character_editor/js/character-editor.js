@@ -10,10 +10,13 @@
        Drupal.CharacterEditor.initBT();       
     },
     
-    slickgridCallback: function (e, data) {
+    slickgridCallback: function (e, data) {      
+      
       if(typeof data.response.columns !== 'undefined'){
         Drupal.CharacterEditor.initBT();
-      }      
+        $('.slickgrid-wrapper').addClass('slickgrid-has-tabs');
+      }
+      
     },
     
     initBT: function(){

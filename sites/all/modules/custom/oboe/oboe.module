@@ -56,9 +56,11 @@ function oboe_menu(){
       'file' => 'oboe.pages.inc'
     )
   );
+  $oboe_information = OBOEService::get_information();
   foreach(OBOEService::get_job_types() as $key => $job_type){
     $menu['oboe/add/' . $key] = array(
       'title' => $job_type,
+      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : '',
       'title callback' => 'check_plain',
       'page callback' => 'oboe_add',
       'page arguments' => array(
@@ -73,6 +75,50 @@ function oboe_menu(){
     );
   }
   return $menu;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function oboe_block_info(){
+  return array(
+    'user_jobs' => array(
+      'info' => t('My service jobs'),
+      'cache' => DRUPAL_CACHE_PER_USER
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function oboe_block_view($delta = 'user_jobs'){
+  switch($delta){
+    default:
+      global $user;
+      // Get a list of entity_ids
+      $query = new EntityFieldQuery();
+      $results = $query->entityCondition('entity_type', 'oboe')->propertyCondition('uid', $user->uid)->propertyOrderBy('created', 'DESC')->execute();
+      $ids = array();
+      foreach($results['oboe'] as $row){
+        $ids[] = $row->oid;
+        if(count($ids) >= 5){
+          break;
+        }
+      }
+      $entities = entity_load('oboe', $ids);
+      foreach($entities as $key => $entity){
+        $uri = entity_uri('oboe', $entity);
+        $entities[$key] = l($entity->label, $uri['path']) . ' (' . $entity->data['status'] . ')<br/>' . $entity->description;
+      }
+      return array(
+        'subject' => t('My service jobs'),
+        'content' => array(
+          '#theme' => 'item_list',
+          '#items' => $entities
+        )
+      );
+  }
 }
 
 /**
@@ -148,17 +194,16 @@ function oboe_view($oboe, $view_mode, $langcode){
   }
   if($oboe->data['status'] != 'finished'){
     // We've not finished, we should refresh the page every 30 seconds (or similar).
-    drupal_add_html_head(array(
+  /*drupal_add_html_head(array(
       '#tag' => 'meta',
       '#attributes' => array(
         'http-equiv' => 'refresh',
         'content' => variable_get('oboe_refresh_time', 30)
       )
-    ), 'oboe_refresh');
+    ), 'oboe_refresh');*/
   }
   if($save_entity){
     entity_save('oboe', $oboe);
-    dpm($oboe);
   }
   $rows_data = array();
   foreach($oboe->data as $key => $value){
@@ -279,26 +324,6 @@ function oboe_load_multiple($ids = array(), $conditions = array(), $reset = FALS
 }
 
 /**
- * Implementation of hook_entity_load().
- */
-function oboe_entity_load($entities, $type){
-  if($type == 'oboe'){
-    foreach($entities as $entity){
-      $entity->data = unserialize($entity->data);
-    }
-  }
-}
-
-/**
- * Implementation of hook_entity_insert().
- */
-function oboe_entity_insert($entity, $type){
-  if($type == 'oboe'){
-    $entity->data = serialize($entity->data);
-  }
-}
-
-/**
  * Implements hook_help().
  */
 function oboe_help($path, $arg){
@@ -355,7 +380,7 @@ function oboe_entity_info(){
   $info = array(
     'oboe' => array(
       'label' => t('OBOE Job'),
-      'entity class' => 'Oboe',
+      'entity class' => 'OBOE',
       'controller class' => 'EntityAPIController',
       'base table' => 'oboe',
       'fieldable' => TRUE,
@@ -374,9 +399,11 @@ function oboe_entity_info(){
     )
   );
   // Add the OBOE services
+  $oboe_information = OBOEService::get_information();
   foreach(OBOEService::get_job_types() as $key => $job_type){
     $info['oboe']['bundles'][$key] = array(
-      'label' => $job_type
+      'label' => $job_type,
+      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : ''
     );
   }
   return $info;

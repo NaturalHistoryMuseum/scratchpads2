@@ -1,3 +1,15 @@
 <?php
+include_once ('spm.features.inc');
 
-include_once('spm.features.inc');
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
+  $field_info = field_info_field('field_taxonomic_name');
+  if(!$field_info['settings']['allowed_values'][0]['vocabulary'] || $field_info['settings']['allowed_values'][0]['vocabulary'] == '__temporary__'){
+    drupal_set_message(t('You must <a href="!add_taxonomy_url">create a biological classification</a> before you can add a taxon description.', array(
+      '!add_taxonomy_url' => url('admin/structure/taxonomy/add')
+    )), 'error');
+    drupal_goto('admin/content');
+  }
+}

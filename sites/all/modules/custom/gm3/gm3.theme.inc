@@ -80,7 +80,7 @@ function gm3_get_map($variables){
 function theme_gm3_polygon_button($variables){
   theme('gm3_beautytip', array(
     'selector' => '.gm3-tools-button[data-gm3-class="polygon"]',
-    'text' => t('Click to enable adding/removing polygons.')
+    'text' => t('Click to enable adding/removing polygons.  Many sided polygons are simply added by clicking on the extreme points of the polygon.')
   ));
   return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>+ ' . t('Polygon') . '</p></div>';
 }
@@ -91,7 +91,7 @@ function theme_gm3_polygon_button($variables){
 function theme_gm3_polyline_button($variables){
   theme('gm3_beautytip', array(
     'selector' => '.gm3-tools-button[data-gm3-class="polyline"]',
-    'text' => t('Click to enable adding/removing lines.')
+    'text' => t('Click to enable adding/removing lines.  Lines are added by clicking on the map once to start a line, and then on every point where there is an angle in the line.')
   ));
   return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>+ ' . t('Line') . ' +</p></div>';
 }
@@ -281,9 +281,11 @@ function theme_gm3_view_gm3($variables){
           // The default - This field type is not defined by the gm3 module,
           // we therefore append call the map_alter function for this
           // field
-          $function = "{$item['raw']['gm3_type']}_map_alter";
-          if(function_exists($function)){
-            $function($map, $item['raw']);
+          foreach($row->{"field_$key"} as $item){
+            $function = "{$item['raw']['gm3_type']}_map_alter";
+            if(function_exists($function)){
+              $function($map, $item['raw']);
+            }
           }
           break;
       }

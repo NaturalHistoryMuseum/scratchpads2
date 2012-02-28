@@ -76,6 +76,17 @@ function scratchpads_colour_permission(){
   );
 }
 
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_colour_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'scratchpads colour'
+    )
+  );
+}
+
 /*********************************************************************************************
  * 
  * THEME SETTINGS
