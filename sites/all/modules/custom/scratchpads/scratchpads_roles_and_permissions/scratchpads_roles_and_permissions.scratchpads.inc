@@ -61,7 +61,7 @@ function views_scratchpads_default_permissions(){
  *
  * Implements hook_scratchpads_default_permissions().
  */
-function user_scratchpads_default_permissions() {
+function user_scratchpads_default_permissions(){
   // administer permissions
   // select account cancellation method
   return array(
@@ -90,6 +90,7 @@ function toolbar_scratchpads_default_permissions(){
     )
   );
 }
+
 /**
  * Taxonomy module
  *
@@ -102,7 +103,7 @@ function taxonomy_scratchpads_default_permissions(){
     ),
     'editor' => array()
   );
-  foreach (taxonomy_get_vocabularies() as $vocabulary) {
+  foreach(taxonomy_get_vocabularies() as $vocabulary){
     $permissions['editor'][] = 'edit terms in ' . $vocabulary->vid;
     $permissions['editor'][] = 'delete terms in ' . $vocabulary->vid;
   }
@@ -125,7 +126,7 @@ function system_scratchpads_default_permissions(){
       'administer site configuration',
       'administer themes',
       'access administration pages',
-      'access site in maintenance mode',
+      'access site in maintenance mode'
     ),
     'authenticated user' => array(
       'view the administration theme'
@@ -248,7 +249,7 @@ function feeds_scratchpads_default_permissions(){
     'editor' => array(),
     'contributor' => array()
   );
-  foreach (feeds_importer_load_all() as $importer) {
+  foreach(feeds_importer_load_all() as $importer){
     $perms['contributor'][] = "import $importer->id feeds";
     $perms['editor'][] = "clear $importer->id feeds";
   }

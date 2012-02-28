@@ -48,6 +48,15 @@ function scratchpads_roles_and_permissions_hook_info(){
  * Implements hook_modules_enabled().
  */
 function scratchpads_roles_and_permissions_modules_enabled($modules){
+  drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+}
+
+/**
+ * Shutdown function which actually changes the permissions for us.
+ * Enter description here ...
+ * @var unknown_type
+ */
+function scratchpads_roles_and_permissions_shutdown(){
   $default_permissions = module_invoke_all('scratchpads_default_permissions');
   drupal_alter('scratchpads_default_permissions', $default_permissions);
   foreach($default_permissions as $role => $permissions){
