@@ -27,11 +27,41 @@ table.scratchpads-admin-content th.scratchpads-admin-content-stats {
 	width: 100px;
 }
 
-table.scratchpads-admin-content th.scratchpads-admin-content-operations,table.scratchpads-admin-content th.scratchpads-admin-content-stats,table.scratchpads-admin-content td:nth-child
-	(2),table.scratchpads-admin-content td:nth-child (3){
-	text-align: center;
-}
+table
+.scratchpads-admin-content
+ 
+th
+.scratchpads-admin-content-operations
+,
+table
+.scratchpads-admin-content
+ 
+th
+.scratchpads-admin-content-stats
+,
+table
+.scratchpads-admin-content
+ 
+td
+:nth-child
 
+	
+(2),
+table
+.scratchpads-admin-content
+ 
+td
+:nth-child
+ 
+(3){
+text-align
+:
+ 
+center
+;
+
+
+}
 table.scratchpads-admin-content td {
 	vertical-align: middle;
 }
@@ -42,14 +72,58 @@ table.scratchpads-admin-content td .item-list li {
 	border: none;
 }
 
-table.scratchpads-admin-content tr td:nth-child (1){
-	padding-left: 55px;
-	background-image: url("images/icons.png");
-	background-repeat: no-repeat;
-	background-position: 12px 50%;
-	height: 50px !important;
-}
+table
+.scratchpads-admin-content
+ 
+tr
+ 
+td
+:nth-child
+ 
+(1){
+padding-left
+:
+ 
+55
+px
+;
 
+	
+background-image
+:
+ 
+url
+("images/icons
+.png
+");
+
+	
+background-repeat
+:
+ 
+no-repeat
+;
+
+	
+background-position
+:
+ 
+12
+px
+ 
+50%;
+height
+:
+ 
+50
+px
+ 
+!
+important
+;
+
+
+}
 /* VBO tables */
 #views-form-admin-vbo-node-page table tr td.views-field-edit-node a,#views-form-admin-vbo-file-page table tr td.views-field-fid a
 	{
@@ -114,4 +188,9 @@ table.scratchpads-admin-content tr td:nth-child (1){
 
 .page-content .tool-options .form-item {
 	margin-left: 38px;
+}
+
+/* FIX issue with secondary tabs */
+.secondary-tabs {
+	z-index: 100;
 }
