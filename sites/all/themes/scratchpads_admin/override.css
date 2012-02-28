@@ -1,4 +1,5 @@
 /* Forms */
+
 .form-layout-default .column-main .form-actions {
 	display: block;
 }
@@ -12,185 +13,115 @@
 }
 
 /* Admin content table */
-table.scratchpads-admin-content  caption {
-	text-align: left;
-	font-size: 1.2em;
-	padding: 5px 0;
+
+table.scratchpads-admin-content  caption{
+  text-align: left;
+  font-size: 1.2em;
+  padding: 5px 0;
 }
 
-table.scratchpads-admin-content th.scratchpads-admin-content-operations
-	{
-	width: 180px;
+table.scratchpads-admin-content th.scratchpads-admin-content-operations{
+  width: 180px;
 }
 
-table.scratchpads-admin-content th.scratchpads-admin-content-stats {
-	width: 100px;
+table.scratchpads-admin-content th.scratchpads-admin-content-stats{
+  width: 100px;
 }
 
-table
-.scratchpads-admin-content
- 
-th
-.scratchpads-admin-content-operations
-,
-table
-.scratchpads-admin-content
- 
-th
-.scratchpads-admin-content-stats
-,
-table
-.scratchpads-admin-content
- 
-td
-:nth-child
-
-	
-(2),
-table
-.scratchpads-admin-content
- 
-td
-:nth-child
- 
-(3){
-text-align
-:
- 
-center
-;
-
-
-}
-table.scratchpads-admin-content td {
-	vertical-align: middle;
+table.scratchpads-admin-content th.scratchpads-admin-content-operations,
+table.scratchpads-admin-content th.scratchpads-admin-content-stats,
+table.scratchpads-admin-content td:nth-child(2),
+table.scratchpads-admin-content td:nth-child(3){
+  text-align: center;
 }
 
-table.scratchpads-admin-content td .item-list li {
-	display: inline;
-	padding: 0 4px;
-	border: none;
+table.scratchpads-admin-content td{
+  vertical-align: middle;
 }
 
-table
-.scratchpads-admin-content
- 
-tr
- 
-td
-:nth-child
- 
-(1){
-padding-left
-:
- 
-55
-px
-;
-
-	
-background-image
-:
- 
-url
-("images/icons
-.png
-");
-
-	
-background-repeat
-:
- 
-no-repeat
-;
-
-	
-background-position
-:
- 
-12
-px
- 
-50%;
-height
-:
- 
-50
-px
- 
-!
-important
-;
-
-
+table.scratchpads-admin-content td .item-list li{
+  display: inline;
+  padding: 0 4px;
+  border: none;
 }
+
+table.scratchpads-admin-content tr td:nth-child(1){
+  padding-left: 55px;
+  background-image: url("images/icons.png");
+  background-repeat: no-repeat;
+  background-position: 12px 50%;
+  height: 50px!important;
+}
+
 /* VBO tables */
-#views-form-admin-vbo-node-page table tr td.views-field-edit-node a,#views-form-admin-vbo-file-page table tr td.views-field-fid a
-	{
-	margin: 0 5px;
+#views-form-admin-vbo-node-page table tr td.views-field-edit-node a,
+#views-form-admin-vbo-file-page table tr td.views-field-fid a{
+  margin: 0 5px;
 }
 
 /* Help system */
-#overlay-titlebar {
-	position: absolute;
-	right: 0;
+
+#overlay-titlebar{
+  position: absolute;
+  right: 0;
 }
 
-#overlay-titlebar #overlay-title-wrapper {
-	position: absolute;
-	right: 25px;
-	top: 5px;
-	min-width: 300px;
+#overlay-titlebar #overlay-title-wrapper{
+  position: absolute;
+  right: 25px;
+  top: 5px;
+  min-width: 300px;
+}
+#overlay-titlebar #overlay-title-wrapper div.add-or-remove-shortcuts{
+  position: static;
+  float: right;
 }
 
-#overlay-titlebar #overlay-title-wrapper div.add-or-remove-shortcuts {
-	position: static;
-	float: right;
+#overlay-titlebar #overlay-title-wrapper .help-shortcut a{
+  background-image: url('images/help.png')!important;
+  background-position: 5px 6px;
 }
 
-#overlay-titlebar #overlay-title-wrapper .help-shortcut a {
-	background-image: url('images/help.png') !important;
-	background-position: 5px 6px;
+.region-help{
+  padding: 10px 5px;
 }
 
-.region-help {
-	padding: 10px 5px;
+.region-help,
+.region-help .block,
+.region-help .block-content{
+  background-color: #5CA2B6!important;
+  border: none;
+  color: #fff;
 }
 
-.region-help,.region-help .block,.region-help .block-content {
-	background-color: #5CA2B6 !important;
-	border: none;
-	color: #fff;
+.region-help .block{
+  margin-bottom: 0!important;
 }
 
-.region-help .block {
-	margin-bottom: 0 !important;
+.region-help .block-content a{
+  color: #C2DCE3;
+  text-decoration: underline;
 }
 
-.region-help .block-content a {
-	color: #C2DCE3;
-	text-decoration: underline;
-}
-
-.js .region-help {
-	display: none;
+.js .region-help{
+  display: none;
 }
 
 /* Tools */
-.page-content .tool-options span.tools-icon {
-	background: url("../rubik/images/icons.png") no-repeat -60px 0;
-	display: block;
-	height: 30px;
-	width: 30px;
-	float: left;
-	margin-top: 3px;
+.page-content .tool-options span.tools-icon{
+    background: url("../rubik/images/icons.png") no-repeat -60px 0;
+    display: block;
+    height: 30px;
+    width: 30px;
+    float: left;
+    margin-top: 3px;
 }
 
-.page-content .tool-options .form-item {
-	margin-left: 38px;
+.page-content .tool-options .form-item{
+  margin-left: 38px;
 }
 
-/* FIX issue with secondary tabs */
-.secondary-tabs {
-	z-index: 100;
+/* Fix for secondary tabs */
+.secondary-tabs{
+	z-index:100;
 }
