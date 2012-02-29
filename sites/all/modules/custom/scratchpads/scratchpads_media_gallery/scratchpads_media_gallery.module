@@ -154,7 +154,7 @@ function scratchpads_media_gallery_block_view_alter(&$data, $block){
     $facet_info = scratchpads_media_gallery_facetapi_facet_info();
     foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
       $delta = array_search($facet->name, $map);
-      if($delta == $block->delta){
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
         $data['subject'] = $facet_info[$facet->facet]['label'];
         break;
       }
@@ -354,68 +354,67 @@ function scratchpads_media_gallery_node_update($node){
 /**
  * Implementation of hook_facetapi_facet_info().
  */
-function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
+function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
   // Facets are usually associated with the type of content stored in the index.
-  if(isset($searcher_info['types']['file'])){return array(
-      'im_field_smg_galleries' => array(
-        'name' => 'im_field_smg_galleries',
-        'label' => t('Gallery'),
-        'description' => t('Gallery'),
-        'query types' => array(
-          'term'
-        ),
-        'map callback' => 'scratchpads_media_gallery_map_callback',
-        'map options' => array(
-          'im_field_smg_galleries'
-        )
+  return array(
+    'im_field_smg_galleries' => array(
+      'name' => 'im_field_smg_galleries',
+      'label' => t('Gallery'),
+      'description' => t('Gallery'),
+      'query types' => array(
+        'term'
       ),
-      'im_field_cc_licence' => array(
-        'name' => 'im_field_cc_licence',
-        'label' => t('Licence'),
-        'description' => t('Licence'),
-        'query types' => array(
-          'term'
-        ),
-        'map callback' => 'creative_commons_get_licence_types',
-        'map options' => NULL
-      ),
-      'tus_type_name' => array(
-        'name' => 'tus_type_name',
-        'label' => t('Media type'),
-        'description' => t('Media type'),
-        'query types' => array(
-          'term'
-        )
-      ),
-      'im_field_imaging_technique' => array(
-        'name' => 'im_field_imaging_technique',
-        'label' => t('Imaging technique'),
-        'description' => t('Imaging technique'),
-        'query types' => array(
-          'term'
-        ),
-        'map callback' => 'facetapi_map_taxonomy_terms'
-      ),
-      'im_field_keywords' => array(
-        'name' => 'im_field_keywords',
-        'label' => t('Image keywords'),
-        'description' => t('Image keywords'),
-        'query types' => array(
-          'term'
-        ),
-        'map callback' => 'facetapi_map_taxonomy_terms'
-      ),
-      'im_field_preparation_technique' => array(
-        'name' => 'im_field_preparation_technique',
-        'label' => t('Preparation technique'),
-        'description' => t('Preparation technique'),
-        'query types' => array(
-          'term'
-        ),
-        'map callback' => 'facetapi_map_taxonomy_terms'
+      'map callback' => 'scratchpads_media_gallery_map_callback',
+      'map options' => array(
+        'im_field_smg_galleries'
       )
-    );}
-  return array();
+    ),
+    'im_field_cc_licence' => array(
+      'name' => 'im_field_cc_licence',
+      'label' => t('Licence'),
+      'description' => t('Licence'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'creative_commons_get_licence_types',
+      'map options' => NULL
+    ),
+    'tus_type_name' => array(
+      'name' => 'tus_type_name',
+      'label' => t('Media type'),
+      'description' => t('Media type'),
+      'query types' => array(
+        'term'
+      )
+    ),
+    'im_field_imaging_technique' => array(
+      'name' => 'im_field_imaging_technique',
+      'label' => t('Imaging technique'),
+      'description' => t('Imaging technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_keywords' => array(
+      'name' => 'im_field_keywords',
+      'label' => t('Image keywords'),
+      'description' => t('Image keywords'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_preparation_technique' => array(
+      'name' => 'im_field_preparation_technique',
+      'label' => t('Preparation technique'),
+      'description' => t('Preparation technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    )
+  );
 }
 
 /**
