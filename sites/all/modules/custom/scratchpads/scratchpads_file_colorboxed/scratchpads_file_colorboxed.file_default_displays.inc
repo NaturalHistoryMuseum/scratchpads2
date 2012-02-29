@@ -5,6 +5,7 @@
  */
 function scratchpads_file_colorboxed_file_default_displays(){
   $export = array();
+  return $export;
   $file_display = new stdClass();
   $file_display->api_version = 1;
   $file_display->name = 'audio__file_styles_colorbox__file_field_styles_file_colorbox';
