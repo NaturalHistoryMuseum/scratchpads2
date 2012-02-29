@@ -500,14 +500,16 @@ h2.site-name {
 }
 
 .view-species-media .view-content ul li.views-row,
-.page-gallery .file-image,
-.page-gallery .file-video,
-.page-gallery .file-audio{	
+.page-gallery .file{	
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
   list-style: none;
   background: none;
+}
+
+#cboxContent .file{
+	border:none;
 }
 
 .view-species-media .attachment  ul li.views-row{
