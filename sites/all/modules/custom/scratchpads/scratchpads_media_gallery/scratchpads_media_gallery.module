@@ -32,8 +32,8 @@ function scratchpads_media_gallery_context_default_contexts(){
   $context = new stdClass();
   $context->disabled = FALSE;
   $context->api_version = 3;
-  $context->name = 'media_gallery_page';
-  $context->description = t('Media gallery page');
+  $context->name = 'media_gallery_page_facets';
+  $context->description = t('Media gallery page facets');
   $context->tag = 'solr';
   $context->conditions = array(
     'path' => array(
@@ -44,40 +44,23 @@ function scratchpads_media_gallery_context_default_contexts(){
   );
   $context->reactions = array(
     'block' => array(
-      'blocks' => array(
-        // Gallery
-        'facetapi-5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY' => array(
-          'module' => 'facetapi',
-          'delta' => '5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY',
-          'region' => 'sidebar',
-          'weight' => '-31'
-        ),
-        // Type
-        'facetapi-VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv' => array(
-          'module' => 'facetapi',
-          'delta' => 'VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv',
-          'region' => 'sidebar',
-          'weight' => '-30'
-        ),
-        // CC
-        'facetapi-Rzawdl9XttWmU792BLY6CtfJZOhLOVci' => array(
-          'module' => 'facetapi',
-          'delta' => 'Rzawdl9XttWmU792BLY6CtfJZOhLOVci',
-          'region' => 'sidebar',
-          'weight' => '-29'
-        ),
-        // Author
-        'facetapi-wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j' => array(
-          'module' => 'facetapi',
-          'delta' => 'wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j',
-          'region' => 'sidebar',
-          'weight' => '-28'
-        )
-      )
+      'blocks' => array()
     )
   );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
   $context->condition_mode = 0;
-  $export['media_gallery_page'] = $context;
+  $export['media_gallery_page_facets'] = $context;
   return $export;
 }
 
@@ -94,32 +77,87 @@ function scratchpads_media_gallery_is_gallery_node(){
 }
 
 /**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_media_gallery_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "file_entity" && $api == "file_default_displays"){return array(
+      "version" => "1"
+    );}
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_media_gallery_module_implements_alter(&$implementations, $hook){
+  if($hook == 'flush_caches'){
+    $this_hook = $implementations['scratchpads_media_gallery'];
+    unset($implementations['scratchpads_media_gallery']);
+    $implementations['scratchpads_media_gallery'] = $this_hook;
+  }
+}
+
+/**
+ * Implements hook_flush_caches()
+ */
+function scratchpads_media_gallery_flush_caches(){
+  // Here we add the terms to the correct vocabulary.
+  $vocabulary = taxonomy_vocabulary_machine_name_load('imaging_technique');
+  if($vocabulary){
+    $tree = taxonomy_get_tree($vocabulary->vid, 0, 1);
+    if(!count($tree)){
+      $terms = array(
+        array(
+          'name' => 'Photograph',
+          'description' => 'Captured with a regular camera.'
+        ),
+        array(
+          'name' => 'Illustration',
+          'description' => 'Figurative, hand drawn or computer rendered.'
+        ),
+        array(
+          'name' => 'Light Micrograph',
+          'description' => 'Captured through a regular microscope.'
+        ),
+        array(
+          'name' => 'Scan',
+          'description' => 'A scan of a printed image/diagram/text'
+        ),
+        array(
+          'name' => 'Scanning Electron Micrograph',
+          'description' => 'Captured through a Scanning Electron Microscope.'
+        ),
+        array(
+          'name' => 'Transmission Electron Micrograph',
+          'description' => 'Captured through a Transmission Electron Microscope.'
+        ),
+        array(
+          'name' => 'Other',
+          'description' => 'None of the above.'
+        )
+      );
+      foreach($terms as $term){
+        $term = (object)$term;
+        $term->vid = $vocabulary->vid;
+        taxonomy_term_save($term);
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_media_gallery_block_view_alter(&$data, $block){
   if($block->module == 'facetapi'){
-    switch($block->delta){
-      case 'VezW20cmPMkzLAK2fZZL2FOsqE7Tw6uv':
-        $data['subject'] = t('File type');
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_media_gallery_facetapi_facet_info();
+    foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
         break;
-      case 'wWWinJ0eOefOtAMbjo2yl86Mnf1rO12j':
-        $data['subject'] = t('Author');
-        break;
-      case 'Rzawdl9XttWmU792BLY6CtfJZOhLOVci':
-        $data['subject'] = t('Licence');
-        break;
-      case '5O78PnuVqjUYjfhq6vyo0B0vBN1tKTLY':
-        if(scratchpads_media_gallery_is_gallery_node()){
-          $data['content'] = theme('item_list', array(
-            'items' => array(
-              l(t('View all media'), 'gallery')
-            ),
-            'attributes' => array(
-              'class' => 'facetapi-facetapi-links'
-            )
-          ));
-        }
-        $data['subject'] = t('Gallery');
+      }
     }
   }
 }
@@ -321,8 +359,8 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
   if(isset($searcher_info['types']['file'])){return array(
       'im_field_smg_galleries' => array(
         'name' => 'im_field_smg_galleries',
-        'label' => t('Media: Galleries'),
-        'description' => t('Media: Galleries'),
+        'label' => t('Gallery'),
+        'description' => t('Gallery'),
         'query types' => array(
           'term'
         ),
@@ -333,8 +371,8 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
       ),
       'im_field_cc_licence' => array(
         'name' => 'im_field_cc_licence',
-        'label' => t('Media: Licence'),
-        'description' => t('Media: Licence'),
+        'label' => t('Licence'),
+        'description' => t('Licence'),
         'query types' => array(
           'term'
         ),
@@ -343,11 +381,38 @@ function scratchpads_media_gallery_facetapi_facet_info($searcher_info){
       ),
       'tus_type_name' => array(
         'name' => 'tus_type_name',
-        'label' => t('Media: Type'),
-        'description' => t('Media: Type'),
+        'label' => t('Media type'),
+        'description' => t('Media type'),
         'query types' => array(
           'term'
         )
+      ),
+      'im_field_imaging_technique' => array(
+        'name' => 'im_field_imaging_technique',
+        'label' => t('Imaging technique'),
+        'description' => t('Imaging technique'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'facetapi_map_taxonomy_terms'
+      ),
+      'im_field_keywords' => array(
+        'name' => 'im_field_keywords',
+        'label' => t('Image keywords'),
+        'description' => t('Image keywords'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'facetapi_map_taxonomy_terms'
+      ),
+      'im_field_preparation_technique' => array(
+        'name' => 'im_field_preparation_technique',
+        'label' => t('Preparation technique'),
+        'description' => t('Preparation technique'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'facetapi_map_taxonomy_terms'
       )
     );}
   return array();
