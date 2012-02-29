@@ -461,6 +461,7 @@ h2.site-name {
 
 #region-sidebar ul.facetapi-facetapi-links li{
   margin:5px 0;
+  list-style:none;
 }
 
 #region-sidebar a.facetapi-limit-link{
