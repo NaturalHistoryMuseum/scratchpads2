@@ -500,7 +500,8 @@ h2.site-name {
 }
 
 .view-species-media .view-content ul li.views-row,
-.page-gallery .file-image{
+.page-gallery .file-image,
+.page-gallery .file-video{
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
