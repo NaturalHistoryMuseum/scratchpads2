@@ -85,7 +85,7 @@ h1,
 h1.site-name, 
 h2.site-name,
 h3{
-	font-family: 'FontinSansRegular', Georgia, serif;
+	font-family: 'FontinSansRegular', Georgia, serif !important;
 }
 
 h1, 
