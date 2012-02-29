@@ -25,17 +25,6 @@ function scratchpads_media_gallery_scratchpads_solr_info(){
 }
 
 /**
- * Implements hook_entity_info_alter().
- */
-function scratchpads_media_gallery_entity_info_alter(){
-  // We update the current file_display settings to disable specific ones that
-  // are being created by the file_styles module.
-  db_update('file_display')->fields(array(
-    'status' => 0
-  ))->condition('name', '%__file_styles_%__file_field_styles_file_%', 'LIKE')->execute();
-}
-
-/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_media_gallery_context_default_contexts(){
