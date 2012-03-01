@@ -4,3 +4,7 @@ description = "Scratchpads contact forms"
 package = "Scratchpads"
 dependencies[] = modal_forms
 dependencies[] = contact
+dependencies[] = "ctools"
+dependencies[] = "strongarm"
+features[ctools][] = "strongarm:strongarm:1"
+features[variable][] = "modal_forms_contact"

@@ -102,29 +102,19 @@ function scratchpads_preprocess_region(&$vars){
   switch($vars['elements']['#region']){
     case 'secondary_menu':
       $links = array();
-      if(module_exists('contact') && user_access('access site-wide contact form')){
-        $links[] = array(
-          'href' => 'contact',
-          'title' => t("Contact us"),
-          'attributes' => array(
-            'class' => array('contact-us')
-          )
-        );
-        $links[] = array(
-          'href' => 'contact/report-abuse',
-          'title' => t("Report abuse"),
-          'attributes' => array(
-            'class' => array('report-abuse')
-          )
-        );
+      if(module_exists('scratchpads_contact') && user_access('access site-wide contact form')){
+        $categories = scratchpads_contact_get_categories();
+        foreach($categories as $category){
+          $links[] = array(
+            'href' => 'contact/' . $category->cid,
+            'title' => $category->category
+          );
+        }
       }
       if(user_is_logged_in()){
         $links[] = array(
           'href' => url('help.scratchpads.eu'),
-          'title' => t("Help"),
-          'attributes' => array(
-            'class' => array('help')
-          )
+          'title' => t("Help")
         );
       }
       $vars['links'] = theme('links', array(

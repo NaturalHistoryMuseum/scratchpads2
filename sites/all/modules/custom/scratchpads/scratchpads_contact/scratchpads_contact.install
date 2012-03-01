@@ -4,7 +4,7 @@ function scratchpads_contact_install(){
   // Add report abuse form
   db_insert('contact')->fields(array(
     'category' => 'Report abuse',
-    'recipients' => variable_get('site_mail', ini_get('sendmail_from')),
+    'recipients' => variable_get('site_mail', ini_get('sendmail_from')) .', scratchpad@nhm.ac.uk',
     'selected' => 1,
     'reply' => ''
   ))->execute();
@@ -14,5 +14,6 @@ function scratchpads_contact_install(){
   ))->condition('cid', 1)->execute();
 }
 
-
-// Scratchpad@nhm.ac.uk
+function scratchpads_contact_uninstall(){
+  db_delete('contact')->condition('category', 'Report abuse')->execute();
+}
