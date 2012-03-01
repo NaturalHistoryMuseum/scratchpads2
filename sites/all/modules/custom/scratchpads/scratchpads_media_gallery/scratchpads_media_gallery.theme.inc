@@ -34,6 +34,9 @@ function theme_scratchpads_media_gallery($variables){
   $media_entities = entity_load('file', $entity_ids);
   $content_array = entity_view('file', $media_entities, 'file_styles_square_thumbnail');
   foreach($content_array as $key => $array){
+    if(isset($content_array[$key]['#contextual_links'])){
+      unset($content_array[$key]['#contextual_links']);
+    }
     if(is_numeric($key) && is_array($array)){
       if(!isset($array['file']['#file'])){
         $content_array[$key]['file']['#file'] = $media_entities[$key];
@@ -55,5 +58,7 @@ function theme_scratchpads_media_gallery($variables){
  * Theme function for an empty results page.
  */
 function theme_scratchpads_media_gallery_empty($variables){
-  return t('<p>Either no media has been uploaded to this site, or it has not yet been indexed. Indexing can take upto one hour, so please check back later.</p>');
+  return t('<p>Either no media has been !uploaded to this site, or it has not yet been indexed. Indexing can take upto one hour, so please check back later.</p>', array(
+    '!uploaded' => user_access('create media_gallery content') ? l(t('uploaded'), 'node/add/media-gallery') : t('uploaded')
+  ));
 }

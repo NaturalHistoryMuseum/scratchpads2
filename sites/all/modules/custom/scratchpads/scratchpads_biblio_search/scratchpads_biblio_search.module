@@ -2,7 +2,7 @@
 
 /**
  * FIXME - Remove the horrible deltas added by the facetapi module, and replace
- * them with the improved code in the scratchpads_image_extension module.
+ * them with the improved code in the scratchpads_media_gallery module.
  */
 /**
  * Implementation of hook_menu_alter().
