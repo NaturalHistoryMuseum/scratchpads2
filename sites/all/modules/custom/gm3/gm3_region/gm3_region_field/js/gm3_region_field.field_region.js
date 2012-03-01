@@ -96,7 +96,7 @@
       // We add this ID if we haven't already done so.
       var notfound = true;
       for( var i in this.countries) {
-        if(this.countries[i] == data) {
+        if(i == data) {
           notfound = false;
         }
       }
