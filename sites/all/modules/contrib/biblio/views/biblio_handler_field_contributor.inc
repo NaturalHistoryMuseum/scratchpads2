@@ -1,6 +1,6 @@
 <?php
 class biblio_handler_field_contributor extends biblio_handler_field {
-  function init($view, $options) {
+  function init(&$view, &$options) {
     module_load_include('inc', 'biblio', 'includes/biblio.contributors');
     parent::init($view, $options);
     $this->multiple = TRUE;
@@ -106,7 +106,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     $this->field_alias = $this->aliases['vid'];
   }
 
-  function post_execute($values) {
+  function post_execute(&$values) {
     $vids = array();
     $this->items = array();
     $filter = '';
