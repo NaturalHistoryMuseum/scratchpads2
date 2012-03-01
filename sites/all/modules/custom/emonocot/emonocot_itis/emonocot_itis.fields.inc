@@ -178,7 +178,7 @@ function emonocot_itis_fields($vid){
         'module' => 'taxonomy',
         'settings' => array(
           'allowed_values' => array(
-            $vocab->machine_name => array(
+            0 => array(
               'parent' => 0,
               'vocabulary' => $vocab->machine_name
             )
@@ -306,7 +306,7 @@ function emonocot_itis_fields($vid){
         'module' => 'taxonomy',
         'settings' => array(
           'allowed_values' => array(
-            $vocab->machine_name => array(
+            0 => array(
               'parent' => 0,
               'vocabulary' => $vocab->machine_name
             )
