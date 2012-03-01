@@ -1,16 +1,14 @@
 <?php
 
 function emonocot_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
-  if(!isset($form_state['confirm_delete'])){
     $form['#submit'][] = 'emonocot_itis_taxonomy_form_vocabulary_submit';
-  }
 }
 
 /**
  * Submit function to alter a vocabulary.
  */
 function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
- // if(!isset($form_state['confirm_delete'])){
+  if(!isset($form_state['confirm_delete'])){
     if($form_state['values']['biological_classification']){
       // Add all the required fields to this vocabulary.
       module_load_include('fields.inc', 'emonocot_itis');
@@ -70,13 +68,13 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       $nomenclature_view = emonocot_views_nomenclature($form_state['vocabulary']->vid);
       views_save_view($nomenclature_view);
     }
- // }
+  }
 }
 
 /**
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
-function itis_term_taxonomy_vocabulary_delete($vocabulary){
+function emonocot_itis_taxonomy_vocabulary_delete($vocabulary){
   field_delete_field("field_hp_{$vocabulary->vid}");
   field_delete_field("field_type_taxon_{$vocabulary->vid}");
 }
