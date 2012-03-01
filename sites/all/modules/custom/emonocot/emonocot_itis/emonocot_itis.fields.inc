@@ -90,6 +90,7 @@ function emonocot_itis_fields_groups(){
  * Simply returns an array of fields
  */
 function emonocot_itis_fields($vid){
+  $vocab = taxonomy_vocabulary_load($vid);	
   return array(
     array(
     'field_config' => array(
@@ -172,9 +173,9 @@ function emonocot_itis_fields($vid){
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          $vid => array(
+          $vocab->machine_name => array(
             'parent' => 0,
-            'vocabulary' => $vid,
+            'vocabulary' => $vocab->machine_name,
           ),
         ),
       ),
@@ -303,9 +304,9 @@ function emonocot_itis_fields($vid){
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          $vid => array(
+          $vocab->machine_name => array(
             'parent' => 0,
-            'vocabulary' => $vid,
+            'vocabulary' => $vocab->machine_name,
           ),
         ),
       ),

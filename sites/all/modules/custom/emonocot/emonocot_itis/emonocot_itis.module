@@ -18,7 +18,7 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       foreach($additional_fields as $field){
         $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
         $field['field_config']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
-        $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $form_state['vocabulary']->machine_name;
+        //$field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $form_state['vocabulary']->machine_name;
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
         $field['field_instance']['field_name'] .= "_" . $form_state['vocabulary']->machine_name;
         field_create_field($field['field_config']);
