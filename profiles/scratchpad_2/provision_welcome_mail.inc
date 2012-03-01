@@ -1,4 +1,17 @@
 <?php
+// We try to set the relevent options using Drush.
+drupal_set_message('At the sending of the email for Scratchapds 2 profile');
+$data = array();
+if(function_exists('drush_get_option')){
+  $site_title = drush_get_option('site_title', FALSE);
+  drupal_set_message('drush_get_option exists');
+  drupal_set_message('Site title is ' . $site_title);
+  if($site_title){
+    variable_set('site_name', $site_title);
+  }
+}else{
+  drupal_set_message('drush_get_option does not exists');
+}
 // $Id$
 /**
  * @file
