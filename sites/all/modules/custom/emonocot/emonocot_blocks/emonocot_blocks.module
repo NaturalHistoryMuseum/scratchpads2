@@ -156,7 +156,7 @@ function emonocot_blocks_block_view($delta = ''){
             }else{
               $parents_text .= ' x <a href="taxonomy/term/' . $parent->tid . '">' . $parent->name . '</a>';
             }
-            $first_parent == FALSE;
+            $first_parent = FALSE;
           }
           $block['content'] = $parents_text . ' = <a href="taxonomy/term/' . $result->entity_id . '">' . $hybrid . '</a><br/>';
         }
