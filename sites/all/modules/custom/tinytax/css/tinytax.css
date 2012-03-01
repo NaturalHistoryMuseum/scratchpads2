@@ -2,12 +2,12 @@
 }
 .tinytax ul{
  padding:0 !important;
- margin:0 0 0 9px !important;
+ margin:0 0 0 15px !important;
 }
 .tinytax li{
  list-style:none;
  line-height:1.2;
- padding:0;
+ padding:2px;
  margin:0;
  vertical-align:middle;
 }
@@ -24,4 +24,15 @@
 .tinytax-no-focus{
  opacity:0.4;
  filter:alpha(opacity=40);
+}
+.tinytax-child-count{
+ font-size:70%;
+ vertical-align:10%;
+}
+.tinytax-bold{
+ text-decoration:none !important;
+ font-weight:600;
+}
+.tinytax .click:hover{
+ cursor:pointer;
 }

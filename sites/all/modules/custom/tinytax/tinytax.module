@@ -13,8 +13,7 @@ function tinytax_theme(){
     'tinytax_block' => array(
       'variables' => array(
         'open_tids' => array(),
-        'vid' => FALSE,
-        'show_search_field' => TRUE
+        'vid' => FALSE
       ),
       'file' => 'tinytax.theme.inc'
     ),
@@ -31,9 +30,26 @@ function tinytax_theme(){
       'variables' => array(
         'term' => FALSE,
         'open_tids' => array()
-      )
+      ),
+      'file' => 'tinytax.theme.inc'
+    ),
+    'tinytax_term_count' => array(
+      'variables' => array(
+        'count' => FALSE
+      ),
+      'file' => 'tinytax.theme.inc'
     )
   );
+}
+
+/**
+ * Callback to return a sub-branch.
+ */
+function tinytax_js($term){
+  return theme('tinytax_branch', array(
+    'tid' => $term->tid,
+    'vid' => $term->vid
+  ));
 }
 
 /**
@@ -52,48 +68,11 @@ function tinytax_menu(){
       'access arguments' => array(
         'access content' // FIXME - Should this be a little more inteligent?
       ),
-      'type' => MENU_CALLBACK,
-      'file' => 'tinytax.callbacks.inc'
-    ),
-    'tinytax/search/%taxonomy_vocabulary/%' => array(
-      'title' => 'Tinytax',
-      'title callback' => FALSE, // JSON callback, title not required.
-      'page callback' => 'tinytax_search_js',
-      'page arguments' => array(
-        2,3
-      ),
-      'access arguments' => array(
-        'access content' // FIXME - Should this be a little more inteligent?
-      ),
-      'delivery callback' => 'ajax_deliver',
-      'type' => MENU_CALLBACK,
-      'file' => 'tinytax.callbacks.inc'
-    ),
-    'tinytax/autocomplete/%taxonomy_vocabulary' => array(
-      'title' => 'Tinytax autocomplete',
-      'title callback' => FALSE, // JSON callback, title not required.
-      'page callback' => 'tinytax_autocomplete',
-      'access arguments' => array(
-        'access content' // FIXME - Should this be a little more inteligent?
-      ),
-      'page arguments' => array(
-        2,
-        3
-      ),
-      'type' => MENU_CALLBACK,
-      'file' => 'tinytax.callbacks.inc'
+      'type' => MENU_CALLBACK
     )
   );
 }
 
-/**
- * Implementation of hook_block_...
- * 
- * hook_block_view
- * hook_block_save
- * hook_block_info
- * hook_block_configure
- */
 /**
  * hook_block_view().
  */
@@ -103,8 +82,8 @@ function tinytax_block_view($delta = ''){
   $block = array();
   $vocabulary = taxonomy_vocabulary_load($delta);
   $open_tids = array();
-  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
-    $parents_all = taxonomy_get_parents_all(arg(2));
+  if($term = menu_get_object('taxonomy_term', 2)){
+    $parents_all = taxonomy_get_parents_all($term->tid);
     array_shift($parents_all);
     foreach($parents_all as $parent){
       $open_tids[] = $parent->tid;
@@ -142,18 +121,4 @@ function tinytax_block_info(){
  */
 function tinytax_taxonomy_vocabulary_delete($vocabulary){
   db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
-}
-
-/**
- * hook_block_configure().
- */
-function tinytax_block_configure($delta){
-  // FIXME: Add options.  These have been removed, and may be added back.
-}
-
-/**
- * hook_block_save().
- */
-function tinytax_block_save($delta){
-  // FIXME: Save the options set above.
 }
