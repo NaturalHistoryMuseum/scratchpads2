@@ -261,7 +261,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -331,7 +331,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -401,7 +401,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -468,21 +468,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -545,21 +545,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -622,21 +622,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -714,21 +714,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Select the imaging technique that was used to produce the images.',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 3
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 3
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -806,21 +806,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Comma-separated keywords describing the image Parts, sex, form, developmental stage, view angle, people, building etc. Enclose phrases in "quotation marks". Examples: Antenna, Head, Juvenile, "First instar", conference, museum, specimen.',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 5
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 5
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -901,21 +901,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Describe how the specimen was prepared for imaging (Simply leave blank if your image isn\'t a specimen)',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
