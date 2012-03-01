@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpad_2_install(){
+  // We try to set the relevent options using Drush.
+  $data = array();
+  if(function_exists('drush_get_option')){
+    $site_title = drush_get_option('site_title', FALSE);
+    if($site_title){
+      variable_set('site_name', $site_title);
+    }
+  }
+}
