@@ -1,0 +1,18 @@
+<?php
+
+function scratchpads_contact_install(){
+  // Add report abuse form
+  db_insert('contact')->fields(array(
+    'category' => 'Report abuse',
+    'recipients' => variable_get('site_mail', ini_get('sendmail_from')),
+    'selected' => 1,
+    'reply' => ''
+  ))->execute();
+  // Update the feedback form
+  db_update('contact')->fields(array(
+    'category' => 'Contact us'
+  ))->condition('cid', 1)->execute();
+}
+
+
+// Scratchpad@nhm.ac.uk
