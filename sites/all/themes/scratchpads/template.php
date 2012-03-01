@@ -107,14 +107,18 @@ function scratchpads_preprocess_region(&$vars){
           'href' => 'contact',
           'title' => t("Contact us"),
           'attributes' => array(
-            'class' => array('contact-us')
+            'class' => array(
+              'contact-us'
+            )
           )
         );
         $links[] = array(
           'href' => 'contact/report-abuse',
           'title' => t("Report abuse"),
           'attributes' => array(
-            'class' => array('report-abuse')
+            'class' => array(
+              'report-abuse'
+            )
           )
         );
       }
@@ -123,13 +127,17 @@ function scratchpads_preprocess_region(&$vars){
           'href' => url('help.scratchpads.eu'),
           'title' => t("Help"),
           'attributes' => array(
-            'class' => array('help')
+            'class' => array(
+              'help'
+            )
           )
         );
       }
       $vars['links'] = theme('links', array(
         'links' => $links
       ));
+
+      
       break;
   }
 }
