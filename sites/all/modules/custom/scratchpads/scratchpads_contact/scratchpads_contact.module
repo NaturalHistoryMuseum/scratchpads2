@@ -1,0 +1,51 @@
+<?php
+define('CONTACT_FORM', 1);
+define('ABUSE_FORM', 2);
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
+  $type = (arg(3) == 'report-abuse' ? ABUSE_FORM : CONTACT_FORM);
+  // Use the contact form category as the title
+  $form_state['title'] = $form['cid']['#options'][$type];
+
+  
+  switch($type){
+    // If this is an abuse form, add some extra fields
+    case ABUSE_FORM:
+      $form['report'] = array(
+        '#type' => 'select',
+        '#title' => t('What would you like to report?'),
+        '#options' => array(
+          'intellectual_property' => t('A violation of Intellectual Property or Copyright'),
+          'terms_and_conditions' => t('A violation of the Scratchpad Terms and Conditions'),
+          'spam' => t('A Spam or Phishing event'),
+          'other' => t('Other Concerns')
+        ),
+        '#weight' => -10,
+        '#required' => true
+      );
+      $form['url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('URL'),
+        '#size' => 60,
+        '#weight' => -9,
+        '#default_value' => $_SERVER["HTTP_REFERER"],
+      	'#disabled' => true
+      );
+      $form['subject']['#default_value'] = t('Report abuse');
+      $form['message']['#title'] = t('Details');
+      break;
+  }
+  $form['cid'] = array(
+    '#type' => 'hidden',
+    '#value' => $type
+  );
+  $form['#validate'][] = 'scratchpads_contact_contact_site_form_validate';
+}
+
+function scratchpads_contact_contact_site_form_validate(&$form, $form_state){
+	// We don;t want the error messages - red borders are enough
+  drupal_get_messages();
+}

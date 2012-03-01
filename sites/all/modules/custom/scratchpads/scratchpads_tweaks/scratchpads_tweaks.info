@@ -39,6 +39,7 @@ dependencies[] = scratchpads_biblio
 dependencies[] = scratchpads_biblio_search
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_colour
+dependencies[] = scratchpads_contact
 dependencies[] = scratchpads_file_colorboxed
 dependencies[] = scratchpads_front
 dependencies[] = scratchpads_hands_off
