@@ -28,9 +28,14 @@ if(function_exists('drush_get_option')){
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
+  /*
+   * FIXME - Unable to set the country correctly.  This simply means a new user
+   * will have to set the country value.
+   * 
   $account->field_user_country[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('country', 'GB')
   );
+  */
   $name_parts = explode(' ', $account->name);
   if(count($name_parts) > 1){
     $account->field_user_family_name[LANGUAGE_NONE][] = array(
@@ -67,17 +72,20 @@ You can now login to !site by clicking on this link or copying it into your brow
 
 This is a one-time login, so it can be used only once.
 
-Once you have logged in, you will need to set your password by visiting !edit_uri
+Once you have logged in, you will need to set your password by visiting:
 
-Further help is available on the Scratchpad website [1], or the Issues... tab that is present on all Scratchpads.
+!edit_uri
+
+Further help is available on the Scratchpad help wiki [1].
 
 The Scratchpad Team
 
-[1] http://scratchpads.eu/help
+[1] http://help.scratchpads.eu/
 
 --
 http://scratchpads.eu
 scratchpad@nhm.ac.uk", array(
+  '!site' => variable_get('site_name', 'Scratchpad'),
   '!onetime' => $onetime,
   '!username' => $account->name,
   '!edit_uri' => url('user/' . $account->uid . '/edit', array(
