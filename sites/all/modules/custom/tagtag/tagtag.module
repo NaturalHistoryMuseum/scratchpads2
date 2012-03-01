@@ -265,9 +265,11 @@ function tagtag_get_values($array){
   if(isset($array['value'])){
     return $array['value'];
   }else{
-    foreach($array as $array_part){
-      $value = tagtag_get_values($array_part);
-      if($value){return $value;}
+    if(is_array($array)){
+      foreach($array as $array_part){
+        $value = tagtag_get_values($array_part);
+        if($value){return $value;}
+      }
     }
   }
   return FALSE;
