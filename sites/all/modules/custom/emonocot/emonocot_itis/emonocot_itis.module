@@ -1,7 +1,7 @@
 <?php
 
 function emonocot_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
-    $form['#submit'][] = 'emonocot_itis_taxonomy_form_vocabulary_submit';
+  $form['#submit'][] = 'emonocot_itis_taxonomy_form_vocabulary_submit';
 }
 
 /**
