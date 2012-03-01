@@ -6,17 +6,12 @@ function emonocot_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state,
   }
 }
 
-
-
 /**
  * Submit function to alter a vocabulary.
  */
 function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
-  if($form_state['values']['biological_classification']){
-    /**$vids = variable_get('biological_vids', array());
-    if(!isset($vids[$form_state['values']['vid']])){
-      $vids[$form_state['values']['vid']] = $form_state['values']['biological_classification'];
-      variable_set('biological_vids', $vids);*/
+ // if(!isset($form_state['confirm_delete'])){
+    if($form_state['values']['biological_classification']){
       // Add all the required fields to this vocabulary.
       module_load_include('fields.inc', 'emonocot_itis');
       // Create a new field for the associated accepted name (and possibly others)
@@ -33,15 +28,13 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
       }
       // Associate all the other fields with this instance.
       foreach(emonocot_itis_fields($form_state['vocabulary']->vid) as $field){
-      	// Create the field if it hasn't already been created.
+        // Create the field if it hasn't already been created.
         if(!field_info_field($field['field_config']['field_name'])){
           field_create_field($field['field_config']);
         }
         $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
-
         field_create_instance($field['field_instance']);
       }
-
       foreach(emonocot_itis_groups($form_state['vocabulary']->vid) as $group){
         $group['bundle'] = $form_state['vocabulary']->machine_name;
         foreach($group['children'] as $key => $child){
@@ -53,17 +46,16 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
         $group = (object)$group;
         field_group_group_save($group);
       }
-      
       //We need to add our new groups to the groups in itis_term
-      module_load_include('fields.inc', 'itis_term');      
+      module_load_include('fields.inc', 'itis_term');
       foreach(itis_term_groups($form_state['vocabulary']->machine_name) as $itis_group){
-      	foreach(emonocot_itis_groups($form_state['vocabulary']->vid) as $em_group){
-      	  if($em_group['parent_name'] == $itis_group['group_name']) {
-      	    $group = field_group_load_field_group($itis_group['group_name'], 'taxonomy_term', $form_state['vocabulary']->machine_name, 'form');
-      	    $group->children[] = $em_group['group_name'];
-      	    field_group_group_save($group);
-      	  }
-      	}
+        foreach(emonocot_itis_groups($form_state['vocabulary']->vid) as $em_group){
+          if($em_group['parent_name'] == $itis_group['group_name']){
+            $group = field_group_load_field_group($itis_group['group_name'], 'taxonomy_term', $form_state['vocabulary']->machine_name, 'form');
+            $group->children[] = $em_group['group_name'];
+            field_group_group_save($group);
+          }
+        }
       }
       //...and do the same for fields
       foreach(emonocot_itis_fields_groups($form_state['vocabulary']->vid) as $key => $fields){
@@ -73,11 +65,19 @@ function emonocot_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
         }
         field_group_group_save($group);
       }
-      
       //Create a nomenclature view
       module_load_include('views_default.inc', 'emonocot_views');
       $nomenclature_view = emonocot_views_nomenclature($form_state['vocabulary']->vid);
       views_save_view($nomenclature_view);
-    //}
-  }
+    }
+ // }
 }
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function itis_term_taxonomy_vocabulary_delete($vocabulary){
+  field_delete_field("field_hp_{$vocabulary->vid}");
+  field_delete_field("field_type_taxon_{$vocabulary->vid}");
+}
+
