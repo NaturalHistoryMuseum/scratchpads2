@@ -24,3 +24,5 @@ regions[menu] = 'Menu'
 regions[header] = 'Header'
 
 stylesheets[all][] = em.css
+
+settings[default_logo] = 1;

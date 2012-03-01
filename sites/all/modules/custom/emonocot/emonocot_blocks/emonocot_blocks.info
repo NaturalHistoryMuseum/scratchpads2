@@ -2,3 +2,6 @@ name = eMonocot blocks
 description = Custom blocks for the eMonocots theme.
 package = "eMonocot"
 core = 7.x
+
+dependencies[] = emonocot_views
+dependencies[] = darwincore

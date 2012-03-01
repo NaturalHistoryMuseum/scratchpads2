@@ -111,7 +111,7 @@ function autotag_search_text($text, $vid){
   $select->addField('t', 'name');
   $results = $select->execute();
   foreach($results as $term){
-    if(strpos($text, strtolower($term->name))){
+    if(strpos($text, strtolower($term->name)) !== FALSE){
       $tags_to_return[] = taxonomy_term_load($term->tid);
     }
   }
