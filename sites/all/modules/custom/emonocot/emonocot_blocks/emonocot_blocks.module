@@ -66,7 +66,7 @@ function emonocot_blocks_block_view($delta = ''){
       	
       	$term  = (array)taxonomy_term_load($args[2]);
       	$vocab = taxonomy_vocabulary_load($term['vid']);
-      	$type_taxon_field = 'field_type_taxon_'.$vocab->machine_name;
+      	$type_taxon_field = 'field_type_taxon_'.$vocab->vid;
       	unset($vocab);
       	
         //Type taxon
@@ -124,8 +124,8 @@ function emonocot_blocks_block_view($delta = ''){
       	
       	$term  = (array)taxonomy_term_load($args[2]);
       	$vocab = taxonomy_vocabulary_load($term['vid']);
-      	$hybrid_table ='field_data_field_hybrid_parents_'.$vocab->machine_name;
-      	$hybrid_field = 'field_hybrid_parents_'.$vocab->machine_name.'_tid';
+      	$hybrid_table ='field_data_field_hp_'.$vocab->vid;
+      	$hybrid_field = 'field_hp_'.$vocab->vid.'_tid';
       	unset($vocab);
       	
       $block['subject'] = t('Hybrid relations');
@@ -144,17 +144,17 @@ function emonocot_blocks_block_view($delta = ''){
       	//...and the parent taxa
       	$sql = "SELECT tid, name FROM ".$hybrid_table." INNER JOIN taxonomy_term_data ON ".$hybrid_field." = tid WHERE entity_id = :eid ORDER BY delta";
       	$parents = db_query($sql, array(':eid' => $result->entity_id));
-      	$i =0;
+      	$first_parent = TRUE;
       	foreach($parents as $parent){
       	  if ($parent->tid == $args[2]){
       	  	$parent->name = '<strong>'.$parent->name.'</strong>';
       	  }
-      	  if ($i == 0){
+      	  if ($first_parent == TRUE){
       	  	$parents_text = '<a href="taxonomy/term/'.$parent->tid.'">'.$parent->name.'</a>';
       	  } else {
       	  	$parents_text .= ' x <a href="taxonomy/term/'.$parent->tid.'">'.$parent->name.'</a>';
       	  }
-      	  $i++;
+      	  $first_parent == FALSE;
       	}
       	
       	$block['content'] = $parents_text.' = <a href="taxonomy/term/'.$result->entity_id.'">'.$hybrid.'</a><br/>';

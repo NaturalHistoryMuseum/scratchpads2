@@ -3,7 +3,7 @@
 /**
  * Simply returns an array of groups
  */
-function emonocot_itis_groups($taxonomy_name){
+function emonocot_itis_groups($vid){
   return array(
     array(
       'group_name' => 'group_etymology',
@@ -34,7 +34,7 @@ function emonocot_itis_groups($taxonomy_name){
       'label' => 'Hybridisation',
       'weight' => '10',
       'children' => array(
-        0 => 'field_hybrid_parents_'.$taxonomy_name,
+        0 => 'field_hp_'.$vid,
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -55,7 +55,7 @@ function emonocot_itis_groups($taxonomy_name){
       'weight' => '10',
       'children' => array(
         0 => 'field_type_ref',
-        1 => 'field_type_taxon_'.$taxonomy_name,
+        1 => 'field_type_taxon_'.$vid,
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -89,7 +89,7 @@ function emonocot_itis_fields_groups(){
 /**
  * Simply returns an array of fields
  */
-function emonocot_itis_fields($taxonomy_name){
+function emonocot_itis_fields($vid){
   return array(
     array(
     'field_config' => array(
@@ -155,7 +155,7 @@ function emonocot_itis_fields($taxonomy_name){
       'cardinality' => '2',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_hybrid_parents_'.$taxonomy_name,
+      'field_name' => 'field_hp_'.$vid,
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
@@ -172,9 +172,9 @@ function emonocot_itis_fields($taxonomy_name){
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          $taxonomy_name => array(
+          $vid => array(
             'parent' => 0,
-            'vocabulary' => $taxonomy_name,
+            'vocabulary' => $vid,
           ),
         ),
       ),
@@ -196,7 +196,7 @@ function emonocot_itis_fields($taxonomy_name){
         ),
       ),
       'entity_type' => 'taxonomy_term',
-      'field_name' => 'field_hybrid_parents_'.$taxonomy_name,
+      'field_name' => 'field_hp_'.$vid,
       'label' => 'Hybrid parents',
       'required' => 0,
       'settings' => array(
@@ -286,7 +286,7 @@ function emonocot_itis_fields($taxonomy_name){
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_type_taxon_'.$taxonomy_name,
+      'field_name' => 'field_type_taxon_'.$vid,
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
@@ -303,9 +303,9 @@ function emonocot_itis_fields($taxonomy_name){
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          $taxonomy_name => array(
+          $vid => array(
             'parent' => 0,
-            'vocabulary' => $taxonomy_name,
+            'vocabulary' => $vid,
           ),
         ),
       ),
@@ -327,7 +327,7 @@ function emonocot_itis_fields($taxonomy_name){
         ),
       ),
       'entity_type' => 'taxonomy_term',
-      'field_name' => 'field_type_taxon_'.$taxonomy_name,
+      'field_name' => 'field_type_taxon_'.$vid,
       'label' => 'Type taxon',
       'required' => 0,
       'settings' => array(
