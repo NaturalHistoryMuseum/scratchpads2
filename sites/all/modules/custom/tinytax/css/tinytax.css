@@ -1,38 +1,40 @@
-.tinytax{
+.tinytax ul {
+	padding: 0 !important;
+	margin: 0 0 0 15px !important;
+	background: url(../images/vline.png) repeat-y;
 }
-.tinytax ul{
- padding:0 !important;
- margin:0 0 0 15px !important;
+
+.tinytax li {
+	list-style: none;
+	line-height: 1.2;
+	padding: 2px 0px;
+	margin: 0;
+	vertical-align: middle;
+	background: url(../images/node.png) no-repeat;
 }
-.tinytax li{
- list-style:none;
- line-height:1.2;
- padding:2px;
- margin:0;
- vertical-align:middle;
+
+.tinytax li.last {
+	background: url(../images/lastnode.png) no-repeat;
 }
-.tinytax img{
- padding-right:5px;
+
+.tinytax ul,.tinytax li,.tinytax li.last {
+	background-position: 4px 0;
 }
-.tinytax-search-field{
- width:100%;
- padding-left:0 !important;
- padding-right:0 !important;
- margin-left:0 !important;
- margin-right:0 !important;
+
+.tinytax img {
+	padding-right: 5px;
 }
-.tinytax-no-focus{
- opacity:0.4;
- filter:alpha(opacity=40);
+
+.tinytax-child-count {
+	font-size: 70%;
+	vertical-align: 10%;
 }
-.tinytax-child-count{
- font-size:70%;
- vertical-align:10%;
+
+.tinytax-bold {
+	text-decoration: none !important;
+	font-weight: 600;
 }
-.tinytax-bold{
- text-decoration:none !important;
- font-weight:600;
-}
-.tinytax .click:hover{
- cursor:pointer;
+
+.tinytax .click:hover {
+	cursor: pointer;
 }
