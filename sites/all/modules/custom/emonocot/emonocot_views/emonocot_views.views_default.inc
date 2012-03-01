@@ -347,8 +347,7 @@ function emonocot_views_nomenclature($machine_name){
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['id'] = 'field_hp_' . $machine_name;
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['table'] = 'field_data_field_hp_' . $machine_name;
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['field'] = 'field_hp_' . $machine_name;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['label'] = '';
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['text'] = '<strong>Hybrid parents:</strong> [field_hp_' . $machine_name . ']';
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['absolute'] = 0;

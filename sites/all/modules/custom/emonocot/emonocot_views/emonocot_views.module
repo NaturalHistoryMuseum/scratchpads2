@@ -21,13 +21,10 @@ function emonocot_views_context_load_alter(&$context){
         ':tid' => $args[2]
       ));
       $bio_id = $result->fetchObject()->vid;
-      $result = db_query('SELECT machine_name FROM {taxonomy_vocabulary} WHERE vid = :vid', array(
-        ':vid' => $bio_id
-      ));
-      $bio_name = $result->fetchObject()->machine_name;
-      $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_name . '-block'] = array(
+
+      $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
         'module' => 'views',
-        'delta' => 'em_species_nomenclature_' . $bio_name . '-block',
+        'delta' => 'em_species_nomenclature_' . $bio_id . '-block',
         'region' => 'content',
         'weight' => -10
       );
