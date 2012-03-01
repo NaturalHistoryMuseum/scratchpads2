@@ -1,23 +1,22 @@
 <?php
-define('CONTACT_FORM', 1);
-define('ABUSE_FORM', 2);
 
 /**
  * Implementation of hook_form_alter().
  */
 function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
-  $type = (arg(3) == 'report-abuse' ? ABUSE_FORM : CONTACT_FORM);
+  $cid = arg(3);
+  $categories = scratchpads_contact_get_categories();
   // Use the contact form category as the title
-  $form_state['title'] = $form['cid']['#options'][$type];
-  switch($type){
+  $form_state['title'] = $categories[$cid]->category;
+  switch($categories[$cid]->category){
     // If this is an abuse form, add some extra fields
-    case ABUSE_FORM:
+    case 'Report abuse':
       $form['report'] = array(
         '#type' => 'select',
         '#title' => t('What would you like to report?'),
         '#options' => scratchpads_contact_abuse_types(),
-      	'#weight' => -10,
-      	'#required' => true
+        '#weight' => -10,
+        '#required' => true
       );
       $form['url'] = array(
         '#type' => 'textfield',
@@ -33,7 +32,7 @@ function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
   }
   $form['cid'] = array(
     '#type' => 'hidden',
-    '#value' => $type
+    '#value' => $cid
   );
   $form['#validate'][] = 'scratchpads_contact_contact_site_form_validate';
 }
@@ -69,10 +68,22 @@ function scratchpads_contact_abuse_types(){
 /**
  * Implements hook_ctools_plugin_api().
  */
-function contact_ctools_plugin_api() {
+function contact_ctools_plugin_api(){
   list($module, $api) = func_get_args();
-  if ($module == "strongarm" && $api == "strongarm") {
-    return array("version" => "1");
-  }
+  if($module == "strongarm" && $api == "strongarm"){return array(
+      "version" => "1"
+    );}
 }
+
+function scratchpads_contact_get_categories(){
+  $query = db_select('contact', 'c');
+  $query->fields('c', array(
+    'cid',
+    'category'
+  ));
+  $result = $query->execute();
+  return $result->fetchAllAssoc('cid');
+}
+
+
 
