@@ -904,8 +904,8 @@ function theme_biblio_export_links($variables) {
   if (empty($node) && !empty($links)) {
     $output = t('Export @count results', array('@count' => $pager_total_items[0])) . ': ';
   }
-  return $output . theme('links', array('links' => $links, 'attributes' => array('class' => "biblio-export-buttons")));
 
+  return $output . theme('links', array('links' => $links, 'attributes' => array('class' => array('biblio-export-buttons'))));
 }
 
 
