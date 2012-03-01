@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the customerror module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function customerror_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'customerror_%', 'LIKE')
+    ->execute();
+
+  // @todo document, why manually loading .module file.
+  module_load_include('module', 'customerror');
+  foreach (_customerror_enum_errors() as $code => $desc) {
+    if (variable_get('site_' . $code, '') == 'customerror/' . $code) {
+      variable_del('site_' . $code, '');
+    }
+  }
+}

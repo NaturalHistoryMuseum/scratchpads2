@@ -1,0 +1,14 @@
+name = Custom Error
+description = Enables the creation of custom error pages for 404 and 403 errors, as well as redirects for 404s.
+core = 7.x
+configure = admin/config/system/customerror
+
+files[] = tests/accessdenied.test
+files[] = tests/pagenotfound.test
+
+; Information added by drupal.org packaging script on 2011-10-04
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "customerror"
+datestamp = "1317729957"
+
