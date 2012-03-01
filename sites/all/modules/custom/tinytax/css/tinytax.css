@@ -13,8 +13,8 @@
 	background: url(../images/node.png) no-repeat;
 }
 
-.tinytax li.last { /* FIXME: Make the colour dynamic */
-	background: #ededed url(../images/lastnode.png) no-repeat;
+.tinytax li.last {
+	background: url(../images/lastnode.png) no-repeat;
 }
 
 .tinytax ul,.tinytax li,.tinytax li.last {

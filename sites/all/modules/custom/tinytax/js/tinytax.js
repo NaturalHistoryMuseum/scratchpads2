@@ -23,6 +23,15 @@
         img_clicked.attr('src', Drupal.settings.tinytax.plus);
       }
     });
+    var background_colour = false;
     $('.tinytax li:last-child').addClass('last');
+    $('.tinytax li:last-child').each(function(){
+      $(this).parents().each(function(){
+        if($(this).css('background-color') != 'transparent' && !background_colour){
+          background_colour = $(this).css('background-color');
+          $('.tinytax li:last-child').addClass('last').css('background-color', background_colour);
+        }
+      });
+    });
   }}
 })(jQuery);
