@@ -47,17 +47,23 @@ function darwincore_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'file',
+          'module' => 'styles',
           'settings' => array(),
-          'type' => 'file_default',
-          'weight' => 1
+          'type' => 'styles_file_square_thumbnail',
+          'weight' => '1',
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0
-        )
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'field_media',
