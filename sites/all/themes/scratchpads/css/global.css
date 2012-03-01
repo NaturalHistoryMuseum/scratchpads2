@@ -92,7 +92,7 @@ h1,
 h1.site-name, 
 h2.site-name{
 	font-size: 2.8em!important;
-	line-height: 1.2em;
+	line-height: 1.2em !important;
 	text-transform: none!important;  
 }
 
