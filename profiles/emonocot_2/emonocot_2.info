@@ -2,4 +2,4 @@ name = eMonocot Scratchpad 2
 description = Install an eMonocot Scratchpad 2 site
 core = 7.x
 dependencies[] = emonocot_tweaks
-files[] = emonocot_profile.profile
+files[] = emonocot_2.profile
