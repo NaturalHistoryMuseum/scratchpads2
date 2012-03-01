@@ -1,12 +1,13 @@
 <?php
 
-function emonocot_views_nomenclature($machine_name){
+function emonocot_views_nomenclature($vid){
+  $vocab = taxonomy_vocabulary_load($vid);
   $view = new view();
-  $view->name = 'em_species_nomenclature_' . $machine_name;
+  $view->name = 'em_species_nomenclature_' . $vocab->machine_name;
   $view->description = '';
   $view->tag = '';
   $view->base_table = 'taxonomy_term_data';
-  $view->human_name = 'emonocot species nomenclature (' . $machine_name . ')';
+  $view->human_name = 'emonocot species nomenclature (' . $vocab->machine_name . ')';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -344,33 +345,33 @@ function emonocot_views_nomenclature($machine_name){
   $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Field: Taxonomy term: Hybrid parents */
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['id'] = 'field_hp_' . $machine_name;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['table'] = 'field_data_field_hp_' . $machine_name;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['field'] = 'field_hp_' . $machine_name;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['text'] = '<strong>Hybrid parents:</strong> [field_hp_' . $machine_name . ']';
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['group_rows'] = 1;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['delta_offset'] = '0';
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['delta_reversed'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['delta_first_last'] = 0;
-  $handler->display->display_options['fields']['field_hp_' . $machine_name]['field_api_classes'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['id'] = 'field_hp_' . $vid;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['table'] = 'field_data_field_hp_' . $vid;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['field'] = 'field_hp_' . $vid;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['text'] = '<strong>Hybrid parents:</strong> [field_hp_' . $vid . ']';
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['hide_alter_empty'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['group_rows'] = 1;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['delta_offset'] = '0';
+  $handler->display->display_options['fields']['field_hp_' . $vid]['delta_reversed'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['delta_first_last'] = 0;
+  $handler->display->display_options['fields']['field_hp_' . $vid]['field_api_classes'] = 0;
   /* Contextual filter: Taxonomy term: Term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_term_data';

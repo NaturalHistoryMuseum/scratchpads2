@@ -4,3 +4,4 @@ package = "eMonocot"
 core = 7.x
 
 dependencies[] = emonocot_views
+dependencies[] = darwincore
