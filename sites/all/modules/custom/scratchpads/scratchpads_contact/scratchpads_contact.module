@@ -43,7 +43,7 @@ function scratchpads_contact_contact_site_form_validate(&$form, $form_state){
   drupal_get_messages();
 }
 
-function scratchpads_contact_mail_alter($message){
+function scratchpads_contact_mail_alter(&$message){
   if(isset($message['params']['report'])){
     $abuse_types = scratchpads_contact_abuse_types();
     $type = $message['params']['report'];
@@ -55,7 +55,6 @@ function scratchpads_contact_mail_alter($message){
     ));
     $message['body'][3] = $message['params']['message'];
   }
-  return $message;
 }
 
 function scratchpads_contact_abuse_types(){
