@@ -55,7 +55,7 @@ function emonocot_itis_groups($taxonomy_name){
       'weight' => '10',
       'children' => array(
         0 => 'field_type_ref',
-        1 => 'field_type_taxon',
+        1 => 'field_type_taxon_'.$taxonomy_name,
       ),
       'format_type' => 'htab',
       'format_settings' => array(
@@ -286,7 +286,7 @@ function emonocot_itis_fields($taxonomy_name){
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_type_taxon',
+      'field_name' => 'field_type_taxon_'.$taxonomy_name,
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
@@ -303,9 +303,9 @@ function emonocot_itis_fields($taxonomy_name){
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          'test' => array(
+          $taxonomy_name => array(
             'parent' => 0,
-            'vocabulary' => 'test',
+            'vocabulary' => $taxonomy_name,
           ),
         ),
       ),
@@ -327,7 +327,7 @@ function emonocot_itis_fields($taxonomy_name){
         ),
       ),
       'entity_type' => 'taxonomy_term',
-      'field_name' => 'field_type_taxon',
+      'field_name' => 'field_type_taxon_'.$taxonomy_name,
       'label' => 'Type taxon',
       'required' => 0,
       'settings' => array(

@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scratchpads_image_extension.features.taxonomy.inc
+ * scratchpads_media_gallery.features.taxonomy.inc
  */
 
 /**
  * Implements hook_taxonomy_default_vocabularies().
  */
-function scratchpads_image_extension_taxonomy_default_vocabularies() {
+function scratchpads_media_gallery_taxonomy_default_vocabularies() {
   return array(
     'image_keywords' => array(
       'name' => 'Image keywords',

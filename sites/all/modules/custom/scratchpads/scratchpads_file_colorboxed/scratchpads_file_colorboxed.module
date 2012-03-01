@@ -28,6 +28,13 @@ function scratchpads_file_colorboxed_entity_simple_view($fid){
   $content = entity_view('file', array(
     $entity
   ), 'file_styles_colorbox');
-  echo drupal_render($content);
+  // Wrap the audio file specially.
+  if($entity->type == 'audio'){
+    $width = 'width:400px;';
+  }else{
+    $width = '';
+  }
+  $content = '<div style="'.$width.'padding:10px">' . drupal_render($content) . '</div>';
+  echo $content;
   exit();
 }

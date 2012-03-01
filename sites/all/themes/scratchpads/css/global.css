@@ -85,14 +85,14 @@ h1,
 h1.site-name, 
 h2.site-name,
 h3{
-	font-family: 'FontinSansRegular', Georgia, serif;
+	font-family: 'FontinSansRegular', Georgia, serif !important;
 }
 
 h1, 
 h1.site-name, 
 h2.site-name{
 	font-size: 2.8em!important;
-	line-height: 1.2em;
+	line-height: 1.2em !important;
 	text-transform: none!important;  
 }
 
@@ -461,6 +461,7 @@ h2.site-name {
 
 #region-sidebar ul.facetapi-facetapi-links li{
   margin:5px 0;
+  list-style:none;
 }
 
 #region-sidebar a.facetapi-limit-link{
@@ -500,12 +501,16 @@ h2.site-name {
 }
 
 .view-species-media .view-content ul li.views-row,
-.page-gallery .file-image{
+.page-gallery .file{	
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
   list-style: none;
   background: none;
+}
+
+#cboxContent .file{
+	border:none;
 }
 
 .view-species-media .attachment  ul li.views-row{

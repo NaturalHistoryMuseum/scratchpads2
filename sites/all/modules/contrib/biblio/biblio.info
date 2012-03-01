@@ -28,9 +28,9 @@ files[] = views/biblio_handler_filter_contributor.inc
 files[] = views/biblio_handler_sort_contributor_lastname.inc
 files[] = views/biblio_handler_argument_many_to_one.inc
 files[] = views/biblio_handler_field_export_link.inc
-; Information added by drupal.org packaging script on 2012-02-20
-version = "7.x-1.0-rc3+49-dev"
+; Information added by drupal.org packaging script on 2012-02-28
+version = "7.x-1.0-rc3+54-dev"
 core = "7.x"
 project = "biblio"
-datestamp = "1329696310"
+datestamp = "1330430673"
 

@@ -895,8 +895,7 @@ function biblio_schema() {
     'description' => 'Contains Author information for each publication',
     'fields' => array(
       'cid' => array(
-        'type' => 'int',
-        'auto_increment' => TRUE,
+        'type' => 'serial',
         'not null' => TRUE,
         'unsigned' => TRUE,
         'description' => 'Primary Key: Author ID',
