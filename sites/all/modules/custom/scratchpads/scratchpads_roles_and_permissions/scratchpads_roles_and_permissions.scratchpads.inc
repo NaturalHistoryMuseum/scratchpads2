@@ -27,6 +27,20 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * Contact module
+ */
+function contact_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer contact forms'
+    ),
+    'anonymous user' => array(
+      'access site-wide contact form',
+      'access user contact forms'
+    )
+  );
+}
+/**
  * Tools module
  *
  * Note, because this is a custom module that may be release to drupal.org, this specific
