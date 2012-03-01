@@ -58,4 +58,5 @@ dependencies[] = spm
 dependencies[] = tui
 dependencies[] = silver
 dependencies[] = eol
+dependencies[] = eol_gbif_maps
 dependencies[] = tools
