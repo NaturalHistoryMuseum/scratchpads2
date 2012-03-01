@@ -9,22 +9,15 @@ function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
   $type = (arg(3) == 'report-abuse' ? ABUSE_FORM : CONTACT_FORM);
   // Use the contact form category as the title
   $form_state['title'] = $form['cid']['#options'][$type];
-
-  
   switch($type){
     // If this is an abuse form, add some extra fields
     case ABUSE_FORM:
       $form['report'] = array(
         '#type' => 'select',
         '#title' => t('What would you like to report?'),
-        '#options' => array(
-          'intellectual_property' => t('A violation of Intellectual Property or Copyright'),
-          'terms_and_conditions' => t('A violation of the Scratchpad Terms and Conditions'),
-          'spam' => t('A Spam or Phishing event'),
-          'other' => t('Other Concerns')
-        ),
-        '#weight' => -10,
-        '#required' => true
+        '#options' => scratchpads_contact_abuse_types(),
+      	'#weight' => -10,
+      	'#required' => true
       );
       $form['url'] = array(
         '#type' => 'textfield',
@@ -32,7 +25,7 @@ function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
         '#size' => 60,
         '#weight' => -9,
         '#default_value' => $_SERVER["HTTP_REFERER"],
-      	'#disabled' => true
+        '#disabled' => true
       );
       $form['subject']['#default_value'] = t('Report abuse');
       $form['message']['#title'] = t('Details');
@@ -46,6 +39,31 @@ function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
 }
 
 function scratchpads_contact_contact_site_form_validate(&$form, $form_state){
-	// We don;t want the error messages - red borders are enough
+  // We don;t want the error messages - red borders are enough
   drupal_get_messages();
 }
+
+function scratchpads_contact_mail_alter($message){
+  if(isset($message['params']['report'])){
+    $abuse_types = scratchpads_contact_abuse_types();
+    $type = $message['params']['report'];
+    $message['body'][1] = t('Reporting !type', array(
+      '!type' => strtolower($abuse_types[$type])
+    ));
+    $message['body'][2] = t('On page !url', array(
+      '!url' => $message['params']['url']
+    ));
+    $message['body'][3] = $message['params']['message'];
+  }
+  return $message;
+}
+
+function scratchpads_contact_abuse_types(){
+  return array(
+    t('A violation of Intellectual Property or Copyright'),
+    t('A violation of the Scratchpad Terms and Conditions'),
+    t('A Spam or Phishing event'),
+    t('Other Concerns')
+  );
+}
+
