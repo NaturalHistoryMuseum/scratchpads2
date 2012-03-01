@@ -14,7 +14,7 @@ if(function_exists('drush_get_option')){
   $account->mail = 'scratchpad@nhm.ac.uk';
   user_save($account);
   // Ensure this user can not login directly.
-  db_update('user')->fields(array(
+  db_update('users')->fields(array(
     'pass' => ''
   ))->condition('uid', 1)->execute();
   // Create an account for the user based on the data they entered when applying
