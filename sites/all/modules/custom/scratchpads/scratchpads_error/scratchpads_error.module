@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Scratchpads error feature.
+ */
+
+include_once('scratchpads_error.features.inc');
