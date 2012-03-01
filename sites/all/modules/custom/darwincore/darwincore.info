@@ -5,6 +5,7 @@ package = "Specimens"
 php = "5.2.4"
 version = "7.x-1.0"
 project = "darwincore"
+tool=true
 dependencies[] = "auto_nodetitle"
 dependencies[] = "countries"
 dependencies[] = "date"
