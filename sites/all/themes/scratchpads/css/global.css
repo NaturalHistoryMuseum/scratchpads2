@@ -488,10 +488,6 @@ h2.site-name {
   margin-bottom: 25px;
 }
 
-#tinytax-search-form{
-  display: none;
-}
-
 /************************ MEDIA GALLERY *********************/ 
 
 .view-species-media .view-content ul{
@@ -708,4 +704,72 @@ div.contextual-links-wrapper{
 div.contextual-links-wrapper ul.contextual-links{
    z-index:2!important;
 }
+
+
+
+/****************** CONTACT FORMS *****************/
+
+#modalContent .popups-container{
+  overflow: visible;
+}
+
+#modalContent .popups-container .popups-title{
+  position: absolute;
+  top: -28px;
+  width: 550px;
+  z-index: 100;
+  padding: 0!important;
+}
+
+#modalContent .popups-container .popups-title h3#modal-title{
+  color: #fff!important;
+  font-size: 18px!important;
+  top: 0;
+  margin: 0;
+  position: relative;
+}
+
+#modalContent .popups-container .popups-title span.close{
+  top: 7px!important;
+  background: url('../images/contact-close.png') no-repeat!important;
+  width: 10px;
+  width: 10px;
+  right: 10px;
+}
+
+.contact-form .form-item{
+  margin: 15px 0;
+}
+
+.contact-form label{
+  float: left!important;
+  width: 210px!important;
+  clear: left;
+  font-weight: bold;
+}
+
+.contact-form input{
+width: 200px;
+}
+
+.contact-form input.form-checkbox,
+.contact-form input.form-submit{
+width: auto;
+}
+
+.contact-form textarea,
+.contact-form div.grippie,
+.contact-form select{
+width: 300px;
+}
+
+.contact-form div.grippie{
+ margin-left: 210px!important;
+}
+
+.contact-form .form-actions{
+  margin-left: 210px;
+}
+
+
 

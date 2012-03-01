@@ -1,12 +1,12 @@
 (function($){
   Drupal.behaviors.tinytax = {
     attach: function(context, settings){
-      $('img.click', context).click(function(){
+      $('img.click', context).once().click(function(){
         var img_clicked = $(this);
         // If we're clicking a plus
         if(img_clicked.attr('src') == Drupal.settings.tinytax.plus){
           if(img_clicked.parent('li').children('ul').length){
-            img_clicked.parent('li').children('ul').show();
+            img_clicked.parent('li').children('ul').slideDown();
             img_clicked.attr('src', Drupal.settings.tinytax.minus);
           } else {
             // Check if we already have the children data, if so, we just show it
@@ -20,23 +20,23 @@
         }
         // If we're clicking a minus
         else if(img_clicked.attr('src') == Drupal.settings.tinytax.minus){
-          img_clicked.parent('li').children('ul').hide();
+          img_clicked.parent().children('ul').slideUp();
           img_clicked.attr('src', Drupal.settings.tinytax.plus);
         }
       });
-      $('.tinytax-search-field', context).focusin(function(){
+      $('.tinytax-search-field', context).once().focusin(function(){
         $(this).removeClass('tinytax-no-focus');
         if($(this).val() == Drupal.settings.tinytax.no_focus){
           $(this).val('')
         }
       })
-      $('.tinytax-search-field', context).focusout(function(){
+      $('.tinytax-search-field', context).once().focusout(function(){
         $(this).addClass('tinytax-no-focus');
         if($(this).val() == ''){
           $(this).val(Drupal.settings.tinytax.no_focus)
         }
       })
-      $('.tinytax-search-field', context).keypress(function(event){
+      $('.tinytax-search-field', context).once().keypress(function(event){
         var keyCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode;
         if (keyCode == 13) {
           // Check to see if the aria-live thing is empty, if so, we search

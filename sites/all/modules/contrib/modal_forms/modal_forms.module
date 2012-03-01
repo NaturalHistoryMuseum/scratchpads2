@@ -1,0 +1,224 @@
+<?php
+/**
+ * @file modal_forms.module
+ * TODO: Enter file description here.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function modal_forms_init() {
+  // Do not load modal_forms during the Drupal installation process, e.g. if part
+  // of installation profiles.
+  if (!drupal_installation_attempted()) {
+    _modal_forms_doheader();
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function modal_forms_menu() {
+  $items['admin/config/development/modal_forms'] = array(
+    'title' => 'Modal forms',
+    'description' => 'Adjust Modal forms settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('modal_forms_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'modal_forms.admin.inc',
+  );
+  $items['modal_forms/%ctools_js/login'] = array(
+    'title' => 'Log in',
+    'page callback' => 'modal_forms_login',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'file' => 'modal_forms.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['modal_forms/%ctools_js/register'] = array(
+    'title' => 'Register',
+    'page callback' => 'modal_forms_register',
+    'page arguments' => array(1),
+    'access callback' => 'user_register_access',
+    'file' => 'modal_forms.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['modal_forms/%ctools_js/password'] = array(
+    'title' => 'Password',
+    'page callback' => 'modal_forms_password',
+    'page arguments' => array(1),
+    'access callback' => 'user_is_anonymous',
+    'file' => 'modal_forms.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['modal_forms/%ctools_js/contact'] = array(
+    'title' => 'Contact',
+    'page callback' => 'modal_forms_contact',
+    'page arguments' => array(1),
+    'access arguments' => array('access site-wide contact form'),
+    'file' => 'modal_forms.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function modal_forms_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login':
+      if (arg(0) == 'modal_forms') {
+        $form['name']['#size'] = 25;
+        $form['pass']['#size'] = 25;
+
+        // Add links as needed.
+        if (variable_get('modal_forms_login_links', 0)) {
+          $items = array();
+          // Add standard links.
+          if (variable_get('modal_forms_login_links', 0) == 1) {
+            if (variable_get('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)) {
+              $items[] = l(t('Create new account'), 'user/register', array('attributes' => array('title' => t('Create a new user account.'))));
+            }
+            $items[] = l(t('Request new password'), 'user/password', array('attributes' => array('title' => t('Request new password via e-mail.'))));
+          }
+          // Add links that opens in a modal_forms.
+          if (variable_get('modal_forms_login_links', 0) == 2) {
+            if (variable_get('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)) {
+              $items[] = ctools_modal_text_button(t('Create new account'), 'modal_forms/nojs/register', t('Create a new user account'), 'ctools-modal-modal-popup-medium');
+            }
+            $items[] = ctools_modal_text_button(t('Request new password'), 'modal_forms/nojs/password', t('Request new password via e-mail.'), 'ctools-modal-modal-popup-small');
+          }
+          $form['links'] = array('#markup' => theme('item_list', array('items' => $items)));
+        }
+      }
+      break;
+    case 'user_register_form':
+      if (arg(0) == 'modal_forms') {
+        $form['account']['name']['#size'] = 30;
+        $form['account']['mail']['#size'] = 30;
+      }
+      break;
+    case 'user_pass':
+      if (arg(0) == 'modal_forms') {
+        $form['name']['#size'] = 30;
+      }
+      break;
+  }
+}
+
+/**
+ * Check if modal_forms should be active for the current URL.
+ *
+ * @return
+ *   TRUE if modal_forms should be active for the current page.
+ */
+function _modal_forms_active() {
+  // Code from the block_list funtion in block.module.
+  $path = drupal_get_path_alias($_GET['q']);
+  $modal_forms_pages = variable_get('modal_forms_pages', "admin*\nimg_assist*\nimce*\nnode/add/*\nnode/*/edit");
+  // Compare with the internal and path alias (if any).
+  $page_match = drupal_match_path($path, $modal_forms_pages);
+  if ($path != $_GET['q']) {
+    $page_match = $page_match || drupal_match_path($_GET['q'], $modal_forms_pages);
+  }
+
+  return !$page_match;
+}
+
+/**
+ * Loads the various js and css files.
+ */
+function _modal_forms_doheader() {
+  static $already_added = FALSE;
+  if ($already_added) {
+    return; // Don't add the JavaScript and CSS multiple times.
+  }
+  if (!_modal_forms_active()) {
+    return; // Don't add the JavaScript and CSS on specified paths.
+  }
+
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+
+  $throbber = theme('image', array('path' => ctools_image_path('loading_animation.gif', 'modal_forms'), 'alt' => t('Loading...'), 'title' => t('Loading')));
+  $js_settings = array(
+    'modal-popup-small' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 300,
+        'height' => 300,
+      ),
+      'modalOptions' => array(
+        'opacity' => 0.85,
+        'background' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'ModalFormsPopup',
+      'throbber' => $throbber,
+      'closeText' => t('Close'),
+    ),
+    'modal-popup-medium' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 550,
+        'height' => 450,
+      ),
+      'modalOptions' => array(
+        'opacity' => 0.85,
+        'background' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'ModalFormsPopup',
+      'throbber' => $throbber,
+      'closeText' => t('Close'),
+    ),
+    'modal-popup-large' => array(
+      'modalSize' => array(
+        'type' => 'scale',
+        'width' => 0.8,
+        'height' => 0.8,
+      ),
+      'modalOptions' => array(
+        'opacity' => 0.85,
+        'background' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'ModalFormsPopup',
+      'throbber' => $throbber,
+      'closeText' => t('Close'),
+    ),
+  );
+
+  drupal_add_js($js_settings, 'setting');
+
+  // Add modal_forms own js and CSS.
+  ctools_add_css('modal_forms_popup', 'modal_forms');
+  ctools_add_js('modal_forms_popup', 'modal_forms');
+
+  $path = drupal_get_path('module', 'modal_forms');
+
+  // Automatically rewrite selected links to open in a modal.
+  if ($GLOBALS['user']->uid == 0) {
+    if (variable_get('modal_forms_login', 0)) {
+      drupal_add_js($path . '/js/modal_forms_login.js', array('weight' => -20));
+    }
+    if (variable_get('modal_forms_register', 0)) {
+      drupal_add_js($path . '/js/modal_forms_register.js', array('weight' => -20));
+    }
+    if (variable_get('modal_forms_password', 0)) {
+      drupal_add_js($path . '/js/modal_forms_password.js', array('weight' => -20));
+    }
+  }
+
+  if (variable_get('modal_forms_contact', 0)) {
+    drupal_add_js($path . '/js/modal_forms_contact.js', array('weight' => -20));
+  }
+
+  $already_added = TRUE;
+}
