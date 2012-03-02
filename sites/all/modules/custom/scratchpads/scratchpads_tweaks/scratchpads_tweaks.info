@@ -30,6 +30,7 @@ dependencies[] = feeds_oai_pmh
 dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = clone
 dependencies[] = wysiwyg
+dependencies[] = boost
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
