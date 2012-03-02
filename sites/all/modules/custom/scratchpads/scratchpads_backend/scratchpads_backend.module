@@ -14,8 +14,16 @@ function scratchpads_backend_menu_alter(&$items){
   $items['admin/content']['module'] = 'scratchpads_backend';
   unset($items['admin/content']['page arguments']);
   $items['admin/content']['file'] = 'scratchpads_backend.admin.inc';
-  unset($items['admin/content/node']);
-  unset($items['admin/content/file']);
+  $items['admin/content/node']['page callback'] = 'drupal_goto';
+  $items['admin/content/node']['page arguments'] = array(
+    'admin/content'
+  );
+  $items['admin/content/node']['type'] = MENU_CALLBACK;
+  $items['admin/content/file']['page callback'] = 'drupal_goto';
+  $items['admin/content/file']['page arguments'] = array(
+    'admin/content'
+  );
+  $items['admin/content/file']['type'] = MENU_CALLBACK;
   $items['node/add'] = array(
     'title' => '',
     'title callback' => FALSE,
@@ -113,17 +121,26 @@ function scratchpads_backend_views_api(){
  * Implementation of hook_views_pre_view
  */
 function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
-  if($view->name == 'admin_node'){
+  if($view->name == 'admin_vbo_node'){
+    $field_taxonomic_name = false;
     $bundle_name = reset($view->args);
     $entity_type = 'node';
     $instances = field_info_instances($entity_type, $bundle_name);
     $field = $view->display_handler->get_handler('field', 'views_bulk_operations');
     foreach(array_keys($instances) as $field_name){
+      if($field_name == 'field_taxonomic_name'){
+        $field_taxonomic_name = true;
+      }
       if($field_name == 'title_field' && isset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title'])){
         unset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title']);
       }
       $edit_field = $bundle_name . '::' . $field_name;
       $field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values'][$edit_field] = $edit_field;
+    }
+    // If there's no taxonomy name field, hide the taxon filer
+    if(!$field_taxonomic_name){
+      $display_id = $view->current_display;
+      $view->set_item($display_id, 'filter', 'field_taxonomic_name_tid', NULL);
     }
   }
 }
@@ -141,3 +158,4 @@ function scratchpads_backend_usort_comparison($a, $b){
     return $a->weight > $b->weight ? 1 : -1;
   }
 }
+
