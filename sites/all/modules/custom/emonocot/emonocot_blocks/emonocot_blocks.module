@@ -11,14 +11,12 @@ function emonocot_blocks_block_info(){
   );
   $blocks['typification_overview'] = array(
     'info' => t('eMonocot Typification Overview'),
-    'region' => 'none',
     'weight' => 2,
     'theme' => EMONOCOT_THEME_NAME,
     'status' => 0
   );
   $blocks['hybrid_children'] = array(
     'info' => t('Hybrid children'),
-    'region' => 'none',
     'weight' => 3,
     'theme' => EMONOCOT_THEME_NAME,
     'status' => 0
