@@ -61,6 +61,19 @@ function simplenews_scratchpads_default_permissions(){
 }
 
 /**
+ * Redirect module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function redirect_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer redirects'
+    )
+  );
+}
+
+/**
  * Pathauto module
  * 
  * Implements hook_scratchpads_default_permissions()
