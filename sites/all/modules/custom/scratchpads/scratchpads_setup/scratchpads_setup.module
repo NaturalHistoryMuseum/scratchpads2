@@ -1,0 +1,216 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_default_flows().
+ */
+function scratchpads_setup_default_flows(){
+  return array(
+    'site_setup' => array(
+      'title' => t('Site setup'),
+      'name' => 'site_setup',
+      'description' => t('New scratchpad site set up.'),
+      'path' => 'setup',
+      'show_trail' => 1,
+      'show_back' => 1,
+      'show_cancel' => 1,
+      'finish_path' => 'setup-complete',
+      'steps' => array(
+        array(
+          'form_id' => 'scratchpads_welcome_form',
+          'title' => 'Welcome'
+        ),
+        array(
+          'form_id' => 'scratchpads_front_page_edit',
+          'title' => 'Front page'
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_about_form',
+          'title' => 'About'
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_licence_form',
+          'title' => 'Licence'
+        ),
+        array(
+          'form_id' => 'tools_admin_form',
+          'title' => 'Tools',
+          'path' => 'admin/structure/tools'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_setup_admin_paths(){
+  $paths = array(
+    'setup' => true,
+    'setup/*' => true,
+    'setup-complete' => true
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_setup_menu(){
+  $items = array();
+  $items['setup-complete'] = array(
+    'title' => 'Setup complete',
+    'description' => 'Setup complete.',
+    'page callback' => 'scratchpads_setup_complete_page',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(
+      'access content'
+    )
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_setup_module_implements_alter(&$implementations, $hook){
+  if($hook == 'form_alter'){
+    // Scratchpads setup form later should be called last
+    $group = $implementations['scratchpads_setup'];
+    unset($implementations['scratchpads_setup']);
+    $implementations['scratchpads_setup'] = $group;
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * SETUP FORMS
+ * 
+ ********************************************************************************************/
+function scratchpads_welcome_form($form, &$form_state){
+  // Sanity check - ensure this hasn't already run
+  if(variable_get('scratchpads_setup_complete', false)){
+    drupal_goto();
+  }
+  $form['welcome'] = array(
+    '#markup' => t('<h3>Welcome to your new scratchpad! Thank you for signing up.</h3>')
+  );
+  $form['explanation'] = array(
+    '#markup' => t('<p>This walkthrough will guide you through the basic steps to get a scratchpad up and running.</p><p>We recommend you take a few minutes to go through them now - they can be changed later, if needed.</p><p>Click continue to start the set up process.</p>')
+  );
+  return $form;
+}
+
+function scratchpads_setup_about_form($form, &$form_state){
+  $form['about_us'] = array(
+    '#title' => t('About your site'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#description' => t('An <em>About us</em> page is automatically created for your site.'),
+    '#required' => true
+  );
+  return $form;
+}
+
+function scratchpads_setup_about_form_submit($form, &$form_state){
+  $node = new stdClass();
+  $node->type = 'page';
+  node_object_prepare($node);
+  $node->title = t('About us');
+  $node->language = LANGUAGE_NONE;
+  $body_text = $form_state['values']['about_us']['value'];
+  $node->body[$node->language][0]['value'] = $body_text;
+  $node->body[$node->language][0]['summary'] = text_summary($body_text);
+  $node->body[$node->language][0]['format'] = $form_state['values']['about_us']['format'];
+  $path = 'about-us';
+  $node->path = array(
+    'alias' => $path
+  );
+  $node->menu = array(
+    'enabled' => 1,
+    'module' => 'menu',
+    'link_title' => $node->title,
+    'description' => $node->title,
+    'weight' => 5,
+    'menu_name' => PRIMARY_MENU_NAME
+  );
+  node_save($node);
+}
+
+function scratchpads_setup_licence_form($form, &$form_state){
+  $form['licence_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Licence type'),
+    '#default_value' => variable_get('creative_commons_block_licence_type', CC_BY),
+    '#options' => creative_commons_get_licence_types()
+  );
+  return $form;
+}
+
+function scratchpads_setup_licence_form_submit($form, &$form_state){
+  variable_set('creative_commons_block_licence_type', $form_state['values']['licence_type']);
+}
+
+function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
+  global $user;
+  switch($form_id){
+    case 'user_profile_form':
+      if($user->uid == 2 && !variable_get('scratchpads_setup_complete', false)){
+        $form['actions']['submit']['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
+      }
+      break;
+  }
+}
+
+function scratchpads_setup_user_profile_form_submit(&$form, &$form_state){
+  $form_state['redirect'] = 'setup';
+  drupal_get_messages();
+}
+
+/*********************************************************************************************
+ * 
+ * COMPLETE PAGE
+ * 
+ ********************************************************************************************/
+function scratchpads_setup_complete_page(){
+  variable_set('scratchpads_setup_complete', true);
+  return array(
+    '#show_messages' => TRUE,
+    '#theme' => 'page',
+    '#type' => 'page',
+    'content' => array(
+      'thanks' => array(
+        '#type' => 'markup',
+        '#markup' => t('<p>Thank you, the basic configuration of your site is complete.</p>')
+      ),
+      'next' => array(
+        '#items' => array(
+          l(t("Create content"), 'admin/content'),
+          l(t("Add a taxonomy"), 'admin/structure/taxonomy')
+        ),
+        '#title' => t("What next?"),
+        '#theme' => 'item_list'
+      ),
+      'help' => array(
+        '#items' => array(
+          l(t("Help"), 'help.scratchpads.eu', array(
+            'absolute' => true
+          )),
+          l(t("Sandbox"), 'sandbox.scratchpads.eu', array(
+            'absolute' => true
+          ))
+        ),
+        '#title' => t("Need more help?"),
+        '#theme' => 'item_list'
+      )
+    ),
+    '#sorted' => TRUE
+  );
+}
+
+
