@@ -40,6 +40,7 @@ function contact_scratchpads_default_permissions(){
     )
   );
 }
+
 /**
  * Tools module
  *
@@ -367,10 +368,6 @@ function block_scratchpads_default_permissions(){
  * Implements hook_scratchpads_default_permissions().
  */
 function node_scratchpads_default_permissions(){
-  // Missing permissions:
-  // 'bypass node access'
-  // 'administer content types'
-  // 'administer nodes'
   $permissions = array(
     'anonymous user' => array(
       'access content',
@@ -386,7 +383,11 @@ function node_scratchpads_default_permissions(){
       'revert revisions',
       'delete revisions'
     ),
-    'maintainer' => array()
+    'maintainer' => array(
+      'administer content types',
+      'administer nodes',
+      'bypass node access'
+    )
   );
   // Rebuild the node types
   _node_types_build(TRUE);
