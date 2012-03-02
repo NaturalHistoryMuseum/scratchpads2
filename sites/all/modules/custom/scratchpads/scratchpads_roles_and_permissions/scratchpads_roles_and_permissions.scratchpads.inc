@@ -42,6 +42,19 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Pathauto module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function pathauto_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer pathauto'
+    )
+  );
+}
+
+/**
  * Lexicon module
  * 
  * Implements hook_scratchpads_default_permissions().
