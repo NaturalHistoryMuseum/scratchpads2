@@ -3,26 +3,5 @@ description = 'eMonocot customised Scratchpads theme'
 core = '7.x'
 engine = 'phptemplate'
 base theme = 'scratchpads'
-
-regions[page_top] = 'Page Top'
-regions[page_bottom] = 'Page Bottom'
-regions[slide_top] = 'Slide Top'
-regions[content] = 'Main content'
-regions[sidebar] = 'Sidebar'
-regions[footer] = 'Footer'
-regions[slide_bottom] = 'Slide Bottom'
-
-zones[slide_top] = 'Slide top'
-zones[header] = 'Header'
-zones[content] = 'Content'
-zones[footer] = 'Footer'
-zones[slide_bottom] = 'Slide bottom'
-
-; Header zone regions
-regions[branding] = 'Branding'
-regions[menu] = 'Menu'
-regions[header] = 'Header'
-
 stylesheets[all][] = em.css
-
 settings[default_logo] = 1;
