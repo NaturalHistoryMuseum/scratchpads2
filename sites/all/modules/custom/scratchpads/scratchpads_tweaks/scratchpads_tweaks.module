@@ -50,5 +50,8 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
       break;
+    case 'googleanalytics':
+      $info['tool'] = TRUE;
+      break;
   }
 }

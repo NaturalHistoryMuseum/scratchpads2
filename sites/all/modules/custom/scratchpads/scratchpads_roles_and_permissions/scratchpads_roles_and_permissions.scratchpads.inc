@@ -42,6 +42,19 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Google analytics module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function googleanalytics_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer google analytics'
+    )
+  );
+}
+
+/**
  * Subpermissions module
  * 
  * Implements hook_scratchpads_default_permissions().
