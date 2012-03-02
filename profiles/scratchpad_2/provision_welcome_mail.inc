@@ -24,7 +24,11 @@ if(function_exists('drush_get_option')){
   $account->name = drush_get_option('fullname', 'Scratchpad Maintainer');
   $account->mail = drush_get_option('client_email', 'scratchpad@nhm.ac.uk');
   $account->status = 1;
-  $account->pass = uniqid() . uniqid() . uniqid();
+  $account->roles = array(
+    5 => TRUE
+  );
+  // Ensure the user can't login by setting a "crap" password
+  $account->pass = 'crap_password_thats_not_a_hash';
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
@@ -64,7 +68,7 @@ $mail['body'] = st("Dear !username,
 
 !uri
 
-Your new Scratchpad \"!site\" has been created for you
+Your new Scratchpad \"!site\" has been created for you.
 
 You can now login to !site by clicking on this link or copying it into your browser:
 

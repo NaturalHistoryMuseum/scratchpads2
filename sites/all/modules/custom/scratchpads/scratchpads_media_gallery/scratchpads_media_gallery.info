@@ -43,6 +43,3 @@ features[file_display][] = "image__file_styles_scratchpads_media_gallery_thumbna
 features[file_display][] = "video__file_styles_scratchpads_media_gallery_thumbnail__file_field_styles_file_scratchpads_media_gallery_thumbnail"
 features[styles_style][] = "file:scratchpads_media_gallery_thumbnail"
 features[styles_style][] = "media:scratchpads_media_gallery_thumbnail"
-features[taxonomy][] = "image_keywords"
-features[taxonomy][] = "imaging_technique"
-features[taxonomy][] = "preparation_technique"
