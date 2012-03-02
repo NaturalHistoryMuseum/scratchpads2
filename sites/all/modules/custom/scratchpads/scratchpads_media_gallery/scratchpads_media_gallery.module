@@ -98,54 +98,6 @@ function scratchpads_media_gallery_module_implements_alter(&$implementations, $h
 }
 
 /**
- * Implements hook_flush_caches()
- */
-function scratchpads_media_gallery_flush_caches(){
-  // Here we add the terms to the correct vocabulary.
-  $vocabulary = taxonomy_vocabulary_machine_name_load('imaging_technique');
-  if($vocabulary){
-    $tree = taxonomy_get_tree($vocabulary->vid, 0, 1);
-    if(!count($tree)){
-      $terms = array(
-        array(
-          'name' => 'Photograph',
-          'description' => 'Captured with a regular camera.'
-        ),
-        array(
-          'name' => 'Illustration',
-          'description' => 'Figurative, hand drawn or computer rendered.'
-        ),
-        array(
-          'name' => 'Light Micrograph',
-          'description' => 'Captured through a regular microscope.'
-        ),
-        array(
-          'name' => 'Scan',
-          'description' => 'A scan of a printed image/diagram/text'
-        ),
-        array(
-          'name' => 'Scanning Electron Micrograph',
-          'description' => 'Captured through a Scanning Electron Microscope.'
-        ),
-        array(
-          'name' => 'Transmission Electron Micrograph',
-          'description' => 'Captured through a Transmission Electron Microscope.'
-        ),
-        array(
-          'name' => 'Other',
-          'description' => 'None of the above.'
-        )
-      );
-      foreach($terms as $term){
-        $term = (object)$term;
-        $term->vid = $vocabulary->vid;
-        taxonomy_term_save($term);
-      }
-    }
-  }
-}
-
-/**
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_media_gallery_block_view_alter(&$data, $block){
