@@ -34,7 +34,7 @@ function tcsdc_silver(){
   return array(
     array(
       'type' => 'Taxonomy',
-      'name' => 'Taxon Concept Schema Import',
+      'name' => 'External service',
       //'access callback' => 'user_access',
       'access arguments' => array(
         'administer taxonomy'
