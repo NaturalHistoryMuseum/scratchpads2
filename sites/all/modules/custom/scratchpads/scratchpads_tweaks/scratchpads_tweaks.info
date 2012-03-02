@@ -31,6 +31,7 @@ dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = clone
 dependencies[] = wysiwyg
 dependencies[] = boost
+dependencies[] = entitycache
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
@@ -47,6 +48,7 @@ dependencies[] = scratchpads_front
 dependencies[] = scratchpads_hands_off
 dependencies[] = scratchpads_help
 dependencies[] = scratchpads_media_gallery
+dependencies[] = scratchpads_mollom
 dependencies[] = scratchpads_pages
 dependencies[] = scratchpads_roles_and_permissions
 dependencies[] = scratchpads_search_block
