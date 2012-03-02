@@ -43,22 +43,30 @@ function _scratchpads_autotag_save_defaults_for_node_type($node_type){
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
  */
-function scratchpads_autotag_taxonomy_vocabulary_insert(){
+function scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
-    // We have a biological classification.  We need to update autotag settings
-  // for all the content types that are autotagging to the taxonomic name field.
+    $biological_vids = variable_get('biological_vids', array());
+    $vids = array();
+    foreach($biological_vids as $vid => $value){
+      if($value){
+        $vids[] = $vid;
+      }
+    }
+    $vids[] = $vocabulary->vid;
+    // Set the variables for all the node types.
+    $node_info = entity_get_info('node');
+    foreach($node_info['bundles'] as $node_type => $values){
+      variable_set('autotag_vids_' . $node_type, $vids);
+    }
   }
 }
 
 /**
  * Implementation of hook_taxonomy_vocabulary_update().
  */
-function scratchpads_autotag_taxonomy_vocabulary_update(){}
-
-/**
- * Implementation of hook_taxonomy_vocabulary_delete().
- */
-function scratchpads_autotag_taxonomy_vocabulary_delete(){}
+function scratchpads_autotag_taxonomy_vocabulary_update($vocabulary){
+  scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary);
+}
 
 /**
  * Implementation of hook_node_type_delete().
