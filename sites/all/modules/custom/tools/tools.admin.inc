@@ -1,7 +1,6 @@
 <?php
 
-function tools_admin_form(){
-  $form = array();
+function tools_admin_form($form, &$form_state){
   $path = drupal_get_path('module', 'tools');
   $form['#attached']['css'] = array(
     $path . '/css/tools.css'
@@ -40,7 +39,10 @@ function tools_admin_form(){
       '#prefix' => '<span class="tools-icon ' . drupal_html_class($feature->name . '-icon') . '"></span>'
     );
   }
-  $form['submit'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions'
+  );
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save')
   );
