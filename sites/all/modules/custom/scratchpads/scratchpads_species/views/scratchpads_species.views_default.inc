@@ -611,7 +611,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['field_taxonomic_name_tid']['break_phrase'] = 1;
   $handler->display->display_options['arguments']['field_taxonomic_name_tid']['not'] = 0;
   /* Filter criterion: File: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
@@ -1925,6 +1925,7 @@ function scratchpads_species_views_default_views(){
     $handler = $view->new_display('block', 'Block', 'block');
     $views[$view->name] = $view;
     $view = new view();
+    $view = new view();
     $view->name = 'species_media';
     $view->description = '';
     $view->tag = 'default';
@@ -1954,48 +1955,30 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['row_plugin'] = 'file';
     $handler->display->display_options['row_options']['view_mode'] = 'file_styles_square_thumbnail';
     $handler->display->display_options['row_options']['links'] = 1;
-    /* Relationship: File Usage: Content */
-    $handler->display->display_options['relationships']['file_to_node']['id'] = 'file_to_node';
-    $handler->display->display_options['relationships']['file_to_node']['table'] = 'file_usage';
-    $handler->display->display_options['relationships']['file_to_node']['field'] = 'file_to_node';
-    $handler->display->display_options['relationships']['file_to_node']['required'] = 0;
     /* Sort criterion: File: Upload date */
     $handler->display->display_options['sorts']['timestamp']['id'] = 'timestamp';
     $handler->display->display_options['sorts']['timestamp']['table'] = 'file_managed';
     $handler->display->display_options['sorts']['timestamp']['field'] = 'timestamp';
     $handler->display->display_options['sorts']['timestamp']['order'] = 'DESC';
-    /* Contextual filter: Content: Has taxonomy term ID */
-    $handler->display->display_options['arguments']['tid']['id'] = 'tid';
-    $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
-    $handler->display->display_options['arguments']['tid']['field'] = 'tid';
-    $handler->display->display_options['arguments']['tid']['relationship'] = 'file_to_node';
-    $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
-    $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
-    $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
-    $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
-    $handler->display->display_options['arguments']['tid']['default_argument_options']['limit'] = 0;
-    $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = 0;
-    $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
-    $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
-    $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
-    $handler->display->display_options['arguments']['tid']['specify_validation'] = 1;
-    $handler->display->display_options['arguments']['tid']['validate']['type'] = 'taxonomy_term';
-    $handler->display->display_options['arguments']['tid']['validate_options']['transform'] = 0;
-    $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
-    $handler->display->display_options['arguments']['tid']['add_table'] = 0;
-    $handler->display->display_options['arguments']['tid']['require_value'] = 0;
-    $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
-    $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
-    $handler->display->display_options['filter_groups']['operator'] = 'OR';
-    $handler->display->display_options['filter_groups']['groups'] = array(
-      0 => 'AND',
-      1 => 'AND'
-    );
+    /* Contextual filter: Field: Taxonomic name (field_taxonomic_name) */
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_action'] = 'default';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_type'] = 'taxonomy_tid';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_options']['term_page'] = 1;
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_options']['node'] = 0;
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_options']['limit'] = 0;
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['default_argument_skip_url'] = 0;
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary']['number_of_records'] = '0';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary']['format'] = 'default_summary';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['summary_options']['items_per_page'] = '25';
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['break_phrase'] = 1;
+    $handler->display->display_options['arguments']['field_taxonomic_name_tid']['not'] = 0;
     /* Filter criterion: File: Type */
     $handler->display->display_options['filters']['type']['id'] = 'type';
     $handler->display->display_options['filters']['type']['table'] = 'file_managed';
     $handler->display->display_options['filters']['type']['field'] = 'type';
-    $handler->display->display_options['filters']['type']['group'] = 0;
     $handler->display->display_options['filters']['type']['exposed'] = TRUE;
     $handler->display->display_options['filters']['type']['expose']['operator_id'] = 'type_op';
     $handler->display->display_options['filters']['type']['expose']['label'] = 'Type';
@@ -2009,46 +1992,6 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['status']['value'] = array(
       1 => '1'
     );
-    $handler->display->display_options['filters']['status']['group'] = 1;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_1']['id'] = 'type_1';
-    $handler->display->display_options['filters']['type_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_1']['field'] = 'type';
-    $handler->display->display_options['filters']['type_1']['value'] = array(
-      'audio' => 'audio',
-      'image' => 'image',
-      'video' => 'video'
-    );
-    $handler->display->display_options['filters']['type_1']['group'] = 1;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_2']['id'] = 'type_2';
-    $handler->display->display_options['filters']['type_2']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_2']['field'] = 'type';
-    $handler->display->display_options['filters']['type_2']['value'] = array(
-      'audio' => 'audio',
-      'image' => 'image',
-      'video' => 'video'
-    );
-    $handler->display->display_options['filters']['type_2']['group'] = 0;
-    /* Filter criterion: File: Status */
-    $handler->display->display_options['filters']['status_1']['id'] = 'status_1';
-    $handler->display->display_options['filters']['status_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['status_1']['field'] = 'status';
-    $handler->display->display_options['filters']['status_1']['value'] = array(
-      1 => '1'
-    );
-    $handler->display->display_options['filters']['status_1']['group'] = 0;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_3']['id'] = 'type_3';
-    $handler->display->display_options['filters']['type_3']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_3']['field'] = 'type';
-    $handler->display->display_options['filters']['type_3']['group'] = 1;
-    $handler->display->display_options['filters']['type_3']['exposed'] = TRUE;
-    $handler->display->display_options['filters']['type_3']['expose']['operator_id'] = 'type_3_op';
-    $handler->display->display_options['filters']['type_3']['expose']['label'] = 'Type';
-    $handler->display->display_options['filters']['type_3']['expose']['operator'] = 'type_3_op';
-    $handler->display->display_options['filters']['type_3']['expose']['identifier'] = 'type_3';
-    $handler->display->display_options['filters']['type_3']['expose']['reduce'] = 0;
     /* Display: Block */
     $handler = $view->new_display('block', 'Block', 'block');
     $handler->display->display_options['defaults']['css_class'] = FALSE;
@@ -2101,11 +2044,6 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['format_plural'] = 0;
     $handler->display->display_options['fields']['fid']['format_plural_singular'] = '1 image';
     $handler->display->display_options['defaults']['sorts'] = FALSE;
-    $handler->display->display_options['filter_groups']['operator'] = 'OR';
-    $handler->display->display_options['filter_groups']['groups'] = array(
-      0 => 'AND',
-      1 => 'AND'
-    );
     $handler->display->display_options['defaults']['filters'] = FALSE;
     /* Filter criterion: File: Status */
     $handler->display->display_options['filters']['status']['id'] = 'status';
@@ -2114,7 +2052,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['status']['value'] = array(
       1 => '1'
     );
-    $handler->display->display_options['filters']['status']['group'] = 1;
+    $handler->display->display_options['filters']['status']['group'] = 2;
     /* Filter criterion: File: Type */
     $handler->display->display_options['filters']['type_1']['id'] = 'type_1';
     $handler->display->display_options['filters']['type_1']['table'] = 'file_managed';
@@ -2122,23 +2060,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['filters']['type_1']['value'] = array(
       'image' => 'image'
     );
-    $handler->display->display_options['filters']['type_1']['group'] = 1;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_2']['id'] = 'type_2';
-    $handler->display->display_options['filters']['type_2']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_2']['field'] = 'type';
-    $handler->display->display_options['filters']['type_2']['value'] = array(
-      'image' => 'image'
-    );
-    $handler->display->display_options['filters']['type_2']['group'] = 0;
-    /* Filter criterion: File: Status */
-    $handler->display->display_options['filters']['status_1']['id'] = 'status_1';
-    $handler->display->display_options['filters']['status_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['status_1']['field'] = 'status';
-    $handler->display->display_options['filters']['status_1']['value'] = array(
-      1 => '1'
-    );
-    $handler->display->display_options['filters']['status_1']['group'] = 0;
+    $handler->display->display_options['filters']['type_1']['group'] = 2;
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
       'block' => 'block'
@@ -2201,14 +2123,6 @@ function scratchpads_species_views_default_views(){
       'video' => 'video'
     );
     $handler->display->display_options['filters']['type']['group'] = 0;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_1']['id'] = 'type_1';
-    $handler->display->display_options['filters']['type_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_1']['field'] = 'type';
-    $handler->display->display_options['filters']['type_1']['value'] = array(
-      'video' => 'video'
-    );
-    $handler->display->display_options['filters']['type_1']['group'] = 1;
     /* Filter criterion: File: Status */
     $handler->display->display_options['filters']['status']['id'] = 'status';
     $handler->display->display_options['filters']['status']['table'] = 'file_managed';
@@ -2217,14 +2131,6 @@ function scratchpads_species_views_default_views(){
       1 => '1'
     );
     $handler->display->display_options['filters']['status']['group'] = 0;
-    /* Filter criterion: File: Status */
-    $handler->display->display_options['filters']['status_1']['id'] = 'status_1';
-    $handler->display->display_options['filters']['status_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['status_1']['field'] = 'status';
-    $handler->display->display_options['filters']['status_1']['value'] = array(
-      1 => '1'
-    );
-    $handler->display->display_options['filters']['status_1']['group'] = 1;
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
       'block' => 'block'
@@ -2295,22 +2201,6 @@ function scratchpads_species_views_default_views(){
       1 => '1'
     );
     $handler->display->display_options['filters']['status']['group'] = 0;
-    /* Filter criterion: File: Type */
-    $handler->display->display_options['filters']['type_1']['id'] = 'type_1';
-    $handler->display->display_options['filters']['type_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['type_1']['field'] = 'type';
-    $handler->display->display_options['filters']['type_1']['value'] = array(
-      'audio' => 'audio'
-    );
-    $handler->display->display_options['filters']['type_1']['group'] = 1;
-    /* Filter criterion: File: Status */
-    $handler->display->display_options['filters']['status_1']['id'] = 'status_1';
-    $handler->display->display_options['filters']['status_1']['table'] = 'file_managed';
-    $handler->display->display_options['filters']['status_1']['field'] = 'status';
-    $handler->display->display_options['filters']['status_1']['value'] = array(
-      1 => '1'
-    );
-    $handler->display->display_options['filters']['status_1']['group'] = 1;
     $handler->display->display_options['displays'] = array(
       'default' => 'default',
       'block' => 'block'
