@@ -42,6 +42,24 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Formflow module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function formflow_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer form flows',
+      'create form flows',
+      'edit form flows'
+    ),
+    'anonymous user' => array(
+      'access form flows'
+    )
+  );
+}
+
+/**
  * Femail module
  *
  * Implements hook_scratchpads_default_permissions().
