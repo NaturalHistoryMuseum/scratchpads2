@@ -33,7 +33,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'subpermissions' => FALSE,
       'googleanalytics' => FALSE,
       'lexicon' => FALSE,
-      'pathauto' => FALSE
+      'pathauto' => FALSE,
+      'simplenews' => FALSE
     ));
   }
 }

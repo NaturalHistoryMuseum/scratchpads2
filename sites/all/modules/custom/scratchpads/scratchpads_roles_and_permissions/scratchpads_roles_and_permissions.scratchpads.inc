@@ -42,6 +42,25 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Simplenews module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function simplenews_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer newsletters',
+      'administer simplenews subscriptions',
+      'administer simplenews settings',
+      'send newsletter'
+    ),
+    'anonymous user' => array(
+      'subscribe to newsletters'
+    )
+  );
+}
+
+/**
  * Pathauto module
  * 
  * Implements hook_scratchpads_default_permissions()
