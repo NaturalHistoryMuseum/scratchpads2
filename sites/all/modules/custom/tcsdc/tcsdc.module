@@ -176,7 +176,16 @@ function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
  */
 function tcsdc_import_terms($vid, &$context){
   $batch = batch_get();
-  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->execute();
+  if(!isset($context['sandbox']['progress'])){
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+      ':vid' => $vid,
+      ':bid' => $batch['id']
+    ))->fetchAssoc());
+    $context['sandbox']['start_time'] = time();
+  }
+  // We import 50 terms per cycle.
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->range(0, 50)->execute();
   foreach($results as $term){
     $id = $term->id;
     $parent = $term->parent;
@@ -206,6 +215,19 @@ function tcsdc_import_terms($vid, &$context){
         'id' => $id
       ))->execute();
     }
+    // Delete this record from the table.
+    db_delete('tcsdc_data')->condition('bid', $batch['id'])->condition('id', $id)->execute();
+  }
+  // Set the progress.
+  $terms_left = array_pop(db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+    ':vid' => $vid,
+    ':bid' => $batch['id']
+  ))->fetchAssoc());
+  if($terms_left){
+    $context['sandbox']['progress'] = ($context['sandbox']['max'] - $terms_left) / $context['sandbox']['max'];
+    $context['finished'] = $context['sandbox']['progress'];
+  }else{
+    $context['finished'] = 1;
   }
 }
 
@@ -235,6 +257,7 @@ function tcsdc_finished_batch(&$context){
   $vid = db_select('tcsdc_data', 't')->fields('t', array(
     'vid'
   ))->condition('bid', $batch['id'])->execute()->fetch();
+  // This shouldn't be necessary, but just in case!
   db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
   if($vid){
     $tree = taxonomy_get_tree($vid->vid, 0, 1);
