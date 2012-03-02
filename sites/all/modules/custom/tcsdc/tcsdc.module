@@ -183,19 +183,47 @@ function tcsdc_import_terms($vid, &$context){
       ':bid' => $batch['id']
     ))->fetchAssoc());
     $context['sandbox']['start_time'] = time();
+    $_SESSION['tcsdc_import_vid'] = $vid;
   }
   // We import 50 terms per cycle.
-  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->range(0, 50)->execute();
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->range(0, 1)->execute();
   foreach($results as $term){
     $id = $term->id;
     $parent = $term->parent;
     $data = unserialize($term->data);
     foreach($data as $key => $value){
+      // We should be checking to see if this vocabulary actually has a field
+      // with this name associated.
       if(is_string($value)){
-        $term->{$key} = $value;
         $key = "field_$key";
-        $term->{$key} = $value;
+        $term->$key = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $value
+            )
+          )
+        );
       }
+    }
+    // We also hard code the unit name 1 and unit name 2 fields (no more, we'll
+    // fuck up if we try to do more, and there will be unhappy taxonomists the
+    // world over screaming blue murder at us for fucking up their data).
+    $name_parts = explode(' ', $term->name);
+    $term->field_unit_name1 = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $name_parts[0]
+        )
+      )
+    );
+    if(count($name_parts) > 1){
+      $term->field_unit_name1 = array(
+        LANGUAGE_NONE => array(
+          array(
+            'value' => $name_parts[1]
+          )
+        )
+      );
     }
     unset($term->data, $term->id, $term->bid, $term->parent);
     $previously_imported = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $id)->execute()->fetch();
@@ -252,22 +280,15 @@ function tcsdc_taxonomy_term_update($term){
  * Finish function
  */
 function tcsdc_finished_batch(&$context){
-  $batch = batch_get();
-  // We get the vid from the tcsdc_data table (clunky I know).
-  $vid = db_select('tcsdc_data', 't')->fields('t', array(
-    'vid'
-  ))->condition('bid', $batch['id'])->execute()->fetch();
-  // This shouldn't be necessary, but just in case!
-  db_delete('tcsdc_data')->condition('bid', $batch['id'])->execute();
-  if($vid){
-    $tree = taxonomy_get_tree($vid->vid, 0, 1);
+  if($_SESSION['tcsdc_import_vid']){
+    $tree = taxonomy_get_tree($_SESSION['tcsdc_import_vid'], 0, 1);
     $term = array_shift($tree);
-    $vocabulary = taxonomy_vocabulary_load($vid->vid);
+    $vocabulary = taxonomy_vocabulary_load($_SESSION['tcsdc_import_vid']);
     drupal_goto('taxonomy/term/' . $term->tid, array(
       'fragment' => 'overlay=admin/structure/taxonomy/' . $vocabulary->machine_name
     ));
   }else{
-    drupal_set_message(t('There has been an error with the import', 'error'));
+    drupal_set_message(t('There has been an error with the import'), 'error');
     drupal_goto();
   }
 }
