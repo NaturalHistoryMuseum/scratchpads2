@@ -114,7 +114,10 @@ function scratchpads_preprocess_region(&$vars){
       if(user_is_logged_in()){
         $links[] = array(
           'href' => url('help.scratchpads.eu'),
-          'title' => t("Help")
+          'title' => t("Help"),
+          'attributes' => array(
+            'target' => '_blank'
+          )
         );
       }
       $vars['links'] = theme('links', array(
