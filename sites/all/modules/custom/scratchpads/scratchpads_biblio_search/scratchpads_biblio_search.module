@@ -11,6 +11,8 @@ function scratchpads_biblio_search_menu_alter(&$items){
   $items['biblio']['menu_name'] = PRIMARY_MENU_NAME;
   $items['biblio']['weight'] = 1;
   $items['biblio']['type'] = MENU_NORMAL_ITEM;
+  $items['biblio/import']['type'] = MENU_CALLBACK;
+  unset($items['biblio/authors'], $items['biblio/keywords']);
 }
 
 /**
