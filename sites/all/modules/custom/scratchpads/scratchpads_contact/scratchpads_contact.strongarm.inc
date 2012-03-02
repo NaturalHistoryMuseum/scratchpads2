@@ -7,7 +7,7 @@
 /**
  * Implements hook_strongarm().
  */
-function contac_strongarm() {
+function scratchpads_contact_strongarm() {
   $export = array();
 
   $strongarm = new stdClass;
