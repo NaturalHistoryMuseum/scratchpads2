@@ -60,6 +60,21 @@ function formflow_scratchpads_default_permissions(){
 }
 
 /**
+ * Hashcash module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function hashcash_scratchpads_default_permissions(){
+  // Missing:
+  // administer hashcash
+  return array(
+    'authenticated user' => array(
+      'submit form without hashcash'
+    )
+  );
+}
+
+/**
  * Femail module
  *
  * Implements hook_scratchpads_default_permissions().

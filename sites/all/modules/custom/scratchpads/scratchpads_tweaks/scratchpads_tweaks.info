@@ -63,3 +63,4 @@ dependencies[] = eol
 dependencies[] = eolapi
 dependencies[] = eol_gbif_maps
 dependencies[] = tools
+dependencies[] = hashcash

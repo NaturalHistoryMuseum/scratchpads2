@@ -28,7 +28,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'views' => FALSE,
       'contact' => FALSE,
       'femail' => FALSE,
-      'formflow' => FALSE
+      'formflow' => FALSE,
+      'hashcash' => FALSE,
     ));
   }
 }
