@@ -74,6 +74,29 @@ function redirect_scratchpads_default_permissions(){
 }
 
 /**
+ * Webform module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function webform_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'access all webform results',
+      'edit all webform submissions',
+      'delete all webform submissions'
+    ),
+    'editor' => array(
+      'delete own webform submissions'
+    ),
+    'contributor' => array(
+      'access own webform results',
+      'access own webform submissions',
+      'edit own webform submissions'
+    )
+  );
+}
+
+/**
  * Pathauto module
  * 
  * Implements hook_scratchpads_default_permissions()

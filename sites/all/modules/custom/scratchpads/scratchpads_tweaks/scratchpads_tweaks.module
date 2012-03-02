@@ -45,6 +45,11 @@ function scratchpads_tweaks_form_user_register_form_alter(&$form, &$form_state, 
  */
 function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
   switch($file->name){
+    case 'webform':
+      $info['tool'] = TRUE;
+      $info['name'] = 'Webforms';
+      $info['description'] = 'Enables the creation of simple online forms. Useful for questionnaires, conference signup, polls, and much more.';
+      break;
     case 'views_ui':
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
