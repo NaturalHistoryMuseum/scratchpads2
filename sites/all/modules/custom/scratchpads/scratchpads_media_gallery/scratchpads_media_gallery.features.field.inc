@@ -427,84 +427,6 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
-  // Exported field: 'file-video-field_taxonomic_name'
-  $fields['file-video-field_taxonomic_name'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_taxonomic_name',
-      'foreign keys' => array(
-        'tid' => array(
-          'columns' => array(
-            'tid' => 'tid'
-          ),
-          'table' => 'taxonomy_term_data'
-        )
-      ),
-      'indexes' => array(
-        'tid' => array(
-          0 => 'tid'
-        )
-      ),
-      'module' => 'taxonomy',
-      'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'parent' => '0',
-            'vocabulary' => ''
-          )
-        )
-      ),
-      'translatable' => '1',
-      'type' => 'taxonomy_term_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'video',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => 'Taxon name for this file',
-      'display' => array(
-        'default' => array(
-          'label' => 'none',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
-          'weight' => '2'
-        ),
-        'linked_node' => array(
-          'label' => 'none',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'none',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'file',
-      'field_name' => 'field_taxonomic_name',
-      'label' => 'Taxonomic name',
-      'required' => 1,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 0,
-        'module' => 'taxonomy',
-        'settings' => array(
-          'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60
-        ),
-        'type' => 'taxonomy_autocomplete',
-        'weight' => '10'
-      )
-    )
-  );
   // Exported field: 'file-image-field_taxonomic_name'
   $fields['file-image-field_taxonomic_name'] = array(
     'field_config' => array(
@@ -567,7 +489,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'entity_type' => 'file',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
       ),
@@ -645,7 +567,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'entity_type' => 'file',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
       ),
