@@ -396,6 +396,8 @@ function formflow_menu_item($flow){
   );
   if(isset($flow['menu']['title'])){
     $item['title'] = $flow['menu']['title'];
+  }else{
+  	 $item['title'] = $flow['title'];
   }
   if(isset($flow['menu']['weight'])){
     $item['weight'] = $flow['menu']['weight'];
