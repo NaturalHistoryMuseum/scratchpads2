@@ -42,6 +42,21 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Subpermissions module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function subpermissions_scratchpads_default_permissions(){
+  // Missing:
+  // administer subpermission
+  return array(
+    'maintainer' => array(
+      'access subpermission form'
+    )
+  );
+}
+
+/**
  * Formflow module
  * 
  * Implements hook_scratchpads_default_permissions().
