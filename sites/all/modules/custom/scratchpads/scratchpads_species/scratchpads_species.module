@@ -252,6 +252,27 @@ function scratchpads_species_views_api(){
   );
 }
 
+function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
+  switch($view->name){
+    case 'species_media':
+    case 'species_slideshow':
+    	// Add children to media views
+      if(!count($args)){
+        $tid = arg(2);
+        $children = taxonomy_get_children($tid);
+        if($children){
+          $tid = array_merge(array(
+            $tid
+          ), array_keys($children));
+        }
+        if(is_array($tid)){
+          $args[0] = implode('+', $tid);
+        }
+      }
+      break;
+  }
+}
+
 /*********************************************************************************************
  * 
  * THEME & PREPROCESS FUNCTIONS
@@ -368,7 +389,7 @@ function theme_scratchpads_species_name($vars){
       if($unit1 && $unit2){
         $name = t('<em>!unit1</em> (<em>!unit2</em>)', array(
           '!unit1' => $unit1,
-        	'!unit2' => $unit2
+          '!unit2' => $unit2
         ));
       }
       break;
