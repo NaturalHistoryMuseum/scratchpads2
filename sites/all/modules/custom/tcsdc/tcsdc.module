@@ -217,7 +217,7 @@ function tcsdc_import_terms($vid, &$context){
       )
     );
     if(count($name_parts) > 1){
-      $term->field_unit_name1 = array(
+      $term->field_unit_name2 = array(
         LANGUAGE_NONE => array(
           array(
             'value' => $name_parts[1]
