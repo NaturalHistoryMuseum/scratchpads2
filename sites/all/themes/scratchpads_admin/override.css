@@ -125,3 +125,13 @@ table.scratchpads-admin-content tr td:nth-child(1){
 .secondary-tabs{
 	z-index:100;
 }
+
+/* Dashboard */
+#dashboard_main table td.edit,
+#dashboard_main table td.delete{
+  width: 50px;
+}
+
+#dashboard_main .node-title{
+  font-size: inherit;
+}
