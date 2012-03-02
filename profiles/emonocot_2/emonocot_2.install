@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * hook_install().
+ */
+function emonocot_2_install(){
+  // Update the blocks to change the theme from scratchpads to scratchpads_em
+  db_update('block')->fields(array(
+    'theme' => 'scratchpads_em'
+  ))->condition('theme', 'scratchpads')->execute();
+  // Set the default theme to be "scratchpads".
+  variable_set('theme_default', 'scratchpads_em');
+  // Disable default theme.
+  theme_disable(array(
+    'scratchpads'
+  ));
+  // Enable scratchpads theme.
+  theme_enable(array(
+    'scratchpads_em'
+  ));
+}
