@@ -14,4 +14,3 @@ files[] = publication_type.admin.inc
 
 
 ; Tools
-tool = true
