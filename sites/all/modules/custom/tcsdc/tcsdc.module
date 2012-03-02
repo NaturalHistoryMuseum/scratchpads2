@@ -31,17 +31,27 @@ function tcsdc_menu(){
  * Implementation of hook_silver().
  */
 function tcsdc_silver(){
-  return array(
-    array(
-      'type' => 'Taxonomy',
-      'name' => 'Taxon Concept Schema Import',
-      //'access callback' => 'user_access',
-      'access arguments' => array(
-        'administer taxonomy'
-      ),
-      'form_id' => 'tcsdc_primary_form'
-    )
-  );
+  $modules = module_implements('tcsdc_form');
+  if(count($modules)){
+    $additional_text = array();
+    foreach($modules as $module){
+      $info = system_get_info('module', $module);
+      $additional_text[] = $info['name'];
+    }
+    return array(
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'TCS ('.implode('; ', $additional_text).')',
+        //'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'tcsdc_primary_form'
+      )
+    );
+  }else{
+    return array();
+  }
 }
 
 /**

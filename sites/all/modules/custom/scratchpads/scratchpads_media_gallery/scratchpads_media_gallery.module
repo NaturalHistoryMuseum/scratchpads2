@@ -87,17 +87,6 @@ function scratchpads_media_gallery_ctools_plugin_api(){
 }
 
 /**
- * Implements hook_module_implements_alter().
- */
-function scratchpads_media_gallery_module_implements_alter(&$implementations, $hook){
-  if($hook == 'flush_caches'){
-    $this_hook = $implementations['scratchpads_media_gallery'];
-    unset($implementations['scratchpads_media_gallery']);
-    $implementations['scratchpads_media_gallery'] = $this_hook;
-  }
-}
-
-/**
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_media_gallery_block_view_alter(&$data, $block){

@@ -40,6 +40,68 @@ function contact_scratchpads_default_permissions(){
     )
   );
 }
+
+/**
+ * Subpermissions module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function subpermissions_scratchpads_default_permissions(){
+  // Missing:
+  // administer subpermission
+  return array(
+    'maintainer' => array(
+      'access subpermission form'
+    )
+  );
+}
+
+/**
+ * Formflow module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function formflow_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer form flows',
+      'create form flows',
+      'edit form flows'
+    ),
+    'anonymous user' => array(
+      'access form flows'
+    )
+  );
+}
+
+/**
+ * Hashcash module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function hashcash_scratchpads_default_permissions(){
+  // Missing:
+  // administer hashcash
+  return array(
+    'authenticated user' => array(
+      'submit form without hashcash'
+    )
+  );
+}
+
+/**
+ * Femail module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function femail_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'post by femail'
+    )
+  );
+}
+
 /**
  * Tools module
  *
@@ -367,10 +429,6 @@ function block_scratchpads_default_permissions(){
  * Implements hook_scratchpads_default_permissions().
  */
 function node_scratchpads_default_permissions(){
-  // Missing permissions:
-  // 'bypass node access'
-  // 'administer content types'
-  // 'administer nodes'
   $permissions = array(
     'anonymous user' => array(
       'access content',
@@ -386,7 +444,11 @@ function node_scratchpads_default_permissions(){
       'revert revisions',
       'delete revisions'
     ),
-    'maintainer' => array()
+    'maintainer' => array(
+      'administer content types',
+      'administer nodes',
+      'bypass node access'
+    )
   );
   // Rebuild the node types
   _node_types_build(TRUE);

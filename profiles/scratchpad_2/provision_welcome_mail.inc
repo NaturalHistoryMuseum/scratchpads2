@@ -2,6 +2,9 @@
 // If we're installing via Drush/Aegir, we'll have a few options that we can
 // set here.
 if(function_exists('drush_get_option')){
+  // Check whether or not we need to continue (based on whether or not the
+  // site_title is set).
+  if(!drush_get_option('site_title', FALSE)){return;}
   // Set the site title
   if($site_title = drush_get_option('site_title', FALSE)){
     variable_set('site_name', $site_title);
@@ -61,10 +64,9 @@ if(function_exists('drush_get_option')){
   module_disable(array(
     'update'
   ), FALSE);
-}
-$mail = array();
-$mail['subject'] = st('Your new site !site has been created.');
-$mail['body'] = st("Dear !username,
+  $mail = array();
+  $mail['subject'] = st('Your new site !site has been created.');
+  $mail['body'] = st("Dear !username,
 
 !uri
 
@@ -89,10 +91,11 @@ The Scratchpad Team
 --
 http://scratchpads.eu
 scratchpad@nhm.ac.uk", array(
-  '!site' => variable_get('site_name', 'Scratchpad'),
-  '!onetime' => $onetime,
-  '!username' => $account->name,
-  '!edit_uri' => url('user/' . $account->uid . '/edit', array(
-    'absolute' => TRUE
-  ))
-));
+    '!site' => variable_get('site_name', 'Scratchpad'),
+    '!onetime' => $onetime,
+    '!username' => $account->name,
+    '!edit_uri' => url('user/' . $account->uid . '/edit', array(
+      'absolute' => TRUE
+    ))
+  ));
+}
