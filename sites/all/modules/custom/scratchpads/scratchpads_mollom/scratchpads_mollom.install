@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_mollom_install(){
+  $forms = array(
+    array(
+      'form_id' => 'contact_personal_form',
+      'mode' => 2,
+      'checks' => array(
+        'spam'
+      ),
+      'discard' => 1,
+      'enabled_fields' => array(
+        'subject',
+        'message'
+      ),
+      'module' => 'contact'
+    ),
+    array(
+      'form_id' => 'contact_site_form',
+      'mode' => 2,
+      'checks' => array(
+        'spam'
+      ),
+      'discard' => 1,
+      'enabled_fields' => array(
+        'subject',
+        'message'
+      ),
+      'module' => 'contact'
+    ),
+    array(
+      'form_id' => 'user_register_form',
+      'mode' => 1,
+      'checks' => array(),
+      'discard' => 1,
+      'enabled_fields' => array(),
+      'module' => 'user'
+    )
+  );
+  foreach($forms as $form){
+    try{
+      drupal_write_record('mollom_form', $form);
+    }
+    catch(Exception $e){
+      ;
+    }
+  }
+  $node_info = entity_get_info('node');
+  foreach($node_info['bundles'] as $bundle_type => $values){
+    try{
+      $values = array(
+        'form_id' => 'comment_node_' . $bundle_type . '_form',
+        'mode' => 2,
+        'checks' => array(
+          'spam'
+        ),
+        'discard' => 0,
+        'enabled_fields' => array(
+          'subject',
+          'comment_body][und][0][value'
+        ),
+        'module' => 'comment'
+      );
+      drupal_write_record('mollom_form', $values);
+    }
+    catch(Exception $e){
+      ;
+    }
+  }
+}
