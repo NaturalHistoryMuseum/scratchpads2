@@ -42,6 +42,19 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Femail module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function femail_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'post by femail'
+    )
+  );
+}
+
+/**
  * Tools module
  *
  * Note, because this is a custom module that may be release to drupal.org, this specific

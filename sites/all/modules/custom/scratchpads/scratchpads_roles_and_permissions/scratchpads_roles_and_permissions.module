@@ -26,7 +26,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'tools' => FALSE,
       'user' => FALSE,
       'views' => FALSE,
-      'contact' => FALSE
+      'contact' => FALSE,
+      'femail' => FALSE
     ));
   }
 }
