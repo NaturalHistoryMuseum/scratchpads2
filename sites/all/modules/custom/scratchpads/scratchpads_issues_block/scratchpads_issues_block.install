@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_issues_block_install(){
+  // Create an aggregator feed.
+  $feed = array(
+    'title' => 'Scratchpads issue queue',
+    'url' => 'http://dev.scratchpads.eu/project/issues/rss/',
+    'refresh' => 3600,
+    'block' => 10
+  );
+  aggregator_save_feed($feed);
+  // Save the block settings so that the uwho stuff is save, and the
+  // block is set to use "blockexpose".
+  variable_set('remote_issue_tab_feed', $feed['fid']);
+  // UWho client key (should be private, but this clearly isn't).
+  variable_set('remote_issue_tab_uwho_client_key', '58d972f86f9d963837bebcd8d4b46d39');
+  variable_get('remote_issue_tab_uwho_url', 'http://dev.scratchpads.eu/uwho');
+  // Finally, set this block to use the blockexpose module.
+  variable_set('blockexpose_settings_remote_issue_tab_0', array(
+    'side' => 'right',
+    'event' => 'click',
+    'show' => 1
+  ));
+}
