@@ -61,6 +61,22 @@ function simplenews_scratchpads_default_permissions(){
 }
 
 /**
+ * Filter module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function filter_scratchpads_default_permissions(){
+  // Missing:
+  // administer filters
+  $perms = array();
+  foreach(filter_formats() as $format){
+    $permission = filter_permission_name($format);
+    $perms['authenticated user'][] = $permission;
+  }
+  return $perms;
+}
+
+/**
  * Redirect module
  * 
  * Implements hook_scratchpads_default_permissions().
