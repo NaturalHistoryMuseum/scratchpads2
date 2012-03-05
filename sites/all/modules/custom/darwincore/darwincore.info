@@ -1,5 +1,5 @@
 name = "Darwincore"
-description = "Provides the Specimen/Observation content type and the Location content type.  Both content types are based on DwC 1.2."
+description = "Provides the Specimen/Observation content type and the Location content type.  Both content types are based on the TDWG Darwincore standard."
 core = "7.x"
 package = "Specimens"
 php = "5.2.4"
