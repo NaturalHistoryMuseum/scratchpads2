@@ -68,12 +68,14 @@ function simplenews_scratchpads_default_permissions(){
 function filter_scratchpads_default_permissions(){
   // Missing:
   // administer filters
-  $perms = array();
-  foreach(filter_formats() as $format){
-    $permission = filter_permission_name($format);
-    $perms['authenticated user'][] = $permission;
-  }
-  return $perms;
+  return array(
+    'anonymous user' => array(
+      'use text format plain_text'
+    ),
+    'authenticated user' => array(
+      'use text format filtered_html'
+    )
+  );
 }
 
 /**
