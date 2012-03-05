@@ -189,11 +189,15 @@ table th a img{
 #zone-slide-top-wrapper form#user-login-form .item-list{
   display: block;
   margin-top: 10px;
+  clear: both;
 }
 
 #zone-slide-top-wrapper form#user-login-form .item-list li{
-  display: inline;
   font-size: 0.9em;
+}
+
+#zone-slide-top-wrapper form#user-login-form .account-links .item-list li{
+display: inline;  
 }
 
 #zone-slide-top-wrapper a, #zone-slide-top-wrapper label{
@@ -210,9 +214,22 @@ table th a img{
   margin-left: 20px;
 }
 
-#zone-slide-top-wrapper form#user-login-form div{
-  display: inline-block;
+#zone-slide-top-wrapper form#user-login-form div.clearfix .form-actions,
+#zone-slide-top-wrapper form#user-login-form div.clearfix .form-item{
+  float: right;
 }
+
+#zone-slide-top-wrapper form#user-login-form .form-item-openid-identifier div.description{
+  padding: 5px 0;
+}
+
+#zone-slide-top-wrapper form#user-login-form .form-item-openid-identifier div.description a{
+color: #AEAEAE;  
+}
+
+
+ 
+
 
 a.scratchpads-slide-toggle{
   position: absolute;
