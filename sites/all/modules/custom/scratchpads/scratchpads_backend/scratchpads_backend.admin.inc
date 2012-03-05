@@ -79,11 +79,17 @@ function scratchpads_backend_admin_content(){
             )
           ));
           $rows[] = array(
+            'data' => array(
             l(t('Character projects'), $view_url) . '<p class="description">' . t('Character projects') . '</p>',
             (isset($statistics['published']) ? $statistics['published'] : 0),
             (isset($statistics['unpublished']) ? $statistics['unpublished'] : 0),
             $operations
+            ),
+            'class' => array(
+              'character-project'
+            )
           );
+
         }
         $build[$entity_type] = array(
           '#theme' => 'table',
@@ -138,10 +144,15 @@ function scratchpads_backend_admin_content(){
             'items' => $operations
           ));
           $rows[] = array(
-            l($file_types[$bundle]['label'], $view_url),
-            (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
-            (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
-            $operations
+            'data' => array(
+              l($file_types[$bundle]['label'], $view_url),
+              (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
+              (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
+              $operations
+            ),
+            'class' => array(
+              'file-' . $bundle
+            )
           );
           $file_header = $header;
           $file_header[0] = t('File type');

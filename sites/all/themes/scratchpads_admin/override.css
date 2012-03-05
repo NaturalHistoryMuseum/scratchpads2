@@ -47,10 +47,104 @@ table.scratchpads-admin-content td .item-list li{
 
 table.scratchpads-admin-content tr td:nth-child(1){
   padding-left: 55px;
-  background-image: url("images/icons.png");
+  background-image: url("images/basic-page-icon.png");
   background-repeat: no-repeat;
   background-position: 12px 50%;
   height: 50px!important;
+}
+
+/* Node content icons*/
+
+table.scratchpads-admin-content tr.node-biblio td:nth-child(1){
+  background-image: url("images/biblio-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-media_gallery td:nth-child(1){
+  background-image: url("images/gallery-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-spm td:nth-child(1){
+  background-image: url("images/taxon-description-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-location td:nth-child(1){
+  background-image: url("images/location-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-specimen_observation td:nth-child(1){
+  background-image: url("images/specimen.png");
+}
+
+table.scratchpads-admin-content tr.character-project td:nth-child(1){
+  background-image: url("images/character-project-icon.png");
+}
+
+/* Comment icons */
+  
+table.scratchpads-admin-content-comment tr td:nth-child(1){
+  background-image: url("images/comments-icon.png");
+} 
+
+/* File icons */
+
+table.scratchpads-admin-content tr.file-application td:nth-child(1){
+  background-image: url("images/application-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-audio td:nth-child(1){
+  background-image: url("images/audio-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-image td:nth-child(1){
+  background-image: url("images/image-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-text td:nth-child(1){
+  background-image: url("images/text-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-video td:nth-child(1){
+  background-image: url("images/video-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-default td:nth-child(1){
+  background-image: url("images/other-icon.png");
+}
+
+/* Structure icons */
+.path-admin-structure span.icon{
+  background-position: 0px 0px;
+  min-height: 40px!important;
+  top: 8px;
+  background-image: url("images/basic-page-icon.png");
+}
+
+.path-admin-structure-block span.icon{
+  background-image: url("images/blocks.png");
+}
+
+.path-admin-structure-types span.icon{
+  background-image: url("images/content-types-icon.png");
+}
+
+.path-admin-structure-menu span.icon{
+  background-image: url("images/menus-icon.png");
+}
+
+.path-admin-structure-relation span.icon{
+  background-image: url("images/relations-icon.png");
+}
+
+.path-admin-structure-taxonomy span.icon{
+  background-image: url("images/taxonomy-icon.png");
+}
+
+.path-admin-structure-tools span.icon{
+  background-image: url("images/tools-icon.png");
+}
+
+.path-admin-structure-views span.icon{
+  background-image: url("images/views-icon.png");
 }
 
 /* VBO tables */
