@@ -484,6 +484,7 @@ function formflow_finish(&$form_state){
  */
 function formflow_cancel(&$form_state){
   $form_state['cancel'] = TRUE;
+  drupal_goto();
 }
 
 /*********************************************************************************************
