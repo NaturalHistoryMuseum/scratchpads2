@@ -30,7 +30,13 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'femail' => FALSE,
       'formflow' => FALSE,
       'hashcash' => FALSE,
-      'subpermissions' => FALSE
+      'subpermissions' => FALSE,
+      'googleanalytics' => FALSE,
+      'lexicon' => FALSE,
+      'pathauto' => FALSE,
+      'simplenews' => FALSE,
+      'redirect' => FALSE,
+      'webform' => FALSE
     ));
   }
 }

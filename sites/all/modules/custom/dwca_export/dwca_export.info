@@ -1,6 +1,7 @@
-name = DarwinCore Archive (DwC-A) export
-description = Creates a DarwinCore Archive of this scratchpad
-package = "Scratchpads"
-core = 7.x
+name = "DarwinCore Archive (DwC-A) export"
+description = "Creates a DarwinCore Archive of this scratchpad"
+core = "7.x"
+package = "Specimens"
 dependencies[] = views_data_export
 dependencies[] = darwincore
+tool = true

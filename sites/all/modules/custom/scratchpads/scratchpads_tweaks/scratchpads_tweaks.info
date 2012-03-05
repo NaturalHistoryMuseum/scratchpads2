@@ -32,6 +32,7 @@ dependencies[] = clone
 dependencies[] = wysiwyg
 dependencies[] = boost
 dependencies[] = entitycache
+dependencies[] = imagemagick
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
@@ -47,6 +48,7 @@ dependencies[] = scratchpads_file_colorboxed
 dependencies[] = scratchpads_front
 dependencies[] = scratchpads_hands_off
 dependencies[] = scratchpads_help
+dependencies[] = scratchpads_legal
 dependencies[] = scratchpads_media_gallery
 dependencies[] = scratchpads_mollom
 dependencies[] = scratchpads_pages

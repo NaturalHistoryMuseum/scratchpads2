@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/legal/legal.module b/sites/all/modules/contrib/legal/legal.module
+index 01108fe..751b2e5 100644
+--- a/sites/all/modules/contrib/legal/legal.module
++++ b/sites/all/modules/contrib/legal/legal.module
+@@ -467,7 +467,7 @@ function legal_user_update(&$edit, $account, $category) {
+   }
+ 
+   // Record the accepted state before removing legal_accept from $edit.
+-  $accepted = $edit['legal_accept'];
++  $accepted = isset($edit['legal_accept']) ? $edit['legal_accept'] : NULL; 
+   $edit['legal_accept'] = NULL;
+   $edit['conditions'] = NULL;
+ 

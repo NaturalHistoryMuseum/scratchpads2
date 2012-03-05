@@ -45,10 +45,26 @@ function scratchpads_tweaks_form_user_register_form_alter(&$form, &$form_state, 
  */
 function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
   switch($file->name){
+    case 'webform':
+      $info['tool'] = TRUE;
+      $info['name'] = 'Webforms';
+      $info['description'] = 'Enables the creation of simple online forms. Useful for questionnaires, conference signup, polls, and much more.';
+      break;
     case 'views_ui':
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
       $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
+      break;
+    case 'pathauto':
+      $info['dependencies'][] = 'redirect';
+      $info['tool'] = TRUE;
+      $info['name'] = 'Pretty URLs';
+      $info['description'] = 'Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.';
+      break;
+    case 'simplenews':
+    case 'lexicon':
+    case 'googleanalytics':
+      $info['tool'] = TRUE;
       break;
   }
 }

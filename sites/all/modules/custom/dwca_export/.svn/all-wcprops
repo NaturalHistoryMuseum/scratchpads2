@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/14366/trunk/drupal/7.x/modules/dwca_export
+END
+archive-genus-Abies-bl4.zip
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/14294/trunk/drupal/7.x/modules/dwca_export/archive-genus-Abies-bl4.zip
+END
+dwca_export.strongarm.inc
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/14365/trunk/drupal/7.x/modules/dwca_export/dwca_export.strongarm.inc
+END
+dwca_export.module
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/14365/trunk/drupal/7.x/modules/dwca_export/dwca_export.module
+END
+dwca_export.views_default.inc
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/14366/trunk/drupal/7.x/modules/dwca_export/dwca_export.views_default.inc
+END
+dwca_export.info
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/13402/trunk/drupal/7.x/modules/dwca_export/dwca_export.info
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/13403/trunk/drupal/7.x/modules/dwca_export/README.txt
+END

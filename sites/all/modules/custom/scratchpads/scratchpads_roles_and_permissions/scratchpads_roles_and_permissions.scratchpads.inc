@@ -42,6 +42,103 @@ function contact_scratchpads_default_permissions(){
 }
 
 /**
+ * Simplenews module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function simplenews_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer newsletters',
+      'administer simplenews subscriptions',
+      'administer simplenews settings',
+      'send newsletter'
+    ),
+    'anonymous user' => array(
+      'subscribe to newsletters'
+    )
+  );
+}
+
+/**
+ * Redirect module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function redirect_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer redirects'
+    )
+  );
+}
+
+/**
+ * Webform module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function webform_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'access all webform results',
+      'edit all webform submissions',
+      'delete all webform submissions'
+    ),
+    'editor' => array(
+      'delete own webform submissions'
+    ),
+    'contributor' => array(
+      'access own webform results',
+      'access own webform submissions',
+      'edit own webform submissions'
+    )
+  );
+}
+
+/**
+ * Pathauto module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function pathauto_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer pathauto'
+    )
+  );
+}
+
+/**
+ * Lexicon module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function lexicon_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer lexicon'
+    ),
+    'anonymous user' => array(
+      'access lexicon'
+    )
+  );
+}
+
+/**
+ * Google analytics module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function googleanalytics_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer google analytics'
+    )
+  );
+}
+
+/**
  * Subpermissions module
  * 
  * Implements hook_scratchpads_default_permissions().
@@ -251,7 +348,7 @@ function search_scratchpads_default_permissions(){
  */
 function overlay_scratchpads_default_permissions(){
   return array(
-    'authenticated user' => array(
+    'anonymous user' => array(
       'access overlay'
     )
   );
