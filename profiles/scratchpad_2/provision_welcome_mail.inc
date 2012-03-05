@@ -82,7 +82,7 @@ Once you have logged in, you will need to set your password by visiting:
 
 !edit_uri
 
-Further help is available on the Scratchpad help wiki [1].
+Note: We have recently released a major update (Scratchpads 2, see http://scratchpads.eu/scratchpads-20-released-beta) which means your site is still in beta. If you experience any problems help is available on the Scratchpad help wiki [1] and by contacting us at scratchpad@nhm.ac.uk. We are also offering Skype training sessions throughout March. Contact l.livermore@nhm.ac.uk for more information.
 
 The Scratchpad Team
 
@@ -99,3 +99,31 @@ scratchpad@nhm.ac.uk", array(
     ))
   ));
 }
+
+/*
+Dear Irina U.K. de Brake,
+
+http://test-carnidae.myspecies.info
+
+Your new Scratchpad "My favorite carnids" has been created for you. 
+
+You can now login to My favorite carnids by clicking on this link or
+copying
+it into your browser:
+
+http://test-carnidae.myspecies.info/user/reset/2/1330956002/RdxZ9dJvbbfu
+J4uBQCqi7Gq8Y9qv4_T2inoQgBF7_gU
+
+This is a one-time login, so it can be used only once.
+
+Once you have logged in, you will need to set your password by visiting:
+
+http://test-carnidae.myspecies.info/user/2/edit
+
+Note: We have recently released a major update (Scratchpads 2, see
+http://scratchpads.eu/scratchpads-20-released-beta) which means your
+site is still in beta. If you experience any problems help is available
+on the Scratchpad help wiki [1] and by contacting us at
+scratchpad@nhm.ac.uk. We are also offering Skype training sessions
+throughout March. Contact l.livermore@nhm.ac.uk for more information.
+*/
