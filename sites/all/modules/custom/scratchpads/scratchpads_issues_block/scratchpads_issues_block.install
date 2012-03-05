@@ -17,11 +17,18 @@ function scratchpads_issues_block_install(){
   variable_set('remote_issue_tab_feed', $feed['fid']);
   // UWho client key (should be private, but this clearly isn't).
   variable_set('remote_issue_tab_uwho_client_key', '58d972f86f9d963837bebcd8d4b46d39');
-  variable_get('remote_issue_tab_uwho_url', 'http://dev.scratchpads.eu/uwho');
+  variable_set('remote_issue_tab_uwho_url', 'http://dev.scratchpads.eu/uwho');
   // Finally, set this block to use the blockexpose module.
   variable_set('blockexpose_settings_remote_issue_tab_0', array(
     'side' => 'right',
     'event' => 'click',
     'show' => 1
   ));
+  // And actually, set the block to be displayed.
+/*----+------------------+-------+-------------+--------+--------+---------+--------+------------+-------+-------+-------+
+| bid | module           | delta | theme       | status | weight | region  | custom | visibility | pages | title | cache |
++-----+------------------+-------+-------------+--------+--------+---------+--------+------------+-------+-------+-------+
+|  37 | remote_issue_tab | 0     | scratchpads |      1 |      0 | sidebar |      0 |          0 |       |       |     2 |
++-----+------------------+-------+-------------+--------+--------+---------+--------+------------+-------+-------+------*/
+  db_update('block')->fields(array('status' => 1, 'region' => 'sidebar'))->condition('module', 'remote_issue_tab')->execute();
 }
