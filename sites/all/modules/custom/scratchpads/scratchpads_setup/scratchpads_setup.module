@@ -25,7 +25,7 @@ function scratchpads_setup_default_flows(){
           'title' => 'Welcome'
         ),
         array(
-          'form_id' => 'scratchpads_front_page_edit',
+          'form_id' => 'scratchpads_setup_front_form',
           'title' => 'Front page'
         ),
         array(
@@ -95,7 +95,7 @@ function scratchpads_setup_module_implements_alter(&$implementations, $hook){
 function scratchpads_welcome_form($form, &$form_state){
   // Sanity check - ensure this hasn't already run
   if(variable_get('scratchpads_setup_complete', false)){
-    drupal_goto();
+    //    drupal_goto();
   }
   $form['welcome'] = array(
     '#markup' => t('<h3>Welcome to your new scratchpad! Thank you for signing up.</h3>')
@@ -105,6 +105,27 @@ function scratchpads_welcome_form($form, &$form_state){
   );
   return $form;
 }
+
+function scratchpads_setup_front_form($form, &$form_state){
+  $form['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#description' => t('Please enter an introductory message to welcome people to your site.'),
+    '#default_value' => variable_get('front_page_welcome_message'),
+    '#required' => true
+  );
+  return $form;
+}
+
+/**
+ * Form submit
+ * Front page
+ */
+function scratchpads_setup_front_form_submit($form, &$form_state){
+  variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
+}
+
 
 function scratchpads_setup_about_form($form, &$form_state){
   $form['about_us'] = array(
