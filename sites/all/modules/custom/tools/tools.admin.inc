@@ -3,7 +3,12 @@
 function _tools_features_sort($a, $b){
   $a_package = (isset($a->info['package']) ? $a->info['package'] : t('Tools'));
   $b_package = (isset($b->info['package']) ? $b->info['package'] : t('Tools'));
-  return strcasecmp($a_package, $b_package);
+  $return_value = strcasecmp($a_package, $b_package);
+  if($return_value !== 0){
+    return $return_value;
+  }else{
+    return strcasecmp($a->info['name'], $b->info['name']);
+  }
 }
 
 function tools_admin_form($form, &$form_state){
