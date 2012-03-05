@@ -257,4 +257,19 @@ function scratchpads_preprocess_page(&$vars){
     $vars['tabs'] = array();
   }
 }
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function scratchpads_preprocess_html(&$vars){
+  $path = drupal_get_path('theme', 'scratchpads');
+  $vars['beta'] = theme('image', array(
+    'path' => $path . '/images/beta.png',
+    'attributes' => array(
+      'id' => 'beta'
+    ),
+    'width' => 77,
+    'height' => 77
+  ));
+}
   

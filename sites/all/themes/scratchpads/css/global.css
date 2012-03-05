@@ -766,5 +766,11 @@ width: 300px;
   margin-left: 210px;
 }
 
-
+/****************** BETA *****************/
+#beta{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
 
