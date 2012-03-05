@@ -1,5 +1,5 @@
-name = emonocot TCS Provider
-description = "Allows the import of a classification from the emonocot service."
-package = "Scratchpads"
+name = "emonocot World Checklist of Monocots taxonomy import provider"
+description = "Allows the import of a classification from the World Checklist of Monocots as provided by the Royal Botanic Gardens Kew http://www.kew.org/."
+package = "Data provider"
 dependencies[] = tcsdc
 core = 7.x
