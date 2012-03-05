@@ -1,0 +1,5 @@
+name = "Scratchpads Logins"
+description = "Enables the Scratchpad Team to login to this site"
+package = "Scratchpads"
+core = 7.x
+dependencies[] = "openid"
