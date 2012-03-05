@@ -131,13 +131,19 @@ class FeedsExcelParser extends FeedsParser{
         $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
         $column = 0;
         $row_values = array();
+        $row_has_data = FALSE;
         foreach($cellIterator as $cell){
           if(!is_null($cell)){
             $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+            if($cell->getCalculatedValue()){
+              $row_has_data = TRUE;
+            }
           }
           $column++;
         }
-        $rows[] = $row_values;
+        if($row_has_data){
+          $rows[] = $row_values;
+        }
         if(count($rows) >= $this->limit){
           break;
         }
@@ -233,7 +239,7 @@ class FeedsExcelParser extends FeedsParser{
           'target' => '_blank'
         )
       ))
-    )) . '<br/><span style="font-size:80%">'. implode(", ", $sources).'</span></p></div>';
+    )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p></div>';
     $form['no_headers'] = array(
       '#prefix' => '<div style="display:none">',
       '#suffix' => '</div>',
