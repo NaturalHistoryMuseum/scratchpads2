@@ -56,10 +56,14 @@ function tools_admin_form($form, &$form_state){
         '#tree' => FALSE
       );
     }
+    $dummy_filter = new stdClass();
+    $dummy_filter->settings = array(
+      'filter_url_length' => 255
+    );
     $form[$side][$package]['status'][$feature->name] = array(
       '#type' => 'switch',
       '#title' => $feature->info['name'],
-      '#description' => $feature->info['description'],
+      '#description' => _filter_url($feature->info['description'], $dummy_filter),
       '#default_value' => $feature->status,
       '#parents' => array(
         'status',

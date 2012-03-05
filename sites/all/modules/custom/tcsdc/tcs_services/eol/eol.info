@@ -3,3 +3,4 @@ description = "Allows the import of a classification from the EOL service."
 package = "Data provider"
 dependencies[] = tcsdc
 core = 7.x
+tool=true

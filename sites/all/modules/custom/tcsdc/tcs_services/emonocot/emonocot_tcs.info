@@ -3,3 +3,4 @@ description = "Allows the import of a classification from the World Checklist of
 package = "Data provider"
 dependencies[] = tcsdc
 core = 7.x
+tool=true
