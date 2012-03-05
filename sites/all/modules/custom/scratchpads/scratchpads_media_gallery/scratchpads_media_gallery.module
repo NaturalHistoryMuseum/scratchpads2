@@ -149,7 +149,7 @@ function scratchpads_media_gallery_facetapi_default_facet_settings(){
         'count' => 3,
         'display' => 4
       ),
-      'empty_behavior' => 'none',
+      'empty_behavior' => 'text',
       'empty_text' => array(
         'value' => t('There are no facets available to filter on.'),
         'format' => 'filtered_html'
