@@ -34,15 +34,6 @@ if(function_exists('drush_get_option')){
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
-  // Accept the legal conditions.
-  $record = array(
-    'legal_id' => 1,
-    'version' => 1,
-    'revision' => 1,
-    'language' => 'en',
-    'uid' => 2,
-    'accepted' => time()
-  );
   drupal_write_record('legal_accepted', $record);
   /*
    * FIXME - Unable to set the country correctly.  This simply means a new user
