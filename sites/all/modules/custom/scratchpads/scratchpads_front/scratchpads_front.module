@@ -140,7 +140,7 @@ function scratchpads_front_page_view(){
     '@site-name' => variable_get('site_name', 'Drupal')
   ));
   $welcome_message .= '</h2>';
-  $welcome_message .= check_markup(variable_get('front_page_welcome_message'));
+  $welcome_message .= variable_get('front_page_welcome_message');
   switch(scratchpads_front_variable_get('front_page_main_block_type')){
     case 'images':
       $view_name = 'front_page_slideshow';
@@ -301,9 +301,18 @@ function scratchpads_front_variable_default($name = NULL){
       if($display_id === 'default'){
         continue;
       }
-      // TODO - I need a way of working out what's the best content types to use
       $var = 'front_page_' . $display_id . '_node_type';
-      $defaults[$var] = 'page';
+      switch($display_id){
+        case 'block_1':
+          $defaults[$var] = 'page';
+          break;
+        case 'block_2':
+          $defaults[$var] = 'biblio';
+          break;
+        case 'block_3':
+          $defaults[$var] = 'spm';
+          break;
+      }
     }
   }
   if(!isset($name)){return $defaults;}

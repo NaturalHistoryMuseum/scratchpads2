@@ -309,30 +309,6 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['view_node']['hide_empty'] = 0;
   $handler->display->display_options['fields']['view_node']['empty_zero'] = 0;
   $handler->display->display_options['fields']['view_node']['hide_alter_empty'] = 1;
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title_field']['id'] = 'title_field';
-  $handler->display->display_options['fields']['title_field']['table'] = 'field_data_title_field';
-  $handler->display->display_options['fields']['title_field']['field'] = 'title_field';
-  $handler->display->display_options['fields']['title_field']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['title_field']['alter']['path'] = '[view_node]';
-  $handler->display->display_options['fields']['title_field']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['title_field']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['title_field']['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['title_field']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['title_field']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['title_field']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['title_field']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['title_field']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['title_field']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['title_field']['field_api_classes'] = 0;
   /* Field: User: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
@@ -476,25 +452,11 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['uid']['group'] = '0';
   $handler->display->display_options['filters']['uid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
-  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Name';
+  $handler->display->display_options['filters']['uid']['expose']['label'] = 'Author';
   $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
   $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
   $handler->display->display_options['filters']['uid']['expose']['multiple'] = FALSE;
   $handler->display->display_options['filters']['uid']['expose']['reduce'] = 0;
-  /* Filter criterion: Content: Has taxonomy term */
-  $handler->display->display_options['filters']['tid']['id'] = 'tid';
-  $handler->display->display_options['filters']['tid']['table'] = 'taxonomy_index';
-  $handler->display->display_options['filters']['tid']['field'] = 'tid';
-  $handler->display->display_options['filters']['tid']['value'] = '';
-  $handler->display->display_options['filters']['tid']['group'] = '0';
-  $handler->display->display_options['filters']['tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['tid']['expose']['operator_id'] = 'tid_op';
-  $handler->display->display_options['filters']['tid']['expose']['label'] = 'Has taxonomy term';
-  $handler->display->display_options['filters']['tid']['expose']['operator'] = 'tid_op';
-  $handler->display->display_options['filters']['tid']['expose']['identifier'] = 'tid';
-  $handler->display->display_options['filters']['tid']['reduce_duplicates'] = 0;
-  $handler->display->display_options['filters']['tid']['vocabulary'] = 'valid_lice';
-  $handler->display->display_options['filters']['tid']['error_message'] = 0;
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
@@ -508,6 +470,21 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
   $handler->display->display_options['filters']['status']['expose']['multiple'] = FALSE;
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = 1;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['reduce'] = 0;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'dogs';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 0;
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'admin/content/%';
@@ -517,13 +494,13 @@ function scratchpads_backend_views_default_views(){
   $view->description = '';
   $view->tag = 'admin-vbo';
   $view->base_table = 'file_managed';
-  $view->human_name = 'Admin file';
+  $view->human_name = 'Admin VBO file';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Admin views';
+  $handler->display->display_options['title'] = 'Admin VBO view';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -534,6 +511,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
     'views_bulk_operations' => 'views_bulk_operations',
+    'rendered_entity' => 'rendered_entity',
     'filename' => 'filename',
     'filesize' => 'filesize',
     'name' => 'name',
@@ -544,6 +522,11 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['style_options']['default'] = 'timestamp';
   $handler->display->display_options['style_options']['info'] = array(
     'views_bulk_operations' => array(
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    ),
+    'rendered_entity' => array(
       'align' => '',
       'separator' => '',
       'empty_column' => 0
@@ -795,10 +778,11 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['timestamp']['empty_zero'] = 0;
   $handler->display->display_options['fields']['timestamp']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['timestamp']['date_format'] = 'short';
-  /* Field: File: File ID */
+  /* Field: Edit */
   $handler->display->display_options['fields']['fid']['id'] = 'fid';
   $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid']['field'] = 'fid';
+  $handler->display->display_options['fields']['fid']['ui_name'] = 'Edit';
   $handler->display->display_options['fields']['fid']['label'] = 'Operations';
   $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
   $handler->display->display_options['fields']['fid']['alter']['text'] = 'Edit';
@@ -821,10 +805,11 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['fid']['empty_zero'] = 0;
   $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['fid']['link_to_file'] = 0;
-  /* Field: File: File ID */
+  /* Field: Delete */
   $handler->display->display_options['fields']['fid_1']['id'] = 'fid_1';
   $handler->display->display_options['fields']['fid_1']['table'] = 'file_managed';
   $handler->display->display_options['fields']['fid_1']['field'] = 'fid';
+  $handler->display->display_options['fields']['fid_1']['ui_name'] = 'Delete';
   $handler->display->display_options['fields']['fid_1']['label'] = '';
   $handler->display->display_options['fields']['fid_1']['alter']['alter_text'] = 1;
   $handler->display->display_options['fields']['fid_1']['alter']['text'] = 'Delete';
@@ -868,6 +853,42 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['arguments']['type']['limit'] = '0';
   $handler->display->display_options['arguments']['type']['transform_dash'] = 0;
   $handler->display->display_options['arguments']['type']['break_phrase'] = 0;
+  /* Filter criterion: User: Name (raw) */
+  $handler->display->display_options['filters']['name']['id'] = 'name';
+  $handler->display->display_options['filters']['name']['table'] = 'users';
+  $handler->display->display_options['filters']['name']['field'] = 'name';
+  $handler->display->display_options['filters']['name']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['name']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
+  $handler->display->display_options['filters']['name']['expose']['label'] = 'Author';
+  $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
+  $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
+  $handler->display->display_options['filters']['name']['expose']['required'] = 0;
+  $handler->display->display_options['filters']['name']['expose']['multiple'] = FALSE;
+  /* Filter criterion: File: Upload date */
+  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['expose']['multiple'] = FALSE;
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = 1;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'dogs';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 0;
   /* Display: Default */
   $handler = $view->new_display('page', 'Default', 'page');
   $handler->display->display_options['path'] = 'admin/file/%';
@@ -1095,6 +1116,60 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['timestamp']['empty_zero'] = 0;
   $handler->display->display_options['fields']['timestamp']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['timestamp']['date_format'] = 'short';
+  /* Field: Edit */
+  $handler->display->display_options['fields']['fid']['id'] = 'fid';
+  $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['fid']['field'] = 'fid';
+  $handler->display->display_options['fields']['fid']['ui_name'] = 'Edit';
+  $handler->display->display_options['fields']['fid']['label'] = 'Operations';
+  $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['fid']['alter']['text'] = 'Edit';
+  $handler->display->display_options['fields']['fid']['alter']['make_link'] = 1;
+  $handler->display->display_options['fields']['fid']['alter']['path'] = 'file/[fid]/edit';
+  $handler->display->display_options['fields']['fid']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['fid']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['fid']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['fid']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['fid']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['fid']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['fid']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['fid']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['fid']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['fid']['link_to_file'] = 0;
+  /* Field: Delete */
+  $handler->display->display_options['fields']['fid_1']['id'] = 'fid_1';
+  $handler->display->display_options['fields']['fid_1']['table'] = 'file_managed';
+  $handler->display->display_options['fields']['fid_1']['field'] = 'fid';
+  $handler->display->display_options['fields']['fid_1']['ui_name'] = 'Delete';
+  $handler->display->display_options['fields']['fid_1']['label'] = '';
+  $handler->display->display_options['fields']['fid_1']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['fid_1']['alter']['text'] = 'Delete';
+  $handler->display->display_options['fields']['fid_1']['alter']['make_link'] = 1;
+  $handler->display->display_options['fields']['fid_1']['alter']['path'] = 'file/[fid_1]/delete';
+  $handler->display->display_options['fields']['fid_1']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['fid_1']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['fid_1']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['fid_1']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['fid_1']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['fid_1']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['fid_1']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['fid_1']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['fid_1']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['fid_1']['link_to_file'] = 0;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   $handler->display->display_options['path'] = 'admin/file/image';
   $views[$view->name] = $view;

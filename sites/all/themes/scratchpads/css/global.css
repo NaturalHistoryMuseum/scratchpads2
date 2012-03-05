@@ -665,24 +665,19 @@ table.biblio td{
   text-align: center;
   display: block;
 }
-.field-name-field-cc{
+
+#cboxContent .file .content .field{
+  width: 45%;
+  padding: 10px 0;
+}
+
+#cboxContent .file .content .field-name-field-imaging-technique{
+  float: left;
+}
+
+#cboxContent .file .content .field-name-field-cc-licence{
+  float: right;
   text-align: right;
-  position: absolute;
-  bottom: 3px;
-  right: 5px;
-}
-
-#cboxClose{
-  top: 0;
-  right: 0;
-  bottom: inherit;
-  background: url('../images/close.png') no-repeat;
-  width: 22px;
-  height: 22px;
-}
-
-#cboxClose:hover{
-  background-position: 0;
 }
 
 /****************** SLICKGRID *****************/

@@ -54,8 +54,9 @@ table.scratchpads-admin-content tr td:nth-child(1){
 }
 
 /* VBO tables */
-#views-form-admin-vbo-node-page table tr td.views-field-edit-node a,
-#views-form-admin-vbo-file-page table tr td.views-field-fid a{
+
+.view-admin-vbo-node table tr td.views-field-edit-node a,
+.view-admin-vbo-file table tr td.views-field-fid a{
   margin: 0 5px;
 }
 
@@ -124,4 +125,14 @@ table.scratchpads-admin-content tr td:nth-child(1){
 /* Fix for secondary tabs */
 .secondary-tabs{
 	z-index:100;
+}
+
+/* Dashboard */
+#dashboard_main table td.edit,
+#dashboard_main table td.delete{
+  width: 50px;
+}
+
+#dashboard_main .node-title{
+  font-size: inherit;
 }

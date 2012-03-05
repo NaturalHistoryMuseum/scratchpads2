@@ -2,6 +2,9 @@
 // If we're installing via Drush/Aegir, we'll have a few options that we can
 // set here.
 if(function_exists('drush_get_option')){
+  // Check whether or not we need to continue (based on whether or not the
+  // site_title is set).
+  if(!drush_get_option('site_title', FALSE)){return;}
   // Set the site title
   if($site_title = drush_get_option('site_title', FALSE)){
     variable_set('site_name', $site_title);
@@ -24,7 +27,11 @@ if(function_exists('drush_get_option')){
   $account->name = drush_get_option('fullname', 'Scratchpad Maintainer');
   $account->mail = drush_get_option('client_email', 'scratchpad@nhm.ac.uk');
   $account->status = 1;
-  $account->pass = uniqid() . uniqid() . uniqid();
+  $account->roles = array(
+    5 => TRUE
+  );
+  // Ensure the user can't login by setting a "crap" password
+  $account->pass = 'crap_password_thats_not_a_hash';
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
@@ -57,14 +64,13 @@ if(function_exists('drush_get_option')){
   module_disable(array(
     'update'
   ), FALSE);
-}
-$mail = array();
-$mail['subject'] = st('Your new site !site has been created.');
-$mail['body'] = st("Dear !username,
+  $mail = array();
+  $mail['subject'] = st('Your new site !site has been created.');
+  $mail['body'] = st("Dear !username,
 
 !uri
 
-Your new Scratchpad \"!site\" has been created for you
+Your new Scratchpad \"!site\" has been created for you.
 
 You can now login to !site by clicking on this link or copying it into your browser:
 
@@ -85,10 +91,11 @@ The Scratchpad Team
 --
 http://scratchpads.eu
 scratchpad@nhm.ac.uk", array(
-  '!site' => variable_get('site_name', 'Scratchpad'),
-  '!onetime' => $onetime,
-  '!username' => $account->name,
-  '!edit_uri' => url('user/' . $account->uid . '/edit', array(
-    'absolute' => TRUE
-  ))
-));
+    '!site' => variable_get('site_name', 'Scratchpad'),
+    '!onetime' => $onetime,
+    '!username' => $account->name,
+    '!edit_uri' => url('user/' . $account->uid . '/edit', array(
+      'absolute' => TRUE
+    ))
+  ));
+}

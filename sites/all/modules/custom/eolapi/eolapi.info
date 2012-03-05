@@ -1,6 +1,6 @@
-name = "Encyclopædia of Life"
-description = "Provides additional blocks of data for displaying on Species pages."
-package = "Scratchpads"
+name = "Encyclopædia of Life taxon page data"
+description = "Provides additional blocks of data for displaying on taxon pages."
+package = "Data provider"
 core = 7.x
 dependencies[] = entity
 dependencies[] = field
@@ -9,3 +9,5 @@ dependencies[] = views
 dependencies[] = scratchpads_image_styles
 files[] = views/eolapi_plugin_style_eolapi.inc
 files[] = EOLAPIController.class.inc
+
+tool = true

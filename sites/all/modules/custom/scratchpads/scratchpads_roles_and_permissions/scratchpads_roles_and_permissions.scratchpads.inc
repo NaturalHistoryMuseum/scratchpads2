@@ -27,6 +27,179 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
 }
 
 /**
+ * Contact module
+ */
+function contact_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer contact forms'
+    ),
+    'anonymous user' => array(
+      'access site-wide contact form',
+      'access user contact forms'
+    )
+  );
+}
+
+/**
+ * Simplenews module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function simplenews_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer newsletters',
+      'administer simplenews subscriptions',
+      'administer simplenews settings',
+      'send newsletter'
+    ),
+    'anonymous user' => array(
+      'subscribe to newsletters'
+    )
+  );
+}
+
+/**
+ * Redirect module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function redirect_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer redirects'
+    )
+  );
+}
+
+/**
+ * Webform module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function webform_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'access all webform results',
+      'edit all webform submissions',
+      'delete all webform submissions'
+    ),
+    'editor' => array(
+      'delete own webform submissions'
+    ),
+    'contributor' => array(
+      'access own webform results',
+      'access own webform submissions',
+      'edit own webform submissions'
+    )
+  );
+}
+
+/**
+ * Pathauto module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function pathauto_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer pathauto'
+    )
+  );
+}
+
+/**
+ * Lexicon module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function lexicon_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer lexicon'
+    ),
+    'anonymous user' => array(
+      'access lexicon'
+    )
+  );
+}
+
+/**
+ * Google analytics module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function googleanalytics_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer google analytics'
+    )
+  );
+}
+
+/**
+ * Subpermissions module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function subpermissions_scratchpads_default_permissions(){
+  // Missing:
+  // administer subpermission
+  return array(
+    'maintainer' => array(
+      'access subpermission form'
+    )
+  );
+}
+
+/**
+ * Formflow module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function formflow_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer form flows',
+      'create form flows',
+      'edit form flows'
+    ),
+    'anonymous user' => array(
+      'access form flows'
+    )
+  );
+}
+
+/**
+ * Hashcash module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function hashcash_scratchpads_default_permissions(){
+  // Missing:
+  // administer hashcash
+  return array(
+    'authenticated user' => array(
+      'submit form without hashcash'
+    )
+  );
+}
+
+/**
+ * Femail module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function femail_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'post by femail'
+    )
+  );
+}
+
+/**
  * Tools module
  *
  * Note, because this is a custom module that may be release to drupal.org, this specific
@@ -175,7 +348,7 @@ function search_scratchpads_default_permissions(){
  */
 function overlay_scratchpads_default_permissions(){
   return array(
-    'authenticated user' => array(
+    'anonymous user' => array(
       'access overlay'
     )
   );
@@ -353,10 +526,6 @@ function block_scratchpads_default_permissions(){
  * Implements hook_scratchpads_default_permissions().
  */
 function node_scratchpads_default_permissions(){
-  // Missing permissions:
-  // 'bypass node access'
-  // 'administer content types'
-  // 'administer nodes'
   $permissions = array(
     'anonymous user' => array(
       'access content',
@@ -372,7 +541,11 @@ function node_scratchpads_default_permissions(){
       'revert revisions',
       'delete revisions'
     ),
-    'maintainer' => array()
+    'maintainer' => array(
+      'administer content types',
+      'administer nodes',
+      'bypass node access'
+    )
   );
   // Rebuild the node types
   _node_types_build(TRUE);

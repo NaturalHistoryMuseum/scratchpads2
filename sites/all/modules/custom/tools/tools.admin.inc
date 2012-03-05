@@ -1,7 +1,17 @@
 <?php
 
-function tools_admin_form(){
-  $form = array();
+function _tools_features_sort($a, $b){
+  $a_package = (isset($a->info['package']) ? $a->info['package'] : t('Tools'));
+  $b_package = (isset($b->info['package']) ? $b->info['package'] : t('Tools'));
+  $return_value = strcasecmp($a_package, $b_package);
+  if($return_value !== 0){
+    return $return_value;
+  }else{
+    return strcasecmp($a->info['name'], $b->info['name']);
+  }
+}
+
+function tools_admin_form($form, &$form_state){
   $path = drupal_get_path('module', 'tools');
   $form['#attached']['css'] = array(
     $path . '/css/tools.css'
@@ -12,10 +22,29 @@ function tools_admin_form(){
   $modules = array_filter(features_get_modules(), 'tools_filter_modules');
   $features = array_filter(features_get_features(), 'tools_filter_modules');
   $features = array_merge($modules, $features);
+  usort($features, '_tools_features_sort');
+  $form['left'] = array(
+    '#prefix' => '<div class="tools-container"><div class="tools-left">',
+    '#suffix' => '</div>'
+  );
+  $form['right'] = array(
+    '#prefix' => '<div class="tools-right">',
+    '#suffix' => '</div><div class="clearfix"></div></div>'
+  );
+  $side = 'left';
+  $last_package = FALSE;
+  $half_way = count($features) / 2;
+  $index = 0;
   foreach($features as $feature){
     $package = (isset($feature->info['package']) ? $feature->info['package'] : t('Tools'));
-    if(!isset($form[$package])){
-      $form[$package] = array(
+    // Note, this hasn't been set as ">=" to try to ensure that the left side is longer than the right (looks better).
+    if($index > $half_way && $package != $last_package){
+      $side = 'right';
+    }
+    $last_package = $package;
+    $index++;
+    if(!isset($form[$side][$package])){
+      $form[$side][$package] = array(
         '#type' => 'fieldset',
         '#title' => $package,
         '#collapsible' => FALSE,
@@ -27,7 +56,7 @@ function tools_admin_form(){
         '#tree' => FALSE
       );
     }
-    $form[$package]['status'][$feature->name] = array(
+    $form[$side][$package]['status'][$feature->name] = array(
       '#type' => 'switch',
       '#title' => $feature->info['name'],
       '#description' => $feature->info['description'],
@@ -40,7 +69,10 @@ function tools_admin_form(){
       '#prefix' => '<span class="tools-icon ' . drupal_html_class($feature->name . '-icon') . '"></span>'
     );
   }
-  $form['submit'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions'
+  );
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save')
   );

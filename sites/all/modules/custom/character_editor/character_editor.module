@@ -45,6 +45,25 @@ function character_editor_permission(){
 }
 
 /**
+ * Implements hook_scratchpads_default_permission().
+ * 
+ * If this module is released to drupal.org, this hook could be moved to a 
+ * separate file, or it could be moved to a scratchpads_* module.
+ */
+function hook_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'view character editor'
+    ),
+    'contributor' => array(
+      'create character editor',
+      'edit character editor',
+      'delete character editor'
+    )
+  );
+}
+
+/**
  * Implements hook_theme().
  */
 function character_editor_theme(){
@@ -926,15 +945,13 @@ function theme_field__field_char_states(&$variables){
 }
 
 function theme_slickgrid_control__add($variables){
-	$output = '';
+  $output = '';
   if(array_filter($variables['view']->style_plugin->options['add'])){
     $addable_entities = slickgrid_list_addable_entities();
     foreach($variables['view']->style_plugin->options['add'] as $add){
       $class = drupal_html_class('slickgrid-add-' . $add);
       $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
-      
       $add_text = ucfirst(str_replace('character_editor_character/', '', $add));
-      
       if(count($variables['view']->args)){
         $add_path .= '/' . implode('/', $variables['view']->args);
       }

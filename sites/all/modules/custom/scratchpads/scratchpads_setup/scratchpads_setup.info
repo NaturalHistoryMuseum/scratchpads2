@@ -1,0 +1,5 @@
+core = "7.x"
+name = "Scratchpads setup"
+description = "Scratchpads setup process"
+package = "Scratchpads"
+dependencies[] = formflow

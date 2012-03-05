@@ -261,7 +261,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -331,7 +331,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -401,7 +401,7 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -424,6 +424,240 @@ function scratchpads_media_gallery_field_default_fields(){
         ),
         'type' => 'node_reference_autocomplete',
         'weight' => '-3'
+      )
+    )
+  );
+  // Exported field: 'file-image-field_taxonomic_name'
+  $fields['file-image-field_taxonomic_name'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_taxonomic_name',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid'
+          ),
+          'table' => 'taxonomy_term_data'
+        )
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid'
+        )
+      ),
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'parent' => '0',
+            'vocabulary' => ''
+          )
+        )
+      ),
+      'translatable' => '1',
+      'type' => 'taxonomy_term_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'image',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Taxon name for this file',
+      'display' => array(
+        'default' => array(
+          'label' => 'none',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_taxonomic_name',
+      'label' => 'Taxonomic name',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60
+        ),
+        'type' => 'taxonomy_autocomplete',
+        'weight' => '10'
+      )
+    )
+  );
+  // Exported field: 'file-video-field_taxonomic_name'
+  $fields['file-video-field_taxonomic_name'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_taxonomic_name',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid'
+          ),
+          'table' => 'taxonomy_term_data'
+        )
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid'
+        )
+      ),
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'parent' => '0',
+            'vocabulary' => ''
+          )
+        )
+      ),
+      'translatable' => '1',
+      'type' => 'taxonomy_term_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'video',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Taxon name for this file',
+      'display' => array(
+        'default' => array(
+          'label' => 'none',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_taxonomic_name',
+      'label' => 'Taxonomic name',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60
+        ),
+        'type' => 'taxonomy_autocomplete',
+        'weight' => '10'
+      )
+    )
+  );
+  // Exported field: 'file-audio-field_taxonomic_name'
+  $fields['file-audio-field_taxonomic_name'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_taxonomic_name',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid'
+          ),
+          'table' => 'taxonomy_term_data'
+        )
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid'
+        )
+      ),
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'parent' => '0',
+            'vocabulary' => ''
+          )
+        )
+      ),
+      'translatable' => '1',
+      'type' => 'taxonomy_term_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'audio',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Taxon name for this file',
+      'display' => array(
+        'default' => array(
+          'label' => 'none',
+          'module' => 'taxonomy',
+          'settings' => array(),
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => '2'
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_taxonomic_name',
+      'label' => 'Taxonomic name',
+      'required' => 1,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60
+        ),
+        'type' => 'taxonomy_autocomplete',
+        'weight' => '-1000'
       )
     )
   );
@@ -468,21 +702,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -545,21 +779,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -622,21 +856,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -714,21 +948,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Select the imaging technique that was used to produce the images.',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 3
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 3
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -806,21 +1040,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Comma-separated keywords describing the image Parts, sex, form, developmental stage, view angle, people, building etc. Enclose phrases in "quotation marks". Examples: Antenna, Head, Juvenile, "First instar", conference, museum, specimen.',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 5
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => 5
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -901,21 +1135,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Describe how the specimen was prepared for imaging (Simply leave blank if your image isn\'t a specimen)',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => 2
         ),
         'file_styles_colorbox' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'creative_commons',
           'settings' => array(),
           'type' => 'creative_commons_small_image',
           'weight' => '4'
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0

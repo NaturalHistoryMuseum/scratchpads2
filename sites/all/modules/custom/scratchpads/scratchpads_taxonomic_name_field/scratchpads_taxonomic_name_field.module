@@ -30,6 +30,31 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
 }
 
 /**
+ * Implements hook_form_alter()
+ */
+function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['#node_edit_form']) && $form['#node_edit_form']){
+    if(isset($form['field_taxonomic_name'])){
+      $biological_vids = variable_get('biological_vids', FALSE);
+      if(!$biological_vids){
+        unset($form['field_taxonomic_name']);
+      }else{
+        $unset = TRUE;
+        foreach($biological_vids as $key => $value){
+          if($value){
+            $unset = FALSE;
+            break;
+          }
+        }
+        if($unset){
+          unset($form['field_taxonomic_name']);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
