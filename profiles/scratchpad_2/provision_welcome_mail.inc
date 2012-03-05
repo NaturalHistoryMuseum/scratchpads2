@@ -30,6 +30,7 @@ if(function_exists('drush_get_option')){
   $account->roles = array(
     5 => TRUE
   );
+  $account->pass = user_hash_password(uniqid());
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
