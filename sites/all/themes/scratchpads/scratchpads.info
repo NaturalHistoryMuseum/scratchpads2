@@ -44,8 +44,8 @@ api[views][views_template][version] = '3'
 api[views][views_template][path] = 'templates'
 
 ; Global settings
-settings[default_logo] = 0;
-settings[toggle_logo] = 0;
+settings[default_logo] = 0
+;settings[toggle_logo] = 0
 ; Omega settings
 
 settings[alpha_grid] = 'alpha_default'
