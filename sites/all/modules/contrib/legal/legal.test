@@ -1,0 +1,249 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Tests for Legal module.
+ */
+
+/**
+ * Legal module base test class.
+ */
+class LegalTestCase extends DrupalWebTestCase {
+  function setUp() {
+    // Enable any modules required for the test.
+    parent::setUp('legal');
+  }
+
+  /**
+   * Set module settings. This can only be called once from each test case
+   * instance.
+   */
+  function setSettings($edit) {
+    // Had to move to creating an user for every change in settings, since
+    // creating this in setUp() was not working.
+    $admin_user = $this->drupalCreateUser(array('administer Terms and Conditions'));
+
+    $this->drupalLogin($admin_user);
+
+    $this->drupalPost('admin/config/people/legal', $edit, t('Save'));
+
+    // Check account wasn't created.
+    $this->assertText(t('Terms &amp; Conditions have been saved.'), 'T&C text setup correctly');
+
+    // Log user out.
+    $this->drupalLogout();
+  }
+}
+
+/**
+ * Test registering as new user and creating an account.
+ */
+class LegalRegisterTestCase extends LegalTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => 'Create Account',
+      'description' => 'Register as new user and create account.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $conditions,
+    );
+    $this->setSettings($edit);
+  }
+
+  /**
+   * Accept T&C to successfully create an account.
+   */
+  function testRegisterSuccessful() {
+    // Prepare a user to do testing.
+    $name = $this->randomName();
+    $mail = "$name@example.com";
+    $edit = array(
+      'name' => $name,
+      'mail' => $mail,
+      'legal_accept' => TRUE,
+    );
+
+    $this->drupalPost('user/register', $edit, t('Create new account'));
+
+     // Check account was created.
+    $this->assertText(t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.'), 'Account created');
+  }
+
+  /**
+   * Don't accept T&C no account created.
+   */
+  function testRegisterUnsuccessful() {
+    // Prepare a user to do testing.
+    $name = $this->randomName();
+    $mail = "$name@example.com";
+    $edit = array(
+      'name' => $name,
+      'mail' => $mail,
+    );
+
+    $this->drupalPost('user/register', $edit, t('Create new account'));
+
+     // Check account wasn't created.
+    $this->assertText(t('Accept Terms &amp; Conditions of Use field is required.'), 'T&C not accepted, account not created');
+  }
+
+}
+
+/**
+ * Test Scroll Box Display.
+ */
+class LegalScrollBoxDisplayTestCase extends LegalTestCase {
+  var $conditions;
+
+  function getInfo() {
+    return array(
+      'name' => 'Scroll Box Display',
+      'description' => 'Change display option to Scroll Box and check if display is behaves correctly.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 0,
+    );
+    $this->setSettings($edit);
+  }
+
+  /**
+   * Test "Scroll Box" display.
+   */
+  function testScrollBoxDisplay() {
+    $this->drupalGet('user/register');
+
+     // Check presence of T&C text.
+    $this->assertText($this->conditions, 'T&C text displayed');
+  }
+}
+
+/**
+ * Test Scroll Box CSS Display.
+ */
+class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
+  var $conditions;
+
+  function getInfo() {
+    return array(
+      'name' => 'Scroll Box CSS Display',
+      'description' => 'Change display option to Scroll Box CSS and check if display is behaves correctly.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 1,
+    );
+    $this->setSettings($edit);
+  }
+
+  /**
+   * Test "Scroll Box CSS" display.
+   */
+  function testScrollBoxCSSDisplay() {
+    $this->drupalGet('user/register');
+
+     // Check presence of T&C text.
+    $this->assertText($this->conditions, 'T&C text displayed');
+  }
+}
+
+/**
+ * Test HTML Text display.
+ */
+class LegalHTMLTextDisplayTestCase extends LegalTestCase {
+  var $conditions;
+
+  function getInfo() {
+    return array(
+      'name' => 'HTML Text display',
+      'description' => 'Change display option to HTML Text and check if display is behaves correctly.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 2,
+    );
+    $this->setSettings($edit);
+  }
+
+  /**
+   * Test "HTML Text" display.
+   */
+  function testHTMLTextDisplay() {
+    $this->drupalGet('user/register');
+
+     // Check presence of T&C text.
+    $this->assertText($this->conditions, 'T&C text displayed');
+  }
+}
+
+/**
+ * Test "Page Link" display.
+ */
+class LegalLinkDisplayTestCase extends LegalTestCase {
+  var $conditions;
+
+  function getInfo() {
+    return array(
+      'name' => 'Page Link display',
+      'description' => 'Change display option to Page Link and check if display is behaves correctly.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 3,
+    );
+    $this->setSettings($edit);
+  }
+
+  /**
+   * Test "Page Link" display.
+   */
+  function testPageLinkDisplay() {
+    $this->drupalGet('user/register');
+
+     // Check presence of T&C link.
+    $this->assertLink('Terms & Conditions', 0, 'T&C link found');
+  }
+
+}
