@@ -61,6 +61,7 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['name'] = 'Pretty URLs';
       $info['description'] = 'Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.';
       break;
+    case 'blog':
     case 'simplenews':
     case 'lexicon':
     case 'googleanalytics':
