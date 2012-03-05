@@ -136,3 +136,25 @@ table.scratchpads-admin-content tr td:nth-child(1){
 #dashboard_main .node-title{
   font-size: inherit;
 }
+
+/* Setup form */
+.wizard-trail{
+  margin-bottom: 20px;
+  color: #7D7D7D;
+}
+
+#scratchpads-welcome-form h3{
+  font-size: 15px;
+}
+
+#scratchpads-welcome-form p{
+  margin: 20px 0;
+}
+
+form.formflow{
+  padding-bottom: 20px;
+}
+
+form.formflow input.form-submit{
+  margin: 20px 20px 0 0;
+}
