@@ -182,7 +182,7 @@ function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
     case 'user_profile_form':
       if($user->uid == 2 && !variable_get('scratchpads_setup_complete', false)){
-        $form['actions']['submit']['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
+        $form['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
       }
       break;
   }
