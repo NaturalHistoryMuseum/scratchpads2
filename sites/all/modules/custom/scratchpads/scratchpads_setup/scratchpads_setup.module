@@ -95,7 +95,7 @@ function scratchpads_setup_module_implements_alter(&$implementations, $hook){
 function scratchpads_welcome_form($form, &$form_state){
   // Sanity check - ensure this hasn't already run
   if(variable_get('scratchpads_setup_complete', false)){
-    //    drupal_goto();
+    drupal_goto();
   }
   $form['welcome'] = array(
     '#markup' => t('<h3>Welcome to your new scratchpad! Thank you for signing up.</h3>')
