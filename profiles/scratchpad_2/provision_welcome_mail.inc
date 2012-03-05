@@ -30,8 +30,6 @@ if(function_exists('drush_get_option')){
   $account->roles = array(
     5 => TRUE
   );
-  // Ensure the user can't login by setting a "crap" password
-  $account->pass = 'crap_password_thats_not_a_hash';
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
