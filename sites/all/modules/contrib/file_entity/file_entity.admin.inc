@@ -13,7 +13,7 @@ require_once dirname(__FILE__) . '/file_entity.pages.inc';
 function file_entity_admin_files($form, &$form_state) {
   if (!empty($form_state['values']['operation'])) {
     // The form is being rebuilt because an operation requiring confirmation
-    // was selected.  Hand off to the callback of the operation at this point
+    // was selected. Hand off to the callback of the operation at this point
     // which should return a confirm form.
     $operation = $form_state['values']['operation'];
     $files = array_keys(array_filter($form_state['values']['files']));
@@ -23,19 +23,18 @@ function file_entity_admin_files($form, &$form_state) {
   $limit = variable_get('file_entity_admin_files_limit', 50);
 
   // Build the 'Update options' form.
+
+  $options = array();
+  $form['#operations'] = file_entity_get_file_operation_info();
+  foreach ($form['#operations'] as $operation => $array) {
+    $options[$operation] = $array['label'];
+  }
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Update options'),
     '#attributes' => array('class' => array('container-inline')),
+    '#access' => user_access('administer files') && !empty($options),
   );
-
-  $options = array();
-  $form['#operations'] = module_invoke_all('file_operations_info');
-  drupal_alter('file_entity_file_operations', $form['#operations']);
-
-  foreach ($form['#operations'] as $operation => $array) {
-    $options[$operation] = $array['label'];
-  }
   $form['options']['operation'] = array(
     '#type' => 'select',
     '#title' => t('Operation'),
@@ -69,12 +68,17 @@ function file_entity_admin_files($form, &$form_state) {
     $query->condition('f.uri', $name . '%', 'NOT LIKE');
   }
 
+  // Result array keys are file IDs, values are the file owner's UIDs.
   $result = $query->execute()->fetchAllKeyed();
-  $files = file_load_multiple(array_keys($result));
-  $form['#files'] = $files;
 
-  // This is used to add usernames to the table below.
-  $accounts = user_load_multiple(array_values($result));
+  // Load all the file entities.
+  $files = $form['#files'] = file_load_multiple(array_keys($result));
+
+  // Hide the operations form if there are no files to operate on.
+  $form['options']['#access'] &= !empty($files);
+
+  // Load all the file owner user entities to display usernames.
+  $accounts = $form['#accounts'] = user_load_multiple(array_unique($result));
 
   $destination = drupal_get_destination();
   $options = array();
@@ -128,9 +132,9 @@ function file_entity_admin_files($form, &$form_state) {
  * 'Update option' on.
  */
 function file_entity_admin_files_validate($form, &$form_state) {
-  $files = array_filter($form_state['values']['files']);
-  if (count($files) == 0) {
-    form_set_error('', t('Update operation failed: no files were selected.'));
+  // Error if there are no items to select.
+  if (!is_array($form_state['values']['files']) || !count(array_filter($form_state['values']['files']))) {
+    form_set_error('', t('No files selected.'));
   }
 }
 
@@ -141,17 +145,18 @@ function file_entity_admin_files_submit($form, &$form_state) {
   $operations = $form['#operations'];
   $operation = $operations[$form_state['values']['operation']];
 
-  // In the case of an operation which needs confirmation, rebuild the form.
+  // Filter out unchecked nodes
+  $files = &$form_state['values']['files'];
+  $files = array_filter($files);
+
   if (!empty($operation['confirm'])) {
+    // In the case of an operation which needs confirmation, rebuild the form.
     $form_state['rebuild'] = TRUE;
     $form_state['values']['operation'] = $operation;
     return;
   }
-
-  // Filter out unchecked nodes
-  $files = array_filter($form_state['values']['files']);
-  if ($function = $operation['callback']) {
-    // Add in callback arguments if present.
+  elseif ($function = $operation['callback']) {
+    // Run the callback without confirmation.
     if (isset($operation['callback arguments'])) {
       $args = array_merge(array($files), $operation['callback arguments']);
     }

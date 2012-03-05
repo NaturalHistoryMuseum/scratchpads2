@@ -597,6 +597,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['nl2br'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['word_boundary'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations']['alter']['more_link'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['html'] = 0;
@@ -647,9 +648,7 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'show_all_tokens' => 1,
-        'display_values' => array(
-          '_all_' => '_all_'
-        )
+        'display_values' => array()
       )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
@@ -909,6 +908,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['nl2br'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['word_boundary'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations']['alter']['more_link'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['views_bulk_operations']['alter']['html'] = 0;
@@ -959,9 +959,7 @@ function scratchpads_backend_views_default_views(){
       'label' => '',
       'settings' => array(
         'show_all_tokens' => 1,
-        'display_values' => array(
-          '_all_' => '_all_'
-        )
+        'display_values' => array()
       )
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
@@ -1171,6 +1169,50 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['fid_1']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['fid_1']['link_to_file'] = 0;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: User: Name (raw) */
+  $handler->display->display_options['filters']['name']['id'] = 'name';
+  $handler->display->display_options['filters']['name']['table'] = 'users';
+  $handler->display->display_options['filters']['name']['field'] = 'name';
+  $handler->display->display_options['filters']['name']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['name']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
+  $handler->display->display_options['filters']['name']['expose']['label'] = 'Author';
+  $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
+  $handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
+  $handler->display->display_options['filters']['name']['expose']['required'] = 0;
+  $handler->display->display_options['filters']['name']['expose']['multiple'] = FALSE;
+  /* Filter criterion: File: Upload date */
+  $handler->display->display_options['filters']['timestamp']['id'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['timestamp']['field'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['timestamp']['expose']['operator_id'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['label'] = 'Upload date';
+  $handler->display->display_options['filters']['timestamp']['expose']['operator'] = 'timestamp_op';
+  $handler->display->display_options['filters']['timestamp']['expose']['identifier'] = 'timestamp';
+  $handler->display->display_options['filters']['timestamp']['expose']['multiple'] = FALSE;
+  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxa';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['use_operator'] = 1;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'dogs';
+  $handler->display->display_options['filters']['field_taxonomic_name_tid']['error_message'] = 0;
+  /* Filter criterion: File: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'image' => 'image'
+  );
   $handler->display->display_options['path'] = 'admin/file/image';
   $views[$view->name] = $view;
   return $views;

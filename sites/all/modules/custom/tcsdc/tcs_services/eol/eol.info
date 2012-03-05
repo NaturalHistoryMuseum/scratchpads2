@@ -1,5 +1,6 @@
-name = EOL TCS Provider
+name = "Encyclopædia of Life taxonomy import provider"
 description = "Allows the import of a classification from the EOL service."
-package = "Scratchpads"
+package = "Data provider"
 dependencies[] = tcsdc
 core = 7.x
+tool=true

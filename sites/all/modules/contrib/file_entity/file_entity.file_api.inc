@@ -503,24 +503,53 @@ function file_uri_to_object($uri, $use_existing = TRUE) {
 }
 
 /**
- * A list of operations which can be called on files.
+ * Delete multiple files.
  *
- * @return
- *  An associave array of operations keyed by a system name.
- *    - label: A string to show in the operations dropdown.
- *    - callback (string): A callback function to call for the operation. This
- *        function will be passed an array of file_ids which were selected.
- *    - confirm (boolean): Whether or not this operation requires a confirm form
- *        In the case where confirm is set to true, callback should be a function
- *        which can return a confirm form.
+ * Unlike core's file_delete(), this function does not care about file usage
+ * or skip on invalid URIs. Just deletes the damn file like it should.
+ *
+ * @param array $fids
+ *   An array of file IDs.
  */
-function hook_file_operations_info() {
-  $operations = array(
-    'archive_and_email' => array(
-      'label' => t('Archive the selected files and email them'),
-      'callback' => 'file_archiver_confirm_form',
-      'confirm' => TRUE,
-    ),
-  );
-  return $operations;
+function file_delete_multiple(array $fids) {
+  $transaction = db_transaction();
+  if (!empty($fids) && $files = file_load_multiple($fids)) {
+    try {
+      foreach ($files as $fid => $file) {
+        module_invoke_all('file_delete', $file);
+        module_invoke_all('entity_delete', $file, 'file');
+        // Skip calling field_attach_delete as file_entity_file_delete() does this.
+        //field_attach_delete('file', $file);
+
+        // Remove this file from the search index if needed.
+        // This code is implemented in file_entity module rather than in search module,
+        // because node module is implementing search module's API, not the other
+        // way around.
+        if (module_exists('search')) {
+          search_reindex($fid, 'file');
+        }
+
+        // Make sure the file is deleted before removing its row from the
+        // database, so UIs can still find the file in the database.
+        if (file_valid_uri($file->uri)) {
+          file_unmanaged_delete($file->uri);
+        }
+      }
+
+      db_delete('file_managed')
+        ->condition('fid', $fids, 'IN')
+        ->execute();
+      db_delete('file_usage')
+        ->condition('fid', $fids, 'IN')
+        ->execute();
+    }
+    catch (Exception $e) {
+      $transaction->rollback();
+      watchdog_exception('file', $e);
+      throw $e;
+    }
+
+    // Clear the page and block and file_load_multiple caches.
+    entity_get_controller('file')->resetCache();
+  }
 }

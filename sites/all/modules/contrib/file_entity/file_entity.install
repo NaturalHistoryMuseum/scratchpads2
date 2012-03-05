@@ -6,20 +6,6 @@
  */
 
 /**
- * Implements hook_schema_alter().
- */
-function file_entity_schema_alter(&$schema) {
-  $schema['file_managed']['fields']['type'] = array(
-    'description' => 'The type of this file.',
-    'type' => 'varchar',
-    'length' => 50,
-    'not null' => TRUE,
-    'default' => '',
-  );
-  $schema['file_managed']['indexes']['file_type'] = array('type');
-}
-
-/**
  * Implements hook_schema().
  */
 function file_entity_schema() {
@@ -57,9 +43,8 @@ function file_entity_schema() {
       ),
     ),
     'primary key' => array('name'),
+    // Exportable support via CTools.
     'export' => array(
-      // Integrate {file_display} with CTools Exportables.
-      // @see help/export.html documentation bundled with the CTools project.
       'key' => 'name',
       'key name' => 'Name',
       'primary key' => 'name',
@@ -81,6 +66,21 @@ function file_entity_schema() {
 
   return $schema;
 }
+
+/**
+ * Implements hook_schema_alter().
+ */
+function file_entity_schema_alter(&$schema) {
+  $schema['file_managed']['fields']['type'] = array(
+    'description' => 'The type of this file.',
+    'type' => 'varchar',
+    'length' => 50,
+    'not null' => TRUE,
+    'default' => '',
+  );
+  $schema['file_managed']['indexes']['file_type'] = array('type');
+}
+
 
 /**
  * Implements hook_install().
@@ -123,7 +123,7 @@ function file_entity_install() {
 }
 
 /**
- * Implement hook_uninstall().
+ * Implements hook_uninstall().
  */
 function file_entity_uninstall() {
   db_drop_field('file_managed', 'type');
@@ -166,7 +166,6 @@ function file_entity_update_7000() {
     ),
     'primary key' => array('name'),
   );
-
   db_create_table('file_display', $schema['file_display']);
 }
 
@@ -224,12 +223,14 @@ function file_entity_update_7101() {
 /**
  * Empty update function to trigger an entity cache rebuild.
  */
-function file_entity_update_7102() { }
+function file_entity_update_7102() {
+}
 
 /**
- * Intentionally left blank.
+ * Empty update function.
  */
-function file_entity_update_7103() { }
+function file_entity_update_7103() {
+}
 
 /**
  * Assign view file permission when updating without the Media module.

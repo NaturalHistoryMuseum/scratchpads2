@@ -121,10 +121,10 @@ function scratchpads_backend_views_api(){
  * Implementation of hook_views_pre_view
  */
 function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
-  if($view->name == 'admin_vbo_node'){
+  if($view->name == 'admin_vbo_node' || $view->name == 'admin_vbo_file'){
     $field_taxonomic_name = false;
-    $bundle_name = reset($view->args);
-    $entity_type = 'node';
+    $bundle_name = arg(2);
+    $entity_type = ($view->base_table == 'file_managed' ? 'file' : $view->base_table);
     $instances = field_info_instances($entity_type, $bundle_name);
     $field = $view->display_handler->get_handler('field', 'views_bulk_operations');
     foreach(array_keys($instances) as $field_name){
@@ -137,7 +137,7 @@ function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
       $edit_field = $bundle_name . '::' . $field_name;
       $field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values'][$edit_field] = $edit_field;
     }
-    // If there's no taxonomy name field, hide the taxon filer
+    // If there's no taxonomy name field, hide the taxon filter
     if(!$field_taxonomic_name){
       $display_id = $view->current_display;
       $view->set_item($display_id, 'filter', 'field_taxonomic_name_tid', NULL);
