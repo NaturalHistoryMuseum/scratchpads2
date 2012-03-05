@@ -348,7 +348,7 @@ function search_scratchpads_default_permissions(){
  */
 function overlay_scratchpads_default_permissions(){
   return array(
-    'authenticated user' => array(
+    'anonymous user' => array(
       'access overlay'
     )
   );
