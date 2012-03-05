@@ -24,12 +24,12 @@ function tools_admin_form($form, &$form_state){
   $features = array_merge($modules, $features);
   usort($features, '_tools_features_sort');
   $form['left'] = array(
-    '#prefix' => '<div class="tools-left">',
+    '#prefix' => '<div class="tools-container"><div class="tools-left">',
     '#suffix' => '</div>'
   );
   $form['right'] = array(
     '#prefix' => '<div class="tools-right">',
-    '#suffix' => '</div><div class="clearfix"></div>'
+    '#suffix' => '</div><div class="clearfix"></div></div>'
   );
   $side = 'left';
   $last_package = FALSE;

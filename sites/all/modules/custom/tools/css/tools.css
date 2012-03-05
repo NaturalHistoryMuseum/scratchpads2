@@ -1,10 +1,11 @@
 @CHARSET "UTF-8";
 
+.tools-container{
+}
 .tools-left, .tools-right {
  padding:0;
  margin:0;
  width:49%;
- min-width:400px;
 }
 .tools-left {
  float:left;
