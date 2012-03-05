@@ -5,6 +5,7 @@ function _tools_features_sort($a, $b){
   $b_package = (isset($b->info['package']) ? $b->info['package'] : t('Tools'));
   return strcasecmp($a_package, $b_package);
 }
+
 function tools_admin_form($form, &$form_state){
   $path = drupal_get_path('module', 'tools');
   $form['#attached']['css'] = array(
@@ -17,11 +18,17 @@ function tools_admin_form($form, &$form_state){
   $features = array_filter(features_get_features(), 'tools_filter_modules');
   $features = array_merge($modules, $features);
   usort($features, '_tools_features_sort');
-  $form['left'] = array('#prefix' => '<div class="tools-left">', '#suffix' => '</div>');
-  $form['right'] = array('#prefix' => '<div class="tools-right">', '#suffix' => '</div><div class="clearfix"></div>');
+  $form['left'] = array(
+    '#prefix' => '<div class="tools-left">',
+    '#suffix' => '</div>'
+  );
+  $form['right'] = array(
+    '#prefix' => '<div class="tools-right">',
+    '#suffix' => '</div><div class="clearfix"></div>'
+  );
   $side = 'left';
   $last_package = FALSE;
-  $half_way = count($features)/2;
+  $half_way = count($features) / 2;
   $index = 0;
   foreach($features as $feature){
     $package = (isset($feature->info['package']) ? $feature->info['package'] : t('Tools'));
@@ -30,7 +37,7 @@ function tools_admin_form($form, &$form_state){
       $side = 'right';
     }
     $last_package = $package;
-    $index ++;
+    $index++;
     if(!isset($form[$side][$package])){
       $form[$side][$package] = array(
         '#type' => 'fieldset',

@@ -4,6 +4,7 @@
  padding:0;
  margin:0;
  width:49%;
+ min-width:400px;
 }
 .tools-left {
  float:left;
