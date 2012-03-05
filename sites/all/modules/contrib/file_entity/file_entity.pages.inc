@@ -20,21 +20,31 @@ function file_entity_view_page($file) {
   }
 
   drupal_set_title($file->filename);
+
+  $uri = entity_uri('file', $file);
+  // Set the file path as the canonical URL to prevent duplicate content.
+  drupal_add_html_head_link(array('rel' => 'canonical', 'href' => url($uri['path'], $uri['options'])), TRUE);
+  // Set the non-aliased path as a default shortlink.
+  drupal_add_html_head_link(array('rel' => 'shortlink', 'href' => url($uri['path'], array_merge($uri['options'], array('alias' => TRUE)))), TRUE);
+
   return file_view($file, 'full');
 }
 
 /**
- * Menu callback; presents the Media editing form.
- */
-function file_entity_page_edit($file) {
-  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename)), PASS_THROUGH);
-  return drupal_get_form('file_entity_edit', $file);
-}
-
-/**
- * Form builder: Builds the edit file form.
+ * Page callback: Form constructor for the file edit form.
+ *
+ * Path: file/%file/edit
+ *
+ * @param object $file
+ *   A file object from file_load().
+ *
+ * @see file_entity_menu()
+ *
+ * @todo Rename this form to file_edit_form to ease into core.
  */
 function file_entity_edit($form, &$form_state, $file) {
+  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename)), PASS_THROUGH);
+
   $form_state['file'] = $file;
 
   $form['#attributes']['class'][] = 'file-form';
@@ -53,7 +63,7 @@ function file_entity_edit($form, &$form_state, $file) {
 
   $form['filename'] = array(
     '#type' => 'textfield',
-    '#title' => t('File name'),
+    '#title' => t('Name'),
     '#default_value' => $file->filename,
     '#required' => TRUE,
     '#maxlength' => 255,
@@ -78,7 +88,13 @@ function file_entity_edit($form, &$form_state, $file) {
     '#type' => 'submit',
     '#value' => t('Delete'),
     '#weight' => 10,
-    '#submit' => array('file_entity_delete_submit'),
+    '#submit' => array('file_entity_edit_delete_submit'),
+  );
+  $form['actions']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => isset($_GET['destination']) ? $_GET['destination'] : 'file/' . $file->fid,
+    '#weight' => 15,
   );
 
   field_attach_form('file', $file, $form, $form_state);
@@ -87,14 +103,14 @@ function file_entity_edit($form, &$form_state, $file) {
 }
 
 /**
- * Form validation handler for the file entity edit form.
+ * Form validation handler for file_entity_edit().
  */
 function file_entity_edit_validate($form, &$form_state) {
   entity_form_field_validate('file', $form, $form_state);
 }
 
 /**
- * Form submit handler for the media submit form.
+ * Form submission handler for the 'Save' button for file_entity_edit().
  */
 function file_entity_edit_submit($form, &$form_state) {
   $file = $form_state['file'];
@@ -104,82 +120,9 @@ function file_entity_edit_submit($form, &$form_state) {
 }
 
 /**
- * Menu callback; shows delete confirmation form.
+ * Form submission handler for the 'Delete' button for file_entity_edit().
  */
-function file_entity_page_delete($file) {
-  drupal_set_title(t('<em>Delete @type</em> @title', array('@type' => $file->type, '@title' => $file->filename)), PASS_THROUGH);
-  // Don't bother showing the form if the item is in use, since we won't allow
-  // them to delete it anyway.
-  $references = file_usage_list($file);
-  if (!empty($references)) {
-    return t('The file %title is in use and cannot be deleted.', array('%title' => $file->filename));
-  }
-  else {
-    $files = array($file->fid => $file->fid);
-    return drupal_get_form('file_entity_multiple_delete_confirm', $files, 'file/' . $file->fid);
-  }
-}
-
-/**
- * Confirm form for the request to delete files.
- *
- * @param array $files
- *   An array of file_ids to delete.
- */
-function file_entity_multiple_delete_confirm($form, &$form_state, $files, $redirect_path = NULL) {
-  $form['files'] = array('#tree' => TRUE);
-  $form['file_titles'] = array('#theme' => 'item_list');
-
-  $files = file_load_multiple($files);
-  foreach ($files as $fid => $file) {
-    $form['files'][$fid] = array(
-      '#type' => 'value',
-      '#value' => $fid,
-    );
-    $form['file_titles']['#items'][] = check_plain($file->filename);
-  }
-  $form['operation'] = array('#type' => 'hidden', '#value' => 'delete');
-
-  $confirm_question = format_plural(count($files),
-                                  'Are you sure you want to delete this file?',
-                                  'Are you sure you want to delete these files?');
-
-  return confirm_form($form,
-    $confirm_question,
-    $redirect_path,
-    t('This action cannot be undone.'),
-    t('Delete'),
-    t('Cancel'));
-}
-
-/**
- * Attempt to delete files and notify the user of the result.
- */
-function file_entity_multiple_delete_confirm_submit($form, &$form_state) {
-  if ($form_state['values']['confirm']) {
-    $files = file_load_multiple(array_keys($form_state['values']['files']));
-    foreach ($files as $fid => $file) {
-      $result = file_delete($file);
-      if (is_array($result)) {
-        drupal_set_message(t('The file @title is in use and cannot be deleted.', array('@title' => $file->filename)), 'warning');
-      }
-      elseif (!$result) {
-        drupal_set_message(t('The file @title was not deleted due to an error.', array('@title' => $file->filename)), 'error');
-      }
-      else {
-        $message = t('File @title was deleted', array('@title' => $file->filename));
-        $form_state['redirect'] = user_access('administer files') ? 'admin/content/file' : '<front>';
-        watchdog('file', $message);
-        drupal_set_message($message);
-      }
-    }
-  }
-}
-
-/**
- * Form submit handler for the Delete button on the media edit form.
- */
-function file_entity_delete_submit($form, &$form_state) {
+function file_entity_edit_delete_submit($form, &$form_state) {
   $fid = $form_state['values']['fid'];
   $destination = array();
   if (isset($_GET['destination'])) {
@@ -187,4 +130,143 @@ function file_entity_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $form_state['redirect'] = array('file/' . $fid . '/delete', array('query' => $destination));
+}
+
+/**
+ * Page callback: Form constructor for the file deletion confirmation form.
+ *
+ * Path: file/%file/delete
+ *
+ * @param object $file
+ *   A file object from file_load().
+ *
+ * @see file_entity_menu()
+ */
+function file_delete_form($form, &$form_state, $file) {
+  $form_state['file'] = $file;
+
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $file->fid,
+  );
+
+  $description = t('This action cannot be undone.');
+  if ($references = file_usage_list($file)) {
+    $description .= ' ' . t('This file is currently in use and may cause problems if deleted.');
+  }
+
+  return confirm_form($form,
+    t('Are you sure you want to delete the file %title?', array(
+      '%title' => entity_label('file', $file),
+    )),
+    'file/' . $file->fid,
+    $description,
+    t('Delete')
+  );
+}
+
+/**
+ * Form submission handler for file_delete_form().
+ */
+function file_delete_form_submit($form, &$form_state) {
+  if ($form_state['values']['confirm'] && $file = file_load($form_state['values']['fid'])) {
+    // Use file_delete_multiple() rather than file_delete() since we want to
+    // avoid unwanted validation and usage checking.
+    file_delete_multiple(array($file->fid));
+    $args = array(
+      '@type' => file_type_get_name($file),
+      '%title' => entity_label('file', $file),
+    );
+    watchdog('file', '@type: deleted %title.', $args);
+    drupal_set_message(t('@type %title has been deleted.', $args));
+  }
+
+  $form_state['redirect'] = '<front>';
+}
+
+/**
+ * Form constructor for file deletion confirmation form.
+ *
+ * @param array $files
+ *   An array of file objects.
+ *
+ * @todo Rename this form to file_delete_form to ease into core.
+ */
+function file_multiple_delete_form($form, &$form_state, array $files) {
+  $form['files'] = array(
+    '#prefix' => '<ul>',
+    '#suffix' => '</ul>',
+    '#tree' => TRUE,
+  );
+
+  $files_have_usage = FALSE;
+  foreach ($files as $fid => $file) {
+    $title = entity_label('file', $file);
+    $usage = file_usage_list($file);
+    if (!empty($usage)) {
+      $files_have_usage = TRUE;
+      $title = t('@title (in use)', array('@title' => $title));
+    }
+    else {
+      $title = check_plain($title);
+    }
+    $form['files'][$fid] = array(
+      '#type' => 'hidden',
+      '#value' => $fid,
+      '#prefix' => '<li>',
+      '#suffix' => $title . "</li>\n",
+    );
+  }
+
+  $form['operation'] = array(
+    '#type' => 'hidden',
+    '#value' => 'delete',
+  );
+
+  $description = t('This action cannot be undone.');
+  if ($files_have_usage) {
+    $description .= ' ' . t('Some of the files are currently in use and may cause problems if deleted.');
+  }
+
+  return confirm_form(
+    $form,
+    format_plural(count($files), 'Are you sure you want to delete this file?', 'Are you sure you want to delete these files?'),
+    'admin/content/file',
+    $description,
+    t('Delete')
+  );
+}
+
+/**
+ * Form submission handler for file_multiple_delete_form().
+ */
+function file_multiple_delete_form_submit($form, &$form_state) {
+  if ($form_state['values']['confirm'] && $fids = array_keys($form_state['values']['files'])) {
+    file_delete_multiple($fids);
+    $count = count($fids);
+    watchdog('file', 'Deleted @count files.', array('@count' => $count));
+    drupal_set_message(format_plural($count, 'Deleted one file.', 'Deleted @count files.'));
+  }
+  $form_state['redirect'] = 'admin/content/file';
+}
+
+
+/**
+ * Page callback for the file edit form.
+ *
+ * @deprecated
+ *   Use drupal_get_form('file_entity_edit')
+ */
+function file_entity_page_edit($file) {
+  return drupal_get_form('file_entity_edit', $file);
+}
+
+/**
+ * Page callback for the file deletion confirmation form.
+ *
+ * @deprecated
+ *   Use drupal_get_form('file_delete_form')
+ */
+function file_entity_page_delete($file) {
+  return drupal_get_form('file_delete_form');
 }
