@@ -388,7 +388,7 @@ function scratchpads_tweaks_install(){
   // Delete all shortcut links - we'll allow users to edit these.  
   menu_delete_links('shortcut-set-1');
   // Set the image toolkit as imagemagick.
-  variable_set('image_toolkit', 'imagemagick');
+  // variable_set('image_toolkit', 'imagemagick');
   // Set the logging level
   variable_set('error_level', ERROR_REPORTING_HIDE);
 }
