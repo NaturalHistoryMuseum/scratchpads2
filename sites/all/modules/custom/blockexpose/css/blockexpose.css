@@ -107,8 +107,14 @@
 .open-close, .blockexpose .subcontent{
  background:none repeat scroll 0 0 #666666
 }
-.blockexpose.left .subcontent>*{
+.blockexpose .subcontent>*{
  background-color:white;
  border:solid 1px black;
  border-left:none;
+}
+.blockexpose.left .subcontent>*{
+ border-left:none;
+}
+.blockexpose.right .subcontent>*{
+ border-right:none;
 }
