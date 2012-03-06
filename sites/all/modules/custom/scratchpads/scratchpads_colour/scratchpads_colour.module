@@ -77,21 +77,6 @@ function scratchpads_colour_permission(){
 }
 
 /**
- * Implements hook_menu().
- */
-function scratchpads_colour_menu(){
-  return array(
-    'scratchpads_colour.css' => array(
-      'title' => '',
-      'title callback' => FALSE,
-      'page callback' => 'scratchpads_colour_get_dynamic_css',
-      'delivery callback' => 'scratchpads_colour_deliver_css',
-      'access callback' => 'scratchpads_colour_deliver_css_callback'
-    )
-  );
-}
-
-/**
  * Implements hook_scratchpads_default_permissions().
  */
 function scratchpads_colour_scratchpads_default_permissions(){
@@ -103,26 +88,13 @@ function scratchpads_colour_scratchpads_default_permissions(){
 }
 
 /**
- * Access callback.
- */
-function scratchpads_colour_deliver_css_callback(){
-  return TRUE;
-}
-
-/**
- * CSS deliver
- */
-function scratchpads_colour_deliver_css($vars){
-  drupal_add_http_header('Content-Type', 'text/css; utf-8');
-  // Expires in one week
-  drupal_add_http_header('Expires', date('r', time() + 604800));
-  print implode(PHP_EOL, $vars);
-}
-
-/**
  * Callback to get the CSS.
  */
-function scratchpads_colour_get_dynamic_css(){
+function scratchpads_colour_add_dynamic_css(){
+  if($css_file = variable_get('scratchpads_colour_css_file', FALSE)){
+    drupal_add_css($css_file);
+    return;
+  }
   $css = array();
   foreach(scratchpads_colour_get_colours() as $colour){
     $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
@@ -133,7 +105,16 @@ function scratchpads_colour_get_dynamic_css(){
     $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}';
     $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}';
   }
-  return $css;
+  $css = implode(PHP_EOL, $css);
+  $filename = 'css_' . drupal_hash_base64($css) . '.css';
+  $csspath = 'public://css';
+  $uri = $csspath . '/' . $filename;
+  file_prepare_directory($csspath, FILE_CREATE_DIRECTORY);
+  if (!file_exists($uri) && !file_unmanaged_save_data($css, $uri, FILE_EXISTS_REPLACE)) {
+    return FALSE;
+  }
+  variable_set('scratchpads_colour_css_file', $uri);
+  drupal_add_css($uri);
 }
 
 /*********************************************************************************************
@@ -278,12 +259,7 @@ function theme_scratchpads_colour_block($variables){
 
 function scratchpads_colour_preprocess_html(&$vars){
   if(path_is_admin($_GET['q'])){return;}
-  drupal_add_css(url('scratchpads_colour.css', array(
-    'absolute' => TRUE
-  )), array(
-    'type' => 'external',
-    'preprocess' => TRUE
-  ));
+  scratchpads_colour_add_dynamic_css();
   $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
   if($colour == 'custom'){
     $colour = variable_get('scratchpads_custom_colour');
