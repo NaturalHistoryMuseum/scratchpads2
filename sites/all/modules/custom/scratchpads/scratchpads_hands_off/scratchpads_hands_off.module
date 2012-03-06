@@ -54,6 +54,8 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/development'
   ) as $url){
     $items[$url]['access callback'] = 'user_access';
-    $items[$url]['access arguments'] = 'scratchpad team';
+    $items[$url]['access arguments'] = array(
+      'scratchpad team'
+    );
   }
 }
