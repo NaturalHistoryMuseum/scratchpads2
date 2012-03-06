@@ -86,7 +86,7 @@ function scratchpads_colour_menu(){
       'title callback' => FALSE,
       'page callback' => 'scratchpads_colour_get_dynamic_css',
       'delivery callback' => 'scratchpads_colour_deliver_css',
-      'access callback' => TRUE
+      'access callback' => 'scratchpads_colour_deliver_css_callback'
     )
   );
 }
@@ -100,6 +100,13 @@ function scratchpads_colour_scratchpads_default_permissions(){
       'scratchpads colour'
     )
   );
+}
+
+/**
+ * Access callback.
+ */
+function scratchpads_colour_deliver_css_callback(){
+  return TRUE;
 }
 
 /**
@@ -270,9 +277,7 @@ function theme_scratchpads_colour_block($variables){
 }
 
 function scratchpads_colour_preprocess_html(&$vars){
-  if(path_is_admin($_GET['q'])){
-    return;
-  }
+  if(path_is_admin($_GET['q'])){return;}
   drupal_add_css(url('scratchpads_colour.css', array(
     'absolute' => TRUE
   )), array(
