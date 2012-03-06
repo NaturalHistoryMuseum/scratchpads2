@@ -85,3 +85,8 @@
   width: 126px!important;
   height: 93px!important;
 }
+
+/* Item list fix */
+.page-scratchpads-front .block-system ul{
+  margin-left: 30px;
+}
