@@ -90,7 +90,6 @@ function scratchpads_roles_and_permissions_node_type_insert(){
 function scratchpads_roles_and_permissions_node_type_delete(){
   _scratchpads_roles_and_permissions_register_shutdown();
 }
-_scratchpads_roles_and_permissions_register_shutdown();
 
 /**
  * Implements hook_modules_enabled().
