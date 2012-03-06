@@ -484,7 +484,7 @@ function aggregator_save_category($edit) {
  * @param $edit
  *   An associative array describing the feed to be added/edited/deleted.
  */
-function aggregator_save_feed($edit) {
+function aggregator_save_feed(&$edit) {
   if (!empty($edit['fid'])) {
     // An existing feed is being modified, delete the category listings.
     db_delete('aggregator_category_feed')
