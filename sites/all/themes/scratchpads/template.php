@@ -272,4 +272,38 @@ function scratchpads_preprocess_html(&$vars){
     'height' => 77
   ));
 }
+
+function scratchpads_user_login_block($variables){
+	
+	$form = $variables['form'];
+	
+  $output = '<div class="clearfix">';
+  $output .= drupal_render($form['actions']);
+  $output .= drupal_render($form['openid_identifier']);
+  $output .= drupal_render($form['pass']);
+  $output .= drupal_render($form['name']);
+	$output .= '</div>';
   
+	$output .= '<div class="account-links">';
+	$output .= drupal_render($form['links']);
+	$output .= '</div>';
+	
+	$form['links']['#attributes']['class'] = array('account-links');
+  
+	$output .= drupal_render_children($form); 
+	 
+	return $output;
+	
+}
+
+function scratchpads_theme(){
+  return array(
+    'user_login_block' => array(
+      'arguments' => array(
+        'form' => NULL
+      ),
+      'render element' => 'form'
+    )
+  );
+}
+
