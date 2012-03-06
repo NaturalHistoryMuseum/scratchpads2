@@ -5,8 +5,6 @@
  */
 function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
-    case '':
-      break;
     case 'dashboard_admin_display_form':
     case 'block_admin_display_form':
       foreach($form['blocks'] as $form_block_key => $form_block){
