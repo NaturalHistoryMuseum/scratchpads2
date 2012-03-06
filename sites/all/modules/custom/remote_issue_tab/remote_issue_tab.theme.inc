@@ -33,7 +33,7 @@ function theme_remote_issue_tab_block($variables = array()){
     ));
     return '<div id="remote-issue-tab">
  <div class="new-items">
-  <h1>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h1>
+  <h2>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h2>
  </div>
  <div class="items">
   ' . theme('remote_issue_tab_feed_items', array(
@@ -65,7 +65,7 @@ function theme_remote_issue_tab_feed_items($variables = array()){
   $content = '';
   if(count($variables['items'])){
     $item_count = 0;
-    $content = '<h1>Recent Issues:</h1><ul>';
+    $content = '<h2>Recent Issues:</h2><ul>';
     foreach($variables['items'] as $item){
       if($item_count == 10){
         break;

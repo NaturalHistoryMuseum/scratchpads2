@@ -38,3 +38,24 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
       break;
   }
 }
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_hands_off_menu_alter(&$items){
+  foreach(array(
+    'admin/config/content/clone',
+    'admin/config/media',
+    'admin/config/system/boost',
+    'admin/config/system/customerror',
+    'admin/config/system/globalredirect',
+    'admin/config/system/cron',
+    'admin/config/user-interface/beautytips',
+    'admin/config/development'
+  ) as $url){
+    $items[$url]['access callback'] = 'user_access';
+    $items[$url]['access arguments'] = array(
+      'scratchpad team'
+    );
+  }
+}

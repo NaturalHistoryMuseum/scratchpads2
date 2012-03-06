@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_block_info_alter()
+ */
+function scratchpads_issues_block_block_info_alter(&$blocks, $theme, $code_blocks){
+  if($theme != 'scratchpads_admin'){
+    $blocks['remote_issue_tab'][0]['region'] = 'sidebar';
+    $blocks['remote_issue_tab'][0]['status'] = 1;
+  }
+}
