@@ -77,6 +77,21 @@ function scratchpads_colour_permission(){
 }
 
 /**
+ * Implements hook_menu().
+ */
+function scratchpads_colour_menu(){
+  return array(
+    'scratchpads_colour.css' => array(
+      'title' => '',
+      'title callback' => FALSE,
+      'page callback' => 'scratchpads_colour_get_dynamic_css',
+      'delivery callback' => 'scratchpads_colour_deliver_css',
+      'access callback' => TRUE
+    )
+  );
+}
+
+/**
  * Implements hook_scratchpads_default_permissions().
  */
 function scratchpads_colour_scratchpads_default_permissions(){
@@ -85,6 +100,33 @@ function scratchpads_colour_scratchpads_default_permissions(){
       'scratchpads colour'
     )
   );
+}
+
+/**
+ * CSS deliver
+ */
+function scratchpads_colour_deliver_css($vars){
+  drupal_add_http_header('Content-Type', 'text/css; utf-8');
+  // Expires in one week
+  drupal_add_http_header('Expires', date('r', time() + 604800));
+  print implode(PHP_EOL, $vars);
+}
+
+/**
+ * Callback to get the CSS.
+ */
+function scratchpads_colour_get_dynamic_css(){
+  $css = array();
+  foreach(scratchpads_colour_get_colours() as $colour){
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}';
+  }
+  return $css;
 }
 
 /*********************************************************************************************
@@ -228,18 +270,12 @@ function theme_scratchpads_colour_block($variables){
 }
 
 function scratchpads_colour_preprocess_html(&$vars){
-  $vars['colours'] = '<style>' . PHP_EOL;
-  foreach(scratchpads_colour_get_colours() as $colour){
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}' . PHP_EOL;
-    // Couple of default classes for colouring stuff
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
-    $vars['colours'] .= 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}' . PHP_EOL;
-  }
-  $vars['colours'] .= '</style>';
+  drupal_add_css(url('scratchpads_colour.css', array(
+    'absolute' => TRUE
+  )), array(
+    'type' => 'external',
+    'preprocess' => TRUE
+  ));
   $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
   if($colour == 'custom'){
     $colour = variable_get('scratchpads_custom_colour');
@@ -281,8 +317,3 @@ function scratchpads_colour_get_colours(){
   }
   return $colours;
 }
-
-
-
-
-
