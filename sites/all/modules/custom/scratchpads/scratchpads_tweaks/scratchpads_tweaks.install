@@ -219,6 +219,16 @@ function scratchpads_tweaks_install(){
       'pages' => '',
       'cache' => -1
     ),
+    array(
+      'module' => 'creative_commons',
+      'delta' => 'creative_commons',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'footer',
+      'pages' => '',
+      'cache' => -1
+    ),
     // Admin theme blocks
     array(
       'module' => 'scratchpads_help',
