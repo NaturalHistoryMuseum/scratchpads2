@@ -41,7 +41,7 @@ function tcsdc_silver(){
     return array(
       array(
         'type' => 'Taxonomy',
-        'name' => 'TCS ('.implode('; ', $additional_text).')',
+        'name' => 'TCS (' . implode('; ', $additional_text) . ')',
         //'access callback' => 'user_access',
         'access arguments' => array(
           'administer taxonomy'
@@ -196,7 +196,10 @@ function tcsdc_import_terms($vid, &$context){
     $_SESSION['tcsdc_import_vid'] = $vid;
   }
   // We import 50 terms per cycle.
-  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->range(0, 1)->execute();
+  $condition = db_select('tcsdc_data', 't')->fields('t', array(
+    'id'
+  ))->condition('vid', $vid)->condition('bid', $batch['id']);
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->condition('parent', $condition, 'NOT IN')->range(0, 50)->execute();
   foreach($results as $term){
     $id = $term->id;
     $parent = $term->parent;
