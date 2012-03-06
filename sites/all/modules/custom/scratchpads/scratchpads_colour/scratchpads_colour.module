@@ -270,6 +270,9 @@ function theme_scratchpads_colour_block($variables){
 }
 
 function scratchpads_colour_preprocess_html(&$vars){
+  if(path_is_admin($_GET['q'])){
+    return;
+  }
   drupal_add_css(url('scratchpads_colour.css', array(
     'absolute' => TRUE
   )), array(
