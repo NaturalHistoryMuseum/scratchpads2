@@ -37,4 +37,15 @@ function scratchpads_issues_block_install(){
     'event' => 'click',
     'show' => 1
   ));
+  // Only show the block to authenticated users.
+  try{
+    db_insert('block_role')->fields(array(
+      'module' => 'remote_issue_tab',
+      'delta' => 0,
+      'rid' => 2
+    ))->execute();
+  }
+  catch(Exception $e){
+    ; // Do nothing, we're proabably just inserting the same record again.
+  }
 }
