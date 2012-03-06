@@ -276,7 +276,8 @@ function scratchpads_preprocess_html(&$vars){
 function scratchpads_user_login_block($variables){
 	
 	$form = $variables['form'];
-	
+	$form['name']['#attributes']['tabindex'] = 1;
+	$form['pass']['#attributes']['tabindex'] = 2;
   $output = '<div class="clearfix">';
   $output .= drupal_render($form['actions']);
   $output .= drupal_render($form['openid_identifier']);
