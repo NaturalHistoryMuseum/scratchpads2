@@ -7,13 +7,16 @@
  word-spacing:0;
  text-align:left;	
 }
-#remote-issue-tab h1,#remote-issue-tab h3{
+#remote-issue-tab h2,#remote-issue-tab h3{
  margin:0;
 }
 #remote-issue-tab .new-items{
  margin-bottom:10px !important;
 }
-#remote-issue-tab .items h1{
+#remote-issue-tab .new-items a{
+	color:white !important;
+}
+#remote-issue-tab .items h2{
  color:white;
  background-color:#555555;
  padding:3px;
@@ -50,7 +53,7 @@
  background-color:#FFFFAA;
  padding:3px 3px 3px 10px;
 }
-#remote-issue-tab .footer h1{
+#remote-issue-tab .footer h2{
 font-size:15px;
 font-weight:bold;
 }
