@@ -30,6 +30,7 @@ function scratchpads_issues_block_install(){
   // UWho client key (should be private, but this clearly isn't).
   variable_set('remote_issue_tab_uwho_client_key', '58d972f86f9d963837bebcd8d4b46d39');
   variable_set('remote_issue_tab_uwho_url', 'http://dev.scratchpads.eu/uwho');
+  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.');
   // Finally, set this block to use the blockexpose module.
   variable_set('blockexpose_settings_remote_issue_tab_0', array(
     'side' => 'right',

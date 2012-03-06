@@ -7,7 +7,7 @@
  word-spacing:0;
  text-align:left;	
 }
-#remote-issue-tab h2,#remote-issue-tab h3{
+#remote-issue-tab h3{
  margin:0;
 }
 #remote-issue-tab .new-items{
@@ -19,7 +19,6 @@
 #remote-issue-tab .items h2{
  color:white;
  background-color:#555555;
- padding:3px;
  font-size:15px;
  font-weight:bold;
  margin:0;
@@ -51,7 +50,10 @@
 }
 #remote-issue-tab .footer{
  background-color:#FFFFAA;
- padding:3px 3px 3px 10px;
+ padding:0px 0 1px 0;
+}
+#remote-issue-tab .footer p{
+ padding:3px;
 }
 #remote-issue-tab .footer h2{
 font-size:15px;
