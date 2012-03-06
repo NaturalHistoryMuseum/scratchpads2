@@ -77,6 +77,7 @@ function scratchpads_user_admin_account(){
   );
   $query = db_select('users', 'u');
   $query->condition('u.uid', 0, '<>');
+  $query->condition('u.uid', 1, '<>');
   $query->leftJoin('field_revision_field_user_family_name', 'fn', 'u.uid = fn.revision_id');
   $query->addField('fn', 'field_user_family_name_value', 'family_name');
   $query->leftJoin('field_revision_field_user_given_names', 'fgn', 'u.uid = fgn.revision_id');
