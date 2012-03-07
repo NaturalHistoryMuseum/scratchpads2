@@ -2,6 +2,9 @@ name = Scratchpads tweaks
 description = Tweaks a Drupal site into a Scratchpad
 core = 7.x
 
+; Features
+features[menu_links][] = "management:http://help.scratchpads.eu/"
+
 ; Drupal core
 dependencies[] = block
 dependencies[] = color
