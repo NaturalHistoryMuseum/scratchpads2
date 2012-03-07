@@ -109,7 +109,8 @@ function theme_tinytax_term($variables){
   }
   if(isset($variables['term']->field_usage)){
     if(@in_array($variables['term']->field_usage[LANGUAGE_NONE][0]['value'], array(
-      'invalid'
+      'invalid',
+      'not accepted'
     ))){
       $output .= "= ";
     }
