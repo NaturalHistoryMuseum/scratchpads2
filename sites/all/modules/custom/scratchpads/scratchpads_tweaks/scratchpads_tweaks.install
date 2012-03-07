@@ -1,15 +1,25 @@
 <?php
 
 function scratchpads_tweaks_install(){
-  // Add text format.
-  $full_html_format = array(
-    'format' => 'full_html',
-    'name' => 'Full HTML',
-    'weight' => 1,
+  // Add text formats.
+  $filtered_html_format = array(
+    'format' => 'filtered_html',
+    'name' => 'Filtered HTML',
+    'weight' => 0,
     'filters' => array(
       // URL filter.
       'filter_url' => array(
         'weight' => 0,
+        'status' => 1
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
         'status' => 1
       ),
       // HTML corrector filter.
@@ -19,6 +29,8 @@ function scratchpads_tweaks_install(){
       )
     )
   );
+  $filtered_html_format = (object)$filtered_html_format;
+  filter_format_save($filtered_html_format);
   // Set the default theme to be "scratchpads".
   variable_set('theme_default', 'scratchpads');
   // Disable default theme.
@@ -29,8 +41,6 @@ function scratchpads_tweaks_install(){
   theme_enable(array(
     'scratchpads'
   ));
-  $full_html_format = (object)$full_html_format;
-  filter_format_save($full_html_format);
   // Set wysiwyg settings for each filter format.
   $wysiwyg_settings = array(
     'default' => 1,
@@ -93,8 +103,7 @@ function scratchpads_tweaks_install(){
     'settings'
   ));
   foreach(array(
-    'filtered_html',
-    'full_html'
+    'filtered_html'
   ) as $format){
     $query->values(array(
       'format' => $format,
