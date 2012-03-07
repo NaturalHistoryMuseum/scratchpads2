@@ -95,6 +95,12 @@ function tools_admin_form_submit(&$form, &$form_state){
   // be re-enabled.
   module_disable($disable);
   features_install_modules($install);
+  if(module_exists('views')){
+    ctools_include('export');
+    ctools_export_load_object_reset('views_view');
+  }
+  menu_rebuild();
+  menu_cache_clear_all();
   drupal_flush_all_caches();
   drupal_set_message(t('The configuration options have been saved.'));
 }
