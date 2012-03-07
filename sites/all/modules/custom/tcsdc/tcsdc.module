@@ -391,10 +391,35 @@ function tcsdc_batch_downloader_helper($url, $vid){
         break;
     }
   }
+  // Add the status (valid/invalid).
+  $biological_vids = variable_get('biological_vids', array());
+  if(isset($biological_vids[$vid])){
+    switch($biological_vids[$vid]){
+      case 1:
+      case 3:
+        $data['usage'] = 'valid';
+        break;
+      case 2:
+        $data['usage'] = 'accepted';
+        break;
+    }
+  }
   $synonym_urls = tcsdc_variable('tcsdc_synonyms');
   if(isset($synonym_urls[$url])){
     // Set the parent
     $data['parent'] = $synonym_urls[$url];
+    // Add the status (valid/invalid).
+    if(isset($biological_vids[$vid])){
+      switch($biological_vids[$vid]){
+        case 1:
+        case 3:
+          $data['usage'] = 'invalid';
+          break;
+        case 2:
+          $data['usage'] = 'not accepted';
+          break;
+      }
+    }
     unset($synonym_urls[$url]);
     tcsdc_variable('tcsdc_synonyms', $synonym_urls);
   }
