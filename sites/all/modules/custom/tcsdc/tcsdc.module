@@ -209,6 +209,20 @@ function tcsdc_import_terms($vid, &$context){
     $id = $term->id;
     $parent = $term->parent;
     $data = unserialize($term->data);
+    // Set the term name based on the canonical name, and also set the authority
+    // based on what's remaining from the name.
+    if(isset($data['canonicalname'])){
+      // Set unit names
+      $unit_name_index = 1;
+      foreach(explode(' ', $data['canonicalname']) as $unit_name){
+        $data['unit_name' . $unit_name_index] = $unit_name;
+        $unit_name_index++;
+      }
+      // Set authors
+      $data['authors'] = trim(substr($term->name, strlen($data['canonicalname'])));
+      // Set the name
+      $term->name = $data['canonicalname'];
+    }
     foreach($data as $key => $value){
       // We should be checking to see if this vocabulary actually has a field
       // with this name associated.
@@ -222,26 +236,6 @@ function tcsdc_import_terms($vid, &$context){
           )
         );
       }
-    }
-    // We also hard code the unit name 1 and unit name 2 fields (no more, we'll
-    // fuck up if we try to do more, and there will be unhappy taxonomists the
-    // world over screaming blue murder at us for fucking up their data).
-    $name_parts = explode(' ', $term->name);
-    $term->field_unit_name1 = array(
-      LANGUAGE_NONE => array(
-        array(
-          'value' => $name_parts[0]
-        )
-      )
-    );
-    if(count($name_parts) > 1){
-      $term->field_unit_name2 = array(
-        LANGUAGE_NONE => array(
-          array(
-            'value' => $name_parts[1]
-          )
-        )
-      );
     }
     unset($term->data, $term->id, $term->bid, $term->parent);
     $previously_imported = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $id)->execute()->fetch();
