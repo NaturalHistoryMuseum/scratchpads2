@@ -111,7 +111,10 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   }
   switch($licence_type){
     case CC_NONE:
-      return;
+      return array(
+        '#type' => 'markup',
+        '#markup' => creative_commons_get_licence_types(CC_NONE),
+      );
       break;
     case CC_BY:
       $licence = 'by';
