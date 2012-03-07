@@ -69,9 +69,6 @@ function filter_scratchpads_default_permissions(){
   // Missing:
   // administer filters
   return array(
-    'anonymous user' => array(
-      'use text format plain_text'
-    ),
     'authenticated user' => array(
       'use text format full_html'
     )
