@@ -893,6 +893,8 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['path'] = 'admin/file/%';
   /* Display: Images */
   $handler = $view->new_display('page', 'Images', 'page_1');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Image files';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Bulk operations: File */
   $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
