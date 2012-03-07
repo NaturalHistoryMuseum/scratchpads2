@@ -199,7 +199,8 @@ function tcsdc_import_terms($vid, &$context){
   $condition = db_select('tcsdc_data', 't')->fields('t', array(
     'id'
   ))->condition('vid', $vid)->condition('bid', $batch['id']);
-  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->condition('parent', $condition, 'NOT IN')->range(0, 50)->execute();
+  $or = db_or()->condition('parent', $condition, 'NOT IN')->condition('parent', NULL, 'IS');
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->condition($or)->range(0, 50)->execute();
   foreach($results as $term){
     $id = $term->id;
     $parent = $term->parent;
