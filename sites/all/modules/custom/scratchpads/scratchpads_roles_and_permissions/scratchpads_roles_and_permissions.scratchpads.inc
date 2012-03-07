@@ -70,7 +70,7 @@ function filter_scratchpads_default_permissions(){
   // administer filters
   return array(
     'authenticated user' => array(
-      'use text format full_html'
+      'use text format filtered_html'
     )
   );
 }
