@@ -73,9 +73,6 @@ function filter_scratchpads_default_permissions(){
       'use text format plain_text'
     ),
     'authenticated user' => array(
-      'use text format filtered_html'
-    ),
-    'contributor' => array(
       'use text format full_html'
     )
   );
