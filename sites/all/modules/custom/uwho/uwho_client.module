@@ -71,9 +71,7 @@ function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE)
   // If we're not logged in, and the text is set, then we'll simply return a
   // link
   global $user;
-  if(!$user->uid){
-    return ($text != '') ? '<a href="'.($redirect ? $redirect : $url).'">'.$text.'</a>' : '';
-  }
+  if(!$user->uid){return ($text != '') ? '<a href="' . ($redirect ? $redirect : $url) . '">' . $text . '</a>' : '';}
   if(!$text){
     $text = t('Login to remote site');
   }
@@ -86,41 +84,43 @@ function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE)
   // Load the class file
   module_load_include('inc', 'uwho_site', 'uwho.cryptastic');
   $cryptastic = new cryptastic();
-  $key = $cryptastic->pbkdf2($key, $key . $url, 1000, 32);
   $site_url = url('', array(
     'absolute' => TRUE
   ));
   $url_parts = parse_url($site_url);
-  $encrypted = $cryptastic->encrypt(array(
-    'redirect' => $redirect,
-    'site_url' => $site_url,
-    'guid' => $url_parts['host'] . ':' . (strlen($url_parts['path']) > 1 ? $url_parts['path'] . ':' : '') . $user->uid,
-    'user' => array(
-      'url' => url('user/' . $user->uid, array(
-        'absolute' => TRUE
-      )),
-      'name' => $user->name,
-      'mail' => $user->mail,
-      'drupal_user_object' => $user
-    )
-  ), $key);
-  if(!$encrypted){
-    watchdog('uwho', 'Encryption failed');
-    return '';
+  $encrypted = &drupal_static(__FUNCTION__, array());
+  if(!isset($encrypted[$key][$url])){
+    $crypt_key = $cryptastic->pbkdf2($key, $key . $url, 1000, 32);
+    $encrypted[$key][$url] = $cryptastic->encrypt(array(
+      'site_url' => $site_url,
+      'guid' => $url_parts['host'] . ':' . (strlen($url_parts['path']) > 1 ? $url_parts['path'] . ':' : '') . $user->uid,
+      'user' => array(
+        'url' => url('user/' . $user->uid, array(
+          'absolute' => TRUE
+        )),
+        'name' => $user->name,
+        'mail' => $user->mail,
+        'drupal_user_object' => $user
+      )
+    ), $crypt_key);
+    if(!$encrypted[$key][$url]){
+      watchdog('uwho', 'Encryption failed');
+      return '';
+    }
   }
   // We need to ensure that jquery.js is added to the page
   // FIXME - Is this still necessary?
   drupal_add_js(array(), 'setting');
   if(count($_COOKIE) && (isset($_COOKIE['has_js']) && ($_COOKIE['has_js']))){
-    $link_or_button = '<a href="' . $url . ((strlen(urlencode($encrypted)) + strlen($url)) < 1800 ? (strpos($url, '?') ? '&' : '?') . 'uwhodata=' . urlencode($encrypted) : '') . '" onclick="jQuery(this).parent().trigger(\'submit\'); return false;">' . $text . '</a>';
+    $link_or_button = '<a href="' . $url . ((strlen(urlencode($encrypted[$key][$url])) + strlen($url)) < 1800 ? (strpos($url, '?') ? '&' : '?') . 'uwhodata=' . urlencode($encrypted[$key][$url]) : '') . ($redirect ? '&redirect=' . urlencode($redirect) : '') . '" onclick="jQuery(this).parent().trigger(\'submit\'); return false;">' . $text . '</a>';
   }else{
     $link_or_button = '<input type="submit" value="' . $text . '"/>';
   }
   // Note, we only include the data in the URL, if the length of the data and 
   // URL is less than 1800 characters.  This helps to ensure we don't go over 
   // apache's URL length limit.
-  return '<form action="' . $url . '" accept-charset="UTF-8" method="post" target="_blank">
-  <input type="text" name="uwhodata" value="' . urlencode($encrypted) . '" style="display:none"/>
+  return '<form action="' . $url . ($redirect ? (strpos($url, '?') ? '&' : '?') . '&redirect=' . urlencode($redirect) : '') . '" accept-charset="UTF-8" method="post" target="_blank">
+  <input type="text" name="uwhodata" value="' . urlencode($encrypted[$key][$url]) . '" style="display:none"/>
   ' . $link_or_button . '
  </form>';
 }
