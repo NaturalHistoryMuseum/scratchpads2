@@ -156,8 +156,8 @@ function scratchpads_pages_views_default_views(){
   $views[$view->name] = $view;
   // Automatically generated teaser views
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
-  foreach(node_type_get_types() as $type => $node_info){
-    if(!isset($display_settings[$type]) || $display_settings[$type] == 'view'){
+  foreach(scratchpads_pages_get_node_types() as $type => $node_info){
+    if(module_exists($node_info->module) && (!isset($display_settings[$type]) || $display_settings[$type] == 'view')){
       $name = $type . '_page';
       // Have we already defined this view?
       if(isset($views[$name])){

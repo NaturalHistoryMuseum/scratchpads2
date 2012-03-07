@@ -148,15 +148,12 @@ function scratchpads_pages_theme(){
  * DISPLAY SETTINGS
  * 
  ********************************************************************************************/
-/**
- * 
- * Implementation of hook_entity_info_alter
- */
-function scratchpads_pages_entity_info_alter(&$info){
-  foreach(array_keys($info) as $entity_type){
+function scratchpads_pages_entity_info_alter(&$entity_info){
+  // Add a linked node display setting
+  foreach(array_keys($entity_info) as $entity_type){
     // Add the 'species page' view mode.
-    if(!empty($info[$entity_type]['view modes'])){
-      $info[$entity_type]['view modes']['linked_node'] = array(
+    if(!empty($entity_info[$entity_type]['view modes'])){
+      $entity_info[$entity_type]['view modes']['linked_node'] = array(
         'label' => t('Linked node'),
         'custom settings' => TRUE
       );
@@ -393,7 +390,7 @@ function scratchpads_pages_pluralise_node_name($name){
     case 'image_gallery':
       $plural = 'image_galleries';
       break;
-    case 'blog':
+    case 'Blog entry':
       $plural = 'blog';
       break;
     default:
@@ -401,6 +398,10 @@ function scratchpads_pages_pluralise_node_name($name){
       break;
   }
   return $plural;
+}
+
+function scratchpads_pages_get_node_types(){
+  return _node_types_build(true)->types;
 }
 
 /**
