@@ -351,6 +351,9 @@ function tcsdc_batch_downloader_helper($url, $vid){
       'rank' => (string)$name->Rank,
       'canonicalname' => (string)$name->CanonicalName->Simple
     );
+    foreach($name->attributes() as $key => $value){
+      $data[(string)$key] = (string)$value;
+    }
   }
   foreach($xml->TaxonConcepts->TaxonConcept->TaxonRelationships->TaxonRelationship as $relationship){
     switch((string)$relationship['type']){
