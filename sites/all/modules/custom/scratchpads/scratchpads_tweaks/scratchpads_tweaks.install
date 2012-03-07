@@ -12,11 +12,6 @@ function scratchpads_tweaks_install(){
         'weight' => 0,
         'status' => 1
       ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 1,
-        'status' => 1
-      ),
       // HTML corrector filter.
       'filter_htmlcorrector' => array(
         'weight' => 10,
