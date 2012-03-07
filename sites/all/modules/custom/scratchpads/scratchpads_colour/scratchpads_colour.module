@@ -91,10 +91,7 @@ function scratchpads_colour_scratchpads_default_permissions(){
  * Callback to get the CSS.
  */
 function scratchpads_colour_add_dynamic_css(){
-  if($css_file = variable_get('scratchpads_colour_css_file', FALSE)){
-    drupal_add_css($css_file);
-    return;
-  }
+  if($css_file = variable_get('scratchpads_colour_css_file', FALSE)){return drupal_add_css($css_file);}
   $css = array();
   foreach(scratchpads_colour_get_colours() as $colour){
     $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
@@ -110,11 +107,9 @@ function scratchpads_colour_add_dynamic_css(){
   $csspath = 'public://css';
   $uri = $csspath . '/' . $filename;
   file_prepare_directory($csspath, FILE_CREATE_DIRECTORY);
-  if (!file_exists($uri) && !file_unmanaged_save_data($css, $uri, FILE_EXISTS_REPLACE)) {
-    return FALSE;
-  }
+  if(!file_exists($uri) && !file_unmanaged_save_data($css, $uri, FILE_EXISTS_REPLACE)){return FALSE;}
   variable_set('scratchpads_colour_css_file', $uri);
-  drupal_add_css($uri);
+  return drupal_add_css($uri);
 }
 
 /*********************************************************************************************
@@ -182,6 +177,7 @@ function scratchpads_colour_validate_custom_colour($element, &$form_state, $form
 function scratchpads_colour_form_system_theme_settings_submit($form, $form_state){
   variable_set('scratchpads_colour', $form_state['values']['colour']);
   variable_set('scratchpads_custom_colour', $form_state['values']['custom_colour']);
+  variable_del('scratchpads_colour_css_file');
 }
 
 /*********************************************************************************************
