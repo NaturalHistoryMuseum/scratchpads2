@@ -140,7 +140,7 @@ function scratchpads_front_page_view(){
     '@site-name' => variable_get('site_name', 'Drupal')
   ));
   $welcome_message .= '</h2>';
-  $welcome_message .= variable_get('front_page_welcome_message');
+  $welcome_message .= check_markup(variable_get('front_page_welcome_message'), 'filtered_html');
   switch(scratchpads_front_variable_get('front_page_main_block_type')){
     case 'images':
       $view_name = 'front_page_slideshow';
