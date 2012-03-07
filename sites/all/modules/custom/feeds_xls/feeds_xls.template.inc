@@ -51,11 +51,11 @@ function feeds_xls_download_template_helper($feeds_importer){
     if($first_letter){
       $cell = chr(64 + $first_letter) . $cell;
     }
-    $column = $cell;
+    $columnn = $cell;
     $cell = "{$cell}1";
     $objPHPExcel->getActiveSheet()->setCellValue($cell, $header['source']);
-    // Set the column width
-    $objPHPExcel->getActiveSheet()->getColumnDimension($column)->setAutoSize(TRUE);
+    // Set the columnn width
+    $objPHPExcel->getActiveSheet()->getColumnDimension($columnn)->setAutoSize(TRUE);
     // Validation
     if(isset($feeds_importer->processor->config['content_type']) || isset($feeds_importer->processor->config['vocabulary'])){
       if(isset($feeds_importer->processor->config['content_type'])){
@@ -70,7 +70,7 @@ function feeds_xls_download_template_helper($feeds_importer){
         // Get the field instance, so that we can check if this field is required.
         $class = get_class($feeds_importer->processor);
         $field_instance = field_info_instance($entity_type, $field['field_name'], $bundle);
-        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
+        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($columnn . '2:' . $column . '65536');
         $objValidation->setAllowBlank($field_instance['required'] ? FALSE : TRUE);
         if($field_instance['required']){
           $objValidation->setPromptTitle(t('Required'));
@@ -106,20 +106,20 @@ function feeds_xls_download_template_helper($feeds_importer){
               ))->condition('vid', $vocabulary->vid)->distinct()->execute();
               foreach($results as $term){
                 $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+                $objPHPExcel->getSheet(1)->setCellValue("{$columnn}{$row}", $term->name);
               }
               $break_at_end = FALSE;
             }else{
               foreach($allowed_values as $term){
                 $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term);
+                $objPHPExcel->getSheet(1)->setCellValue("{$columnn}{$row}", $term);
               }
               $break_at_end = TRUE;
             }
-            $objValidation->setPrompt(t("Only values from colum '!column' in the 'PermittedValues' worksheet are allowed.", array(
-              '!column' => $column
+            $objValidation->setPrompt(t("Only values from column '!column' in the 'PermittedValues' worksheet are allowed.", array(
+              '!columnn' => $column
             )) . "\n\n" . ($field_instance['required'] ? t('This cell may not be left blank.') : t('This cell may be left blank.')));
-            $objValidation->setFormula1('PermittedValues!$' . $column . '$1:$' . $column . '$' . ($row));
+            $objValidation->setFormula1('PermittedValues!$' . $columnn . '$1:$' . $column . '$' . ($row));
             if($break_at_end){
               break;
             }
@@ -131,7 +131,7 @@ function feeds_xls_download_template_helper($feeds_importer){
       // fields that aren't standard "fields".
       // Set title to required.
       if($header['target'] == 'title' && strtolower(substr(get_class($feeds_importer->processor), 5, strlen(get_class($feeds_importer->processor)) - 14)) == 'node'){
-        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
+        $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($columnn . '2:' . $column . '65536');
         $objValidation->setAllowBlank(FALSE);
         $objValidation->setPromptTitle(t('Required'));
         $objValidation->setPrompt(t('This cell may not be left blank'));

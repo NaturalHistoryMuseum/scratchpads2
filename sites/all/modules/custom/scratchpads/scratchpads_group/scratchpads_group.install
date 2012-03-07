@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpads_group_disable(){
+  // Disable the OG modules too.
+  module_disable(array(
+    'og',
+    'og_access',
+    'og_register',
+    'og_ui'
+  ));
+}
