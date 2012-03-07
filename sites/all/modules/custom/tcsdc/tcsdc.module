@@ -127,7 +127,11 @@ function tcsdc_variable($name, $value = NULL){
   if(!is_null($value)){
     $data[$name] = $value;
   }
-  return $data[$name];
+  if(isset($data[$name])){
+    return $data[$name];
+  }else{
+    return $value;
+  }
 }
 
 /**
