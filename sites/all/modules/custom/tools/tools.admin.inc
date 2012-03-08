@@ -63,7 +63,7 @@ function tools_admin_form($form, &$form_state){
     $form[$side][$package]['status'][$feature->name] = array(
       '#type' => 'switch',
       '#title' => $feature->info['name'],
-      '#description' => _filter_url($feature->info['description'], $dummy_filter),
+      '#description' => _filter_url($feature->info['description'], $dummy_filter) . ($feature->status && isset($feature->info['configure']) ? '<br/>' . l('Configure ' . $feature->info['name'], $feature->info['configure']) : ''),
       '#default_value' => $feature->status,
       '#parents' => array(
         'status',
