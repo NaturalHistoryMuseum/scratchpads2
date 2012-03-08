@@ -89,13 +89,14 @@ function remote_issue_tab_block_save($delta = '', $edit = array()){
 function remote_issue_tab_block_view($delta = ''){
   return array(
     'subject' => t('Issues...'),
-    'content' => theme('remote_issue_tab_block', array(
-      'feed' => variable_get('remote_issue_tab_feed', 0),
-      'uwho_key' => variable_get('remote_issue_tab_uwho_client_key', ''),
-      'uwho_url' => variable_get('remote_issue_tab_uwho_url', ''),
-      'uwho_redirect_path' => variable_get('remote_issue_tab_redirect_path', ''),
-      'footer' => variable_get('remote_issue_tab_footer', '')
-    ))
+    'content' => array(
+      '#theme' => 'remote_issue_tab_block',
+      '#feed' => variable_get('remote_issue_tab_feed', 0),
+      '#uwho_key' => variable_get('remote_issue_tab_uwho_client_key', ''),
+      '#uwho_url' => variable_get('remote_issue_tab_uwho_url', ''),
+      '#uwho_redirect_path' => variable_get('remote_issue_tab_redirect_path', ''),
+      '#footer' => variable_get('remote_issue_tab_footer', '')
+    )
   );
 }
 
