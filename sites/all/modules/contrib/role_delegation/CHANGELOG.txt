@@ -1,4 +1,9 @@
-$Id: CHANGELOG.txt,v 1.4 2010/12/21 11:52:59 andrewschulman Exp $
+Role Delegation 7.x-1.1, 2011-06-20
+-----------------------------------
+#1119192 by Andrew Schulman: fix Role Delegation tab in user profile appears as an action, not a tab.
+#1180600 by jyee: fix overwrites role attributes in forms.
+#1185796 by Andrew Schulman: fix Role delegation options appear in every profile edit form with Profile 2.
+#1193868 by Andrew Schulman: fix Unsanitized output in role_delegation_delegate_roles_action_form().
 
 Role Delegation 7.x-1.0, 2010-12-21
 -----------------------------------

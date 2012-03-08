@@ -1,5 +1,4 @@
 <?php
-// $Id: role_delegation.test,v 1.2 2010/12/08 06:43:29 andrewschulman Exp $
 
 /**
  * @file
@@ -310,7 +309,7 @@ class RoleDelegationRoleEditingTestCase extends RoleDelegationTestCase {
     $this->drupalPost("admin/people/permissions/roles/edit/{$this->rid_low}", array('name' => 'new low'), t('Save role'));
     $this->drupalGet('admin/people/permissions');
     $this->assertFieldChecked(
-    	"edit-{$this->rid_high}-assign-new-low-role",
+      "edit-{$this->rid_high}-assign-new-low-role",
       t('Permissions are updated when role is renamed.'),
       t('Role Delegation')
     );
@@ -325,11 +324,9 @@ class RoleDelegationRoleEditingTestCase extends RoleDelegationTestCase {
     $this->drupalPost('admin/people/permissions/roles', array('name' => 'low'), t('Add role'));
     $this->drupalGet('admin/people/permissions');
     $this->assertNoFieldChecked(
-    	"edit-{$this->rid_high}-assign-low-role",
+      "edit-{$this->rid_high}-assign-low-role",
       t('Permissions are updated when role is deleted.'),
       t('Role Delegation')
     );
   }
 }
-
-?>

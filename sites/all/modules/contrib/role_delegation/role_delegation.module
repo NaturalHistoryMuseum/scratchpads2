@@ -1,5 +1,4 @@
 <?php
-// $Id: role_delegation.module,v 1.26 2010/12/21 11:52:59 andrewschulman Exp $
 
 /**
  * @file
@@ -57,11 +56,11 @@ function role_delegation_permission() {
  */
 function role_delegation_menu() {
   $items['user/%user/roles'] = array(
-    'title' => 'Delegate roles',
+    'title' => 'Roles',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('role_delegation_roles_form', 1),
     'access callback' => 'role_delegation_access',
-    'type' => MENU_LOCAL_ACTION,
+    'type' => MENU_LOCAL_TASK,
   );
   return $items;
 }
@@ -76,7 +75,7 @@ function _role_delegation_add_roles_to_form(&$form, $account) {
   $roles = _role_delegation_roles();
   foreach ($roles as $rid => $role) {
     if (user_access('assign all roles') || user_access("assign $role role")) {
-      $roles_delegate[$rid] = $role;
+      $roles_delegate[$rid] = isset($form['account']['roles']['#options'][$rid]) ? $form['account']['roles']['#options'][$rid] : $role;
     }
   }
 
@@ -95,10 +94,10 @@ function _role_delegation_add_roles_to_form(&$form, $account) {
   // Generate the form items.
   $form['account']['roles_change'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Roles'),
+    '#title' => isset($form['account']['roles']['#title']) ? $form['account']['roles']['#title'] : t('Roles'),
     '#options' => $roles_delegate,
     '#default_value' => array_keys(array_intersect_key($roles_current, $roles_delegate)),
-    '#description' => t('Change roles assigned to user.'),
+    '#description' => isset($form['account']['roles']['#description']) ? $form['account']['roles']['#description'] : t('Change roles assigned to user.'),
   );
 }
 
@@ -184,7 +183,13 @@ function _role_delegation_roles() {
  * Implements hook_form_alter().
  */
 function role_delegation_form_alter(&$form, $form_state, $form_id) {
-  if (!in_array($form_id, array('user_register_form', 'user_profile_form'))) {
+  // Only add role delegation options to:
+  // * Registration tab of account registration form
+  // * Account editing tab of account editing form
+  // These are normally the only tabs present on those forms, but other tabs may be added
+  // by other modules, e.g. profile editing tabs by Profile 2.
+  if (!(   ($form_id == 'user_register_form' && $form['#user_category'] == 'register')
+        || ($form_id == 'user_profile_form'  && $form['#user_category'] == 'account' ) )) {
     return;
   }
   if (user_access('administer permissions')) {
@@ -198,8 +203,7 @@ function role_delegation_form_alter(&$form, $form_state, $form_id) {
 /**
  * Implements hook_form_FORM_ID_alter() for user_admin_role().
  */
-function role_delegation_form_user_admin_role_alter(&$form, $form_state)
-{
+function role_delegation_form_user_admin_role_alter(&$form, $form_state) {
   $form['#submit'][] = 'role_delegation_form_user_admin_role_submit';
 }
 
@@ -343,7 +347,7 @@ function role_delegation_delegate_roles_action_form($context) {
   foreach (_role_delegation_roles() as $rid => $role_name) {
     $form['role_change'][$rid] = array(
       '#type' => 'select',
-      '#title' => $role_name,
+      '#title' => check_plain($role_name),
       '#default_value' => isset($context['roles_change'][$rid]) ? $context['roles_change'][$rid] : -1,
       '#options' => array(
         -1 => t('Do not change'),
