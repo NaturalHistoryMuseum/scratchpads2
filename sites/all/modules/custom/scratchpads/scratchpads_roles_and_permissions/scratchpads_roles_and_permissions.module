@@ -37,7 +37,8 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'pathauto' => FALSE,
       'simplenews' => FALSE,
       'redirect' => FALSE,
-      'webform' => FALSE
+      'webform' => FALSE,
+      'role_delegation' => FALSE
     ));
   }
 }

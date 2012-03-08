@@ -35,6 +35,7 @@ dependencies[] = wysiwyg
 dependencies[] = boost
 dependencies[] = entitycache
 dependencies[] = imagemagick
+dependencies[] = role_delegation
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant

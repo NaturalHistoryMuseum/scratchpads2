@@ -61,6 +61,19 @@ function simplenews_scratchpads_default_permissions(){
 }
 
 /**
+ * role_delegation module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function role_delegation_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'assign all roles'
+    )
+  );
+}
+
+/**
  * Filter module
  * 
  * Implements hook_scratchpads_default_permissions()
