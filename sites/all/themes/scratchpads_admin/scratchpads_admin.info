@@ -4,3 +4,4 @@ base theme = rubik
 core = 7.x
 stylesheets[screen][] = override.css
 scripts[] = js/scratchpads-admin.js
+settings[shortcut_module_link] = 1

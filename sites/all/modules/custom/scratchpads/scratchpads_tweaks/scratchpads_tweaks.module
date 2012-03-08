@@ -45,6 +45,11 @@ function scratchpads_tweaks_form_user_register_form_alter(&$form, &$form_state, 
  */
 function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
   switch($file->name){
+    case 'scratchpads_tweaks':
+      // Unset the dependencies of the scratchpads module so that other modules
+      // can be disabled (e.g. EOL taxon page data).
+      unset($info['dependencies']);
+      break;
     case 'webform':
       $info['tool'] = TRUE;
       $info['name'] = 'Webforms';

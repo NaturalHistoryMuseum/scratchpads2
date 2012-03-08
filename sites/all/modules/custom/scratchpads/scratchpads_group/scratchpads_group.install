@@ -4,11 +4,24 @@
  * Implements hook_disable().
  */
 function scratchpads_group_disable(){
-  // Disable the OG modules too.
-  module_disable(array(
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('module_disable', array(
     'og',
     'og_access',
     'og_register',
     'og_ui'
   ));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function scratchpads_group_enable(){
+  // Remove the content permissions flag if we have no content.
+  $col = db_query('SELECT COUNT(*) FROM {node}')->fetchCol();
+  if(!array_pop($col)){
+    // We do this at the end, to prevent og from setting it after this point.
+    register_shutdown_function('variable_del', 'node_access_needs_rebuild');
+  }
 }

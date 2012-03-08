@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.9 2010/12/21 11:52:59 andrewschulman Exp $
 
 README file for the Role Delegation Drupal module.
 

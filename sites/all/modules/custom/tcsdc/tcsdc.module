@@ -94,7 +94,8 @@ function tcsdc_primary_form($form, &$form_state){
         '#type' => 'select',
         '#title' => t('Taxonomy'),
         '#options' => $taxonomies,
-        '#weight' => -90
+        '#weight' => -90,
+        '#required' => TRUE
       )
     ));
   }else{
