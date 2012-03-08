@@ -101,12 +101,14 @@ function feeds_xls_download_template_helper($feeds_importer){
             if(is_array($allowed_value) && isset($allowed_value['vocabulary'])){
               // Get the vocabulary so we can get the vid.
               $vocabulary = taxonomy_vocabulary_machine_name_load($allowed_value['vocabulary']);
-              $results = db_select('taxonomy_term_data', 't')->fields('t', array(
-                'name'
-              ))->condition('vid', $vocabulary->vid)->distinct()->execute();
-              foreach($results as $term){
-                $row++;
-                $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+              if($vocabulary){
+                $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+                  'name'
+                ))->condition('vid', $vocabulary->vid)->distinct()->execute();
+                foreach($results as $term){
+                  $row++;
+                  $objPHPExcel->getSheet(1)->setCellValue("{$column}{$row}", $term->name);
+                }
               }
               $break_at_end = FALSE;
             }else{
