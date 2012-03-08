@@ -61,6 +61,22 @@ function simplenews_scratchpads_default_permissions(){
 }
 
 /**
+ * Legal module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function legal_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'view Terms and Conditions'
+    ),
+    'maintainer' => array(
+      'administer Terms and Conditions'
+    )
+  );
+}
+
+/**
  * role_delegation module
  * 
  * Implements hook_scratchpads_default_permissions()
