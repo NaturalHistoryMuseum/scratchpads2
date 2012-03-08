@@ -684,7 +684,7 @@ table.biblio td{
 }
 
 #cboxContent .file .content .field{
-  padding: 8px 0;
+  margin: 8px 0 0 0;
 }
 
 #cboxContent .file .content .field div.field-label{
@@ -699,11 +699,9 @@ table.biblio td{
 #cboxContent .file .content .field-name-field-cc-licence{
   position: absolute;
   bottom: 5px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  margin: 0 0 0 30px;
-  padding: 0;
+  right: 40px;
+  text-align: right;
+  margin: 0;
 }
 
 #cboxContent .file .content .field-name-field-cc-licence div.field-items{
