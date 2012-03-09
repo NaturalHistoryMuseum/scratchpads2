@@ -2,6 +2,16 @@
 include_once ('silver.features.inc');
 
 /**
+ * Implements hook_feeds_presave()
+ */
+function silver_feeds_presave(FeedsSource $source, $entity){
+  if(isset($entity->uid) && !$entity->uid){
+    global $user;
+    $entity->uid = $user->uid;
+  }
+}
+
+/**
  * hook_form_FORM_ID_alter().
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){
