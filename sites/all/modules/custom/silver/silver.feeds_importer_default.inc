@@ -129,7 +129,7 @@ function silver_feeds_importer_default(){
             )
           ),
           'update_existing' => '2',
-          'input_format' => 'full_html'
+          'input_format' => 'filtered_html'
         )
       ),
       'content_type' => '',
