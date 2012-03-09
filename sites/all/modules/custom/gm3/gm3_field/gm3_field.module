@@ -177,7 +177,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
       break;
     case 'gm3_combination':
       $new_items = array();
-      if(count($items)){
+      if(count($items) && is_array($items[0])){
         foreach($items[0]['map']['children'] as $type => $value){
           switch($type){
             case 'gm3_point':
