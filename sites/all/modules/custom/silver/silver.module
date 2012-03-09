@@ -5,9 +5,18 @@ include_once ('silver.features.inc');
  * Implements hook_feeds_presave()
  */
 function silver_feeds_presave(FeedsSource $source, $entity){
+  // Set the UID.
   if(isset($entity->uid) && !$entity->uid){
     global $user;
     $entity->uid = $user->uid;
+  }
+  // Unset empty fields
+  foreach($entity as $key => $value){
+    if(substr($key, 0, 6) == 'field_'){
+      if(isset($value[LANGUAGE_NONE][0]['value']) && !$value[LANGUAGE_NONE][0]['value']){
+        unset($entity->$key);
+      }
+    }
   }
 }
 
@@ -26,9 +35,10 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
     );
     $form['feeds']['#weight'] = -10;
     $form['submit']['#weight'] = 10;
+    // Always release the lock!
+    lock_release("feeds_source_{$source->id}_{$source->feed_nid}");
     if(isset($state['start_time']) && $state['start_time']){
       // Remove the lock (Eeeek, is this a good idea?)
-      lock_release("feeds_source_{$source->id}_{$source->feed_nid}");
       $form['source_status'] = array(
         '#type' => 'markup',
         '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
