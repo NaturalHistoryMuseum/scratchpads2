@@ -12,7 +12,7 @@ function silver_feeds_presave(FeedsSource $source, $entity){
   }
   // Unset empty fields
   foreach($entity as $key => $value){
-    if(substr($key, 0, 6) == 'field_'){
+    if(substr($key, 0, 6) == 'field_' && is_array($value)){
       if(isset($value[LANGUAGE_NONE][0]['value']) && !$value[LANGUAGE_NONE][0]['value']){
         unset($entity->$key);
       }
