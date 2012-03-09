@@ -75,3 +75,54 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       break;
   }
 }
+
+
+/**
+ * Add default body field to a node type.
+ * Clone of node_add_body_field() but with weight setting added
+ *
+ * @param $type
+ *   A node type object.
+ * @param $label
+ *   The label for the body instance.
+ *
+ * @return
+ *   Body field instance.
+ */
+function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0) {
+   // Add or remove the body field, as needed.
+  $field = field_info_field('body');
+  $instance = field_info_instance('node', 'body', $type->type);
+  if (empty($field)) {
+    $field = array(
+      'field_name' => 'body',
+      'type' => 'text_with_summary',
+      'entity_types' => array('node'),
+    );
+    $field = field_create_field($field);
+  }
+  if (empty($instance)) {
+    $instance = array(
+      'field_name' => 'body',
+      'entity_type' => 'node',
+      'bundle' => $type->type,
+      'label' => $label,
+      'widget' => array('type' => 'text_textarea_with_summary'),
+      'settings' => array('display_summary' => TRUE),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'text_default',
+    			'weight' => $weight
+        ),
+        'teaser' => array(
+          'label' => 'hidden',
+          'type' => 'text_summary_or_trimmed',
+        	'weight' => $weight
+        ),
+      ),
+    );
+    $instance = field_create_instance($instance);
+  }
+  return $instance;
+}
