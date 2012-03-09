@@ -1,3 +1,12 @@
 <?php
 
+/**
+ * Add a file field to biblio
+ */
+function scratchpads_biblio_update_7004(){
+  module_load_include('inc', 'scratchpads_biblio', 'scratchpads_biblio.features.field');
+  $instances = scratchpads_biblio_field_default_fields();
+  return 'File field added';
+}
+
 
