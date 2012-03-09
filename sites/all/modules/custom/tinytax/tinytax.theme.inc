@@ -9,7 +9,7 @@
  * tinytax_
  */
 function theme_tinytax_block($variables){
-  return drupal_render($form) . '<div class="tinytax">' . theme('tinytax_branch', array(
+  return '<div class="tinytax">' . theme('tinytax_branch', array(
     'vid' => $variables['vid'],
     'open_tids' => $variables['open_tids']
   )) . '</div>';
@@ -19,15 +19,6 @@ function theme_tinytax_block($variables){
  * tinytax_branch theme function
  */
 function theme_tinytax_branch($variables){
-  // Add the CSS and JS
-  drupal_add_css(drupal_get_path('module', 'tinytax') . '/css/tinytax.css');
-  drupal_add_js(drupal_get_path('module', 'tinytax') . '/js/tinytax.js');
-  drupal_add_js(array(
-    'tinytax' => array(
-      'callback' => url('tinytax/get'),
-      'search_callback' => url('tinytax/search')
-    )
-  ), 'setting');
   // Get the terms to render
   $terms = taxonomy_get_tree($variables['vid'], $variables['tid'], 1, TRUE);
   $output = '<ul>';
@@ -63,13 +54,6 @@ function theme_tinytax_term($variables){
   }
   $has_children = count(taxonomy_get_children($variables['term']->tid));
   $output = '<li>';
-  drupal_add_js(array(
-    'tinytax' => array(
-      'minus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/minus.gif'),
-      'load' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/load.gif'),
-      'plus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/plus.gif')
-    )
-  ), 'setting');
   if($has_children){
     // Plus or minus.
     if(in_array($variables['term']->tid, $variables['open_tids'])){
