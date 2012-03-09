@@ -505,6 +505,18 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['file-image-field_taxonomic_name']['field_config']['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
   // Exported field: 'file-video-field_taxonomic_name'
   $fields['file-video-field_taxonomic_name'] = array(
     'field_config' => array(
