@@ -23,7 +23,7 @@ function silver_form_feeds_import_form_alter(&$form, &$form_state){
         '#type' => 'markup',
         '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago.  If you know this import has been stopped, then continue.', array(
           '!interval' => format_interval(time() - $state['start_time'])
-        )) . '</div><pre>'.print_r($state, 1).print_r($source, 1).'</pre>'
+        )) . '</div>'
       );
     }
   }
