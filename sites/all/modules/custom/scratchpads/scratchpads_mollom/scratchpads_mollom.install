@@ -70,4 +70,28 @@ function scratchpads_mollom_install(){
       ;
     }
   }
+  variable_set('mollom_fallback', 0);
+  variable_set('mollom_privacy_link', 1);
+  variable_set('mollom_private_key', 'f86117722dcd1d12aa1a1065edfb0fb2');
+  variable_set('mollom_public_key', 'ebe52536e33b662497bad0f451187161');
+  variable_set('mollom_servers', array(
+    0 => 'http://174.37.205.152',
+    1 => 'http://67.228.84.11'
+  ));
+  variable_set('mollom_status', array(
+    'keys' => TRUE,
+    'keys valid' => TRUE,
+    'servers' => FALSE
+  ));
+  variable_set('mollom_testing_mode', 0);
+}
+
+/**
+ * Implements hook_update_N
+ */
+function scratchpads_mollom_update_7001(){
+  module_enable(array(
+    'mollom'
+  ));
+  scratchpads_mollom_install();
 }
