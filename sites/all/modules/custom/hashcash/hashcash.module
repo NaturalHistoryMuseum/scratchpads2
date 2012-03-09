@@ -83,6 +83,16 @@ function hashcash_menu(){
 }
 
 /**
+ * Implements hook_boost_is_cacheable().
+ */
+function hashcash_boost_is_cacheable($parts){
+  if(isset($parts['menu_item']['path']) && $parts['menu_item']['path'] == 'hashcash/%'){
+    $parts['is_cacheable'] = FALSE;
+  }
+  return $parts;
+}
+
+/**
  * Implementation of hook_init
  */
 function hashcash_init(){

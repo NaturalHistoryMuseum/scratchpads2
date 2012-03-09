@@ -91,10 +91,38 @@ function tinytax_block_view($delta = ''){
   }
   if($vocabulary){
     $block['subject'] = check_plain($vocabulary->name);
-    $block['content'] = theme('tinytax_block', array(
-      'vid' => $delta,
-      'open_tids' => $open_tids
-    ));
+    $block['content'] = array(
+      '#theme' => 'tinytax_block',
+      '#vid' => $delta,
+      '#open_tids' => $open_tids,
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'tinytax') . '/css/tinytax.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'tinytax') . '/js/tinytax.js',
+          array(
+            'data' => array(
+              'tinytax' => array(
+                'callback' => url('tinytax/get'),
+                'search_callback' => url('tinytax/search')
+              )
+            ),
+            'type' => 'setting'
+          )
+        ),
+        array(
+          'data' => array(
+            'tinytax' => array(
+              'minus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/minus.gif'),
+              'load' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/load.gif'),
+              'plus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/plus.gif')
+            )
+          ),
+          'type' => 'setting'
+        )
+      )
+    );
   }
   return $block;
 }

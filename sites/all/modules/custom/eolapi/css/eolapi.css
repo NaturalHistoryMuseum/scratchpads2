@@ -66,10 +66,17 @@
 }
 
 /* Media */
-.view-eol-images div.views-row{
+.view-eol-images div.views-row, .view-eol-videos div.views-row{
   float: left;
   margin: 0 10px 10px 0;
   border: 1px solid #999;
   list-style: none;
   background: none;
+}
+.view-eol-videos div.views-row .content{
+	width:100px;
+	height:100px;
+}
+.view-eol-videos div.views-row h2{
+	display:none;
 }
