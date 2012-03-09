@@ -94,9 +94,31 @@ function blockexpose_block_view_alter(&$data, $block){
       'block' => $block,
       'settings' => $settings
     );
-    drupal_static('blockexpose', $blockexpose);
     // Unset content to prevent this block from being displayed.
     $data['content'] = '';
+  }
+}
+
+/**
+ * Implements hook_block_info_alter().
+ * 
+ * FIXME - This is not ideal, as it means that blocks exposed using this module
+ * are no longer cached.  If the block is intensive to create, it will need to
+ * be created on EVERY page - NOT GOOD.
+ */
+function blockexpose_block_info_alter(&$blocks, $theme, $code_blocks){
+  foreach($blocks as $module => $modules_blocks){
+    foreach($modules_blocks as $delta => $block){
+      $settings = variable_get('blockexpose_settings_' . $module . '_' . $delta, array(
+        'show' => 0,
+        'side' => 'right',
+        'event' => 'click'
+      ));
+      if($settings['show']){
+        // Disable caching for this block, as otherwise we'll screw things up.
+        $blocks[$module][$delta]['cache'] = DRUPAL_NO_CACHE;
+      }
+    }
   }
 }
 
@@ -105,6 +127,9 @@ function blockexpose_block_view_alter(&$data, $block){
  * 
  * Note, this adds blocks to the content region, as we can be certain that
  * the content region will be present in all themes.
+ * 
+ * FIXME - This function should mimic what occurs in _block_render_blocks, but
+ * gets our own cache of blocks.
  */
 function blockexpose_page_alter(&$page){
   $blockexpose = &drupal_static('blockexpose', array());
@@ -136,8 +161,8 @@ function theme_blockexpose($variables){
     }
     return '<div class="blockexpose ' . $variables['settings']['side'] . ' side-number-' . $side_number . '">
     <div class="content">
-      <div class="open-close '.$variables['settings']['event'].'">
-        <p'.($variables['settings']['event'] == 'click' ? ' title="Click"' : '').'>' . $subject . '</p>
+      <div class="open-close ' . $variables['settings']['event'] . '">
+        <p' . ($variables['settings']['event'] == 'click' ? ' title="Click"' : '') . '>' . $subject . '</p>
       </div>
       <div class="subcontent">
       	' . $block_html . '
