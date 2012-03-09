@@ -3,10 +3,10 @@
 /**
  * Add a file field to biblio
  */
-function scratchpads_biblio_update_7001(){
+function scratchpads_biblio_update_7002(){
   features_revert(array(
     scratchpads_biblio => array(
-      'fields'
+      'field'
     )
   ));
   return 'File field added';
