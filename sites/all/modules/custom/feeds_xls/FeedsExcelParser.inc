@@ -41,7 +41,9 @@ class FeedsExcelParser extends FeedsParser{
       $this->PHPExcel_object = PHPExcel_IOFactory::load($fetcher_result->getFilePath());
       $PHPExcel_ws = array();
       foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
-        $this->PHPExcel_ws[] = $worksheet;
+        if($worksheet->getTitle() != 'PermittedValues'){
+          $this->PHPExcel_ws[] = $worksheet;
+        }
         if(!$source_config['all_worksheets']){
           break;
         }
@@ -133,7 +135,9 @@ class FeedsExcelParser extends FeedsParser{
         $row_values = array();
         foreach($cellIterator as $cell){
           if(!is_null($cell)){
-            $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+            if(trim('' . $cell->getCalculatedValue())){
+              $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+            }
           }
           $column++;
         }
@@ -233,7 +237,7 @@ class FeedsExcelParser extends FeedsParser{
           'target' => '_blank'
         )
       ))
-    )) . '<br/><span style="font-size:80%">'. implode(", ", $sources).'</span></p></div>';
+    )) . '<br/><span style="font-size:80%">' . implode(", ", $sources) . '</span></p></div>';
     $form['no_headers'] = array(
       '#prefix' => '<div style="display:none">',
       '#suffix' => '</div>',
