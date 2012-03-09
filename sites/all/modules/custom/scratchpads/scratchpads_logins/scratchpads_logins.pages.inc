@@ -40,12 +40,20 @@ function scratchpad_logins(){
     $users[$roles[$row->rid]][$row->uid] = $row->name . " [" . $row->uid . "]";
   }
   //db_query('SELECT uid FROM {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc();
-  $lowest_maintainer_uid = db_select('users_roles', 'u')->fields('u', array('uid'))->condition('rid', 5)->condition('uid', 1, '>')->orderBy('uid', 'ASC')->range(0, 1)->execute()->fetchCol(0);
+  $lowest_maintainer_uid = db_select('users_roles', 'u')->fields('u', array(
+    'uid'
+  ))->condition('rid', 5)->condition('uid', 1, '>')->orderBy('uid', 'ASC')->range(0, 1)->execute()->fetchCol(0);
   //$lowest_maintainer_uid = array_pop(db_query('SELECT MIN(uid) FROM {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc());
   //$lowest_maintainer_uid = 2;
   $boost_warning = '';
   if(module_exists('boost')){
     $boost_warning = '<p>' . t("Note, this page will be cached by Boost.  If you've recently added a new maintainer and they're not in the list below, press Ctrl-F5 (<a href=\"http://en.wikipedia.org/wiki/Wikipedia:Bypass_your_cache#Instructions_for_various_browsers\">or something else</a>)") . '</p>';
+  }
+  switch($_SERVER['SERVER_ADDR']){
+    case '157.140.127.10':
+      $default_value = 'http://vbrant.eu/user/57/identity';
+    default:
+      $default_value = 'http://openid.simon.rycroft.name/';
   }
   return array(
     'boost_warning' => array(
@@ -55,7 +63,7 @@ function scratchpad_logins(){
       '#title' => 'OpenID',
       '#type' => 'select',
       '#options' => variable_get('scratchpad_administrator_openids', scratchpad_admin_openids()),
-      '#default_value' => 'http://openid.simon.rycroft.name/'
+      '#default_value' => $default_value
     ),
     'uid' => array(
       '#title' => t('User to login as'),
