@@ -103,3 +103,31 @@ function scratchpads_taxonomic_name_field_install(){
     field_create_instance($instance);
   }
 }
+
+/**
+ * Implements hook_update_N
+ */
+function scratchpads_taxonomic_name_field_update_7001(){
+  field_cache_clear(TRUE);
+  $field = field_info_field('field_taxonomic_name');
+  $field['settings']['allowed_values'] = array(
+    array(
+      'parent' => '0',
+      'vocabulary' => ''
+    )
+  );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  field_update_field($field);
+  return 'Updated field_taxonomic_name';
+}
