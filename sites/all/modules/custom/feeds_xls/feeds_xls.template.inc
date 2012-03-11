@@ -44,6 +44,7 @@ function feeds_xls_download_template_helper($feeds_importer){
   $objPHPExcel->setActiveSheetIndex(0);
   // Add some data
   // Add the Column headers.
+  $required_cells = array();
   foreach($feeds_importer->processor->config['mappings'] as $key => $header){
     $first_letter = floor(($key) / 26);
     $second_letter = ($key % 26) + 1;
@@ -73,6 +74,7 @@ function feeds_xls_download_template_helper($feeds_importer){
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
         $objValidation->setAllowBlank($field_instance['required'] ? FALSE : TRUE);
         if($field_instance['required']){
+          $required_cells[] = $column;
           $objValidation->setPromptTitle(t('Required'));
           $objValidation->setPrompt(t('This cell may not be left blank'));
         }
@@ -153,6 +155,18 @@ function feeds_xls_download_template_helper($feeds_importer){
     ),
     'size' => 14
   ));
+  // Set font colour for required cells
+  foreach($required_cells as $required_cell){
+    $objPHPExcel->getActiveSheet()->getStyle($required_cell.'1')->getFont()->applyFromArray(array(
+      'name' => 'Arial',
+      'bold' => TRUE,
+      'italic' => FALSE,
+      'color' => array(
+        'rgb' => 'ff0000'
+      ),
+      'size' => 14
+    ));
+  }
   // Set the background colour for the header row.
   $objPHPExcel->getActiveSheet()->getStyle("A1:$cell")->getFill()->applyFromArray(array(
     'type' => PHPExcel_Style_fill::FILL_SOLID,
