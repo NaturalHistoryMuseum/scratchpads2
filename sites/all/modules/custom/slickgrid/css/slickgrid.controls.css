@@ -12,6 +12,17 @@
   text-align: center;
 }
 
+#slickgrid-add,
+#slickgrid-add span.slickgrid-control-button{
+  width: auto!important;
+}
+
+#slickgrid-add span.slickgrid-control-button{
+  background-position: 0 7px!important;
+  padding: 6px 10px 0 20px;
+}
+
+
 #controls .slickgrid-control span.slickgrid-control-button{
   opacity: 0.3;
   background-repeat: no-repeat;
