@@ -80,16 +80,15 @@ function scratchpads_backend_admin_content(){
           ));
           $rows[] = array(
             'data' => array(
-            l(t('Character projects'), $view_url) . '<p class="description">' . t('Character projects') . '</p>',
-            (isset($statistics['published']) ? $statistics['published'] : 0),
-            (isset($statistics['unpublished']) ? $statistics['unpublished'] : 0),
-            $operations
+              l(t('Character projects'), $view_url) . '<p class="description">' . t('Character projects') . '</p>',
+              (isset($statistics['published']) ? $statistics['published'] : 0),
+              (isset($statistics['unpublished']) ? $statistics['unpublished'] : 0),
+              $operations
             ),
             'class' => array(
               'character-project'
             )
           );
-
         }
         $build[$entity_type] = array(
           '#theme' => 'table',
@@ -177,6 +176,13 @@ function scratchpads_backend_statistics($entity_info, $bundle = true){
   $id_key = $entity_info['entity keys']['id'];
   $bundle_key = $entity_info['entity keys']['bundle'];
   $query->addExpression('COUNT(t.' . $id_key . ')', 'count');
+  // If this is a file type, hide the eol files
+  if($entity_info['base table'] == 'file_managed'){
+    $query->leftJoin('file_usage', 'f', 't.fid = f.fid');
+    $query->where('f.type != :type OR f.type IS NULL', array(
+      ':type' => 'eolapi'
+    ));
+  }
   // Do we want to break these stats down by bundle?
   if($bundle){
     $query->fields('t', array(
