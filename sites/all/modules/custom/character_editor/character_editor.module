@@ -50,7 +50,7 @@ function character_editor_permission(){
  * If this module is released to drupal.org, this hook could be moved to a 
  * separate file, or it could be moved to a scratchpads_* module.
  */
-function hook_scratchpads_default_permissions(){
+function character_editor_scratchpads_default_permissions(){
   return array(
     'anonymous user' => array(
       'view character editor'

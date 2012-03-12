@@ -75,6 +75,18 @@ function legal_scratchpads_default_permissions(){
     )
   );
 }
+/**
+ * Forum module
+ * 
+ * Implements hook_scratchpads_default_permissions()
+ */
+function forum_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer forums'
+    )
+  );
+}
 
 /**
  * role_delegation module

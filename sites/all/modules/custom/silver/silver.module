@@ -18,6 +18,15 @@ function silver_feeds_presave(FeedsSource $source, $entity){
       }
     }
   }
+  // If this is the SPM node type, we set the title.
+  if($entity->type == 'spm'){
+    try{
+      $entity->title = $entity->field_taxonomic_name[LANGUAGE_NONE][0]['value'];
+    }
+    catch(Exception $e){
+      ; // Oh well, that didn't work!
+    }
+  }
 }
 
 /**
