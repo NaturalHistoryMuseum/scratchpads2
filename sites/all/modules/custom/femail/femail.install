@@ -75,7 +75,8 @@ function femail_install(){
   // add out filters at the of the list.
   if(db_query("SELECT COUNT(*) FROM {filter_format} WHERE format = 'plain_text'")->fetchCol()){
     // Get the minimum, and reduce by one and two for our values
-    $max_weight = array_pop(db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol());
+    $result = db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol();
+    $max_weight = array_pop($result);
     $query = db_insert('filter')->fields(array(
       'format',
       'module',
