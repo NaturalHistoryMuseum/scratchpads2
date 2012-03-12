@@ -41,6 +41,16 @@ function scratchpads_pages_menu(){
 }
 
 /**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_pages_menu_alter(&$items){
+  if(isset($items['forum'])){
+    $items['forum']['menu_name'] = 'main-menu';
+    $items['forum']['weight'] = 1;
+  }
+}
+
+/**
  * Implements hook_taxonomy_term_insert()
  */
 function scratchpads_pages_taxonomy_term_insert($term){

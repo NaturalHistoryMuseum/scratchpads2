@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * Implementation of hook_classification_import_form
+ */
+function tcs_url_tcsdc_form($form, $form_state){
+  return array(
+    'eol' => array(
+      '#type' => 'fieldset',
+      '#title' => 'TCS from a URL',
+      '#description' => 'Import a classification directly from TCS provider',
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'tcs-url' => array(
+        '#weight' => 0,
+        '#type' => 'textfield',
+        '#title' => 'TCS URL',
+        '#description' => t('Specify the full URL to the TCS/XML file of the root term of the classification you would like to import.')
+      ),
+      'submit-tcs-url' => array(
+        '#weight' => 10,
+        '#type' => 'submit',
+        '#title' => t('Import TCS'),
+        '#value' => t('Import TCS'),
+        '#submit' => array(
+          'tcs_url_submit'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Callback function when pressing "Import from EOL"
+ */
+function tcs_url_submit($form, $form_state){
+  $batch = array(
+    'operations' => array(
+      array(
+        'tcsdc_batch_downloader',
+        array(
+          array(
+            $form_state['values']['tcs-url']
+          ),
+          1000, // Hard coded to 1000.  No idea why
+          $form_state['values']['taxonomy_vid']
+        )
+      ),
+      array(
+        'tcsdc_import_terms',
+        array(
+          $form_state['values']['taxonomy_vid']
+        )
+      )
+    ),
+    'finished' => 'tcsdc_finished_batch',
+    'title' => t('Importing'),
+    // We use a single multi-pass operation, so the default
+    // 'Remaining x of y operations' message will be confusing here.
+    'error_message' => t('The import has encountered an error.')
+  );
+  batch_set($batch);
+}

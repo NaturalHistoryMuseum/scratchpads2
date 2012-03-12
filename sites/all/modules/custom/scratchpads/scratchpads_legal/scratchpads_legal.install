@@ -42,7 +42,7 @@ function _scratchpads_legal_get_record(){
 }
 
 /**
- * Implements hook_update_N
+ * Update the T&Cs.
  */
 function scratchpads_legal_update_7001(){
   $record = _scratchpads_legal_get_record();
