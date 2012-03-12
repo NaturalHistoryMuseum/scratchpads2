@@ -15,9 +15,10 @@ function femail_user_settings($account){
   }
   // ---------------- Subscribe to forums --------------------------------------
   // $output = rendered HTML
+  $form = drupal_get_form('femail_user_subscribe', $account);
   $output = theme('femail_box', array(
     'title' => t('Subscriptions'),
-    'content' => drupal_render(drupal_get_form('femail_user_subscribe', $account))
+    'content' => drupal_render($form)
   ));
   // ---------------- Add additional emails ------------------------------------
   // Table for additional emails
@@ -41,12 +42,13 @@ function femail_user_settings($account){
     );
   }
   // Theme the table, along with the form
+  $form = drupal_get_form('femail_user_add', $account);
   $output .= theme('femail_box', array(
     'title' => t('Your additional email addresses'),
     'content' => theme('table', array(
       'header' => $header,
       'rows' => $rows
-    )) . drupal_render(drupal_get_form('femail_user_add', $account))
+    )) . drupal_render($form)
   ));
   // Return both forms
   return $output;
