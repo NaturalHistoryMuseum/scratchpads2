@@ -1,0 +1,6 @@
+name = "Taxon Concept Schema import from a URL"
+description = "Allows the import of a classification from any external service by simply providing the URL to the TCS/XML file of the root term to import."
+package = "Data provider"
+dependencies[] = tcsdc
+core = 7.x
+tool=true
