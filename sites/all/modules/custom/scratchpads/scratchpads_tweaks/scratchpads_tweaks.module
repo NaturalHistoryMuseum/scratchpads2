@@ -66,8 +66,11 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['name'] = 'Pretty URLs';
       $info['description'] = 'Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.';
       break;
-    case 'blog':
     case 'forum':
+      $info['tool'] = TRUE;
+      $info['dependencies'][] = 'femail';
+      break;
+    case 'blog':
     case 'simplenews':
     case 'lexicon':
     case 'googleanalytics':
@@ -76,51 +79,56 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
   }
 }
 
-
 /**
  * Add default body field to a node type.
  * Clone of node_add_body_field() but with weight setting added
  *
  * @param $type
- *   A node type object.
+ * A node type object.
  * @param $label
- *   The label for the body instance.
+ * The label for the body instance.
  *
  * @return
- *   Body field instance.
+ * Body field instance.
  */
-function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0) {
-   // Add or remove the body field, as needed.
+function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
+  // Add or remove the body field, as needed.
   $field = field_info_field('body');
   $instance = field_info_instance('node', 'body', $type->type);
-  if (empty($field)) {
+  if(empty($field)){
     $field = array(
       'field_name' => 'body',
       'type' => 'text_with_summary',
-      'entity_types' => array('node'),
+      'entity_types' => array(
+        'node'
+      )
     );
     $field = field_create_field($field);
   }
-  if (empty($instance)) {
+  if(empty($instance)){
     $instance = array(
       'field_name' => 'body',
       'entity_type' => 'node',
       'bundle' => $type->type,
       'label' => $label,
-      'widget' => array('type' => 'text_textarea_with_summary'),
-      'settings' => array('display_summary' => TRUE),
+      'widget' => array(
+        'type' => 'text_textarea_with_summary'
+      ),
+      'settings' => array(
+        'display_summary' => TRUE
+      ),
       'display' => array(
         'default' => array(
           'label' => 'hidden',
           'type' => 'text_default',
-    			'weight' => $weight
+          'weight' => $weight
         ),
         'teaser' => array(
           'label' => 'hidden',
           'type' => 'text_summary_or_trimmed',
-        	'weight' => $weight
-        ),
-      ),
+          'weight' => $weight
+        )
+      )
     );
     $instance = field_create_instance($instance);
   }

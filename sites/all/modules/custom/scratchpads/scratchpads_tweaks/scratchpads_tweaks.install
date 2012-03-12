@@ -395,9 +395,18 @@ function scratchpads_tweaks_update_7001(){
   $instance = field_read_instance('node', 'body', 'page');
   foreach(array_keys($instance['display']) as $display){
     $instance['display'][$display]['weight'] = 0;
-  }  
-  field_update_instance($instance);  
+  }
+  field_update_instance($instance);
   return 'Updated page body field';
 }
 
-
+/**
+ * Enable femail if forum is enabled.
+ */
+function scratchpads_tweaks_update_7002(){
+  if(module_exists('forum')){
+    module_enable(array(
+      'femail'
+    ));
+  }
+}
