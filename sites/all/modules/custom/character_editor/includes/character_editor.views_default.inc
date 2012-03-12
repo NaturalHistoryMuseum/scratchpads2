@@ -69,7 +69,8 @@ function character_editor_views_default_views(){
   $handler->display->display_options['fields']['name']['hide_empty'] = 0;
   $handler->display->display_options['fields']['name']['empty_zero'] = 0;
   $handler->display->display_options['fields']['name']['hide_alter_empty'] = 0;
-  $handler->display->display_options['fields']['name']['link_to_taxonomy'] = 0;
+  $handler->display->display_options['fields']['name']['link_to_taxonomy'] = 1;
+  $handler->display->display_options['fields']['name']['convert_spaces'] = 0;
   /* Contextual filter: Character project: Character project ID */
   $handler->display->display_options['arguments']['id']['id'] = 'id';
   $handler->display->display_options['arguments']['id']['table'] = 'character_editor_project';
