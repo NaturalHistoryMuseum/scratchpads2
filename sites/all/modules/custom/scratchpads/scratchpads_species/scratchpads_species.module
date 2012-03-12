@@ -231,6 +231,17 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       )
     );
   }else{
+    // Instead, we redirect to the search page with a facet selected for this
+    // term we're attempting to display.
+    if(variable_get('scratchpads_species_redirect_none_biological_vocabularies_to_the_search_page', TRUE)){
+      drupal_goto('search/site', array(
+        'query' => array(
+          'f' => array(
+            'tid:' . arg(2)
+          )
+        )
+      ));
+    }
     $build = taxonomy_term_page($term);
   }
   return $build;
@@ -256,7 +267,7 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
   switch($view->name){
     case 'species_media':
     case 'species_slideshow':
-    	// Add children to media views
+      // Add children to media views
       if(!count($args)){
         $tid = arg(2);
         $children = taxonomy_get_children($tid);
