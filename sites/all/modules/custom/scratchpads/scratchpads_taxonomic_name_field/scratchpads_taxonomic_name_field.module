@@ -82,7 +82,7 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary
 /**
  * Implementation of hook_facetapi_facet_info().
  */
-function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info){
+function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info = FALSE){
   // Facets are usually associated with the type of content stored in the index.
   return array(
     'im_field_taxonomic_name' => array(
@@ -165,8 +165,8 @@ function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
 function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
   if($block->module == 'facetapi'){
     $map = facetapi_get_delta_map();
-    $facet_info = scratchpads_media_gallery_facetapi_facet_info();
-    foreach(scratchpads_taxonomic_name_field_facetapi_facet_info() as $facet){
+    $facet_info = scratchpads_taxonomic_name_field_facetapi_facet_info();
+    foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
       $delta = array_search($facet->name, $map);
       if($delta == $block->delta && isset($facet_info[$facet->facet])){
         $data['subject'] = $facet_info[$facet->facet]['label'];
