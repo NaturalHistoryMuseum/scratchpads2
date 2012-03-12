@@ -93,6 +93,15 @@ function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info){
         'term'
       ),
       'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'tid' => array(
+      'name' => 'tid',
+      'label' => t('Terms'),
+      'description' => t('Terms'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
     )
   );
 }
@@ -108,41 +117,46 @@ function scratchpads_taxonomic_name_field_ctools_plugin_api(){}
  * Implements hook_facetapi_default_facet_settings().
  */
 function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
-  $facet = new stdClass();
-  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
-  $facet->api_version = 1;
-  $facet->name = 'apachesolr@solr:block:im_field_taxonomic_name';
-  $facet->searcher = 'apachesolr@solr';
-  $facet->realm = 'block';
-  $facet->facet = 'im_field_taxonomic_name';
-  $facet->enabled = TRUE;
-  $facet->settings = array(
-    'weight' => 0,
-    'widget' => 'facetapi_links',
-    'filters' => array(),
-    'active_sorts' => array(
-      'active' => 'active',
-      'count' => 'count',
-      'display' => 'display'
-    ),
-    'sort_weight' => array(
-      'active' => -50,
-      'count' => -49,
-      'display' => -48
-    ),
-    'sort_order' => array(
-      'active' => 3,
-      'count' => 3,
-      'display' => 4
-    ),
-    'empty_behavior' => 'none',
-    'soft_limit' => 20,
-    'nofollow' => 1,
-    'show_expanded' => 0
-  );
-  return array(
-    'im_field_taxonomic_name' => $facet
-  );
+  $facets = scratchpads_taxonomic_name_field_facetapi_facet_info(FALSE);
+  foreach($facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'count' => -49,
+        'display' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+  }
+  return $facets;
 }
 
 /**
