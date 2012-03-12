@@ -52,7 +52,7 @@ function tinytax_js($term){
   return theme('tinytax_branch', array(
     'tid' => $term->tid,
     'vid' => $term->vid,
-    'ancestors' => variable_get('tinytax_ancestors_'.$term->vid, 1)
+    'ancestors' => variable_get('tinytax_ancestors_' . $term->vid, 1)
   ));
 }
 
@@ -99,7 +99,7 @@ function tinytax_block_view($delta = ''){
       '#theme' => 'tinytax_block',
       '#vid' => $delta,
       '#open_tids' => $open_tids,
-      '#ancestors' => variable_get('tinytax_ancestors_'.$vocabulary->vid, 1),
+      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 1),
       '#attached' => array(
         'css' => array(
           drupal_get_path('module', 'tinytax') . '/css/tinytax.css'
@@ -117,7 +117,7 @@ function tinytax_block_view($delta = ''){
             ),
             'type' => 'setting'
           )
-        ),
+        )
       )
     );
   }
@@ -127,19 +127,21 @@ function tinytax_block_view($delta = ''){
 /**
  * Implements hook_block_configure().
  */
-function tinytax_block_configure($delta = '') {
-  return array('tinytax_ancestors' => array(
-      '#type' => 'checkbox', 
-      '#title' => t('Tick to show the total number of ancestors of each term.'), 
-      '#default_value' => variable_get('tinytax_ancestors_'.$delta, 1)
-    ));
+function tinytax_block_configure($delta = ''){
+  return array(
+    'tinytax_ancestors' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Tick to show the total number of ancestors of each term.'),
+      '#default_value' => variable_get('tinytax_ancestors_' . $delta, 1)
+    )
+  );
 }
 
 /**
  * Implements hook_block_save().
  */
 function tinytax_block_save($delta = '', $edit = array()){
-  variable_set('tinytax_ancestors_'.$delta, $edit['tinytax_ancestors']);
+  variable_set('tinytax_ancestors_' . $delta, $edit['tinytax_ancestors']);
 }
 
 /**
@@ -164,5 +166,5 @@ function tinytax_block_info(){
  */
 function tinytax_taxonomy_vocabulary_delete($vocabulary){
   db_delete('block')->condition('module', 'tinytax')->condition('delta', $vocabulary->vid)->execute();
-  variable_del('tinytax_ancestors_'.$vocabulary->vid);
+  variable_del('tinytax_ancestors_' . $vocabulary->vid);
 }

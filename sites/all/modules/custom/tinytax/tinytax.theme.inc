@@ -51,13 +51,15 @@ function _tinytax_get_children_count($tid, $recurse = FALSE){
   // If not recursing, we can keep things simple, else we need the children tids.
   if($recurse){
     $total = 0;
-    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tid)->fields('t', array('tid'))->execute();
+    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tid)->fields('t', array(
+      'tid'
+    ))->execute();
     foreach($results as $row){
-      $total ++;
+      $total++;
       $total += _tinytax_get_children_count($row->tid, TRUE);
     }
     return $total;
-  } else {
+  }else{
     return count(taxonomy_get_children($tid));
   }
 }
