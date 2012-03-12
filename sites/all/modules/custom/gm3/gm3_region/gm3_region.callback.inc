@@ -10,6 +10,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     'GB' => 'UK',
     'RS' => 'YU',
     'ME' => 'MK',
+    'SS' => 'SD',
     'UNKNOWN' => array(
       'YU',
       'IN'
