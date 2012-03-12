@@ -37,13 +37,15 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
       unset($form['block_regions']['#value']['slide_bottom'], $form['block_regions']['#value']['slide_top'], $form['block_regions']['#value']['content'], $form['block_regions']['#value']['menu'], $form['block_regions']['#value']['branding'], $form['block_regions']['#value']['header']);
       break;
     case 'system_themes_admin_form':
-      dpm($form);
-      $form['admin_theme']['admin_theme']['#disabled'] = TRUE;
-      $form['admin_theme']['admin_theme']['#default_value'] = 'scratchpads_admin';
-      $form['admin_theme']['admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked').'</span>';
-      $form['admin_theme']['node_admin_theme']['#disabled'] = TRUE;
-      $form['admin_theme']['node_admin_theme']['#default_value'] = 1;
-      $form['admin_theme']['node_admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked').'</span>';
+      global $user;
+      if($user->uid != 1){
+        $form['admin_theme']['admin_theme']['#disabled'] = TRUE;
+        $form['admin_theme']['admin_theme']['#default_value'] = 'scratchpads_admin';
+        $form['admin_theme']['admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked') . '</span>';
+        $form['admin_theme']['node_admin_theme']['#disabled'] = TRUE;
+        $form['admin_theme']['node_admin_theme']['#default_value'] = 1;
+        $form['admin_theme']['node_admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked') . '</span>';
+      }
       break;
   }
 }
@@ -74,5 +76,8 @@ function scratchpads_hands_off_menu_alter(&$items){
  * Implements hook_system_themes_page_alter().
  */
 function scratchpads_hands_off_system_themes_page_alter(&$theme_groups){
-  $theme_groups['disabled'] = array();
+  global $user;
+  if($user->uid != 1){
+    $theme_groups['disabled'] = array();
+  }
 }
