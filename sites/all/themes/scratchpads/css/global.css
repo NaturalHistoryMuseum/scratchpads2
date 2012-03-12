@@ -704,6 +704,10 @@ table.biblio td{
   margin: 0;
 }
 
+.file .field-name-field-description div.field-items{
+  max-width: 500px!important;
+}
+
 #cboxContent .file .content .field-name-field-cc-licence div.field-items{
   margin-left: 0;
 }
