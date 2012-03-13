@@ -525,6 +525,8 @@ function scratchpads_tweaks_update_7003(){
  */
 function scratchpads_tweaks_update_7004(){
   foreach(node_type_get_names() as $type => $name){
-    variable_get('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    if($type != 'forum'){
+      variable_get('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    }
   }
 }
