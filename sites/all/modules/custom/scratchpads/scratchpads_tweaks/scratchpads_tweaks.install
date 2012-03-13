@@ -519,3 +519,12 @@ function scratchpads_tweaks_update_7003(){
     ))
   ))->execute();
 }
+
+/**
+ * Set the default for all comment forms to be on a separate page.
+ */
+function scratchpads_tweaks_update_7004(){
+  foreach(node_type_get_names() as $type => $name){
+    variable_get('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+  }
+}
