@@ -385,7 +385,7 @@ function scratchpads_pages_variable_default($name = NULL){
         'media_gallery' => 'solr',
         'location' => 'none',
         'forum' => 'none',
-        'group' => 'none'
+        'group' => 'solr'
       )
     );
   }
