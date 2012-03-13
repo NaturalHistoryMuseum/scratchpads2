@@ -178,7 +178,7 @@ function scratchpads_group_theme(){
 function scratchpads_group_node_view($node, $view_mode, $langcode){
   if($node->type == 'group' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
     // Get the gid from the og table.
-    $row = db_select('og','g')->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
+    $row = db_select('og','g')->fields('g', array('gid'))->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
     drupal_goto('group', array(
       'query' => array(
         'f' => array(
