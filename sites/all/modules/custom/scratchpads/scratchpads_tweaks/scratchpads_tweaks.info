@@ -42,6 +42,7 @@ dependencies[] = scratchpads_apachesolr_instant
 dependencies[] = scratchpads_autotag
 dependencies[] = scratchpads_backend
 dependencies[] = scratchpads_biblio
+dependencies[] = scratchpads_biblio_autocomplete_tweak
 dependencies[] = scratchpads_biblio_search
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_colour

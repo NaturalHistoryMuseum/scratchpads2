@@ -116,6 +116,17 @@ function femail_menu(){
 }
 
 /**
+ * Implementation of hook_admin_paths
+ */
+function femail_admin_paths(){
+  return array(
+    'user/*/femail' => TRUE,
+    'femail/remove/*' => TRUE,
+    'femail/verify/*' => TRUE
+  );
+}
+
+/**
  * Implementation of hook_mail
  */
 function femail_mail($key, &$message, $params){

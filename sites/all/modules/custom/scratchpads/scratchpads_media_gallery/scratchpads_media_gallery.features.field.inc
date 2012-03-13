@@ -467,20 +467,20 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Taxon name for this file',
       'display' => array(
         'default' => array(
-          'label' => 'none',
+          'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
           'weight' => '2'
         ),
         'linked_node' => array(
-          'label' => 'none',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
         ),
         'teaser' => array(
-          'label' => 'none',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -505,6 +505,18 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['file-image-field_taxonomic_name']['field_config']['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
   // Exported field: 'file-video-field_taxonomic_name'
   $fields['file-video-field_taxonomic_name'] = array(
     'field_config' => array(
@@ -948,21 +960,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Select the imaging technique that was used to produce the images.',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
+          'type' => 'taxonomy_term_reference_plain',
           'weight' => 3
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
+          'type' => 'taxonomy_term_reference_plain',
           'weight' => 3
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -1040,21 +1052,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Comma-separated keywords describing the image Parts, sex, form, developmental stage, view angle, people, building etc. Enclose phrases in "quotation marks". Examples: Antenna, Head, Juvenile, "First instar", conference, museum, specimen.',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
+          'type' => 'taxonomy_term_reference_plain',
           'weight' => 5
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
+          'type' => 'taxonomy_term_reference_plain',
           'weight' => 5
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -1135,21 +1147,21 @@ function scratchpads_media_gallery_field_default_fields(){
       'description' => 'Describe how the specimen was prepared for imaging (Simply leave blank if your image isn\'t a specimen)',
       'display' => array(
         'default' => array(
-          'label' => 'hidden',
-          'module' => 'creative_commons',
+          'label' => 'above',
+          'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'creative_commons_small_image',
-          'weight' => 2
+          'type' => 'taxonomy_term_reference_plain',
+          'weight' => 5
         ),
         'file_styles_colorbox' => array(
-          'label' => 'hidden',
-          'module' => 'creative_commons',
+          'label' => 'above',
+          'module' => 'taxonomy',
           'settings' => array(),
-          'type' => 'creative_commons_small_image',
-          'weight' => '4'
+          'type' => 'taxonomy_term_reference_plain',
+          'weight' => 5
         ),
         'file_styles_square_thumbnail' => array(
-          'label' => 'hidden',
+          'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
           'weight' => 0
@@ -1171,6 +1183,492 @@ function scratchpads_media_gallery_field_default_fields(){
         ),
         'type' => 'taxonomy_autocomplete',
         'weight' => '5'
+      )
+    )
+  );
+  // Exported field: 'file-audio-field_description'
+  $fields['file-audio-field_description'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_description',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'audio',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '3'
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'none',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 0
+        ),
+        'file_styles_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_description',
+      'label' => 'Description',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '5'
+      )
+    )
+  );
+  // Exported field: 'file-image-field_description'
+  $fields['file-image-field_description'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_description',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'image',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'none',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 6
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'none',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 0
+        ),
+        'file_styles_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_description',
+      'label' => 'Description',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '11'
+      )
+    )
+  );
+  // Exported field: 'file-video-field_description'
+  $fields['file-video-field_description'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_description',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format'
+          ),
+          'table' => 'filter_format'
+        )
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format'
+        )
+      ),
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long'
+    ),
+    'field_instance' => array(
+      'bundle' => 'video',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '3'
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'none',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 0
+        ),
+        'file_styles_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'none',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_description',
+      'label' => 'Description',
+      'required' => 0,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5'
+        ),
+        'type' => 'text_textarea',
+        'weight' => '12'
       )
     )
   );

@@ -1173,6 +1173,18 @@ other|Other',
       )
     )
   );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['character_editor_project-default_character_project-field_taxonomic_name']['field_config']['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
   // Exported field: 'character_editor_project-default_character_project-field_characters'
   $fields['character_editor_project-default_character_project-field_characters'] = array(
     'field_config' => array(

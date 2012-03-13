@@ -59,6 +59,15 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     if(substr($eolapi->type, 0, 4) == 'http'){
       $eolapi->type = array_pop(explode("/", $eolapi->type));
     }
+    // We do something a little special for the text type.  This may throw up
+    // issues with odd ordering in the future, so if it does, remove the
+    // following.
+    if($eolapi->type == 'text'){
+      if(!isset($id->subject) && isset($id->dataRating)){
+        // Add 10 to the rating
+        $id->dataRating += 10;
+      }
+    }
     $eolapi->trusted = $id->vettedStatus == 'Trusted' ? 1 : 0;
     $eolapi->license = isset($id->license) ? $id->license : '';
     $eolapi->rating = $id->dataRating;

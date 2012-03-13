@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * Code for the scratchpads_mollom feature.
- */
-include_once ('scratchpads_mollom.features.inc');
 
 /**
  * Implements hook_node_type_insert().

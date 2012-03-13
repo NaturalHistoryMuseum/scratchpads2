@@ -38,6 +38,7 @@ function scratchpads_biblio_search_contextual_links_alter(&$links, $router_item,
   drupal_set_message($router_item);
   drupal_set_message($root_path);
 }
+
 /**
  * Implementation of hook_scratchpads_solr_info().
  */
@@ -187,45 +188,21 @@ function scratchpads_biblio_search_context_default_contexts(){
   );
   $context->reactions = array(
     'block' => array(
-      'blocks' => array(
-        // Type
-        'facetapi-efUCrEc1MxBSc0No16CZsf3DfmXuzfMe' => array(
-          'module' => 'facetapi',
-          'delta' => 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe',
-          'region' => 'sidebar',
-          'weight' => '-27'
-        ),
-        // Journal title
-        'facetapi-TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo' => array(
-          'module' => 'facetapi',
-          'delta' => 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo',
-          'region' => 'sidebar',
-          'weight' => '-28'
-        ),
-        // Year
-        'facetapi-oAU7juLpy7tz9yH0jXrLldP25ANlraws' => array(
-          'module' => 'facetapi',
-          'delta' => 'oAU7juLpy7tz9yH0jXrLldP25ANlraws',
-          'region' => 'sidebar',
-          'weight' => '-29'
-        ),
-        // Contributor
-        'facetapi-jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U' => array(
-          'module' => 'facetapi',
-          'delta' => 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U',
-          'region' => 'sidebar',
-          'weight' => '-30'
-        ),
-        // Keyword
-        'facetapi-wbFpemj0oBSspRI13zcXqTWuc2j7bpQg' => array(
-          'module' => 'facetapi',
-          'delta' => 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg',
-          'region' => 'sidebar',
-          'weight' => '-26'
-        )
-      )
+      'blocks' => array()
     )
   );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
   $context->condition_mode = 0;
   $export['biblio_search_page'] = $context;
   return $export;
@@ -236,22 +213,14 @@ function scratchpads_biblio_search_context_default_contexts(){
  */
 function scratchpads_biblio_search_block_view_alter(&$data, $block){
   if($block->module == 'facetapi'){
-    switch($block->delta){
-      case 'jPTx4B1cFfdtd3vkkRIVq0t9Z3qDjf9U':
-        $data['subject'] = t('Contributor');
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_biblio_search_facetapi_facet_info(array('types' => array('node' => TRUE)));
+    foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
         break;
-      case 'oAU7juLpy7tz9yH0jXrLldP25ANlraws':
-        $data['subject'] = t('Year');
-        break;
-      case 'TQUQDrX4oCYLioqiEiS0F7PkhlBC0hGo':
-        $data['subject'] = t('Journal Title');
-        break;
-      case 'efUCrEc1MxBSc0No16CZsf3DfmXuzfMe':
-        $data['subject'] = t('Type');
-        break;
-      case 'wbFpemj0oBSspRI13zcXqTWuc2j7bpQg':
-        $data['subject'] = t('Keyword');
-        break;
+      }
     }
   }
 }

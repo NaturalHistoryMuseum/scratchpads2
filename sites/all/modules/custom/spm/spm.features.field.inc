@@ -87,6 +87,18 @@ function spm_field_default_fields(){
       )
     )
   );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['node-spm-field_taxonomic_name']['field_config']['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
   // Exported field: 'node-spm-field_spm_map'
   $fields['node-spm-field_spm_map'] = array(
     'field_config' => array(

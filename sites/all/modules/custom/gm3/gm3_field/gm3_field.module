@@ -178,6 +178,24 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_combination':
       $new_items = array();
       if(count($items)){
+        if(is_string($items[0])){
+          // Do something special here to attempt to magic stuff up!
+          $lines = preg_split('/[\n\r]+/', $items[0]);
+          $items = array(
+            array(
+              'map' => array(
+                'children' => array()
+              )
+            )
+          );
+          foreach($lines as $line){
+            $line_parts = explode(':', $line);
+            if(count($line_parts) == 2){
+              $type = "gm3_" . strtolower($line_parts[0]);
+              $items[0]['map']['children'][$type] = $line_parts[1];
+            }
+          }
+        }
         foreach($items[0]['map']['children'] as $type => $value){
           switch($type){
             case 'gm3_point':

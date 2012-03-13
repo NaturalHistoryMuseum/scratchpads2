@@ -684,17 +684,32 @@ table.biblio td{
 }
 
 #cboxContent .file .content .field{
-  width: 45%;
-  padding: 10px 0;
+  margin: 8px 0 0 0;
 }
 
-#cboxContent .file .content .field-name-field-imaging-technique{
+#cboxContent .file .content .field div.field-label{
   float: left;
+  width: 160px;
+}
+
+#cboxContent .file .content .field div.field-items{
+  margin-left: 180px;
 }
 
 #cboxContent .file .content .field-name-field-cc-licence{
-  float: right;
+  position: absolute;
+  bottom: 5px;
+  right: 40px;
   text-align: right;
+  margin: 0;
+}
+
+.file .field-name-field-description div.field-items{
+  max-width: 500px!important;
+}
+
+#cboxContent .file .content .field-name-field-cc-licence div.field-items{
+  margin-left: 0;
 }
 
 /****************** SLICKGRID *****************/
