@@ -108,11 +108,7 @@ function scratchpads_media_gallery_block_view_alter(&$data, $block){
  */
 function scratchpads_media_gallery_facetapi_default_facet_settings(){
   $facets = array();
-  $media_gallery_facets = scratchpads_media_gallery_facetapi_facet_info(array(
-    'types' => array(
-      'file' => TRUE
-    )
-  ));
+  $media_gallery_facets = scratchpads_media_gallery_facetapi_facet_info();
   $media_gallery_facets['author'] = array(
     'name' => 'tus_type_name',
     'label' => t('Media: Type'),
