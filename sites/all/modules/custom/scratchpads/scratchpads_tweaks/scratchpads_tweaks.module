@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_tweaks_node_type_insert($info){
+  // Set the default for all comment forms to be on separate pages.
+  variable_get('comment_form_location_' . $info->type, COMMENT_FORM_SEPARATE_PAGE);
+}
+/**
  * Implementation of hook_form_FORM_ID_alter.
  * 
  * Hide the forums vocabulary from the taxonomy editor.
@@ -12,10 +19,43 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
 }
 
 /**
+ * Implementation of hook_form_alter()
+ */
+function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
+  if(substr($form_id, 0, 8) == 'comment_'){
+    if(@isset($form['comment_body'][LANGUAGE_NONE])){
+      $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
+    }
+  }
+}
+
+function scratchpads_tweaks_comment_body_after_build($element, &$form_state){
+  unset($element[0]['format']['format']['#options']['filtered_html']);
+  return $element;
+}
+
+/**
+ * Translate a check plained string.  This should add back <em> tags.
+ */
+function scratchpads_tweaks_translate_after_check_plain($string){
+  return strtr($string, array(
+    '[i]' => '<em>',
+    '[em]' => '<em>',
+    '[/i]' => '</em>',
+    '[/em]' => '</em>',
+    '&lt;i&gt;' => '<em>',
+    '&lt;em&gt;' => '<em>',
+    '&lt;/i&gt;' => '</em>',
+    '&lt;/em&gt;' => '</em>'
+  ));
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_tweaks_menu_alter(&$items){
   if(isset($items['node/%node/clone'])){
+    $items['node/%node/clone']['title'] = t('Clone');
     $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
   }
 }
@@ -33,6 +73,15 @@ function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $
         'Maintainer: Like editor, but also has administration privileges'
       )
     ));
+  }
+}
+
+/**
+ * Alter default views defined by other modules.
+ */
+function scratchpads_tweaks_views_default_views_alter(&$views){
+  if(isset($views['feeds_log'])){
+    unset($views['feeds_log']);
   }
 }
 

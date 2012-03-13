@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Media field should not be required
+ */
+function spm_update_7001(){
+  $instance = field_read_instance('node', 'field_media', 'spm');
+  $instance['required'] = 0;
+  field_update_instance($instance);
+  return 'Updated spm media field';
+}

@@ -806,3 +806,20 @@ width: 300px;
   z-index: 100;
 }
 
+/****************** Comments *****************/
+#comments h2{
+  background: transparent!important;
+  color: #3E3E3E;
+  padding: 0;
+}
+
+/************************ FORUMS *********************/
+#forum table{
+	width:100%;
+}
+#forum td{
+	vertical-align:top;
+}
+#forum td.icon{
+ width:20px;
+}

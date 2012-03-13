@@ -161,6 +161,9 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
   switch($field['type']){
     case 'gm3_point':
       $new_items = array();
+      if(is_string($items[0])){
+        _gm3_field_get_array_from_points_string($items[0], $new_items);
+      }
       if(count($items)){
         _gm3_field_get_array_from_points_string($items[0]['map'], $new_items);
       }
@@ -170,6 +173,9 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_polygon':
     case 'gm3_polyline':
       $new_items = array();
+      if(is_string($items[0])){
+        _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
+      }
       if(count($items)){
         _gm3_field_get_array_from_poly_string($items[0]['map'], $new_items, substr($field['type'], 4));
       }

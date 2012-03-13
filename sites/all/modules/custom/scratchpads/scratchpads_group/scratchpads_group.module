@@ -24,3 +24,14 @@ function scratchpads_group_node_type_insert($info){
     }
   }
 }
+
+/**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_group_menu_alter(&$items){
+  foreach(entity_get_info() as $entity => $value){
+    if($value['fieldable']){
+      $items["$entity/%/group"]['title'] = t('Members');
+    }
+  }
+}
