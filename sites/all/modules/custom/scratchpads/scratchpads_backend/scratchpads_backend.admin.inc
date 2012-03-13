@@ -133,7 +133,8 @@ function scratchpads_backend_admin_content(){
           $operations = array(
             l(t('View'), $view_url),
             l(t('Add'), 'file/add'),
-            l(t('Import'), 'admin/content/file/import')
+            //l(t('Import'), 'admin/content/file/import')
+            '<strike title="' . t('Coming soon') . '">' . t('Import') . '</strike>'
           );
           // If there's a grid editor for this view, add a link
           if(views_get_view('slickgrid_admin_' . $bundle)){
