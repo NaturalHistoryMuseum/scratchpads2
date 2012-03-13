@@ -5,7 +5,7 @@
     <?php if ($title_hidden): ?><div class="element-invisible"><?php endif; ?>
     <?php print render($title_prefix); ?>
     <h1 class="title" id="page-title">
-    <?php print $title; ?>
+    <?php print (function_exists('scratchpads_tweaks_translate_after_check_plain') ? scratchpads_tweaks_translate_after_check_plain($title): $title); ?>
     <?php if ($subtitle): ?><span><?php print $subtitle; ?></span><?php endif; ?>
     </h1>
     <?php print render($title_suffix); ?>
