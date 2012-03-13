@@ -12,6 +12,22 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
 }
 
 /**
+ * Implementation of hook_form_alter()
+ */
+function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
+  if(substr($form_id, 0, 8) == 'comment_'){
+    if(@isset($form['comment_body'][LANGUAGE_NONE])){
+      $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
+    }
+  }
+}
+
+function scratchpads_tweaks_comment_body_after_build($element, &$form_state){
+  unset($element[0]['format']['format']['#options']['filtered_html']);
+  return $element;
+}
+
+/**
  * Translate a check plained string.  This should add back <em> tags.
  */
 function scratchpads_tweaks_translate_after_check_plain($string){

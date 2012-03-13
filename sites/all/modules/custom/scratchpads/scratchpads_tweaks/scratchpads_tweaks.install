@@ -36,6 +36,10 @@ function scratchpads_tweaks_install(){
   );
   $filtered_html_format = (object)$filtered_html_format;
   filter_format_save($filtered_html_format);
+  $filtered_html_format->format = 'comment_filtered_html';
+  $filtered_html_format->name = 'Comment Filtered HTML';
+  $filtered_html_format->weight = 1;
+  filter_format_save($filtered_html_format);
   // Set the default theme to be "scratchpads".
   variable_set('theme_default', 'scratchpads');
   // Disable default theme.
@@ -47,76 +51,102 @@ function scratchpads_tweaks_install(){
     'scratchpads'
   ));
   // Set wysiwyg settings for each filter format.
-  $wysiwyg_settings = array(
-    'default' => 1,
-    'user_choose' => 1,
-    'show_toggle' => 1,
-    'theme' => 'advanced',
-    'language' => 'en',
-    'buttons' => array(
-      'default' => array(
-        'Bold' => 1,
-        'Italic' => 1,
-        'Underline' => 1,
-        'JustifyCenter' => 1,
-        'BulletedList' => 1,
-        'NumberedList' => 1,
-        'Undo' => 1,
-        'Redo' => 1,
-        'Link' => 1,
-        'Unlink' => 1,
-        'Superscript' => 1,
-        'Subscript' => 1,
-        'Blockquote' => 1,
-        'HorizontalRule' => 1,
-        'Cut' => 1,
-        'Copy' => 1,
-        'Paste' => 1,
-        'PasteText' => 1,
-        'PasteFromWord' => 1,
-        'RemoveFormat' => 1,
-        'SpecialChar' => 1,
-        'Table' => 1,
-        'Maximize' => 1,
-        'SpellChecker' => 1,
-        'Scayt' => 1
+  db_insert('wysiwyg')->fields(array(
+    'format' => 'filtered_html',
+    'editor' => 'ckeditor',
+    'settings' => serialize(array(
+      'default' => 1,
+      'user_choose' => 1,
+      'show_toggle' => 1,
+      'theme' => 'advanced',
+      'language' => 'en',
+      'buttons' => array(
+        'default' => array(
+          'Bold' => 1,
+          'Italic' => 1,
+          'Underline' => 1,
+          'JustifyCenter' => 1,
+          'BulletedList' => 1,
+          'NumberedList' => 1,
+          'Undo' => 1,
+          'Redo' => 1,
+          'Link' => 1,
+          'Unlink' => 1,
+          'Superscript' => 1,
+          'Subscript' => 1,
+          'Blockquote' => 1,
+          'HorizontalRule' => 1,
+          'Cut' => 1,
+          'Copy' => 1,
+          'Paste' => 1,
+          'PasteText' => 1,
+          'PasteFromWord' => 1,
+          'RemoveFormat' => 1,
+          'SpecialChar' => 1,
+          'Table' => 1,
+          'Maximize' => 1,
+          'SpellChecker' => 1,
+          'Scayt' => 1
+        ),
+        'drupal' => array(
+          'media' => 1,
+          'break' => 1
+        )
       ),
-      'drupal' => array(
-        'media' => 1,
-        'break' => 1
-      )
-    ),
-    'toolbar_loc' => 'top',
-    'toolbar_align' => 'left',
-    'path_loc' => 'bottom',
-    'resizing' => 1,
-    'verify_html' => 1,
-    'preformatted' => 0,
-    'convert_fonts_to_spans' => 1,
-    'remove_linebreaks' => 1,
-    'apply_source_formatting' => 0,
-    'paste_auto_cleanup_on_paste' => 0,
-    'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-    'css_setting' => 'none',
-    'css_path' => '',
-    'css_classes' => ''
-  );
-  $wysiwyg_settings = serialize($wysiwyg_settings);
-  $query = db_insert('wysiwyg')->fields(array(
-    'format',
-    'editor',
-    'settings'
-  ));
-  foreach(array(
-    'filtered_html'
-  ) as $format){
-    $query->values(array(
-      'format' => $format,
-      'editor' => 'ckeditor',
-      'settings' => $wysiwyg_settings
-    ));
-  }
-  $query->execute();
+      'toolbar_loc' => 'top',
+      'toolbar_align' => 'left',
+      'path_loc' => 'bottom',
+      'resizing' => 1,
+      'verify_html' => 1,
+      'preformatted' => 0,
+      'convert_fonts_to_spans' => 1,
+      'remove_linebreaks' => 1,
+      'apply_source_formatting' => 0,
+      'paste_auto_cleanup_on_paste' => 0,
+      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+      'css_setting' => 'none',
+      'css_path' => '',
+      'css_classes' => ''
+    ))
+  ))->execute();
+  db_insert('wysiwyg')->fields(array(
+    'format' => 'comment_filtered_html',
+    'editor' => 'ckeditor',
+    'settings' => serialize(array(
+      'default' => 1,
+      'user_choose' => 1,
+      'show_toggle' => 1,
+      'theme' => 'advanced',
+      'language' => 'en',
+      'buttons' => array(
+        'default' => array(
+          'Bold' => 1,
+          'Italic' => 1,
+          'Underline' => 1,
+          'BulletedList' => 1,
+          'NumberedList' => 1,
+          'Undo' => 1,
+          'Redo' => 1,
+          'Link' => 1,
+          'Unlink' => 1
+        )
+      ),
+      'toolbar_loc' => 'top',
+      'toolbar_align' => 'left',
+      'path_loc' => 'bottom',
+      'resizing' => 1,
+      'verify_html' => 1,
+      'preformatted' => 0,
+      'convert_fonts_to_spans' => 1,
+      'remove_linebreaks' => 1,
+      'apply_source_formatting' => 0,
+      'paste_auto_cleanup_on_paste' => 0,
+      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+      'css_setting' => 'none',
+      'css_path' => '',
+      'css_classes' => ''
+    ))
+  ))->execute();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -409,4 +439,83 @@ function scratchpads_tweaks_update_7002(){
       'femail'
     ));
   }
+}
+
+/**
+ * Update WYSIWYG and filter formats.
+ */
+function scratchpads_tweaks_update_7003(){
+  // Add text formats.
+  $filtered_html_format = array(
+    'format' => 'comment_filtered_html',
+    'name' => 'Comment Filtered HTML',
+    'weight' => 1,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1,
+        'settings' => array(
+          'allowed_html' => '<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+          'filter_html_help' => 0,
+          'filter_html_nofollow' => 0
+        )
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
+        'status' => 1
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1
+      )
+    )
+  );
+  $filtered_html_format = (object)$filtered_html_format;
+  filter_format_save($filtered_html_format);
+  db_insert('wysiwyg')->fields(array(
+    'format' => 'comment_filtered_html',
+    'editor' => 'ckeditor',
+    'settings' => serialize(array(
+      'default' => 1,
+      'user_choose' => 1,
+      'show_toggle' => 1,
+      'theme' => 'advanced',
+      'language' => 'en',
+      'buttons' => array(
+        'default' => array(
+          'Bold' => 1,
+          'Italic' => 1,
+          'Underline' => 1,
+          'BulletedList' => 1,
+          'NumberedList' => 1,
+          'Undo' => 1,
+          'Redo' => 1,
+          'Link' => 1,
+          'Unlink' => 1
+        )
+      ),
+      'toolbar_loc' => 'top',
+      'toolbar_align' => 'left',
+      'path_loc' => 'bottom',
+      'resizing' => 1,
+      'verify_html' => 1,
+      'preformatted' => 0,
+      'convert_fonts_to_spans' => 1,
+      'remove_linebreaks' => 1,
+      'apply_source_formatting' => 0,
+      'paste_auto_cleanup_on_paste' => 0,
+      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+      'css_setting' => 'none',
+      'css_path' => '',
+      'css_classes' => ''
+    ))
+  ))->execute();
 }
