@@ -25,7 +25,11 @@ function gm3_region_field_field_info(){
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_region':
-      $items = array_keys($items[0]['map']);
+      if(is_string($items[0])){
+        $items = explode('|', $items[0]);
+      }else{
+        $items = array_keys($items[0]['map']);
+      }
       $num_items = count($items);
       for($i = 0; $i < $num_items; $i++){
         $items[$i] = array(
