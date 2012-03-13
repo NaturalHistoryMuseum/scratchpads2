@@ -62,4 +62,8 @@ function scratchpads_group_enable(){
  */
 function scratchpads_group_update_7001(){
   scratchpads_group_install();
+  // Set the display type
+  $scratchpads_pages_display = variable_get('scratchpads_pages_display', array());
+  $scratchpads_pages_display['group'] = 'solr';
+  variable_set('scratchpads_pages_display', $scratchpads_pages_display);
 }
