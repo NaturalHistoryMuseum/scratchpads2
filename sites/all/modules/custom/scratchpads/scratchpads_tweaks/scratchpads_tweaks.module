@@ -12,10 +12,27 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
 }
 
 /**
+ * Translate a check plained string.  This should add back <em> tags.
+ */
+function scratchpads_tweaks_translate_after_check_plain($string){
+  return strtr($string, array(
+    '[i]' => '<em>',
+    '[em]' => '<em>',
+    '[/i]' => '</em>',
+    '[/em]' => '</em>',
+    '&lt;i&gt;' => '<em>',
+    '&lt;em&gt;' => '<em>',
+    '&lt;/i&gt;' => '</em>',
+    '&lt;/em&gt;' => '</em>'
+  ));
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_tweaks_menu_alter(&$items){
   if(isset($items['node/%node/clone'])){
+    $items['node/%node/clone']['title'] = t('Clone');
     $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
   }
 }
@@ -33,6 +50,29 @@ function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $
         'Maintainer: Like editor, but also has administration privileges'
       )
     ));
+  }
+}
+
+/**
+ * Alter default views defined by other modules.
+ *
+ * This hook is called right before all default views are cached to the
+ * database. It takes a keyed array of views by reference.
+ *
+ * Example usage to add a field to a view:
+ * @code
+ * $handler =& $view->display['DISPLAY_ID']->handler;
+ * // Add the user name field to the view.
+ * $handler->display->display_options['fields']['name']['id'] = 'name';
+ * $handler->display->display_options['fields']['name']['table'] = 'users';
+ * $handler->display->display_options['fields']['name']['field'] = 'name';
+ * $handler->display->display_options['fields']['name']['label'] = 'Author';
+ * $handler->display->display_options['fields']['name']['link_to_user'] = 1;
+ * @endcode
+ */
+function scratchpads_tweaks_views_default_views_alter(&$views){
+  if(isset($views['feeds_log'])){
+    unset($views['feeds_log']);
   }
 }
 

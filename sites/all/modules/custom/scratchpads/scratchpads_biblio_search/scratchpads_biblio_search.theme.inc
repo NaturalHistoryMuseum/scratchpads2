@@ -16,7 +16,9 @@ function theme_scratchpads_biblio_search($variables){
       $rows[] = array(
         biblio_format_authors($biblio_node->biblio_contributors),
         $biblio_node->biblio_year,
-        l($biblio_node->title, 'node/' . $biblio_node->nid)
+        l(scratchpads_tweaks_translate_after_check_plain(check_plain($biblio_node->title)), 'node/' . $biblio_node->nid, array(
+          'html' => TRUE
+        ))
       );
     }
   }
