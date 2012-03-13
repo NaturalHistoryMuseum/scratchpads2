@@ -416,6 +416,12 @@ function scratchpads_tweaks_install(){
   if($_SERVER['SERVER_ADDR'] == '157.140.127.10' || $_SERVER['SERVER_ADDR'] == '157.140.127.252'){
     variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
   }
+  // Set the comment form defaults.
+  foreach(node_type_get_names() as $type => $name){
+    if($type != 'forum'){
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    }
+  }
 }
 
 /**
@@ -522,11 +528,13 @@ function scratchpads_tweaks_update_7003(){
 
 /**
  * Set the default for all comment forms to be on a separate page.
+ * 
+ * 7004 remove due to an error.
  */
-function scratchpads_tweaks_update_7004(){
+function scratchpads_tweaks_update_7005(){
   foreach(node_type_get_names() as $type => $name){
     if($type != 'forum'){
-      variable_get('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
 }
