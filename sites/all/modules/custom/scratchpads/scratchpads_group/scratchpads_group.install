@@ -56,3 +56,10 @@ function scratchpads_group_enable(){
     register_shutdown_function('variable_del', 'node_access_needs_rebuild');
   }
 }
+
+/**
+ * Add the solr search page
+ */
+function scratchpads_group_update_7001(){
+  scratchpads_group_install();
+}
