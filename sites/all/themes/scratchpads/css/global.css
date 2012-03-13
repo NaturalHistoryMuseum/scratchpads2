@@ -806,3 +806,13 @@ width: 300px;
   z-index: 100;
 }
 
+/************************ FORUMS *********************/
+#forum table{
+	width:100%;
+}
+#forum td{
+	vertical-align:top;
+}
+#forum td.icon{
+ width:20px;
+}
