@@ -175,3 +175,14 @@ function scratchpads_media_gallery_install(){
 function scratchpads_media_gallery_uninstall(){
   db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
 }
+
+
+/**
+ * Page media field should not be required
+ */
+function scratchpads_media_gallery_update_7001(){
+  $instance = field_read_instance('node', 'field_media', 'page');
+  $instance['required'] = 0;
+  field_update_instance($instance);
+  return 'Updated page media field';
+}
