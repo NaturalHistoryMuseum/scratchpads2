@@ -1672,6 +1672,168 @@ function scratchpads_media_gallery_field_default_fields(){
       )
     )
   );
+  // Exported field: 'file-image-field_sticky'
+  $fields['file-image-field_sticky'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_sticky',
+      'foreign keys' => array(),
+      'indexes' => array(
+        'value' => array(
+          0 => 'value'
+        )
+      ),
+      'module' => 'list',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => '',
+          1 => ''
+        ),
+        'allowed_values_function' => ''
+      ),
+      'translatable' => '0',
+      'type' => 'list_boolean'
+    ),
+    'field_instance' => array(
+      'bundle' => 'image',
+      'default_value' => array(
+        0 => array(
+          'value' => 0
+        )
+      ),
+      'deleted' => '0',
+      'description' => 'Check this box to display this item at top of lists (for example, on the species pages)',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 2
+        ),
+        'file_styles_colorbox' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_medium' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_original' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_species_slideshow_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_square_thumbnail_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'file_styles_thumbnail' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_large' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_link' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_original' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_preview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'media_small' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'file',
+      'field_name' => 'field_sticky',
+      'label' => 'Sticky at top of lists',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(
+          'display_label' => 1
+        ),
+        'type' => 'options_onoff',
+        'weight' => '21'
+      )
+    )
+  );
   // Translatables
   // Included for use with string extractors like potx.
   t('Licence');
@@ -1684,5 +1846,7 @@ function scratchpads_media_gallery_field_default_fields(){
   t('Keywords');
   t('Preparation technique');
   t('Select the imaging technique that was used to produce the images.');
+  t('Check this box to display this item at top of lists (for example, on the species pages)');
+  t('Sticky at top of lists');
   return $fields;
 }
