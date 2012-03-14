@@ -54,6 +54,86 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
 }
 
 /**
+ * Implements hook_facetapi_default_facet_settings()
+ */
+function scratchpads_solr_facetapi_default_facet_settings(){
+  $facet = new stdClass();
+  $facet->disabled = FALSE;
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr:block:bundle';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = 'block';
+  $facet->facet = 'bundle';
+  $facet->enabled = TRUE;
+  $facet->settings = array(
+    'weight' => 0,
+    'widget' => 'facetapi_links',
+    'filters' => array(),
+    'active_sorts' => array(
+      'active' => 'active',
+      'count' => 'count',
+      'display' => 'display'
+    ),
+    'sort_weight' => array(
+      'active' => -50,
+      'count' => -49,
+      'display' => -48
+    ),
+    'sort_order' => array(
+      'active' => 3,
+      'count' => 3,
+      'display' => 4
+    ),
+    'empty_behavior' => 'none',
+    'soft_limit' => 20,
+    'nofollow' => 1,
+    'show_expanded' => 0
+  );
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_solr_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'taxonomic_name_facet';
+  $context->description = t('Taxonomic name field on a search page.');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'biblio*' => 'biblio*',
+        'search*' => 'search*',
+        'group*' => 'group*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_solr_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['taxonomic_name_facet'] = $context;
+  return $export;
+}
+
+/**
  * Implementation of hook_node_type_insert().
  */
 function scratchpads_solr_node_type_insert($info){
