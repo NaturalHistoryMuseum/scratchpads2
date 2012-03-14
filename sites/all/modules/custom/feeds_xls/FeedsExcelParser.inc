@@ -135,7 +135,8 @@ class FeedsExcelParser extends FeedsParser{
         $row_values = array();
         foreach($cellIterator as $cell){
           if(!is_null($cell)){
-            if(trim('' . $cell->getCalculatedValue())){
+            // FIXME - This isn't ideal, why does the GUID field need to be empty.
+            if(trim('' . $cell->getCalculatedValue()) || (count($column_names) ? $column_names[$column] : $column) == 'GUID'){
               $row_values[count($column_names) ? $column_names[$column] : $column] = '' . $cell->getCalculatedValue();
             }
           }

@@ -107,7 +107,7 @@ function scratchpads_taxonomic_name_field_install(){
 /**
  * Implements hook_update_N
  */
-function scratchpads_taxonomic_name_field_update_7001(){
+function scratchpads_taxonomic_name_field_update_7002(){
   field_cache_clear(TRUE);
   $field = field_info_field('field_taxonomic_name');
   $field['settings']['allowed_values'] = array(

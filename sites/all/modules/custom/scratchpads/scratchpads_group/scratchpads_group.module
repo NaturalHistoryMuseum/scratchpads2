@@ -34,4 +34,289 @@ function scratchpads_group_menu_alter(&$items){
       $items["$entity/%/group"]['title'] = t('Members');
     }
   }
+  unset($items['group/%/group']);
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_group_scratchpads_solr_info(){
+  return array(
+    'group' => array(
+      'theme' => 'scratchpads_group',
+      'empty' => 'scratchpads_group_empty'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_group_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'group_page_facets';
+  $context->description = t('Group page facets');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'group*' => 'group*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_group_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['group_page_facets'] = $context;
+  return $export;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_group_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_group_facetapi_facet_info();
+    foreach(scratchpads_group_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_group_facetapi_default_facet_settings(){
+  $facets = array();
+  $group_facets = scratchpads_group_facetapi_facet_info();
+  foreach($group_facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'count' => -49,
+        'display' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_group_theme(){
+  return array(
+    'scratchpads_group' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_group.theme.inc'
+    ),
+    'scratchpads_group_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_group.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_node_view_alter().
+ */
+function scratchpads_group_node_view($node, $view_mode, $langcode){
+  if($node->type == 'group' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
+    // Get the gid from the og table.
+    $row = db_select('og','g')->fields('g', array('gid'))->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
+    drupal_goto('group', array(
+      'query' => array(
+        'f' => array(
+          'im_group_audience:' . array_pop($row)
+        )
+      )
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_page_alter().
+ */
+function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($router_item['path'] == 'group' && $nid = scratchpads_group_is_group_node()){
+    // Add a tab linking to node/add to all pages.
+    if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $nid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
+  }
+}
+
+/**
+ * Check to see if we're viewing a single group
+ */
+function scratchpads_group_is_group_node(){
+  if(isset($_GET['f']) && is_array($_GET['f'])){
+    foreach($_GET['f'] as $value){
+      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){return substr($value, 18);}
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_group_facetapi_facet_info($searcher_info = FALSE){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_group_audience' => array(
+      'name' => 'im_group_audience',
+      'label' => t('Group'),
+      'description' => t('Group'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'og_group_map_callback', // CHECK!
+      'map options' => array(
+        'im_group_audience'
+      )
+    )
+  );
+}
+
+/**
+ * Map callback
+ */
+function scratchpads_group_map_callback($values, $options){
+  if(count($values)){
+    switch($options[0]){
+      case 'im_field_smg_galleries':
+        $result = db_select('node', 'n')->fields('n', array(
+          'nid',
+          'title'
+        ))->condition('nid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['nid']] = $record['title'];
+        }
+        return $map;
+    }
+  }else{
+    return array();
+  }
+}
+
+/**
+ * OG's very own hooks for apachesolr (these could be added as a patch to the
+ * apachesolr module).
+ */
+function og_apachesolr_field_mappings(){
+  return array(
+    // Example for a field API type. See extensive documentation below
+    'group' => array(
+      'indexing_callback' => 'og_group_indexing_callback',
+      'index_type' => 'integer',
+      'map callback' => 'og_group_map_callback',
+      'facets' => TRUE
+    )
+  );
+}
+
+/**
+ * Indexing callback for the above.
+ */
+function og_group_indexing_callback($entity, $field_name, $index_key, $field_info){
+  $fields = array();
+  if(!empty($entity->{$field_name})){
+    $index_key = apachesolr_index_key($field_info);
+    foreach($entity->$field_name as $groups){
+      foreach($groups as $group){
+        if($index_value = (!empty($group['gid'])) ? $group['gid'] : FALSE){
+          $fields[] = array(
+            'key' => $index_key,
+            'value' => $index_value
+          );
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Map callback for the above.
+ */
+function og_group_map_callback($values, $options){
+  $result = db_select('og', 'g')->fields('g', array(
+    'gid',
+    'label'
+  ))->condition('gid', $values, 'IN')->execute();
+  $map = array();
+  while($record = $result->fetchAssoc()){
+    $map[$record['gid']] = $record['label'];
+  }
+  return $map;
 }

@@ -51,102 +51,112 @@ function scratchpads_tweaks_install(){
     'scratchpads'
   ));
   // Set wysiwyg settings for each filter format.
-  db_insert('wysiwyg')->fields(array(
-    'format' => 'filtered_html',
-    'editor' => 'ckeditor',
-    'settings' => serialize(array(
-      'default' => 1,
-      'user_choose' => 1,
-      'show_toggle' => 1,
-      'theme' => 'advanced',
-      'language' => 'en',
-      'buttons' => array(
-        'default' => array(
-          'Bold' => 1,
-          'Italic' => 1,
-          'Underline' => 1,
-          'JustifyCenter' => 1,
-          'BulletedList' => 1,
-          'NumberedList' => 1,
-          'Undo' => 1,
-          'Redo' => 1,
-          'Link' => 1,
-          'Unlink' => 1,
-          'Superscript' => 1,
-          'Subscript' => 1,
-          'Blockquote' => 1,
-          'HorizontalRule' => 1,
-          'Cut' => 1,
-          'Copy' => 1,
-          'Paste' => 1,
-          'PasteText' => 1,
-          'PasteFromWord' => 1,
-          'RemoveFormat' => 1,
-          'SpecialChar' => 1,
-          'Table' => 1,
-          'Maximize' => 1,
-          'SpellChecker' => 1,
-          'Scayt' => 1
+  try{
+    db_insert('wysiwyg')->fields(array(
+      'format' => 'filtered_html',
+      'editor' => 'ckeditor',
+      'settings' => serialize(array(
+        'default' => 1,
+        'user_choose' => 1,
+        'show_toggle' => 1,
+        'theme' => 'advanced',
+        'language' => 'en',
+        'buttons' => array(
+          'default' => array(
+            'Bold' => 1,
+            'Italic' => 1,
+            'Underline' => 1,
+            'JustifyCenter' => 1,
+            'BulletedList' => 1,
+            'NumberedList' => 1,
+            'Undo' => 1,
+            'Redo' => 1,
+            'Link' => 1,
+            'Unlink' => 1,
+            'Superscript' => 1,
+            'Subscript' => 1,
+            'Blockquote' => 1,
+            'HorizontalRule' => 1,
+            'Cut' => 1,
+            'Copy' => 1,
+            'Paste' => 1,
+            'PasteText' => 1,
+            'PasteFromWord' => 1,
+            'RemoveFormat' => 1,
+            'SpecialChar' => 1,
+            'Table' => 1,
+            'Maximize' => 1,
+            'SpellChecker' => 1,
+            'Scayt' => 1
+          ),
+          'drupal' => array(
+            'media' => 1,
+            'break' => 1
+          )
         ),
-        'drupal' => array(
-          'media' => 1,
-          'break' => 1
-        )
-      ),
-      'toolbar_loc' => 'top',
-      'toolbar_align' => 'left',
-      'path_loc' => 'bottom',
-      'resizing' => 1,
-      'verify_html' => 1,
-      'preformatted' => 0,
-      'convert_fonts_to_spans' => 1,
-      'remove_linebreaks' => 1,
-      'apply_source_formatting' => 0,
-      'paste_auto_cleanup_on_paste' => 0,
-      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-      'css_setting' => 'none',
-      'css_path' => '',
-      'css_classes' => ''
-    ))
-  ))->execute();
-  db_insert('wysiwyg')->fields(array(
-    'format' => 'comment_filtered_html',
-    'editor' => 'ckeditor',
-    'settings' => serialize(array(
-      'default' => 1,
-      'user_choose' => 1,
-      'show_toggle' => 1,
-      'theme' => 'advanced',
-      'language' => 'en',
-      'buttons' => array(
-        'default' => array(
-          'Bold' => 1,
-          'Italic' => 1,
-          'Underline' => 1,
-          'BulletedList' => 1,
-          'NumberedList' => 1,
-          'Undo' => 1,
-          'Redo' => 1,
-          'Link' => 1,
-          'Unlink' => 1
-        )
-      ),
-      'toolbar_loc' => 'top',
-      'toolbar_align' => 'left',
-      'path_loc' => 'bottom',
-      'resizing' => 1,
-      'verify_html' => 1,
-      'preformatted' => 0,
-      'convert_fonts_to_spans' => 1,
-      'remove_linebreaks' => 1,
-      'apply_source_formatting' => 0,
-      'paste_auto_cleanup_on_paste' => 0,
-      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-      'css_setting' => 'none',
-      'css_path' => '',
-      'css_classes' => ''
-    ))
-  ))->execute();
+        'toolbar_loc' => 'top',
+        'toolbar_align' => 'left',
+        'path_loc' => 'bottom',
+        'resizing' => 1,
+        'verify_html' => 1,
+        'preformatted' => 0,
+        'convert_fonts_to_spans' => 1,
+        'remove_linebreaks' => 1,
+        'apply_source_formatting' => 0,
+        'paste_auto_cleanup_on_paste' => 0,
+        'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+        'css_setting' => 'none',
+        'css_path' => '',
+        'css_classes' => ''
+      ))
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
+  try{
+    db_insert('wysiwyg')->fields(array(
+      'format' => 'comment_filtered_html',
+      'editor' => 'ckeditor',
+      'settings' => serialize(array(
+        'default' => 1,
+        'user_choose' => 1,
+        'show_toggle' => 1,
+        'theme' => 'advanced',
+        'language' => 'en',
+        'buttons' => array(
+          'default' => array(
+            'Bold' => 1,
+            'Italic' => 1,
+            'Underline' => 1,
+            'BulletedList' => 1,
+            'NumberedList' => 1,
+            'Undo' => 1,
+            'Redo' => 1,
+            'Link' => 1,
+            'Unlink' => 1
+          )
+        ),
+        'toolbar_loc' => 'top',
+        'toolbar_align' => 'left',
+        'path_loc' => 'bottom',
+        'resizing' => 1,
+        'verify_html' => 1,
+        'preformatted' => 0,
+        'convert_fonts_to_spans' => 1,
+        'remove_linebreaks' => 1,
+        'apply_source_formatting' => 0,
+        'paste_auto_cleanup_on_paste' => 0,
+        'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+        'css_setting' => 'none',
+        'css_path' => '',
+        'css_classes' => ''
+      ))
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
   // Enable some standard blocks.
   $values = array(
     array(
@@ -312,20 +322,15 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     )
   );
-  $query = db_insert('block')->fields(array(
-    'module',
-    'delta',
-    'theme',
-    'status',
-    'weight',
-    'region',
-    'pages',
-    'cache'
-  ));
   foreach($values as $record){
-    $query->values($record);
+    try{
+      db_insert('block')->fields($record)->execute();
+    }
+    catch(Exception $e){
+      ; // Do nothing, probably just a duplicate if we're installing on an already
+    // created site.
+    }
   }
-  $query->execute();
   // Insert default pre-defined node types into the database. For a complete
   // list of available node type attributes, refer to the node type API
   // documentation at: http://api.drupal.org/api/HEAD/function/hook_node_info.
@@ -415,6 +420,12 @@ function scratchpads_tweaks_install(){
   variable_set('error_level', ERROR_REPORTING_HIDE);
   if($_SERVER['SERVER_ADDR'] == '157.140.127.10' || $_SERVER['SERVER_ADDR'] == '157.140.127.252'){
     variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
+  }
+  // Set the comment form defaults.
+  foreach(node_type_get_names() as $type => $name){
+    if($type != 'forum'){
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    }
   }
 }
 
@@ -522,11 +533,13 @@ function scratchpads_tweaks_update_7003(){
 
 /**
  * Set the default for all comment forms to be on a separate page.
+ * 
+ * 7004 remove due to an error.
  */
-function scratchpads_tweaks_update_7004(){
+function scratchpads_tweaks_update_7005(){
   foreach(node_type_get_names() as $type => $name){
     if($type != 'forum'){
-      variable_get('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
 }
