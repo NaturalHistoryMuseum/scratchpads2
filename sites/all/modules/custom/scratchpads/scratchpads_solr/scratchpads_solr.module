@@ -14,7 +14,11 @@ function scratchpads_solr_form_node_type_form_alter(&$form, &$form_state, $form_
  */
 function scratchpads_solr_node_type_form_submit($form, $form_state){
   if(isset($form_state['values']['page_display_type']) && $form_state['values']['page_display_type'] == 'solr'){
-    if($form_state['values']['type'] != 'biblio'){
+    if(!in_array($form_state['values']['type'], array(
+      'biblio',
+      'group',
+      'media_gallery'
+    ))){
       // We create a search page for this content type.
       $fields = array(
         'page_id' => 'content_type_' . $form_state['values']['type'] . '_search',
@@ -57,6 +61,7 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
  * Implements hook_facetapi_default_facet_settings()
  */
 function scratchpads_solr_facetapi_default_facet_settings(){
+  $facets = array();
   $facet = new stdClass();
   $facet->disabled = FALSE;
   $facet->api_version = 1;
@@ -89,6 +94,44 @@ function scratchpads_solr_facetapi_default_facet_settings(){
     'nofollow' => 1,
     'show_expanded' => 0
   );
+  $facets['bundle'] = $facet;
+  $facet = new stdClass();
+  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr:block:author';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = 'block';
+  $facet->facet = 'author';
+  $facet->enabled = TRUE;
+  $facet->settings = array(
+    'weight' => 0,
+    'widget' => 'facetapi_links',
+    'filters' => array(),
+    'active_sorts' => array(
+      'active' => 'active',
+      'count' => 'count',
+      'display' => 'display'
+    ),
+    'sort_weight' => array(
+      'active' => -50,
+      'count' => -49,
+      'display' => -48
+    ),
+    'sort_order' => array(
+      'active' => 3,
+      'count' => 3,
+      'display' => 4
+    ),
+    'empty_behavior' => 'text',
+    'empty_text' => array(
+      'value' => 'There are no facets available to filter on.',
+      'format' => 'filtered_html'
+    ),
+    'soft_limit' => 20,
+    'show_expanded' => 0
+  );
+  $facets['author'] = $facet;
+  return $facets;
 }
 
 /**
