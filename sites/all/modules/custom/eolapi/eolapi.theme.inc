@@ -61,13 +61,29 @@ function theme_eolapi_text_teaser($variables){
       }
     }
   }
+  $rows = array(
+    array(
+      t('License'),
+      isset($data->license) ? l($data->license, $data->license) : t('All rights reserved')
+    ),
+    array(
+      t('Rights/Author'),
+      isset($data->rights) ? $data->rights : (count($agents) ? implode(", ", $agents) : t('No rights holder'))
+    ),
+    array(
+      t('Source'),
+      isset($data->source) ? l($data->source, $data->source) : t('No source database.')
+    )
+  );
   return '<div class="eolapi-text">
   ' . (isset($data->title) ? '<div class="field-label">' . $data->title . ':</div>' : '') . '
   	<div class="eolapi-text-data">' . check_markup($data->description, 'filtered_html') . '
   		' . ((isset($data->references) && count($data->references)) ? theme('item_list', array(
     'items' => $data->references
   )) : '') . '
-  		<p class="eolapi-text-rights">' . (isset($data->license) ? l($data->license, $data->license) : t('All rights reserved')) . '<br/>' . (isset($data->rights) ? $data->rights : (count($agents) ? implode(", ", $agents) : t('No rights holder'))) . '<br />' . (isset($data->source) ? l($data->source, $data->source) : t('No source database.')) . '</p>
+  		<p class="eolapi-text-rights">' . theme('table', array(
+    'rows' => $rows
+  )) . '</p>
   	</div> 
 </div>';
 }
