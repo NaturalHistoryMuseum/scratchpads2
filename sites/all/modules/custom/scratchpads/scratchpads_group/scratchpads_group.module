@@ -163,7 +163,12 @@ function scratchpads_group_theme(){
         'results' => NULL,
         'module' => NULL
       ),
-      'file' => 'scratchpads_group.theme.inc'
+      'path' => './',
+      'preprocess functions' => array(
+        'template_preprocess_search_results'
+      ),
+      'file' => drupal_get_path('module', 'search') . '/search.pages.inc',
+      'template' => drupal_get_path('module', 'scratchpads_group') . '/search-results'
     ),
     'scratchpads_group_empty' => array(
       'variables' => array(),
@@ -178,7 +183,9 @@ function scratchpads_group_theme(){
 function scratchpads_group_node_view($node, $view_mode, $langcode){
   if($node->type == 'group' && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)){
     // Get the gid from the og table.
-    $row = db_select('og','g')->fields('g', array('gid'))->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
+    $row = db_select('og', 'g')->fields('g', array(
+      'gid'
+    ))->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
     drupal_goto('group', array(
       'query' => array(
         'f' => array(
@@ -211,6 +218,23 @@ function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_pa
       $data['tabs'][0]['output'][0]['#active'] = TRUE;
       $data['tabs'][0]['count'] = 2;
     }
+    // Add a tab linking to the Members pages
+    if(og_user_access_by_entity('administer group', 'node', $nid)){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Members'),
+          'href' => 'node/' . $nid . '/group',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Add/Edit membership of this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
   }
 }
 
@@ -220,7 +244,11 @@ function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_pa
 function scratchpads_group_is_group_node(){
   if(isset($_GET['f']) && is_array($_GET['f'])){
     foreach($_GET['f'] as $value){
-      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){return substr($value, 18);}
+      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){
+        $gid = substr($value, 18);
+        $group = og_load($gid);
+        return $group->etid;
+      }
     }
   }
   return FALSE;

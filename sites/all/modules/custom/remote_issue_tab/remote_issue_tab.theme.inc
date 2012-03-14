@@ -28,7 +28,7 @@ function theme_remote_issue_tab_block($variables = array()){
     // This defaults to 20, which is more than enough for us!
     // Note, including fid in the SQL should be safe here, as we've ensured that
     // fid is an integer above.
-    $items = aggregator_feed_items_load('source', (object)array(
+    $items = remote_issue_tab_aggregator_feed_items_load('source', (object)array(
       'fid' => $variables['feed']
     ));
     return '<div id="remote-issue-tab">
@@ -55,6 +55,48 @@ function theme_remote_issue_tab_block($variables = array()){
       '!agg_url' => url('admin/structure/block/manage/remote_issue_tab/0/configure')
     ));
   }
+}
+
+// Copy of aggregator_feed_items_load, but without the pager shite!
+function remote_issue_tab_aggregator_feed_items_load($type, $data = NULL) {
+  $items = array();
+  switch ($type) {
+    case 'sum':
+      $query = db_select('aggregator_item', 'i');
+      $query->join('aggregator_feed', 'f', 'i.fid = f.fid');
+      $query->fields('i');
+      $query->addField('f', 'title', 'ftitle');
+      $query->addField('f', 'link', 'flink');
+      break;
+    case 'source':
+      $query = db_select('aggregator_item', 'i');
+      $query
+        ->fields('i')
+        ->condition('i.fid', $data->fid);
+      break;
+    case 'category':
+      $query = db_select('aggregator_category_item', 'c');
+      $query->leftJoin('aggregator_item', 'i', 'c.iid = i.iid');
+      $query->leftJoin('aggregator_feed', 'f', 'i.fid = f.fid');
+      $query
+        ->fields('i')
+        ->condition('cid', $data['cid']);
+      $query->addField('f', 'title', 'ftitle');
+      $query->addField('f', 'link', 'flink');
+      break;
+  }
+
+  $result = $query
+    ->orderBy('i.timestamp', 'DESC')
+    ->orderBy('i.iid', 'DESC')
+    ->execute();
+
+  foreach ($result as $item) {
+    $item->categories = db_query('SELECT c.title, c.cid FROM {aggregator_category_item} ci LEFT JOIN {aggregator_category} c ON ci.cid = c.cid WHERE ci.iid = :iid ORDER BY c.title', array(':iid' => $item->iid))->fetchAll();
+    $items[] = $item;
+  }
+
+  return $items;
 }
 
 /**

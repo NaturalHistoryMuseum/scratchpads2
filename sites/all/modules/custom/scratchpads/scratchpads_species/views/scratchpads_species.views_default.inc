@@ -1925,7 +1925,6 @@ function scratchpads_species_views_default_views(){
     $handler = $view->new_display('block', 'Block', 'block');
     $views[$view->name] = $view;
     $view = new view();
-    $view = new view();
     $view->name = 'species_media';
     $view->description = '';
     $view->tag = 'default';

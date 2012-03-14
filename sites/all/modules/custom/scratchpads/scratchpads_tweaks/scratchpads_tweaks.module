@@ -121,7 +121,6 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       break;
     case 'blog':
     case 'simplenews':
-    case 'lexicon':
     case 'googleanalytics':
       $info['tool'] = TRUE;
       break;

@@ -302,7 +302,7 @@ function spm_field_default_fields(){
       'bundle' => 'spm',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'Descriptions and lists of taxa that interact with the subject taxon. Includes explicit reference to the kind of ecological interaction: Predator&#194;/prey; host&#194;/parasite, pollinators, symbiosis, mutualism, commensalism; hybridisation, &#226;&#8364;&#166;',
+      'description' => 'Descriptions and lists of taxa that interact with the subject taxon. Includes explicit reference to the kind of ecological interaction: Predator/prey; host/parasite, pollinators, symbiosis, mutualism, commensalism; hybridisation, &hellip;',
       'display' => array(
         'default' => array(
           'label' => 'above',

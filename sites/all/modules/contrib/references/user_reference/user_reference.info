@@ -6,9 +6,9 @@ dependencies[] = field
 dependencies[] = references
 dependencies[] = options
 
-; Information added by drupal.org packaging script on 2012-01-06
-version = "7.x-2.x-dev"
+; Information added by drupal.org packaging script on 2012-02-11
+version = "7.x-2.0+8-dev"
 core = "7.x"
 project = "references"
-datestamp = "1325810832"
+datestamp = "1328963199"
 
