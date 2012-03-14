@@ -218,6 +218,23 @@ function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_pa
       $data['tabs'][0]['output'][0]['#active'] = TRUE;
       $data['tabs'][0]['count'] = 2;
     }
+    // Add a tab linking to the Members pages
+    if(og_user_access_by_entity('administer group', 'node', $nid)){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Members'),
+          'href' => 'node/' . $nid . '/group',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Add/Edit membership of this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
   }
 }
 
@@ -227,7 +244,11 @@ function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_pa
 function scratchpads_group_is_group_node(){
   if(isset($_GET['f']) && is_array($_GET['f'])){
     foreach($_GET['f'] as $value){
-      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){return substr($value, 18);}
+      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){
+        $gid = substr($value, 18);
+        $group = og_load($gid);
+        return $group->etid;
+      }
     }
   }
   return FALSE;
