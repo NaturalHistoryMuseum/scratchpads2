@@ -8,7 +8,7 @@
 /**
  * Private implementation of hook_webform_select_options_info().
  *
- * @see webform_webform_select_options_info().
+ * @see webform_webform_select_options_info()
  */
 function _webform_options_info() {
   $items = array();
@@ -37,7 +37,7 @@ function _webform_options_info() {
 /**
  * Option list containing the days of the week.
  */
-function webform_options_days() {
+function webform_options_days($component, $flat, $filter, $arguments) {
   $days = array(
     'sunday' => t('Sunday'),
     'monday' => t('Monday'),
@@ -60,7 +60,7 @@ function webform_options_days() {
 /**
  * Options list containing country names.
  */
-function webform_options_countries() {
+function webform_options_countries($component, $flat, $filter, $arguments) {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   return country_get_list();
 }
@@ -68,7 +68,7 @@ function webform_options_countries() {
 /**
  * Options list containing United States states and territories.
  */
-function webform_options_united_states() {
+function webform_options_united_states($component, $flat, $filter, $arguments) {
   return array(
     'AL' => t('Alabama'),
     'AK' => t('Alaska'),

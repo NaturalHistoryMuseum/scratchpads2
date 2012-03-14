@@ -9,7 +9,7 @@ include_once(dirname(__FILE__) . '/webform.test');
 
 class WebformPermissionsTestCase extends WebformTestCase {
   /**
-   * Implementation of getInfo().
+   * Implements getInfo().
    */
   public static function getInfo() {
     return array(
@@ -20,14 +20,14 @@ class WebformPermissionsTestCase extends WebformTestCase {
   }
 
   /**
-   * Implementation of setUp().
+   * Implements setUp().
    */
   function setUp() {
     parent::setUp();
   }
 
   /**
-   * Implementation of tearDown().
+   * Implements tearDown().
    */
   function tearDown() {
     parent::tearDown();

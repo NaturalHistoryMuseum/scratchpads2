@@ -6,12 +6,13 @@
  *
  * Available variables:
  * - $node: The node object for this webform.
+ * - $mode: Either "form" or "display". May be other modes provided by other
+ *          modules, such as "print" or "pdf".
  * - $submission: The contents of the webform submission.
  * - $previous: The previous submission ID.
  * - $next: The next submission ID.
  * - $previous_url: The URL of the previous submission.
  * - $next_url: The URL of the next submission.
- * - $mode: Either "form" or "display". As the navigation is shown in both uses.
  */
 ?>
 <div class="webform-submission-navigation">

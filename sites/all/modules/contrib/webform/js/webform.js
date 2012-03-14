@@ -18,22 +18,30 @@ Drupal.webform.datepicker = function(context) {
   $('div.webform-datepicker').each(function() {
     var $webformDatepicker = $(this);
     var $calendar = $webformDatepicker.find('input.webform-calendar');
-    var startYear = $calendar[0].className.replace(/.*webform-calendar-start-(\d+).*/, '$1');
-    var endYear = $calendar[0].className.replace(/.*webform-calendar-end-(\d+).*/, '$1');
+    var startDate = $calendar[0].className.replace(/.*webform-calendar-start-(\d{4}-\d{2}-\d{2}).*/, '$1').split('-');
+    var endDate = $calendar[0].className.replace(/.*webform-calendar-end-(\d{4}-\d{2}-\d{2}).*/, '$1').split('-');
     var firstDay = $calendar[0].className.replace(/.*webform-calendar-day-(\d).*/, '$1');
+    // Convert date strings into actual Date objects.
+    startDate = new Date(startDate[0], startDate[1] - 1, startDate[2]);
+    endDate = new Date(endDate[0], endDate[1] - 1, endDate[2]);
 
     // Ensure that start comes before end for datepicker.
-    if (startYear > endYear) {
-      var greaterYear = startYear;
-      startYear = endYear;
-      endYear = greaterYear;
+    if (startDate > endDate) {
+      var laterDate = startDate;
+      startDate = endDate;
+      endDate = laterDate;
     }
+
+    var startYear = startDate.getFullYear();
+    var endYear = endDate.getFullYear();
 
     // Set up the jQuery datepicker element.
     $calendar.datepicker({
       dateFormat: 'yy-mm-dd',
       yearRange: startYear + ':' + endYear,
       firstDay: parseInt(firstDay),
+      minDate: startDate,
+      maxDate: endDate,
       onSelect: function(dateText, inst) {
         var date = dateText.split('-');
         $webformDatepicker.find('select.year, input.year').val(+date[0]);
