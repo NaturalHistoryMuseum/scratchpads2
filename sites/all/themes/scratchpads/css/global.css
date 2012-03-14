@@ -535,8 +535,7 @@ h2.site-name {
 
 /************************ NODES *********************/ 
 
-.node .submitted,
-.eolapi-text-rights{
+.node .submitted{
   color: #888;
   font-size: 0.9em;
   text-align: right;
