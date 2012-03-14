@@ -81,9 +81,9 @@ function theme_eolapi_text_teaser($variables){
   		' . ((isset($data->references) && count($data->references)) ? theme('item_list', array(
     'items' => $data->references
   )) : '') . '
-  		<p class="eolapi-text-rights">' . theme('table', array(
+  		<div class="eolapi-text-rights">' . theme('table', array(
     'rows' => $rows
-  )) . '</p>
+  )) . '</div>
   	</div> 
 </div>';
 }
