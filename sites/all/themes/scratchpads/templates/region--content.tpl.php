@@ -14,7 +14,7 @@
     
     <?php if ($tabs): ?><div class="tabs clearfix"><?php print render($tabs); ?></div><?php endif; ?>
     <?php if ($action_links): ?><ul class="action-links"><?php print render($action_links); ?></ul><?php endif; ?>
-    <?php print $content; ?>
+    <?php print function_exists('scratchpads_tweaks_translate_after_check_plain') ? scratchpads_tweaks_translate_after_check_plain($content) : $content; ?>
     <?php if ($feed_icons): ?><div class="feed-icon clearfix"><?php print $feed_icons; ?></div><?php endif; ?>
   </div>
 </div>
