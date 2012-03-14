@@ -741,18 +741,14 @@ function _node_reference_options($field, $flat = TRUE) {
 
   $options = array();
   foreach ($references as $key => $value) {
-    // The label, displayed in selects and checkboxes/radios, should have HTML
-    // entities unencoded. The widgets (core's options.module) take care of
-    // applying the relevant filters (strip_tags() or filter_xss()).
-    $label = html_entity_decode($value['rendered'], ENT_QUOTES);
     if (empty($value['group']) || $flat) {
-      $options[$key] = $label;
+      $options[$key] = $value['rendered'];
     }
     else {
       // The group name, displayed in selects, cannot contain tags, and should
       // have HTML entities unencoded.
       $group = html_entity_decode(strip_tags($value['group']), ENT_QUOTES);
-      $options[$group][$key] = $label;
+      $options[$group][$key] = $value['rendered'];
     }
   }
 

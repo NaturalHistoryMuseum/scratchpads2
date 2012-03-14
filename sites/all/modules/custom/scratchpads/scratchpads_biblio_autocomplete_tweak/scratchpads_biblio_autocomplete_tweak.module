@@ -21,7 +21,7 @@ function scratchpads_biblio_autocomplete_tweak_node_reference_autocomplete($enti
   $use_biblio = FALSE;
   foreach($field['settings']['referenceable_types'] as $key => $value){
     if($value){
-      if($key == 'biblio'){
+      if($value == 'biblio'){
         $use_biblio = TRUE;
       }else{
         $use_biblio = FALSE;
