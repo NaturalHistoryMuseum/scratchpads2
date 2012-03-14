@@ -47,13 +47,27 @@ function theme_eolapi_text_full($variables){
  */
 function theme_eolapi_text_teaser($variables){
   $data = unserialize($variables['entity']->data);
+  $agents = array();
+  if(isset($data->agents)){
+    foreach($data->agents as $agent){
+      if(isset($agent->homepage)){
+        $agents[] = l($agent->full_name, $agent->homepage);
+      }else{
+        if(substr($agent->full_name, 0, 4) == 'http'){
+          $agents[] = l($agent->full_name, $agent->full_name);
+        }else{
+          $agents[] = $agent->full_name;
+        }
+      }
+    }
+  }
   return '<div class="eolapi-text">
   ' . (isset($data->title) ? '<div class="field-label">' . $data->title . ':</div>' : '') . '
   	<div class="eolapi-text-data">' . check_markup($data->description, 'filtered_html') . '
   		' . ((isset($data->references) && count($data->references)) ? theme('item_list', array(
     'items' => $data->references
   )) : '') . '
-  		<p class="eolapi-text-rights">' . (isset($data->rights) ? $data->rights : t('No rights holder')) . '<br />' . (isset($data->source) ? l($data->source, $data->source) : t('No source database.')) . '</p>
+  		<p class="eolapi-text-rights">' . (isset($data->license) ? l($data->license, $data->license) : t('All rights reserved')) . '<br/>' . (isset($data->rights) ? $data->rights : (count($agents) ? implode(", ", $agents) : t('No rights holder'))) . '<br />' . (isset($data->source) ? l($data->source, $data->source) : t('No source database.')) . '</p>
   	</div> 
 </div>';
 }
