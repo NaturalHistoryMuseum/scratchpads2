@@ -7,6 +7,14 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
   switch($form_id){
     case 'dashboard_admin_display_form':
     case 'block_admin_display_form':
+      $forbidden_regions = array(
+        'slide_bottom',
+        'slide_top',
+        'content',
+        'menu',
+        'branding',
+        'header'
+      );
       foreach($form['blocks'] as $form_block_key => $form_block){
         switch($form_block['module']['#value']){
           case 'facetapi':
@@ -19,6 +27,10 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
               case 'front_page_content-block':
                 unset($form['blocks'][$form_block_key]);
             }
+        }
+        // Ensure the block can only be set to the allowed regions.
+        foreach($forbidden_regions as $forbidden_region){
+          unset($form['blocks'][$form_block_key]['region']['#options'][$forbidden_region]);
         }
       }
       $contexts = context_enabled_contexts();
@@ -34,7 +46,9 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
         }
       }
       // Unset certain regions
-      unset($form['block_regions']['#value']['slide_bottom'], $form['block_regions']['#value']['slide_top'], $form['block_regions']['#value']['content'], $form['block_regions']['#value']['menu'], $form['block_regions']['#value']['branding'], $form['block_regions']['#value']['header']);
+      foreach($forbidden_regions as $forbidden_region){
+        unset($form['block_regions']['#value'][$forbidden_region]);
+      }
       break;
     case 'system_themes_admin_form':
       global $user;
