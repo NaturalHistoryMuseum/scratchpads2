@@ -9,3 +9,13 @@ function spm_update_7001(){
   field_update_instance($instance);
   return 'Updated spm media field';
 }
+
+/**
+ * Update the description
+ */
+function spm_update_7002(){
+  $instance = field_read_instance('node', 'field_associations', 'spm');
+  $instance['description'] = 'Descriptions and lists of taxa that interact with the subject taxon. Includes explicit reference to the kind of ecological interaction: Predator/prey; host/parasite, pollinators, symbiosis, mutualism, commensalism; hybridisation, &hellip;';
+  field_update_instance($instance);
+  return 'Updated spm field_associations field';
+}
