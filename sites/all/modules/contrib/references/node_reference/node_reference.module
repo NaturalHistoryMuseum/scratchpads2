@@ -48,29 +48,6 @@ function node_reference_field_info() {
 }
 
 /**
- * Implements hook_field_schema().
- */
-function node_reference_field_schema($field) {
-  $columns = array(
-    'nid' => array(
-      'type'     => 'int',
-      'unsigned' => TRUE,
-      'not null' => FALSE,
-    ),
-  );
-  return array(
-    'columns' => $columns,
-    'indexes' => array('nid' => array('nid')),
-    'foreign keys' => array(
-      'nid' => array(
-        'table' => 'node',
-        'columns' => array('nid' => 'nid'),
-      ),
-    ),
-  );
-}
-
-/**
  * Implements hook_field_settings_form().
  */
 function node_reference_field_settings_form($field, $instance, $has_data) {
@@ -220,8 +197,8 @@ function node_reference_field_validate($entity_type, $entity, $field, $instance,
 function node_reference_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
   $checked_ids = &drupal_static(__FUNCTION__, array());
 
-  // Set an 'access' property on each item (TRUE if the node exists and is 
-  // accessible by the current user.
+  // Set an 'access' property on each item (TRUE if the node exists and is
+  // accessible by the current user).
 
   // Extract ids to check.
   $ids = array();
@@ -243,22 +220,32 @@ function node_reference_field_prepare_view($entity_type, $entities, $field, $ins
     $ids_to_check = array_diff($ids, array_keys($checked_ids));
     if (!empty($ids_to_check)) {
       $query = db_select('node', 'n')
+        ->addTag('node_access')
+        ->addMetaData('id', 'node_reference_field_prepare_view')
+        ->addMetaData('field', $field)
         ->fields('n', array('nid'))
-        ->addTag('node_access');
-      $condition = db_and()
-        ->condition('n.nid', $ids_to_check, 'IN')
-        ->condition('n.status', NODE_PUBLISHED);
-      // Take the 'view own unpublished content' permission into account to
-      // decide whether unpublished nodes should be hidden.
-      if (!user_access('administer nodes') && !user_access('bypass node access')) {
+        // WHERE n.nid IN (nids to check) AND ...
+        ->condition('n.nid', $ids_to_check, 'IN');
+
+      // Unless the user has the right permissions, restrict on the node status.
+      // (note: the 'view any unpublished content' permission is provided by the
+      // 'view_unpublished' contrib module.)
+      if (!user_access('bypass node access') && !user_access('view any unpublished content')) {
+        // ... AND n.status = 1
+        $status_condition = db_or()
+          ->condition('n.status', NODE_PUBLISHED);
+
+        // Take the 'view own unpublished content' permission into account to
+        // decide whether some unpublished nodes should still be visible.
         if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
-          // (n.nid IN (nodes) AND n.status = 1) OR n.nid = (unpublished)
-          $condition = db_or()
-            ->condition($condition)
+          // ... AND (n.status = 1 OR n.nid IN (own unpublished))
+          $status_condition
             ->condition('n.nid', $own_unpublished, 'IN');
         }
+
+        $query->condition($status_condition);
       }
-      $query->condition($condition);
+
       $accessible_ids = $query->execute()->fetchAllAssoc('nid');
 
       // Populate our static list so that we do not query on those ids again.
@@ -624,6 +611,7 @@ function node_reference_field_widget_form(&$form, &$form_state, $field, $instanc
         '#default_value' => isset($items[$delta]['nid']) ? $items[$delta]['nid'] : NULL,
         '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $field['field_name'],
         '#size' => $instance['widget']['settings']['size'],
+        '#maxlength' => NULL,
         '#element_validate' => array('node_reference_autocomplete_validate'),
         '#value_callback' => 'node_reference_autocomplete_value',
       );
@@ -741,14 +729,18 @@ function _node_reference_options($field, $flat = TRUE) {
 
   $options = array();
   foreach ($references as $key => $value) {
+    // The label, displayed in selects and checkboxes/radios, should have HTML
+    // entities unencoded. The widgets (core's options.module) take care of
+    // applying the relevant filters (strip_tags() or filter_xss()).
+    $label = html_entity_decode($value['rendered'], ENT_QUOTES);
     if (empty($value['group']) || $flat) {
-      $options[$key] = $value['rendered'];
+      $options[$key] = $label;
     }
     else {
       // The group name, displayed in selects, cannot contain tags, and should
       // have HTML entities unencoded.
       $group = html_entity_decode(strip_tags($value['group']), ENT_QUOTES);
-      $options[$group][$key] = $value['rendered'];
+      $options[$group][$key] = $label;
     }
   }
 
@@ -953,11 +945,11 @@ function node_reference_preprocess_node(&$vars) {
   // in a specific view mode).
   if (!empty($vars['node']->referencing_field)) {
     $node = $vars['node'];
-    $field = $node->referencing_field;
-    $vars['theme_hook_suggestions'][] = 'node_reference';
-    $vars['theme_hook_suggestions'][] = 'node_reference__' . $field['field_name'];
-    $vars['theme_hook_suggestions'][] = 'node_reference__' . $node->type;
-    $vars['theme_hook_suggestions'][] = 'node_reference__' . $field['field_name'] . '__' . $node->type;
+    $field_name = $node->referencing_field;
+    $vars['theme_hook_suggestions'][] = 'node__node_reference';
+    $vars['theme_hook_suggestions'][] = 'node__node_reference__' . $field_name;
+    $vars['theme_hook_suggestions'][] = 'node__node_reference__' . $node->type;
+    $vars['theme_hook_suggestions'][] = 'node__node_reference__' . $field_name . '__' . $node->type;
   }
 }
 
@@ -1028,7 +1020,7 @@ function node_reference_content_migrate_field_alter(&$field_value, $instance_val
         'args' => $view_args,
       );
       if ($view_name) {
-        $field_value['messages'][] = t("The field uses the view @view_name to determine referenceable nodes. You will need to manually edit the view and add a display of type 'References'.");
+        $field_value['messages'][] = t("The field uses the view @view_name to determine referenceable nodes. You will need to manually edit the view and add a display of type 'References'.", array('@view_name' => $view_name));
       }
       unset($field_value['settings']['advanced_view']);
       unset($field_value['settings']['advanced_view_args']);
@@ -1105,7 +1097,7 @@ function node_reference_field_views_data($field) {
       // the field name instead of the whole $field structure to keep views
       // data to a reasonable size.
       $data[$table][$id_column]['filter']['handler'] = 'views_handler_filter_in_operator';
-      $data[$table][$id_column]['filter']['options callback'] = 'node_reference_views_options';
+      $data[$table][$id_column]['filter']['options callback'] = 'node_reference_views_filter_options';
       $data[$table][$id_column]['filter']['options arguments'] = array($field['field_name']);
 
       // Argument: display node.title in argument titles (handled in our custom
@@ -1174,20 +1166,24 @@ function node_reference_field_views_data_views_data_alter(&$data, $field) {
 }
 
 /**
- * Helper callback for the views_handler_filter_in_operator filter.
+ * 'options callback' for the views_handler_filter_in_operator filter.
  *
  * @param $field_name
  *   The field name.
  */
-function node_reference_views_options($field_name) {
+function node_reference_views_filter_options($field_name) {
   $options = array();
 
   if ($field = field_info_field($field_name)) {
     $options = _node_reference_options($field, TRUE);
-    // The options will be used as is in checkboxes, and thus need to be
-    // sanitized first.
+
+    // The options are displayed in checkboxes within the filter admin form, and
+    // in a select within an exposed filter. Checkboxes accept HTML, other
+    // entities should be encoded; selects require the exact opposite: no HTML,
+    // no encoding. We go for a middle ground: strip tags, leave entities
+    // unencoded.
     foreach ($options as $key => $value) {
-      $options[$key] = field_filter_xss($value);
+      $options[$key] = strip_tags($value);
     }
   }
 

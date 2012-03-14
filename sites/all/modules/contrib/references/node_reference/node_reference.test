@@ -97,4 +97,59 @@ class NodeReferenceFormTest extends FieldTestCase {
     $allowed = array_slice(node_type_get_names(), 0, 1, TRUE);
     $this->runReferenceableNodeTest($allowed, t('Limited referencing'));
   }
+
+
+  /**
+   * Test autocomplete widget.
+   */
+  function testLongNodeReferenceWidget() {
+    // Create regular test user.
+    $web_user = $this->drupalCreateUser(array('create article content', 'access content'));
+    $this->drupalLogin($web_user);
+
+    // Create test field instance on article node type.
+    $instance = array(
+      'field_name'  => $this->field_name,
+      'entity_type' => 'node',
+      'bundle'      => 'article',
+      'widget'      => array(
+        'type'        => 'node_reference_autocomplete',
+      ),
+    );
+    $instance = field_create_instance($instance);
+
+    // Create a node with a short title and a node with a title longer than
+    // 128 characters.
+    $node_short_title = $this->drupalCreateNode(array(
+      'type'  => 'page',
+      'title' => $this->randomName(8),
+    ));
+    $node_long_title = $this->drupalCreateNode(array(
+      'type'  => 'page',
+      'title' => $this->randomName(200),
+    ));
+
+    // Display node creation form.
+    $langcode = LANGUAGE_NONE;
+    $this->drupalGet('node/add/article');
+    $this->assertFieldByName("{$this->field_name}[$langcode][0][nid]", '', t('Widget is displayed'));
+
+    // Submit node form with autocomplete value for short title.
+    $edit = array(
+      'title' => $this->randomName(8),
+      "{$this->field_name}[$langcode][0][nid]" => $node_short_title->title . ' [nid:' . $node_short_title->nid . ']',
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertRaw(t('!post %title has been created.', array('!post' => 'Article', '%title' => $edit["title"])), t('Article created.'));
+    $this->assertText($node_short_title->title, t('Referenced node title is displayed.'));
+
+    // Submit node form with autocomplete value for long title.
+    $edit = array(
+      'title' => $this->randomName(8),
+      "{$this->field_name}[$langcode][0][nid]" => $node_long_title->title . ' [nid:' . $node_long_title->nid . ']',
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $this->assertRaw(t('!post %title has been created.', array('!post' => 'Article', '%title' => $edit["title"])), t('Article created.'));
+    $this->assertText($node_long_title->title, t('Referenced node title is displayed.'));
+  }
 }

@@ -1,3 +1,20 @@
+References 7.x-2.x
+==================
+
+#1391814 by yched: Fixed encoded HTML entities in select widget (regression
+  introduced in 2.0)
+#1354580 by bforchhammer, yched: Fixed unpublished referenced nodes not
+  displayed to users that are allowed to see them (regression introduced in 2.0)
+#1345816 by bforchhammer: Added support for the 'view_unpublished' module.
+#1256280 by girishmuraly: Added query alterability in hook_field_prepare_view().
+#1183300 by scor: Fixed extraneaous #maxlength in node_reference_autocomplete
+  widget.
+#1410300 by yched: Fixed hook_field_install() should live in .install files.
+#1409022 by yched: Fixed missing view name notification message in D6 migration.
+#1391814 followup by yched: Fixed raw HTML in Views exposed filters.
+#998848 followup by larowlan, stevector, yched: template suggestions for
+  referenced node in a specific view mode are wrong.
+
 References 7.x-2.0
 ==================
 
@@ -72,7 +89,7 @@ settings" will lose the currently selected view if it doesn't have a
 References 7.x-2.0-beta3
 ========================
 
-This release primarily aims at facilitating synchronized releases of 3rd party 
+This release primarily aims at facilitating synchronized releases of 3rd party
 modules making use of the node_reference_potential_references() function.
 
 #1154998 by yched: Rename _node_reference_potential_references() to
