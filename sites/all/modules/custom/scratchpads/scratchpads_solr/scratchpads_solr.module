@@ -142,8 +142,8 @@ function scratchpads_solr_context_default_contexts(){
   $context = new stdClass();
   $context->disabled = FALSE;
   $context->api_version = 3;
-  $context->name = 'taxonomic_name_facet';
-  $context->description = t('Taxonomic name field on a search page.');
+  $context->name = 'scratchpads_solr_facets';
+  $context->description = t('Display author and bundle facets on a search page.');
   $context->tag = 'solr';
   $context->conditions = array(
     'path' => array(
@@ -172,7 +172,7 @@ function scratchpads_solr_context_default_contexts(){
     }
   }
   $context->condition_mode = 0;
-  $export['taxonomic_name_facet'] = $context;
+  $export['scratchpads_solr_facets'] = $context;
   return $export;
 }
 
