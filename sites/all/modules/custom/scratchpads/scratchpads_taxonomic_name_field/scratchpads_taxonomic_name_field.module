@@ -192,7 +192,8 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
       'values' => array(
         'gallery*' => 'gallery*',
         'biblio*' => 'biblio*',
-        'search*' => 'search*'
+        'search*' => 'search*',
+        'group%' => 'group*'
       )
     )
   );
