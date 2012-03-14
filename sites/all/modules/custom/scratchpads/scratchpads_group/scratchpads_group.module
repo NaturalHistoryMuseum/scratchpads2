@@ -163,7 +163,12 @@ function scratchpads_group_theme(){
         'results' => NULL,
         'module' => NULL
       ),
-      'file' => 'scratchpads_group.theme.inc'
+      'path' => './',
+      'preprocess functions' => array(
+        'template_preprocess_search_results'
+      ),
+      'file' => drupal_get_path('module', 'search') . '/search.pages.inc',
+      'template' => drupal_get_path('module', 'scratchpads_group') . '/search-results'
     ),
     'scratchpads_group_empty' => array(
       'variables' => array(),
