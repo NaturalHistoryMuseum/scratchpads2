@@ -72,6 +72,11 @@ function scratchpads_user_login_form_validate(&$form, &$form_state){
 function scratchpads_preprocess_breadcrumb(&$variables){
   if(count($variables['breadcrumb'])){
     $variables['breadcrumb'][] = drupal_get_title();
+    if(function_exists('scratchpads_tweaks_translate_after_check_plain')){
+      foreach($variables['breadcrumb'] as $key => $value){
+        $variables['breadcrumb'][$key] = scratchpads_tweaks_translate_after_check_plain($value);
+      }
+    }
   }
 }
 
@@ -274,28 +279,24 @@ function scratchpads_preprocess_html(&$vars){
 }
 
 function scratchpads_user_login_block($variables){
-	
-	$form = $variables['form'];
-	$form['name']['#attributes']['tabindex'] = 1;
-	$form['pass']['#attributes']['tabindex'] = 2;
-	$form['actions']['submit']['#attributes']['tabindex'] = 3;
+  $form = $variables['form'];
+  $form['name']['#attributes']['tabindex'] = 1;
+  $form['pass']['#attributes']['tabindex'] = 2;
+  $form['actions']['submit']['#attributes']['tabindex'] = 3;
   $output = '<div class="clearfix">';
   $output .= drupal_render($form['actions']);
   $output .= drupal_render($form['openid_identifier']);
   $output .= drupal_render($form['pass']);
   $output .= drupal_render($form['name']);
-	$output .= '</div>';
-  
-	$output .= '<div class="account-links">';
-	$output .= drupal_render($form['links']);
-	$output .= '</div>';
-	
-	$form['links']['#attributes']['class'] = array('account-links');
-  
-	$output .= drupal_render_children($form); 
-	 
-	return $output;
-	
+  $output .= '</div>';
+  $output .= '<div class="account-links">';
+  $output .= drupal_render($form['links']);
+  $output .= '</div>';
+  $form['links']['#attributes']['class'] = array(
+    'account-links'
+  );
+  $output .= drupal_render_children($form);
+  return $output;
 }
 
 function scratchpads_theme(){
