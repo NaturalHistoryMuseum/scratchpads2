@@ -5,5 +5,5 @@
  */
 function darwincore_install(){
   // Clear the errors.
-  drupal_get_messages('error');
+  drupal_get_messages('warning');
 }
