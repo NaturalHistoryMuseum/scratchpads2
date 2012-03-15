@@ -6,32 +6,33 @@
 		</files>
 		<id index="0"/>
 		<field index="1" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
-		<field index="2" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID"/>
-		<field index="3" term="http://rs.tdwg.org/dwc/terms/parentNameUsage"/>
-		<field index="4" term="http://rs.tdwg.org/dwc/terms/datasetName"/>
+		<field index="2" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID"/>
+		<field index="3" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsage"/>
+		<field index="4" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID"/>
+		<field index="5" term="http://rs.tdwg.org/dwc/terms/parentNameUsage"/>
 		
-		<field index="5" term="http://rs.tdwg.org/dwc/terms/kingdom"/>
-		<field index="6" term="http://rs.tdwg.org/dwc/terms/phylum"/>
-		<field index="7" term="http://rs.tdwg.org/dwc/terms/class"/>
-		<field index="8" term="http://rs.tdwg.org/dwc/terms/order"/>
-		<field index="9" term="http://rs.tdwg.org/dwc/terms/family"/>
-		<field index="10" term="http://rs.tdwg.org/dwc/terms/genus"/>
-		<field index="11" term="http://rs.tdwg.org/dwc/terms/subgenus"/>
+		<field index="6" term="http://rs.tdwg.org/dwc/terms/kingdom"/>
+		<field index="7" term="http://rs.tdwg.org/dwc/terms/phylum"/>
+		<field index="8" term="http://rs.tdwg.org/dwc/terms/class"/>
+		<field index="9" term="http://rs.tdwg.org/dwc/terms/order"/>
+		<field index="10" term="http://rs.tdwg.org/dwc/terms/family"/>
+		<field index="11" term="http://rs.tdwg.org/dwc/terms/genus"/>
+		<field index="12" term="http://rs.tdwg.org/dwc/terms/subgenus"/>
 		
-		<field index="12" term="uninomial"/>
+		<field index="13" term="uninomial"/>
 		
-		<field index="13" term="http://rs.tdwg.org/dwc/terms/specificEpithet"/>
-		<field index="14" term="http://rs.tdwg.org/dwc/terms/infraspecificEpithet"/>
-		<field index="15" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus"/>
-		<field index="16" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsage"/>
-		<field index="17" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"/>
-		<field index="18" term="http://purl.org/dc/terms/bibliographicCitation"/>
-		<field index="19" term="http://rs.tdwg.org/dwc/terms/vernacularName"/>
-		<field index="20" term="http://rs.tdwg.org/dwc/terms/taxonRank"/>
+		<field index="14" term="http://rs.tdwg.org/dwc/terms/specificEpithet"/>
+		<field index="15" term="http://rs.tdwg.org/dwc/terms/infraspecificEpithet"/>
+		<field index="16" term="http://rs.tdwg.org/dwc/terms/vernacularName"/>
+		<field index="17" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus"/>
+		<field index="18" term="http://rs.tdwg.org/dwc/terms/taxonRank"/>
+		<field index="19" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"/>
+		<field index="20" term="http://purl.org/dc/terms/bibliographicCitation"/>
+		<field index="21" term="http://rs.tdwg.org/dwc/terms/datasetName"/>
 	</core>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
 		<files>
-			<location>typesandspecimen.txt</location>
+			<location>specimens.txt</location>
 		</files>
 		<coreid index="0"/>
 		<field index="1" term="http://rs.tdwg.org/dwc/terms/typeStatus"/>
