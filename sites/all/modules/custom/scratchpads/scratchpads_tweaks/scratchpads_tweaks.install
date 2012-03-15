@@ -398,6 +398,7 @@ function scratchpads_tweaks_install(){
    * Additional Scratchpad settings: 
    */
   // Date API stuff
+  variable_set('site_default_country', 'GB');
   variable_set('date_default_timezone', 'Europe/London');
   variable_set('date_first_day', '1');
   variable_set('date_format_long', 'l, F j, Y - H:i');
@@ -542,4 +543,11 @@ function scratchpads_tweaks_update_7005(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+}
+
+/**
+ * Set the site's default country.
+ */
+function scratchpads_tweaks_update_7006(){
+  variable_set('site_default_country', 'GB');
 }
