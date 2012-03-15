@@ -38,7 +38,10 @@ class FeedsExcelParser extends FeedsParser{
         $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
       }
       require_once $path;
-      $this->PHPExcel_object = PHPExcel_IOFactory::load($fetcher_result->getFilePath());
+      $file_type = PHPExcel_IOFactory::identify($fetcher_result->getFilePath());
+      $reader = PHPExcel_IOFactory::createReader($file_type);
+      $reader->setReadDataOnly(true);
+      $this->PHPExcel_object = $reader->load($fetcher_result->getFilePath());
       $PHPExcel_ws = array();
       foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
         if($worksheet->getTitle() != 'PermittedValues'){
@@ -80,9 +83,7 @@ class FeedsExcelParser extends FeedsParser{
       return new FeedsParserResult(array(), $source->feed_nid);
     }
     // Set the limit
-    // FIXME - I've increased the limit by four (200) as it appears to be much
-    // quicker.  This may cause memory issues, so should be looked at.
-    $this->limit = $source->importer->getLimit() * 4;
+    $this->limit = $source->importer->getLimit();
     // P A R S E !
     $rows = $this->parseItems($source_config);
     // Report progress.
