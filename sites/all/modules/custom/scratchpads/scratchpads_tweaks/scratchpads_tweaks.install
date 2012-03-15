@@ -551,3 +551,14 @@ function scratchpads_tweaks_update_7005(){
 function scratchpads_tweaks_update_7006(){
   variable_set('site_default_country', 'GB');
 }
+
+/**
+ * Install the scratchpads_lexicon module if the lexicon module is installed.
+ */
+function scratchpads_tweaks_update_7007(){
+  if(module_exists('lexicon')){
+    module_enable(array(
+      'scratchpads_lexicon'
+    ));
+  }
+}
