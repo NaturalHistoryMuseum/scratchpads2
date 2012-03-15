@@ -3,3 +3,4 @@ description = Maintain one or more lexicons on your site and optionally mark ter
 core = 7.x
 dependencies[] = lexicon
 tool=true
+configure = admin/config/system/lexicon
