@@ -29,3 +29,12 @@ function scratchpads_lexicon_install(){
     'settings' => serialize(array())
   ))->execute();
 }
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_lexicon_disable(){
+  drupal_register_shutdown_function('module_disable', array(
+    'lexicon'
+  ));
+}

@@ -7,6 +7,7 @@ function scratchpads_tweaks_node_type_insert($info){
   // Set the default for all comment forms to be on separate pages.
   variable_get('comment_form_location_' . $info->type, COMMENT_FORM_SEPARATE_PAGE);
 }
+
 /**
  * Implementation of hook_form_FORM_ID_alter.
  * 
@@ -22,14 +23,29 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
  * Implementation of hook_form_alter()
  */
 function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
-  // Only use the "comment_filtered_html" input type for comment bodies!
-  if(substr($form_id, 0, 8) == 'comment_'){
-    if(@isset($form['comment_body'][LANGUAGE_NONE])){
-      $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
-    }
+  switch($form_id){
+    case 'taxonomy_form_term':
+      if(isset($form['description'])){
+        $form['description']['#after_build'][] = 'scratchpads_tweaks_taxonomy_description_after_build';
+      }
+      break;
+    default:
+      // Only use the "comment_filtered_html" input type for comment bodies!
+      if(substr($form_id, 0, 8) == 'comment_'){
+        if(@isset($form['comment_body'][LANGUAGE_NONE])){
+          $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
+        }
+      }
   }
-  // Default to plain text for the taxonomy term body.
-   
+}
+
+function scratchpads_tweaks_taxonomy_description_after_build($element, &$form_state){
+  if(@isset($element['format']['format'])){
+    $element['format']['format']['#options'] = array(
+      'plain_text' => t('Plain text')
+    );
+  }
+  return $element;
 }
 
 function scratchpads_tweaks_comment_body_after_build($element, &$form_state){
