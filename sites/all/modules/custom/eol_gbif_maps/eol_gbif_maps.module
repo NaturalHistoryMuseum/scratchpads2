@@ -5,19 +5,18 @@
  */
 function eol_gbif_maps_gm3_map_alter(&$map){
   // We add special data to a google map on taxonomy term pages only.
-  if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
+  //if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
+  if($term = menu_get_object('taxonomy_term', 2)){
     // Now we need to calculate the GBIF taxon id for this term name, and then
     // add the eol/gbif library to the map.
     // First we check to see if we've loaded this term before, and if so, we
     // use that data.
-    $results = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute();
-    if(count($results)){
-      foreach($results as $result){
-        $map['libraries']['eol_gbif_maps_overlay'] = array(
-          'module' => 'eol_gbif_maps',
-          'taxon_id' => $result->taxon_id
-        );
-      }
+    $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol('taxon_id');
+    if(count($col)){
+      $map['libraries']['eol_gbif_maps_overlay'] = array(
+        'module' => 'eol_gbif_maps',
+        'taxon_id' => array_pop($col)
+      );
     }else{
       $term = taxonomy_term_load(arg(2));
       $xml = new SimpleXMLElement('http://data.gbif.org/ws/rest/taxon/list?scientificname=' . urlencode($term->name), 0, TRUE);
