@@ -10,14 +10,14 @@
        Drupal.CharacterEditor.initBT();       
     },
     
-    slickgridCallback: function (e, data) {      
-      
-      if(typeof data.response.columns !== 'undefined'){
-        Drupal.CharacterEditor.initBT();
-        $('.slickgrid-wrapper').addClass('slickgrid-has-tabs');
-      }
-      
-    },
+    // slickgridCallback: function (e, data) {      
+    //   
+    //   if(typeof data.response.columns !== 'undefined'){
+    //     Drupal.CharacterEditor.initBT();
+    //     $('.slickgrid-wrapper').addClass('slickgrid-has-tabs');
+    //   }
+    //   
+    // },
     
     initBT: function(){
       
@@ -52,7 +52,7 @@
      }
      
      $('#slickgrid', context).bind('onSlickgridInit', Drupal.CharacterEditor.slickgridInit);
-     $('#slickgrid', context).bind('onSlickgridCallback', Drupal.CharacterEditor.slickgridCallback);
+     // $('#slickgrid', context).bind('onSlickgridCallback', Drupal.CharacterEditor.slickgridCallback);
      $('#slickgrid', context).bind('onSlickgridTabChanged', Drupal.CharacterEditor.slickgridInit);
 
    }

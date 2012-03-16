@@ -79,15 +79,6 @@
   display: inline;
   width: auto;
 }
-#controls .slickgrid-add-control{
-  display: none;
-}
-
-/* Hide non-group add character link if there are no groups */
-.slickgrid-has-tabs #controls .slickgrid-add-control,
-#controls .slickgrid-add-character-editor-character-group{
-  display: block!important;
-}
 
 .character-editor div.l0{
   background: #F6F6F6;
@@ -96,33 +87,3 @@
 .character-editor .odd div.l0{
   background: #EAEFF6!important;
 }
-
-.character-editor div.slickgrid-add-control,
-.character-editor div.slickgrid-add-control span{
-  width: 5.5em!important;
-}
-
-.character-editor div.slickgrid-add-character-editor-character-controlled,
-.character-editor div.slickgrid-add-character-editor-character-controlled span{
-  width: 8em!important;
-}
-
-.character-editor div.slickgrid-add-character-editor-character-numeric,
-.character-editor div.slickgrid-add-character-editor-character-numeric span{
-  width: 7.5em!important;
-}
-
-.character-editor div.slickgrid-add-character-editor-character-group,
-.character-editor div.slickgrid-add-character-editor-character-group span{
-  width: 6.5em!important;
-}
-
-
-.character-editor div.slickgrid-add-control span{
-  padding-left: 20px!important;
-  background-position: 0 2px!important;
-  text-align: left!important;
-  margin-top: 5px;
-  color: #000;
-}
-
