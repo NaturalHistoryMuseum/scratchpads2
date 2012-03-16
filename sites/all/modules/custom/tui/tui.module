@@ -212,7 +212,7 @@ function tui_menu_alter(&$items){
 }
 
 function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
+  if(isset($_COOKIE['has_js']) && $_COOKIE['has_js'] && $router_item['path'] == 'admin/structure/taxonomy/%'){
     foreach($data['tabs'] as $tab_group_index => $tab_group){
       foreach($tab_group['output'] as $key => $tab){
         if($tab['#link']['path'] == 'admin/structure/taxonomy/%/add'){
