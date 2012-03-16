@@ -75,7 +75,7 @@ function scratchpads_lexicon_form_lexicon_general_settings_form_alter(&$form, &$
       '#type' => 'value',
       '#value' => 'lexicon-term'
     ),
-    'lexicon_click_option' => $off,
+    'lexicon_click_option' => $on,
     'lexicon_link' => array(
       '#type' => 'value',
       '#value' => 'normal'
