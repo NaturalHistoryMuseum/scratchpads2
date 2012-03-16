@@ -36,6 +36,7 @@ dependencies[] = boost
 dependencies[] = entitycache
 dependencies[] = imagemagick
 dependencies[] = role_delegation
+dependencies[] = linkit
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
