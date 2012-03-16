@@ -361,7 +361,7 @@ function theme_slickgrid_controls($variables){
     'delete',
     'export',
     'clone',
-  	'add'
+    'add'
   ) as $control){
     $output .= theme('slickgrid_control__' . $control, array(
       'control' => $control,
@@ -382,20 +382,34 @@ function theme_slickgrid_control($variables){
   return $output;
 }
 
-function phptemplate_slickgrid_control__add($variables){
-  $output = '';
+function slickgrid_preprocess_slickgrid_control__add(&$variables){
+  $entity_info = entity_get_info();
+  $variables['add_links'] = array();
   if(array_filter($variables['view']->style_plugin->options['add'])){
-    $addable_entities = slickgrid_list_addable_entities();
     foreach($variables['view']->style_plugin->options['add'] as $add){
-      $class = drupal_html_class('slickgrid-add-' . $add);
-      $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      list($entity_type, $bundle) = explode('/', $add);
+      $class = drupal_html_class('slickgrid-add-' . $entity_type . '-' . $bundle);
+      $path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
+      $label = $entity_info[$entity_type]['bundles'][$bundle]['label'];
       if(count($variables['view']->args)){
-        $add_path .= '/' . implode('/', $variables['view']->args);
+        $path .= '/' . implode('/', $variables['view']->args);
       }
-      $output .= '<div class="slickgrid-control slickgrid-add-control ' . $class . '" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled"></span>', $add_path, t("Add %type", array(
-        '%type' => strtolower($addable_entities[$add])
-      )), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
+      $variables['add_links'][$add] = array(
+        'class' => $class,
+        'link' => ctools_modal_text_button('<span class="slickgrid-control-button enabled">' . $label . '</span>', $path, t("Add %label", array(
+          '%label' => $label
+        )), 'ctools-modal-ctools-modal-slickgrid-scale'),
+        'entity_type' => $entity_type,
+        'bundle' => $bundle
+      );
     }
+  }
+}
+
+function theme_slickgrid_control__add($variables){
+  $output = '';
+  foreach($variables['add_links'] as $add_link){
+    $output .= '<div class="slickgrid-control slickgrid-add-control ' . $add_link['class'] . '" id="slickgrid-add">' . $add_link['link'] . '</div>';
   }
   return $output;
 }
