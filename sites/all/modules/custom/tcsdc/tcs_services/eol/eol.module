@@ -3,7 +3,7 @@ define('EOL_QUERY_URL', 'http://services.eol.org/lifedesk/service.php?function=s
 define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function=details_tcs&id=');
 
 /**
- * Implementation of hook_classification_import_form
+ * Implementation of hook_tcsdc_form
  */
 function eol_tcsdc_form($form, $form_state){
   $eol_service_status = @strlen(file_get_contents(EOL_REQUEST_URL, 0, stream_context_create(array(
@@ -41,7 +41,8 @@ function eol_tcsdc_form($form, $form_state){
           'callback' => 'eol_classifications_js',
           'event' => 'click',
           'wrapper' => 'eol-import-full'
-        )
+        ),
+        '#validate' => array('eol_validate')
       ),
       'import-full' => array(
         '#weight' => 5,
@@ -123,6 +124,9 @@ function eol_classifications_js($form, $form_state){
 function eol_validate($form, &$form_state){
   // Lets just check that the eol-import-id is set in #post, and that it is
   // numeric (is this likely to change Patrick?).
+  if(!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid']){
+    form_set_error('taxonomy_vid', t('Please select a vocabulary first.'));    
+  }
   if(!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2)){
     form_set_error('eol-import-id', t('Please ensure you select a classification to import.'));
   }
@@ -132,6 +136,12 @@ function eol_validate($form, &$form_state){
  * Callback function when pressing "Import from EOL"
  */
 function eol_submit($form, $form_state){
+  // Validation doesn't appear to work, so we instead piss people off and 
+  // do it here.  
+  if((!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid'])||(!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2))){
+    drupal_set_message('Please ensure you select a source and destination vocabulary.', 'error');
+    drupal_goto('admin/import');
+  }
   // Added for D7 to prevent errors on submission/testing.
   $parts = explode("|", $form_state['values']['eol-import-id']);
   $batch = array(
