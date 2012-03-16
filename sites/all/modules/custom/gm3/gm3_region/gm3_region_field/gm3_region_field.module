@@ -50,6 +50,38 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
     );
   }
   foreach($value as $val){
+    $val = trim($val);
+    if(!strpos($val, ':')){
+      // We have simply been sent an id, we must get the full hierarchy.
+      if(is_numeric($val)){
+        // We have a region 1 or 2 code.  No need to do anything to a region 1
+        // code.
+        if($val > 10){
+          // Region 2, we need to get the region 1 code.
+          $level_1_code = array_pop(db_select('gm3_region_data', 'g')->fields('g', array(
+            'level_1_code'
+          ))->condition('level_2_code', $val)->execute()->fetchCol());
+          $val = "$level_1_code:$val";
+        }
+      }else{
+        if(strlen($val) == 3){
+          // Region 3
+          $row = db_select('gm3_region_data', 'g')->fields('g', array(
+            'level_1_code',
+            'level_2_code'
+          ))->condition('level_3_code', $val)->execute()->fetch();
+          $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
+        }else{
+          // Region 4
+          $row = db_select('gm3_region_data', 'g')->fields('g', array(
+            'level_1_code',
+            'level_2_code',
+            'level_3_code'
+          ))->condition('level_4_code', $val)->execute()->fetch();
+          $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:$val";
+        }
+      }
+    }
     $new_items[] = array(
       'region_id' => $val,
       'gm3_type' => 'gm3_region_region'
