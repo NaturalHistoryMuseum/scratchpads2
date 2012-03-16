@@ -111,21 +111,24 @@ function tui_form_callback($vocabulary, $action, $tids = ''){
       }
       exit();
     case 'delete-form':
+      $form = drupal_get_form('tui_taxonomy_form_term_delete', $tids);
       print ajax_render(array(
-        ajax_command_html('#tui-tree-form', drupal_render(drupal_get_form('tui_taxonomy_form_term_delete', $tids))),
+        ajax_command_html('#tui-tree-form', drupal_render($form)),
         ajax_command_invoke('#tui-tree-form', 'show')
       ));
       exit();
     case 'search-form':
+      $form = drupal_get_form('tui_search_form', $tids);
       print ajax_render(array(
-        ajax_command_html('#tui-tree-form', drupal_render(drupal_get_form('tui_search_form', $tids))),
+        ajax_command_html('#tui-tree-form', drupal_render($form)),
         ajax_command_invoke('#tui-tree-form', 'show')
       ));
       exit();
     case 'add-form':
       module_load_include('admin.inc', 'taxonomy');
+      $form = drupal_get_form('taxonomy_form_term', array(), $vocabulary);
       print ajax_render(array(
-        ajax_command_html('#tui-form-container', drupal_render(drupal_get_form('taxonomy_form_term', array(), $vocabulary)))
+        ajax_command_html('#tui-form-container', drupal_render($form))
       ));
       exit();
   }
