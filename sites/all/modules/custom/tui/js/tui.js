@@ -54,6 +54,13 @@
         }
       }
     }
+    Drupal.ajax['tui-add-link'].beforeSend = function(xmlhttprequest, options){
+      if($('.tui-highlight').length) {
+        if(options.dataType == "json") {
+          options.data = "tid=" + $('.tui-highlight').first().parent().data('tui-this-term') + "&" + options.data;
+        }
+      }
+    }
     // UPDATE THE NAME LISTENER
     $('#edit-name', context).keyup(function(event){
       $('#tui-name-live h2').html($('#edit-name').val());
