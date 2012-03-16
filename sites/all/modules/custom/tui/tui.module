@@ -212,16 +212,18 @@ function tui_menu_alter(&$items){
 }
 
 function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
-  foreach($data['tabs'] as $tab_group_index => $tab_group){
-    foreach($tab_group['output'] as $key => $tab){
-      if($tab['#link']['path'] == 'admin/structure/taxonomy/%/add'){
-        $data['tabs'][$tab_group_index]['output'][$key]['#link']['href'] = 'admin/structure/taxonomy/' . arg(3) . '/hierarchy/form_callback/add-form/';
-        $data['tabs'][$tab_group_index]['output'][$key]['#link']['localized_options'] = array(
-          'attributes' => array(
-            'class' => 'use-ajax',
-            'id' => 'tui-add-tab-link'
-          )
-        );
+  if(isset($_COOKIE['has_js']) && $_COOKIE['has_js']){
+    foreach($data['tabs'] as $tab_group_index => $tab_group){
+      foreach($tab_group['output'] as $key => $tab){
+        if($tab['#link']['path'] == 'admin/structure/taxonomy/%/add'){
+          $data['tabs'][$tab_group_index]['output'][$key]['#link']['href'] = 'admin/structure/taxonomy/' . arg(3) . '/hierarchy/form_callback/add-form/';
+          $data['tabs'][$tab_group_index]['output'][$key]['#link']['localized_options'] = array(
+            'attributes' => array(
+              'class' => 'use-ajax',
+              'id' => 'tui-add-tab-link'
+            )
+          );
+        }
       }
     }
   }
