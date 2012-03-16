@@ -1160,7 +1160,7 @@ other|Other',
       'entity_type' => 'character_editor_project',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
-      'required' => 0,
+      'required' => 1,
       'settings' => array(
         'user_register_form' => FALSE
       ),

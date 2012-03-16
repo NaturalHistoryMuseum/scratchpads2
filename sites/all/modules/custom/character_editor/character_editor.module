@@ -130,7 +130,6 @@ function character_editor_views_pre_view(&$view, $display_id, &$args){
     if(isset($project->field_characters[LANGUAGE_NONE])){
       $character_groups = array_filter($project->field_characters[LANGUAGE_NONE]);
       if(count($character_groups)){
-        $view->has_tabs = true;
         foreach($character_groups as $character_group){
           $delta = 1;
           list($character_group_entity_type, $character_group_entity_id) = explode(':', reset($character_group['endpoints']));
@@ -494,6 +493,28 @@ function character_editor_entity_delete($entity, $type){
   }
 }
 
+/**
+ * Implements hook_entity_insert
+ * Create a default group for charcater projects
+ */
+function character_editor_entity_insert($entity, $type){
+  global $user;
+  if($type == 'character_editor_project'){
+    // Create the group entity
+    $group = entity_create('character_editor_character', array(
+      'type' => 'group',
+      'is_new' => 1,
+      'title' => t('Default'),
+      'uid' => $user->uid,
+      'name' => $user->name
+    ));
+    // Save group
+    entity_save('character_editor_character', $group);
+    // And relate group to the character project
+    character_editor_create_relation($entity, $group);
+  }
+}
+
 /*********************************************************************************************
  * 
  * MENU CALLBACKS
@@ -527,6 +548,11 @@ function character_editor_project_view($entity){
   return $build;
 }
 
+/*********************************************************************************************
+ * 
+ * FORM FUNCTIONS
+ * 
+ ********************************************************************************************/
 function character_editor_character_form_submit(&$form, &$form_state){
   try{
     if(isset($form_state['entity'])){
@@ -916,11 +942,8 @@ function character_editor_preprocess_views_view_slickgrid(&$variables){
     $path = drupal_get_path('module', 'slickgrid');
     drupal_add_css($path . '/css/slickgrid.controls.css');
     drupal_add_js($path . '/js/controls/slickgrid.tabs.js');
-    // Ensure theere is the tab container
+    // Ensure there is the tab container
     $variables['tabs'] = '<div id="slickgrid-tabs"></div>';
-    if(isset($variables['view']->has_tabs)){
-      $variables['class'] .= ' slickgrid-has-tabs';
-    }
     $variables['class'] .= ' character-editor';
   }
 }
@@ -944,23 +967,20 @@ function theme_field__field_char_states(&$variables){
   return $output;
 }
 
-function theme_slickgrid_control__add($variables){
-  $output = '';
-  if(array_filter($variables['view']->style_plugin->options['add'])){
-    $addable_entities = slickgrid_list_addable_entities();
-    foreach($variables['view']->style_plugin->options['add'] as $add){
-      $class = drupal_html_class('slickgrid-add-' . $add);
-      $add_path = SLICKGRID_CALLBACK_PATH . '/add/' . $add . '/' . $variables['view']->name . '/' . $variables['view']->current_display;
-      $add_text = ucfirst(str_replace('character_editor_character/', '', $add));
-      if(count($variables['view']->args)){
-        $add_path .= '/' . implode('/', $variables['view']->args);
-      }
-      $output .= '<div class="slickgrid-control slickgrid-add-control ' . $class . '" id="slickgrid-add">' . ctools_modal_text_button('<span class="slickgrid-control-button enabled">' . $add_text . '</span>', $add_path, t("Add %type", array(
-        '%type' => strtolower($addable_entities[$add])
-      )), 'ctools-modal-ctools-modal-slickgrid-scale') . '</div>';
-    }
+function character_editor_preprocess_slickgrid_control__add(&$variables){
+  // Make a copy and reset
+  $add_links = $variables['add_links'];
+  $variables['add_links'] = array();
+  // Reorder the characters (reversed cos they're floated)
+  foreach(array(
+    'character_editor_character/dna',
+    'character_editor_character/numeric',
+    'character_editor_character/text',
+    'character_editor_character/controlled',
+    'character_editor_character/group'
+  ) as $character){
+    $variables['add_links'][] = $add_links[$character];
   }
-  return $output;
 }
 
 /*********************************************************************************************

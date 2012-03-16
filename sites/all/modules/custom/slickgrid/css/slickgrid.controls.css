@@ -15,6 +15,7 @@
 #slickgrid-add,
 #slickgrid-add span.slickgrid-control-button{
   width: auto!important;
+   color: #000;  
 }
 
 #slickgrid-add span.slickgrid-control-button{
