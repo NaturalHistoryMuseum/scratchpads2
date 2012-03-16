@@ -26,7 +26,7 @@ function scratchpads_lexicon_form_lexicon_general_settings_form_alter(&$form, &$
   // Allow Scratchpad team to make tweaks!
   global $user;
   if($user->uid == 1){
-    return;
+    //return;
   }
   foreach($form['general']['lexicon_vids']['#options'] as $vid => $vocabulary_name){
     if(in_array($vocabulary_name, array(
@@ -52,6 +52,7 @@ function scratchpads_lexicon_form_lexicon_general_settings_form_alter(&$form, &$
   $form['lexicon_page']['lexicon_show_search'] = $off;
   $form['lexicon_page']['lexicon_go_to_top_link'] = $off;
   $form['lexicon_page']['lexicon_go_to_top_link_fragment'] = $off;
+  $form['lexicon_page']['lexicon_link_related']['#description'] = t('Do you want terms that are related to link to each other?');
   // If the module is enabled, why would this not be?
   $form['mark_terms']['lexicon_mark_terms']['#disabled'] = TRUE;
   $form['mark_terms']['lexicon_mark_terms']['#default_value'] = TRUE;
