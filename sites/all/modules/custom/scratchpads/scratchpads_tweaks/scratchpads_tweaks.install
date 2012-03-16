@@ -239,7 +239,7 @@ function scratchpads_tweaks_install(){
   $type = node_type_set_defaults($type);
   node_type_save($type);
   scratchpads_tweaks_add_body_field($type);
-  // Set weight of body field
+  // Set weight of body fieldasfasf
   // Insert default pre-defined RDF mapping into the database.
   rdf_mapping_save(array(
     'type' => 'node',
@@ -460,6 +460,9 @@ function scratchpads_tweaks_update_7007(){
  * Install the linkit module and set the settings.
  */
 function scratchpads_tweaks_update_7008(){
+  module_enable(array(
+    'linkit'
+  ));
   db_merge('wysiwyg')->key(array(
     'editor' => 'ckeditor',
     'format' => 'filtered_html'
