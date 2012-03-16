@@ -2,41 +2,115 @@
 
 /**
  * @file
- * Installation file for linkit.
+ * Install, update and uninstall functions for the Linkit module.
  */
+
+/**
+ * Implements hook_schema().
+ */
+function linkit_schema() {
+  $schema = array();
+
+  $schema['linkit_profiles'] = array(
+    'description' => 'Base table holding Linkit profiles.',
+    'export' => array(
+      'key' => 'name',
+      'key name' => 'Name',
+      'primary key' => 'pid',
+      'identifier' => 'linkit_profile',
+      'default hook' => 'default_linkit_profile',
+      'status' => 'linkit_profiles_status',
+      'load callback' => 'linkit_profile_load',
+      'load all callback' => 'linkit_profile_load_all',
+      'save callback' => 'linkit_profile_save',
+      'bulk export' => TRUE,
+      'api' => array(
+        'owner' => 'linkit',
+        'api' => 'linkit_profiles',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'pid' => array(
+        'description' => 'Serial id for this profile.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'no export' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Machine-readable name for this profile.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'admin_title' => array(
+        'description' => 'Administrative title for this profile.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'A serialized array with settings.',
+      ),
+      'role_rids' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'A serialized array with role rids that is assign to this profile.',
+      ),
+      'weight' => array(
+        'description' => 'Profile weight.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('pid'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  return $schema;
+}
 
 /**
  * Implements hook_uninstall().
  */
 function linkit_uninstall() {
-  variable_del('linkit_node');
-  variable_del('linkit_term');
+  variable_del('linkit_profiles_status');
 }
 
 /**
- * Update Linkit permission names.
+ * Create the {linkit_profiles} table if it not exists.
  */
-function linkit_update_7100() {
-  // See http://drupal.org/node/1050444
-  $plugins = array('file', 'node', 'taxonomy', 'user');
-  
-  foreach($plugins AS $plugin) {
-    db_update('role_permission')
-      ->fields(array('permission' => 'use linkit ' . $plugin . ' plugin'))
-      ->condition('permission', 'create ' . $plugin . ' links')
-      ->condition('module', 'linkit_permissions')
-      ->execute();
+function linkit_update_7200() {
+  if (!db_table_exists('linkit_profiles')) {
+    // Call the schema function to reduce the lines of code here.
+    $schema = linkit_schema();
+    // Create the table.
+    db_create_table('linkit_profiles', $schema['linkit_profiles']);
+    return t('The table {linkit_profiles} was successfully created.');
   }
-  
-   db_update('role_permission')
-      ->fields(array('permission' => 'use all linkit plugins'))
-      ->condition('permission', 'create all links')
-      ->condition('module', 'linkit_permissions')
-      ->execute();
-  
-  return t('Linkit permission was successfully updated.');
+}
 
-  // In case of an error, simply throw an exception with an error message.
-  throw new DrupalUpdateException('Something went wrong; Please go to admin/people/permissions and update your Linkit permossions manually.');
+/**
+ * Delete old linkit settings.
+ */
+function linkit_update_7201() {
+  // Delete old settings if any.
+  $num_deleted = db_delete('variable')
+  ->condition('name', array('linkit_node', 'linkit_term'), 'IN')
+  ->execute();
 
+  // No old settings deleted
+  if(!$num_deleted) {
+    return t("No old Linkit settings were deleted.");
+  }
+  else {
+    return t("Old Linkit settings were deleted.");
+  }
 }

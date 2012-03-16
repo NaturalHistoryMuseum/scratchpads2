@@ -1,15 +1,12 @@
 name = Linkit
-description = Linkit provides an easy way for users to link to internal content by search with an autocomplete field.
+description = Provides an easy interface for inserting links to internal content, files and external pages by providing autocomplete search for several WYSIWYG-editors.
 core = 7.x
-
-package = Linkit
-
 configure = admin/config/content/linkit
+dependencies[] = ctools
 
-dependencies[] = pathologic
-; Information added by drupal.org packaging script on 2011-03-24
-version = "7.x-1.2"
+; Information added by drupal.org packaging script on 2012-01-05
+version = "7.x-2.1"
 core = "7.x"
 project = "linkit"
-datestamp = "1301010374"
+datestamp = "1325731843"
 

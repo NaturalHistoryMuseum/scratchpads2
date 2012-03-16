@@ -2,6 +2,7 @@ Linkit x.x-x.x, xxxx-xx-xx
 
 Linkit 7.x-1.3, xxxx-xx-xx
 ------------------------------
+#1127790 by skylord, anon: Fixed error in Opera browser.
 
 Linkit 7.x-1.2, 2011-03-25
 ------------------------------

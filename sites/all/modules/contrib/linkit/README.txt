@@ -9,7 +9,7 @@ Linkit has two major advantages over traditional linking
 
  1. The user does not have to copy or remember a URL
  2. If the target node changes it's alias (e.g. if the node's menu item
-    title is changed) the link will remain functional (thanks to Pathologic)
+    title is changed) the link will remain functional.
 
 See http://drupal.org/project/linkit for more information
 
@@ -17,13 +17,11 @@ See http://drupal.org/project/linkit for more information
 INSTALLATION
 ============
 
- 1. Install and configure the dependencies. Check their README files for details.
-    You need to enable the Pathologic input filter on the text formats you intend to use Linkit on.
- 2. Install and enable the linkit module and at least one of linkit_node,
-    linkit_views, linkit_taxonomy or linkit_user.
- 3. Enable the Linkit button in your WYSIWYG editor's settings.
-
-If you are using standalone CKEditor, see editors/ckeditor/README.txt for additional install information.
+ 1. Install and configure the dependencies. Check their README files for
+    details.
+ 2. Install and enable the linkit module.
+ 3 a). Enable the Linkit button in your CKEditor profile settings.
+ 3 b). Enable the Linkit button in your WYSIWYG editor's settings.
 
 
 DEPENDENCIES
@@ -31,19 +29,48 @@ DEPENDENCIES
 
 Linkit depends on the module
 
- *  Pathologic (this is where the alias magic happens)
+ *  ctools (For the profile functionality)
 
 You also need to install one of these modules:
 
- *  WYSIWYG <http://drupal.org/project/wysiwyg> with TinyMCE, CKEditor or FCKeditor
  *  CKEditor (Standalone) <http://drupal.org/project/ckeditor>
+ *  WYSIWYG <http://drupal.org/project/wysiwyg> with TinyMCE or CKEditor
 
 
 CONFIGURATION
 =============
 
-No additional configuration is necessary but you may can find optional Linkit's settings at
-Configuration → Linkit settings (/admin/config/content/linkit). You need "administer linkit" permission.
+See PROFILES
+
+
+PROFILES
+========
+
+Linkit has profiles, which means that settings are bundled with a profile
+By default, we provied you with a default profile, with default settings.
+
+You can clone that profile and make your own with the settings your satisfied
+with.
+
+You can add as many profiles you like, and the profiles are exportable, also
+via Features <http://drupal.org/project/features>.
+
+Profiles are fund at <http://example.com/admin/config/content/linkit> or
+Configuration -> Content authoring -> Linkit Profiles.
+
+PATHOLOGIC
+==========
+
+If you are using Pathologic you need to enable the Pathologic input filter
+(Correct URLs with Pathologic) on the text formats you intend to use Linkit on.
+You also need to make "/" considered local.
+
+
+API
+===
+
+We have an API example file (linkit.api.php) located in the Linkit module root.
+There is also an example module <https://github.com/bratanon/Mymodule>.
 
 
 MAINTAINERS
