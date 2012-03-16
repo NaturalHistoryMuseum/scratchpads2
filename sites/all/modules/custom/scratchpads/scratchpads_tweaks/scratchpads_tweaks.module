@@ -201,3 +201,10 @@ function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
   }
   return $instance;
 }
+
+/**
+ * Implements hook_field_widget_info_alter()
+ */
+function scratchpads_tweaks_field_widget_info_alter(&$info){
+  unset($info['image_image']);
+}
