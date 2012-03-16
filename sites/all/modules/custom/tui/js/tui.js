@@ -54,7 +54,7 @@
         }
       }
     }
-    Drupal.ajax['tui-add-link'].beforeSend = function(xmlhttprequest, options){
+    Drupal.ajax['tui-add-tab-link'].beforeSend = function(xmlhttprequest, options){
       if($('.tui-highlight').length) {
         if(options.dataType == "json") {
           options.data = "tid=" + $('.tui-highlight').first().parent().data('tui-this-term') + "&" + options.data;
