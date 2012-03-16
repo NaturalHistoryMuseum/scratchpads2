@@ -8,6 +8,7 @@ function scratchpads_species_views_default_views(){
    ********************************************************************************************/
   $views = array();
   $view = new view();
+  $view->context = 'species_overview';
   $view->name = 'species_nomenclature';
   $view->description = '';
   $view->tag = '';
@@ -15,7 +16,6 @@ function scratchpads_species_views_default_views(){
   $view->human_name = 'species nomenclature';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->context = 'species_overview';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -349,6 +349,82 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['title']['empty_zero'] = 0;
   $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
+  /* Field: Taxonomy term: Associated accepted name */
+  $handler->display->display_options['fields']['field_aan_4']['id'] = 'field_aan_4';
+  $handler->display->display_options['fields']['field_aan_4']['table'] = 'field_data_field_aan_4';
+  $handler->display->display_options['fields']['field_aan_4']['field'] = 'field_aan_4';
+  $handler->display->display_options['fields']['field_aan_4']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['element_type'] = '0';
+  $handler->display->display_options['fields']['field_aan_4']['element_label_type'] = 'strong';
+  $handler->display->display_options['fields']['field_aan_4']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_aan_4']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_aan_4']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_aan_4']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_aan_4']['field_api_classes'] = 0;
+  /* Field: Taxonomy term: Unacceptability Reason */
+  $handler->display->display_options['fields']['field_unacceptability_reason']['id'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason']['table'] = 'field_data_field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason']['field'] = 'field_unacceptability_reason';
+  $handler->display->display_options['fields']['field_unacceptability_reason']['label'] = '';
+  $handler->display->display_options['fields']['field_unacceptability_reason']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['field_api_classes'] = 0;
+  /* Field: Taxonomy term: Name */
+  $handler->display->display_options['fields']['name_3']['id'] = 'name_3';
+  $handler->display->display_options['fields']['name_3']['table'] = 'taxonomy_term_data';
+  $handler->display->display_options['fields']['name_3']['field'] = 'name';
+  $handler->display->display_options['fields']['name_3']['label'] = '';
+  $handler->display->display_options['fields']['name_3']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['name_3']['alter']['text'] = '<strong>[field_usage] [field_rank_2]:</strong> [name_3] [[field_unacceptability_reason]]';
+  $handler->display->display_options['fields']['name_3']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['name_3']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['name_3']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['name_3']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['name_3']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['name_3']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['name_3']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['name_3']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['name_3']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['name_3']['link_to_taxonomy'] = 0;
+  $handler->display->display_options['fields']['name_3']['convert_spaces'] = 0;
   /* Contextual filter: Taxonomy term: Term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_term_data';
@@ -432,10 +508,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['arguments']['tid']['validate']['fail'] = 'empty';
   $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['tid']['not'] = 0;
-  $handler->display->display_options['filter_groups']['groups'] = array(
-    0 => 'AND',
-    1 => 'AND'
-  );
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: Taxonomy term: Usage (field_usage) */
   $handler->display->display_options['filters']['field_usage_value']['id'] = 'field_usage_value';
@@ -444,7 +516,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['field_usage_value']['value'] = array(
     'invalid' => 'invalid'
   );
-  $handler->display->display_options['filters']['field_usage_value']['group'] = '1';
+  $handler->display->display_options['filters']['field_usage_value']['group'] = 2;
   $handler->display->display_options['displays'] = array(
     'default' => 'default',
     'block' => 'block'
