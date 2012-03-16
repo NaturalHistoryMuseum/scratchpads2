@@ -213,6 +213,13 @@ function scratchpads_species_term_page($term, $op = 'overview'){
     $name = theme('scratchpads_species_name', array(
       'term' => $term
     ));
+    $subtitle = '';
+    if(isset($term->field_authors[LANGUAGE_NONE][0]['safe_value'])){
+      $subtitle .= $term->field_authors[LANGUAGE_NONE][0]['safe_value'];
+    }
+    if(isset($term->field_usage[LANGUAGE_NONE][0]['value']) && ($term->field_usage[LANGUAGE_NONE][0]['value'] == 'invalid' || $term->field_usage[LANGUAGE_NONE][0]['value'] == 'unaccepted')){
+      $subtitle .= ' [' . ucfirst($term->field_usage[LANGUAGE_NONE][0]['value']) . ']';
+    }
     // Return a blank page contextual links
     $build = array(
       '#theme' => 'page',
@@ -221,7 +228,7 @@ function scratchpads_species_term_page($term, $op = 'overview'){
         ''
       ),
       'title' => $name,
-      'subtitle' => (isset($term->field_authors[LANGUAGE_NONE][0]['safe_value']) ? $term->field_authors[LANGUAGE_NONE][0]['safe_value'] : NULL),
+      'subtitle' => $subtitle,
       '#contextual_links' => array(
         'taxonomy' => array(
           'taxonomy',
@@ -263,7 +270,8 @@ function scratchpads_species_views_api(){
   $path = drupal_get_path('module', 'scratchpads_species');
   return array(
     'api' => '3',
-    'path' => $path . '/views'
+    'path' => $path . '/views',
+    'template path' => $path . '/theme'
   );
 }
 
@@ -380,6 +388,21 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
         }
       }
     }
+  }
+}
+
+function scratchpads_species_preprocess_views_view_fields(&$vars){
+  if($vars['view']->name == 'species_nomenclature'){
+    $invalid_fields = array(
+      'field_aan_4' => true,
+      'name_3' => true
+    );
+    if($vars['view']->field['field_usage']->original_value == 'invalid' || $vars['view']->field['field_usage']->original_value == 'unaccepted'){
+      $func = 'array_intersect_key';
+    }else{
+      $func = 'array_diff_key';
+    }
+    $vars['fields'] = $func($vars['fields'], $invalid_fields);
   }
 }
 
