@@ -41,6 +41,11 @@ function scratchpads_user_admin($callback_arg = ''){
   return $build;
 }
 
+function scratchpads_user_admin_account_submit($form, &$form_state){
+  module_load_include('admin.inc', 'user');
+  return user_admin_account_submit($form, $form_state);
+}
+
 function scratchpads_user_admin_account(){
   $header = array(
     'username' => array(
@@ -297,7 +302,7 @@ function scratchpads_user_register_form_pre_submit($form, &$form_state){
 function scratchpads_user_register_form_post_submit_clear_error($form, &$form_state){
   drupal_get_messages('error');
   if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
-    $form_state['redirect'] = 'user/'.$form_state['values']['uid'];
+    $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
   }
 }
 
