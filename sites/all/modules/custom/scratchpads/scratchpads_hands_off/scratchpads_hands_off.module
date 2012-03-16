@@ -4,6 +4,8 @@
  * Implements hook_form_alter
  */
 function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
+  global $user;
+  if($user->uid == 1){return;}
   $forbidden_regions = array(
     'slide_bottom',
     'slide_top',
@@ -18,7 +20,10 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
         foreach($forbidden_regions as $forbidden_region){
           try{
             unset($form['regions'][$child_key]['#options'][$forbidden_region]);
-          } catch(Exception $e){;}
+          }
+          catch(Exception $e){
+            ;
+          }
         }
       }
       break;
