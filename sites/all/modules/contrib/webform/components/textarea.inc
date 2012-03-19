@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of _webform_defaults_component().
+ * Implements _webform_defaults_component().
  */
 function _webform_defaults_textarea() {
   return array(
@@ -24,24 +24,26 @@ function _webform_defaults_textarea() {
       'disabled' => 0,
       'description' => '',
       'attributes' => array(),
+      'private' => FALSE,
     ),
   );
 }
 
 
 /**
- * Implementation of _webform_theme_component().
+ * Implements _webform_theme_component().
  */
 function _webform_theme_textarea() {
   return array(
     'webform_display_textarea' => array(
       'render element' => 'element',
+      'file' => 'components/textarea.inc',
     ),
   );
 }
 
 /**
- * Implementation of _webform_edit_component().
+ * Implements _webform_edit_component().
  */
 function _webform_edit_textarea($component) {
   $form = array();
@@ -93,27 +95,34 @@ function _webform_edit_textarea($component) {
 }
 
 /**
- * Implementation of _webform_render_component().
+ * Implements _webform_render_component().
  */
 function _webform_render_textarea($component, $value = NULL, $filter = TRUE) {
+  $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
+
   $element = array(
     '#type' => 'textarea',
     '#title' => $filter ? _webform_filter_xss($component['name']) : $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
-    '#default_value' => $filter ? _webform_filter_values($component['value']) : $component['value'],
+    '#default_value' => $filter ? _webform_filter_values($component['value'], $node) : $component['value'],
     '#required' => $component['mandatory'],
     '#weight' => $component['weight'],
-    '#description' => $filter ? _webform_filter_descriptions($component['extra']['description']) : $component['extra']['description'],
+    '#description' => $filter ? _webform_filter_descriptions($component['extra']['description'], $node) : $component['extra']['description'],
     '#rows' => !empty($component['extra']['rows']) ? $component['extra']['rows'] : 5,
     '#cols' => !empty($component['extra']['cols']) ? $component['extra']['cols'] : 60,
     '#attributes' => $component['extra']['attributes'],
     '#resizable' => (bool) $component['extra']['resizable'], // MUST be FALSE to disable.
     '#theme_wrappers' => array('webform_element'),
-    '#webform_component' => $component,
+    '#translatable' => array('title', 'description'),
   );
 
   if ($component['extra']['disabled']) {
-    $element['#attributes']['readonly'] = 'readonly';
+    if ($filter) {
+      $element['#attributes']['readonly'] = 'readonly';
+    }
+    else {
+      $element['#disabled'] = TRUE;
+    }
   }
 
   if (isset($value)) {
@@ -124,7 +133,7 @@ function _webform_render_textarea($component, $value = NULL, $filter = TRUE) {
 }
 
 /**
- * Implementation of _webform_display_component().
+ * Implements _webform_display_component().
  */
 function _webform_display_textarea($component, $value, $format = 'html') {
   return array(
@@ -134,7 +143,7 @@ function _webform_display_textarea($component, $value, $format = 'html') {
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
     '#value' => isset($value[0]) ? $value[0] : '',
-    '#webform_component' => $component,
+    '#translatable' => array('title'),
   );
 }
 
@@ -143,15 +152,15 @@ function _webform_display_textarea($component, $value, $format = 'html') {
  */
 function theme_webform_display_textarea($variables) {
   $element = $variables['element'];
-  $output = $element['#format'] == 'html' ? str_replace("\n", '<br />', check_plain($element['#value'])) : $element['#value'];
-  if (strlen($output) > 80) {
+  $output = $element['#format'] == 'html' ? nl2br(check_plain($element['#value'])) : $element['#value'];
+  if (drupal_strlen($output) > 80) {
     $output = ($element['#format'] == 'html') ? '<div class="webform-long-answer">' . $output . '</div>' : $output;
   }
   return $output !== '' ? $output : ' ';
 }
 
 /**
- * Implementation of _webform_analysis_component().
+ * Implements _webform_analysis_component().
  */
 function _webform_analysis_textarea($component, $sids = array()) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
@@ -183,14 +192,14 @@ function _webform_analysis_textarea($component, $sids = array()) {
 }
 
 /**
- * Implementation of _webform_table_component().
+ * Implements _webform_table_component().
  */
 function _webform_table_textarea($component, $value) {
   return empty($value[0]) ? '' : check_plain($value[0]);
 }
 
 /**
- * Implementation of _webform_csv_headers_component().
+ * Implements _webform_csv_headers_component().
  */
 function _webform_csv_headers_textarea($component, $export_options) {
   $header = array();
@@ -201,7 +210,7 @@ function _webform_csv_headers_textarea($component, $export_options) {
 }
 
 /**
- * Implementation of _webform_csv_data_component().
+ * Implements _webform_csv_data_component().
  */
 function _webform_csv_data_textarea($component, $export_options, $value) {
   return empty($value[0]) ? '' : $value[0];

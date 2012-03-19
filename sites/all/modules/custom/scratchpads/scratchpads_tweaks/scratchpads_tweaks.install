@@ -51,112 +51,7 @@ function scratchpads_tweaks_install(){
     'scratchpads'
   ));
   // Set wysiwyg settings for each filter format.
-  try{
-    db_insert('wysiwyg')->fields(array(
-      'format' => 'filtered_html',
-      'editor' => 'ckeditor',
-      'settings' => serialize(array(
-        'default' => 1,
-        'user_choose' => 1,
-        'show_toggle' => 1,
-        'theme' => 'advanced',
-        'language' => 'en',
-        'buttons' => array(
-          'default' => array(
-            'Bold' => 1,
-            'Italic' => 1,
-            'Underline' => 1,
-            'JustifyCenter' => 1,
-            'BulletedList' => 1,
-            'NumberedList' => 1,
-            'Undo' => 1,
-            'Redo' => 1,
-            'Link' => 1,
-            'Unlink' => 1,
-            'Superscript' => 1,
-            'Subscript' => 1,
-            'Blockquote' => 1,
-            'HorizontalRule' => 1,
-            'Cut' => 1,
-            'Copy' => 1,
-            'Paste' => 1,
-            'PasteText' => 1,
-            'PasteFromWord' => 1,
-            'RemoveFormat' => 1,
-            'SpecialChar' => 1,
-            'Table' => 1,
-            'Maximize' => 1,
-            'SpellChecker' => 1,
-            'Scayt' => 1
-          ),
-          'drupal' => array(
-            'media' => 1,
-            'break' => 1
-          )
-        ),
-        'toolbar_loc' => 'top',
-        'toolbar_align' => 'left',
-        'path_loc' => 'bottom',
-        'resizing' => 1,
-        'verify_html' => 1,
-        'preformatted' => 0,
-        'convert_fonts_to_spans' => 1,
-        'remove_linebreaks' => 1,
-        'apply_source_formatting' => 0,
-        'paste_auto_cleanup_on_paste' => 0,
-        'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-        'css_setting' => 'none',
-        'css_path' => '',
-        'css_classes' => ''
-      ))
-    ))->execute();
-  }
-  catch(Exception $e){
-    ;
-  }
-  try{
-    db_insert('wysiwyg')->fields(array(
-      'format' => 'comment_filtered_html',
-      'editor' => 'ckeditor',
-      'settings' => serialize(array(
-        'default' => 1,
-        'user_choose' => 1,
-        'show_toggle' => 1,
-        'theme' => 'advanced',
-        'language' => 'en',
-        'buttons' => array(
-          'default' => array(
-            'Bold' => 1,
-            'Italic' => 1,
-            'Underline' => 1,
-            'BulletedList' => 1,
-            'NumberedList' => 1,
-            'Undo' => 1,
-            'Redo' => 1,
-            'Link' => 1,
-            'Unlink' => 1
-          )
-        ),
-        'toolbar_loc' => 'top',
-        'toolbar_align' => 'left',
-        'path_loc' => 'bottom',
-        'resizing' => 1,
-        'verify_html' => 1,
-        'preformatted' => 0,
-        'convert_fonts_to_spans' => 1,
-        'remove_linebreaks' => 1,
-        'apply_source_formatting' => 0,
-        'paste_auto_cleanup_on_paste' => 0,
-        'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-        'css_setting' => 'none',
-        'css_path' => '',
-        'css_classes' => ''
-      ))
-    ))->execute();
-  }
-  catch(Exception $e){
-    ;
-  }
+  scratchpads_tweaks_update_7008();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -323,13 +218,11 @@ function scratchpads_tweaks_install(){
     )
   );
   foreach($values as $record){
-    try{
-      db_insert('block')->fields($record)->execute();
-    }
-    catch(Exception $e){
-      ; // Do nothing, probably just a duplicate if we're installing on an already
-    // created site.
-    }
+    db_merge('block')->key(array(
+      'module' => $record['module'],
+      'delta' => $record['delta'],
+      'theme' => $record['theme']
+    ))->fields($record)->execute();
   }
   // Insert default pre-defined node types into the database. For a complete
   // list of available node type attributes, refer to the node type API
@@ -346,7 +239,7 @@ function scratchpads_tweaks_install(){
   $type = node_type_set_defaults($type);
   node_type_save($type);
   scratchpads_tweaks_add_body_field($type);
-  // Set weight of body field
+  // Set weight of body fieldasfasf
   // Insert default pre-defined RDF mapping into the database.
   rdf_mapping_save(array(
     'type' => 'node',
@@ -398,6 +291,7 @@ function scratchpads_tweaks_install(){
    * Additional Scratchpad settings: 
    */
   // Date API stuff
+  variable_set('site_default_country', 'GB');
   variable_set('date_default_timezone', 'Europe/London');
   variable_set('date_first_day', '1');
   variable_set('date_format_long', 'l, F j, Y - H:i');
@@ -542,4 +436,224 @@ function scratchpads_tweaks_update_7005(){
       variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
     }
   }
+}
+
+/**
+ * Set the site's default country.
+ */
+function scratchpads_tweaks_update_7006(){
+  variable_set('site_default_country', 'GB');
+}
+
+/**
+ * Install the scratchpads_lexicon module if the lexicon module is installed.
+ */
+function scratchpads_tweaks_update_7007(){
+  if(module_exists('lexicon')){
+    module_enable(array(
+      'scratchpads_lexicon'
+    ));
+  }
+}
+
+/**
+ * Install the linkit module and set the settings.
+ */
+function scratchpads_tweaks_update_7008(){
+  module_enable(array(
+    'linkit'
+  ));
+  db_merge('wysiwyg')->key(array(
+    'editor' => 'ckeditor',
+    'format' => 'filtered_html'
+  ))->fields(array(
+    'format' => 'filtered_html',
+    'editor' => 'ckeditor',
+    'settings' => serialize(array(
+      'default' => 1,
+      'user_choose' => 1,
+      'show_toggle' => 1,
+      'theme' => 'advanced',
+      'language' => 'en',
+      'buttons' => array(
+        'default' => array(
+          'Bold' => 1,
+          'Italic' => 1,
+          'Underline' => 1,
+          'JustifyCenter' => 1,
+          'BulletedList' => 1,
+          'NumberedList' => 1,
+          'Undo' => 1,
+          'Redo' => 1,
+          'Link' => 1,
+          'Unlink' => 1,
+          'Superscript' => 1,
+          'Subscript' => 1,
+          'Blockquote' => 1,
+          'HorizontalRule' => 1,
+          'Cut' => 1,
+          'Copy' => 1,
+          'Paste' => 1,
+          'PasteText' => 1,
+          'PasteFromWord' => 1,
+          'RemoveFormat' => 1,
+          'SpecialChar' => 1,
+          'Table' => 1,
+          'Maximize' => 1,
+          'SpellChecker' => 1,
+          'Scayt' => 1
+        ),
+        'drupal' => array(
+          'media' => 1,
+          'break' => 1
+        ),
+        'linkit' => array(
+          'linkit' => 1
+        )
+      ),
+      'toolbar_loc' => 'top',
+      'toolbar_align' => 'left',
+      'path_loc' => 'bottom',
+      'resizing' => 1,
+      'verify_html' => 1,
+      'preformatted' => 0,
+      'convert_fonts_to_spans' => 1,
+      'remove_linebreaks' => 1,
+      'apply_source_formatting' => 0,
+      'paste_auto_cleanup_on_paste' => 0,
+      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+      'css_setting' => 'none',
+      'css_path' => '',
+      'css_classes' => ''
+    ))
+  ))->execute();
+  db_merge('wysiwyg')->key(array(
+    'editor' => 'ckeditor',
+    'format' => 'comment_filtered_html'
+  ))->fields(array(
+    'format' => 'comment_filtered_html',
+    'editor' => 'ckeditor',
+    'settings' => serialize(array(
+      'default' => 1,
+      'user_choose' => 1,
+      'show_toggle' => 1,
+      'theme' => 'advanced',
+      'language' => 'en',
+      'buttons' => array(
+        'default' => array(
+          'Bold' => 1,
+          'Italic' => 1,
+          'Underline' => 1,
+          'BulletedList' => 1,
+          'NumberedList' => 1,
+          'Undo' => 1,
+          'Redo' => 1,
+          'Link' => 1,
+          'Unlink' => 1
+        )
+      ),
+      'toolbar_loc' => 'top',
+      'toolbar_align' => 'left',
+      'path_loc' => 'bottom',
+      'resizing' => 1,
+      'verify_html' => 1,
+      'preformatted' => 0,
+      'convert_fonts_to_spans' => 1,
+      'remove_linebreaks' => 1,
+      'apply_source_formatting' => 0,
+      'paste_auto_cleanup_on_paste' => 0,
+      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
+      'css_setting' => 'none',
+      'css_path' => '',
+      'css_classes' => ''
+    ))
+  ))->execute();
+  db_merge('linkit_profiles')->key(array(
+    'name' => 'default'
+  ))->fields(array(
+    'name' => 'default',
+    'admin_title' => st('Default'),
+    'data' => serialize(array(
+      'plugins' => array(
+        'taxonomy' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'user' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'node' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'file' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'external' => array(
+          'weight' => '0',
+          'enabled' => 1
+        )
+      ),
+      'node' => array(
+        'result_description' => 'by [node:author] · [node:created:short]',
+        'content_types' => array(
+          'biblio' => 0,
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'include_unpublished' => 0,
+        'group_by_content_type' => 1
+      ),
+      'user' => array(
+        'result_description' => ''
+      ),
+      'taxonomy' => array(
+        'result_description' => '[term:vocabulary]',
+        'group_by_vocabulary' => 0
+      ),
+      'file' => array(
+        'result_description' => '[file:mime] · [file:size]',
+        'show_scheme' => 0,
+        'group_by_scheme' => 0,
+        'image_extra_info' => array(
+          'thumbnail' => 'thumbnail',
+          'dimensions' => 'dimensions'
+        )
+      ),
+      'autocomplete' => array(
+        'charLimit' => 3,
+        'wait' => 250,
+        'remoteTimeout' => 5000
+      ),
+      'attributes' => array(
+        'rel' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'class' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'accesskey' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'id' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'title' => array(
+          'weight' => '0',
+          'enabled' => 0
+        )
+      )
+    )),
+    'role_rids' => serialize(array(
+      2 => 1
+    )),
+    'weight' => -10
+  ))->execute();
 }

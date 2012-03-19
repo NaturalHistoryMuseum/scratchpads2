@@ -167,22 +167,6 @@ function pathauto_scratchpads_default_permissions(){
 }
 
 /**
- * Lexicon module
- * 
- * Implements hook_scratchpads_default_permissions().
- */
-function lexicon_scratchpads_default_permissions(){
-  return array(
-    'maintainer' => array(
-      'administer lexicon'
-    ),
-    'anonymous user' => array(
-      'access lexicon'
-    )
-  );
-}
-
-/**
  * Google analytics module
  * 
  * Implements hook_scratchpads_default_permissions().

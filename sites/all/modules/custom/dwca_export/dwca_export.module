@@ -118,7 +118,9 @@ function dwca_export_select_view_form() {
 				  	'#weight' => 3,
 				  	'#collapsible' => TRUE,
 				  	'#collapsed' => TRUE,
-				  	'#tree' => FALSE,
+					//'#prefix' => '<table>',
+		  			//'#suffix' => '</table>',	
+				  	'#tree' => TRUE,
 			
   		);
 			foreach($view_data as $dwca_filename_inner => $view_data_inner){
@@ -130,8 +132,13 @@ function dwca_export_select_view_form() {
 									  	'#default_value' => $view_data_inner['view_name'],
 									  	'#size' => 60,
 									  	'#description' => t('specify view for ' . $dwca_filename_inner),
+									//'#prefix' => '<tr>',
+								    //'#suffix' => '</tr>',
 			
 				);
+								
+				//TODO: Change collaped discription form to table, layout using <td> and <tr> e.g. try 3 description types per row
+				
 			}
 			
 		} else {
@@ -391,13 +398,16 @@ function _dwca_export_concatenate_description_files($view_data, $zip){
 			
 			//don't include empty descriptions or lines at the end of the view which start with the field name id
 			//some lines just contain a single " if there is a carriage return within the description text so remove these too
-			if ($items[0]!=="\"id\""  && trim($items[2])!=="\"\"") {
+			
+			if (isset($items[0]) && isset($items[2])) {
 				
-				// fix conflict with files that have an EOL that differs from the server EOL
-				$lineOfText = rtrim($lineOfText, "\r\n") . PHP_EOL;
-				fwrite($desc_file, $lineOfText);
+				if ($items[0]!=="\"id\""  && trim($items[2])!=="\"\"") {
 				
+					// fix conflict with files that have an EOL that differs from the server EOL
+					$lineOfText = rtrim($lineOfText, "\r\n") . PHP_EOL;
+					fwrite($desc_file, $lineOfText);
 				
+				}	
 				
 			} else {
 				fgets($descTypeFile, 4096);

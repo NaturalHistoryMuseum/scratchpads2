@@ -80,3 +80,18 @@
 .view-eol-videos div.views-row h2{
 	display:none;
 }
+
+/* Theme the small table */
+.eolapi-text-rights{	
+  float:right;
+  color: #888;
+  font-size: 0.9em;
+}
+.eolapi-text-rights table tr{
+  background-color:transparent !important;
+  border:none !important;
+}
+.eolapi-text-rights table tr td:first-child{
+	text-align:right;
+	padding-right:3px !important;
+}

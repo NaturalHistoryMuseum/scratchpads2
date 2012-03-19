@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function darwincore_install(){
+  // Clear the errors.
+  drupal_get_messages('warning');
+}

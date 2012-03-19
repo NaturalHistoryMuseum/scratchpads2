@@ -6,10 +6,10 @@
  *
  * Available variables:
  * - $node: The node object for this webform.
+ * - $mode: Either "form" or "display". May be other modes provided by other
+ *          modules, such as "print" or "pdf".
  * - $submission: The contents of the webform submission.
  * - $account: The user that submitted the form.
- * - $mode: The mode of the submission being viewed. May be one of "display",
- *   "form", "print", or "pdf".
  */
 ?>
 <fieldset class="webform-submission-info clearfix">

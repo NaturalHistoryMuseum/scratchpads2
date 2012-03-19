@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_webform_exporters().
+ * Implements hook_webform_exporters().
  *
  * Defines the exporters this module implements.
  *

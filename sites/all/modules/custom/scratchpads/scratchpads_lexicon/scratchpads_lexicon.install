@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_lexicon_install(){
+  db_merge('filter')->key(array(
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'format' => 'filtered_html'
+  ))->fields(array(
+    'format' => 'filtered_html',
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'weight' => 50,
+    'status' => 1,
+    'settings' => serialize(array())
+  ))->execute();
+  db_merge('filter')->key(array(
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'format' => 'comment_filtered_html'
+  ))->fields(array(
+    'format' => 'comment_filtered_html',
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'weight' => 50,
+    'status' => 1,
+    'settings' => serialize(array())
+  ))->execute();
+}
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_lexicon_disable(){
+  drupal_register_shutdown_function('module_disable', array(
+    'lexicon'
+  ));
+}

@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of _webform_defaults_component().
+ * Implements _webform_defaults_component().
  */
 function _webform_defaults_textfield() {
   return array(
@@ -26,23 +26,25 @@ function _webform_defaults_textfield() {
       'title_display' => 0,
       'description' => '',
       'attributes' => array(),
+      'private' => FALSE,
     ),
   );
 }
 
 /**
- * Implementation of _webform_theme_component().
+ * Implements _webform_theme_component().
  */
 function _webform_theme_textfield() {
   return array(
     'webform_display_textfield' => array(
       'render element' => 'element',
+      'file' => 'components/textfield.inc',
     ),
   );
 }
 
 /**
- * Implementation of _webform_edit_component().
+ * Implements _webform_edit_component().
  */
 function _webform_edit_textfield($component) {
   $form = array();
@@ -117,26 +119,33 @@ function _webform_edit_textfield($component) {
 }
 
 /**
- * Implementation of _webform_render_component().
+ * Implements _webform_render_component().
  */
 function _webform_render_textfield($component, $value = NULL, $filter = TRUE) {
+  $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
+
   $element = array(
-    '#type' => $component['type'],
+    '#type' => 'textfield',
     '#title' => $filter ? _webform_filter_xss($component['name']) : $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
-    '#default_value' => $filter ? _webform_filter_values($component['value'], NULL, NULL, NULL, FALSE) : $component['value'],
+    '#default_value' => $filter ? _webform_filter_values($component['value'], $node, NULL, NULL, FALSE) : $component['value'],
     '#required' => $component['mandatory'],
     '#weight' => $component['weight'],
     '#field_prefix' => empty($component['extra']['field_prefix']) ? NULL : ($filter ? _webform_filter_xss($component['extra']['field_prefix']) : $component['extra']['field_prefix']),
     '#field_suffix' => empty($component['extra']['field_suffix']) ? NULL : ($filter ? _webform_filter_xss($component['extra']['field_suffix']) : $component['extra']['field_suffix']),
-    '#description' => $filter ? _webform_filter_descriptions($component['extra']['description']) : $component['extra']['description'],
+    '#description' => $filter ? _webform_filter_descriptions($component['extra']['description'], $node) : $component['extra']['description'],
     '#attributes' => $component['extra']['attributes'],
     '#theme_wrappers' => array('webform_element'),
-    '#webform_component' => $component,
+    '#translatable' => array('title', 'description', 'field_prefix', 'field_suffix'),
   );
 
   if ($component['extra']['disabled']) {
-    $element['#attributes']['readonly'] = 'readonly';
+    if ($filter) {
+      $element['#attributes']['readonly'] = 'readonly';
+    }
+    else {
+      $element['#disabled'] = TRUE;
+    }
   }
 
   // Enforce uniqueness.
@@ -160,7 +169,7 @@ function _webform_render_textfield($component, $value = NULL, $filter = TRUE) {
 }
 
 /**
- * Implementation of _webform_display_component().
+ * Implements _webform_display_component().
  */
 function _webform_display_textfield($component, $value, $format = 'html') {
   return array(
@@ -172,7 +181,7 @@ function _webform_display_textfield($component, $value, $format = 'html') {
     '#field_suffix' => $component['extra']['field_suffix'],
     '#format' => $format,
     '#value' => isset($value[0]) ? $value[0] : '',
-    '#webform_component' => $component,
+    '#translatable' => array('title', 'field_prefix', 'field_suffix'),
   );
 }
 
@@ -188,7 +197,7 @@ function theme_webform_display_textfield($variables) {
 }
 
 /**
- * Implementation of _webform_analysis_component().
+ * Implements _webform_analysis_component().
  */
 function _webform_analysis_textfield($component, $sids = array()) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
@@ -220,14 +229,14 @@ function _webform_analysis_textfield($component, $sids = array()) {
 }
 
 /**
- * Implementation of _webform_table_component().
+ * Implements _webform_table_component().
  */
 function _webform_table_textfield($component, $value) {
   return check_plain(empty($value[0]) ? '' : $value[0]);
 }
 
 /**
- * Implementation of _webform_csv_headers_component().
+ * Implements _webform_csv_headers_component().
  */
 function _webform_csv_headers_textfield($component, $export_options) {
   $header = array();
@@ -238,7 +247,7 @@ function _webform_csv_headers_textfield($component, $export_options) {
 }
 
 /**
- * Implementation of _webform_csv_data_component().
+ * Implements _webform_csv_data_component().
  */
 function _webform_csv_data_textfield($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];

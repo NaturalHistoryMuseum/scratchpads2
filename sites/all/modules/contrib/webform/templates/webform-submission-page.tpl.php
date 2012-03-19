@@ -6,17 +6,17 @@
  *
  * Available variables:
  * - $node: The node object for this webform.
+ * - $mode: Either "form" or "display". May be other modes provided by other
+ *          modules, such as "print" or "pdf".
  * - $submission: The Webform submission array.
  * - $submission_content: The contents of the webform submission.
  * - $submission_navigation: The previous submission ID.
  * - $submission_information: The next submission ID.
  */
-
-drupal_add_css(drupal_get_path('module', 'webform') . '/css/webform-admin.css', array('group' => CSS_THEME, 'preprocess' => FALSE));
 ?>
 
-<?php if ($submission_actions || $submission_navigation): ?>
-  <div class="clear-block">
+<?php if ($mode == 'display' || $mode == 'form'): ?>
+  <div class="clearfix">
     <?php print $submission_actions; ?>
     <?php print $submission_navigation; ?>
   </div>
@@ -28,4 +28,8 @@ drupal_add_css(drupal_get_path('module', 'webform') . '/css/webform-admin.css', 
   <?php print render($submission_content); ?>
 </div>
 
-<?php print $submission_navigation; ?>
+<?php if ($mode == 'display' || $mode == 'form'): ?>
+  <div class="clearfix">
+    <?php print $submission_navigation; ?>
+  </div>
+<?php endif; ?>

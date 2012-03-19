@@ -162,6 +162,8 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_point':
       $new_items = array();
       if(is_string($items[0])){
+        // Strip point: from the string first.
+        $items[0] = str_replace('point:', '', strtolower($items[0]));
         _gm3_field_get_array_from_points_string($items[0], $new_items);
       }
       if(count($items)){
@@ -174,6 +176,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
     case 'gm3_polyline':
       $new_items = array();
       if(is_string($items[0])){
+        $items[0] = str_replace(substr($field['type'], 4) . ':', '', strtolower($items[0]));
         _gm3_field_get_array_from_poly_string($items[0], $new_items, substr($field['type'], 4));
       }
       if(count($items)){
@@ -196,9 +199,9 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
           );
           foreach($lines as $line){
             $line_parts = explode(':', $line);
-            if(count($line_parts) == 2){
-              $type = "gm3_" . strtolower($line_parts[0]);
-              $items[0]['map']['children'][$type] = $line_parts[1];
+            if(count($line_parts) > 1){
+              $type = "gm3_" . strtolower(array_shift($line_parts));
+              $items[0]['map']['children'][$type][] = implode(':', $line_parts);
             }
           }
         }
@@ -269,9 +272,11 @@ function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
  * Helper function to get values from a polygon/polyline/rectangle string
  */
 function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $type = FALSE){
-  if(strlen(trim($value))){
-    $polys = preg_split("/\n/", $value);
-    foreach($polys as $poly){
+  if(is_array($value) || strlen(trim($value))){
+    if(is_string($value)){
+      $value = preg_split("/\n/", $value);
+    }
+    foreach($value as $poly){
       $item = array(
         $poly_type => $poly
       );
@@ -287,9 +292,11 @@ function _gm3_field_get_array_from_poly_string($value, &$items, $poly_type, $typ
  * Helper function to get values from a points string
  */
 function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE){
-  if(strlen(trim($value))){
-    $lat_lngs = explode("|", $value);
-    foreach($lat_lngs as $lat_lng){
+  if(is_array($value) || strlen(trim($value))){
+    if(is_string($value)){
+      $value = explode("|", $value);
+    }
+    foreach($value as $lat_lng){
       $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
       $lat_lng = explode(", ", $lat_lng);
       if(count($lat_lng) == 1){
