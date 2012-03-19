@@ -333,7 +333,10 @@ function scratchpads_front_views_default_views(){
   $handler->display->display_options['filters']['field_promote_to_home_page_value']['id'] = 'field_promote_to_home_page_value';
   $handler->display->display_options['filters']['field_promote_to_home_page_value']['table'] = 'field_data_field_promote_to_home_page';
   $handler->display->display_options['filters']['field_promote_to_home_page_value']['field'] = 'field_promote_to_home_page_value';
-  $handler->display->display_options['filters']['field_promote_to_home_page_value']['operator'] = 'not empty';
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['operator'] = 'not in';
+  $handler->display->display_options['filters']['field_promote_to_home_page_value']['value'] = array(
+    0 => '0'
+  );
   /* Display: Latest images */
   $handler = $view->new_display('block', 'Latest images', 'block_1');
   $views['front_page_slideshow'] = $view;
