@@ -340,7 +340,6 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           break;
         case 'character_editor_project':
           $form['title']['#title'] = t('Title');
-          dd($form);
           break;
       }
       break;
