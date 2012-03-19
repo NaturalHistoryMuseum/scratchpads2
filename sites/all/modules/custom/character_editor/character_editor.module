@@ -260,8 +260,10 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
   );
   if(isset($_GET['project'])){
     $project_id = $_GET['project'];
-  }else{
+  }elseif(isset($form_state['entity']->id)){
     $project_id = $form_state['entity']->id;
+  }else{
+  	$project_id = null;
   }
   if(isset($items[$delta]['endpoints'])){
     list($entity_type, $entity_id) = explode(':', reset($items[$delta]['endpoints']));
