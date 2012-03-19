@@ -258,6 +258,11 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'character_editor') . '/css/character-editor.css'
   );
+  if(isset($_GET['project'])){
+    $project_id = $_GET['project'];
+  }else{
+    $project_id = $form_state['entity']->id;
+  }
   if(isset($items[$delta]['endpoints'])){
     list($entity_type, $entity_id) = explode(':', reset($items[$delta]['endpoints']));
     // We don't want character projects here
@@ -273,7 +278,8 @@ function character_editor_field_widget_form(&$form, &$form_state, $field, $insta
             'class' => 'character-editor-edit-link'
           ),
           'query' => array(
-            'destination' => request_uri()
+            'destination' => request_uri(),
+            'project' => $project_id
           )
         ))
       );
@@ -297,28 +303,30 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       switch($form['#entity_type']){
         case 'character_editor_character':
           // Is this an add link from slickgrid
-          if(arg(0) == 'slickgrid'){
-            $form_state['character_project_id'] = arg(7);
-            // If this isn't a group, the user will need to select a group for it to belong to
-            if($form_state['entity']->type != 'group'){
-              $groups = character_editor_get_groups($form_state['character_project_id']);
-              if(count($groups)){
-                $form['group'] = array(
-                  '#type' => 'select',
-                  '#title' => t('Group'),
-                  '#options' => $groups,
-                  '#description' => t('Which group would you like to add this character to?'),
-                  '#required' => true,
-                  '#default_value' => reset($groups),
-                  '#nane' => 'group'
-                );
+          if($form_state['entity']->type != 'group'){
+            if(!isset($form_state['character_project_id'])){
+              if($form_state['entity']->is_new){
+                $form_state['character_project_id'] = arg(7);
               }else{
-                form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
+                $form_state['character_project_id'] = $_GET['project'];
               }
             }
-             // This is a normal character form  
-          }else{
-            // Add a back button
+            $groups = character_editor_get_groups($form_state['character_project_id']);
+            if(count($groups)){
+              $form['group'] = array(
+                '#type' => 'select',
+                '#title' => t('Group'),
+                '#options' => $groups,
+                '#description' => t('Which group would you like to add this character to?'),
+                '#required' => true,
+                '#default_value' => reset($groups),
+                '#nane' => 'group'
+              );
+            }else{
+              form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
+            }
+          }
+          if(!$form_state['entity']->is_new){
             $destination = drupal_get_destination();
             $form['actions']['back'] = array(
               '#type' => 'submit',
@@ -330,6 +338,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           break;
         case 'character_editor_project':
           $form['title']['#title'] = t('Title');
+          dd($form);
           break;
       }
       break;
