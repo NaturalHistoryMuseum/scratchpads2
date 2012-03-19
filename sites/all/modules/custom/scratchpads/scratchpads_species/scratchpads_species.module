@@ -393,16 +393,16 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
 
 function scratchpads_species_preprocess_views_view_fields(&$vars){
   if($vars['view']->name == 'species_nomenclature'){
-//    $invalid_fields = array(
-//      'field_aan_4' => true,
-//      'name_3' => true
-//    );
-//    if(isset($vars['view']->field['field_usage']) && $vars['view']->field['field_usage']->original_value == 'invalid' || $vars['view']->field['field_usage']->original_value == 'unaccepted'){
-//      $func = 'array_intersect_key';
-//    }else{
-//      $func = 'array_diff_key';
-//    }
-//    $vars['fields'] = $func($vars['fields'], $invalid_fields);
+    $invalid_fields = array(
+      'field_aan_4' => true,
+      'name_3' => true
+    );
+    if(isset($vars['view']->field['field_usage']) && $vars['view']->field['field_usage']->original_value == 'invalid' || $vars['view']->field['field_usage']->original_value == 'unaccepted'){
+      $func = 'array_intersect_key';
+    }else{
+      $func = 'array_diff_key';
+    }
+    $vars['fields'] = $func($vars['fields'], $invalid_fields);
   }
 }
 
