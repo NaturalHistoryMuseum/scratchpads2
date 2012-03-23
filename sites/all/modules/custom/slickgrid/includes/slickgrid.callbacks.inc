@@ -141,7 +141,7 @@ function slickgrid_callback_add($entity_type, $bundle_type, $view_name, $display
       '@bundle_label' => strtolower($entity_info['bundles'][$bundle_type]['label'])
     ))
   );
-  if($form['#validated'] && !form_get_errors()){
+  if(isset($form['#validated']) && !form_get_errors()){
     $output = array();
     $output[] = ctools_modal_command_dismiss();
     $result = array();

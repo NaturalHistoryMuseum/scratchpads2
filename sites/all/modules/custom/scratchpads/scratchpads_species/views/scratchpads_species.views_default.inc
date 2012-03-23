@@ -855,6 +855,7 @@ function scratchpads_species_views_default_views(){
   $view->tag = '';
   $view->base_table = 'node';
   $view->human_name = 'Species overview biblio';
+  $view->context = 'species_overview';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -1592,11 +1593,17 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['style_plugin'] = 'gmap';
+  /* Relationship: Content: Location (field_location) */
+  $handler->display->display_options['relationships']['field_location_nid']['id'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['table'] = 'field_data_field_location';
+  $handler->display->display_options['relationships']['field_location_nid']['field'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['required'] = 0;
+  $handler->display->display_options['relationships']['field_location_nid']['delta'] = '-1';
   /* Field: Content: Map */
   $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
   $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
   $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
-  $handler->display->display_options['fields']['field_map']['label'] = '';
+  $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
   $handler->display->display_options['fields']['field_map']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['absolute'] = 0;
@@ -1606,55 +1613,43 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_map']['alter']['nl2br'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['word_boundary'] = 1;
   $handler->display->display_options['fields']['field_map']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_map']['alter']['more_link'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['field_map']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_map']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_map']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['field_map']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['field_map']['hide_empty'] = 0;
   $handler->display->display_options['fields']['field_map']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_map']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map']['settings'] = array(
-    'display_convex_hull' => '0'
+    'display_convex_hull' => FALSE
   );
   $handler->display->display_options['fields']['field_map']['field_api_classes'] = 0;
-  /* Field: Content: Map */
-  $handler->display->display_options['fields']['field_spm_map']['id'] = 'field_spm_map';
-  $handler->display->display_options['fields']['field_spm_map']['table'] = 'field_data_field_spm_map';
-  $handler->display->display_options['fields']['field_spm_map']['field'] = 'field_spm_map';
-  $handler->display->display_options['fields']['field_spm_map']['label'] = '';
-  $handler->display->display_options['fields']['field_spm_map']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_spm_map']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_spm_map']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['field_spm_map']['click_sort_column'] = 'region_id';
-  $handler->display->display_options['fields']['field_spm_map']['settings'] = array(
-    'display_convex_hull' => '0'
-  );
-  $handler->display->display_options['fields']['field_spm_map']['group_rows'] = 1;
-  $handler->display->display_options['fields']['field_spm_map']['delta_offset'] = '0';
-  $handler->display->display_options['fields']['field_spm_map']['delta_reversed'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['delta_first_last'] = 0;
-  $handler->display->display_options['fields']['field_spm_map']['field_api_classes'] = 0;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Contextual filter: Content: Has taxonomy term ID */
+  $handler->display->display_options['arguments']['tid']['id'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+  $handler->display->display_options['arguments']['tid']['field'] = 'tid';
+  $handler->display->display_options['arguments']['tid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['tid']['default_argument_type'] = 'taxonomy_tid';
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['term_page'] = 1;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['node'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_options']['limit'] = 0;
+  $handler->display->display_options['arguments']['tid']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
+  $handler->display->display_options['arguments']['tid']['add_table'] = 0;
+  $handler->display->display_options['arguments']['tid']['require_value'] = 0;
+  $handler->display->display_options['arguments']['tid']['reduce_duplicates'] = 0;
+  $handler->display->display_options['arguments']['tid']['set_breadcrumb'] = 0;
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
@@ -1667,7 +1662,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'location' => 'location'
+    'specimen_observation' => 'specimen_observation'
   );
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
