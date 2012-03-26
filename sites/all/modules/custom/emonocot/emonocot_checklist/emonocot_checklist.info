@@ -1,0 +1,5 @@
+core = "7.x"
+description = "Provides checklist displays of classifications"
+name = "eMonocot Checklist"
+package = "eMonocot"
+
