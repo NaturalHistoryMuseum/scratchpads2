@@ -100,6 +100,15 @@ function creative_commons_field_formatter_view($entity_type, $entity, $field, $i
 }
 
 /**
+ * Always set default licence to creative_commons_block_licence_type
+ */
+function creative_commons_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
+  foreach($items as $delta => $item){
+    $items[$delta]['licence'] = variable_get('creative_commons_block_licence_type', CC_BY);
+  }
+}
+
+/**
  * Helper function to build the render array for the creative commons logo & link
  */
 function creative_commons_display($licence_type, $jurisdiction, $display_type){
@@ -113,7 +122,7 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
     case CC_NONE:
       return array(
         '#type' => 'markup',
-        '#markup' => creative_commons_get_licence_types(CC_NONE),
+        '#markup' => creative_commons_get_licence_types(CC_NONE)
       );
       break;
     case CC_BY:
