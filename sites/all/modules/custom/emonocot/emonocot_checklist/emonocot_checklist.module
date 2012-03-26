@@ -4,7 +4,7 @@
  * Implementation of hook_menu()
  */
 function emonocot_checklist_menu(){
-  $items['checklist/%'] = array(
+  $items['checklist/%taxonomy_term'] = array(
     'title' => '',
     'page callback' => 'emonocot_checklist_view_checklist',
     'page arguments' => array(
@@ -14,7 +14,7 @@ function emonocot_checklist_menu(){
     'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );
-  $items['checklist/%/all'] = array(
+  $items['checklist/%taxonomy_term/all'] = array(
     'title' => '',
     'page callback' => 'emonocot_checklist_checklist_full',
     'page arguments' => array(1),
@@ -32,7 +32,7 @@ function emonocot_checklist_menu(){
       'type' => MENU_LOCAL_TASK,
       'weight' => 24,
       'file' => 'taxonomy.pages.inc',
-      'file path' => drupal_get_path('module', 'taxonomy')
+      'file path' => drupal_get_path('module', 'taxonomy'),
     );
     $items['taxonomy/term/%taxonomy_term/synonyms'] = array(
       'title' => 'Synonyms',
@@ -45,18 +45,19 @@ function emonocot_checklist_menu(){
       'type' => MENU_LOCAL_TASK,
       'weight' => 24,
       'file' => 'taxonomy.pages.inc',
-      'file path' => drupal_get_path('module', 'taxonomy')
+      'file path' => drupal_get_path('module', 'taxonomy'),
+      'weight' => 1,
     );
   return $items;
 }
 
 
 
-
 /**
  * Provide list of synonyms
  */
-function emonocot_checklist_view_synonyms($term){
+function emonocot_checklist_view_synonyms($term){ 
+  emonocot_checklist_add_css();
   $output  = views_embed_view('checklist_children', 'synonyms', $term->tid);
   return $output;
 }
@@ -65,80 +66,73 @@ function emonocot_checklist_view_synonyms($term){
 /**
  * Provides checklist pages
  */
-function emonocot_checklist_view_checklist($tid, $kind = 'types'){
-  //Check is $tid is an object
-  if (is_object($tid)){
-  	$tid = $tid->tid;
-  }
-	
-  drupal_add_css(drupal_get_path('module', 'emonocot_checklist') . '/emonocot-checklist.css', 'file');
-  //Load the root term
-  $term = taxonomy_term_load($tid);
+function emonocot_checklist_view_checklist($term, $kind = 'types'){
+  emonocot_checklist_add_css();
   $term = emonocot_checklist_prepare_term($term);
-  $output = emonocot_checklist_switcher($tid);
+  $output = emonocot_checklist_switcher($term);
   switch($kind){
     case 'types':
-      $output .= emonocot_checklist_checklist_types($tid, $term);
+      $output .= emonocot_checklist_checklist_types($term);
       break;
     case 'geo':
-      $output .= emonocot_checklist_checklist_geo($tid, $term);
+      $output .= emonocot_checklist_checklist_geo($term);
       break;
     default:
-      $output .= emonocot_checklist_checklist_types($tid, $term);
+      $output .= emonocot_checklist_checklist_types($term);
   }
   return $output;
 }
 
+function emonocot_checklist_add_css(){
+	drupal_add_css(drupal_get_path('module', 'emonocot_checklist') . '/emonocot-checklist.css', 'file');
+}
 
-function emonocot_checklist_checklist_full($root_tid) {
-  $output  = emonocot_checklist_higher_classification($root_tid);
-  $output .= emonocot_checklist_view_checklist_recursive($root_tid);
+function emonocot_checklist_checklist_full($root_term) {
+  $output  = emonocot_checklist_higher_classification($root_term);
+  $output .= emonocot_checklist_view_checklist_recursive($root_term);
   return $output;
 }
 
-function emonocot_checklist_view_checklist_recursive($root_tid, $text = '') {
-  $term = taxonomy_term_load($root_tid);
+function emonocot_checklist_view_checklist_recursive($root_term, $text = '') {
   $term = emonocot_checklist_prepare_term($term);
   
-  $text .= emonocot_checklist_types_data($term->tid, $term);
-  
-  foreach (taxonomy_get_children($term->tid, $term->vid) as $child){
-  	$text = emonocot_checklist_view_checklist_recursive($child->tid, $text);
+  $text .= emonocot_checklist_types_data($term);
+     foreach (taxonomy_get_children($term->tid, $term->vid) as $child){
+  	$text = emonocot_checklist_view_checklist_recursive($child, $text);
   }
   
   return $text;
-  
 }
 
-function emonocot_checklist_checklist_types($tid, $term){
-  $output  = emonocot_checklist_higher_classification($tid);
-  $output .= emonocot_checklist_types_data($tid, $term);
+function emonocot_checklist_checklist_types($term){
+  $output  = emonocot_checklist_higher_classification($term);
+  $output .= emonocot_checklist_types_data($term);
   return $output;
 }
 
-function emonocot_checklist_types_data($tid, $term){
+function emonocot_checklist_types_data($term){
   //Display name of current term
   $output .= '<h1 class="checklist-h1">' . $term->name_formatted . ' <span>' . $term->field_authors['und'][0]['value'] . '</span></h1>';
   //Types of this name
   $output .= emonocot_checklist_type_info($term);
   //Include view of children
-  $output .= views_embed_view('checklist_children', 'synonyms', $tid);
-  $output .= views_embed_view('checklist_children', 'valid_children', $tid);
+  $output .= views_embed_view('checklist_children', 'synonyms', $term->tid);
+  $output .= views_embed_view('checklist_children', 'valid_children', $term->tid);
   return $output;
 }
 
-function emonocot_checklist_checklist_geo($tid, $term){
+function emonocot_checklist_checklist_geo($term){
   //Preamble
-  $output .= emonocot_checklist_higher_classification($tid) . '<br/>';
+  $output .= emonocot_checklist_higher_classification($term) . '<br/>';
   //Display name of current term
   $output .= '<h1 class="checklist-h1">' . $term->name_formatted . ' <span>' . $term->field_authors['und'][0]['value'] . '</span></h1>';
   return $output;
 }
 
-function emonocot_checklist_switcher($tid){
-  $output = l('Taxonomic', 'checklist/' . $tid);
+function emonocot_checklist_switcher($term){
+  $output = l('Taxonomic', 'checklist/' . $term->tid);
   $output .= ' | ';
-  $output .= l('Geographic', 'checklist/' . $tid . '/geo');
+  $output .= l('Geographic', 'checklist/' . $term->tid . '/geo');
   $output .= '<br/><br/>';
   return $output;
 }
@@ -152,7 +146,7 @@ function emonocot_checklist_prepare_term($term){
 }
 
 function emonocot_checklist_clean_name($term){
-  //Include scratchpads_species so we can reuse the code to fromat names
+  //Include scratchpads_species so we can reuse the code to format names
   module_load_include('module', 'scratchpads_species');
   return theme_scratchpads_species_name(array(
     'term' => $term
@@ -175,9 +169,9 @@ function emonocot_checklist_type_info($term){
 /**
  * Load the higher classification to put the checklist in context
  */
-function emonocot_checklist_higher_classification($tid){
+function emonocot_checklist_higher_classification($term){
   //$output = '<strong>Higher classification:</strong><br/>';
-  $parents = array_reverse(taxonomy_get_parents_all($tid));
+  $parents = array_reverse(taxonomy_get_parents_all($term->tid));
   $i = 0;
   $padding = '&nbsp;&nbsp;';
   foreach($parents as $key => $term){
