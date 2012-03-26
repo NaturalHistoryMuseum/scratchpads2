@@ -21,13 +21,56 @@ function emonocot_checklist_menu(){
     'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );
+  $items['taxonomy/term/%taxonomy_term/checklist'] = array(
+      'title' => 'Checklist',
+      'page callback' => 'emonocot_checklist_view_checklist',
+      'page arguments' => array(
+        2,
+        4
+      ),
+      'access callback' => TRUE,
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 24,
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    );
+    $items['taxonomy/term/%taxonomy_term/synonyms'] = array(
+      'title' => 'Synonyms',
+      'page callback' => 'emonocot_checklist_view_synonyms',
+      'page arguments' => array(
+        2,
+        4
+      ),
+      'access callback' => TRUE,
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 24,
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    );
   return $items;
 }
+
+
+
+
+/**
+ * Provide list of synonyms
+ */
+function emonocot_checklist_view_synonyms($term){
+  $output  = views_embed_view('checklist_children', 'synonyms', $term->tid);
+  return $output;
+}
+
 
 /**
  * Provides checklist pages
  */
 function emonocot_checklist_view_checklist($tid, $kind = 'types'){
+  //Check is $tid is an object
+  if (is_object($tid)){
+  	$tid = $tid->tid;
+  }
+	
   drupal_add_css(drupal_get_path('module', 'emonocot_checklist') . '/emonocot-checklist.css', 'file');
   //Load the root term
   $term = taxonomy_term_load($tid);
@@ -80,7 +123,7 @@ function emonocot_checklist_types_data($tid, $term){
   $output .= emonocot_checklist_type_info($term);
   //Include view of children
   $output .= views_embed_view('checklist_children', 'synonyms', $tid);
-  //$output .= views_embed_view('checklist_children', 'valid_children', $tid);
+  $output .= views_embed_view('checklist_children', 'valid_children', $tid);
   return $output;
 }
 
@@ -160,9 +203,87 @@ function emonocot_checklist_views_api(){
   );
 }
 
-function emonocot_checklist_context_load_alter(&$context){
-  $terd .= '.';
+function emonocot_checklist_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "context" && $api == "context") {
+    return array("version" => "3");
+  }
 }
 
+function emonocot_checklist_context_default_contexts() {
+  $export = array();
 
+  $context = new stdClass;
+  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->api_version = 3;
+  $context->name = 'species_checklist';
+  $context->description = 'Checklist species page.';
+  $context->tag = 'Species';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'taxonomy/term/*/checklist' => 'taxonomy/term/*/checklist',
+      ),
+    ),
+  );
 
+  $context->condition_mode = 0;
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Checklist species page.');
+  t('Species');
+  $export['species_checklist'] = $context;
+  
+  $context = new stdClass;
+  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
+  $context->api_version = 3;
+  $context->name = 'species_synonyms';
+  $context->description = 'Checklist species page.';
+  $context->tag = 'Species';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'taxonomy/term/*/checklist' => 'taxonomy/term/*/synonyms',
+      ),
+    ),
+  );
+
+  $context->condition_mode = 0;
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Checklist species page.');
+  t('Species');
+  $export['species_synonyms'] = $context;
+
+  return $export;
+}
+
+function emonocot_checklist_context_load_alter(&$context){
+  if($context->name == 'species_checklist' || $context-> name == 'species_synonyms'){
+    //Get vid
+    global $_GET;
+    $args = explode('/', $_GET['q']);
+    if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
+      $result = db_query("SELECT vid FROM {taxonomy_term_data} WHERE tid = :tid", array(
+        ':tid' => $args[2]
+      ));
+      $vid = $result->fetchObject()->vid;
+
+      $context->reactions = array(
+      'block' => array(
+        'blocks' => array(
+          'tinytax-'.$vid => array(
+            'module' => 'tinytax',
+            'delta' => $vid,
+            'region' => 'sidebar',
+            'weight' => '0',
+          ),
+        ),
+      ),
+    'menu' => 'classification/'.$vid,
+  );
+    }
+  }
+}
