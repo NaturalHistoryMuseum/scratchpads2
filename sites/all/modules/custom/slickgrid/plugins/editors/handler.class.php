@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Base class for export UI.
+ * Base class for slickgrid editor.
  */
 class slickgrid_editors{
 
