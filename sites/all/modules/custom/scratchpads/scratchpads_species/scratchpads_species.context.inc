@@ -46,7 +46,7 @@ function scratchpads_species_context_default_contexts(){
       }
     }
   }
-  // Get tabs - we need to add in the voerview tab here too
+  // Get tabs - we need to add in the overview tab here too
   $tabs = array_merge(array(
     'overview' => t("Overview")
   ), scratchpads_species_get_tabs());

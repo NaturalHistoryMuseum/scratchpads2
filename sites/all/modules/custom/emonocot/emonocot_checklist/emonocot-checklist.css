@@ -1,0 +1,16 @@
+@CHARSET "UTF-8";
+
+.checklist-list h3 {
+	font-size: 14px;
+	font-family: Verdana, Helvetica, Arial, sans-serif !important;
+}
+
+.checklist-list ul {
+	list-style: none outside none;
+	padding-left: 15px;
+	margin-bottom: 0px;
+}
+
+.checklist-h1 {
+	margin-bottom: 0px;
+}
