@@ -1,0 +1,28 @@
+<?php
+
+function scratchpads_training_install(){
+  variable_set('site_name', 'Scratchpad training site');
+  $account = user_load(1);
+  $account->name = 'Scratchpad Team';
+  $account->mail = 'scratchpad@nhm.ac.uk';
+  user_save($account);
+  // Ensure this user can not login directly.
+  db_update('users')->fields(array(
+    'pass' => ''
+  ))->condition('uid', 1)->execute();
+  // Create a new account for the trainee.
+  $account = new stdClass();
+  $account->is_new = TRUE;
+  $account->name = 'Scratchpad Trainee';
+  $account->mail = 'scratchpad@nhm.ac.uk';
+  $account->status = 1;
+  $account->roles = array(
+    5 => TRUE
+  );
+  $account->pass = user_hash_password('password');
+  user_save($account);
+  // Disable the update module!!!!
+  module_disable(array(
+    'update'
+  ), FALSE);
+}
