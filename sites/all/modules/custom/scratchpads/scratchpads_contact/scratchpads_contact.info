@@ -4,3 +4,5 @@ description = "Scratchpads contact forms"
 package = "Scratchpads"
 dependencies[] = modal_forms
 dependencies[] = contact
+
+scripts[] = js/scratchpads_contact.js
