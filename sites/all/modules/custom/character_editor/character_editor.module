@@ -348,8 +348,8 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
 }
 
 function character_editor_character_form_after_build(&$form, &$form_state){
-	// Bug fix: subform destroys the $_POST array so slickgrid doesn't know when form has validated
-	// Manually set it here
+  // Bug fix: subform destroys the $_POST array so slickgrid doesn't know when form has validated
+  // Manually set it here
   if(empty($_POST)){
     $form['#validated'] = true;
   }
@@ -721,9 +721,14 @@ function character_editor_state_form_process($editor){
   $form_state['values'] = $_POST;
   // Additional form_state settings required for ctools modal forms
   $editor->entity_info = entity_get_info($editor->entity_type);
-  $form_state['title'] = format_plural(count($editor->entities), 'Update 1 %type', 'Update @count %types', array(
-    '%type' => strtolower($editor->entity_info['label'])
-  ));
+  switch($form_state['values']['character_type']){
+    case 'text':
+    	$form_state['title'] = t("Editing text character");
+      break;
+    case 'dna':
+    	$form_state['title'] = t("Editing DNA character");
+      break;
+  }
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
