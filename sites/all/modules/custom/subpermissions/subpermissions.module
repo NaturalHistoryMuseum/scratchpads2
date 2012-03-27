@@ -55,7 +55,7 @@ function subpermissions_menu(){
  * need it if we have access to the full form).
  */
 function subpermissions_access_subpermissions_form(){
-  if(!user_access('administer permissions') && user_access('access subpermission form')){return TRUE;}
+  if(!user_access('administer permissions') && user_access('access subpermission form') && count(variable_get('subpermissions_config', array()))){return TRUE;}
   return FALSE;
 }
 

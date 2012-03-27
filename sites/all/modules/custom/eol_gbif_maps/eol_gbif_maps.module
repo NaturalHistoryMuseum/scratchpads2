@@ -87,6 +87,12 @@ function eol_gbif_maps_library(){
         array(
           'data' => drupal_get_path('module', 'eol_gbif_maps') . '/css/eol_gbif_maps.css'
         )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
       )
     )
   );
