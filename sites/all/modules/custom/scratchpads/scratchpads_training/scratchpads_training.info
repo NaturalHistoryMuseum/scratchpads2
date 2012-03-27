@@ -1,0 +1,5 @@
+name = Scratchpads training module
+description = Tweaks a Scratchpads site specifically for a training purposes.
+core = 7.x
+dependencies[] = scratchpads_tweaks
+files[] = scratchpad_2_training.profile

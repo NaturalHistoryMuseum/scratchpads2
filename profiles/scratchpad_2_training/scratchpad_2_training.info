@@ -1,0 +1,4 @@
+name = Scratchpad 2 training
+description = Install a Scratchpad 2 training site
+core = 7.x
+dependencies[] = scratchpads_training
