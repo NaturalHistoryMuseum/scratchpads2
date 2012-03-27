@@ -29,75 +29,78 @@ function subpermissions_admin_permissions($form, $form_state){
   asort($modules);
   // Get our permissions
   $subset = variable_get('subpermissions_config', array());
-  //print_r($subset);exit;
-  foreach($modules as $module => $display_name){
-    if($permissions = module_invoke($module, 'permission')){
-      $form['permission'][] = array(
-        '#markup' => $module_info[$module]['name'],
-        '#id' => $module
-      );
-      $set_a_permission = FALSE;
-      foreach($permissions as $perm => $perm_item){
-        if(isset($subset[$perm]) && $subset[$perm]){
-          // Fill in default values for the permission.
-          $perm_item += array(
-            'description' => '',
-            'restrict access' => FALSE
-          );
-          if($perm_item['restrict access']){
-            continue;
-          }
-          $set_a_permission = TRUE;
-          $options[$perm] = '';
-          $form['permission'][$perm] = array(
-            '#type' => 'item',
-            '#markup' => $perm_item['title'],
-            '#description' => theme('user_permission_description', array(
-              'permission_item' => $perm_item,
-              'hide' => $hide_descriptions
-            ))
-          );
-          foreach($role_names as $rid => $name){
-            // Builds arrays for checked boxes for each role
-            if(isset($role_permissions[$rid][$perm])){
-              $status[$rid][] = $perm;
+  if(count($subset)){
+    foreach($modules as $module => $display_name){
+      if($permissions = module_invoke($module, 'permission')){
+        $form['permission'][] = array(
+          '#markup' => $module_info[$module]['name'],
+          '#id' => $module
+        );
+        $set_a_permission = FALSE;
+        foreach($permissions as $perm => $perm_item){
+          if(isset($subset[$perm]) && $subset[$perm]){
+            // Fill in default values for the permission.
+            $perm_item += array(
+              'description' => '',
+              'restrict access' => FALSE
+            );
+            if($perm_item['restrict access']){
+              continue;
+            }
+            $set_a_permission = TRUE;
+            $options[$perm] = '';
+            $form['permission'][$perm] = array(
+              '#type' => 'item',
+              '#markup' => $perm_item['title'],
+              '#description' => theme('user_permission_description', array(
+                'permission_item' => $perm_item,
+                'hide' => $hide_descriptions
+              ))
+            );
+            foreach($role_names as $rid => $name){
+              // Builds arrays for checked boxes for each role
+              if(isset($role_permissions[$rid][$perm])){
+                $status[$rid][] = $perm;
+              }
             }
           }
         }
-      }
-      if(!$set_a_permission){
-        // There are no alterable permissions for this module, we should unset
-        // the markup
-        array_pop($form['permission']);
+        if(!$set_a_permission){
+          // There are no alterable permissions for this module, we should unset
+          // the markup
+          array_pop($form['permission']);
+        }
       }
     }
-  }
-  // Have to build checkboxes here after checkbox arrays are built
-  foreach($role_names as $rid => $name){
-    $form['checkboxes'][$rid] = array(
-      '#type' => 'checkboxes',
-      '#options' => $options,
-      '#default_value' => isset($status[$rid]) ? $status[$rid] : array()
+    // Have to build checkboxes here after checkbox arrays are built
+    foreach($role_names as $rid => $name){
+      $form['checkboxes'][$rid] = array(
+        '#type' => 'checkboxes',
+        '#options' => $options,
+        '#default_value' => isset($status[$rid]) ? $status[$rid] : array()
+      );
+      $form['role_names'][$rid] = array(
+        '#markup' => check_plain($name),
+        '#tree' => TRUE
+      );
+    }
+    $form['actions'] = array(
+      '#type' => 'actions'
     );
-    $form['role_names'][$rid] = array(
-      '#markup' => check_plain($name),
-      '#tree' => TRUE
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save permissions')
     );
+    $form['#attached']['js'][] = drupal_get_path('module', 'user') . '/user.permissions.js';
+    $form['#theme'] = array(
+      'user_admin_permissions'
+    );
+    $form['#submit'] = array(
+      'user_admin_permissions_submit'
+    );
+  }else{
+    drupal_set_message(t('There are currently no permissions available for you to set.'));
   }
-  $form['actions'] = array(
-    '#type' => 'actions'
-  );
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save permissions')
-  );
-  $form['#attached']['js'][] = drupal_get_path('module', 'user') . '/user.permissions.js';
-  $form['#theme'] = array(
-    'user_admin_permissions'
-  );
-  $form['#submit'] = array(
-    'user_admin_permissions_submit'
-  );
   return $form;
 }
 
