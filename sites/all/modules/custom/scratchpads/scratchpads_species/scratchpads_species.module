@@ -313,7 +313,7 @@ function scratchpads_species_preprocess_block(&$vars){
     list($name, $display_id) = $explode;
     if($view = views_get_view($name)){
       $view->execute();
-      // If there's only one result, we can try ans provide an edit link
+      // If there's only one result, we can try and provide an edit link
       if(count($view->result) === 1){
         switch($view->base_field){
           case 'tid':
