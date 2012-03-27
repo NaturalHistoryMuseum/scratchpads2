@@ -71,16 +71,6 @@ function scratchpads_contact_abuse_types(){
   );
 }
 
-/**
- * Implements hook_ctools_plugin_api().
- */
-function contact_ctools_plugin_api(){
-  list($module, $api) = func_get_args();
-  if($module == "strongarm" && $api == "strongarm"){return array(
-      "version" => "1"
-    );}
-}
-
 function scratchpads_contact_get_categories(){
   $query = db_select('contact', 'c');
   $query->fields('c', array(
@@ -90,6 +80,3 @@ function scratchpads_contact_get_categories(){
   $result = $query->execute();
   return $result->fetchAllAssoc('cid');
 }
-
-
-

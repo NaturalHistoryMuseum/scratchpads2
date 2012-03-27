@@ -114,7 +114,7 @@ DirectoryIndex index.php index.html index.htm
   RewriteCond %{REQUEST_URI} (^/(admin|cache|misc|modules|sites|system|openid|themes|node/add|comment/reply))|(/(edit|user|user/(login|password|register))$) [OR]
   RewriteCond %{HTTPS} on [OR]
   RewriteCond %{HTTP_COOKIE} DRUPAL_UID [OR]
-  RewriteCond %{HTTP:Pragma} no-cache [OR]
+  RewriteCond %{HTTP:Pragma} no-cache
   RewriteRule .* - [S=3]
 
   # GZIP
