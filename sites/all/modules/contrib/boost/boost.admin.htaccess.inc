@@ -219,7 +219,8 @@ function boost_admin_htaccess_generate_htaccess() {
     if (variable_get('boost_ssl_bypass', BOOST_SSL_BYPASS)) {
       $string .= "  RewriteCond %{HTTPS} on [OR]\n";
     }
-    $string .= "  RewriteCond %{HTTP_COOKIE} " . variable_get('boost_cookie', BOOST_COOKIE) . "\n";
+    $string .= "  RewriteCond %{HTTP_COOKIE} " . variable_get('boost_cookie', BOOST_COOKIE) . " [OR]\n";
+    $string .= "  RewriteCond %{ENV:REDIRECT_STATUS} 200\n";
     $string .= "  RewriteRule .* - [S=$skip]\n";
     $string .= "\n";
     $string .= "  # GZIP\n";
@@ -263,3 +264,4 @@ function boost_admin_htaccess_array_find($needle, $haystack, $a_not = array()) {
   }
   return $out;
 }
+
