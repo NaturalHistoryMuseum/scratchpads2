@@ -106,9 +106,9 @@ function switch_element_info(){
   $types['switch']['#attached']['js'][] = array(
     'data' => array(
       'switch' => array(
-        'switch_on_container_path' => url($path . '/images/iphone_switch_container_on.png'),
-        'switch_off_container_path' => url($path . '/images/iphone_switch_container_off.png'),
-        'switch_path' => url($path . '/images/iphone_switch.png'),
+        'switch_on_container_path' => file_create_url($path . '/images/iphone_switch_container_on.png'),
+        'switch_off_container_path' => file_create_url($path . '/images/iphone_switch_container_off.png'),
+        'switch_path' => file_create_url($path . '/images/iphone_switch.png'),
         'mouse_over' => 'pointer',
         'mouse_out' => 'default',
         'switch_height' => 27,
