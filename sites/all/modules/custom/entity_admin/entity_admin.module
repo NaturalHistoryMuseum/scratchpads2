@@ -425,7 +425,9 @@ function entity_admin_metadata_form_entity($entity){
   $form_state['build_info']['args'] = array(
     $entity
   );
-  return drupal_build_form('entity_admin_entity_form', $form_state);
+  $form = drupal_build_form('entity_admin_entity_form', $form_state);
+  return $form;
+  
 }
 
 /**

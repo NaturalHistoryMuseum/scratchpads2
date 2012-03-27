@@ -13,8 +13,6 @@ function scratchpads_contact_install(){
     'category' => 'Contact us',
     'recipients' => 'site-email-address@scratchpads.eu'
   ))->condition('cid', 1)->execute();
-  // Set the contact forms to use the modal form.
-  variable_set('modal_forms_contact', 1);
 }
 
 function scratchpads_contact_uninstall(){
