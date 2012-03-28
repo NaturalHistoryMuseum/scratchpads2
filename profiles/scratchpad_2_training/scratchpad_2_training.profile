@@ -43,9 +43,6 @@ function scratchpad_2_training_install_configure_form(){
   $edit['name'] = 'user';
   $edit['password'] = 'password';
   user_save(NULL, $edit);
-  global $user;
-  $user = user_load(2);
-  user_login_finalize();
 }
 
 function scratchpad_2_training_select_locale(&$install_state){
