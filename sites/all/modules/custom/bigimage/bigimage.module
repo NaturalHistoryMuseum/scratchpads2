@@ -324,7 +324,7 @@ function theme_bigimage($variables){
     // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#tile_numbers_to_lon.2Flat_4
     $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
     $image = null;
-    return drupal_render(theme('gm3_map', array(
+    return theme('gm3_map', array(
       'map' => array(
         'id' => 'bigimage-' . $variables['item']['fid'],
         'settings' => array(
@@ -369,7 +369,7 @@ function theme_bigimage($variables){
           )*/
         )
       )
-    )));
+    ));
   }
 }
 
