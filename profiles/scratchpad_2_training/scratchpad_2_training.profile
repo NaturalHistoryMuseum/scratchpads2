@@ -40,13 +40,13 @@ function scratchpad_2_training_install_configure_form(){
     'pass' => ''
   ))->condition('uid', 1)->execute();
   // Create a new account for the trainee.
-  $edit['name'] = 'user';
+  $edit['name'] = 'username';
   user_save(NULL, $edit);
   // No idea why, but having issues with setting the password for this user, so
   // instead we'll hard code it!
   db_update('users')->fields(array(
     'pass' => user_hash_password('password')
-  ))->condition('uid', 1)->execute();
+  ))->condition('uid', 2)->execute();
 }
 
 function scratchpad_2_training_select_locale(&$install_state){
