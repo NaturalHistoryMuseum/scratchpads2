@@ -7,3 +7,12 @@ function darwincore_install(){
   // Clear the errors.
   drupal_get_messages('warning');
 }
+
+/**
+ * Change the input format for the date collected field.
+ */
+function darwincore_update_7001(){
+  $field_instance = field_info_instance('node', 'field_date_collected', 'specimen_observation');
+  $field_instance['widget']['settings']['input_format'] = 'Y/m/d - H:i:s';
+  field_update_instance($field_instance);
+}
