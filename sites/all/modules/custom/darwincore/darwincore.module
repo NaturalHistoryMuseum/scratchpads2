@@ -1,2 +1,53 @@
 <?php
 include_once ('darwincore.features.inc');
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function darwincore_form_specimen_observation_node_form_alter(&$form, &$form_state, $form_id){
+  if(!isset($form['#validate'])){
+    $form['#validate'] = array();
+  }
+  $form['#validate'][] = 'darwincore_specimen_observation_node_form_validate';
+}
+
+/**
+ * Validate function to ensure that the IDs for this specimen are unique.
+ */
+function darwincore_specimen_observation_node_form_validate($form, &$form_state){
+  // Because we hold the data in separate fields (yay for the efficient fields
+  // modules!), we'll start with the catalogue number and work up.
+  $count = db_query('SELECT COUNT(*) FROM {field_data_field_catalogue_number} WHERE field_catalogue_number_value = :value AND entity_id != :nid', array(
+    ':value' => $form_state['values']['field_catalogue_number'][LANGUAGE_NONE][0]['value'],
+    ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
+  ))->fetchCol();
+  if(array_pop($count)){
+    // We have a matching catalogue number.  Now we need to check the
+    // collection code
+    $count = db_query('SELECT COUNT(*) FROM {field_data_field_institution_code} WHERE field_institution_code_value = :value AND entity_id != :nid', array(
+      ':value' => $form_state['values']['field_institution_code'][LANGUAGE_NONE][0]['value'],
+      ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
+    ))->fetchCol();
+    if(array_pop($count)){
+      // We have a matching institution code number.  Now we need to check the
+      // institution code.
+      $count = db_query('SELECT COUNT(*) FROM {field_data_field_collection_code} WHERE field_collection_code_value = :value AND entity_id != :nid', array(
+        ':value' => $form_state['values']['field_collection_code'][LANGUAGE_NONE][0]['value'],
+        ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
+      ))->fetchCol();
+      if(array_pop($count)){
+        // A match.  Set an error.
+        form_set_error('field_catalogue_number', t('The "Institution code/Collection code/Catalogue number" combination is not unique.'));
+        // The following is one almightly cludge!
+        form_set_error('field_collection_code', 'REMOVETHISMESSAGE');
+        form_set_error('field_institution_code', 'REMOVETHISMESSAGE');
+        $messages = drupal_get_messages('error');
+        foreach($messages['error'] as $value){
+          if($value != 'REMOVETHISMESSAGE'){
+            drupal_set_message($value, 'error');
+          }
+        }
+      }
+    }
+  }
+}
