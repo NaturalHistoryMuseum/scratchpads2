@@ -9,9 +9,9 @@ function entity_admin_admin_paths(){
   foreach(array_keys($entity_info) as $entity_type){
     $class = $entity_info[$entity_type]['admin ui']['controller class'];
     if(@method_exists($class, 'ops')){
-      $entity_path = entity_admin_entity_get_path($entity_type, $entity_info[$entity_type]);
+      $entity_path = entity_admin_entity_get_path($entity_type, $entity_info[$entity_type], '*');
       foreach(array_keys($class::ops()) as $op){
-        $paths[$entity_path . '/*/' . $op] = TRUE;
+        $paths[$entity_path . '/' . $op] = TRUE;
       }
     }
   }
@@ -129,7 +129,7 @@ function entity_admin_entity_label_key($entity_info){
  * Get the base path of an enity
  * FIXME - This doesn't work if the bundle has a different path
  */
-function entity_admin_entity_get_path($entity_type, $entity_info, $wildcard = null){
+function entity_admin_entity_get_path($entity_type, $entity_info, $placeholder = null){
   $entityClass = isset($entity_info['entity class']) ? $entity_info['entity class'] : 'Entity';
   $bundle_key = $entity_info['bundle keys']['bundle'];
   $name_key = isset($entity_info['entity keys']['name']) ? $entity_info['entity keys']['name'] : $entity_info['entity keys']['id'];
@@ -139,9 +139,9 @@ function entity_admin_entity_get_path($entity_type, $entity_info, $wildcard = nu
   $entity = new $entityClass(array(
     $bundle_key => false
   ), $entity_type);
-  // So that the wildcard is put in the right part of the URL, set the ID of this dummy object to the wildcard 
-  if($wildcard){
-    $entity->{$name_key} = $wildcard;
+  // So that the wildcards and *s (for admin paths) are put in the right part of the URL, set the ID of this dummy object to the placeholder 
+  if($placeholder){
+    $entity->{$name_key} = $placeholder;
   }
   $entity_uri = entity_uri($entity_type, $entity);
   return rtrim($entity_uri['path'], '/');
