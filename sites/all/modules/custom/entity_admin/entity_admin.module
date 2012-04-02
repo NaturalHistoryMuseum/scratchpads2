@@ -373,6 +373,7 @@ function entity_admin_entity_form_submit(&$form, &$form_state){
     $entity->uid = $user->uid;
   }
   $entity->changed = time();
+
   $form_state['id'] = $entity->save();
   $form_state['redirect'] = $entity->uri();
 }
