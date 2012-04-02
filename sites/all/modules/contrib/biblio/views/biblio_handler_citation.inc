@@ -1,6 +1,6 @@
 <?php
 class biblio_handler_citation extends views_handler_field {
-  function init(&$view, $options) {
+  function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
   }

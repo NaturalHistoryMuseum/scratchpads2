@@ -11,7 +11,7 @@ function eol_gbif_maps_gm3_map_alter(&$map){
     // add the eol/gbif library to the map.
     // First we check to see if we've loaded this term before, and if so, we
     // use that data.
-    $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol('taxon_id');
+    $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol(1);
     if(count($col)){
       $map['libraries']['eol_gbif_maps_overlay'] = array(
         'module' => 'eol_gbif_maps',

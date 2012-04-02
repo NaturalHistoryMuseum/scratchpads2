@@ -1851,7 +1851,7 @@ function darwincore_field_default_fields(){
         'module' => 'date',
         'settings' => array(
           'increment' => 1,
-          'input_format' => 'd/m/Y - g:i:sa',
+          'input_format' => 'Y/m/d - H:i:s',
           'input_format_custom' => '',
           'label_position' => 'above',
           'repeat_collapsed' => 0,
