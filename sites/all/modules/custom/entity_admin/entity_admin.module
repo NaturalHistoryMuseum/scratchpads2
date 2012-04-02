@@ -129,14 +129,20 @@ function entity_admin_entity_label_key($entity_info){
  * Get the base path of an enity
  * FIXME - This doesn't work if the bundle has a different path
  */
-function entity_admin_entity_get_path($entity_type, $entity_info){
+function entity_admin_entity_get_path($entity_type, $entity_info, $wildcard = null){
   $entityClass = isset($entity_info['entity class']) ? $entity_info['entity class'] : 'Entity';
   $bundle_key = $entity_info['bundle keys']['bundle'];
+  $name_key = isset($entity_info['entity keys']['name']) ? $entity_info['entity keys']['name'] : $entity_info['entity keys']['id'];
+  ;
   //  $default_bundle = key(reset($entity_info['bundles']));
   // Initiate an entity so we can get the path 
   $entity = new $entityClass(array(
     $bundle_key => false
   ), $entity_type);
+  // So that the wildcard is put in the right part of the URL, set the ID of this dummy object to the wildcard 
+  if($wildcard){
+    $entity->{$name_key} = $wildcard;
+  }
   $entity_uri = entity_uri($entity_type, $entity);
   return rtrim($entity_uri['path'], '/');
 }
@@ -373,7 +379,6 @@ function entity_admin_entity_form_submit(&$form, &$form_state){
     $entity->uid = $user->uid;
   }
   $entity->changed = time();
-
   $form_state['id'] = $entity->save();
   $form_state['redirect'] = $entity->uri();
 }
@@ -428,7 +433,6 @@ function entity_admin_metadata_form_entity($entity){
   );
   $form = drupal_build_form('entity_admin_entity_form', $form_state);
   return $form;
-  
 }
 
 /**
