@@ -371,6 +371,10 @@ h2.site-name {
   padding: 20px 0 30px 0  
 }
 
+.zone-footer-wrapper p{
+  text-align: center;
+}
+
 /* Footer links & menu */
 
 .block-footer-menu{
