@@ -30,6 +30,7 @@ class EntityAdminEntityController extends EntityAdminController{
         'file' => 'includes/entity.ui.inc',
         'type' => MENU_LOCAL_TASK
       );
+      dd($this->path);
       // Add menu items to add each different type of entity.
       foreach(entity_admin_get_entities($this->entityInfo['type of']) as $type){
         $items[$this->path . '/add/' . $type->type] = array(
@@ -54,7 +55,7 @@ class EntityAdminEntityController extends EntityAdminController{
     $entity_path = entity_admin_entity_get_path($this->entityType, $this->entityInfo);
     $wildcard = isset($this->entityInfo['admin ui']['menu wildcard']) ? $this->entityInfo['admin ui']['menu wildcard'] : '%entity_object';
     $entity_path .= '/' . $wildcard;
-    $arg_pos = substr_count($entity_path, '/');
+    $arg_pos = substr_count($entity_path, '/', 0, strpos($entity_path, '%'));
     $items[$entity_path] = array(
       // The value in the position of the load function is always passed through first.
       'load arguments' => (isset($this->entityInfo['admin ui']['load arguments']) ? isset($this->entityInfo['admin ui']['load arguments']) : array(
