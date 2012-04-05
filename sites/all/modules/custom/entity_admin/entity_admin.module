@@ -127,14 +127,11 @@ function entity_admin_entity_label_key($entity_info){
 
 /**
  * Get the base path of an enity
- * FIXME - This doesn't work if the bundle has a different path
  */
 function entity_admin_entity_get_path($entity_type, $entity_info, $placeholder = null){
   $entityClass = isset($entity_info['entity class']) ? $entity_info['entity class'] : 'Entity';
   $bundle_key = $entity_info['bundle keys']['bundle'];
   $name_key = isset($entity_info['entity keys']['name']) ? $entity_info['entity keys']['name'] : $entity_info['entity keys']['id'];
-  ;
-  //  $default_bundle = key(reset($entity_info['bundles']));
   // Initiate an entity so we can get the path 
   $entity = new $entityClass(array(
     $bundle_key => false
