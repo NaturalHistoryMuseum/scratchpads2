@@ -69,16 +69,16 @@ function emonocot_checklist_view_synonyms($term){
 function emonocot_checklist_view_checklist($term, $kind = 'types'){
   emonocot_checklist_add_css();
   $term = emonocot_checklist_prepare_term($term);
-  $output = emonocot_checklist_switcher($term);
+  $output = emonocot_checklist_switcher_sp($term);
   switch($kind){
     case 'types':
-      $output .= emonocot_checklist_checklist_types($term);
+      $output .= emonocot_checklist_view_checklist_recursive($term, '', 'types');
       break;
     case 'geo':
       $output .= emonocot_checklist_checklist_geo($term);
       break;
     default:
-      $output .= emonocot_checklist_checklist_types($term);
+      $output .= emonocot_checklist_view_checklist_recursive($term, '', 'types');;
   }
   return $output;
 }
@@ -88,19 +88,34 @@ function emonocot_checklist_add_css(){
 }
 
 function emonocot_checklist_checklist_full($root_term) {
+  emonocot_checklist_add_css();
+  $root_term->checklist_depth = 0;
   $output  = emonocot_checklist_higher_classification($root_term);
   $output .= emonocot_checklist_view_checklist_recursive($root_term);
   return $output;
 }
 
-function emonocot_checklist_view_checklist_recursive($root_term, $text = '') {
+function emonocot_checklist_view_checklist_recursive($term, $text = '', $kind = 'types') {
   $term = emonocot_checklist_prepare_term($term);
-  
   $text .= emonocot_checklist_types_data($term);
-     foreach (taxonomy_get_children($term->tid, $term->vid) as $child){
-  	$text = emonocot_checklist_view_checklist_recursive($child, $text);
+  
+  //Set maximum depth to show
+  global $_GET;
+  $args = explode('/', $_GET['q']);
+  if ($args[0] == 'taxonomy' && $args[1] == 'term'){
+  	$max_depth = 0;
+  } else {
+  	$max_depth = 5;
   }
   
+  if ($term->checklist_depth < $max_depth){
+    foreach (taxonomy_get_children($term->tid, $term->vid) as $child){
+      if ($child->field_usage['und'][0]['value'] != 'not accepted' && $child->field_usage['und'][0]['value'] != 'invalid'){	
+        $child->checklist_depth = $term->checklist_depth + 1;
+  	    //$text = emonocot_checklist_view_checklist_recursive($child, $text), $kind;
+      }
+    }
+  }
   return $text;
 }
 
@@ -111,13 +126,25 @@ function emonocot_checklist_checklist_types($term){
 }
 
 function emonocot_checklist_types_data($term){
+  if(isset($term->checklist_depth)){
+  	$class = 'em_checklist_'.$term->checklist_depth;
+  } else {
+  	$class = 'em_checklist';
+  }
   //Display name of current term
+  $output = '<div class="'.$class.'">';
   $output .= '<h1 class="checklist-h1">' . $term->name_formatted . ' <span>' . $term->field_authors['und'][0]['value'] . '</span></h1>';
   //Types of this name
   $output .= emonocot_checklist_type_info($term);
+  
   //Include view of children
   $output .= views_embed_view('checklist_children', 'synonyms', $term->tid);
-  $output .= views_embed_view('checklist_children', 'valid_children', $term->tid);
+  global $_GET;
+  $args = explode('/', $_GET['q']);
+  if ($args[0] != 'checklist') {
+    $output .= views_embed_view('checklist_children', 'valid_children', $term->tid);
+  }
+  $output .= '</div>';
   return $output;
 }
 
@@ -129,10 +156,18 @@ function emonocot_checklist_checklist_geo($term){
   return $output;
 }
 
-function emonocot_checklist_switcher($term){
+function emonocot_checklist_switcher_all($term){
   $output = l('Taxonomic', 'checklist/' . $term->tid);
   $output .= ' | ';
   $output .= l('Geographic', 'checklist/' . $term->tid . '/geo');
+  $output .= '<br/><br/>';
+  return $output;
+}
+
+function emonocot_checklist_switcher_sp($term){
+  $output = l('Taxonomic', 'taxonomy/term/' . $term->tid . '/checklist');
+  $output .= ' | ';
+  $output .= l('Geographic', 'taxonomy/term/' . $term->tid . '/checklist/geo');
   $output .= '<br/><br/>';
   return $output;
 }
@@ -217,6 +252,7 @@ function emonocot_checklist_context_default_contexts() {
     'path' => array(
       'values' => array(
         'taxonomy/term/*/checklist' => 'taxonomy/term/*/checklist',
+        'taxonomy/term/*/checklist/*' => 'taxonomy/term/*/checklist/*',
       ),
     ),
   );
@@ -238,7 +274,7 @@ function emonocot_checklist_context_default_contexts() {
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'taxonomy/term/*/checklist' => 'taxonomy/term/*/synonyms',
+        'taxonomy/term/*/synonyms' => 'taxonomy/term/*/synonyms',
       ),
     ),
   );

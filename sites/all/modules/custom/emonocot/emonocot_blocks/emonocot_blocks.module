@@ -47,10 +47,15 @@ function emonocot_blocks_block_view($delta = ''){
       );
       $links = array(
         l(theme('image', array(
+          'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/emonocot_nobyline.png',
+          'alt' => 'eMonocot logo',
+          'title' => 'eMonocot'
+        )), 'http://e-monocot.org/', $options),
+        l(theme('image', array(
           'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
           'alt' => 'Scratchpads logo',
           'title' => 'Scratchpads'
-        )), 'http://scratchpads.eu/', $options)
+        )), 'http://scratchpads.eu/', $options),
       );
       $block['content'] = array(
         '#theme' => 'item_list',
