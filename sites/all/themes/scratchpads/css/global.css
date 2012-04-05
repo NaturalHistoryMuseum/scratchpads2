@@ -589,6 +589,10 @@ h2.site-name {
   list-style: disc;
 }
 
+.node table th, .node table td{
+  border: 1px solid #ACACAC;
+}
+
 
 /* Biblio */
 
