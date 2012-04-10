@@ -61,6 +61,52 @@ class FileEntityUnitTestCase extends FileEntityTestHelper {
     $uri = entity_uri('file', $file);
     $this->assertEqual($uri['path'], "file/{$file->fid}");
   }
+
+  function testImageDimensions() {
+    $images_dimensions = array();
+    $text_fids = array();
+    // Test hook_file_insert().
+    // Files have been saved as part of setup (in FileEntityTestHelper::setUpFiles).
+    foreach ($this->files['image'] as $file) {
+      $images_dimensions[$file->fid] = $file->image_dimensions;
+      $this->assertTrue(isset($file->image_dimensions), 'Image dimensions retrieved on file_save() for an image file.');
+    }
+    foreach ($this->files['text'] as $file) {
+      $text_fids[] = $file->fid;
+      $this->assertFalse(isset($file->image_dimensions), 'No image dimensions retrieved on file_save() for an text file.');
+    }
+
+    // Test hook_file_load().
+    // Clear the cache and load fresh files objects to test file_load behavior.
+    entity_get_controller('file')->resetCache();
+    foreach (file_load_multiple(array_keys($images_dimensions)) as $file) {
+      $this->assertTrue(isset($file->image_dimensions), 'Image dimensions retrieved on file_load() for an image file.');
+      $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'], 'Loaded image height is equal to saved image height.');
+      $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'], 'Loaded image width is equal to saved image width.');
+    }
+    foreach (file_load_multiple($text_fids) as $file) {
+      $this->assertFalse(isset($file->image_dimensions), 'No image dimensions retrieved on file_load() for an text file.');
+    }
+
+    // Test hook_file_update().
+    // Load the first image file and resize it.
+    $file = file_load(reset(array_keys($images_dimensions)));
+    $image = image_load($file->uri);
+    image_resize($image, $file->image_dimensions['width'] / 2, $file->image_dimensions['height'] / 2);
+    image_save($image);
+    file_save($file);
+    $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'] / 2, 'Image file height updated by file_save().');
+    $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'] / 2, 'Image file width updated by file_save().');
+    // Clear the cache and reload the file.
+    entity_get_controller('file')->resetCache();
+    $file = file_load($file->fid);
+    $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'] / 2, 'Updated image height retrieved by file_load().');
+    $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'] / 2, 'Updated image width retrieved by file_load().');
+
+    //Test hook_file_delete().
+    file_delete($file, TRUE);
+    $this->assertFalse(db_query('SELECT count(*) FROM {image_dimensions} WHERE fid = :fid', array(':fid' => 'fid'))->fetchField(), 'Row deleted in {file_dimensions} on file_delete().');
+  }
 }
 
 class FileEntityTokenTestCase extends FileEntityTestHelper {

@@ -101,7 +101,7 @@ function file_entity_tokens($type, $tokens, array $data = array(), array $option
           $replacements[$original] = (int) $count;
           break;
         case 'edit-url':
-          $replacements[$original] = url('admin/config/media/file-types/manage/' . $file_type['type'] . '/fields', $url_options);
+          $replacements[$original] = url('admin/structure/file-types/manage/' . $file_type['type'] . '/fields', $url_options);
           break;
       }
     }

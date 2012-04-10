@@ -27,7 +27,7 @@
  *     ['bundles'][TYPE]['admin'] entry for the 'file' entity type, thereby
  *     controlling the path at which Field UI pages are attached for this file
  *     type, and which users may access them. Defaults to attaching the Field UI
- *     pages to the admin/config/media/file-types/manage/TYPE path and requiring
+ *     pages to the admin/structure/file-types/manage/TYPE path and requiring
  *     'administer site configuration' permission. See hook_entity_info() for
  *     details about this array. This value can also be set to NULL to suppress
  *     Field UI pages from attaching at all for this file type.
