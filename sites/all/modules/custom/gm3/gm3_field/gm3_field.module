@@ -895,7 +895,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         '#attributes' => array(
           'class' => array(
             $element['#field_name'] . '-point'
-          )
+          ),
+          'placeholder' => '(' . t('Latitude') . ', ' . t('Longitude') . ')'
         ),
         '#default_value' => _gm3_field_get_points_string_from_array($items),
         '#type' => $data_field_type
