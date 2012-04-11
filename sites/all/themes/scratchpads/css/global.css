@@ -65,6 +65,9 @@ h2,
   border-bottom: 1px solid #D6D6D6;
 }
 
+i{
+	font-style:italic;
+}
 
 #region-content h2{
  color: #fff;
