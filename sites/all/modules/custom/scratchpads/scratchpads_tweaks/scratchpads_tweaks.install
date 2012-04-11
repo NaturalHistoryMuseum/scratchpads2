@@ -17,7 +17,7 @@ function scratchpads_tweaks_install(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+          'allowed_html' => '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -675,9 +675,11 @@ function scratchpads_tweaks_update_7009(){
 }
 
 /**
- * Update the filtered HTML format.
+ * Update the filtered HTML format (add <hr>).
+ * 
+ * scratchpads_tweaks_update_7010 removed as it was almost identical to this one.
  */
-function scratchpads_tweaks_update_7010(){
+function scratchpads_tweaks_update_7011(){
   // Add text formats.
   $filtered_html_format = array(
     'format' => 'filtered_html',
@@ -694,7 +696,7 @@ function scratchpads_tweaks_update_7010(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+          'allowed_html' => '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
