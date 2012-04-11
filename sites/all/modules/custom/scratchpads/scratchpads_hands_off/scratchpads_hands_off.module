@@ -84,13 +84,13 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
 function scratchpads_hands_off_menu_alter(&$items){
   foreach(array(
     'admin/config/content/clone',
-    'admin/config/media',
     'admin/config/system/boost',
     'admin/config/system/customerror',
     'admin/config/system/globalredirect',
     'admin/config/system/cron',
     'admin/config/user-interface/beautytips',
     'admin/config/development',
+    'admin/structure/file-types',
     'user/1/edit'
   ) as $url){
     $items[$url]['access callback'] = 'user_access';
