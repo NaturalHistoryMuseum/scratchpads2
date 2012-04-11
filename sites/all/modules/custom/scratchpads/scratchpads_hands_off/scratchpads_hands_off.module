@@ -93,9 +93,10 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/structure/file-types',
     'user/1/edit'
   );
-  foreach($items as $key => $item){
-    foreach($hidden_urls as $hidden_url){
-      if(substr($key, 0, strlen($hidden_url)) == $hidden_url){
+  foreach($hidden_urls as $hidden_url){
+    $length = strlen($hidden_url);
+    foreach($items as $key => $item){
+      if(substr($key, 0, $length) == $hidden_url){
         $items[$key]['access callback'] = 'user_access';
         $items[$key]['access arguments'] = array(
           'scratchpad team'
