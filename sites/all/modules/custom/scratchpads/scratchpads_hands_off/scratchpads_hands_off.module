@@ -82,7 +82,7 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
  * Implements hook_menu_alter().
  */
 function scratchpads_hands_off_menu_alter(&$items){
-  foreach(array(
+  $hidden_urls = array(
     'admin/config/content/clone',
     'admin/config/system/boost',
     'admin/config/system/customerror',
@@ -92,11 +92,16 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/development',
     'admin/structure/file-types',
     'user/1/edit'
-  ) as $url){
-    $items[$url]['access callback'] = 'user_access';
-    $items[$url]['access arguments'] = array(
-      'scratchpad team'
-    );
+  );
+  foreach($items as $key => $item){
+    foreach($hidden_urls as $hidden_url){
+      if(substr($key, 0, strlen($hidden_url)) == $hidden_url){
+        $items[$key]['access callback'] = 'user_access';
+        $items[$key]['access arguments'] = array(
+          'scratchpad team'
+        );
+      }
+    }
   }
 }
 
