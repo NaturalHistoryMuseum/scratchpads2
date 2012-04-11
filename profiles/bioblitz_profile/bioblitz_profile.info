@@ -1,7 +1,7 @@
 name = BioBlitz in a Box
 description = Install a site ready to run a BioBlitz
 core = 7.x
-dependencies[] = bioblitz
+dependencies[] = bioblitz_site
 dependencies[] = scratchpads_tweaks
 
 dependencies[] = block
