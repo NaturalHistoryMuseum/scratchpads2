@@ -5,23 +5,19 @@
 function bioblitz_menu(){
   $items['bioblitz/add'] = array(
     //'title' => 'Add record',
-    'page callback' => 'bioblitz_add_new',
+    'page callback' => 'bioblitz_edit_form',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );  
   return $items;
 }
 
-function bioblitz_add_new(){
-
-    drupal_set_title(t('Create @name', array('@name' => 'bioblitz')));
-    $output = drupal_get_form('specimen_observation_node_form');
-    return $output;
+function bioblitz_edit_form(){
+  $output = drupal_get_form('specimen_observation_node_form');
+  return $output;
 }
 
 function bioblitz_form_alter(&$form, &$form_state, $form_id){
-  $output = drupal_get_form('specimen_observation_node_form');
-	
 	
   GLOBAL $_GET;
   $args = explode('/', $_GET['q']);
