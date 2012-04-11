@@ -1,0 +1,42 @@
+<?php
+
+function bioblitz_site_block_info(){
+	$blocks['bioblitz_tasks']= array(
+	  'info' => t('BioBlitz Tasks'),
+	  'status' => FALSE,
+	  'region' => 'content',
+	  'weight' => 0,
+	  'visibility' => 1,
+	);
+	
+	return $blocks;
+}
+
+function bioblitz_site_block_view($delta = ''){
+	switch ($delta) {
+		case 'bioblitz_tasks':
+			$block = bioblitz_site_bioblitz_tasks_block_view();
+			return $block;
+			break;
+	}
+}
+
+function bioblitz_site_bioblitz_tasks_block_view(){
+	$block['subject'] = t('BioBlitz Tasks');
+	
+	$content = '<p>Tasks will go here</p>';
+	
+	$block['content'] = $content;
+	return $block;
+}
+
+function bioblitz_site_context_load_alter(&$context){
+	if ($context->name == 'scratchpads_front_page'){
+		//Remove the default Scratchpads blocks
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_1']);
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_2']);
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_3']);
+		//Add our own blocks
+		$context->reactions['block']['blocks']['bioblitz_site-bioblitz_tasks'] = array('module' => 'bioblitz_site', 'delta' => 'bioblitz_tasks', 'region' => 'content', 'weight' => 0);
+	}
+}
