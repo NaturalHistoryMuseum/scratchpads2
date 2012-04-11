@@ -4,19 +4,38 @@
  * Field handler to provide a list of group roles.
  */
 class og_handler_field_user_roles extends og_handler_field_prerender_list {
-  function construct() {
-    parent::construct();
-    $this->additional_fields['uid'] = array('table' => 'users', 'field' => 'uid');
+
+  function query() {
+    // Get a user table we can relate to.
+    // @todo: Make the used user relationship configurable.
+    foreach ($this->query->relationships as $alias => $info) {
+      if ($info['table'] == 'users') {
+        $user_table_alias = $alias;
+        break;
+      }
+    }
+
+    // If there is a users table present use its uid. Else, skip this field.
+    if (!empty($user_table_alias)) {
+      $this->aliases['uid'] = $this->query->add_field($user_table_alias, 'uid');
+    }
+    parent::query();
   }
 
-  function pre_render($values) {
+  function pre_render(&$values) {
+    if (!isset($this->aliases['uid'])) {
+      return;
+    }
+
     $list = array();
     $this->items = array();
     foreach ($values as $value) {
-      $list[] = array(
-        'uid' => $value->{$this->aliases['uid']},
-        'gid' => $value->{$this->field_alias},
-      );
+      if ($value->{$this->aliases['uid']} && $value->{$this->field_alias}) {
+        $list[] = array(
+          'uid' => $value->{$this->aliases['uid']},
+          'gid' => $value->{$this->field_alias},
+        );
+      }
     }
 
     // Array of all the role IDss we will need to get a role name.
@@ -48,6 +67,12 @@ class og_handler_field_user_roles extends og_handler_field_prerender_list {
 
   function render_item($rid, $item) {
     return $item['role'];
+  }
+
+  function advanced_render($values) {
+    if (isset($this->aliases['uid'])) {
+      return parent::advanced_render($values);
+    }
   }
 
   function document_self_tokens(&$tokens) {

@@ -63,19 +63,16 @@ function og_migrate_ctools_plugin_type() {
  * Implements hook_init().
  */
 function og_migrate_init() {
+  og_migrate_register_plugins();
   $item = menu_get_item();
   if ($item['path'] == 'batch') {
-   // Load all the plugins, so it will work in the batch.
-   og_migrate_get_plugins();
+    // Load all the plugins, so it will work in the batch.
+    og_migrate_get_plugins();
   }
-  elseif ((!og_needs_migrate() || !og_migrate_register_plugins())
-    && user_access('access administration pages') && flood_is_allowed('og_migrate_warning', 1)) {
-    flood_register_event('og_migrate_warning');
+  elseif (!og_migrate_is_pending() && user_access('access administration pages')) {
     og_needs_migrate(FALSE);
     drupal_set_message(t('There are no pending migration plugins that need to be executed. You can disable Organic groups migrate module.'));
   }
-
-  og_migrate_register_plugins();
 }
 
 /**

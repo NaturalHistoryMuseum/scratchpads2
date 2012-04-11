@@ -16,8 +16,6 @@ $plugin = array(
 function og_migrate_og_migrate_upgrade_group(&$context) {
   if (empty($context['sandbox'])) {
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_node'] = 0;
-    $context['sandbox']['last_vid'] = 0;
     $context['sandbox']['last'] = 0;
 
     // Calculate max items.
@@ -47,9 +45,8 @@ function og_migrate_og_migrate_upgrade_group(&$context) {
     ->fields('nr', array('nid', 'vid'))
     ->fields('n', array('type', 'created'))
     ->fields('og', array('upgrade_id'))
-    ->condition('nr.vid', $context['sandbox']['last_vid'], '>')
     ->condition('og.upgrade_id', $context['sandbox']['last'], '>')
-    ->orderBy('nr.vid', 'ASC')
+    ->orderBy('og.upgrade_id', 'ASC')
     ->range(0, $batch_size);
   $revisions = $query->execute();
 
@@ -76,7 +73,6 @@ function og_migrate_og_migrate_upgrade_group(&$context) {
       field_attach_update('node', $node);
     }
 
-    $context['sandbox']['last_vid'] = $revision->vid;
     $context['sandbox']['last'] = $revision->upgrade_id;
     $context['sandbox']['progress']++;
   }
@@ -94,7 +90,7 @@ function og_migrate_og_migrate_upgrade_group(&$context) {
     }
   }
 
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+  if ($context['sandbox']['progress'] < $context['sandbox']['max']) {
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }
