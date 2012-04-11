@@ -26,6 +26,22 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
           }
         }
       }
+      $contexts = context_enabled_contexts();
+      foreach($contexts as $context){
+        if(isset($context->reactions) && isset($context->reactions['block'])){
+          foreach($context->reactions['block']['blocks'] as $context_block_key => $context_block){
+            if($form['module']['#value'] == $context_block['module'] && $form['delta']['#value'] == $context_block['delta']){
+              // This block is used in a context, we should therefore disable the
+              // region stuff.
+              $children = element_children($form['regions']);
+              foreach($children as $key){
+                $form['regions'][$key]['#disabled'] = TRUE;
+                $form['regions'][$key]['#description'] = '<span class="error">' . t('This option is locked because this block is displayed automatically on certain pages.') . '</span>';
+              }
+            }
+          }
+        }
+      }
       break;
     case 'dashboard_admin_display_form':
     case 'block_admin_display_form':

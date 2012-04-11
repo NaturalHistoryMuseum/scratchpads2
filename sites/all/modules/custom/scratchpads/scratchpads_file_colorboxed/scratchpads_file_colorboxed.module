@@ -34,6 +34,10 @@ function scratchpads_file_colorboxed_entity_simple_view($fid){
   }else{
     $width = '';
   }
-  echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . ($entity->type == 'image' ? '<p>' . l(t('Download original'), file_create_url($entity->uri)) . '</p>' : '') . '</div>';
+  echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . ($entity->type == 'image' ? '<p>' . l(t('Download original'), file_create_url($entity->uri), array(
+    'attributes' => array(
+      'target' => '_blank'
+    )
+  )) . '</p>' : '') . '</div>';
   exit();
 }
