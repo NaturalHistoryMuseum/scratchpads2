@@ -105,9 +105,11 @@ function scratchpads_taxonomic_name_field_install(){
 }
 
 /**
- * Implements hook_update_N
+ * Attempt to fix issue #955.
+ * 
+ * I have renamed update 7002 to 7003 just to run this update again.
  */
-function scratchpads_taxonomic_name_field_update_7002(){
+function scratchpads_taxonomic_name_field_update_7003(){
   field_cache_clear(TRUE);
   $field = field_info_field('field_taxonomic_name');
   $field['settings']['allowed_values'] = array(
