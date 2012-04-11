@@ -1,53 +1,46 @@
 <?php
 
-
-
 function bioblitz_menu(){
   $items['bioblitz/add'] = array(
-    //'title' => 'Add record',
-    'page callback' => 'bioblitz_edit_form',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK
-  );  
+    'title' => 'Bioblitz',
+    'title callback' => 'check_plain',
+    'page callback' => 'node_add',
+    'page arguments' => array(
+      'specimen_observation'
+    ),
+    'access callback' => 'node_access',
+    'access arguments' => array(
+      'create',
+      'specimen_observation'
+    ),
+    'description' => '',
+    'file' => 'node.pages.inc',
+    'file path' => drupal_get_path('module', 'node')
+  );
   return $items;
 }
 
-function bioblitz_edit_form(){
-  $output = drupal_get_form('specimen_observation_node_form');
-  return $output;
-}
-
 function bioblitz_form_alter(&$form, &$form_state, $form_id){
-	
-  GLOBAL $_GET;
-  $args = explode('/', $_GET['q']);
-  if ($form_id == 'specimen_observation_node_form'/* && $args[2] == 'bioblitz'*/){
-  	
-  	
-  	//Some of these fields are pretty hard to understand - let's autocomplete as much as possible, hide as much as we can and give better descriptions
-  	$form['field_basis_of_record']['und']['#default_value'] = 'Living Specimen';
+  if(arg(0) == 'bioblitz' && $form_id == 'specimen_observation_node_form'){
+    //Some of these fields are pretty hard to understand - let's autocomplete as much as possible, hide as much as we can and give better descriptions
+    $form['field_basis_of_record']['und']['#default_value'] = 'Living Specimen';
     $form['field_institution_code']['und'][0]['value']['#default_value'] = 'BioBlitz'; //Set to custom on install
     $form['field_institution_code']['#type'] = 'hidden';
     $form['field_collection_code']['und'][0]['value']['#default_value'] = 'Username'; //Set to user uid
     $form['field_collection_code']['#type'] = 'hidden';
     $form['field_catalogue_number']['und'][0]['value']['#default_value'] = 'none';
     $form['field_catalogue_number']['und'][0]['value']['#description'] = 'If you use your own identifying number or text for your personal collections/records you can enter it here.';
-
     $form['field_collector_number']['#type'] = 'hidden';
     $form['field_number']['#type'] = 'hidden';
     $form['field_collector']['#type'] = 'hidden';
     $form['field_date_collected']['und'][0]['#title'] = 'Date observed';
-    
     $form['field_type_status']['#type'] = 'hidden';
     $form['field_collection_code']['und'][0]['#title'] = 'Scientific name';
     $form['field_identification_qualifier']['#type'] = 'hidden';
-    
     $form['field_genbank_number']['#type'] = 'hidden';
     $form['field_other_catalogue_numbers']['#type'] = 'hidden';
     $form['field_remarks']['#type'] = 'hidden';
-    
     $form['field_notes']['#weight'] = 30;
-    
     //The groups are ok for taxonomists, but let's make it easy for a lay audience (let's move some fields around too!)
     $form['#groups']['group_required']->label = 'Essentials';
     $form['#groups']['group_required']->weight = 0;
@@ -59,12 +52,10 @@ function bioblitz_form_alter(&$form, &$form_state, $form_id){
     $form['#groups']['group_miscellaneous']->weight = 40;
     $form['#groups']['group_location']->label = 'Where';
     $form['#groups']['group_location']->weight = 30;
-    
     $form['#group_children']['field_sex'] = 'group_taxonomy';
     $form['#group_children']['field_notes'] = 'group_taxonomy';
     $form['#group_children']['field_lifestage'] = 'group_taxonomy';
     $form['#group_children']['field_count'] = 'group_taxonomy';
-    
     //The additional settings will just confuse people
     $form['revision_information']['#type'] = 'hidden';
     $form['author']['#type'] = 'hidden';
