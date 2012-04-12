@@ -518,6 +518,9 @@ function scratchpads_tweaks_update_7013(){
   module_disable(array(
     'wysiwyg'
   ));
+  drupal_uninstall_modules(array(
+    'wysiwyg'
+  ));
   module_enable(array(
     'ckeditor'
   ));
