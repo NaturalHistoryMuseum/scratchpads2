@@ -56,6 +56,8 @@ function scratchpads_tweaks_install(){
   ));
   // Setup linkit.
   scratchpads_tweaks_update_7008();
+  // Setup the CKEditor module
+  scratchpads_tweaks_update_7013();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -728,6 +730,7 @@ function scratchpads_tweaks_update_7013(){
       )
     )
   );
+  // Insert the settings.
   $query = db_insert('ckeditor_settings')->fields(array(
     'name',
     'settings'
@@ -739,6 +742,21 @@ function scratchpads_tweaks_update_7013(){
   $query->values(array(
     'name' => 'Limited',
     'settings' => serialize($limited_settings)
+  ));
+  $query->execute();
+  // Associate profiles with formats.
+  db_delete('ckeditor_input_format')->execute();
+  $query = db_insert('ckeditor_input_format')->fields(array(
+    'name',
+    'format'
+  ));
+  $query->values(array(
+    'name' => 'Default',
+    'format' => 'filtered_html'
+  ));
+  $query->values(array(
+    'name' => 'Limited',
+    'format' => 'comment_filtered_html'
   ));
   $query->execute();
 }
