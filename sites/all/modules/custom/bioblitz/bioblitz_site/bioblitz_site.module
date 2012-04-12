@@ -24,7 +24,11 @@ function bioblitz_site_block_view($delta = ''){
 function bioblitz_site_bioblitz_tasks_block_view(){
 	$block['subject'] = t('BioBlitz Tasks');
 	
-	$content = '<p>Tasks will go here</p>';
+	$content = '';
+	$items = array();
+	$items[] = l('Add a record', 'bioblitz/add');
+	
+	$content .= theme('item_list', array('items' => $items));
 	
 	$block['content'] = $content;
 	return $block;
@@ -38,5 +42,16 @@ function bioblitz_site_context_load_alter(&$context){
 		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_3']);
 		//Add our own blocks
 		$context->reactions['block']['blocks']['bioblitz_site-bioblitz_tasks'] = array('module' => 'bioblitz_site', 'delta' => 'bioblitz_tasks', 'region' => 'content', 'weight' => 0);
+	}
+}
+
+function bioblitz_site_menu_link_alter(&$item){
+	$items_to_hide = array('biblio', 'darwincorelocation', 'darwincore', 'itis_term');
+	if (in_array($item['link_path'], $items_to_hide)){
+		$item['hidden'] = 1;
+	}
+	if($item['link_path'] == 'specimen_observation'){
+		$item['link_title'] = 'Records';
+		$item['weight'] = 0;
 	}
 }
