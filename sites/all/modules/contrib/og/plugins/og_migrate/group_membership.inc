@@ -15,8 +15,6 @@ $plugin = array(
 function og_og_migrate_group_membership(&$context) {
   if (empty($context['sandbox'])) {
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['current_node'] = 0;
-    $context['sandbox']['last_vid'] = 0;
     $context['sandbox']['last'] = 0;
 
     // Add "User request" to the default group membership type.

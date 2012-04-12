@@ -91,7 +91,8 @@ function scratchpads_colour_scratchpads_default_permissions(){
  * Callback to get the CSS.
  */
 function scratchpads_colour_add_dynamic_css(){
-  if($css_file = variable_get('scratchpads_colour_css_file', FALSE)){return drupal_add_css($css_file);}
+  $css_file = variable_get('scratchpads_colour_css_file', FALSE);
+  if($css_file && file_exists($css_file)){return drupal_add_css($css_file);}
   $css = array();
   foreach(scratchpads_colour_get_colours() as $colour){
     $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';

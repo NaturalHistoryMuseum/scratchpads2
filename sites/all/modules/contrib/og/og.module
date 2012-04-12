@@ -123,6 +123,7 @@ function og_entity_info() {
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'gid',
+      'label' => 'label',
     ),
     'views controller class' => 'OgViewsController',
     'metadata controller class' => 'OgMetadataController',
@@ -684,7 +685,9 @@ function og_entity_presave_group_audience_diff($entity, $type) {
  * default validation handler. @see drupal_prepare_form().
  */
 function og_form_alter(&$form, $form_state, $form_id) {
-  $form['#validate'][] = 'og_field_widget_form_validate';
+  if (!empty($form[OG_AUDIENCE_FIELD])) {
+    $form['#validate'][] = 'og_field_widget_form_validate';
+  }
 }
 
 /**
@@ -2678,6 +2681,13 @@ function og_roles_override($gid) {
     og_role_save($role);
     $rids[$role->rid] = $role->name;
     og_role_change_permissions($role->rid, $perms[$rid]);
+
+    // Remap roles.
+    $query = db_update('og_users_roles')
+      ->fields(array('rid' => $role->rid))
+      ->condition('rid', $rid)
+      ->condition('gid', $gid)
+      ->execute();
   }
 
   return $rids;
@@ -2721,6 +2731,7 @@ function og_role_revoke($gid, $uid, $rid) {
     db_delete('og_users_roles')
       ->condition('uid', $uid)
       ->condition('rid', $rid)
+      ->condition('gid', $gid)
       ->execute();
     module_invoke_all('og_role_revoke', $gid, $uid, $rid);
   }

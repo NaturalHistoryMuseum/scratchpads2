@@ -29,6 +29,7 @@ files[] = includes/views/og_handler_field_group_permissions.inc
 ; Views filters
 files[] = includes/views/og_handler_filter_group_state.inc
 files[] = includes/views/og_handler_filter_group_audience_state.inc
+files[] = includes/views/og_handler_filter_group_roles.inc
 
 ; Views relationships
 files[] = includes/views/og_handler_relationship.inc
@@ -41,9 +42,9 @@ files[] = includes/og.admin.inc
 files[] = includes/og.info.inc
 files[] = includes/og.views.inc
 
-; Information added by drupal.org packaging script on 2011-12-05
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-03-14
+version = "7.x-1.3+47-dev"
 core = "7.x"
 project = "og"
-datestamp = "1323088183"
+datestamp = "1331685011"
 

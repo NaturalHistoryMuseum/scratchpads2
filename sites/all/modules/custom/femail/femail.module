@@ -309,6 +309,9 @@ function femail_node_insert($node){
       // Aquire node access first, before trying to send.
       node_access_acquire_grants($node);
       _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
+      // We need to remove the grants from the database, as otherwise we will
+      // receive an error.
+      db_delete('node_access')->condition('nid', $node->nid)->execute();
     }
   }
 }

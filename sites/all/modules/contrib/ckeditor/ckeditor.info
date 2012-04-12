@@ -1,0 +1,7 @@
+name        = CKEditor
+description = "Enables CKEditor (WYSIWYG HTML editor) for use instead of plain text fields."
+core        = 7.x
+package     = User interface
+configure   = admin/config/content/ckeditor
+files[]     = includes/ckeditor.user.inc
+version = "7.x-1.8"

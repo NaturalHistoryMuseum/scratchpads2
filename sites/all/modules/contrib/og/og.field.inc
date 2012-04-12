@@ -63,6 +63,9 @@ function og_field_formatter_view($entity_type, $entity, $field, $instance, $lang
             '#type' => 'link',
             '#title' => $label,
             '#href' => $uri['path'],
+            '#options' => array(
+              'html' => TRUE,
+            ),
           );
         }
         else {
@@ -197,8 +200,14 @@ function og_field_widget_form(&$form, &$form_state, $field, $instance, $langcode
         $opt_group = TRUE;
       }
 
+      // If this is a user account, base the list on the account being edited.
+      $account = NULL;
+      if (isset($form['#user'])) {
+        $account = $form['#user'];
+      }
+
       // Get all the groups divided to "content groups" and "other groups".
-      $audience = og_field_audience_options($opt_group);
+      $audience = og_field_audience_options($opt_group, $account);
 
       // Get all groups that should be excluded.
       $excludes = array();
@@ -218,15 +227,16 @@ function og_field_widget_form(&$form, &$form_state, $field, $instance, $langcode
       // and we don't want to iterate over the items again.
       $items_gid = array();
       if (!empty($items)) {
+        $gids = array();
         foreach ($items as $item) {
-          // Some groups might be already deleted, but we don't bulk
-          // delete the fields of the entities associated with that group.
-          // So make sure the hidden selected fields are only for existing
-          // groups.
-          if (in_array($item['gid'], $audience['content groups']) || in_array($item['gid'], $audience['other groups'])) {
-            $default_values[$item['gid']] = $item['gid'];
-            $items_gid[] = $item['gid'];
-          }
+          $gids[] = $item['gid'];
+        }
+        // In case there are deleted groups, we trim the list to only the
+        // existing ones.
+        $gids = array_keys(og_load_multiple($gids));
+        foreach ($gids as $gid) {
+          $default_values[$gid] = $gid;
+          $items_gid[] = $gid;
         }
       }
 
@@ -560,25 +570,32 @@ function og_field_crud_group($op, $entity_type, $entity) {
 function og_field_audience_options(&$opt_group = FALSE, $account = NULL) {
   $return = &drupal_static(__FUNCTION__, array());
 
-  if (!empty($return)) {
+  // If we already have the full list of all groups, immediately return.
+  if (isset($return['other groups']) && isset($return['content groups'])) {
+    return $return;
+  }
+  // Or if we need just the groups to which the user has access, return
+  // those.
+  elseif (!$opt_group && isset($return['content groups'])) {
     return $return;
   }
 
   if (empty($account)) {
     global $user;
-
     $account = clone($user);
   }
 
-  //Initialize values.
+  // Initialize values.
   $return = array('content groups' => array(), 'other groups' => array());
 
   $content_groups = og_get_entity_groups('user', $account);
   $return['content groups'] = $content_groups;
 
-  // Get all other groups.
-  $all_groups = og_get_all_group();
-  $return['other groups'] = array_diff($all_groups, $content_groups);
+  // Only generate all other groups if needed (generally for admins only).
+  if ($opt_group) {
+    $all_groups = og_get_all_group();
+    $return['other groups'] = array_diff($all_groups, $content_groups);
+  }
 
   // Allow other modules to change the audience options. While it can be done
   // via hook_form_alter(), it will require other modules to know too much of

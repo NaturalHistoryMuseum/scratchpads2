@@ -39,18 +39,6 @@ class OgViewsController extends EntityDefaultViewsController {
       ),
     );
 
-    $data['field_data_group_audience']['user_roles'] = array(
-      'group' => t('Group'),
-      'title' => t('Group user roles'),
-      'help' => t('Show all the roles a user belongs to in a group.'),
-      // This is a dummy field, so point it to a real field that we need - the
-      // group ID
-      'real field' => 'group_audience_gid',
-      'field' => array(
-        'handler' => 'og_handler_field_user_roles',
-      ),
-    );
-
     $data['field_data_group_audience']['og_permissions'] = array(
       'group' => t('Group'),
       'title' => t('Group permissions'),
@@ -60,6 +48,29 @@ class OgViewsController extends EntityDefaultViewsController {
       'real field' => 'group_audience_gid',
       'field' => array(
         'handler' => 'og_handler_field_group_permissions',
+      ),
+    );
+
+    $data['og_users_roles'] = array(
+      'table' => array(
+        'group' => t('OG user roles'),
+        'join' => array(
+          'og_membership' => array(
+            'left_field' => 'gid',
+            'field' => 'gid',
+          ),
+        ),
+      ),
+    );
+
+    $data['og_users_roles']['rid'] = array(
+      'title' => t('Role ID'),
+      'help' => t('The OG role ID.'),
+      // We provide a dummy field to show the roles a user is part of. See
+      // 'og_membership - og_roles'.
+      // @todo: Add sort and filter.
+      'filter' => array(
+        'handler' => 'og_handler_filter_group_roles',
       ),
     );
 
@@ -109,6 +120,17 @@ class OgMembershipViewsController extends EntityDefaultViewsController {
     $data['og']['og_membership']['relationship']['label'] = t('OG membership from OG group');
 
 
+    $data['og_membership']['og_roles'] = array(
+      'title' => t('OG user roles in group'),
+      'help' => t('Show all the roles a user belongs to in a group. Requires a relationship to users to be present.'),
+      // This is a dummy field, so point it to a real field that we need - the
+      // group ID
+      'real field' => 'gid',
+      'field' => array(
+        'handler' => 'og_handler_field_user_roles',
+      ),
+    );
+
     return $data;
   }
 }
@@ -122,8 +144,9 @@ function og_views_data_alter(&$data) {
 
   foreach (entity_get_info() as $entity_type => $info) {
     if (!empty($info['fieldable'])) {
-      // OG group relationship.
-      if ($entity_type != 'group') {
+
+      if (!empty($group_entities[$entity_type])) {
+        // OG group relationship.
         $data[$info['base table']]['og_rel'] = array(
           'group' => t('OG group'),
           'title' => t('OG group from @entity', array('@entity' => ucfirst($info['label']))),
@@ -138,10 +161,8 @@ function og_views_data_alter(&$data) {
             'relationship field' => $info['entity keys']['id'],
           ),
         );
-      }
 
-      // OG group's related entity.
-      if (!empty($group_entities[$entity_type])) {
+        // OG group's related entity.
         $data['og']['og_related_' . $entity_type] = array(
           'group' => t('OG group'),
           'title' => t('@entity from OG group', array('@entity' => ucfirst($info['label']))),
@@ -156,8 +177,8 @@ function og_views_data_alter(&$data) {
         );
       }
 
-      // OG membership relationship.
-      if (!in_array($entity_type, array('group', 'og_membership'))) {
+      if (!empty($group_content_entities[$entity_type])) {
+        // OG membership relationship.
         $data[$info['base table']]['og_membership_rel'] = array(
           'group' => t('OG membership'),
           'title' => t('OG membership from @entity', array('@entity' => ucfirst($info['label']))),
@@ -172,10 +193,8 @@ function og_views_data_alter(&$data) {
             'relationship field' => $info['entity keys']['id'],
           ),
         );
-      }
 
-      // OG membership's related entity.
-      if (!empty($group_content_entities[$entity_type])) {
+        // OG membership's related entity.
         $data['og_membership']['og_membership_related_' . $entity_type] = array(
           'group' => t('OG membership'),
           'title' => t('@entity from OG membership', array('@entity' => ucfirst($info['label']))),
