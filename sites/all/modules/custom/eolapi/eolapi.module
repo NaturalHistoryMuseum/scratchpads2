@@ -213,7 +213,7 @@ function eolapi_page_view($eolapi){
             'data' => t('Original URL'),
             'class' => 'biblio-row-title'
           ),
-          l($value, $value)
+          l(truncate_utf8($value, 100, FALSE, TRUE), $value)
         );
         break;
       case 'description':
