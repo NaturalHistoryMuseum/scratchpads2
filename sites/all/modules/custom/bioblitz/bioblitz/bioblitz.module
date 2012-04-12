@@ -17,7 +17,46 @@ function bioblitz_menu(){
     'file' => 'node.pages.inc',
     'file path' => drupal_get_path('module', 'node')
   );
+  $items['admin/bioblitz'] = array(
+    'title' => 'BioBlitz Settings',
+    'description' => 'Configure settings for BioBlitz',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer bioblitz'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'weight' => -14,
+  );
+  $items['admin/bioblitz/settings'] = array(
+    'title' => 'Configure BioBlitz',
+    'description' => 'Configure settings for BioBlitz',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bioblitz_admin_settings'),
+    'access arguments' => array('administer bioblitz'),
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $items;
+}
+
+function bioblitz_menu_alter(&$items){
+	$items['bioblitz/add']['access callback'] = 'bioblitz_access';
+	$items['bioblitz/add']['access arguments'] = array('create bioblitz');
+}
+
+function bioblitz_access($keys){
+	switch ($keys){
+		case 'create bioblitz':
+			if (user_access('create specimen_observation content')) {
+				return TRUE;
+			}
+			if (isset($user->uid) && in_array('registered', variable_get('bioblitz_roles', array()))){
+				return TRUE;
+			}
+			if (in_array('anonymous', variable_get('bioblitz_roles', array()))){
+				return TRUE;
+			}
+			return FALSE;
+			break;
+	}
 }
 
 function bioblitz_block_info(){
@@ -51,26 +90,55 @@ function bioblitz_tasks_block_view(){
 }
 
 function bioblitz_form_alter(&$form, &$form_state, $form_id){
-  if(arg(0) == 'bioblitz' && $form_id == 'specimen_observation_node_form'){
+	switch ($form_id){
+		case 'specimen_observation_node_form':
+			bioblitz_form_alter_specimen_observation_node($form, $form_state, $form_id);
+			break;
+		case 'user_register_form':
+			bioblitz_form_alter_user_register($form, $form_state, $form_id);
+			break;
+	}
+}
+
+function bioblitz_form_alter_user_register(&$form, &$form_state, $form_id){
+	$form['field_user_institution']['und'][0]['value']['#default_value'] = 'BioBlitz Participant';
+	$form['field_user_institution']['und'][0]['value']['#description'] = 'If you are associated with a relevant instiutuion then you may name it here, otherwise leave as BioBlitz Participant';
+	$form['field_user_taxonomic_interest']['und'][0]['value']['#description'] = 'If you have particular expertise in a taxonomic group state it here';
+}
+
+function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $form_id){
+  //Check we are creating a new BioBlitz record, or editing an exisiting BioBlitz record
+  if(arg(0) == 'bioblitz' || $form_state['node']->field_institution_code['und'][0]['value'] == 'BioBlitz'){
+  	bioblitz_check_for_biological_vocabulary();
+  	
+  	if ($form['#node']->name != '') {$collection_code = $form['#node']->name;} else {$collection_code = 'anon';}
+
     //Some of these fields are pretty hard to understand - let's autocomplete as much as possible, hide as much as we can and give better descriptions
     $form['field_basis_of_record']['und']['#default_value'] = 'Living Specimen';
+    $form['field_basis_of_record']['und'][0]['value']['#description'] = 'Does this record come from observation of a living specimen, a fossil or a historic record?';
     $form['field_institution_code']['und'][0]['value']['#default_value'] = 'BioBlitz'; //Set to custom on install
     $form['field_institution_code']['#type'] = 'hidden';
-    $form['field_collection_code']['und'][0]['value']['#default_value'] = 'Username'; //Set to user uid
+    $form['field_collection_code']['und'][0]['value']['#default_value'] = $collection_code;
     $form['field_collection_code']['#type'] = 'hidden';
-    $form['field_catalogue_number']['und'][0]['value']['#default_value'] = 'none';
-    $form['field_catalogue_number']['und'][0]['value']['#description'] = 'If you use your own identifying number or text for your personal collections/records you can enter it here.';
+    $form['field_catalogue_number']['und'][0]['value']['#default_value'] = time();
+    $form['field_catalogue_number']['und'][0]['value']['#description'] = 'This field is automatically filled in to give each record a unique value. If you use your own identifying number or text for your personal collections/records you can enter it here.';
     $form['field_collector_number']['#type'] = 'hidden';
     $form['field_number']['#type'] = 'hidden';
     $form['field_collector']['#type'] = 'hidden';
     $form['field_date_collected']['und'][0]['#title'] = 'Date observed';
     $form['field_type_status']['#type'] = 'hidden';
     $form['field_collection_code']['und'][0]['#title'] = 'Scientific name';
+    $form['field_identified_by']['und']['#description'] = 'The name of the site user who provided the above identification';
+    $form['field_date_identified']['und']['#description'] = 'The date the above identification was made';
+    $form['field_date_identified']['und'][0]['#description'] = 'The date the above identification was made';
+    $form['field_count']['und'][0]['value']['#description'] =  'The number of individuals seen at this location';
+    $form['field_notes']['und'][0]['value']['#description'] = 'Please provide any additional information in this field';
     $form['field_identification_qualifier']['#type'] = 'hidden';
     $form['field_genbank_number']['#type'] = 'hidden';
     $form['field_other_catalogue_numbers']['#type'] = 'hidden';
     $form['field_remarks']['#type'] = 'hidden';
     $form['field_notes']['#weight'] = 30;
+    $form['field_date_collected']['und']['#description'] = 'The date of observation';
     //The groups are ok for taxonomists, but let's make it easy for a lay audience (let's move some fields around too!)
     $form['#groups']['group_required']->label = 'Essentials';
     $form['#groups']['group_required']->weight = 0;
@@ -90,5 +158,33 @@ function bioblitz_form_alter(&$form, &$form_state, $form_id){
     $form['revision_information']['#type'] = 'hidden';
     $form['author']['#type'] = 'hidden';
     $form['options']['#type'] = 'hidden';
+    
   }
 }
+
+function bioblitz_check_for_biological_vocabulary(){
+  $biological_vids = variable_get('biological_vids', FALSE);
+      if(!$biological_vids){
+        drupal_set_message('There are no biological classifications on this site, you will be unable to associate this record with a taxonomic name.', 'warning');
+      }
+}
+
+function bioblitz_admin_settings(){
+	$form['bioblitz_settings'] = array(
+	  '#type' => 'checkboxes',
+	  '#title' => t('Who may submit BioBlitz records?'),
+	  '#options' =>  array(
+	    'anonymous' => 'Anybody who visits the site',
+	    'registered' => 'Users who have created an account',
+	  ),
+	  '#default_value' => variable_get('bioblitz_roles', array('registered')),
+	  '#description' => t('Users who have been assigned contributor, editor or maintainer rights will be able to submit records, you may additionally allow submissions from the public and registered users'),
+	);
+	$form['#submit'][] = 'bioblitz_admin_settings_submit';
+	return system_settings_form($form);
+}
+
+function bioblitz_admin_settings_submit($form, $form_state){
+	variable_set('bioblitz_roles', $form_state['values']['bioblitz_settings']);
+}
+
