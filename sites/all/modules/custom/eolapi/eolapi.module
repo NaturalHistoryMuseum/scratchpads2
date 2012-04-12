@@ -179,10 +179,10 @@ function eolapi_page_view($eolapi){
               $file_view = entity_view('file', array($file), 'file_styles_colorbox');
               array_unshift($rows, array(
                 array(
-                  'data' => t('Image'),
-                  'class' => 'biblio-row-title'
-                ),
-                drupal_render($file_view)
+                  'data' => drupal_render($file_view),
+                  'class' => 'biblio-row-title',
+                  'colspan' => 2
+                )                
               ));
             }
           }
