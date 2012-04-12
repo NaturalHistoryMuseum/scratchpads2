@@ -222,7 +222,7 @@ function eolapi_page_view($eolapi){
             'data' => t('Description'),
             'class' => 'biblio-row-title'
           ),
-          $data->description
+          '<div style="max-width:400px">'.$data->description.'</div>'
         );
         break;
       case 'agents':
