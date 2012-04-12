@@ -169,49 +169,73 @@ function eolapi_load($entity_id){
  */
 function eolapi_page_view($eolapi){
   $rows = array();
-  foreach($eolapi as $key => $value){
-    if(is_string($value)){
-      switch($key){
-        case 'type':
-          if(count($eolapi->eolapi_image)){
-            if(@isset($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid'])){
-              $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
-              $file_view = entity_view('file', array($file), 'file_styles_colorbox');
-              array_unshift($rows, array(
-                array(
-                  'data' => drupal_render($file_view),
-                  'class' => 'biblio-row-title',
-                  'colspan' => 2
-                )                
-              ));
-            }
-          }
-        case 'label':
-        case 'license':
-        case 'rating':
-        case 'weight':
+  if(count($eolapi->eolapi_image)){
+    if(@isset($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid'])){
+      $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
+      $file_view = entity_view('file', array(
+        $file
+      ), 'file_styles_colorbox');
+      $rows[] = array(
+        array(
+          'data' => drupal_render($file_view),
+          'colspan' => 2
+        )
+      );
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => t('License'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->license
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Rating'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->rating
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Vetted'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->trusted ? t('Trusted') : t('Untrusted')
+  );
+  $data = unserialize($eolapi->data);
+  foreach($data as $key => $value){
+    switch($key){
+      case 'mediaURL':
+        $rows[] = array(
+          array(
+            'data' => t('Original URL'),
+            'class' => 'biblio-row-title'
+          ),
+          l($value, $value)
+        );
+        break;
+      case 'description':
+        $rows[] = array(
+          array(
+            'data' => t('Description'),
+            'class' => 'biblio-row-title'
+          ),
+          $data->description
+        );
+        break;
+      case 'agents':
+        foreach($data->agents as $agent){
           $rows[] = array(
             array(
-              'data' => $key,
+              'data' => t($agent->role),
               'class' => 'biblio-row-title'
             ),
-            $value
+            l($agent->full_name, $agent->homepage)
           );
-          break;
-        //case 'timestamp':
-        case 'created':
-          //case 'changed':
-          $rows[] = array(
-            array(
-              'data' => $key,
-              'class' => 'biblio-row-title'
-            ),
-            format_date($value)
-          );
-          break;
-        case 'data':
-          break;
-      }
+        }
+        break;
     }
   }
   $markup = array(
