@@ -133,8 +133,105 @@ function eolapi_menu(){
         'access content'
       ),
       'type' => MENU_CALLBACK
+    ),
+    'eol/%eolapi' => array(
+      'title callback' => 'eolapi_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'eolapi_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content' // Basic permission that all users have
+      )
     )
   );
+}
+
+/**
+ * EOL Page title.
+ */
+function eolapi_page_title($eolapi){
+  return $eolapi->label;
+}
+
+/**
+ * Load function
+ */
+function eolapi_load($entity_id){
+  return entity_load_single('eolapi', $entity_id);
+}
+
+/**
+ * Display the EOL object
+ */
+function eolapi_page_view($eolapi){
+  $rows = array();
+  foreach($eolapi as $key => $value){
+    if(is_string($value)){
+      switch($key){
+        case 'type':
+          if(count($eolapi->eolapi_image)){
+            if(@isset($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid'])){
+              $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
+              $file_view = entity_view('file', array($file), 'file_styles_colorbox');
+              array_unshift($rows, array(
+                array(
+                  'data' => t('Image'),
+                  'class' => 'biblio-row-title'
+                ),
+                drupal_render($file_view)
+              ));
+            }
+          }
+        case 'label':
+        case 'license':
+        case 'rating':
+        case 'weight':
+          $rows[] = array(
+            array(
+              'data' => $key,
+              'class' => 'biblio-row-title'
+            ),
+            $value
+          );
+          break;
+        //case 'timestamp':
+        case 'created':
+          //case 'changed':
+          $rows[] = array(
+            array(
+              'data' => $key,
+              'class' => 'biblio-row-title'
+            ),
+            format_date($value)
+          );
+          break;
+        case 'data':
+          break;
+      }
+    }
+  }
+  $markup = array(
+    'eolapi' => array(
+      '#markup' => '<div class="node-biblio">' . theme('table', array(
+        'rows' => $rows
+      )) . '</div>',
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'eolapi') . '/js/eolapi.js'
+        )
+      )
+    )
+  );
+  if(arg(2) == 'ajax'){
+    echo drupal_render($markup);
+    exit();
+  }else{
+    return $markup;
+  }
 }
 
 /**

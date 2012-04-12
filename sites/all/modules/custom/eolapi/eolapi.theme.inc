@@ -29,7 +29,7 @@ function theme_eolapi_stillimage_teaser($variables){
     'alt' => (isset($data->title) ? $data->title : ''),
     'title' => (isset($data->title) ? $data->title : ''),
     'attributes' => array()
-  )), 'file/' . $variables['entity']->eolapi_image[LANGUAGE_NONE][0]['fid'], array(
+  )), 'eol/' . $variables['entity']->eid . '/nojs', array(
     'html' => TRUE
   ));
 }

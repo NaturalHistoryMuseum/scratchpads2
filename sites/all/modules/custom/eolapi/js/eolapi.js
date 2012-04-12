@@ -29,5 +29,13 @@
       $('.eolapi-text-showing').removeClass('eolapi-text-showing');
       $(this).siblings().addClass('eolapi-text-showing');
     });*/
+    try {
+      $('a[href^="' + Drupal.settings.basePath + 'eol/"]', context).each(function(){
+        if($(this).colorbox) {
+          $(this).attr('href', $(this).attr('href').replace(/\/nojs(\/|$|\?|&|#)/g, '/ajax$1'));
+          $(this).colorbox({rel: 'eolapi'});
+        }
+      });
+    } catch(err) {}
   }};
 })(jQuery);
