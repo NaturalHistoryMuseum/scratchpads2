@@ -3,7 +3,15 @@
 /**
  * Implementation of hook_install(). 
  */
-function eolapi_install(){
+function eolapi_enable(){
+  $field = field_info_field('eolapi_taxonomy');
+  if($field){
+    field_delete_field('eolapi_taxonomy');
+  }
+  $field = field_info_field('eolapi_image');
+  if($field){
+    field_delete_field('eolapi_image');
+  }
   // Create a new field and field instance, and connect it with all the eolapi
   // bundles.
   $field = array(
@@ -187,7 +195,7 @@ function eolapi_install(){
 /**
  * Implementation of hook_uninstall().
  */
-function eolapi_uninstall(){
+function eolapi_disable(){
   field_delete_field('eolapi_taxonomy');
   field_delete_field('eolapi_image');
 }
