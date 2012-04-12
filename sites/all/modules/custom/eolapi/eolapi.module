@@ -232,7 +232,7 @@ function eolapi_page_view($eolapi){
               'data' => t($agent->role),
               'class' => 'biblio-row-title'
             ),
-            l($agent->full_name, $agent->homepage)
+            $agent->homepage ? l($agent->full_name, $agent->homepage) : $agent->full_name
           );
         }
         break;
