@@ -25,7 +25,6 @@ function pensoft_publication_preprocess_relation_select_field(&$variables){
   if($variables['entity_type'] == 'publication' && $variables['bundle'] == 'pensoft'){
     // Pass the processing to individual field processors
     $func = 'pensoft_publication_preprocess_' . $variables['field_name'];
-    dd($func);
     if(function_exists($func)){
       $func($variables);
     }
