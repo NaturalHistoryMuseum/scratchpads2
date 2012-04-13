@@ -141,11 +141,26 @@ function silver_feeds_importer_default(){
     );
     $field_info = field_info_instances('node', $node_type);
     foreach($field_info as $key => $field){
-      $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => $field['label'],
-        'target' => $key,
-        'unique' => 0
-      );
+      $field_info = field_info_field($field['field_name']);
+      if($field_info['type'] == 'node_reference'){
+        // We add two columns for the node reference field.
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (NID)',
+          'target' => $key . ':nid:duplicates',
+          'unique' => 0
+        );
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'] . ' (' . t('Title') . ')',
+          'target' => $key . ':title:duplicates',
+          'unique' => 0
+        );
+      }else{
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => $field['label'],
+          'target' => $key,
+          'unique' => 0
+        );
+      }
     }
     $export['node_importer_' . $node_type] = $feeds_importer;
   }
