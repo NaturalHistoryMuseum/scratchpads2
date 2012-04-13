@@ -66,7 +66,11 @@ function feeds_xls_download_template_helper($feeds_importer){
         $bundle = $feeds_importer->processor->config['vocabulary'];
         $entity_type = 'taxonomy_term';
       }
-      $field = field_info_field($header['target']);
+      if(strpos($header['target'], ':')){
+        $field = field_info_field(array_shift(explode(':', $header['target'])));
+      }else{
+        $field = field_info_field($header['target']);
+      }
       if($field){
         // Get the field instance, so that we can check if this field is required.
         $class = get_class($feeds_importer->processor);
@@ -85,6 +89,15 @@ function feeds_xls_download_template_helper($feeds_importer){
           $allowed_values = call_user_func($field['settings']['allowed_values_function'], $field);
         }else if(isset($field['settings']['allowed_values']) && is_array($field['settings']['allowed_values'])){
           $allowed_values = $field['settings']['allowed_values'];
+        }else if($field['type'] == 'node_reference'){
+          // If the view name is set, we can not do anything.
+          if(!$field['settings']['view']['view_name']){
+            $results = db_select('node', 'n')->condition('type', $field['settings']['referenceable_types'])->fields('n', array('nid', 'title'))->execute();
+            $target_parts = explode(':', $header['target']);
+            foreach($results as $row){
+              $allowed_values[] = $row->$target_parts[1];
+            }
+          }
         }
         if(count($allowed_values)){
           $objValidation->setType(PHPExcel_Cell_DataValidation::TYPE_LIST);
@@ -157,7 +170,7 @@ function feeds_xls_download_template_helper($feeds_importer){
   ));
   // Set font colour for required cells
   foreach($required_cells as $required_cell){
-    $objPHPExcel->getActiveSheet()->getStyle($required_cell.'1')->getFont()->applyFromArray(array(
+    $objPHPExcel->getActiveSheet()->getStyle($required_cell . '1')->getFont()->applyFromArray(array(
       'name' => 'Arial',
       'bold' => TRUE,
       'italic' => FALSE,
