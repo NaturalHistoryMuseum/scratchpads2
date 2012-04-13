@@ -29,7 +29,7 @@ function formflow_example_default_flows(){
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_formflow_alter().
  */
 function formflow_example_formflow_alter(&$flow, &$form_state){
   // Ctools ajax sample expects a cache object so add one here
@@ -37,4 +37,3 @@ function formflow_example_formflow_alter(&$flow, &$form_state){
     $form_state['object'] = ctools_ajax_sample_cache_get($flow['name']);
   }
 }
-
