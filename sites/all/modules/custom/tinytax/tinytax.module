@@ -131,7 +131,7 @@ function tinytax_block_configure($delta = ''){
   return array(
     'tinytax_ancestors' => array(
       '#type' => 'checkbox',
-      '#title' => t('Tick to show the total number of ancestors of each term.'),
+      '#title' => t('Tick to show the total number of descendants of each term.'),
       '#default_value' => variable_get('tinytax_ancestors_' . $delta, 1)
     )
   );
