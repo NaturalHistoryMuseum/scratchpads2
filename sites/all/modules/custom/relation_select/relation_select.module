@@ -491,7 +491,7 @@ function relation_select_field_prepare_view($entity_type, $entities, &$field, &$
  * Implements hook_field_widget_form().
  * Define the actual field input element
  */
-function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){	
+function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
   if(isset($instance['settings']['relation_view'])){
     list($view, $display) = explode(':', $instance['settings']['relation_view']);
   }else{
@@ -669,7 +669,11 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
     list($entity_id) = entity_extract_ids($entity_type, $entity);
     // Delete exisiting relations of this type
     $relations = relation_select_entity_get_relations($entity_type, $entity_id, $relation_type->relation_type);
-    $relation_entities = relation_load_multiple(array_keys($relations));
+    $rids = array();
+    foreach($relations as $relation){
+      $rids[] = $relation['relation_id'];
+    }
+    $relation_entities = relation_load_multiple($rids);
     foreach($items as $delta => $item){
       if(isset($item['endpoints']) && count($item['endpoints'])){
         $entity_keys = relation_select_build_entity_keys($entity_type, $entity_id, $item['endpoints']);
@@ -772,7 +776,7 @@ function relation_select_entity_get_relations($entity_type, $entity_id, $relatio
     'endpoints_entity_type',
     'endpoints_r_index',
     'entity_id',
-  	'revision_id'
+    'revision_id'
   ));
   $query->condition('fde.entity_id', $relation_ids, 'IN');
   $query->where('!(fde.endpoints_entity_type = :entity_type AND fde.endpoints_entity_id = :entity_id)', array(

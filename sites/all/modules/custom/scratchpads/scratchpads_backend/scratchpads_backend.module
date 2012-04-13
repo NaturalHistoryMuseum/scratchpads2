@@ -41,6 +41,9 @@ function scratchpads_backend_menu_alter(&$items){
   $items['admin/content/comment']['type'] = MENU_NORMAL_ITEM;
   $items['admin/content/file']['type'] = MENU_NORMAL_ITEM;
   $items['admin/content/relation']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/config/development/maintenance']['access arguments'] = array(
+    'administer maintenance mode'
+  );
 }
 
 /**

@@ -75,7 +75,7 @@ function relation_select_preprocess_relation_select_field(&$variables){
   foreach($variables['related_entities'] as $related_entity){
     $link = entity_uri($related_entity->entity_type, $related_entity);
     $variables['items'][] = l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
-  }
+  }  
 }
 
 /**

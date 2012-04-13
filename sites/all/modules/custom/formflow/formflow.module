@@ -111,7 +111,20 @@ function formflow_field_group_format_settings($group){
  * Implements hook_field_attach_form().
  */
 function formflow_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode){
-  formflow_attach_groups($form, $form_state, (isset($entity->is_new) ? 'add' : 'edit'));
+  if(isset($entity->is_new)){
+    // Some entities provide an "is_new" property. If that is present, respect
+    // whatever it's set to.
+    $is_new = $entity->is_new;
+  }else{
+    // Otherwise, try to find out if the entity is new by checking its ID. Note
+    // that checking empty() rather than !isset() is important here, to deal
+    // with the case of entities that store "0" as their ID while the final
+    // entity is in the process of being created (user accounts are a good
+    // example of this).
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $is_new = empty($id);
+  }
+  formflow_attach_groups($form, $form_state, ($is_new ? 'add' : 'edit'));
 }
 
 /**
@@ -187,6 +200,20 @@ function formflow_get_flows($name = null){
     return $flows[$name];
   }else{
     return $flows;
+  }
+}
+
+/**
+ * Implementation of hook_module_implements_alter().
+ * 
+ * We need to ensure that this module's entity_info_alter fires after other 
+ * modules (particularly file_styles and media).
+ */
+function formflow_module_implements_alter(&$implementations, $hook){
+  if($hook == 'field_attach_form'){
+    $this_module = $implementations['formflow'];
+    unset($implementations['formflow']);
+    $implementations['formflow'] = $this_module;
   }
 }
 
@@ -350,7 +377,7 @@ function formflow_page($flow, $current_step = 0){
     $node = (object)array(
       'uid' => $user->uid,
       'name' => (isset($user->name) ? $user->name : ''),
-      'type' => 'page',
+      'type' => $node_type,
       'language' => LANGUAGE_NONE
     );
     $form_state['build_info']['args'] = array(
@@ -375,11 +402,6 @@ function formflow_page($flow, $current_step = 0){
   if(isset($cache[$current_step]['form'])){
     $form = $cache[$current_step]['form'];
   }
-  $form['#attributes'] = array(
-    'class' => array(
-      'formflow'
-    )
-  );
   return $form;
 }
 
@@ -401,8 +423,6 @@ function formflow_menu_item($flow){
   );
   if(isset($flow['menu']['title'])){
     $item['title'] = $flow['menu']['title'];
-  }else{
-    $item['title'] = $flow['title'];
   }
   if(isset($flow['menu']['weight'])){
     $item['weight'] = $flow['menu']['weight'];
@@ -470,6 +490,7 @@ function formflow_finish(&$form_state){
           require_once DRUPAL_ROOT . '/' . $cache['form_state']['form_info']['steps'][$delta]['include_file'];
         }
         if(function_exists($func)){
+          dsm($func);
           $func($cache['form'], $cache['form_state']);
         }
       }
@@ -484,7 +505,6 @@ function formflow_finish(&$form_state){
  */
 function formflow_cancel(&$form_state){
   $form_state['cancel'] = TRUE;
-  drupal_goto();
 }
 
 /*********************************************************************************************
@@ -529,87 +549,98 @@ function formflow_menu_cache_clear(){
  * @param String $view_mode The mode for the build.
  */
 function formflow_attach_groups(&$form, &$form_state, $display_mode){
-  if(isset($form['#groups'])){
-    $trails = array();
-    foreach($form['#groups'] as $group){
-      // Is this a formflow group type?
-      if($group->format_type == 'formflow'){
-        if(!isset($form_state['current_group'])){
-          $form_state['current_group'] = $group->group_name;
-        }
-        // Is this to display only for some displays?        
-        if(isset($group->format_settings['instance_settings']['display_mode']) && !empty($group->format_settings['instance_settings']['display_mode']) && $group->format_settings['instance_settings']['display_mode'] != $display_mode){
-          continue;
-        }
-        if($group->group_name == $form_state['current_group']){
-          $class = 'wizard-trail-current';
-        }else{
-          $class = 'wizard-trail-next';
-        }
-        $trails[] = '<span class="' . $class . '">' . $group->label . '</span>';
-        ;
-      }
+  // If there are no groups defined, do nothing
+  if(!isset($form['#groups'])){return;}
+  uasort($form['#groups'], 'formflow_sort_weight');
+  // Build up a list of formfield groups.
+  $formflow_groups = array();
+  foreach($form['#groups'] as $group_name => $group){
+    if($group->format_type == 'formflow'){
+      $formflow_groups[] = $group_name;
     }
-    // Are there trails to display for this form?
-    if(count($trails)){
-      $form['trail'] = array(
-        '#theme' => 'formflow_wizard_trail',
-        '#value' => array(),
-        '#weight' => -1000,
-        '#formflow' => true,
-        '#value' => $trails
-      );
-      $form['#display_mode'] = $display_mode;
-      ctools_add_css('wizard');
-      // Attach the fieldgroup CSS
-      $form['#attached']['css'] = array(
-        drupal_get_path('module', 'formflow') . '/css/formflow.css'
-      );
-      // Field group prerender / alter funtions don't pass $form_state(!)
-      // So need to make a copy of current group & add to the form array
-      $form['#current_group'] = $form_state['current_group'];
-      // Build a trail to display at the top of the form
-      // Get the numeric position of the current group
-      $form['#position'] = array_search($form_state['current_group'], array_keys($form['#groups']));
-      $form['formflow_actions'] = array(
-        '#type' => 'actions'
-      );
-      // If this isn't the last group, show the back button
-      if($form['#position'] > 0){
-        $form['formflow_actions']['back'] = array(
-          '#type' => 'submit',
-          '#value' => t('Back'),
-          '#weight' => -100,
-          '#limit_validation_errors' => array(),
-          '#submit' => array(
-            'formflow_field_group_back_submit'
-          ),
-          '#formflow' => true // Set a flag to preserve this over all formflow steps
-        );
+  }
+  // If there are no formfield groups, do nothing.
+  if(empty($formflow_groups)){return;}
+  $form['#display_mode'] = $display_mode;
+  ctools_add_css('wizard');
+  // Attach the fieldgroup CSS
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'formflow') . '/css/formflow.css'
+  );
+  // If there's no current step, default to the first one
+  if(!isset($form_state['current_group'])){
+    $form_state['current_group'] = @array_shift(array_keys($form['#groups']));
+  }
+  $form['#current_group'] = $form_state['current_group'];
+  // Build a trail to display at the top of the form
+  $form['trail'] = array(
+    '#theme' => 'formflow_wizard_trail',
+    '#value' => array(),
+    '#weight' => -1000,
+    '#formflow' => true
+  );
+  foreach($form['#groups'] as $group){
+    if(empty($group->format_settings['instance_settings']['display_mode']) || $group->format_settings['instance_settings']['display_mode'] == $display_mode){
+      if($group->group_name == $form['#current_group']){
+        $class = 'wizard-trail-current';
+      }else{
+        $class = 'wizard-trail-next';
       }
-      // If this isn't the last group, show the next button
-      if(($form['#position'] + 1) < count($form['#groups'])){
-        $form['formflow_actions']['next'] = array(
-          '#type' => 'submit',
-          '#value' => t('Next'),
-          '#limit_validation_errors' => array(),
-          '#submit' => array(
-            'formflow_field_group_next_submit'
-          ),
-          '#formflow' => true // Set a flag to preserve this over all formflow steps
+      $form['trail']['#value'][] = '<span class="' . $class . '">' . $group->label . '</span>';
+    }
+  }
+  // If there's still groups for this build mode, add some buttons
+  if(count($form['trail']['#value'])){
+    // Get the numeric position of the current group
+    $form['#position'] = array_search($form['#current_group'], array_keys($form['#groups']));
+    $form['formflow_actions'] = array(
+      '#type' => 'actions'
+    );
+    // If this isn't the last group, show the back button
+    if($form['#position'] > 0){
+      $form['formflow_actions']['back'] = array(
+        '#type' => 'submit',
+        '#value' => t('Back'),
+        '#weight' => -100,
+        '#limit_validation_errors' => array(),
+        '#submit' => array(
+          'formflow_field_group_back_submit'
+        ),
+        '#formflow' => true // Set a flag to preserve this over all formflow steps
+      );
+    }
+    // If this isn't the last group, show the next button
+    if(($form['#position'] + 1) < count($form['#groups'])){
+      $form['formflow_actions']['next'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next'),
+        '#limit_validation_errors' => array(),
+        '#submit' => array(
+          'formflow_field_group_next_submit'
+        ),
+        '#formflow' => true // Set a flag to preserve this over all formflow steps
+      );
+    }
+    // limit validation errors to only the form items in the current group
+    foreach($form['#group_children'] as $element_name => $group){
+      if($group == $form['#current_group']){
+        $form['formflow_actions']['next']['#limit_validation_errors'][] = array(
+          $element_name
         );
-      }
-      // limit validation errors to only the form items in the current group
-      foreach($form['#group_children'] as $element_name => $group){
-        if($group == $form_state['current_group']){
-          $form['formflow_actions']['next']['#limit_validation_errors'][] = array(
-            $element_name
-          );
-        }
       }
     }
   }
   return $form;
+}
+
+/**
+ * Copy of drupal_sort_weight() for objects
+ */
+function formflow_sort_weight($a, $b){
+  $a_weight = (is_object($a) && isset($a->weight)) ? $a->weight : 0;
+  $b_weight = (is_object($b) && isset($b->weight)) ? $b->weight : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
 }
 
 /**
@@ -664,35 +695,37 @@ function formflow_field_group_navigate($op, $form, &$form_state){
  * @param $form The form object itself.
  */
 function formflow_field_group_pre_render(&$element, $group, &$form){
-  if($group->format_type == 'formflow'){
-    if(!isset($group->format_settings['instance_settings']['display_mode']) || empty($group->format_settings['instance_settings']['display_mode']) || $group->format_settings['instance_settings']['display_mode'] == $form['#display_mode']){
-      $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $group->group_name;
-      // Prepare extra classes.
-      $classes = array(
-        'field-group-' . $group->format_type,
-        str_replace('_', '-', $group->group_name)
-      );
-      if($group->group_name == $form['#current_group']){
-        $classes[] = 'active-group';
-      }
-      $element += array(
-        '#id' => $id,
-        '#weight' => $group->weight,
-        '#theme_wrappers' => array(
-          'formflow_group'
-        ),
-        '#prefix' => '<div class="' . implode(' ', $classes) . '">',
-        '#suffix' => '</div>',
-        '#group' => $group->format_type
-      );
-      // Loop through & identify which group is the last one with required fields
-      // We can then use this to decide when to show the submit buttons
-      foreach(element_children($element) as $key){
-        if(is_array($instance = field_info_instance($form['#entity_type'], $key, $form['#bundle']))){
-          if($instance['required']){
-            $form['#last_required_group'] = $group->group_name;
-            break;
-          }
+  if(isset($form['#display_mode']) && (empty($group->format_settings['instance_settings']['display_mode']) || $group->format_settings['instance_settings']['display_mode'] == $form['#display_mode'])){
+    $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $form['#display_mode'] . '_' . $group->group_name;
+    // Prepare extra classes.
+    $classes = array(
+      'field-group-' . $group->format_type,
+      str_replace('_', '-', $group->group_name)
+    );
+    if($group->group_name == $form['#current_group']){
+      $classes[] = 'active-group';
+    }
+    switch($group->format_type){
+      case 'formflow':
+        $element += array(
+          '#id' => $id,
+          '#weight' => $group->weight,
+          '#theme_wrappers' => array(
+            'formflow_group'
+          ),
+          '#prefix' => '<div class="' . implode(' ', $classes) . '">',
+          '#suffix' => '</div>',
+          '#group' => $group->format_type
+        );
+        break;
+    }
+    // Loop through & identify which group is the last one with required fields
+    // We can then use this to decide when to show the submit buttons
+    foreach(element_children($element) as $key){
+      if(is_array($instance = field_info_instance($form['#entity_type'], $key, $form['#bundle']))){
+        if($instance['required']){
+          $form['#last_required_group'] = $group->group_name;
+          break;
         }
       }
     }
@@ -762,10 +795,3 @@ function formflow_field_group_remove_elements(&$form, $end_point){
   }
   return $form;
 }
-
-
-
-
-
-
-

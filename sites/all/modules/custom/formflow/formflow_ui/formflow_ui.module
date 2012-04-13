@@ -29,7 +29,7 @@ function formflow_ui_menu(){
     'page callback' => 'formflow_ui_overview_page',
     'access callback' => 'user_access',
     'access arguments' => array(
-      'administer formflow'
+      'administer form flows'
     )
   );
   $items['admin/structure/formflow/add'] = array(
@@ -575,7 +575,7 @@ function formflow_ui_steps_form($form, &$form_state, $flow = array()){
   foreach($available_forms_list as $module => $available_forms){
     $form['available_forms'][$module] = array(
       '#type' => 'fieldset',
-      '#title' => $module,
+      '#title' => !empty($module) ? $module : t('Unknown'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE
     );

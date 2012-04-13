@@ -46,6 +46,14 @@ function publication_schema(){
         'not null' => TRUE,
         'default' => 0
       ),
+      'status' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+        'size' => 'tiny',
+        'description' => 'The published status of this publication. (0 = Not Published, 1 = Published)'
+      ),
       'data' => array(
         'type' => 'blob',
         'not null' => FALSE,

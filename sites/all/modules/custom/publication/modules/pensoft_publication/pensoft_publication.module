@@ -97,7 +97,8 @@ function pensoft_publication_form_alter(&$form, &$form_state, $form_id){
             '#submit' => array(
               'publication_edit_form_submit',
               'pensoft_publication_edit_form_submit'
-            )
+            ),
+            '#formflow' => 1
           );
         }else{
           $form['field_publication_treatments'] = array(
