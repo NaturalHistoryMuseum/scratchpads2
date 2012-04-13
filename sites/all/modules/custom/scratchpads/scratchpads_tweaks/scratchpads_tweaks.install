@@ -514,7 +514,7 @@ function scratchpads_tweaks_update_7012(){
 /**
  * Disable the wysiwyg module and enable the ckeditor module.
  */
-function scratchpads_tweaks_update_7013(){
+function scratchpads_tweaks_update_7014(){
   module_disable(array(
     'wysiwyg'
   ));
@@ -580,7 +580,7 @@ function scratchpads_tweaks_update_7013(){
     'UserFilesAbsolutePath' => '%d%b%f/',
     'ckeditor_load_method' => 'ckeditor.js',
     'ckeditor_load_time_out' => '0',
-    'forcePasteAsPlainText' => 'f',
+    'forcePasteAsPlainText' => 't',
     'html_entities' => 't',
     'scayt_autoStartup' => 't',
     'theme_config_js' => 'f',
@@ -695,7 +695,7 @@ function scratchpads_tweaks_update_7013(){
     'UserFilesAbsolutePath' => '%d%b%f/',
     'ckeditor_load_method' => 'ckeditor.js',
     'ckeditor_load_time_out' => '0',
-    'forcePasteAsPlainText' => 'f',
+    'forcePasteAsPlainText' => 't',
     'html_entities' => 't',
     'scayt_autoStartup' => 't',
     'theme_config_js' => 'f',
