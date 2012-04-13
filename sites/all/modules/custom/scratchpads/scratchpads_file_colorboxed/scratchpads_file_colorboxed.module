@@ -25,15 +25,24 @@ function scratchpads_file_colorboxed_menu(){
  */
 function scratchpads_file_colorboxed_entity_simple_view($fid){
   $entity = entity_load_single('file', $fid);
-  $content = entity_view('file', array(
-    $entity
-  ), 'file_styles_colorbox');
+  $view_type = 'file_styles_colorbox';
   // Wrap the audio file specially.
   if($entity->type == 'audio'){
     $width = 'width:400px;';
   }else{
     $width = '';
   }
+  // Only use the colorbox display type if we're viewing certain files.
+  if(!in_array($entity->type, array(
+    'image',
+    'video',
+    'audio'
+  ))){
+    $view_type = 'default';
+  }
+  $content = entity_view('file', array(
+    $entity
+  ), $view_type);
   echo '<div style="' . $width . 'padding:10px">' . drupal_render($content) . ($entity->type == 'image' ? '<p>' . l(t('Download original'), file_create_url($entity->uri), array(
     'attributes' => array(
       'target' => '_blank'

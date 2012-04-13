@@ -177,7 +177,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
         return FALSE;
       }
     }else{
-      //drupal_set_message('Search failed', 'error')
+      drupal_set_message(t('We are currently experiencing problems with the EOL service.'), 'error', FALSE);
       if($row){
         return entity_load_single('eolapi', $row->eid);
       }else{

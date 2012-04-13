@@ -252,3 +252,9 @@ form.formflow{
 form.formflow input.form-submit{
   margin: 20px 20px 0 0;
 }
+
+/* Fix a spacing issue with CKEditor */
+.text-format-wrapper>.ckeditor_links{
+	position:relative !important;
+	top:-9px;
+}

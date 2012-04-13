@@ -1,0 +1,87 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!--
+   CKEditor - The text editor for the Internet - http://ckeditor.com
+   Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+-->
+<head>
+  <title>CKEditor</title>
+  <script type="text/javascript">
+  var ckeditor_was_opened_in_popup_window = true;
+  var Drupal=window.opener['Drupal'];
+document.write('<scr' + 'ipt src="' + window.opener['Drupal'].settings.basePath + 'misc/jquery.js"></scr' + 'ipt>');
+document.write('<scr' + 'ipt src="' + window.opener['Drupal'].settings.ckeditor.editor_path + '/ckeditor.js?I"></scr' + 'ipt>');
+document.write('<scr' + 'ipt src="' + window.opener['Drupal'].settings.ckeditor.module_path + '/includes/ckeditor.utils.js?I"></scr' + 'ipt>');
+document.write('<scr' + 'ipt src="' + window.opener['Drupal'].settings.ckeditor.module_path + '/ckeditor.config.js?I"></scr' + 'ipt>');
+
+function Ok()
+{
+  var textarea_id=$(".content_editor").attr("id");
+  var data=CKEDITOR.instances[textarea_id].getData();
+  window.opener.jQuery("#"+textarea_id).val(data);
+  window.opener.focus();
+  window.close();
+}
+function Cancel()
+{
+  if ( CKEDITOR.instances[$(".content_editor").attr("id")].checkDirty() )
+  {
+    if ( !confirm(Drupal.t('Are you sure you want to cancel? Your changes will be lost.')) )
+      return ;
+  }
+
+  window.close();
+}
+
+function get_element_id(){
+  var regexp=/[?&]el=([^&#]*)/i;
+  var rs=regexp.exec(window.location.href);
+  if( rs == null ) {
+    return "";
+  } else {
+    return rs[1];
+  } 
+}
+  </script>
+</head>
+<body>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      var textarea_id=get_element_id();
+      var ckeditor_obj = Drupal.settings.ckeditor;
+      $(".content_editor").attr("id", textarea_id);
+      $(".content_editor").val(window.opener.jQuery("#"+textarea_id).val());
+      
+      if (($("#" + textarea_id).val().length > 0) && ((window.opener.jQuery("#" + textarea_id).attr('class').indexOf("filterxss1") != -1 && typeof(Drupal.settings.ckeditor.autostart) != 'undefined' && typeof(Drupal.settings.ckeditor.autostart[textarea_id]) != 'undefined') || window.opener.jQuery("#" + textarea_id).attr('class').indexOf("filterxss2") != -1)) {
+        $.ajax({
+            type: 'POST',
+            url: Drupal.settings.basePath + 'index.php?q=ckeditor/xss',
+            async: false,
+            data: {
+                text: $('#' + textarea_id).val(),
+                'filters[]': ckeditor_obj.input_formats[ckeditor_obj.elements[textarea_id]].filters
+            },
+            success: function(text){
+                $("#" + textarea_id).val(text);
+            }
+        })
+      }
+        ckeditor_obj.input_formats[ckeditor_obj.elements[textarea_id]].toolbar = eval(ckeditor_obj.input_formats[ckeditor_obj.elements[textarea_id]].toolbar);
+        CKEDITOR.replace(textarea_id, ckeditor_obj.input_formats[ckeditor_obj.elements[textarea_id]]);
+    });
+  </script>
+  <table width="100%" height="100%">
+    <tr>
+      <td height="100%">
+        <textarea class="content_editor">
+        </textarea>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input type="button" value="OK" onclick="Ok();" style="width:120px" />
+        <input type="button" value="Cancel" onclick="Cancel();" />
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

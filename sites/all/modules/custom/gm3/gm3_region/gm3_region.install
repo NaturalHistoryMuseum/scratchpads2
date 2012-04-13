@@ -3,7 +3,6 @@
 /**
  * FIXME - Add a hook requirements to check for the GEOS extension.
  */
-
 /**
  * Implementation of hook_install().
  * 
@@ -15,7 +14,7 @@ function gm3_region_install(){
   // As the files are so huge, we'll read the file line by line and insert 
   // each region one by one.  This may be a little slower, but it's less likely
   // to fuck up!
-  gm3_load_geophp();  
+  gm3_load_geophp();
   for($i = 1; $i <= 4; $i++){
     $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
     $fields = array();
@@ -52,9 +51,9 @@ function gm3_region_install(){
           case '  MULTIPOLY':
           case '  POLYGON (':
             // Do the insert
-            $fields['polygons'] = trim($line);            
+            $fields['polygons'] = trim($line);
             $geophp = geoPHP::load($fields['polygons'], 'wkt');
-            $fields['binary_polygons'] = bin2hex(@$geophp->asBinary());// Bug with GeoPHP means we need to hide add the "@".
+            $fields['binary_polygons'] = bin2hex(@$geophp->asBinary()); // Bug with GeoPHP means we need to hide add the "@".
             db_insert('gm3_region_data')->fields($fields)->execute();
             $fields = array();
             break;
@@ -62,6 +61,8 @@ function gm3_region_install(){
       }
     }
   }
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
 }
 
 /**
@@ -82,38 +83,42 @@ function gm3_region_schema(){
         'continent' => array(
           'description' => "Continent",
           'type' => 'varchar',
-          'not null' => FALSE,
-          'length' => 20
+          'length' => 20,
+          'default' => ''
         ),
         'iso_code' => array(
           'description' => "ISO Code",
           'type' => 'varchar',
-          'not null' => FALSE,
-          'length' => 2
+          'length' => 2,
+          'default' => ''
         ),
         'level_4_code' => array(
           'description' => "Level 4 code",
           'type' => 'varchar',
-          'not null' => FALSE,
-          'length' => 2
+          'length' => 2,
+          'not null' => TRUE,
+          'default' => ''
         ),
         'level_3_code' => array(
           'description' => "Level 3 code",
           'type' => 'varchar',
-          'not null' => FALSE,
-          'length' => 3
+          'length' => 3,
+          'not null' => TRUE,
+          'default' => ''
         ),
         'level_2_code' => array(
           'description' => "Level 2 id",
           'type' => 'int',
-          'not null' => FALSE,
-          'size' => 'tiny'
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0
         ),
         'level_1_code' => array(
           'description' => "Level 1 id",
           'type' => 'int',
           'not null' => TRUE,
-          'size' => 'tiny'
+          'size' => 'tiny',
+          'default' => 0
         ),
         'polygons' => array(
           'description' => "Polygons",
@@ -126,6 +131,10 @@ function gm3_region_schema(){
           'type' => 'text',
           'not null' => TRUE,
           'size' => 'medium'
+        ),
+        'mysql_polygons' => array(
+          'description' => 'MySQL GEO extension',
+          'mysql_type' => 'MULTIPOLYGON'
         )
       ),
       'primary key' => array(
@@ -136,4 +145,16 @@ function gm3_region_schema(){
       )
     )
   );
+}
+
+/**
+ * Add the mysql_polygons column.
+ */
+function gm3_region_update_7001(){
+  db_add_field('gm3_region_data', 'mysql_polygons', array(
+    'description' => 'MySQL GEO extension',
+    'mysql_type' => 'MULTIPOLYGON'
+  ));
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
 }

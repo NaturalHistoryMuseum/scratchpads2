@@ -22,6 +22,8 @@ dependencies[] = "scratchpads_image_styles"
 dependencies[] = "list"
 dependencies[] = "options"
 dependencies[] = "taxonomy"
+dependencies[] = "scratchpads_pages"
+dependencies[] = "facetapi"
 
 features[field][] = "file-audio-field_media_galleries"
 features[field][] = "file-video-field_media_galleries"

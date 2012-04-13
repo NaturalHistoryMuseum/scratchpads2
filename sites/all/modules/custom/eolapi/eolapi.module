@@ -133,8 +133,129 @@ function eolapi_menu(){
         'access content'
       ),
       'type' => MENU_CALLBACK
+    ),
+    'eol/%eolapi' => array(
+      'title callback' => 'eolapi_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'eolapi_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content' // Basic permission that all users have
+      )
     )
   );
+}
+
+/**
+ * EOL Page title.
+ */
+function eolapi_page_title($eolapi){
+  return $eolapi->label;
+}
+
+/**
+ * Load function
+ */
+function eolapi_load($entity_id){
+  return entity_load_single('eolapi', $entity_id);
+}
+
+/**
+ * Display the EOL object
+ */
+function eolapi_page_view($eolapi){
+  $rows = array();
+  if(count($eolapi->eolapi_image)){
+    if(@isset($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid'])){
+      $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
+      $file_view = entity_view('file', array(
+        $file
+      ), 'file_styles_colorbox');
+      $rows[] = array(
+        array(
+          'data' => drupal_render($file_view),
+          'colspan' => 2
+        )
+      );
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => t('License'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->license
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Rating'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->rating
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Vetted'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->trusted ? t('Trusted') : t('Untrusted')
+  );
+  $data = unserialize($eolapi->data);
+  foreach($data as $key => $value){
+    switch($key){
+      case 'mediaURL':
+        $rows[] = array(
+          array(
+            'data' => t('Original URL'),
+            'class' => 'biblio-row-title'
+          ),
+          l(truncate_utf8($value, 100, FALSE, TRUE), $value)
+        );
+        break;
+      case 'description':
+        $rows[] = array(
+          array(
+            'data' => t('Description'),
+            'class' => 'biblio-row-title'
+          ),
+          '<div style="max-width:400px">'.$data->description.'</div>'
+        );
+        break;
+      case 'agents':
+        foreach($data->agents as $agent){
+          $rows[] = array(
+            array(
+              'data' => t($agent->role),
+              'class' => 'biblio-row-title'
+            ),
+            $agent->homepage ? l($agent->full_name, $agent->homepage) : $agent->full_name
+          );
+        }
+        break;
+    }
+  }
+  $markup = array(
+    'eolapi' => array(
+      '#markup' => '<div class="node-biblio">' . theme('table', array(
+        'rows' => $rows
+      )) . '</div>',
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'eolapi') . '/js/eolapi.js'
+        )
+      )
+    )
+  );
+  if(arg(2) == 'ajax'){
+    echo drupal_render($markup);
+    exit();
+  }else{
+    return $markup;
+  }
 }
 
 /**

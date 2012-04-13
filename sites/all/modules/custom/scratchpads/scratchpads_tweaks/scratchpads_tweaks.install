@@ -54,8 +54,10 @@ function scratchpads_tweaks_install(){
   theme_enable(array(
     'scratchpads'
   ));
-  // Set wysiwyg settings for each filter format.
+  // Setup linkit.
   scratchpads_tweaks_update_7008();
+  // Setup the CKEditor module
+  scratchpads_tweaks_update_7014();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -352,87 +354,13 @@ function scratchpads_tweaks_update_7002(){
 
 /**
  * Update WYSIWYG and filter formats.
+ * 
+ * scratchpads_tweaks_update_7003 - Removed. No longer required.
  */
-function scratchpads_tweaks_update_7003(){
-  // Add text formats.
-  $filtered_html_format = array(
-    'format' => 'comment_filtered_html',
-    'name' => 'Comment Filtered HTML',
-    'weight' => 1,
-    'filters' => array(
-      // URL filter.
-      'filter_url' => array(
-        'weight' => 0,
-        'status' => 1
-      ),
-      // HTML filter.
-      'filter_html' => array(
-        'weight' => 1,
-        'status' => 1,
-        'settings' => array(
-          'allowed_html' => '<i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
-          'filter_html_help' => 0,
-          'filter_html_nofollow' => 0
-        )
-      ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 2,
-        'status' => 1
-      ),
-      // HTML corrector filter.
-      'filter_htmlcorrector' => array(
-        'weight' => 10,
-        'status' => 1
-      )
-    )
-  );
-  $filtered_html_format = (object)$filtered_html_format;
-  filter_format_save($filtered_html_format);
-  db_insert('wysiwyg')->fields(array(
-    'format' => 'comment_filtered_html',
-    'editor' => 'ckeditor',
-    'settings' => serialize(array(
-      'default' => 1,
-      'user_choose' => 1,
-      'show_toggle' => 1,
-      'theme' => 'advanced',
-      'language' => 'en',
-      'buttons' => array(
-        'default' => array(
-          'Bold' => 1,
-          'Italic' => 1,
-          'Underline' => 1,
-          'BulletedList' => 1,
-          'NumberedList' => 1,
-          'Undo' => 1,
-          'Redo' => 1,
-          'Link' => 1,
-          'Unlink' => 1
-        )
-      ),
-      'toolbar_loc' => 'top',
-      'toolbar_align' => 'left',
-      'path_loc' => 'bottom',
-      'resizing' => 1,
-      'verify_html' => 1,
-      'preformatted' => 0,
-      'convert_fonts_to_spans' => 1,
-      'remove_linebreaks' => 1,
-      'apply_source_formatting' => 0,
-      'paste_auto_cleanup_on_paste' => 0,
-      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-      'css_setting' => 'none',
-      'css_path' => '',
-      'css_classes' => ''
-    ))
-  ))->execute();
-}
-
 /**
  * Set the default for all comment forms to be on a separate page.
  * 
- * 7004 remove due to an error.
+ * 7004 removed due to an error.
  */
 function scratchpads_tweaks_update_7005(){
   foreach(node_type_get_names() as $type => $name){
@@ -467,111 +395,6 @@ function scratchpads_tweaks_update_7008(){
   module_enable(array(
     'linkit'
   ));
-  db_merge('wysiwyg')->key(array(
-    'editor' => 'ckeditor',
-    'format' => 'filtered_html'
-  ))->fields(array(
-    'format' => 'filtered_html',
-    'editor' => 'ckeditor',
-    'settings' => serialize(array(
-      'default' => 1,
-      'user_choose' => 1,
-      'show_toggle' => 1,
-      'theme' => 'advanced',
-      'language' => 'en',
-      'buttons' => array(
-        'default' => array(
-          'Bold' => 1,
-          'Italic' => 1,
-          'Underline' => 1,
-          'JustifyCenter' => 1,
-          'BulletedList' => 1,
-          'NumberedList' => 1,
-          'Undo' => 1,
-          'Redo' => 1,
-          'Link' => 1,
-          'Unlink' => 1,
-          'Superscript' => 1,
-          'Subscript' => 1,
-          'Blockquote' => 1,
-          'HorizontalRule' => 1,
-          'Cut' => 1,
-          'Copy' => 1,
-          'Paste' => 1,
-          'PasteText' => 1,
-          'PasteFromWord' => 1,
-          'RemoveFormat' => 1,
-          'SpecialChar' => 1,
-          'Table' => 1,
-          'Maximize' => 1,
-          'SpellChecker' => 1,
-          'Scayt' => 1
-        ),
-        'drupal' => array(
-          'media' => 1,
-          'break' => 1
-        ),
-        'linkit' => array(
-          'linkit' => 1
-        )
-      ),
-      'toolbar_loc' => 'top',
-      'toolbar_align' => 'left',
-      'path_loc' => 'bottom',
-      'resizing' => 1,
-      'verify_html' => 1,
-      'preformatted' => 0,
-      'convert_fonts_to_spans' => 1,
-      'remove_linebreaks' => 1,
-      'apply_source_formatting' => 0,
-      'paste_auto_cleanup_on_paste' => 0,
-      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-      'css_setting' => 'none',
-      'css_path' => '',
-      'css_classes' => ''
-    ))
-  ))->execute();
-  db_merge('wysiwyg')->key(array(
-    'editor' => 'ckeditor',
-    'format' => 'comment_filtered_html'
-  ))->fields(array(
-    'format' => 'comment_filtered_html',
-    'editor' => 'ckeditor',
-    'settings' => serialize(array(
-      'default' => 1,
-      'user_choose' => 1,
-      'show_toggle' => 1,
-      'theme' => 'advanced',
-      'language' => 'en',
-      'buttons' => array(
-        'default' => array(
-          'Bold' => 1,
-          'Italic' => 1,
-          'Underline' => 1,
-          'BulletedList' => 1,
-          'NumberedList' => 1,
-          'Undo' => 1,
-          'Redo' => 1,
-          'Link' => 1,
-          'Unlink' => 1
-        )
-      ),
-      'toolbar_loc' => 'top',
-      'toolbar_align' => 'left',
-      'path_loc' => 'bottom',
-      'resizing' => 1,
-      'verify_html' => 1,
-      'preformatted' => 0,
-      'convert_fonts_to_spans' => 1,
-      'remove_linebreaks' => 1,
-      'apply_source_formatting' => 0,
-      'paste_auto_cleanup_on_paste' => 0,
-      'block_formats' => 'p,address,pre,h2,h3,h4,h5,h6,div',
-      'css_setting' => 'none',
-      'css_path' => '',
-      'css_classes' => ''
-    ))
-  ))->execute();
   db_merge('linkit_profiles')->key(array(
     'name' => 'default'
   ))->fields(array(
@@ -677,49 +500,271 @@ function scratchpads_tweaks_update_7009(){
 /**
  * Update the filtered HTML format (add <hr>).
  * 
- * scratchpads_tweaks_update_7010 removed as it was almost identical to this one.
+ * scratchpads_tweaks_update_7010 & ...7011 removed as they were almost identical to this one.
  */
-function scratchpads_tweaks_update_7011(){
-  // Add text formats.
-  $filtered_html_format = array(
-    'format' => 'filtered_html',
-    'name' => 'Filtered HTML',
-    'weight' => 0,
+function scratchpads_tweaks_update_7012(){
+  $filtered_html_format = filter_format_load('filtered_html');
+  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>';
+  filter_format_save($filtered_html_format);
+  $filtered_html_format = filter_format_load('comment_filtered_html');
+  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>';
+  filter_format_save($filtered_html_format);
+}
+
+/**
+ * Disable the wysiwyg module and enable the ckeditor module.
+ * 
+ * Updated to 7014 to set the forcePasteAsPlainText option.
+ * 
+ * NOTE. IF THIS FUNCTION NAME IS CHANGED, IT MUST BE CHANGED IN THE INSTALL
+ * FUNCTION ABOVE.
+ */
+function scratchpads_tweaks_update_7014(){
+  module_disable(array(
+    'wysiwyg'
+  ));
+  drupal_uninstall_modules(array(
+    'wysiwyg'
+  ));
+  module_enable(array(
+    'ckeditor'
+  ));
+  db_delete('ckeditor_settings')->condition('name', 'CKEditor Global Profile', '!=')->execute();
+  $default_settings = array(
     'filters' => array(
-      // URL filter.
-      'filter_url' => array(
-        'weight' => 0,
-        'status' => 1
+      'filter_html' => 1
+    ),
+    'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
+    'toolbar' => '[
+    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
+    [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
+    [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
+    \'/\',
+    [\'SelectAll\',\'Cut\',\'Copy\',\'Paste\',\'PasteText\',\'PasteFromWord\'],
+    [\'SpellChecker\',\'Scayt\'],
+    [\'Undo\',\'Redo\',\'Find\',\'Replace\',\'-\',\'RemoveFormat\'],
+    [\'Media\',\'Table\',\'HorizontalRule\',\'SpecialChar\',\'DrupalBreak\'],
+    [\'Maximize\']
+]',
+    'expand' => 't',
+    'width' => '100%',
+    'lang' => 'en',
+    'auto_lang' => 't',
+    'language_direction' => 'default',
+    'enter_mode' => 'p',
+    'shift_enter_mode' => 'br',
+    'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
+    'custom_formatting' => 'f',
+    'formatting' => array(
+      'custom_formatting_options' => array(
+        'indent' => 'indent',
+        'breakBeforeOpen' => 'breakBeforeOpen',
+        'breakAfterOpen' => 'breakAfterOpen',
+        'breakAfterClose' => 'breakAfterClose',
+        'breakBeforeClose' => 0,
+        'pre_indent' => 0
+      )
+    ),
+    'css_mode' => 'none',
+    'css_path' => '',
+    'css_style' => 'theme',
+    'styles_path' => '',
+    'filebrowser' => 'none',
+    'filebrowser_image' => '',
+    'filebrowser_flash' => '',
+    'UserFilesPath' => '%b%f/',
+    'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
+    'forcePasteAsPlainText' => 't',
+    'html_entities' => 't',
+    'scayt_autoStartup' => 't',
+    'theme_config_js' => 'f',
+    'js_conf' => '',
+    'loadPlugins' => array(
+      'autogrow' => array(
+        'name' => 'autogrow',
+        'desc' => 'Auto Grow plugin',
+        'path' => '%base_path%%editor_path%plugins/autogrow/',
+        'buttons' => false,
+        'default' => 'f'
       ),
-      // HTML filter.
-      'filter_html' => array(
-        'weight' => 1,
-        'status' => 1,
-        'settings' => array(
-          'allowed_html' => '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
-          'filter_html_help' => 0,
-          'filter_html_nofollow' => 0
+      'counter' => array(
+        'name' => 'counter',
+        'desc' => 'Plugin to count symbols, symbols without blanks and words',
+        'path' => '%base_path%%plugin_dir%counter/',
+        'buttons' => false,
+        'default' => 'f'
+      ),
+      'drupalbreaks' => array(
+        'name' => 'drupalbreaks',
+        'desc' => 'Plugin for inserting Drupal teaser and page breaks.',
+        'path' => '%base_path%%plugin_dir%drupalbreaks/',
+        'buttons' => array(
+          'DrupalBreak' => array(
+            'label' => 'DrupalBreak',
+            'icon' => 'images/drupalbreak.png'
+          )
+        ),
+        'default' => 't'
+      ),
+      'linkit' => array(
+        'name' => 'linkit',
+        'desc' => 'Support for Linkit module',
+        'path' => '%base_path%sites/all/modules/contrib/linkit/editors/ckeditor/',
+        'buttons' => array(
+          'linkit' => array(
+            'label' => 'Linkit',
+            'icon' => 'linkit.png'
+          )
         )
       ),
-      // Line break filter.
-      'filter_autop' => array(
-        'weight' => 2,
-        'status' => 1
+      'media' => array(
+        'name' => 'media',
+        'desc' => 'Plugin for inserting images from Drupal media module',
+        'path' => '%base_path%%plugin_dir%media/',
+        'buttons' => array(
+          'Media' => array(
+            'label' => 'Media',
+            'icon' => 'images/icon.gif'
+          )
+        ),
+        'default' => 'f'
       ),
-      // HTML corrector filter.
-      'filter_htmlcorrector' => array(
-        'weight' => 10,
-        'status' => 1
-      ),
-      'media_filter' => array(
-        'weight' => 11,
-        'status' => 1
+      'tableresize' => array(
+        'name' => 'tableresize',
+        'desc' => 'Table Resize plugin',
+        'path' => '%base_path%%editor_path%plugins/tableresize/',
+        'buttons' => false,
+        'default' => 't'
       )
     )
   );
-  $filtered_html_format = (object)$filtered_html_format;
-  filter_format_save($filtered_html_format);
-  $filtered_html_format->format = 'filtered_html';
-  $filtered_html_format->name = 'Filtered HTML';
-  filter_format_save($filtered_html_format);
+  $limited_settings = array(
+    'filters' => array(
+      'filter_html' => 1
+    ),
+    'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
+    'toolbar' => '[
+    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'NumberedList\',\'BulletedList\'],
+    [\'Undo\',\'Redo\'],
+    [\'SelectAll\',\'Cut\',\'Copy\',\'Paste\',\'PasteText\',\'PasteFromWord\'],
+    [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
+    [\'Media\']
+]',
+    'expand' => 't',
+    'width' => '100%',
+    'lang' => 'en',
+    'auto_lang' => 't',
+    'language_direction' => 'default',
+    'enter_mode' => 'p',
+    'shift_enter_mode' => 'br',
+    'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
+    'custom_formatting' => 'f',
+    'formatting' => array(
+      'custom_formatting_options' => array(
+        'indent' => 'indent',
+        'breakBeforeOpen' => 'breakBeforeOpen',
+        'breakAfterOpen' => 'breakAfterOpen',
+        'breakAfterClose' => 'breakAfterClose',
+        'breakBeforeClose' => 0,
+        'pre_indent' => 0
+      )
+    ),
+    'css_mode' => 'none',
+    'css_path' => '',
+    'css_style' => 'theme',
+    'styles_path' => '',
+    'filebrowser' => 'none',
+    'filebrowser_image' => '',
+    'filebrowser_flash' => '',
+    'UserFilesPath' => '%b%f/',
+    'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
+    'forcePasteAsPlainText' => 't',
+    'html_entities' => 't',
+    'scayt_autoStartup' => 't',
+    'theme_config_js' => 'f',
+    'js_conf' => '',
+    'loadPlugins' => array(
+      'autogrow' => array(
+        'name' => 'autogrow',
+        'desc' => 'Auto Grow plugin',
+        'path' => '%base_path%%editor_path%plugins/autogrow/',
+        'buttons' => false,
+        'default' => 'f'
+      ),
+      'linkit' => array(
+        'name' => 'linkit',
+        'desc' => 'Support for Linkit module',
+        'path' => '%base_path%sites/all/modules/contrib/linkit/editors/ckeditor/',
+        'buttons' => array(
+          'linkit' => array(
+            'label' => 'Linkit',
+            'icon' => 'linkit.png'
+          )
+        )
+      ),
+      'media' => array(
+        'name' => 'media',
+        'desc' => 'Plugin for inserting images from Drupal media module',
+        'path' => '%base_path%%plugin_dir%media/',
+        'buttons' => array(
+          'Media' => array(
+            'label' => 'Media',
+            'icon' => 'images/icon.gif'
+          )
+        ),
+        'default' => 'f'
+      )
+    )
+  );
+  // Insert the settings.
+  $query = db_insert('ckeditor_settings')->fields(array(
+    'name',
+    'settings'
+  ));
+  $query->values(array(
+    'name' => 'Default',
+    'settings' => serialize($default_settings)
+  ));
+  $query->values(array(
+    'name' => 'Limited',
+    'settings' => serialize($limited_settings)
+  ));
+  $query->execute();
+  // Associate profiles with formats.
+  db_delete('ckeditor_input_format')->execute();
+  $query = db_insert('ckeditor_input_format')->fields(array(
+    'name',
+    'format'
+  ));
+  $query->values(array(
+    'name' => 'Default',
+    'format' => 'filtered_html'
+  ));
+  $query->values(array(
+    'name' => 'Limited',
+    'format' => 'comment_filtered_html'
+  ));
+  $query->execute();
 }
