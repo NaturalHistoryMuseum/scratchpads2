@@ -203,6 +203,20 @@ function formflow_get_flows($name = null){
   }
 }
 
+/**
+ * Implementation of hook_module_implements_alter().
+ * 
+ * We need to ensure that this module's entity_info_alter fires after other 
+ * modules (particularly file_styles and media).
+ */
+function formflow_module_implements_alter(&$implementations, $hook){
+  if($hook == 'field_attach_form'){
+    $this_module = $implementations['formflow'];
+    unset($implementations['formflow']);
+    $implementations['formflow'] = $this_module;
+  }
+}
+
 /*********************************************************************************************
  * 
  * DB
@@ -537,7 +551,12 @@ function formflow_menu_cache_clear(){
 function formflow_attach_groups(&$form, &$form_state, $display_mode){
   // If there are no groups defined, do nothing
   if(!isset($form['#groups'])){return;}
-  uasort($form['#groups'], "element_sort");
+  uasort($form['#groups'], 'formflow_sort_weight');
+  foreach($form['#groups'] as $x => $y){
+    dd($x);
+    dd($y->weight);
+    dd(' ');
+  }
   // Build up a list of formfield groups.
   $formflow_groups = array();
   foreach($form['#groups'] as $group_name => $group){
@@ -617,6 +636,16 @@ function formflow_attach_groups(&$form, &$form_state, $display_mode){
     }
   }
   return $form;
+}
+
+/**
+ * Copy of drupal_sort_weight() for objects
+ */
+function formflow_sort_weight($a, $b){
+  $a_weight = (is_object($a) && isset($a->weight)) ? $a->weight : 0;
+  $b_weight = (is_object($b) && isset($b->weight)) ? $b->weight : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
 }
 
 /**
