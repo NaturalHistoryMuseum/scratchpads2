@@ -55,6 +55,7 @@
 
       // Event handler: close button clicked
       function addCloseEventHandlers(context){
+        
         $('.relation-select-close:not(.processed)', context).click(
             handleCloseClick).addClass('processed');
 
