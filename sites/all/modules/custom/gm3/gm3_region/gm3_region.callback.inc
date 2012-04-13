@@ -24,13 +24,32 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       $iso_codes
     );
   }
+  // First we try to get a single hit using the MySQL geo extension.
+  $latlng = preg_replace("/[)(]/", "", $latlng);
+  $latlng = explode(", ", $latlng);
+  $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
+  $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code) as code 
+  										 FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_4_code != ''", array(
+    ':iso_code' => $iso_codes
+  ));
+  if($results->rowCount() == 1){
+    // We've had success with our trimmed down method. WOOT!
+    $results = $results->fetch();
+    if(arg(4) < 4){
+      $code_parts = explode(':', $results->code);
+      for($i = arg(4); $i < 4; $i++){
+        array_pop($code_parts);
+      }
+      $results->code = implode(":", $code_parts);
+    }
+    print json_encode($results->code);
+    exit();
+  }
   // Load the Library.
   gm3_load_geophp();
   $wkb_reader = new WKB();
   // Create a point object from the sent data.
-  $latlng = preg_replace("/[)(]/", "", $latlng);
-  $latlng = explode(", ", $latlng);
-  $point = geoPHP::load("POINT ({$latlng[1]} {$latlng[0]})", "wkt");
+  $point = geoPHP::load($point_wkt, 'wkt');
   foreach($iso_codes as $iso_code){
     // Loop through each Level 1 region.
     $region_id = '';
@@ -126,7 +145,7 @@ function gm3_region_get_points($region_ids){
       if($row){
         $polygons = $wkb_reader->read($row->binary_polygons, TRUE);
         $polygons = $polygons->out('json');
-        $polygons = '{"' . $region_id . '":{"name":"'.$row->name.'","shape":' . $polygons . '}}';
+        $polygons = '{"' . $region_id . '":{"name":"' . $row->name . '","shape":' . $polygons . '}}';
       }
       cache_set($cid, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{

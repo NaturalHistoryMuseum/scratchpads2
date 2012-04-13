@@ -61,6 +61,8 @@ function gm3_region_install(){
       }
     }
   }
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
 }
 
 /**
@@ -129,6 +131,10 @@ function gm3_region_schema(){
           'type' => 'text',
           'not null' => TRUE,
           'size' => 'medium'
+        ),
+        'mysql_polygons' => array(
+          'description' => 'MySQL GEO extension',
+          'mysql_type' => 'MULTIPOLYGON'
         )
       ),
       'primary key' => array(
@@ -139,4 +145,16 @@ function gm3_region_schema(){
       )
     )
   );
+}
+
+/**
+ * Add the mysql_polygons column.
+ */
+function gm3_region_update_7001(){
+  db_add_field('gm3_region_data', 'mysql_polygons', array(
+    'description' => 'MySQL GEO extension',
+    'mysql_type' => 'MULTIPOLYGON'
+  ));
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
 }
