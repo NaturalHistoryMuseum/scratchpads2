@@ -57,7 +57,7 @@ function scratchpads_tweaks_install(){
   // Setup linkit.
   scratchpads_tweaks_update_7008();
   // Setup the CKEditor module
-  scratchpads_tweaks_update_7013();
+  scratchpads_tweaks_update_7014();
   // Enable some standard blocks.
   $values = array(
     array(
@@ -513,6 +513,11 @@ function scratchpads_tweaks_update_7012(){
 
 /**
  * Disable the wysiwyg module and enable the ckeditor module.
+ * 
+ * Updated to 7014 to set the forcePasteAsPlainText option.
+ * 
+ * NOTE. IF THIS FUNCTION NAME IS CHANGED, IT MUST BE CHANGED IN THE INSTALL
+ * FUNCTION ABOVE.
  */
 function scratchpads_tweaks_update_7014(){
   module_disable(array(
