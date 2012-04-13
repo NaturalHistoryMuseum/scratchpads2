@@ -166,6 +166,40 @@ function scratchpads_backend_admin_content(){
           );
         }
         break;
+      case 'publication':
+        $statistics = scratchpads_backend_statistics($entity_info);
+        foreach(array_keys($entity_info['bundles']) as $bundle){
+          $view_url = 'admin/content/publications';
+          $operations = array(
+            l(t('View'), $view_url),
+            l(t('Add'), 'admin/content/publications/add/' . $bundle)
+          );
+          $operations = theme('item_list', array(
+            'items' => $operations
+          ));
+          $rows[] = array(
+            'data' => array(
+              l($bundle, $view_url),
+              (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
+              (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
+              $operations
+            ),
+            'class' => array(
+              'publication-' . $bundle
+            )
+          );
+          $file_header = $header;
+          $file_header[0] = t('Publications');
+          $build[$entity_type] = array(
+            '#theme' => 'table',
+            '#caption' => t("Publications"),
+            '#weight' => 3,
+            '#header' => $file_header,
+            '#rows' => $rows,
+            '#attributes' => $attributes
+          );
+        }
+        break;
     }
   }
   return $build;
