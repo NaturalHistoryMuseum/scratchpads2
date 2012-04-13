@@ -552,11 +552,6 @@ function formflow_attach_groups(&$form, &$form_state, $display_mode){
   // If there are no groups defined, do nothing
   if(!isset($form['#groups'])){return;}
   uasort($form['#groups'], 'formflow_sort_weight');
-  foreach($form['#groups'] as $x => $y){
-    dd($x);
-    dd($y->weight);
-    dd(' ');
-  }
   // Build up a list of formfield groups.
   $formflow_groups = array();
   foreach($form['#groups'] as $group_name => $group){
