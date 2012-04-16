@@ -96,9 +96,7 @@ function bioblitz_form_alter(&$form, &$form_state, $form_id){
 			break;
 		case 'location_node_form':
 			bioblitz_form_alter_location_node($form, $form_state, $form_id);
-		case 'user_register_form':
-			bioblitz_form_alter_user_register($form, $form_state, $form_id);
-			break;
+            break;
 	}
 }
 
@@ -140,13 +138,9 @@ function bioblitz_form_alter_location_node(&$form, &$form_state, $form_id){
     	//Use the location_link to set the title
     	$form['title']['#type'] = 'hidden';
     	$form['title']['#default_value'] = $form['#node']->location_link;
+    	
+    	bioblitz_form_alter_no_settings($form);
 	}
-}
-
-function bioblitz_form_alter_user_register(&$form, &$form_state, $form_id){
-	$form['field_user_institution']['und'][0]['value']['#default_value'] = 'BioBlitz Participant';
-	$form['field_user_institution']['und'][0]['value']['#description'] = 'If you are associated with a relevant instiutuion then you may name it here, otherwise leave as BioBlitz Participant';
-	$form['field_user_taxonomic_interest']['und'][0]['value']['#description'] = 'If you have particular expertise in a taxonomic group state it here';
 }
 
 function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $form_id){
@@ -184,43 +178,25 @@ function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $fo
     $form['field_notes']['#weight'] = 30;
     $form['field_date_collected']['und']['#description'] = 'The date of observation';
     $form['field_location']['#type'] = 'hidden';
-    $form['comment_settings']['#type'] = 'hidden';
-    $form['path']['#type'] = 'hidden';
     
     //Add the location form as a subform...
-    
     if (arg(0) == 'bioblitz'){ //...to the create node form
-      //Pass location_link as a unique string for the title of the location node to allow linking later
       $location_link = 'BioBlitz'.time();
-    
-      //Add location_link to this forms #node so it is passed to the submit funvtion
+      //Add location_link to this forms #node so it is passed to the submit function
       $form['#node']->location_link = $location_link;
     
       $node = array('uid' => $user->uid, 'name' => (isset($user->name) ? $user->name : ''), 'type' => 'location', 'language' => '', 'location_link' => $location_link);
-      $form['subform_location'] = array(
-        '#type' => 'subform',
-        '#subform_id' => 'location_node_form',
-        '#subform_file' => array('module' => 'node', 'name' => 'node.pages.inc'),
-        '#subform_arguments' => array((object)$node),
-      );
+      bioblitz_form_alter_add_location_subform($form, $node);
     }
     
     if (arg(0) == 'node' && arg(2) == 'edit'){ //...to the node edit form
       $node = node_load($form_state['node']->field_location['und'][0]['nid']);
-      $form['subform_location'] = array(
-        '#type' => 'subform',
-        '#subform_id' => 'location_node_form',
-        '#subform_file' => array('module' => 'node', 'name' => 'node.pages.inc'),
-        '#subform_arguments' => array((object)$node),
-      );
+      bioblitz_form_alter_add_location_subform($form, $node);
     }
     //Make sure it's submitted
     $form['actions']['submit']['#submit'][0] = 'subform_submit_all';
     $form['actions']['submit']['#submit'][1] = 'bioblitz_link_location';
     $form['actions']['submit']['#submit'][2] = 'node_form_submit';
-
-
-    
     
     //The groups are ok for taxonomists, but let's make it easy for a lay audience (let's move some fields around too!)
     $form['#groups']['group_required']->label = 'Essentials';
@@ -238,14 +214,26 @@ function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $fo
     $form['#group_children']['field_lifestage'] = 'group_taxonomy';
     $form['#group_children']['field_count'] = 'group_taxonomy';
     $form['#group_children']['subform_location'] = 'group_location';
-    //The additional settings will just confuse people
+
+    bioblitz_form_alter_no_settings($form);
+  }
+}
+
+function bioblitz_form_alter_add_location_subform(&$form, $node){
+	$form['subform_location'] = array(
+        '#type' => 'subform',
+        '#subform_id' => 'location_node_form',
+        '#subform_file' => array('module' => 'node', 'name' => 'node.pages.inc'),
+        '#subform_arguments' => array((object)$node),
+      );
+}
+
+function bioblitz_form_alter_no_settings(&$form){
     $form['revision_information']['#type'] = 'hidden';
     $form['author']['#type'] = 'hidden';
     $form['options']['#type'] = 'hidden';
     $form['comment_settings']['#type'] = 'hidden';
     $form['path']['#type'] = 'hidden';
-    
-  }
 }
 
 function bioblitz_link_location(&$form, &$form_state){

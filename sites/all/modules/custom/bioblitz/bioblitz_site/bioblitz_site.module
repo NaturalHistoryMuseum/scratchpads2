@@ -55,3 +55,17 @@ function bioblitz_site_menu_link_alter(&$item){
 		$item['weight'] = 0;
 	}
 }
+
+function bioblitz_site__form_alter(&$form, &$form_state, $form_id){
+	switch ($form_id){
+		case 'user_register_form':
+			bioblitz_site_form_alter_user_register($form, $form_state, $form_id);
+			break;
+	}
+}
+
+function bioblitz_site_form_alter_user_register(&$form, &$form_state, $form_id){
+	$form['field_user_institution']['und'][0]['value']['#default_value'] = 'BioBlitz Participant';
+	$form['field_user_institution']['und'][0]['value']['#description'] = 'If you are associated with a relevant instiutuion then you may name it here, otherwise leave as BioBlitz Participant';
+	$form['field_user_taxonomic_interest']['und'][0]['value']['#description'] = 'If you have particular expertise in a taxonomic group state it here';
+}
