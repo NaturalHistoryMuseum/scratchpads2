@@ -3,7 +3,7 @@
 // at the moment we are using a static meta.xml file
 define ("METADATA_FILE_NAME", "meta.xml");
 define ("STATIC_DIR", "/static/");
-define ("ARCHIVE_ROOT_DIR", "dwca_export/");
+//define ("ARCHIVE_ROOT_DIR", "dwca_export/");/
 define ('FILE_MAP', 'dwca_export_archive_descriptor_file_map');
 define ('FILE_EXTENSION', ".txt");
 
@@ -178,7 +178,7 @@ function dwca_export_config_form_submit($form, &$form_state) {
 				$description_map = $dwca_export_archive_descriptor_file_map[$description_key];
 
 				if (array_key_exists($key, $description_map)) {
-					//drupal_set_message(t('The ooKEY is... ') . $key . t('The ooVALUE is... ') . $value);
+					drupal_set_message(t('The ooKEY is... ') . $key . t('The ooVALUE is... ') . $value);
 					$dwca_export_archive_descriptor_file_map[$description_key][$key]['view_name'] = $value;
 				}
 			}
@@ -307,7 +307,7 @@ function dwca_export_create_archive($views_map) {
 	
 	
 	// add metadata
-	$zip->addFile($module_static_dir_absolute_path.METADATA_FILE_NAME, ARCHIVE_ROOT_DIR.METADATA_FILE_NAME);
+	$zip->addFile($module_static_dir_absolute_path.METADATA_FILE_NAME, METADATA_FILE_NAME);
 
 	global $base_url;
 
@@ -425,7 +425,7 @@ function _dwca_export_concatenate_description_files($view_data, $zip){
 function _dwca_export_add_files_to_zip($view_temp_file = NULL, $dwca_filename, $zip){
 	
 	if($view_temp_file){
-		$zip->addFile(drupal_realpath($view_temp_file), ARCHIVE_ROOT_DIR.$dwca_filename . FILE_EXTENSION);
+		$zip->addFile(drupal_realpath($view_temp_file), $dwca_filename . FILE_EXTENSION);
 	}else{
 		throw new Exception(t('Cannot create %file', array('%file' => $dwca_filename)));
 	}
