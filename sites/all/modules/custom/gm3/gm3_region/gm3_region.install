@@ -127,12 +127,6 @@ function gm3_region_schema(){
           'not null' => TRUE,
           'size' => 'medium'
         ),
-        /*'binary_polygons' => array(
-          'description' => "Binary polygons",
-          'type' => 'text',
-          'not null' => TRUE,
-          'size' => 'medium'
-        ),*/
         'mysql_polygons' => array(
           'description' => 'MySQL GEO extension',
           'mysql_type' => 'MULTIPOLYGON'
