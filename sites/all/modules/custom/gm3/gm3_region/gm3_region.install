@@ -55,6 +55,9 @@ function gm3_region_install(){
             $geophp = geoPHP::load($fields['polygons'], 'wkt');
             $fields['binary_polygons'] = bin2hex(@$geophp->asBinary()); // Bug with GeoPHP means we need to hide add the "@".
             db_insert('gm3_region_data')->fields($fields)->execute();
+            if(function_exists('gc_enabled') && gc_enabled()){
+              gc_collect_cycles();
+            }
             $fields = array();
             break;
         }
