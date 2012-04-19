@@ -12,6 +12,16 @@ function darwincore_form_specimen_observation_node_form_alter(&$form, &$form_sta
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function darwincore_form_location_node_form_alter(&$form, &$form_state, $form_id){
+  if(!isset($form['#validate'])){
+    $form['#validate'] = array();
+  }
+  $form['#validate'][] = 'darwincore_location_node_form_validate';
+}
+
+/**
  * Validate function to ensure that the IDs for this specimen are unique.
  */
 function darwincore_specimen_observation_node_form_validate($form, &$form_state){
@@ -49,5 +59,18 @@ function darwincore_specimen_observation_node_form_validate($form, &$form_state)
         }
       }
     }
+  }
+}
+
+/**
+ * Validate function to ensure that the location title is unique.
+ */
+function darwincore_location_node_form_validate($form, &$form_state){
+  $count = db_query("SELECT COUNT(*) FROM {node} WHERE title = :value AND type = 'location' AND nid != :nid", array(
+    ':value' => $form_state['values']['title'],
+    ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
+  ))->fetchCol();
+  if(array_pop($count)){
+    form_set_error('title', t('The title field for a location must be unique.'));
   }
 }
