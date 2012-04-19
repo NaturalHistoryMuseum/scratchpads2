@@ -14,6 +14,9 @@ function gm3_region_install(){
   // As the files are so huge, we'll read the file line by line and insert 
   // each region one by one.  This may be a little slower, but it's less likely
   // to fuck up!
+  // Set the maximum memory allocation as this appears to be causing memory
+  // issues.
+  //ini_set('memory_limit', '512M');
   gm3_load_geophp();
   for($i = 1; $i <= 4; $i++){
     $f = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/tdwg_level_' . $i . '_data', 'r');
@@ -52,12 +55,7 @@ function gm3_region_install(){
           case '  POLYGON (':
             // Do the insert
             $fields['polygons'] = trim($line);
-            $geophp = geoPHP::load($fields['polygons'], 'wkt');
-            $fields['binary_polygons'] = bin2hex(@$geophp->asBinary()); // Bug with GeoPHP means we need to hide add the "@".
             db_insert('gm3_region_data')->fields($fields)->execute();
-            if(function_exists('gc_enabled') && gc_enabled()){
-              gc_collect_cycles();
-            }
             $fields = array();
             break;
         }
@@ -129,12 +127,12 @@ function gm3_region_schema(){
           'not null' => TRUE,
           'size' => 'medium'
         ),
-        'binary_polygons' => array(
+        /*'binary_polygons' => array(
           'description' => "Binary polygons",
           'type' => 'text',
           'not null' => TRUE,
           'size' => 'medium'
-        ),
+        ),*/
         'mysql_polygons' => array(
           'description' => 'MySQL GEO extension',
           'mysql_type' => 'MULTIPOLYGON'
@@ -160,4 +158,11 @@ function gm3_region_update_7001(){
   ));
   // Finally, we set the shape data.  This query is MySQL specific.
   db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+}
+
+/**
+ * Remove the binary_polygons field.
+ */
+function gm3_region_update_7002(){
+  db_drop_field('gm3_region_data', 'binary_polygons');
 }
