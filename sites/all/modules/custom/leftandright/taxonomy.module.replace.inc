@@ -58,7 +58,11 @@ function taxonomy_term_delete($tid){
           // SDRycroft
           //field_attach_delete('taxonomy_term', $term);
           $taxonomy_terms_delete_cron = variable_get('taxonomy_terms_delete_cron', array());
-          $taxonomy_terms_delete_cron[] = $term;
+          $new_term = new stdClass();
+          $new_term->tid = $term->tid;
+          $new_term->vid = $term->vid;
+          $new_term->vocabulary_machine_name = $term->vocabulary_machine_name;
+          $taxonomy_terms_delete_cron[] = $new_term;
           variable_set('taxonomy_terms_delete_cron', $taxonomy_terms_delete_cron);
           // End SDRycroft
           module_invoke_all('taxonomy_term_delete', $term);
