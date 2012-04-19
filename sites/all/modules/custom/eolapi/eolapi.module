@@ -207,6 +207,17 @@ function eolapi_page_view($eolapi){
   $data = unserialize($eolapi->data);
   foreach($data as $key => $value){
     switch($key){
+      case 'title':
+        $img = array_shift($rows);
+        array_unshift($rows, array(
+          array(
+            'data' => t('Title'),
+            'class' => 'biblio-row-title'
+          ),
+          $value
+        ));
+        array_unshift($rows, $img);
+        break;
       case 'mediaURL':
         $rows[] = array(
           array(
@@ -222,7 +233,7 @@ function eolapi_page_view($eolapi){
             'data' => t('Description'),
             'class' => 'biblio-row-title'
           ),
-          '<div style="max-width:400px">'.$data->description.'</div>'
+          '<div style="max-width:400px">' . $data->description . '</div>'
         );
         break;
       case 'agents':
