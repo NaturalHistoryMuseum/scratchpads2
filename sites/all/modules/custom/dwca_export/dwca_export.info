@@ -4,4 +4,5 @@ core = "7.x"
 package = "Specimens"
 dependencies[] = views_data_export
 dependencies[] = darwincore
+configure = admin/config/system/dwca_export
 tool = true
