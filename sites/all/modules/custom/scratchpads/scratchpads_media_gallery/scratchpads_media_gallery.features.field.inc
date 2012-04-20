@@ -775,7 +775,9 @@ function scratchpads_media_gallery_field_default_fields(){
           4 => '4',
           5 => '5',
           6 => '6',
-          7 => '7'
+          7 => '7',
+          8 => '8',
+          9 => '9'
         ),
         'jurisdiction' => ''
       ),
@@ -852,7 +854,9 @@ function scratchpads_media_gallery_field_default_fields(){
           4 => '4',
           5 => '5',
           6 => '6',
-          7 => '7'
+          7 => '7',
+          8 => '8',
+          9 => '9'
         ),
         'jurisdiction' => ''
       ),
