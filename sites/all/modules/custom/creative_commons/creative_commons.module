@@ -166,7 +166,6 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   }
   
   
-  dd($image);
   return array(
     '#type' => 'html_tag',
     '#tag' => 'a',
@@ -217,13 +216,11 @@ function creative_commons_field_widget_form(&$form, &$form_state, $field, $insta
       '' => '- None -'
     );
   }
-  dd($field['settings']['allowed_values']);
   if(count($allowed_values = array_filter($field['settings']['allowed_values']))){
     $options += (array)array_intersect_key(creative_commons_get_licence_types(), $allowed_values);
   }else{
     $options += (array)creative_commons_get_licence_types();
   }
-  dd($options);
   $widget += array(
     '#type' => $instance['widget']['type'],
     '#default_value' => $value,
