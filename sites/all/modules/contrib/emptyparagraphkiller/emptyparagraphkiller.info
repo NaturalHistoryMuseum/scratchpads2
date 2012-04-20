@@ -1,0 +1,12 @@
+name = Empty paragraph killer
+description = Filters out pesky empty paragraphs.
+core = 7.x
+package = Input filters
+files[] = emptyparagraphfilter.module
+
+; Information added by drupal.org packaging script on 2011-05-11
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "emptyparagraphkiller"
+datestamp = "1305072582"
+
