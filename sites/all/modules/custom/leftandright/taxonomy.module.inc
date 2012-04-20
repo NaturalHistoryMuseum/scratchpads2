@@ -667,7 +667,7 @@ function taxonomy_term_save($term) {
  * @return
  *   Status constant indicating deletion.
  */
-function taxonomy_term_delete_original($tid) {
+function taxonomy_term_delete($tid) {
   $transaction = db_transaction();
   try {
     $tids = array($tid);

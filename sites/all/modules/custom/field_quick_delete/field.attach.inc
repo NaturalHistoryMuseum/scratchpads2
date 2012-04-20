@@ -1,27 +1,26 @@
 <?php
 // Get the last edit time of the original file
 $filename = basename(__FILE__);
-$original_filename = DRUPAL_ROOT . '/modules/taxonomy/' . $filename;
-$replacement_filename = __FILE__ . '.inc';
+$original_filename = DRUPAL_ROOT . '/modules/field/' . $filename;
+$replacement_filename = __FILE__ . '.original.inc';
 if(filemtime($original_filename) > filemtime($replacement_filename)){
   // The file has been changed, or we have just installed this module.  Lets
   // get the content of taxonomy.module, tweak it, and save it to a file
-  drupal_set_message(t('Reloading original Drupal core taxonomy'));
+  drupal_set_message(t('Reloading original field.attach.inc'));
   // Contents of the file.
-  $taxonomy_module_string = file_get_contents($original_filename);
+  $field_attach_string = file_get_contents($original_filename);
   // Replace the name of the offending functions, appending "_original" onto
   // them (this allows them to be used if still required).
   $functions_to_replace = array(
-    'taxonomy_get_tree',
-    'taxonomy_field_settings_form'
-  ); //'taxonomy_get_children'
+    'field_attach_delete'
+  );
   foreach($functions_to_replace as $function){
-    $taxonomy_module_string = str_replace('function ' . $function . '(', 'function ' . $function . '_original(', $taxonomy_module_string);
+    $field_attach_string = str_replace('function ' . $function . '(', 'function ' . $function . '_original(', $field_attach_string);
   }
   // Save the content of taxonomy.module for easy loading
-  file_unmanaged_save_data($taxonomy_module_string, $replacement_filename, FILE_EXISTS_REPLACE);
+  file_put_contents($replacement_filename, $field_attach_string);
 }
 // Load the new file
 include $replacement_filename;
 // Load include file with the replacement functions in
-module_load_include('module.replace.inc', 'taxonomy');
+module_load_include('attach.inc.replace.inc', 'field');
