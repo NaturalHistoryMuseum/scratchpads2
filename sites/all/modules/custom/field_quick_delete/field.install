@@ -20,6 +20,39 @@ if(filemtime($original_filename) > filemtime($replacement_filename)){
   // Save the content of taxonomy.module for easy loading
   file_put_contents($replacement_filename, $field_attach_string);
 }
+try{
+  // Create the table.  Unfortunately we can't do this in an update as we do
+  // not control the updates for this module.
+  db_create_table('field_quick_delete', array(
+    'description' => 'Allows for quick deletion of fields',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique term ID.'
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The entity type of the entity to delete fields for.'
+      ),
+      'entity' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE
+      )
+    ),
+    'primary key' => array(
+      'id'
+    )
+  ));
+}
+catch(Exception $e){
+  ; // Do nothing, most likely as a result of the table already being created
+}
 // Load the new file
 include $replacement_filename;
 // Load include file with the replacement functions in
