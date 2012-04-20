@@ -37,6 +37,7 @@ dependencies[] = entitycache
 dependencies[] = imagemagick
 dependencies[] = role_delegation
 dependencies[] = linkit
+dependencies[] = emptyparagraphkiller
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant

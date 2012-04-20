@@ -35,6 +35,10 @@ function scratchpads_tweaks_install(){
       'media_filter' => array(
         'weight' => 11,
         'status' => 1
+      ),
+      'emptyparagraphkiller' => array(
+        'weight' => 12,
+        'status' => 1
       )
     )
   );
@@ -767,4 +771,25 @@ function scratchpads_tweaks_update_7014(){
     'format' => 'comment_filtered_html'
   ));
   $query->execute();
+}
+
+/**
+ * Add the emptyparagraphkiller module.
+ */
+function scratchpads_tweaks_update_7015(){
+  module_enable(array(
+    'emptyparagraphkiller'
+  ));
+  $filtered_html_format = filter_format_load('filtered_html');
+  $filtered_html_format->filters['emptyparagraphkiller'] = array(
+    'weight' => 12,
+    'status' => 1
+  );
+  filter_format_save($filtered_html_format);
+  $filtered_html_format = filter_format_load('comment_filtered_html');
+  $filtered_html_format->filters['emptyparagraphkiller'] = array(
+    'weight' => 12,
+    'status' => 1
+  );
+  filter_format_save($filtered_html_format);
 }
