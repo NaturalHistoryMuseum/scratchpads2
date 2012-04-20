@@ -40,6 +40,26 @@ function scratchpads_front_context_default_contexts(){
           'weight' => '3'
         )
       )
+    ),
+    'region' => array(
+      'scratchpads' => array(
+        'disable' => array(
+          'sidebar' => 'sidebar',
+          'page_top' => 0,
+          'page_bottom' => 0,
+          'slide_top' => 0,
+          'content' => 0,
+          'footer' => 0,
+          'slide_bottom' => 0,
+          'branding' => 0,
+          'menu' => 0,
+          'secondary_menu' => 0,
+          'header' => 0,
+          'dashboard_main' => 0,
+          'dashboard_sidebar' => 0,
+          'dashboard_inactive' => 0
+        )
+      )
     )
   );
   $context->condition_mode = 0;
