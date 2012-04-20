@@ -11,6 +11,8 @@ define('CC_BY_ND', 4);
 define('CC_BY_NC', 5);
 define('CC_BY_NC_SA', 6);
 define('CC_BY_NC_ND', 7);
+define('CC_0', 8); // CC0 Licene type
+define('CC_PD', 9); // Public domain
 define('CC_SMALL_IMAGE', '80x15.png');
 define('CC_LARGE_IMAGE', '88x31.png');
 define('CC_IMAGE_URI', 'http://i.creativecommons.org/l');
@@ -112,6 +114,7 @@ function creative_commons_field_insert($entity_type, $entity, $field, $instance,
  * Helper function to build the render array for the creative commons logo & link
  */
 function creative_commons_display($licence_type, $jurisdiction, $display_type){
+  $path = drupal_get_path('module', 'creative_commons');
   if($jurisdiction && strpos($jurisdiction, '_')){
     list($jurisdiction, $version) = explode('_', $jurisdiction);
     $version = substr($version, 0, 1) . '.' . substr($version, 1, 1);
@@ -119,11 +122,20 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
     $version = CC_DEFAULT_VERSION;
   }
   switch($licence_type){
+    // These licence types are text only
     case CC_NONE:
       return array(
         '#type' => 'markup',
-        '#markup' => creative_commons_get_licence_types(CC_NONE)
+        '#markup' => creative_commons_get_licence_types($licence_type)
       );
+      break;
+    case CC_0:
+      $image = $path . '/images/zero.png';
+      $url = 'http://creativecommons.org/about/cc0';
+      break;
+    case CC_PD:
+      $image = $path . '/images/public_domain.png';
+      $url = 'http://creativecommons.org/about/pdm';
       break;
     case CC_BY:
       $licence = 'by';
@@ -144,20 +156,30 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       $licence = 'by-nc-nd';
       break;
   }
-  $image = theme('image', array(
-    'alt' => t('Creative Commons Licence'),
-    'path' => CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type
-  ));
+  // Default image 
+  if(!isset($image)){
+    $image = CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
+  }
+  
+  if(!isset($url)){
+    $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
+  }
+  
+  
+  dd($image);
   return array(
     '#type' => 'html_tag',
     '#tag' => 'a',
     '#attributes' => array(
-      'href' => url(CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : ''), array(
+      'href' => url($url, array(
         'absolute' => true
       )),
       'class' => ($display_type == CC_LARGE_IMAGE ? 'cc-large' : 'cc-small')
     ),
-    '#value' => $image
+    '#value' => theme('image', array(
+      'alt' => t('Creative Commons Licence'),
+      'path' => $image
+    ))
   );
 }
 
@@ -192,14 +214,16 @@ function creative_commons_field_widget_form(&$form, &$form_state, $field, $insta
     $options = array();
   }else{
     $options = array(
-      '- None -'
+      '' => '- None -'
     );
   }
+  dd($field['settings']['allowed_values']);
   if(count($allowed_values = array_filter($field['settings']['allowed_values']))){
     $options += (array)array_intersect_key(creative_commons_get_licence_types(), $allowed_values);
   }else{
     $options += (array)creative_commons_get_licence_types();
   }
+  dd($options);
   $widget += array(
     '#type' => $instance['widget']['type'],
     '#default_value' => $value,
@@ -367,6 +391,8 @@ function theme_creative_commons_block($variables){
 function creative_commons_get_licence_types($type = null){
   $licence_types = array(
     CC_NONE => t('No licence (all rights reserved)'),
+    CC_0 => t('CC0'),
+    CC_PD => t('Public Domain'),
     CC_BY => t('Attribution CC BY'),
     CC_BY_SA => t('Attribution, Share Alike CC BY-SA'),
     CC_BY_ND => t('Attribution, No Derivative Works CC BY-ND'),
