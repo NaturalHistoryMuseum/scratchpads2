@@ -20,9 +20,9 @@ if(filemtime($original_filename) > filemtime($replacement_filename)){
   // Save the content of taxonomy.module for easy loading
   file_put_contents($replacement_filename, $field_attach_string);
 }
-try{
-  // Create the table.  Unfortunately we can't do this in an update as we do
-  // not control the updates for this module.
+// Create the table.  Unfortunately we can't do this in an update as we do
+// not control the updates for this module.
+if(!db_table_exists('field_quick_delete')){
   db_create_table('field_quick_delete', array(
     'description' => 'Allows for quick deletion of fields',
     'fields' => array(
@@ -49,9 +49,6 @@ try{
       'id'
     )
   ));
-}
-catch(Exception $e){
-  ; // Do nothing, most likely as a result of the table already being created
 }
 // Load the new file
 include $replacement_filename;
