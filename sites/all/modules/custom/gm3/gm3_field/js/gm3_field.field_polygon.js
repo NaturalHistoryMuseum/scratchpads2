@@ -18,6 +18,7 @@
             }
             new_value += paths.b[j].lng() + " " + paths.b[j].lat()
           }
+          new_value += "," + paths.b[0].lng() + " " + paths.b[0].lat()
           new_value += "))"
         }
       })
