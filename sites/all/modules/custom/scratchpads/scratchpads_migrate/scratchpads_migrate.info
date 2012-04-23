@@ -1,0 +1,9 @@
+name = "Scratchpads Migrate"
+description = "Upgrades a Scratchpads 1.0 site (Drupal 6) to a Scratchpads 2.0 site (Drupal 7)."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = scratchpads_tweaks
+dependencies[] = migrate
+
+files[] = basic_taxonomy.inc
+files[] = itis_taxonomy.inc
