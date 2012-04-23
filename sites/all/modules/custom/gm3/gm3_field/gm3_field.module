@@ -495,7 +495,42 @@ function gm3_field_field_widget_info(){
  * Implements hook_field_validate().
  */
 function gm3_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors){
-  // FIXME - Add validation on the fields.
+  if(function_exists("{$field['type']}_items_validate")){
+    $func = "{$field['type']}_items_validate";
+    $func($items, $field['field_name'], $errors);
+  }
+}
+
+/**
+ * Validation functions
+ * -----------------------------------------------------------------------------
+ */
+function gm3_polygon_items_validate($items, $field_name, &$errors){
+  if(isset($items['map']['map']) && is_string($items['map']['map'])){
+    $polygons = preg_split('/[\r\n]+/', $items['map']['map']);
+    foreach($polygons as $polygon){
+      if(!gm3_is_valid_polygon($polygon)){
+        $errors[$field_name][LANGUAGE_NONE][0][] = array(
+          'error' => 'gm3_invalid_data',
+          'message' => t('Invalid map data has been entered. Please reload this page before resubmitting.')
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Ensure the text for a single polygon is valid
+ */
+function gm3_is_valid_polygon($polygon){
+  // Load the Library.
+  gm3_load_geophp();
+  $wkt_reader = new WKT();
+  return $wkt_reader->read($polygon, TRUE);
+}
+
+function gm3_point_items_validate($items, $field_name, &$errors){
+  
 }
 
 /**
