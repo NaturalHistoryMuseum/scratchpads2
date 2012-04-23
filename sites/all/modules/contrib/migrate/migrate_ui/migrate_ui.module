@@ -1,0 +1,89 @@
+<?php
+
+define('MIGRATE_ACCESS_BASIC', 'migration information');
+
+function migrate_ui_help($path, $arg) {
+  switch ($path) {
+    case 'admin/migrate':
+      return t('The current status of each migration defined in this system. Click on a migration name for details on its configuration.');
+  }
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function migrate_ui_permission() {
+  return array(
+    MIGRATE_ACCESS_BASIC => array(
+      'title' => t('Basic access to migration information'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function migrate_menu() {
+  $items = array();
+
+  $items['admin/content/migrate'] = array(
+    'title' => 'Migrate',
+    'type' => MENU_LOCAL_TASK | MENU_NORMAL_ITEM,
+    'description' => 'Monitor the creation of Drupal content from source data',
+    'page callback' => 'migrate_ui_dashboard',
+    'access arguments' => array(MIGRATE_ACCESS_BASIC),
+    'file' => 'migrate_ui/migrate_ui.pages.inc',
+  );
+  $items['admin/content/migrate/dashboard'] = array(
+    'title' => 'Migrate',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/content/migrate/configure'] = array(
+    'title' => 'Configure',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Configure migration handlers',
+    'page callback' => 'migrate_ui_configure',
+    'access arguments' => array(MIGRATE_ACCESS_BASIC),
+    'file' => 'migrate_ui/migrate_ui.pages.inc',
+    'weight' => 10,
+  );
+  $items['admin/content/migrate/messages/%migration'] = array(
+    'title callback' => 'migration_title',
+    'title arguments' => array(4),
+    'description' => 'View messages from a migration',
+    'page callback' => 'migrate_ui_messages',
+    'page arguments' => array(4),
+    'access arguments' => array(MIGRATE_ACCESS_BASIC),
+    'file' => 'migrate_ui/migrate_ui.pages.inc',
+  );
+  $items['admin/content/migrate/%migration'] = array(
+    'title callback' => 'migration_title',
+    'title arguments' => array(3),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('migrate_migration_info', 3),
+    'access arguments' => array(MIGRATE_ACCESS_BASIC),
+    'file' => 'migrate_ui/migrate_ui.pages.inc',
+  );
+
+  if (FALSE) {
+    // Not working yet
+    migrate_ui_menu_add($items);
+  }
+
+  return $items;
+}
+
+// A menu load callback.
+function migration_load($machine_name) {
+  if ($machine_name) {
+    return Migration::getInstance($machine_name);
+  }
+}
+
+function migration_title($migration) {
+  if (is_string($migration)) {
+    $migration = migration_load($migration);
+  }
+  return $migration->getMachineName();
+}

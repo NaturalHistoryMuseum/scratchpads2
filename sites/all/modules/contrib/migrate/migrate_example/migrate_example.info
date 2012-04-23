@@ -1,0 +1,27 @@
+name = "Migrate Example"
+description = "Example migration data."
+package = "Development"
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = image
+dependencies[] = comment
+dependencies[] = migrate
+dependencies[] = list
+dependencies[] = number
+
+;node_reference is useful but not required
+;dependencies[] = node_reference
+
+files[] = migrate_example.module
+files[] = beer.inc
+files[] = wine.inc
+
+; For testing table_copy plugin. Since is infrequently used, we comment it out.
+; files[] = example.table_copy.inc
+
+; Information added by drupal.org packaging script on 2012-03-13
+version = "7.x-2.3"
+core = "7.x"
+project = "migrate"
+datestamp = "1331659246"
+

@@ -1,0 +1,29 @@
+The following test cases remain to be written:
+ Handlers:
+  All handlers
+ 
+ Rollback:
+  Various options
+  
+ Import:
+  Various options
+  Various update scenarios
+
+ Sources:
+  Highwater support
+  
+ Destinations:
+  All term fields - presence/absence, default values, boundary conditions, error
+    conditions
+  All user fields - ditto
+  All node fields - ditto
+  All comment fields - ditto
+  Path module support
+  TableCopy destination
+  
+ Infrastructure:
+  Team stuff
+
+The following are features we would like to test, but are (or seem) impractical:
+ Drush commands
+ SQL Server support

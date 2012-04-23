@@ -1,0 +1,331 @@
+<?php
+
+/**
+ * @file
+ * Migrate module installation
+ */
+
+function migrate_schema() {
+  $schema = array();
+  $schema['migrate_status'] = migrate_schema_status();
+  $schema['migrate_log'] = migrate_schema_log();
+  return $schema;
+}
+
+function migrate_schema_status() {
+  return array(
+    'description' => 'Status information for migrations',
+    'fields' => array(
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Unique machine name for migration',
+      ),
+      'class_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Name of class to instantiate for this migration',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Current status of migration',
+      ),
+      'highwater' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Highwater mark for detecting updated content',
+      ),
+      'arguments' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of arguments to the migration constructor',
+      ),
+    ),
+    'primary key' => array('machine_name'),
+  );
+}
+
+function migrate_schema_log() {
+  return array(
+    'description' => 'History of migration processes',
+    'fields' => array(
+      'mlid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key for migrate_log table',
+      ),
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Unique machine name for migration',
+      ),
+      'process_type' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Type of migration process - 1 for import, 2 for rollback',
+      ),
+      'starttime' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Begin time of a migration process, times 1000',
+      ),
+      'endtime' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'End time of a migration process, times 1000',
+      ),
+      'initialhighwater' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Initial highwater mark',
+      ),
+      'finalhighwater' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Final highwater mark',
+      ),
+      'numprocessed' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Number of items processed',
+      ),
+    ),
+    'primary key' => array('mlid'),
+  );
+}
+
+/**
+ * Implementation of hook_uninstall().
+ * Drop map/message tables, in case implementing classes did not.
+ */
+function migrate_uninstall() {
+  // Note: If a derived Migration class defined its own map or message
+  // table name not fitting this pattern, that class is solely responsible for
+  // cleaning up
+  // TODO: Prefix table names (db_find_tables does not do it)
+  foreach (db_find_tables('migrate_map_%') as $tablename) {
+    db_drop_table($tablename);
+  }
+  foreach (db_find_tables('migrate_message_%') as $tablename) {
+    db_drop_table($tablename);
+  }
+}
+
+/**
+ * Add highwater mark
+ */
+function migrate_update_7001() {
+  $ret = array();
+  db_add_field('migrate_status', 'highwater', array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Highwater mark for detecting updated content',
+      )
+  );
+
+  $ret[] = t('Added highwater column to migrate_status table');
+  return $ret;
+}
+
+/**
+ * Add last_imported field to all map tables
+ */
+function migrate_update_7002() {
+  $ret = array();
+  foreach (db_find_tables('migrate_map_%') as $tablename) {
+    if (!db_column_exists($tablename, 'last_imported')) {
+      db_add_field($tablename, 'last_imported', array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'UNIX timestamp of the last time this row was imported',
+      ));
+    }
+  }
+  $ret[] = t('Added last_imported column to all map tables');
+  return $ret;
+}
+
+/**
+ * Add lastthroughput column to migrate_status
+ */
+function migrate_update_7003() {
+  $ret = array();
+  db_add_field('migrate_status', 'lastthroughput', array(
+      'type' => 'int',
+      'length' => 11,
+      'not null' => FALSE,
+      'description' => 'Rate of success during most recent completed import (# per minute)',
+    )
+  );
+
+  $ret[] = t('Added lastthroughput column to migrate_status table');
+  return $ret;
+}
+
+/**
+ * Convert lastimported datetime field to lastimportedtime int field.
+ */
+function migrate_update_7004() {
+  $ret = array();
+  db_add_field('migrate_status', 'lastimportedtime', array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => FALSE,
+      'description' => 'Date and time of last completed import',
+    )
+  );
+
+  $result = db_select('migrate_status', 'ms')
+            ->fields('ms', array('machine_name', 'lastimported'))
+            ->execute();
+  foreach ($result as $row) {
+    $lastimportedtime = strtotime($row->lastimported);
+    db_update('migrate_status')
+      ->fields(array('lastimportedtime' => $lastimportedtime))
+      ->condition('machine_name', $row->machine_name)
+      ->execute();
+  }
+
+  db_drop_field('migrate_status', 'lastimported');
+
+  $ret[] = t('Converted lastimported datetime field to lastimportedtime int field');
+  return $ret;
+}
+
+/**
+ * Add support for history logging
+ */
+function migrate_update_7005() {
+  $ret = array();
+  $ret[] = t('Create migrate_log table');
+  db_create_table('migrate_log', migrate_schema_log());
+  $ret[] = t('Remove historic columns from migrate_status table');
+  db_drop_field('migrate_status', 'lastthroughput');
+  db_drop_field('migrate_status', 'lastimportedtime');
+  return $ret;
+}
+
+/**
+ * Add and populate class_name field. Any existing migration code using
+ * dependencies or sourceMigration() must be changed! See CHANGELOG.txt.
+ */
+function migrate_update_7006() {
+  $ret = array();
+  db_add_field('migrate_status', 'class_name', array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Name of class to instantiate for this migration',
+      )
+  );
+
+  db_query("UPDATE {migrate_status}
+            SET class_name = CONCAT(machine_name, 'Migration')
+           ");
+  $ret[] = t('Added class_name column to migrate_status table');
+  return $ret;
+}
+
+/**
+ * Add arguments field to migrate_status table.
+ */
+function migrate_update_7007() {
+  $ret = array();
+  db_add_field('migrate_status', 'arguments', array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of arguments to the migration constructor',
+        )
+  );
+
+  $ret[] = t('Added arguments column to migrate_status table');
+  return $ret;
+}
+
+/**
+ * Update map tables to reflect change of needs_update to a status column.
+ */
+function migrate_update_7008() {
+  // Updates can be run when the module is disabled, which would mean the
+  // call to migrate_migrations() will fail. Just bail in that case...
+  if (!module_exists('migrate')) {
+    throw new DrupalUpdateException(t('This update cannot be run while the Migrate ' .
+      'module is disabled - you must enable Migrate to run this update.'));
+  }
+  $ret = array();
+  foreach (migrate_migrations() as $migration) {
+    if (is_a($migration, 'Migration')) {
+      // Since we're now tracking failed/ignored rows in the map table,
+      // destination keys need to be nullable
+      $map = $migration->getMap();
+      $map_connection = $map->getConnection();
+      $map_table = $map->getMapTable();
+      $destination = $migration->getDestination();
+      $key_schema = $destination->getKeySchema();
+      $index = 1;
+      foreach ($key_schema as $field_schema) {
+        $field = 'destid' . $index++;
+        $field_schema['not null'] = FALSE;
+        $map_connection->schema()->changeField($map_table, $field, $field,
+                                               $field_schema);
+        $ret[] = t('Changed !table.!field to be non-null',
+          array('!table' => $map_table, '!field' => $field));
+      }
+
+      // Add any existing failures to the map table
+      $msg_table = $map->getMessageTable();
+      $msg_marked = FALSE;
+      $result = $map_connection->select($msg_table, 'msg')
+                ->fields('msg')
+                ->condition('level', Migration::MESSAGE_INFORMATIONAL, '<>')
+                ->execute();
+      foreach ($result as $row) {
+        $keys = array();
+        $index = 1;
+        foreach ($row as $field => $value) {
+          if (substr($field, 0, 8) == 'sourceid') {
+            $keys['sourceid' . $index++] = $value;
+          }
+        }
+        $map_connection->merge($map_table)
+                       ->key($keys)
+                       ->fields(array('needs_update' => MigrateMap::STATUS_FAILED))
+                       ->execute();
+        $msg_marked = TRUE;
+      }
+      if ($msg_marked) {
+        $ret[] = t('Marked failures in !table', array('!table' => $map_table));
+      }
+    }
+  }
+
+  return $ret;
+}

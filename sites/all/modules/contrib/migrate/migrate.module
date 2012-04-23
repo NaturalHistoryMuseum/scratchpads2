@@ -1,0 +1,675 @@
+<?php
+
+/**
+ * @file
+ * API and drush commands to support migration of data from external sources
+ * into a Drupal installation.
+ */
+
+// TODO:
+// Continue hook_schema_alter() for map & message tables?
+// Views hooks for map/message tables
+// xlat support?
+// Documentation
+// Tests
+
+define('MIGRATE_API_VERSION', 2);
+
+/**
+ * Retrieve a list of all active migrations, ordered by dependencies. To be
+ * recognized, a class must be non-abstract, and derived from MigrationBase.
+ *
+ * @return
+ *  Array of migration objects, keyed by the machine name.
+ */
+function migrate_migrations() {
+  static $migrations = array();
+  if (!empty($migrations)) {
+    return $migrations;
+  }
+
+  $dependent_migrations = array();
+  $required_migrations = array();
+
+  $result = db_select('migrate_status', 'ms')
+            ->fields('ms', array('machine_name', 'class_name', 'arguments'))
+            ->execute();
+  foreach ($result as $row) {
+    if (class_exists($row->class_name)) {
+      $reflect = new ReflectionClass($row->class_name);
+      if (!$reflect->isAbstract() && $reflect->isSubclassOf('MigrationBase')) {
+        $migration = MigrationBase::getInstance($row->machine_name,
+          $row->class_name, unserialize($row->arguments));
+        $dependencies = $migration->getDependencies();
+        if (count($dependencies) > 0) {
+          // Set classes with dependencies aside for reordering
+          $dependent_migrations[$row->machine_name] = $migration;
+          $required_migrations += $dependencies;
+        }
+        else {
+          // No dependencies, just add
+          $migrations[$row->machine_name] = $migration;
+        }
+      }
+      else {
+        MigrationBase::displayMessage(t('Class !class is no longer a valid concrete migration class',
+                                      array('!class' => $row->class_name)));
+      }
+    }
+    else {
+      MigrationBase::displayMessage(t('Class !class no longer exists',
+                                    array('!class' => $row->class_name)));
+    }
+  }
+
+  // Scan modules with dependencies - we'll take 20 passes at it before
+  // giving up
+  // TODO: Can we share code with _migrate_class_list()?
+  $iterations = 0;
+  while (count($dependent_migrations) > 0) {
+    if ($iterations++ > 20) {
+      $migration_names = implode(',', array_keys($dependent_migrations));
+      throw new MigrateException(t('Failure to sort migration list - most likely due ' .
+            'to circular dependencies involving !migration_names',
+      array('!migration_names' => $migration_names)));
+    }
+    foreach ($dependent_migrations as $name => $migration) {
+      $ready = TRUE;
+      // Scan all the dependencies for this class and make sure they're all
+      // in the final list
+      foreach ($migration->getDependencies() as $dependency) {
+        if (!isset($migrations[$dependency])) {
+          $ready = FALSE;
+          break;
+        }
+      }
+      if ($ready) {
+        // Yes they are! Move this class to the final list
+        $migrations[$name] = $migration;
+        unset($dependent_migrations[$name]);
+      }
+    }
+  }
+
+  // The migrations are now ordered according to their own dependencies - now order
+  // them by group
+  $groups = MigrateGroup::groups();
+  // Seed the final list by properly-ordered groups.
+  $final_migrations = array();
+  foreach ($groups as $name => $group) {
+    $final_migrations[$name] = array();
+  }
+
+  // Fill in the grouped list
+  foreach ($migrations as $machine_name => $migration) {
+    $final_migrations[$migration->getGroup()->getName()][$machine_name] = $migration;
+  }
+  // Then flatten the list
+  $migrations = array();
+  foreach ($final_migrations as $group_name => $group_migrations) {
+    foreach ($group_migrations as $machine_name => $migration) {
+      $migrations[$machine_name] = $migration;
+    }
+  }
+
+  return $migrations;
+}
+
+/**
+ * On cache clear, scan the Drupal code registry for any new migration classes
+ * for us to register in migrate_status.
+ */
+function migrate_flush_caches() {
+  // Get list of modules implementing Migrate API
+  $modules = array_keys(migrate_get_module_apis(TRUE));
+
+  // Get list of classes we already know about
+  $existing_classes = db_select('migrate_status', 'ms')
+                      ->fields('ms', array('class_name'))
+                      ->execute()
+                      ->fetchCol();
+
+  // Discover class names registered with Drupal by modules implementing our API
+  $result = db_select('registry', 'r')
+            ->fields('r', array('name'))
+            ->condition('type', 'class')
+            ->condition('module', $modules, 'IN')
+            ->condition('filename', '%.test', 'NOT LIKE')
+            ->execute();
+
+  foreach ($result as $record) {
+    $class_name = $record->name;
+    // If we already know about this class, skip it
+    if (isset($existing_classes[$class_name])) {
+      continue;
+    }
+
+    // Validate it's an implemented subclass of the parent class
+    // Ignore errors
+    try {
+      $class = new ReflectionClass($class_name);
+    }
+    catch (Exception $e) {
+      continue;
+    }
+    if (!$class->isAbstract() && $class->isSubclassOf('MigrationBase')) {
+      // Verify that it's not a dynamic class (the implementor will be responsible
+      // for registering those).
+      $dynamic = call_user_func(array($class_name,'isDynamic'));
+      if (!$dynamic) {
+        // OK, this is a new non-dynamic migration class, register it
+        MigrationBase::registerMigration($class_name);
+      }
+    }
+  }
+}
+
+/**
+ * Invoke any available handlers attached to a given destination type.
+ * If any handlers have dependencies defined, they will be invoked after
+ * the specified handlers.
+ *
+ * @param $destination
+ *  Destination type ('Node', 'User', etc.) - generally the same string as
+ *  the destination class name without the MigrateDestination prefix.
+ * @param $method
+ *  Method name such as 'prepare' (called at the beginning of an import operation)
+ *  or 'complete' (called at the end of an import operation).
+ * @param ...
+ *  Parameters to be passed to the handler.
+ */
+function migrate_handler_invoke_all($destination, $method) {
+  $args = func_get_args();
+  array_shift($args);
+  array_shift($args);
+  $return = array();
+  $class_list = _migrate_class_list('MigrateDestinationHandler');
+  $disabled = unserialize(variable_get('migrate_disabled_handlers', serialize(array())));
+  foreach ($class_list as $class_name => $handler) {
+    if (!in_array($class_name, $disabled) && $handler->handlesType($destination)
+        && method_exists($handler, $method)) {
+      migrate_instrument_start($class_name . '->' . $method);
+      $result = call_user_func_array(array($handler, $method), $args);
+      migrate_instrument_stop($class_name . '->' . $method);
+      if (isset($result) && is_array($result)) {
+        $return = array_merge($return, $result);
+      }
+      elseif (isset($result)) {
+        $return[] = $result;
+      }
+    }
+  }
+  return $return;
+}
+
+/**
+ * Invoke any available handlers attached to a given field type.
+ * If any handlers have dependencies defined, they will be invoked after
+ * the specified handlers.
+ *
+ * @param $entity
+ *  The object we are building up before calling example_save().
+ * @param $field_info
+ *  Array of info on the field, from field_info_field().
+ * @param $instance
+ *  Array of info in the field instance, from field_info_instances().
+ * @param $values
+ *  Array of incoming values, to be transformed into the appropriate structure
+ *  for the field type.
+ * @param $method
+ *  Handler method to call (defaults to prepare()).
+ */
+function migrate_field_handler_invoke_all($entity, array $field_info, array $instance,
+    array $values, $method = 'prepare') {
+  $return = array();
+  $type = $field_info['type'];
+  $class_list = _migrate_class_list('MigrateFieldHandler');
+  $disabled = unserialize(variable_get('migrate_disabled_handlers', serialize(array())));
+  foreach ($class_list as $class_name => $handler) {
+    if (!in_array($class_name, $disabled) && $handler->handlesType($type)
+        && method_exists($handler, $method)) {
+      migrate_instrument_start($class_name . '->' . $method);
+      $result = call_user_func_array(array($handler, $method),
+        array($entity, $field_info, $instance, $values));
+      migrate_instrument_stop($class_name . '->' . $method);
+      if (isset($result) && is_array($result)) {
+        $return = array_merge_recursive($return, $result);
+      }
+      elseif (isset($result)) {
+        $return[] = $result;
+      }
+    }
+  }
+  return $return;
+}
+
+/**
+ * For a given parent class, identify and instantiate objects for any non-abstract
+ * classes derived from the parent, returning an array of the objects indexed by
+ * class name. The array will be ordered such that any classes with dependencies
+ * are listed after the classes they are dependent on.
+ *
+ * @param $parent_class
+ *  Name of a class from which results will be derived.
+ * @param $existing
+ *  Instances already known, which don't need to be instantiated.
+ * @return
+ *  Array of objects, keyed by the class name.
+ */
+function _migrate_class_list($parent_class, array $existing = array()) {
+  // Get list of modules implementing Migrate API
+  static $modules;
+  if (!isset($modules)) {
+    $modules = array_keys(migrate_get_module_apis());
+  }
+
+  static $class_lists = array();
+  if (!isset($class_lists[$parent_class])) {
+    $class_lists[$parent_class] = array();
+    $dependent_classes = array();
+    $required_classes = array();
+    // Discover class names registered with Drupal by modules implementing our API
+    $result = db_select('registry', 'r')
+              ->fields('r', array('name'))
+              ->condition('type', 'class')
+              ->condition('module', $modules, 'IN')
+              ->condition('filename', '%.test', 'NOT LIKE')
+              ->execute();
+
+    foreach ($result as $record) {
+      // Validate it's an implemented subclass of the parent class
+      // We can get funky errors here, ignore them (and the class that caused them)
+      try {
+        $class = new ReflectionClass($record->name);
+      }
+      catch (Exception $e) {
+        continue;
+      }
+      if (!$class->isAbstract() && $class->isSubclassOf($parent_class)) {
+        // If the constructor has required parameters, this may fail. We will
+        // silently ignore - it is up to the implementor of such a class to
+        // instantiate it in hook_migrations_alter().
+        try {
+          $object = new $record->name;
+        }
+        catch (Exception $e) {
+          unset($object);
+        }
+        if (isset($object)) {
+          $dependencies = $object->getDependencies();
+          if (count($dependencies) > 0) {
+            // Set classes with dependencies aside for reordering
+            $dependent_classes[$record->name] = $object;
+            $required_classes += $dependencies;
+          }
+          else {
+            // No dependencies, just add
+            $class_lists[$parent_class][$record->name] = $object;
+          }
+        }
+      }
+    }
+
+    // Validate that each depended-on class at least exists
+    foreach ($required_classes as $class_name) {
+      if ((!isset($dependent_classes[$class_name])) && !isset($class_lists[$parent_class][$class_name])) {
+        throw new MigrateException(t('Dependency on non-existent class !class - make sure ' .
+            'you have added the file defining !class to the .info file.',
+          array('!class' => $class_name)));
+      }
+    }
+
+    // Scan modules with dependencies - we'll take 20 passes at it before
+    // giving up
+    $iterations = 0;
+    while (count($dependent_classes) > 0) {
+      if ($iterations++ > 20) {
+        $class_names = implode(',', array_keys($dependent_classes));
+        throw new MigrateException(t('Failure to sort class list - most likely due ' .
+            'to circular dependencies involving !class_names.',
+          array('!class_names' => $class_names)));
+      }
+      foreach ($dependent_classes as $name => $object) {
+        $ready = TRUE;
+        // Scan all the dependencies for this class and make sure they're all
+        // in the final list
+        foreach ($object->getDependencies() as $dependency) {
+          if (!isset($class_lists[$parent_class][$dependency])) {
+            $ready = FALSE;
+            break;
+          }
+        }
+        if ($ready) {
+          // Yes they are! Move this class to the final list
+          $class_lists[$parent_class][$name] = $object;
+          unset($dependent_classes[$name]);
+        }
+      }
+    }
+  }
+  return $class_lists[$parent_class];
+}
+
+/**
+ * Implementation of hook_hook_info().
+ */
+function migrate_hook_info() {
+  $hooks['migrate_api'] = array(
+    'group' => 'migrate',
+  );
+  return $hooks;
+}
+
+/*
+ * Implementation of hook_migrate_api().
+ */
+function migrate_migrate_api() {
+  $api = array(
+    'api' => MIGRATE_API_VERSION,
+  );
+  return $api;
+}
+
+/**
+ * Get a list of modules that support the current migrate API.
+ */
+function migrate_get_module_apis($reset = FALSE) {
+  static $cache = NULL;
+  if ($reset) {
+    $cache = NULL;
+  }
+  if (!isset($cache)) {
+    $cache = array();
+    foreach (module_implements('migrate_api') as $module) {
+      $function = $module . '_migrate_api';
+      $info = $function();
+      if (isset($info['api']) && $info['api'] == MIGRATE_API_VERSION) {
+        $cache[$module] = $info;
+      }
+      else {
+        drupal_set_message(t('%function supports Migrate API version %modversion,
+           Migrate module API version is %version - migration support not loaded.',
+           array('%function' => $function, '%modversion' => $info['api'],
+                 '%version' => MIGRATE_API_VERSION)));
+      }
+    }
+  }
+
+  return $cache;
+}
+
+/**
+ * Implementation of hook_watchdog().
+ * Find the migration that is currently running and notify it.
+ *
+ * @param array $log_entry
+ */
+function migrate_watchdog($log_entry) {
+  // Ensure that the Migration class exists, as different bootstrap phases may
+  // not have included migration.inc yet.
+  if (class_exists('Migration') && $migration = Migration::currentMigration()) {
+    switch ($log_entry['severity']) {
+      case WATCHDOG_EMERGENCY:
+      case WATCHDOG_ALERT:
+      case WATCHDOG_CRITICAL:
+      case WATCHDOG_ERROR:
+        $severity = MigrationBase::MESSAGE_ERROR;
+        break;
+      case WATCHDOG_WARNING:
+        $severity = MigrationBase::MESSAGE_WARNING;
+        break;
+      case WATCHDOG_NOTICE:
+        $severity = MigrationBase::MESSAGE_NOTICE;
+        break;
+      case WATCHDOG_DEBUG:
+      case WATCHDOG_INFO:
+      default:
+        $severity = MigrationBase::MESSAGE_INFORMATIONAL;
+        break;
+    }
+    $variables = is_array($log_entry['variables']) ? $log_entry['variables'] : array();
+    $migration->saveMessage(t($log_entry['message'], $variables), $severity);
+  }
+}
+
+/**
+ * Resource functions modeled on Drupal's timer functions
+ */
+
+/**
+ * Save memory usage with the specified name. If you start and stop the same
+ * memory name multiple times, the measured differences will be accumulated.
+ *
+ * @param name
+ *   The name of the memory measurement.
+ */
+function migrate_memory_start($name) {
+  global $_migrate_memory;
+
+  $_migrate_memory[$name]['start'] = memory_get_usage();
+  $_migrate_memory[$name]['count'] =
+    isset($_migrate_memory[$name]['count']) ? ++$_migrate_memory[$name]['count'] : 1;
+}
+
+/**
+ * Read the current memory value without recording the change.
+ *
+ * @param name
+ *   The name of the memory measurement.
+ * @return
+ *   The change in bytes since the last start.
+ */
+function migrate_memory_read($name) {
+  global $_migrate_memory;
+
+  if (isset($_migrate_memory[$name]['start'])) {
+    $stop = memory_get_usage();
+    $diff = $stop - $_migrate_memory[$name]['start'];
+
+    if (isset($_migrate_memory[$name]['bytes'])) {
+      $diff += $_migrate_memory[$name]['bytes'];
+    }
+    return $diff;
+  }
+  return $_migrate_memory[$name]['bytes'];
+}
+
+/**
+ * Stop the memory counter with the specified name.
+ *
+ * @param name
+ *   The name of the memory measurement.
+ * @return
+ *   A memory array. The array contains the number of times the memory has been
+ *   started and stopped (count) and the accumulated memory difference value in bytes.
+ */
+function migrate_memory_stop($name) {
+  global $_migrate_memory;
+
+  if (isset($_migrate_memory[$name])) {
+    if (isset($_migrate_memory[$name]['start'])) {
+      $stop = memory_get_usage();
+      $diff = $stop - $_migrate_memory[$name]['start'];
+      if (isset($_migrate_memory[$name]['bytes'])) {
+        $_migrate_memory[$name]['bytes'] += $diff;
+      }
+      else {
+        $_migrate_memory[$name]['bytes'] = $diff;
+      }
+      unset($_migrate_memory[$name]['start']);
+    }
+
+    return $_migrate_memory[$name];
+  }
+}
+
+/**
+ * Start measuring time and (optionally) memory consumption over a section of code.
+ * Note that the memory consumption measurement is generally not useful in
+ * lower areas of the code, where data is being generated that will be freed
+ * by the next call to the same area. For example, measuring the memory
+ * consumption of db_query is not going to be helpful.
+ *
+ * @param $name
+ *  The name of the measurement.
+ * @param $include_memory
+ *  Measure both memory and timers. Defaults to FALSE (timers only).
+ */
+function migrate_instrument_start($name, $include_memory = FALSE) {
+  global $_migrate_track_memory, $_migrate_track_timer;
+  if ($_migrate_track_memory && $include_memory) {
+    migrate_memory_start($name);
+  }
+  if ($_migrate_track_timer) {
+    timer_start($name);
+  }
+}
+
+/**
+ * Stop measuring both memory and time consumption over a section of code.
+ *
+ * @param $name
+ *  The name of the measurement.
+ */
+function migrate_instrument_stop($name) {
+  global $_migrate_track_memory, $_migrate_track_timer;
+  if ($_migrate_track_timer) {
+    timer_stop($name);
+  }
+  if ($_migrate_track_memory) {
+    migrate_memory_stop($name);
+  }
+}
+
+/**
+ * Call hook_migrate_overview for overall documentation on implemented migrations.
+ */
+function migrate_overview() {
+  $overview = '';
+  $results = module_invoke_all('migrate_overview');
+  foreach ($results as $result) {
+    $overview .= $result . ' ';
+  }
+  return $overview;
+}
+
+// TODO: The functions below are D6 functions of some potential use in D7, that
+// haven't been updated/integrated yet
+
+/**
+ * Implementation of hook_schema_alter().
+ */
+/*
+function migrate_schema_alter(&$schema) {
+  // Check for table existence - at install time, hook_schema_alter() may be called
+  // before our install hook.
+  if (db_table_exists('migrate_content_sets')) {
+    $result = db_query("SELECT * FROM {migrate_content_sets}");
+    while ($content_set = db_fetch_object($result)) {
+      $maptablename = migrate_map_table_name($content_set->mcsid);
+      $msgtablename = migrate_message_table_name($content_set->mcsid);
+
+      // Get the proper field definition for the sourcekey
+      $view = views_get_view($content_set->view_name);
+      if (!$view) {
+        drupal_set_message(t('View !view does not exist - either (re)create this view, or
+          remove the migrate content set using it.', array('!view' => $content_set->view_name)));
+        continue;
+      }
+      // Must do this to load the database
+      $view->init_query();
+
+      // TODO: For now, PK must be in base_table
+      if (isset($view->base_database)) {
+        $tabledb = $view->base_database;
+      }
+      else {
+        $tabledb = 'default';
+      }
+      $tablename = $view->base_table;
+
+      $sourceschema = _migrate_inspect_schema($tablename, $tabledb);
+
+      // If the PK of the content set is defined, make sure we have a mapping table
+      $sourcekey = $content_set->sourcekey;
+      if ($sourcekey) {
+        $sourcefield = $sourceschema['fields'][$sourcekey];
+        if (!$sourcefield) {
+          // strip base table name if views prepended it
+          $baselen = drupal_strlen($tablename);
+          if (!strncasecmp($sourcekey, $tablename . '_', $baselen + 1)) {
+            $sourcekey = drupal_substr($sourcekey, $baselen + 1);
+          }
+          $sourcefield = $sourceschema['fields'][$sourcekey];
+        }
+        // We don't want serial fields to behave serially, so change to int
+        if ($sourcefield['type'] == 'serial') {
+          $sourcefield['type'] = 'int';
+        }
+        $schema[$maptablename] = _migrate_map_table_schema($sourcefield);
+        $schema[$maptablename]['name'] = $maptablename;
+        $schema[$msgtablename] = _migrate_message_table_schema($sourcefield);
+        $schema[$msgtablename]['name'] = $msgtablename;
+      }
+    }
+  }
+}
+*/
+
+/*
+ * Translate URIs from an old site to the new one
+ * Requires adding RewriteRules to .htaccess. For example, if the URLs
+ * for news articles had the form
+ * http://example.com/issues/news/[OldID].html, use this rule:
+ *
+ * RewriteRule ^issues/news/([0-9]+).html$ /migrate/xlat/node/$1 [L]
+ *
+ * @param $contenttype
+ *  Content type to translate (e.g., 'node', 'user', etc.)
+ * @param $oldid
+ *  Primary key from input view
+ */
+function migrate_xlat($contenttype, $oldid) {
+  if ($contenttype && $oldid) {
+    $newid = _migrate_xlat_get_new_id($contenttype, $oldid);
+    if ($newid) {
+      $uri = migrate_invoke_all("xlat_$contenttype", $newid);
+      drupal_goto($uri[0], NULL, NULL, 301);
+    }
+  }
+}
+
+/*
+ * Helper function to translate an ID from a source file to the corresponding
+ * Drupal-side ID (nid, uid, etc.)
+ * Note that the result may be ambiguous - for example, if you are importing
+ * nodes from different content sets, they might have overlapping source IDs.
+ *
+ * @param $contenttype
+ *  Content type to translate (e.g., 'node', 'user', etc.)
+ * @param $oldid
+ *  Primary key from input view
+ * @return
+ *  Drupal-side ID of the object
+ */
+function _migrate_xlat_get_new_id($contenttype, $oldid) {
+  $result = db_query("SELECT mcsid
+                      FROM {migrate_content_sets}
+                      WHERE contenttype='%s'",
+                     $contenttype);
+  while ($row = db_fetch_object($result)) {
+    static $maptables = array();
+    if (!isset($maptables[$row->mcsid])) {
+      $maptables[$row->mcsid] = migrate_map_table_name($row->mcsid);
+    }
+    $sql = "SELECT destid
+            FROM {" . $maptables[$row->mcsid] . "}
+            WHERE sourceid='%s'";
+    $id = db_result(db_query($sql, $oldid));
+    if ($id) {
+      return $id;
+    }
+  }
+  return NULL;
+}
+

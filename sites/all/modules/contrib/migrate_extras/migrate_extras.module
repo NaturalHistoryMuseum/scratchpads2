@@ -1,0 +1,20 @@
+<?php
+
+function migrate_extras_init() {
+  // Set variable to FALSE to disable rules processing.
+  if (module_exists('rules') && !variable_get('migrate_extras_rules', TRUE)) {
+    foreach (rules_get_event_sets() as $key => $set) {
+      $GLOBALS['conf']['rules_inactive_sets'][] = $key;
+    }
+  }
+}
+
+/*
+ * Implementation of hook_migrate_api().
+ */
+function migrate_extras_migrate_api() {
+  $api = array(
+    'api' => 2,
+  );
+  return $api;
+}

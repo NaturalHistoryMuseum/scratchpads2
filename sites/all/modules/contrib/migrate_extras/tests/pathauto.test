@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * Test pathauto migration.
+ */
+class MigrateExtrasPathautoUnitTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Pathauto migration',
+      'description' => 'Test disabling of pathauto during migration',
+      'group' => 'Migrate',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('migrate', 'migrate_extras', 'features', 'token', 'path',
+      'pathauto', 'migrate_extras_pathauto');
+  }
+
+  /**
+   * Verify that setting 'pathauto' to FALSE when migrating actually prevents
+   * pathauto from creating an alias.
+   */
+  function testPathautoImport() {
+    $migration = Migration::getInstance('MigrateExamplePathauto');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Import returned RESULT_COMPLETED'));
+    $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_pathauto'), TRUE);
+    $this->assertEqual(count($rawnodes), 2, t('Two sample nodes created'));
+    $count = db_select('url_alias', 'ua')
+              ->fields('ua', array('source'))
+              ->countQuery()
+              ->execute()
+              ->fetchField();
+    $this->assertEqual($count, 0, t('No aliases generated'));
+  }
+}

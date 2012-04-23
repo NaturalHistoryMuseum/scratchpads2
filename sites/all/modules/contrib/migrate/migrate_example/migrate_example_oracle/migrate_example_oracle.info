@@ -1,0 +1,19 @@
+core = "7.x"
+dependencies[] = "features"
+dependencies[] = "image"
+dependencies[] = "migrate"
+description = "Content type supporting example of Oracle migration"
+features[field][] = "node-migrate_example_oracle-body"
+features[field][] = "node-migrate_example_oracle-field_mainimage"
+features[node][] = "migrate_example_oracle"
+files[] = "migrate_example_oracle.migrate.inc"
+name = "Migrate example - Oracle"
+package = "Features"
+project = "migrate_example_oracle"
+
+; Information added by drupal.org packaging script on 2012-03-13
+version = "7.x-2.3"
+core = "7.x"
+project = "migrate"
+datestamp = "1331659246"
+

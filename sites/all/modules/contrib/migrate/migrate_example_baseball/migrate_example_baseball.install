@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Set up the migration baseball example module.
+ */
+
+function migrate_example_baseball_enable() {
+  $path = dirname(__FILE__) . '/data';
+  for ($i=0; $i<=9; $i++) {
+    $file = 'GL200' . $i . '.TXT';
+    Migration::registerMigration('GameBaseball', strtolower(pathinfo($file, PATHINFO_FILENAME)), array('source_file' => $path . '/' . $file));
+  }
+}
+
+function migrate_example_baseball_uninstall() {
+  $bundle = 'migrate_example_baseball';
+  $field_names = array('field_park', 'field_home_team', 'field_home_game_number',
+    'field_home_score', 'field_visiting_score', 'field_outs', 'field_attendance',
+    'field_duration', 'field_home_batters', 'field_visiting_batters',
+    'field_home_pitcher', 'field_visiting_pitcher', 'field_visiting_team',
+    'field_start_date');
+  foreach ($field_names as $field_name) {
+    $instance = field_info_instance('node', $field_name, $bundle);
+    field_delete_instance($instance);
+    field_delete_field($field_name);
+  }
+  node_type_delete($bundle);
+}
+
+function migrate_example_baseball_disable() {
+  for ($i=0; $i<=9; $i++) {
+    $file = 'GL200' . $i . '.TXT';
+    // Migration::deregisterMigration(strtolower(pathinfo($file, PATHINFO_FILENAME)));
+  }
+}

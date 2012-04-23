@@ -1,0 +1,13 @@
+core = "7.x"
+dependencies[] = "migrate_extras"
+dependencies[] = "profile2"
+description = "Examples of migrating into Profile2 entities"
+files[] = migrate_extras_profile2.migrate.inc
+name = "Migrate Extras Profile2 Example"
+package = "Development"
+; Information added by drupal.org packaging script on 2012-03-21
+version = "7.x-2.3"
+core = "7.x"
+project = "migrate_extras"
+datestamp = "1332348948"
+

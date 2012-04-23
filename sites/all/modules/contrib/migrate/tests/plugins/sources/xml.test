@@ -1,0 +1,95 @@
+<?php
+
+/**
+ * Test node migration.
+ */
+class MigrateXMLUnitTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'XML migration',
+      'description' => 'Test migration from XML source',
+      'group' => 'Migrate',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('taxonomy', 'migrate', 'migrate_example');
+  }
+
+  function testNodeImport() {
+    $migration = Migration::getInstance('WineRegion');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Region term import returned RESULT_COMPLETED'));
+    $migration = Migration::getInstance('WineFileCopy');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('File import returned RESULT_COMPLETED'));
+    $migration = Migration::getInstance('WineRole');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Role import returned RESULT_COMPLETED'));
+    $migration = Migration::getInstance('WineUser');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('User import returned RESULT_COMPLETED'));
+    $migration = Migration::getInstance('WineProducerXML');
+    $result = $migration->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import returned RESULT_COMPLETED'));
+
+    // Gather producer nodes, and their corresponding input data
+    $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_producer'), TRUE);
+    // Index by title
+    $producer_nodes = array();
+    foreach ($rawnodes as $node) {
+      $producer_nodes[$node->title] = $node;
+    }
+
+    $this->assertEqual(count($producer_nodes), 1,
+      t('Counts of producer nodes and input rows match'));
+
+    // Test each base node field
+    $producer_node = $producer_nodes['Lolonis Winery'];
+    $user_migration = MigrationBase::getInstance('WineUser');
+
+    $mapped_uid = $user_migration->getMap()->lookupDestinationID(array(3));
+    if (is_array($mapped_uid)) {
+      $this->assertEqual($producer_node->uid, reset($mapped_uid),
+        t('uid properly migrated'));
+    }
+    else {
+      $this->error(t('Account ID !id not migrated', array('!id' => 3)));
+    }
+
+    // Test Field API fields of all types
+    // body_with_summary
+    $body = field_get_items('node', $producer_node, 'body');
+    $this->assertEqual($body[0]['value'], 'Makers of Ladybug Red',
+      t('body properly migrated'));
+    $region = field_get_items('node', $producer_node, 'migrate_example_wine_regions');
+    $term = taxonomy_get_term_by_name('Redwood Valley');
+    $term = reset($term);
+    $this->assertEqual($region[0]['tid'], $term->tid,
+      t('region properly migrated'));
+
+    // Test rollback
+    $result = $migration->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback returned RESULT_COMPLETED'));
+    $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_producer'), TRUE);
+    $this->assertEqual(count($rawnodes), 0, t('All nodes deleted'));
+    $count = db_select('migrate_map_wineproducerxml', 'map')
+              ->fields('map', array('sourceid1'))
+              ->countQuery()
+              ->execute()
+              ->fetchField();
+    $this->assertEqual($count, 0, t('Map cleared'));
+    $count = db_select('migrate_message_wineproducerxml', 'msg')
+              ->fields('msg', array('sourceid1'))
+              ->countQuery()
+              ->execute()
+              ->fetchField();
+    $this->assertEqual($count, 0, t('Messages cleared'));
+  }
+}
