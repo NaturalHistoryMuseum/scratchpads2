@@ -105,7 +105,10 @@ function scratchpads_hands_off_menu_alter(&$items){
     'admin/config/system/globalredirect',
     'admin/config/system/cron',
     'admin/config/user-interface/beautytips',
-    'admin/config/development',
+    'admin/config/development/performance',
+    'admin/config/development/logging',
+    'admin/config/development/modal_forms',
+    'admin/config/development/strongarm',
     'admin/structure/file-types',
     'user/1/edit'
   ) as $hidden_url){

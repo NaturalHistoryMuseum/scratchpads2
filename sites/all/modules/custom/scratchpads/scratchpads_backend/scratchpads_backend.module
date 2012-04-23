@@ -47,6 +47,29 @@ function scratchpads_backend_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_permissions().
+ */
+function scratchpads_backend_permission(){
+  return array(
+    'administer maintenance mode' => array(
+      'title' => t('Administer maintenance mode'),
+      'description' => t('Allow this role to put the site into maintenance mode for ALL users.')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_backend_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer maintenance mode'
+    )
+  );
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function scratchpads_backend_admin_paths(){
