@@ -55,4 +55,12 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalUser6Migration', $arguments['machine_name'], $arguments);
+  // The description and the migration machine name are also required arguments,
+  // which will be unique for each migration you register.
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of content types from Drupal 6'),
+    'machine_name' => 'ContentType'
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalContentType6Migration', $arguments['machine_name'], $arguments);
 }
