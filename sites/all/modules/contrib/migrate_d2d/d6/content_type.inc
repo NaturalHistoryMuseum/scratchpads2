@@ -59,8 +59,18 @@ class MigrateDestinationContentType6 extends MigrateDestinationContentType{
     $type->locked = 0;
     $type->module = 'node';
     $status = node_type_save($type);
-    node_types_rebuild();
-    menu_rebuild();
-    return (array)$type;
+    if($status){
+      node_types_rebuild();
+      menu_rebuild();
+      return array(
+        $type->type
+      );
+    }else{
+      return FALSE;
+    }
+  }
+
+  public function rollback(array $ids){
+    node_type_delete($ids['destid1']);
   }
 }
