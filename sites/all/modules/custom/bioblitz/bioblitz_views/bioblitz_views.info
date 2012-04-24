@@ -1,0 +1,8 @@
+name = "bioblitz_views"
+description = "Provides views for the BioBlitz module"
+core = "7.x"
+package = "BioBlitz"
+dependencies[] = "ctools"
+dependencies[] = "views"
+features[ctools][] = "views:views_default:3.0"
+features[views_view][] = "bioblitz_records"

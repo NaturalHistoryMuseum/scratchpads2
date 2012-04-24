@@ -149,9 +149,11 @@ function bioblitz_form_alter_location_node(&$form, &$form_state, $form_id){
 
 function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $form_id){
   GLOBAL $user;
-  //Check we are creating a new BioBlitz record, or editing an exisiting BioBlitz record
+  
+  //Check if we are creating a new BioBlitz record, or editing an exisiting BioBlitz record
   if(arg(0) == 'bioblitz' || $form_state['node']->field_institution_code['und'][0]['value'] == 'BioBlitz'){
   	bioblitz_check_for_biological_vocabulary();
+  	bioblitz_check_user_logged_in();
   	
   	if ($form['#node']->name != '') {$collection_code = $form['#node']->name;} else {$collection_code = 'anon';}
 
@@ -256,6 +258,12 @@ function bioblitz_check_for_biological_vocabulary(){
       }
 }
 
+function bioblitz_check_user_logged_in(){
+      if($user->uid ==0){
+        drupal_set_message('You are not logged in. To use many features of this site you will need to create an account and sign in.', 'warning');
+      }
+}
+
 function bioblitz_admin_settings(){
 	$form['bioblitz_settings'] = array(
 	  '#type' => 'checkboxes',
@@ -273,5 +281,27 @@ function bioblitz_admin_settings(){
 
 function bioblitz_admin_settings_submit($form, $form_state){
 	variable_set('bioblitz_roles', $form_state['values']['bioblitz_settings']);
+	
+	//Update hashcash configuration
+	if($form_state['values']['bioblitz_settings']['anonymous'] === 'anonymous'){
+	  $hashcash_ignored_forms = preg_split('/[\n\r]+/', variable_get('hashcash_form_ids', array()));
+	  if (!in_array('location_node_form', $hashcash_ignored_forms)) {
+	  	$hashcash_ignored_forms[] = 'location_node_form';
+	  }
+	  if (!in_array('specimen_observation_node_form', $hashcash_ignored_forms)){
+	    $hashcash_ignored_forms[] = 'specimen_observation_node_form';
+	  }
+	  variable_set('hashcash_form_ids', implode("\n", $hashcash_ignored_forms));
+	} else {
+		$hashcash_ignored_forms = preg_split('/[\n\r]+/', variable_get('hashcash_form_ids', array()));
+		$hashcash_stop_ignore = array('location_node_form', 'specimen_observation_node_form');
+		foreach ($hashcash_ignored_forms as $key => $hc_form){
+			if (in_array($hc_form, $hashcash_stop_ignore)){
+				unset($hashcash_ignored_forms[$key]);
+			}
+		}
+		
+		variable_set('hashcash_form_ids', implode("\n", $hashcash_ignored_forms));
+	}
 }
 

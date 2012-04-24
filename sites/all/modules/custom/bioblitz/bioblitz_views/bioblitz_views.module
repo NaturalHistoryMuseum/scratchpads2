@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the bioblitz_views feature.
+ */
+
+include_once('bioblitz_views.features.inc');
