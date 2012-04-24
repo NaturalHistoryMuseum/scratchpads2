@@ -3,4 +3,4 @@ description = "Upgrades a Scratchpads 1.0 site (Drupal 6) to a Scratchpads 2.0 s
 package = "Scratchpads"
 core = 7.x
 dependencies[] = scratchpads_tweaks
-dependencies[] = migrate
+dependencies[] = migrate_d2d
