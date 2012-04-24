@@ -135,9 +135,13 @@ function bioblitz_form_alter_location_node(&$form, &$form_state, $form_id){
     	
     	$form['actions']['#type'] = 'hidden';
     	
-    	//Use the location_link to set the title
+    	//Are we creating or editing? If creating set the title
+    	if (arg(0) == 'bioblitz'){
+    	  //Use the location_link to set the title
+    	  $form['title']['#default_value'] = $form['#node']->location_link;
+    	}
     	$form['title']['#type'] = 'hidden';
-    	$form['title']['#default_value'] = $form['#node']->location_link;
+    	
     	
     	bioblitz_form_alter_no_settings($form);
 	}
