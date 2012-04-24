@@ -120,17 +120,9 @@ function hashcash_init(){
  * @param Array $form
  */
 function hashcash_form_alter(&$form, &$form_state, $form_id){
-  /*
-   variable_set('hashcash_ignore_forms', array(
-    'upload_js',
-    'your_form_id'
-  ));
-   */
   // Firstl check to see if this user's role requires hashcash, or if we're
   // being called by the pesky upload_js form.
-  if(user_access('submit form without hashcash') || in_array($form_id, variable_get('hashcash_ignore_forms', array(
-    'upload_js'
-  )))){return;}
+  if(user_access('submit form without hashcash') || $form_id == 'upload_js'){return;}
   // Secondly lets check if we actually want to add Hashcash to this form.
   $hc_addorignore = variable_get('hashcash_addorignore', false);
   $hc_form_ids = preg_split('/[\n\r]+/', variable_get('hashcash_form_ids', "user_login\nuser_login_block\nlegal_login"));
