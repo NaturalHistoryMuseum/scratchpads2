@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_migrate_menu(){
+  return array(
+    'admin/upgrade' => array(
+      ''
+    )
+  );
+}

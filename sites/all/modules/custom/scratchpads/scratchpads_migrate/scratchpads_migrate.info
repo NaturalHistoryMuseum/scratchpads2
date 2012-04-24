@@ -5,5 +5,4 @@ core = 7.x
 dependencies[] = scratchpads_tweaks
 dependencies[] = migrate
 
-files[] = basic_taxonomy.inc
-files[] = itis_taxonomy.inc
+files[] = classes/NodesMigration.inc
