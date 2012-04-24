@@ -46,31 +46,12 @@ class MigrateDestinationContentType6 extends MigrateDestinationContentType{
   }
 
   public function import(stdClass $object, stdClass $row){
-    $type = node_type_set_defaults();
-    $type->type = $object->type;
-    $type->name = $object->name;
-    $type->description = $object->description;
-    $type->help = $object->help;
-    $type->title_label = $object->title_label;
-    $type->has_title = TRUE;
-    $type->base = 'node_content';
-    $type->custom = 1;
-    $type->modified = TRUE;
-    $type->locked = 0;
-    $type->module = 'node';
-    $status = node_type_save($type);
-    if($status){
-      node_types_rebuild();
-      menu_rebuild();
-      return array(
-        $type->type
-      );
-    }else{
-      return FALSE;
-    }
-  }
-
-  public function rollback(array $ids){
-    node_type_delete($ids['destid1']);
+    if(!parent::import($object, $row)){return FALSE;}
+    // As we're importing from Drupal 6, we always had a body field, so should
+    // create one.
+    // FIXME - Add body field.
+    return array(
+      $object->type
+    );
   }
 }
