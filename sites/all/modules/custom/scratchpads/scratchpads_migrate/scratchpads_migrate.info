@@ -4,5 +4,3 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = scratchpads_tweaks
 dependencies[] = migrate
-
-files[] = classes/NodesMigration.inc
