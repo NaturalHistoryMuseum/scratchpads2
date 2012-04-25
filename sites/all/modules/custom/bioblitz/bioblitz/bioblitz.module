@@ -59,36 +59,6 @@ function bioblitz_access($keys){
 	}
 }
 
-function bioblitz_block_info(){
-	$blocks['bioblitz_tasks']= array(
-	  'info' => t('BioBlitz Tasks'),
-	  'status' => FALSE,
-	  'region' => 'content',
-	  'weight' => 0,
-	  'visibility' => 1,
-	);
-	
-	return $blocks;
-}
-
-function bioblitz_block_view($delta = ''){
-	switch ($delta) {
-		case 'bioblitz_tasks':
-			$block = bioblitz_tasks_block_view();
-			return $block;
-			break;
-	}
-}
-
-function bioblitz_tasks_block_view(){
-	$block['subject'] = t('BioBlitz Tasks');
-	
-	$content = '<p>Tasks will go here</p>';
-	
-	$block['content'] = $content;
-	return $block;
-}
-
 function bioblitz_form_alter(&$form, &$form_state, $form_id){
 	switch ($form_id){
 		case 'specimen_observation_node_form':
@@ -302,6 +272,17 @@ function bioblitz_admin_settings_submit($form, $form_state){
 		}
 		
 		variable_set('hashcash_form_ids', implode("\n", $hashcash_ignored_forms));
+	}
+}
+
+function bioblitz_context_load_alter(&$context){
+	if ($context->name == 'species_overview'){
+	  $context->reactions['block']['blocks']['views-bioblitz_records-block_1'] = array(
+        'module' => 'views',
+        'delta' => 'bioblitz_records-block_1',
+        'region' => 'content',
+        'weight' => '-10',
+      );
 	}
 }
 

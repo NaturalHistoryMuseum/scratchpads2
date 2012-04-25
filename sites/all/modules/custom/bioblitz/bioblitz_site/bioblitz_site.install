@@ -1,0 +1,5 @@
+<?php
+
+function bioblitz_site_install(){
+	module_disable('eolapi');
+}
