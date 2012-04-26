@@ -11,9 +11,16 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
   /**
    * Implementation of Migration::prepareRow().
    */
-  public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
-    // Nothing to check (at the moment), so just return TRUE.
+  public function prepareRow($vocabulary){
+    if(parent::prepareRow($vocabulary) === FALSE){return FALSE;}
+    // Check for collisions of the machine name.  If there is a collision, we
+    // don't bother importing the vocabulary (terms from the old site should 
+    // probably be imported into the new vocabulary anyway).    
+    $machine_name = preg_replace('/[^0-9a-z]/', '', preg_replace('/\ +/', '_', strtolower($vocabulary->name)));
+    $result = db_query('SELECT COUNT(*) AS machine_name_exists FROM {taxonomy_vocabulary} WHERE machine_name = :machine_name', array(
+      ':machine_name' => $machine_name
+    ))->fetch();
+    if($result->machine_name_exists){return FALSE;}
     return TRUE;
   }
 
@@ -37,6 +44,26 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
     }
     db_update('taxonomy_vocabulary')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
     db_update('taxonomy_term_data')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
+  }
+
+  /**
+   * Implementation of Migration::endProcess().
+   */
+  public function endProcess(){
+    // We get the maximum vid below 10000000
+    $query = db_select('taxonomy_vocabulary', 't');
+    $query->addExpression('MAX(t.vid)', 'max_vid');
+    $query->condition('vid', 10000000, '<');
+    $max_vid = $query->execute()->fetch();
+    $max_vid = $max_vid->max_vid;
+    // And then reduce all the VIDs greater than 10000000 making sure there are
+    // no collisions.
+    db_update('taxonomy_vocabulary')->expression('vid', 'vid - :value_to_reduce', array(
+      ':value_to_reduce' => 10000000 - $max_vid
+    ))->condition('vid', 10000000, '>')->execute();
+    db_update('taxonomy_term_data')->expression('vid', 'vid - :value_to_reduce', array(
+      ':value_to_reduce' => 10000000 - $max_vid
+    ))->condition('vid', 10000000, '>')->execute();
   }
 
   /**
@@ -125,8 +152,9 @@ abstract class MigrateDestinationVocabulary extends MigrateDestinationEntity{
     $this->prepare($vocabulary, $row);
     // Set the machine name for this entity.  I'm sure there is a more "migrate"
     // way of doing this, but it's not very apparent.
-    $vocabulary->machine_name = preg_replace('/\ +/', '_', preg_replace('/[^0-9a-z]/', '', strtolower($vocabulary->name)));
+    $vocabulary->machine_name = preg_replace('/[^0-9a-z_]/', '', preg_replace('/\ +/', '_', strtolower($vocabulary->name)));
     // We need to insert a dummy row in to the taxonomy_vocabulary table first
+    // as we are specifying the VID of the taxonomy.
     $vocabulary_array = (array)$vocabulary;
     drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
     taxonomy_vocabulary_save($vocabulary);
