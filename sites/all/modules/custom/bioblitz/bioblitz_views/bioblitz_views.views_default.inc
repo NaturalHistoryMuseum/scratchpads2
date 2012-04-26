@@ -37,7 +37,7 @@ $handler->display->display_options['header']['area']['id'] = 'area';
 $handler->display->display_options['header']['area']['table'] = 'views';
 $handler->display->display_options['header']['area']['field'] = 'area';
 $handler->display->display_options['header']['area']['empty'] = TRUE;
-$handler->display->display_options['header']['area']['content'] = 'This map shows the five most recent observations uplaoded to this site.';
+$handler->display->display_options['header']['area']['content'] = 'This map shows the five most recent observations uploaded to this site.';
 $handler->display->display_options['header']['area']['format'] = 'filtered_html';
 $handler->display->display_options['header']['area']['tokenize'] = 0;
 /* No results behavior: Global: Text area */
@@ -192,6 +192,10 @@ $handler->display->display_options['filters']['type']['value'] = array(
 
 /* Display: recent */
 $handler = $view->new_display('block', 'recent', 'block');
+$handler->display->display_options['defaults']['pager'] = FALSE;
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '5';
+$handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['defaults']['style_plugin'] = FALSE;
 $handler->display->display_options['style_plugin'] = 'gmap';
 $handler->display->display_options['defaults']['style_options'] = FALSE;
