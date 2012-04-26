@@ -156,7 +156,7 @@ function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $fo
     $form['field_location']['#type'] = 'hidden';
     
     //Add the location form as a subform...
-    if (arg(0) == 'bioblitz'){ //...to the create node form
+    if (arg(0) == 'bioblitz' || arg(2) == 'clone'){ //...to the create node form or clone form
       $location_link = 'BioBlitz'.time();
       //Add location_link to this forms #node so it is passed to the submit function
       $form['#node']->location_link = $location_link;
