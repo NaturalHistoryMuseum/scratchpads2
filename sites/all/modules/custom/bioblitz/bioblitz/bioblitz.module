@@ -118,8 +118,6 @@ function bioblitz_form_alter_location_node(&$form, &$form_state, $form_id){
 }
 
 function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $form_id){
-  GLOBAL $user;
-  
   //Check if we are creating a new BioBlitz record, or editing an exisiting BioBlitz record
   if(arg(0) == 'bioblitz' || $form_state['node']->field_institution_code['und'][0]['value'] == 'BioBlitz'){
   	bioblitz_check_for_biological_vocabulary();
@@ -229,6 +227,7 @@ function bioblitz_check_for_biological_vocabulary(){
 }
 
 function bioblitz_check_user_logged_in(){
+	  GLOBAL $user;
       if($user->uid ==0){
         drupal_set_message('You are not logged in. To use many features of this site you will need to create an account and sign in.', 'warning');
       }
