@@ -50,6 +50,7 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
    * Implementation of Migration::endProcess().
    */
   public function endProcess(){
+    parent::endProcess();
     // We get the maximum vid below 10000000
     $query = db_select('taxonomy_vocabulary', 't');
     $query->addExpression('MAX(t.vid)', 'max_vid');
@@ -142,7 +143,9 @@ abstract class MigrateDestinationVocabulary extends MigrateDestinationEntity{
    * 
    * FIXME
    */
-  public function rollback(array $key){}
+  public function rollback(array $key){
+    taxonomy_vocabulary_delete($key['destid1']);
+  }
 
   /**
    * Import a single vocabulary.
