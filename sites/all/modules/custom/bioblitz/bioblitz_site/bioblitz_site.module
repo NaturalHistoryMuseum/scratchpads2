@@ -32,7 +32,7 @@ function bioblitz_site_bioblitz_tasks_block_view(){
 	if ($user->uid != 0){
 		$items[] = l('View your records', 'bioblitz/user/'.$user->uid);
 	} else {
-		$items[] = 'Please create an account or signin to access additional features';
+		$items[] = 'Please create an account or log in to access additional features';
 	}
 	
 	$content .= theme('item_list', array('items' => $items));
@@ -54,7 +54,7 @@ function bioblitz_site_context_load_alter(&$context){
 }
 
 function bioblitz_site_menu_link_alter(&$item){
-	$items_to_hide = array('biblio', 'darwincorelocation', 'darwincore', 'itis_term', 'specimen_observation');
+	$items_to_hide = array('biblio', 'darwincorelocation', 'darwincore', 'itis_term', 'specimen_observation', 'taxonomy/term/%/descriptions');
 	if (in_array($item['link_path'], $items_to_hide)){
 		$item['hidden'] = 1;
 	}
