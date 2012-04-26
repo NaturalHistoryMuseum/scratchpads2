@@ -2,7 +2,7 @@
 
 function bioblitz_menu(){
   $items['bioblitz/add'] = array(
-    'title' => 'Bioblitz',
+    'title' => 'New Record',
     'title callback' => 'check_plain',
     'page callback' => 'node_add',
     'page arguments' => array(
@@ -15,7 +15,8 @@ function bioblitz_menu(){
     ),
     'description' => '',
     'file' => 'node.pages.inc',
-    'file path' => drupal_get_path('module', 'node')
+    'file path' => drupal_get_path('module', 'node'),
+    'menu_name' => 'main-menu',
   );
   $items['admin/bioblitz'] = array(
     'title' => 'BioBlitz Settings',
