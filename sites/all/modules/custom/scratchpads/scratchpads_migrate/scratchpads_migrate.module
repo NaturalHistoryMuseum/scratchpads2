@@ -60,5 +60,10 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('DrupalContentType6Migration', $arguments['machine_name'], $arguments);
   // -- Vocabularies ----------------------------------------------------------
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of vocabularies from Drupal 6'),
+    'machine_name' => 'Vocabulary'
+  );
+  Migration::registerMigration('DrupalVocabulary6Migration', $arguments['machine_name'], $arguments);
   
 }
