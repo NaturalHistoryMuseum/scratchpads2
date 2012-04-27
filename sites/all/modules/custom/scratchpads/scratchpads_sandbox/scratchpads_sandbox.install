@@ -1,0 +1,5 @@
+<?php
+
+function scratchpads_sandbox_install(){
+  file_put_contents(drupal_realpath('public://sandbox_installed'), 'INSTALLED');
+}

@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Following needs updating and renaming.
+ */
+/**
+ * Implements hook_block().
+ */
+function sandbox_block($op = 'list', $delta = 0, $edit = array()){
+  switch($op){
+    case 'list':
+      return array(
+        array(
+          'info' => t('Sandbox timer')
+        )
+      );
+    case 'view':
+      $time_passed = time() - variable_get('sandbox_site_created', time());
+      $time_left = format_interval(21600 - $time_passed);
+      $time_passed = format_interval($time_passed);
+      return array(
+        'subject' => '',
+        'content' => "<p style=\"display:block;margin-top:0;\">The Sandbox was last updated $time_passed ago. You have approximately $time_left before the site is wiped.</p><p style=\"display:block;margin-top:0;\">" . l('Login', 'user') . " to the site using the username: \"test\" and the password: \"pass\"</p>"
+      );
+  }
+}
