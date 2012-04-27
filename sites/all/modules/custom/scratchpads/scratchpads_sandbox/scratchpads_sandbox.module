@@ -40,36 +40,14 @@ function scratchpads_sandbox_block_view($delta = ''){
         'content' => '<div style="position:fixed !important;bottom:0px;border-top:solid 1px black;z-index:100;right:0;left:0;background-color:#bbb"><p style="margin:0 !important;padding:3px !important">' . t('The Sandbox was last updated !time_passed ago. You have approximately !time_left before the site is wiped.', array(
           '!time_left' => $time_left,
           '!time_passed' => $time_passed
-        )) . " " . $login_text . '</p></div>'
+        )) . (user_is_anonymous() ? ' ' . $login_text : '') . '</p></div>'
       );
       break;
     case 'login_details':
-      return array(
-        'subject' => NULL,
-        'content' => '<h3>'.$login_text.'</h3>'
-      );
+      if(user_is_anonymous()){return array(
+          'subject' => NULL,
+          'content' => '<h3>' . $login_text . '</h3>'
+        );}
       break;
   }
 }
-
-/**
- * Implements hook_block_view().
-function scratchpads_sandbox_block_view($op = 'list', $delta = 0, $edit = array()){
-  switch($op){
-    case 'list':
-      return array(
-        array(
-          'info' => t('Sandbox timer')
-        )
-      );
-    case 'view':
-      $time_passed = time() - variable_get('sandbox_site_created', time());
-      $time_left = format_interval(21600 - $time_passed);
-      $time_passed = format_interval($time_passed);
-      return array(
-        'subject' => '',
-        'content' => "<p style=\"display:block;margin-top:0;\">The Sandbox was last updated $time_passed ago. You have approximately $time_left before the site is wiped.</p><p style=\"display:block;margin-top:0;\">" . l('Login', 'user') . " to the site using the username: \"test\" and the password: \"pass\"</p>"
-      );
-  }
-}
- */
