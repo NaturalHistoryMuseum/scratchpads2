@@ -16,7 +16,7 @@ function scratchpad_2_sandbox_install_tasks_alter(&$tasks, &$install_state){
  * scratchpad_2_sandbox_install_task_one().
  */
 function scratchpad_2_sandbox_install_configure_form(){
-  variable_set('site_name', 'Scratchpad training site');
+  variable_set('site_name', 'Scratchpad Sandbox');
   variable_set('site_mail', 'scratchpad@nhm.ac.uk');
   variable_set('date_default_timezone', 'UTC');
   variable_set('site_default_country', 'GB');
