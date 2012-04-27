@@ -29,11 +29,14 @@ do
                 SANDBOX_INSTALLED=0
         fi
 done
-# Finally, really make sure we really have finished, by waiting a further 30
+# Finally, really make sure we really have finished, by waiting a further 60
 # seconds.
-sleep 60
-DISPLAY=:3.0 import -window root /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg
-convert /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg -resize 400x300 /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.jpg
+for i in $(seq 1 60)
+do
+        sleep 1
+        DISPLAY=:3.0 import -window root /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg
+        convert /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg -resize 400x300 /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.jpg
+done
 kill -9 $FIREFOX_PID $XVFB_PID 2>/dev/null >/dev/null
 
 # Hide sandbox.html
