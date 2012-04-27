@@ -66,6 +66,7 @@ abstract class MigrateDestinationContentType extends MigrateDestination{
     if($status){
       node_types_rebuild();
       menu_rebuild();
+      $this->numCreated++;
       return array(
         $type->type
       );
