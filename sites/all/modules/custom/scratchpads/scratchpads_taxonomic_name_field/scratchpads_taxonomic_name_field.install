@@ -137,8 +137,8 @@ function scratchpads_taxonomic_name_field_update_7003(){
 /**
  * Set the taxonomic_name_field to unlimited cardinality as requested in #981.
  */
-function scratchpads_taxonomic_name_field_update_7004(){
+function scratchpads_taxonomic_name_field_update_7005(){
   $field = field_info_field('field_taxonomic_name');
-  $field['cardinality'] = '0';
+  $field['cardinality'] = '-1';
   field_update_field($field);
 }
