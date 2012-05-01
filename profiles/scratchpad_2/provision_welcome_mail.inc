@@ -54,7 +54,7 @@ if(function_exists('drush_get_option')){
   );
   if($instituition = drush_get_option('institution', 'N/A')){
     $account->field_user_institution[LANGUAGE_NONE][] = array(
-      'value' => $institution
+      'value' => drush_get_option('institution', 'N/A')
     );
   }
   user_save($account);
