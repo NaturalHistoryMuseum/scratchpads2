@@ -52,9 +52,9 @@ if(function_exists('drush_get_option')){
   $account->field_user_given_names[LANGUAGE_NONE][] = array(
     'value' => implode(' ', $name_parts)
   );
-  if($instituition = drush_get_option('institution', 'N/A')){
+  if($institution = drush_get_option('institution', 'N/A')){
     $account->field_user_institution[LANGUAGE_NONE][] = array(
-      'value' => drush_get_option('institution', 'N/A')
+      'value' => $institution
     );
   }
   user_save($account);
