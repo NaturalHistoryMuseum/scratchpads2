@@ -490,7 +490,6 @@ function formflow_finish(&$form_state){
           require_once DRUPAL_ROOT . '/' . $cache['form_state']['form_info']['steps'][$delta]['include_file'];
         }
         if(function_exists($func)){
-          dsm($func);
           $func($cache['form'], $cache['form_state']);
         }
       }
