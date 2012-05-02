@@ -236,17 +236,17 @@ function hashcash_validate($form, $form_state){
         }
         form_set_error('hashcash', '<p>' . t('Your hashcash string is not valid.') . '</p><p>' . t('Please try "Hard-refreshing" this page (Most users should press Ctrl-F5)'));
         if(variable_get('hashcash_log', FALSE)){
-          watchdog('hashcash', 'Invalid hashcash (Additional checks fail) "!hashcash" !parts1 == !date , !parts2 == !formid , !parts3 == !ipaddress , !parts4 == !cookiedomain , !parts5 == "is not empty"', array(
-            '!hashcash' => $hashcash,
-            '!parts1' => $hashcash_parts[1],
-            '!date' => date('ymd'),
-            '!parts2' => $hashcash_parts[2],
-            '!formid' => $form['form_id']['#value'],
-            '!parts3' => $hashcash_parts[3],
-            '!ipaddress' => ip_address(),
-            '!parts4' => $hashcash_parts[4],
-            '!cookiedomain' => $cookie_domain,
-            '!parts5' => $hashcash_parts[5]
+          watchdog('hashcash', 'Invalid hashcash (Additional checks fail) "@hashcash" @parts1 == @date , @parts2 == @formid , @parts3 == @ipaddress , @parts4 == @cookiedomain , @parts5 == "is not empty"', array(
+            '@hashcash' => $hashcash,
+            '@parts1' => $hashcash_parts[1],
+            '@date' => date('ymd'),
+            '@parts2' => $hashcash_parts[2],
+            '@formid' => $form['form_id']['#value'],
+            '@parts3' => $hashcash_parts[3],
+            '@ipaddress' => ip_address(),
+            '@parts4' => $hashcash_parts[4],
+            '@cookiedomain' => $cookie_domain,
+            '@parts5' => $hashcash_parts[5]
           ));
         }
       }else{
