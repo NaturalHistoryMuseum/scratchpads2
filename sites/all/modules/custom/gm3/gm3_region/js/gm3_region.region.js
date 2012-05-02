@@ -82,6 +82,14 @@
       this.countries[region_id][i].setMap(null);
     }
     this.countries[region_id] = undefined;
+    // Clean up this.countries
+    var new_countries = new Object();
+    for(i in this.countries){
+      if(typeof this.countries[i] != 'undefined'){
+        new_countries[i] = this.countries[i];
+      }
+    }
+    this.countries = new_countries;
   }
   Drupal.GM3.region.prototype.active = function(){
     this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
