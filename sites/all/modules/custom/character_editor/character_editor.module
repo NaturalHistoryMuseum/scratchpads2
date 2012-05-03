@@ -64,7 +64,7 @@ function character_editor_scratchpads_default_permissions(){
 }
 
 /**
- * Implements hook_theme().
+ * Implementation of hook_theme().
  */
 function character_editor_theme(){
   $path = drupal_get_path('module', 'character_editor');
@@ -92,7 +92,7 @@ function character_editor_views_api(){
   $path = drupal_get_path('module', 'character_editor');
   return array(
     'api' => '3',
-    'path' => $path . '/includes'
+    'path' => $path . '/views'
   );
 }
 
@@ -640,7 +640,7 @@ function character_editor_create_relation($parent_entity, $character_entity){
  * TODO - hook into views default
  */
 function character_editor_get_default_view(){
-  module_load_include('inc', 'character_editor', 'includes/character_editor.views_default');
+  module_load_include('inc', 'character_editor', 'views/character_editor.views_default');
   return key(character_editor_views_default_views());
 }
 
@@ -723,10 +723,10 @@ function character_editor_state_form_process($editor){
   $editor->entity_info = entity_get_info($editor->entity_type);
   switch($form_state['values']['character_type']){
     case 'text':
-    	$form_state['title'] = t("Editing text character");
+      $form_state['title'] = t("Editing text character");
       break;
     case 'dna':
-    	$form_state['title'] = t("Editing DNA character");
+      $form_state['title'] = t("Editing DNA character");
       break;
   }
   $form_state['ajax'] = true;
@@ -1008,6 +1008,28 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
     $variables['add_links'][] = $add_links[$character];
   }
 }
+
+/*********************************************************************************************
+ * 
+ * EXPORT
+ * 
+ ********************************************************************************************/
+
+
+/**
+ * Preprocess xml output template.
+ */
+function template_preprocess_views_data_export_sdd(&$vars) {
+
+  // Compute the root XML node, using the base table, and appending an 's' if needed.
+//  $root_node = $vars['view']->base_table;
+//  if (rtrim($root_node, 's') == $root_node) {
+//    $root_node .= 's';
+//  }
+//  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+}
+
+
 
 /*********************************************************************************************
  * 
