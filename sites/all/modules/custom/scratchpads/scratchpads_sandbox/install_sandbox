@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Move the sandbox.html file into place
+mv /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/sandbox.html.hidden /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/sandbox.html
+
+# Delete ALL the files from the sandbox dir
+rm -rf /var/lib/drupal7/sandbox.scratchpads.eu/files/*
+
+# Recreate the database.
+echo "DROP DATABASE sandboxscratchpa; CREATE DATABASE sandboxscratchpa;" | mysql -uroot -pOecey9cheehiphohngeiwi8lahH1ohNi -h msq-scratchpads
+
+# Install via Firefox
+Xvfb :3 -screen 0 800x600x16 -fbdir /tmp -nolisten inet6 2>/dev/null >/dev/null &
+XVFB_PID=$!
+DISPLAY=:3.0 firefox http://sandbox.scratchpads.eu/install.php?profile=scratchpad_2_sandbox 2>/dev/null >/dev/null &
+
+FIREFOX_PID=$!
+
+# Check every 3 seconds to see if we have finished
+#!/bin/bash
+SANDBOX_INSTALLED=1
+until [ $SANDBOX_INSTALLED -lt 1 ]
+do
+        sleep 1
+        DISPLAY=:3.0 import -window root /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg
+        convert /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg -resize 400x300 /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.jpg
+        if [ -e /var/lib/drupal7/sandbox.scratchpads.eu/files/sandbox_installed ]
+        then
+                SANDBOX_INSTALLED=0
+        fi
+done
+# Finally, really make sure we really have finished, by waiting a further 60
+# seconds.
+for i in $(seq 1 60)
+do
+        sleep 1
+        DISPLAY=:3.0 import -window root /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg
+        convert /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.full.jpg -resize 400x300 /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/install.jpg
+done
+kill -9 $FIREFOX_PID $XVFB_PID 2>/dev/null >/dev/null
+
+# Hide sandbox.html
+mv /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/sandbox.html /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/sandbox.html.hidden

@@ -1,0 +1,5 @@
+name = "Species Dictionary"
+description = "Tools for using the Natural History Museum's Dictionary of UK species"
+core = "7.x"
+package = "BioBlitz"
+dependencies[] = "species_dictionary_importer"

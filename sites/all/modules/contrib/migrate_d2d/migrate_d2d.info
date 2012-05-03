@@ -16,6 +16,7 @@ files[] = node.inc
 files[] = taxonomy.inc
 files[] = user.inc
 files[] = content_type.inc
+files[] = vocabulary.inc
 
 ; D5 implementations
 files[] = d5/d5.inc

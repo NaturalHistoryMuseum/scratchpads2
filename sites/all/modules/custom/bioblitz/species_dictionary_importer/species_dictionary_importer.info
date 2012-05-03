@@ -1,0 +1,8 @@
+name = "Species Dictionary Importer"
+description = "Import handler for Species Dictionary"
+core = "7.x"
+package = "BioBlitz"
+dependencies[] = "ctools"
+dependencies[] = "feeds"
+features[ctools][] = "feeds:feeds_importer_default:1"
+features[feeds_importer][] = "species_dictionary_importer"

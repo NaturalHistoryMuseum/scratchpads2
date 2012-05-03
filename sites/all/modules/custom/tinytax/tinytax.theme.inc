@@ -9,6 +9,14 @@
  * tinytax_
  */
 function theme_tinytax_block($variables){
+  // Check the total number of terms in this taxonomy.  If too many, and we're
+  // set to display ancestors, then disable the display of ancestors.
+  if($variables['ancestors']){
+    $row = db_query('SELECT COUNT(*) AS num_terms FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $variables['vid']))->fetch();
+    if($row->num_terms > 2000){
+      $variables['ancestors'] = 0;
+    }
+  }
   return '<div class="tinytax">' . theme('tinytax_branch', array(
     'vid' => $variables['vid'],
     'open_tids' => $variables['open_tids'],

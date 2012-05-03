@@ -67,3 +67,12 @@ function scratchpads_group_update_7001(){
   $scratchpads_pages_display['group'] = 'solr';
   variable_set('scratchpads_pages_display', $scratchpads_pages_display);
 }
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function scratchpads_group_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'scratchpads_group')->execute();
+}

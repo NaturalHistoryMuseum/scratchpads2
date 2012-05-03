@@ -6,7 +6,7 @@
 function scratchpads_taxonomic_name_field_install(){
   $field = array(
     'active' => '1',
-    'cardinality' => '1',
+    'cardinality' => '0',
     'deleted' => '0',
     'entity_types' => array(),
     'field_name' => 'field_taxonomic_name',
@@ -132,4 +132,23 @@ function scratchpads_taxonomic_name_field_update_7003(){
   }
   field_update_field($field);
   return 'Updated field_taxonomic_name';
+}
+
+/**
+ * Set the taxonomic_name_field to unlimited cardinality as requested in #981.
+ */
+function scratchpads_taxonomic_name_field_update_7005(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
+  field_update_field($field);
+}
+
+/**
+ * Rekey the settings array.
+ */
+function scratchpads_taxonomic_name_field_update_7006(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
+  $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
+  field_update_field($field);
 }

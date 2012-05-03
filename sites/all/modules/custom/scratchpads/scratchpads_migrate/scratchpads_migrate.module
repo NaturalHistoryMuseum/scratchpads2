@@ -47,20 +47,23 @@ function scratchpads_migrate_register_migrations(){
     'source_connection' => 'scratchpad_1',
     'source_version' => 6
   );
-  // The description and the migration machine name are also required arguments,
-  // which will be unique for each migration you register.
+  // -- Users -----------------------------------------------------------------
   $arguments = $common_arguments + array(
     'description' => t('Migration of users from Drupal 6'),
     'machine_name' => 'User'
   );
-  // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalUser6Migration', $arguments['machine_name'], $arguments);
-  // The description and the migration machine name are also required arguments,
-  // which will be unique for each migration you register.
+  // -- ContentTypes ----------------------------------------------------------
   $arguments = $common_arguments + array(
     'description' => t('Migration of content types from Drupal 6'),
     'machine_name' => 'ContentType'
   );
-  // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalContentType6Migration', $arguments['machine_name'], $arguments);
+  // -- Vocabularies ----------------------------------------------------------
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of vocabularies from Drupal 6'),
+    'machine_name' => 'Vocabulary'
+  );
+  Migration::registerMigration('DrupalVocabulary6Migration', $arguments['machine_name'], $arguments);
+  
 }

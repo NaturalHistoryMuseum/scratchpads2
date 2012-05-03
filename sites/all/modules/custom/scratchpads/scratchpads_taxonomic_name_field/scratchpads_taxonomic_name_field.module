@@ -75,6 +75,7 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary
     }
   }
   if($update){
+    $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
     field_update_field($field);
   }
 }

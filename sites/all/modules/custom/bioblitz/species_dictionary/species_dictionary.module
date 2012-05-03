@@ -1,0 +1,30 @@
+<?php
+
+function species_dictionary_block_info(){
+	$blocks['species_dictionary_credits'] = array(
+	  'info' => t('Species Dictionary Credits'),
+	  'status' => FALSE,
+	  'region' => 'content',
+	  'weight' => 1,
+	  'visibility' => 1,
+	);
+	
+	return $blocks;
+}
+
+function species_dictionary_block_view($delta = ''){
+	switch($delta) {
+		case '':
+		case 'species_dictionary_credits':
+			$block = species_dictionary_credits();
+			return $block;
+			break;
+	}
+}
+
+function species_dictionary_credits(){
+	$block['subject'] = t('Species Dictionary Credits');
+	
+	$block['content'] = t('This classification is provided by the <a href="http://www.nhm.ac.uk">Natural History Museum</a>\'s <a href="http://www.nhm.ac.uk/research-curation/research/projects/species-dictionary/about-the-species-dictionary/index.html">Dictionary of UK Species</a> project.<br/><br/>');
+	return $block;
+}

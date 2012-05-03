@@ -1,0 +1,6 @@
+<?php
+
+function bioblitz_site_install(){
+	module_disable('eolapi');
+	variable_set('comment_location', 's:1:"0";');
+}

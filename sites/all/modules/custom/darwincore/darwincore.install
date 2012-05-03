@@ -16,3 +16,12 @@ function darwincore_update_7001(){
   $field_instance['widget']['settings']['input_format'] = 'Y/m/d - H:i:s';
   field_update_instance($field_instance);
 }
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function darwincore_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'darwincore')->execute();
+}

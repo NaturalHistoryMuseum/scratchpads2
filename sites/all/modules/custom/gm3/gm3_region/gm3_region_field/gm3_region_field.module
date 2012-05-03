@@ -310,7 +310,9 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
       // actually into a form element.
       $regions = array();
       foreach($items as $item){
-        $regions[] = $item['region_id'];
+        if(isset($item['region_id'])){
+          $regions[] = $item['region_id'];
+        }
       }
       $widget += array(
         '#prefix' => theme('gm3_map', array(
