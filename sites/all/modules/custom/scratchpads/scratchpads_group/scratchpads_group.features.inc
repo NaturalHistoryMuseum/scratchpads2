@@ -21,7 +21,6 @@ function scratchpads_group_node_info() {
   $items = array(
     'group' => array(
       'name' => t('Group'),
-      'base' => 'node_content',
       'description' => t('A content type to enable users to create and manage their own \'groups\'. Each group can have subscribers, and maintains a group home page where subscribers communicate amongst themselves.'),
       'has_title' => '1',
       'title_label' => t('Group name'),
