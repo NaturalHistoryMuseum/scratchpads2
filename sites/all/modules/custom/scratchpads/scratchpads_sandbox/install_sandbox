@@ -7,7 +7,7 @@ mv /var/lib/drupal7/all/modules/custom/scratchpads/scratchpads_sandbox/sandbox.h
 rm -rf /var/lib/drupal7/sandbox.scratchpads.eu/files/*
 
 # Recreate the database.
-echo "DROP DATABASE sandboxscratchpa; CREATE DATABASE sandboxscratchpa;" | mysql -uroot_with_drop -pOecey9cheehiphohngeiwi8lahH1ohNi
+echo "DROP DATABASE sandboxscratchpa; CREATE DATABASE sandboxscratchpa;" | mysql -uroot -pOecey9cheehiphohngeiwi8lahH1ohNi -h msq-scratchpads
 
 # Install via Firefox
 Xvfb :3 -screen 0 800x600x16 -fbdir /tmp -nolisten inet6 2>/dev/null >/dev/null &
