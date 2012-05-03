@@ -16,6 +16,8 @@ files[] = node.inc
 files[] = taxonomy.inc
 files[] = user.inc
 files[] = content_type.inc
+files[] = field.inc
+files[] = field_group.inc
 files[] = vocabulary.inc
 
 ; D5 implementations
@@ -33,6 +35,8 @@ files[] = d6/node.inc
 files[] = d6/taxonomy.inc
 files[] = d6/user.inc
 files[] = d6/content_type.inc
+files[] = d6/field.inc
+files[] = d6/field_group.inc
 
 ; D7 implementations
 files[] = d7/d7.inc
