@@ -14,7 +14,8 @@ function scratchpads_media_gallery_node_info(){
       'description' => t('Upload media, or select media already uploaded to display together in a gallery.'),
       'has_title' => '1',
       'title_label' => t('Title'),
-      'help' => ''
+      'help' => '',
+      'base' => 'node_content'
     )
   );
   return $items;

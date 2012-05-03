@@ -29,6 +29,7 @@ function spm_node_info() {
       'has_title' => '1',
       'title_label' => t('Taxon'),
       'help' => '',
+      'base' => 'node_content'
     ),
   );
   return $items;

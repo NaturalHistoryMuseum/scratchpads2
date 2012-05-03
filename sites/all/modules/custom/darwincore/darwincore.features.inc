@@ -29,6 +29,7 @@ function darwincore_node_info() {
       'has_title' => '1',
       'title_label' => t('Location identifier'),
       'help' => '',
+      'base' => 'node_content'
     ),
     'specimen_observation' => array(
       'name' => t('Specimen/Observation'),
@@ -36,6 +37,7 @@ function darwincore_node_info() {
       'has_title' => '1',
       'title_label' => t('Specimen identifier'),
       'help' => '',
+      'base' => 'node_content'
     ),
   );
   return $items;
