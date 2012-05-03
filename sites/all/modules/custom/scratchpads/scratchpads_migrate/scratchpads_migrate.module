@@ -65,5 +65,36 @@ function scratchpads_migrate_register_migrations(){
     'machine_name' => 'Vocabulary'
   );
   Migration::registerMigration('DrupalVocabulary6Migration', $arguments['machine_name'], $arguments);
-  
+  // The description and the migration machine name are also required arguments,
+  // which will be unique for each migration you register.
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of fields from Drupal 6'),
+    'machine_name' => 'Field',
+    'dependencies' => array(
+      'ContentType'
+    )
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalField6Migration', $arguments['machine_name'], $arguments);
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of field groups from Drupal 6'),
+    'machine_name' => 'FieldGroup',
+    'dependencies' => array(
+      'Field'
+    )
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldGroup6Migration', $arguments['machine_name'], $arguments);
 }
+
+/**
+ * Returns a list of node types requiring migration
+ */
+function scratchpads_migrate_node_types_to_migrate(){
+	// TODO - Map node types & fields 
+	// TODO - Add this to ContentType
+  return array(
+    'test'
+  );
+}
+
