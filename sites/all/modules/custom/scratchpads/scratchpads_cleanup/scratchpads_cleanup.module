@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_cleanup_cron(){
+  module_load_include('cron.inc', 'scratchpads_cleanup');
+  _scratchpads_cleanup_cron();
+}

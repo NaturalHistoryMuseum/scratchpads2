@@ -793,3 +793,12 @@ function scratchpads_tweaks_update_7015(){
   );
   filter_format_save($filtered_html_format);
 }
+
+/**
+ * Install the Scratchpads cleanup module
+ */
+function scratchpads_tweaks_update_7016(){
+  module_enable(array(
+    'scratchpads_cleanup'
+  ));
+}
