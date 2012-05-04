@@ -12,6 +12,18 @@ abstract class DrupalFieldMigration extends DrupalMigration{
   }
 
   /**
+   * Implementation of Migration::prepareRow().
+   */
+  public function prepareRow($row){
+    if(parent::prepareRow($row) === FALSE){return FALSE;}
+    // Get the migration type
+    $migration_type = scratchpads_migrate_migration_types($row->type_name);
+    // If this field should be exlcuded, return false to skip it
+    if(isset($migration_type['exclude_fields']) && in_array($row->field_name, $migration_type['exclude_fields'])){return false;}
+    return TRUE;
+  }
+
+  /**
    * @abstract
    * Version-specific classes must implement contentTypeQuery, returning a query
    * that provides all the basic fields for each node type.

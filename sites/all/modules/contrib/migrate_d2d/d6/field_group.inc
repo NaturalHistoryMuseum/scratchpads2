@@ -19,7 +19,7 @@ class DrupalFieldGroup6Migration extends DrupalFieldGroupMigration{
       'group_name',
       'label',
       'weight',
-    	'children'
+      'children'
     ));
     $this->addFieldMapping('bundle', 'type_name');
     $this->addFieldMapping('entity_type')->defaultValue('node');
@@ -40,11 +40,12 @@ class DrupalFieldGroup6Migration extends DrupalFieldGroupMigration{
       'label',
       'settings',
       'weight'
-    ));   
+    ));
     $query->innerJoin('content_group_fields', 'f', 'f.type_name = g.type_name AND f.group_name = g.group_name');
     $query->groupBy('g.group_name');
     $query->addExpression('GROUP_CONCAT(f.field_name)', 'children');
-    $query->condition('g.type_name', scratchpads_migrate_node_types_to_migrate(), 'IN');
+    // Limit to only node types we want to import
+    $query->condition('g.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
     return $query;
   }
 }

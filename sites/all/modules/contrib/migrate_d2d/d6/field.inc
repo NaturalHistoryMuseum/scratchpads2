@@ -54,7 +54,7 @@ class DrupalField6Migration extends DrupalFieldMigration{
     $query->innerJoin('content_node_field', 'f', 'f.field_name = i.field_name');
     $query->fields('f');
     $query->condition('i.widget_active', 1);
-    $query->condition('i.type_name', scratchpads_migrate_node_types_to_migrate(), 'IN');
+    $query->condition('i.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
     return $query;
   }
 
