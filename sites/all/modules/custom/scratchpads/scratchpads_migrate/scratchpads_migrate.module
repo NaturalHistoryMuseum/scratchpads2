@@ -1,4 +1,7 @@
 <?php
+
+define(MIGRATE_FIELDS_ONLY, 1);
+
 /**
  * Add the database connection.
  * 
@@ -88,13 +91,58 @@ function scratchpads_migrate_register_migrations(){
 }
 
 /**
- * Returns a list of node types requiring migration
+ * Array of migration types to import
  */
-function scratchpads_migrate_node_types_to_migrate(){
-	// TODO - Map node types & fields 
-	// TODO - Add this to ContentType
-  return array(
-    'test'
+function scratchpads_migrate_migration_types($type = null){
+  /* An array of node types to be imported, strcutrue as:
+	 *   node_type => array(
+   *		skip_fields => array(field_name_not_to_import),
+   *		status => MIGRATE_FIELDS_ONLY
+   *	 )
+   *
+   *  Set status to MIGRATE_FIELDS_ONLY if you know you only want to migrate fileds attached to node
+   *  For example, the page node
+   *
+	 * 
+	 */
+  // TODO - Extend to set destination entity_type and destination bundle? Then use it for profile too?
+  $types = array(
+    'test' => array(
+      'exclude_fields' => array(
+        'field_test'
+      )
+    ),
+    'page' => array(
+			'status' => MIGRATE_FIELDS_ONLY
+    )
   );
+  if($type){
+    return $types[$type];
+  }else{
+    return $types;
+  }
 }
+
+/**
+ * Return an array of node types requiring migration
+ * This will filter out types with status MIGRATE_FIELDS_ONLY
+ */
+function scratchpads_migrate_migration_node_types(){
+	return array_filter(scratchpads_migrate_migration_types(), "_scratchpads_migrate_migration_node_type_filter");
+}
+
+/**
+ * array_filter function
+ * Filter out types with MIGRATE_FIELDS_ONLY
+ */
+function _scratchpads_migrate_migration_node_type_filter($type){
+	if(isset($type['status']) && $type['status'] == MIGRATE_FIELDS_ONLY){
+		return false;
+	}
+	return true;
+}
+
+
+
+
 
