@@ -32,4 +32,6 @@ function scratchpads_cleanup_cleanup_taxonomy(){
     ));
     taxonomy_vocabulary_delete($vocabulary->vid);
   }
+  // Ensure no terms are set as being a child of themselves.
+  db_query('UPDATE {taxonomy_term_hierarchy} SET parent = 0 WHERE parent = tid');
 }
