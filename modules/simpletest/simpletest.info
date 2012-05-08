@@ -27,6 +27,7 @@ files[] = tests/lock.test
 files[] = tests/mail.test
 files[] = tests/menu.test
 files[] = tests/module.test
+files[] = tests/pager.test
 files[] = tests/password.test
 files[] = tests/path.test
 files[] = tests/registry.test
@@ -39,18 +40,22 @@ files[] = tests/update.test
 files[] = tests/xmlrpc.test
 files[] = tests/upgrade/upgrade.test
 files[] = tests/upgrade/upgrade.comment.test
+files[] = tests/upgrade/update.field.test
 files[] = tests/upgrade/upgrade.filter.test
 files[] = tests/upgrade/upgrade.forum.test
 files[] = tests/upgrade/upgrade.locale.test
 files[] = tests/upgrade/upgrade.menu.test
 files[] = tests/upgrade/upgrade.node.test
 files[] = tests/upgrade/upgrade.taxonomy.test
+files[] = tests/upgrade/upgrade.trigger.test
 files[] = tests/upgrade/upgrade.translatable.test
+files[] = tests/upgrade/update.trigger.test
 files[] = tests/upgrade/upgrade.upload.test
+files[] = tests/upgrade/update.user.test
 files[] = tests/upgrade/upgrade.user.test
 
-; Information added by drupal.org packaging script on 2012-02-01
-version = "7.12"
+; Information added by drupal.org packaging script on 2012-05-02
+version = "7.14"
 project = "drupal"
-datestamp = "1328134560"
+datestamp = "1335997555"
 

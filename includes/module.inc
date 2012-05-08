@@ -421,22 +421,19 @@ function module_enable($module_list, $enable_dependencies = TRUE) {
       module_list(TRUE);
       module_implements('', FALSE, TRUE);
       _system_update_bootstrap_status();
-      // Ensure the tables are installed first.  Some hooks rely on tables being
-      // present during registry_update.
-      $install_module = FALSE;
-      if (drupal_get_installed_schema_version($module, TRUE) == SCHEMA_UNINSTALLED) {
-        $install_module = TRUE;
-        drupal_install_schema($module);
-      }
       // Update the registry to include it.
       registry_update();
       // Refresh the schema to include it.
       drupal_get_schema(NULL, TRUE);
+      // Update the theme registry to include it.
+      drupal_theme_rebuild();
       // Clear entity cache.
       entity_info_cache_clear();
 
       // Now install the module if necessary.
-      if ($install_module) {
+      if (drupal_get_installed_schema_version($module, TRUE) == SCHEMA_UNINSTALLED) {
+        drupal_install_schema($module);
+
         // Set the schema version to the number of the last update provided
         // by the module.
         $versions = drupal_get_schema_versions($module);
@@ -551,6 +548,8 @@ function module_disable($module_list, $disable_dependents = TRUE) {
     // Update the registry to remove the newly-disabled module.
     registry_update();
     _system_update_bootstrap_status();
+    // Update the theme registry to remove the newly-disabled module.
+    drupal_theme_rebuild();
   }
 
   // If there remains no more node_access module, rebuilding will be
