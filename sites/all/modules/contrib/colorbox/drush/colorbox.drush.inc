@@ -8,7 +8,7 @@
 /**
  * The Colorbox plugin URI.
  */
-define('COLORBOX_DOWNLOAD_URI', 'http://colorpowered.com/colorbox/colorbox.zip');
+define('COLORBOX_DOWNLOAD_URI', 'http://jacklmoore.com/colorbox/colorbox.zip');
 
 /**
  * Implementation of hook_drush_command().

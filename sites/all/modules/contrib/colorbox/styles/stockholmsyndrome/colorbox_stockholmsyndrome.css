@@ -60,26 +60,26 @@
 
 #colorbox {
   background: #fff url(images/bg_tab.png) center bottom repeat-x;
-  box-shadow: 3px 3px 16px #333;
   -moz-box-shadow: 3px 3px 16px #333;
   -webkit-box-shadow: 3px 3px 16px #333;
-  border-bottom-left-radius: 9px;
-  border-bottom-right-radius: 9px;
+  box-shadow: 3px 3px 16px #333;
   -moz-border-radius-bottomleft: 9px;
   -moz-border-radius-bottomright: 9px;
   -webkit-border-bottom-left-radius: 9px;
   -webkit-border-bottom-right-radius: 9px;
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
 }
 #colorbox, #colorbox div {
   overflow: visible; /* Required by the close button. */
 }
   #cboxWrapper {
-    border-bottom-left-radius: 9px;
-    border-bottom-right-radius: 9px;
     -moz-border-radius-bottomleft: 9px;
     -moz-border-radius-bottomright: 9px;
     -webkit-border-bottom-left-radius: 9px;
     -webkit-border-bottom-right-radius: 9px;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
   }
     #cboxTopLeft {
       width: 0;

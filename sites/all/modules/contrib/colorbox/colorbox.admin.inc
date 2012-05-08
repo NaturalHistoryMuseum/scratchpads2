@@ -267,6 +267,13 @@ function colorbox_admin_settings() {
     '#prefix' => '<div class="colorbox-slideshow-settings-activate">',
     '#suffix' => '</div>',
   );
+  $form['colorbox_custom_settings']['colorbox_scrolling'] = array(
+    '#type' => 'radios',
+    '#title' => t('Scrollbars'),
+    '#options' => array(0 => t('Off'), 1 => t('On')),
+    '#default_value' => variable_get('colorbox_scrolling', 1),
+    '#description' => t('If false, Colorbox will hide scrollbars for overflowing content. This could be used on conjunction with the resize method for a smoother transition if you are appending content to an already open instance of Colorbox.'),
+  );
 
   $js_hide = variable_get('colorbox_slideshow', 0) ? '' : ' js-hide';
   $form['colorbox_custom_settings']['colorbox_slideshow_settings']['wrapper_start'] = array(
