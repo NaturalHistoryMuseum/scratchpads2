@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_init().
+ * 
+ * THIS IS PURELY FOR TESTING, AND SHOULD BE REMOVED.
+ */
+function gbif_registry_init(){
+  return;
+  $registry = new GBIFRegistry();
+  print_r($registry->get_nodes());
+  print_r($registry->get_organisations());
+  print_r($registry->get_organisation_contacts('f9b67ad0-9c9b-11d9-b9db-b8a03c50a862'));
+  print_r($registry->get_organisations_by_node('us'));
+  exit();
+}
