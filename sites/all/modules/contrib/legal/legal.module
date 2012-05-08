@@ -401,12 +401,10 @@ function legal_user_login(&$edit, $account) {
 
   $query = NULL;
   // Deal with destination from password reset one time login link.
-  if (isset($_POST['form_id']) && $_POST['form_id'] == 'user_pass_reset') {
-    $token = drupal_hash_base64(drupal_random_bytes(55));
-    $_SESSION['pass_reset_' . $uid] = $token;
-    $query = array('destination' => "user/$uid/edit?pass-reset-token=$token");
+  if (arg(0) == 'user' && arg(1) == 'reset') {
+    $query = array('destination' => "user/$uid/edit");
   }
- 
+  
   if (!empty($_REQUEST['destination'])) {
     $query = array('destination' => $_REQUEST['destination']);
   }
@@ -469,7 +467,7 @@ function legal_user_update(&$edit, $account, $category) {
   }
 
   // Record the accepted state before removing legal_accept from $edit.
-  $accepted = isset($edit['legal_accept']) ? $edit['legal_accept'] : NULL; 
+  $accepted = $edit['legal_accept'];
   $edit['legal_accept'] = NULL;
   $edit['conditions'] = NULL;
 
@@ -584,7 +582,7 @@ function legal_login_validate($form, &$form_state) {
 function legal_login_submit($form, &$form_state) {
   global $user;
   $values = $form_state['values'];
-  $user = user_load(array('uid' => $values['uid']));
+  $user = user_load($values['uid']);
 
 	$redirect = 'user/'. $user->uid;
 
