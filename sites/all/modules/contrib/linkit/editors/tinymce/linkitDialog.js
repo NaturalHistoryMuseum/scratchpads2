@@ -17,10 +17,10 @@ Drupal.linkit.editorDialog.tinymce = {
     var linkitCache = Drupal.linkit.getLinkitCache(),
         editor = linkitCache.editor, element, link;
 
-      // Restore the selection if the browser is IE.
-      if (tinymce.isIE) {
-        editor.selection.moveToBookmark(editor.windowManager.bookmark);
-      }
+    // Restore the selection if the browser is IE.
+    if (tinymce.isIE) {
+      editor.selection.moveToBookmark(editor.windowManager.bookmark);
+    }
 
     // If we have selected a link element, lets populate the fields in the
     // dialog with the values from that link element.
@@ -48,7 +48,7 @@ Drupal.linkit.editorDialog.tinymce = {
    */
   insertLink : function(data) {
     var linkitCache = Drupal.linkit.getLinkitCache(),
-        editor = linkitCache.editor, 
+        editor = linkitCache.editor,
         element = editor.dom.getParent(editor.selection.getNode(), 'A');
 
     // Restore the selection if the browser is IE.
@@ -62,7 +62,14 @@ Drupal.linkit.editorDialog.tinymce = {
 
     // No link element selected, create a new anchor element.
     if (element == null) {
-      editor.execCommand("mceInsertLink", false, data.attributes);
+      // If there is no selection, lets inser a new element.
+      if (editor.selection.isCollapsed()) {
+        editor.execCommand('mceInsertContent', false,
+          editor.dom.createHTML('a', data.attributes,
+            Drupal.linkitCache.link_tmp_title));
+      } else {
+        editor.execCommand("mceInsertLink", false, data.attributes);
+      }
     }
     // We are editing an existing link, so just overwrite the attributes.
     else {

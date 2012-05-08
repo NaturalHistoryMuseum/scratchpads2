@@ -1,9 +1,32 @@
 <?php
-
 /**
  * @file
  * Hooks and alters provided by Linkit.
  */
+
+/**
+ * Extend Linkit with new plugins.
+ *
+ * Since 7.x-2.2 Linkit uses ctools for the plugins.
+ * Linkit supports all entities that have an "uri callback" defined out of the
+ * box. See "hook_entity_info" for more info.
+ *
+ * If you would like to extend the methods in the entity plugin, you can extands
+ * the regular LinkitPluginEntity class. See the linkit-plugin-node.class.php as
+ * an example.
+ */
+
+/**
+ * If you will implement new Linkit plugins, you'll need to tell ctools that you
+ * have linkit plugins. This is done by using hook_ctools_plugin_directory.
+ * See the ctools documentation for for more info about this hook.
+ */
+function hook_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'linkit' && $plugin == 'linkit_plugin') {
+    return 'plugins/linkit_plugin';
+  }
+}
+
 
 /**
  * Defines one or more attributes to use with Linkit.
@@ -52,108 +75,4 @@ function hook_linkit_attributes_alter(&$attributes) {
     'now-follow' => t('No follow'),
     'other-rel' => t('Other rel'),
   );
-}
-
-/**
- * Defines one or more plugins to use with Linkit.
- *
- * @return
- *   An associative array with the key being the machine name for the
- *   implementation and the values being an array with the following keys:
- *     - "title": The untranslated human readable name for the plugin.
- *     - "description": Short untranslated description for the plugin.
- *     - "file": (optional) A file that will be included before the
- *       autocomplete callback function is called.
- *     - "autocomplete callback": The function to call when the users search
- *       for something.
- *     - "path info callback": (optional) The function to call then the user
-         have provided something that looks like an URL in the autocomplete
-         textfield.
- */
-function hook_linkit_plugins() {
-  $plugins['myplugin'] = array(
-    'title' => 'My plugin',
-    'description' => 'My plugin implementation',
-    'file' => drupal_get_path('module', 'mymodule') . '/mymodule.inc',
-    'autocomplete callback' => 'mymodule_autocomplete_function',
-    'path info callback' => 'mymodule_path_info_function'
-  );
-  return $plugins;
-}
-
-/**
- * "autocomplete callback" given in hook_linkit_plugins().
- *
- * This function is called when the user is typing in the autocomplete field
- * and the search is triggerd.
- *
- * Note: If there is no search results, just return an empty array.
- *
- * @param $string
- *   A string contains the text from the autocomplete field.
- * @param array $profile
- *   The profile settings the user calling this function has.
- * @return
- *   An array of search results. Each search result is an associative array
- *   that may contain the following key-value pairs:
- *     - "title": The untranslated title for the item.
- *     - "description": (optional) The untranslated description that will be
- *       shown under the title.
- *     - "path": The path for the item.
- *     - "group": (optional) The untranslated group name. This is used to group
- *       results into different groups, like Content, user, term and so on.
- */
-function mymodule_autocomplete_function($string, $profile) {
-}
-
-/**
- * "path info callback" given in hook_linkit_plugins().
- *
- * Retrieve relevant information about a URL.
- *
- * Note: Do not return en empty result, return FALSE instead as the first
- * returned value will be used in this call stack.
- *
- * @param $path_info
- *   An associative array containing information about the URL requested.
- * @param array $profile
- *   The profile settings the user calling this function has.
- * @return
- *   An array of search results. Each search result is an associative array
- *   that may contain the following key-value pairs:
- *     - "title": The untranslated title for the item.
- *     - "description": (optional) The untranslated description that will be
- *       shown under the title.
- *     - "path": The path for the item.
- *     - "group": (optional) The untranslated group name. This is used to group
- *       results into different groups, like Content, user, term and so on.
- */
-function mymodule_path_info_function($path_info, $profile) {
-}
-
-
-/**
- * If you have a custom scheme, you can define how the relative URL, used by
- * Linkit file plugin will look.
- *
- * public:// and private:// is implemented by Linkit core.
- *
- * @param string $scheme
- *   The scheme for the file.
- * @param string $target
- *   The target for the file.
- * @return
- *   A string with the relative or absolute URL to your file. We use relative
- *   for all Drupal internal paths.
- *
- * @see file_uri_scheme()
- * @see file_uri_target()
- * @see _linkit_file_get_url()
- */
-function mymodule_linkit_get_url($scheme, $target) {
-  switch ($scheme) {
-    case 'mycustomscheme':
-      // Get some fancy url to my custom scheme and return it as a string.
-      break;
-  }
 }

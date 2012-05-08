@@ -4,7 +4,7 @@ INTRODUCTION
 ============
 
 Linkit provides an easy interface for internal linking. Linkit links to
-nodes, users, files and terms by default, using an autocomplete field.
+nodes, users, managed files and terms by default, using an autocomplete field.
 Linkit has two major advantages over traditional linking
 
  1. The user does not have to copy or remember a URL

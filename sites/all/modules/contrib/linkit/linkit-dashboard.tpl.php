@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Linkit dashboard template file.

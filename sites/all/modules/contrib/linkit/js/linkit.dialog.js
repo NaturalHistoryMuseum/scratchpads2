@@ -54,8 +54,14 @@ Drupal.behaviors.linkitDialogButtons = {
  * dialog.
  */
 Drupal.linkit.dialog.close = function () {
-  Drupal.linkit.$searchInput.betterAutocomplete('destroy');
+  if (Drupal.linkit.$searchInput) {
+    Drupal.linkit.$searchInput.betterAutocomplete('destroy');
+  }
   $('#linkit-modal').dialog('destroy').remove();
+
+  // Unset the linkit cache.
+  Drupal.linkitCache = {};
+  return false;
 };
 
 /**
@@ -170,8 +176,12 @@ Drupal.linkit.dialog.createDialog = function(src) {
   var linkitCache = Drupal.linkit.getLinkitCache(),
     $linkitModal = $('<div />').attr('id', 'linkit-modal');
 
+
   // Initialize Linkit editor js.
-  Drupal.linkit.editorDialog[linkitCache.editorName].init();
+  if (typeof Drupal.linkit.editorDialog[linkitCache.editorName] !== 'undefined' &&
+    typeof Drupal.linkit.editorDialog[linkitCache.editorName].init !== 'undefined') {
+    Drupal.linkit.editorDialog[linkitCache.editorName].init();
+  }
 
   // Create a dialog dig in the <body>.
   $('body').append($linkitModal);
@@ -195,7 +205,14 @@ Drupal.linkit.dialog.createDialog = function(src) {
       Drupal.attachBehaviors($('.linkit-wrapper'), Drupal.settings);
 
       // Run the afterInit function.
-      Drupal.linkit.editorDialog[linkitCache.editorName].afterInit();
+      if (typeof Drupal.linkit.editorDialog[linkitCache.editorName] !== 'undefined' &&
+         typeof Drupal.linkit.editorDialog[linkitCache.editorName].afterInit !== 'undefined') {
+        Drupal.linkit.editorDialog[linkitCache.editorName].afterInit();
+      }
+
+      // Set focus in the search field.
+      $('.linkit-wrapper #edit-linkit-search').focus();
+
     }
   });
 
