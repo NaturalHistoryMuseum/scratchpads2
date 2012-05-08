@@ -626,7 +626,8 @@ class csl_name extends csl_format {
     }
     if (isset($this->{'et-al-min'}) &&
     $count >= $this->{'et-al-min'} &&
-    isset($this->{'et-al-use-first'})) {
+    isset($this->{'et-al-use-first'}) &&
+    $count > $this->{'et-al-use-first'}) {
       if ($this->{'et-al-use-first'} < $this->{'et-al-min'}) {
         for ($i = $this->{'et-al-use-first'}; $i < $count; $i++) {
           unset($authors[$i]);
@@ -791,7 +792,7 @@ class csl_names extends csl_format {
     }
   }
 
-  function render($data, $mode = NULL) {
+  function render($data, $mode) {
     $matches = 0;
     $variable_parts = array();
     if (!isset($this->delimiter)) {
@@ -930,7 +931,7 @@ class csl_date extends csl_format {
 
   }
 
-  function render($data, $mode = NULL) {
+  function render($data, $mode) {
     $date_parts = array();
     $date = '';
     $text = '';
@@ -952,7 +953,7 @@ class csl_date extends csl_format {
 
 class csl_date_part extends csl_format {
 
-  function render($date, $mode = FALSE) {
+  function render($date, $mode) {
     $text = '';
 
     switch ($this->name) {
@@ -1000,7 +1001,7 @@ class csl_date_part extends csl_format {
 
 class csl_number extends csl_format {
 
-  function render($data, $mode = NULL) {
+  function render($data, $mode) {
     $var = $this->variable;
 
     if (!$var || empty($data->$var)) return;
@@ -1206,7 +1207,7 @@ class csl_macros extends csl_collection{
 
 class csl_group extends csl_format{
 
-  function render($data, $mode = NULL) {
+  function render($data, $mode) {
     $text = '';
     $text_parts = array();
 
@@ -1253,7 +1254,7 @@ class csl_layout extends csl_format {
     parent::init_formatting();
   }
 
-  function render($data, $mode = NULL) {
+  function render($data, $mode) {
     $text = '';
     $parts = array();
    // $delimiter = $this->delimiter;
@@ -1485,16 +1486,20 @@ class csl_locale  {
         "en" => "en-US",
         "es" => "es-ES",
         "et" => "et-EE",
+        "fa" => "fa-IR",
+        "fi" => "fi-FI",
         "fr" => "fr-FR",
         "he" => "he-IL",
         "hu" => "hu-HU",
         "is" => "is-IS",
         "it" => "it-IT",
         "ja" => "ja-JP",
+        "km" => "km-KH",
         "ko" => "ko-KR",
         "mn" => "mn-MN",
         "nb" => "nb-NO",
         "nl" => "nl-NL",
+        "nn" => "nn-NO",
         "pl" => "pl-PL",
         "pt" => "pt-PT",
         "ro" => "ro-RO",

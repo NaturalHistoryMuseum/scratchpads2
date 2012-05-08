@@ -146,6 +146,20 @@ function biblio_init() {
       $conf['cache'] = FALSE;
   }
 }
+
+function biblio_cron() {
+  require_once(drupal_get_path('module', 'biblio') .'/includes/biblio.contributors.inc');
+  require_once(drupal_get_path('module', 'biblio') .'/includes/biblio.keywords.inc');
+
+  $interval = variable_get('biblio_orphan_clean_interval', 24*60*60); //defaults to once per day
+
+  if (time() >= variable_get('biblio_orphan_clean_next_execution', 0)) {
+    biblio_delete_orphan_authors();
+    biblio_delete_orphan_keywords();
+    variable_set('biblio_orphan_clean_next_execution', time() + $interval);
+  }
+}
+
 function biblio_theme($existing, $type, $theme, $path) {
   $path = drupal_get_path('module', 'biblio');
   return array(
@@ -1425,7 +1439,7 @@ function biblio_form_node_form_alter(&$form, &$form_state, $form_id) {
         if (strstr($form_element, 'biblio_')) continue;
         if (strstr($form_element, 'form_')) continue;
         if (isset($form[$form_element]['#type']) && $form[$form_element]['#type'] != 'value') {
-          unset($form[$form_element]);
+          $form[$form_element]['#access'] = FALSE;
         }
       }
      }

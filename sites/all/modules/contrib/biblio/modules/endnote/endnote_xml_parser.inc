@@ -167,7 +167,9 @@ class EndNoteXMLParser {
       case 'subsidiary-authors' :
       case 'translated-authors' :
         $this->contributors_type = '';
-        $this->node->biblio_contributors += $this->contributors;
+        foreach($this->contributors as $contributor) {
+          $this->node->biblio_contributors[] = $contributor;
+        }
         break;
       case 'author' :
         switch ($this->contributors_type) {
@@ -353,7 +355,9 @@ class EndNoteXMLParser {
       case 'TERTIARY_AUTHORS':
       case 'SUBSIDIARY_AUTHORS':
         $this->contributors_type = '';
-        $this->node->biblio_contributors += $this->contributors;
+        foreach($this->contributors as $contributor) {
+          $this->node->biblio_contributors[] = $contributor;
+        }
         break;
       case 'AUTHOR':
         $this->contributors[$this->contrib_count]['auth_category'] = 1;

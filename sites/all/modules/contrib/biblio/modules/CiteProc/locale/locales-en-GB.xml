@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<locale xmlns="http://purl.org/net/xbiblio/csl" version="1.0" xml:lang="vi-VN">
+<locale xmlns="http://purl.org/net/xbiblio/csl" version="1.0" xml:lang="en-GB">
   <style-options punctuation-in-quote="false"/>
   <date form="text">
     <date-part name="day" suffix=" "/>
@@ -12,11 +12,11 @@
     <date-part name="year"/>
   </date>
   <terms>
-    <term name="accessed">truy cập</term>
-    <term name="and">và</term>
+    <term name="accessed">accessed</term>
+    <term name="and">and</term>
     <term name="and others">and others</term>
     <term name="anonymous">anonymous</term>
-    <term name="anonymous" form="short">anon</term>
+    <term name="anonymous" form="short">anon.</term>
     <term name="at">at</term>
     <term name="by">by</term>
     <term name="circa">circa</term>
@@ -26,18 +26,18 @@
       <single>edition</single>
       <multiple>editions</multiple>
     </term>
-    <term name="edition" form="short">ed</term>
-    <term name="et-al">và c.s.</term>
-    <term name="forthcoming">sắp tới</term>
-    <term name="from">từ</term>
-    <term name="ibid">n.t.</term>
-    <term name="in">trong</term>
+    <term name="edition" form="short">ed.</term>
+    <term name="et-al">et al.</term>
+    <term name="forthcoming">forthcoming</term>
+    <term name="from">from</term>
+    <term name="ibid">ibid.</term>
+    <term name="in">in</term>
     <term name="in press">in press</term>
     <term name="internet">internet</term>
     <term name="interview">interview</term>
     <term name="letter">letter</term>
     <term name="no date">no date</term>
-    <term name="no date" form="short">không ngày</term>
+    <term name="no date" form="short">n.d.</term>
     <term name="online">online</term>
     <term name="presented at">presented at the</term>
     <term name="reference">
@@ -48,18 +48,17 @@
       <single>ref.</single>
       <multiple>refs.</multiple>
     </term>
-    <term name="retrieved">truy vấn</term>
+    <term name="retrieved">retrieved</term>
 
     <!-- ANNO DOMINI; BEFORE CHRIST -->
     <term name="ad">AD</term>
     <term name="bc">BC</term>
 
     <!-- QUOTES -->
-    <!-- Source: http://en.wikipedia.org/wiki/Non-English_usage_of_quotation_marks -->
-    <term name="open-quote">«</term>
-    <term name="close-quote">»</term>
-    <term name="open-inner-quote">‹</term>
-    <term name="close-inner-quote">›</term>
+    <term name="open-quote">‘</term>
+    <term name="close-quote">’</term>
+    <term name="open-inner-quote">“</term>
+    <term name="close-inner-quote">”</term>
 
     <!-- ORDINALS -->
     <term name="ordinal-01">st</term>
@@ -131,8 +130,8 @@
       <multiple>numbers</multiple>
     </term>
     <term name="line">
-      <single>dòng</single>
-      <multiple>dòng</multiple>
+      <single>line</single>
+      <multiple>lines</multiple>
     </term>
     <term name="note">
       <single>note</single>
@@ -143,12 +142,12 @@
       <multiple>opera</multiple>
     </term>
     <term name="page">
-      <single>trang</single>
-      <multiple>trang</multiple>
+      <single>page</single>
+      <multiple>pages</multiple>
     </term>
     <term name="paragraph">
-      <single>đoạn văn</single>
-      <multiple>đoạn văn</multiple>
+      <single>paragraph</single>
+      <multiple>paragraph</multiple>
     </term>
     <term name="part">
       <single>part</single>
@@ -172,31 +171,31 @@
     </term>
 
     <!-- SHORT LOCATOR FORMS -->
-    <term name="book" form="short">bk</term>
-    <term name="chapter" form="short">chap</term>
-    <term name="column" form="short">col</term>
-    <term name="figure" form="short">fig</term>
-    <term name="folio" form="short">f</term>
-    <term name="issue" form="short">số p.h</term>
-    <term name="opus" form="short">op</term>
+    <term name="book" form="short">bk.</term>
+    <term name="chapter" form="short">chap.</term>
+    <term name="column" form="short">col.</term>
+    <term name="figure" form="short">fig.</term>
+    <term name="folio" form="short">f.</term>
+    <term name="issue" form="short">no.</term>
+    <term name="opus" form="short">op.</term>
     <term name="page" form="short">
-      <single>tr</single>
-      <multiple>tr</multiple>
+      <single>p.</single>
+      <multiple>pp.</multiple>
     </term>
-    <term name="paragraph" form="short">para</term>
-    <term name="part" form="short">pt</term>
-    <term name="section" form="short">sec</term>
+    <term name="paragraph" form="short">para.</term>
+    <term name="part" form="short">pt.</term>
+    <term name="section" form="short">sec.</term>
     <term name="sub verbo" form="short">
       <single>s.v.</single>
       <multiple>s.vv.</multiple>
     </term>
     <term name="verse" form="short">
-      <single>v</single>
-      <multiple>vv</multiple>
+      <single>v.</single>
+      <multiple>vv.</multiple>
     </term>
     <term name="volume" form="short">
-      <single>vol</single>
-      <multiple>vols</multiple>
+      <single>vol.</single>
+      <multiple>vols.</multiple>
     </term>
 
     <!-- SYMBOL LOCATOR FORMS -->
@@ -215,16 +214,16 @@
       <multiple/>
     </term>
     <term name="editor">
-      <single>biên tập viên</single>
-      <multiple>biên tập viên</multiple>
+      <single>editor</single>
+      <multiple>editors</multiple>
     </term>
     <term name="editorial-director">
       <single>editor</single>
       <multiple>editors</multiple>
     </term>
     <term name="translator">
-      <single>biên dịch viên</single>
-      <multiple>biên dịch viên</multiple>
+      <single>translator</single>
+      <multiple>translators</multiple>
     </term>
     <term name="editortranslator">
       <single>editor &amp; translator</single>
@@ -237,16 +236,16 @@
       <multiple/>
     </term>
     <term name="editor" form="short">
-      <single>b.t.v</single>
-      <multiple>b.t.v</multiple>
+      <single>ed.</single>
+      <multiple>eds.</multiple>
     </term>
     <term name="editorial-director" form="short">
       <single>ed.</single>
       <multiple>eds.</multiple>
     </term>
     <term name="translator" form="short">
-      <single>b.d.v</single>
-      <multiple>b.d.v</multiple>
+      <single>tran.</single>
+      <multiple>trans.</multiple>
     </term>
     <term name="editortranslator" form="short">
       <single>ed. &amp; tran.</single>
@@ -254,47 +253,47 @@
     </term>
 
     <!-- VERB ROLE FORMS -->
-    <term name="editor" form="verb">biên tập bởi</term>
+    <term name="editor" form="verb">edited by</term>
     <term name="editorial-director" form="verb">edited by</term>
-    <term name="translator" form="verb">biên dịch bởi</term>
+    <term name="translator" form="verb">translated by</term>
     <term name="editortranslator" form="verb">edited &amp; translated by</term>
     <term name="recipient" form="verb">to</term>
     <term name="interviewer" form="verb">interview by</term>
 
     <!-- SHORT VERB ROLE FORMS -->
     <term name="container-author" form="verb-short">by</term>
-    <term name="editor" form="verb-short">b.t</term>
+    <term name="editor" form="verb-short">ed.</term>
     <term name="editorial-director" form="verb-short">ed.</term>
-    <term name="translator" form="verb-short">b.d</term>
+    <term name="translator" form="verb-short">trans.</term>
     <term name="editortranslator" form="verb-short">ed. &amp; trans. by</term>
 
     <!-- LONG MONTH FORMS -->
-    <term name="month-01">Tháng Giêng</term>
-    <term name="month-02">Tháng Hai</term>
-    <term name="month-03">Tháng Ba</term>
-    <term name="month-04">Tháng Tư</term>
-    <term name="month-05">Tháng Năm</term>
-    <term name="month-06">Tháng Sáu</term>
-    <term name="month-07">Tháng Bảy</term>
-    <term name="month-08">Tháng Tám</term>
-    <term name="month-09">Tháng Chín</term>
-    <term name="month-10">Tháng Mười</term>
-    <term name="month-11">Tháng Mười-Một</term>
-    <term name="month-12">Tháng Chạp</term>
+    <term name="month-01">January</term>
+    <term name="month-02">February</term>
+    <term name="month-03">March</term>
+    <term name="month-04">April</term>
+    <term name="month-05">May</term>
+    <term name="month-06">June</term>
+    <term name="month-07">July</term>
+    <term name="month-08">August</term>
+    <term name="month-09">September</term>
+    <term name="month-10">October</term>
+    <term name="month-11">November</term>
+    <term name="month-12">December</term>
 
     <!-- SHORT MONTH FORMS -->
-    <term name="month-01" form="short">tháng 1</term>
-    <term name="month-02" form="short">tháng 2</term>
-    <term name="month-03" form="short">tháng 3</term>
-    <term name="month-04" form="short">tháng 4</term>
-    <term name="month-05" form="short">tháng 5</term>
-    <term name="month-06" form="short">tháng 6</term>
-    <term name="month-07" form="short">tháng 7</term>
-    <term name="month-08" form="short">tháng 8</term>
-    <term name="month-09" form="short">tháng 9</term>
-    <term name="month-10" form="short">tháng 10</term>
-    <term name="month-11" form="short">tháng 11</term>
-    <term name="month-12" form="short">tháng 12</term>
+    <term name="month-01" form="short">Jan.</term>
+    <term name="month-02" form="short">Feb.</term>
+    <term name="month-03" form="short">Mar.</term>
+    <term name="month-04" form="short">Apr.</term>
+    <term name="month-05" form="short">May</term>
+    <term name="month-06" form="short">Jun.</term>
+    <term name="month-07" form="short">Jul.</term>
+    <term name="month-08" form="short">Aug.</term>
+    <term name="month-09" form="short">Sep.</term>
+    <term name="month-10" form="short">Oct.</term>
+    <term name="month-11" form="short">Nov.</term>
+    <term name="month-12" form="short">Dec.</term>
 
     <!-- SEASONS -->
     <term name="season-01">Spring</term>

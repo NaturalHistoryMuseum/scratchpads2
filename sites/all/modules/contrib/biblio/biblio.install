@@ -2077,11 +2077,10 @@ function biblio_update_7017() {
   $dirs = array('bibtexParse', 'endnote', 'RIS', 'rtf');
   foreach ($dirs as $dir) {
     $path = drupal_get_path('module', 'biblio') . '/modules/'.$dir.'/views';
-    $files = file_scan_directory($path, '/..*.inc$/');
-    foreach ($files as $file) {
-      drupal_unlink($file->uri);
+    if (is_dir($path)) {
+      $message = t('You have an inconsistancy in your installation, the directory: @path, should not exist!', array('@path' => $path));
+      drupal_set_message($message, 'error');
     }
-    drupal_rmdir($path);
   }
   if (module_exists('views')) { // rebuild the data tables
     views_invalidate_cache();
