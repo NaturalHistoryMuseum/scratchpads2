@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom_test.module,v 1.15 2010/10/09 23:13:01 dries Exp $
 
 /**
  * @file
@@ -98,8 +97,14 @@ function mollom_test_check_content($data) {
       $quality = 1;
     }
     else {
-      $response['spam'] = MOLLOM_ANALYSIS_UNKNOWN;
+      $response['spam'] = MOLLOM_ANALYSIS_UNSURE;
       $quality = NULL;
+    }
+    // In case a previous spam check was unsure and a CAPTCHA was solved, the
+    // result is supposed to be ham.
+    $captcha_sessions = variable_get('mollom_test_check_captcha_sessions', array());
+    if (!empty($data['session_id']) && !empty($captcha_sessions[$data['session_id']])) {
+      $response['spam'] = MOLLOM_ANALYSIS_HAM;
     }
   }
 
@@ -146,9 +151,16 @@ function mollom_test_get_captcha($data) {
   variable_set(__FUNCTION__, $storage);
 
   drupal_session_start();
+
+  // Return a HTTPS URL if 'ssl' parameter was passed.
+  $base_url = $GLOBALS['base_url'];
+  if (!empty($data['ssl'])) {
+    $base_url = str_replace('http', 'https', $base_url);
+  }
+
   return array(
     'session_id' => !empty($data['session_id']) ? $data['session_id'] : session_id(),
-    'url' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'mollom') . '/images/powered-by-mollom-2.gif',
+    'url' => $base_url . '/' . drupal_get_path('module', 'mollom') . '/images/powered-by-mollom-2.gif',
   );
 }
 
@@ -163,11 +175,16 @@ function mollom_test_check_captcha($data) {
   variable_set(__FUNCTION__, $storage);
 
   if ($data['captcha_result'] == 'correct') {
-    return TRUE;
+    $result = TRUE;
   }
   if ($data['captcha_result'] == 'incorrect') {
-    return FALSE;
+    $result = FALSE;
   }
+  $captcha_sessions = variable_get('mollom_test_check_captcha_sessions', array());
+  $captcha_sessions[$data['session_id']] = $result;
+  variable_set('mollom_test_check_captcha_sessions', $captcha_sessions);
+
+  return $result;
 }
 
 /**

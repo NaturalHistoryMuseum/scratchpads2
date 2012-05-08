@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom.install,v 1.34 2010/12/16 14:50:04 sun Exp $
 
 /**
  * @file
@@ -194,6 +193,13 @@ function mollom_schema() {
         'not null' => FALSE,
         'serialize' => TRUE,
       ),
+      'strictness' => array(
+        'description' => 'Strictness of text analysis checks.',
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => TRUE,
+        'default' => 'normal',
+      ),
       'module' => array(
         'description' => 'Module name owning the form.',
         'type' => 'varchar',
@@ -326,7 +332,12 @@ function mollom_update_6105() {
     if (!empty($mode) && isset($form_list[$form_id])) {
       $info = $form_list[$form_id];
       $info += mollom_form_info($form_id, $info['module']);
-      $info['enabled_fields'] = ($mode == MOLLOM_MODE_ANALYSIS ? array_keys($info['elements']) : array());
+      if ($mode == MOLLOM_MODE_ANALYSIS && isset($info['elements']) && is_array($info['elements'])) {
+        $info['enabled_fields'] = array_keys($info['elements']);
+      }
+      else {
+        $info['enabled_fields'] = array();
+      }
       db_insert('mollom_form')
         ->fields(array(
           'form_id' => $form_id,
@@ -790,4 +801,36 @@ function mollom_update_7009() {
       'default' => 0,
     ));
   }
+}
+
+/**
+ * Add {mollom_form}.strictness column.
+ */
+function mollom_update_7010() {
+  if (!db_field_exists('mollom_form', 'strictness')) {
+    db_add_field('mollom_form', 'strictness', array(
+      'description' => 'Strictness of text analysis checks.',
+      'type' => 'varchar',
+      'length' => 8,
+      'not null' => TRUE,
+      'default' => 'normal',
+    ));
+  }
+}
+
+/**
+ * Fix default value of {mollom_form}.strictness.
+ */
+function mollom_update_7011() {
+  db_change_field('mollom_form', 'strictness', 'strictness', array(
+    'description' => 'Strictness of text analysis checks.',
+    'type' => 'varchar',
+    'length' => 8,
+    'not null' => TRUE,
+    'default' => 'normal',
+  ));
+  db_update('mollom_form')
+    ->condition('strictness', 'medium')
+    ->fields(array('strictness' => 'normal'))
+    ->execute();
 }

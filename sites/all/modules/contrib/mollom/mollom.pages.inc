@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom.pages.inc,v 1.16 2011/01/11 15:17:47 sun Exp $
 
 /**
  * @file
@@ -109,10 +108,10 @@ function mollom_report_form_submit($form, &$form_state) {
     }
 
     // Send feedback to Mollom, if we have session data.
-    if (isset($data->session_id) && !empty($form_state['values']['mollom']['feedback'])) {
-      // @todo Check the actual reponse.
-      _mollom_send_feedback($data->session_id, $form_state['values']['mollom']['feedback']);
-      drupal_set_message(t('The content was successfully reported as inappropriate.'));
+    if (!empty($data->session_id) && !empty($form_state['values']['mollom']['feedback'])) {
+      if (_mollom_send_feedback($data->session_id, $form_state['values']['mollom']['feedback'])) {
+        drupal_set_message(t('The content was successfully reported as inappropriate.'));
+      }
     }
 
     // Delete the content. The callback should take care of proper deletion and

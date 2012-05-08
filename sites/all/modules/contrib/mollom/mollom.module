@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom.module,v 1.100 2011/01/11 18:29:03 sun Exp $
 
 /**
  * @file
@@ -83,6 +82,28 @@ define('MOLLOM_REFRESH', 1100);
  * @todo Prefix with SERVER_.
  */
 define('MOLLOM_REDIRECT', 1200);
+
+/**
+ * Implements hook_hook_info().
+ */
+function mollom_hook_info() {
+  $hooks = array(
+    'mollom_form_list',
+    'mollom_form_list_alter',
+    'mollom_form_info',
+    'mollom_form_info_alter',
+    'mollom_form_insert',
+    'mollom_form_update',
+    'mollom_form_delete',
+    'mollom_data_insert',
+    'mollom_data_update',
+    'mollom_data_delete',
+  );
+  $hooks = array_fill_keys($hooks, array(
+    'group' => 'mollom',
+  ));
+  return $hooks;
+}
 
 /**
  * Implements hook_help().
@@ -191,8 +212,8 @@ function mollom_menu() {
   );
 
   $items['admin/config/content/mollom'] = array(
-    'title' => 'Mollom',
-    'description' => 'Mollom is a web service that helps you manage your community.',
+    'title' => 'Mollom content moderation',
+    'description' => 'Configure how the Mollom service moderates user-submitted content such as spam and profanity.',
     'page callback' => 'mollom_admin_form_list',
     'access arguments' => array('administer mollom'),
     'file' => 'mollom.admin.inc',
@@ -455,7 +476,14 @@ function mollom_data_save($data) {
     ':entity' => $data->entity,
     ':id' => $data->id,
   ))->fetchField();
-  drupal_write_record('mollom', $data, $update ? $update : array());
+  drupal_write_record('mollom', $data, $update ? array('entity', $update) : array());
+
+  if (!$update) {
+    module_invoke_all('mollom_data_insert', $data);
+  }
+  else {
+    module_invoke_all('mollom_data_update', $data);
+  }
 
   return $data;
 }
@@ -504,6 +532,10 @@ function mollom_data_delete($entity, $id) {
  *   An array of entity ids to delete data for.
  */
 function mollom_data_delete_multiple($entity, array $ids) {
+  foreach ($ids as $id) {
+    $data = mollom_data_load($entity, $id);
+    module_invoke_all('mollom_data_delete', $data);
+  }
   return db_delete('mollom')->condition('entity', $entity)->condition('id', $ids)->execute();
 }
 
@@ -522,7 +554,7 @@ function mollom_data_delete_form_alter(&$form, &$form_state) {
     '#type' => 'radios',
     '#title' => t('Report as inappropriate'),
     '#options' => array(
-      0 => t('Do no report'),
+      0 => t('Do not report'),
       'spam' => t('Spam, unsolicited advertising'),
       'profanity' => t('Obscene, violent, profane'),
       'low-quality' => t('Low-quality'),
@@ -541,13 +573,13 @@ function mollom_data_delete_form_alter(&$form, &$form_state) {
 function mollom_data_delete_form_submit($form, &$form_state) {
   $forms = mollom_form_cache();
   $mollom_form = mollom_form_load($forms['delete'][$form_state['values']['form_id']]);
-  $data = mollom_form_get_values($form_state['values'], $mollom_form['enabled_fields'], $mollom_form['mapping']);
+  $data = mollom_form_get_values($form_state, $mollom_form['enabled_fields'], $mollom_form['mapping']);
 
   $entity = $mollom_form['entity'];
   $id = $data['post_id'];
 
   if (!empty($form_state['values']['mollom']['feedback'])) {
-    if (mollom_data_report($entity, $id, $form_state['values']['mollom']['feedback']) === TRUE) {
+    if (mollom_data_report($entity, $id, $form_state['values']['mollom']['feedback'])) {
       drupal_set_message(t('The content was successfully reported as inappropriate.'));
     }
   }
@@ -582,7 +614,7 @@ function mollom_data_report_multiple($entity, array $ids, $feedback) {
     // Load the Mollom session data.
     $data = mollom_data_load($entity, $id);
     // Send feedback, if we have session data.
-    if (isset($data->session_id)) {
+    if (!empty($data->session_id)) {
       $result = _mollom_send_feedback($data->session_id, $feedback);
       $return = $return && $result;
     }
@@ -644,11 +676,24 @@ function mollom_form_alter(&$form, &$form_state, $form_id) {
 
       // Prepend a submit handler to clean up internal Mollom values from
       // $form_state['values'].
+      $form += array('#submit' => array());
       array_unshift($form['#submit'], 'mollom_form_pre_submit');
       // Append a submit handler to store Mollom session data. Requires that
       // the primary submit handler has run already, so a potential 'post_id'
       // mapping can be retrieved from $form_state['values'].
-      $form['#submit'][] = 'mollom_form_submit';
+      // @todo Core: node_form_submit() uses a button-level submit handler,
+      //   which invokes form-level submit handlers before the node/entity is
+      //   saved, so $form_state does not contain the new node ID yet. There is
+      //   no #post_submit property or form processing phase, we could rely on.
+      //   Potentially applies to other contrib entities, too.
+      // @see http://drupal.org/node/1150756
+      if (isset($form_state['build_info']['base_form_id']) && $form_state['build_info']['base_form_id'] == 'node_form') {
+        $form_submit_key = &$form['actions']['submit'];
+      }
+      else {
+        $form_submit_key = &$form;
+      }
+      $form_submit_key['#submit'][] = 'mollom_form_submit';
 
       // Add link to privacy policy on forms protected via textual analysis,
       // if enabled.
@@ -781,6 +826,10 @@ function mollom_form_list() {
       );
     }
   }
+
+  // Allow modules to alter the form list.
+  drupal_alter('mollom_form_list', $form_list);
+
   return $form_list;
 }
 
@@ -840,6 +889,7 @@ function mollom_form_new($form_id = NULL) {
     'mode' => NULL,
     'checks' => array(),
     'enabled_fields' => array(),
+    'strictness' => 'normal',
   );
   // Enable all fields for textual analysis by default.
   if (!empty($mollom_form['elements'])) {
@@ -937,8 +987,11 @@ function mollom_form_delete($form_id) {
  *   specified data property. This is usually the case for form elements that
  *   hold system user information.
  *
- * @param $values
- *   An array containing submitted form values, usually $form_state['values'].
+ * @param $form_state
+ *   An associative array containing
+ *   - values: The submitted form values.
+ *   - buttons: A list of button form elements. See form_state_values_clean().
+ *   Not passed by reference.
  * @param $fields
  *   A list of strings representing form elements to extract. Nested fields are
  *   in the form of 'parent][child'.
@@ -948,8 +1001,12 @@ function mollom_form_delete($form_id) {
  *
  * @see hook_mollom_form_info()
  */
-function mollom_form_get_values($form_values, $fields, $mapping) {
+function mollom_form_get_values($form_state, $fields, $mapping) {
   global $user;
+
+  // Remove all button values from $form_state['values'].
+  form_state_values_clean($form_state);
+  $form_values = $form_state['values'];
 
   // All elements specified in $mapping must be excluded from $fields, as they
   // are used for dedicated $data properties instead. To reduce the parsing code
@@ -987,21 +1044,23 @@ function mollom_form_get_values($form_values, $fields, $mapping) {
     }
     // Only add form element values that are not empty.
     if (isset($value)) {
-      if (is_string($value) && drupal_strlen($value)) {
+      // UTF-8 validation happens later.
+      if (is_string($value) && strlen($value)) {
         $post_body[$field] = $value;
       }
       // Recurse into nested values (e.g. multiple value fields).
-      elseif (!empty($value)) {
-        // Ensure we have a flat array to implode(); form values of
+      elseif (is_array($value) && !empty($value)) {
+        // Ensure we have a flat, indexed array to implode(); form values of
         // field_attach_form() use several subkeys.
-        _mollom_flatten_form_values($value);
-        if (($value = implode("\n", $value))) {
-          $post_body[$field] = $value;
-        }
+        $value = _mollom_flatten_form_values($value);
+        $post_body = array_merge($post_body, $value);
       }
     }
   }
-  $post_body = implode("\n", $post_body);
+  // XML-RPC parser of Mollom backend removes linefeeds, so use a combination of
+  // space and linefeed to ensure proper separation of concatenated fields on
+  // the backend but also have linefeeds in our logs.
+  $post_body = implode(" \n", $post_body);
 
   // Try to assign any further form values by processing the remaining mappings,
   // which have been turned into $exclude_fields above. All fields that were
@@ -1104,16 +1163,29 @@ function mollom_form_get_values($form_values, $fields, $mapping) {
   // Ensure that all $data values contain valid UTF-8. Invalid UTF-8 would be
   // sanitized into an empty string, so the Mollom backend would not receive
   // any value.
-  $valid_utf8 = TRUE;
+  $invalid_utf8 = FALSE;
+  $invalid_xml = FALSE;
   foreach ($data as $key => $value) {
+    // Check for invalid UTF-8 byte sequences first.
     if (!drupal_validate_utf8($value)) {
-      $valid_utf8 = FALSE;
+      $invalid_utf8 = TRUE;
+      // Replace the bogus string, since $data will be logged as
+      // check_plain(var_export($data)), and check_plain() would empty the
+      // entire exported variable string otherwise.
+      $data[$key] = '- Invalid UTF-8 -';
+    }
+    // Since values are transmitted over XML-RPC and not merely output as
+    // (X)HTML, they have to be valid XML characters.
+    // @see http://www.w3.org/TR/2000/REC-xml-20001006#charsets
+    // @see http://drupal.org/node/882298
+    elseif (preg_match('@[^\x9\xA\xD\x20-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]@u', $value)) {
+      $invalid_xml = TRUE;
     }
   }
-  if (!$valid_utf8) {
-    form_set_error('mollom', t('Invalid form values. Your submission will not be accepted.'));
+  if ($invalid_utf8 || $invalid_xml) {
+    form_set_error('', t('Your submission contains invalid characters and will not be accepted.'));
     _mollom_watchdog(array(
-      'Invalid UTF-8 in form values' => array(),
+      'Invalid !type in form values' => array('!type' => $invalid_utf8 ? 'UTF-8' : 'XML characters'),
       'Data:<pre>@data</pre>' => array('@data' => $data),
     ));
     $data = FALSE;
@@ -1125,16 +1197,21 @@ function mollom_form_get_values($form_values, $fields, $mapping) {
 /**
  * Recursive helper function to flatten nested form values.
  *
- * Takes a potentially nested array and moves all nested keys to the top-level.
+ * Takes a potentially nested array and returns all non-empty string values in
+ * nested keys as new indexed array.
  */
-function _mollom_flatten_form_values(&$values) {
-  foreach ($values as $key => $value) {
-    if (is_array($value)) {
-      $values += _mollom_flatten_form_values($value);
-      unset($values[$key]);
+function _mollom_flatten_form_values($values) {
+  $flat_values = array();
+  foreach ($values as $value) {
+    if (is_array($value) && !empty($value)) {
+      $flat_values = array_merge($flat_values, _mollom_flatten_form_values($value));
+    }
+    // UTF-8 validation happens elsewhere later.
+    elseif (is_string($value) && strlen($value)) {
+      $flat_values[] = $value;
     }
   }
-  return $values;
+  return $flat_values;
 }
 
 /**
@@ -1184,6 +1261,10 @@ function _mollom_status($reset = FALSE) {
   // If we have keys and are asked to reset, check whether keys are valid.
   if ($status['keys'] && $reset) {
     $status['keys valid'] = mollom('mollom.verifyKey', _mollom_get_version());
+  }
+  // Otherwise, if there are no keys, they cannot be valid.
+  elseif (!$status['keys']) {
+    $status['keys valid'] = FALSE;
   }
 
   // In case of an error, indicate whether we have a non-empty server list.
@@ -1305,17 +1386,16 @@ function mollom_theme() {
  */
 function mollom_process_mollom($element, &$form_state, $complete_form) {
   // Setup initial Mollom session and form information.
-  if (empty($form_state['mollom'])) {
-    $form_state['mollom'] = array(
-      'require_analysis' => $element['#mollom_form']['mode'] == MOLLOM_MODE_ANALYSIS,
-      'require_captcha' => $element['#mollom_form']['mode'] == MOLLOM_MODE_CAPTCHA,
-      'passed_captcha' => FALSE,
-      'require_moderation' => FALSE,
-      'response' => array(
-        'session_id' => '',
-      ),
-    );
-  }
+  $form_state += array('mollom' => array());
+  $form_state['mollom'] += array(
+    'require_analysis' => $element['#mollom_form']['mode'] == MOLLOM_MODE_ANALYSIS,
+    'require_captcha' => $element['#mollom_form']['mode'] == MOLLOM_MODE_CAPTCHA,
+    'passed_captcha' => FALSE,
+    'require_moderation' => FALSE,
+    'response' => array(
+      'session_id' => '',
+    ),
+  );
   $form_state['mollom'] += $element['#mollom_form'];
 
   // By default, bad form submissions are discarded, unless the form was
@@ -1340,6 +1420,11 @@ function mollom_process_mollom($element, &$form_state, $complete_form) {
     '#default_value' => '',
     '#description' => t("Type the characters you see in the picture above; if you can't read them, submit the form and a new image will be generated. Not case sensitive."),
   );
+  // Disable browser autocompletion, unless testing mode is enabled, in which
+  // case autocompletion for 'correct' and 'incorrect' is handy.
+  if (!variable_get('mollom_testing_mode', 0)) {
+    $element['captcha']['#attributes']['autocomplete'] = 'off';
+  }
 
   // Request and inject a CAPTCHA when required; but also in case validation
   // through textual analysis failed.
@@ -1388,6 +1473,14 @@ function mollom_process_mollom($element, &$form_state, $complete_form) {
     // with a honeypot field.
     '#prefix' => '<div style="display: none;">',
     '#suffix' => '</div>',
+    // Although this input is hidden and not visible to screen readers,
+    // accessibility validators (such as WAVE) would still complain about a form
+    // field without any kind of legend/label. t() is needless here.
+    '#attributes' => array(
+      'title' => 'Homepage',
+      // Disable browser autocompletion.
+      'autocomplete' => 'off',
+    ),
   );
 
   // Make Mollom form and session information available to entirely different
@@ -1415,7 +1508,7 @@ function mollom_validate_analysis(&$form, &$form_state) {
   }
 
   // Perform textual analysis.
-  $all_data = mollom_form_get_values($form_state['values'], $form_state['mollom']['enabled_fields'], $form_state['mollom']['mapping']);
+  $all_data = mollom_form_get_values($form_state, $form_state['mollom']['enabled_fields'], $form_state['mollom']['mapping']);
   // Cancel processing upon invalid UTF-8 data.
   if ($all_data === FALSE) {
     return;
@@ -1427,7 +1520,9 @@ function mollom_validate_analysis(&$form, &$form_state) {
   }
   $data['session_id'] = $form_state['mollom']['response']['session_id'];
   $data['checks'] = implode(',', $form_state['mollom']['checks']);
+  $data['strictness'] = $form_state['mollom']['strictness'];
   $result = mollom('mollom.checkContent', $data);
+
   // Use all available data properties for log messages below.
   $data += $all_data;
 
@@ -1441,7 +1536,13 @@ function mollom_validate_analysis(&$form, &$form_state) {
   $form['mollom']['session_id']['#value'] = $result['session_id'];
 
   // Prepare watchdog message teaser text.
-  $teaser = truncate_utf8(strip_tags(isset($data['post_title']) ? $data['post_title'] : isset($data['post_body']) ? $data['post_body'] : '--'), 40);
+  $teaser = '--';
+  if (isset($data['post_title'])) {
+    $teaser = truncate_utf8(strip_tags($data['post_title']), 40);
+  }
+  elseif (isset($data['post_body'])) {
+    $teaser = truncate_utf8(strip_tags($data['post_body']), 40);
+  }
 
   // Handle the profanity check result.
   if (isset($result['profanity']) && $result['profanity'] >= 0.5) {
@@ -1526,8 +1627,15 @@ function mollom_validate_analysis(&$form, &$form_state) {
 
       case MOLLOM_ANALYSIS_UNKNOWN:
       default:
-        // If we end up here, something went totally wrong.
-        _mollom_fallback();
+        // If we end up here, Mollom responded with an unknown 'spam' value.
+        // Normally, this should not happen, but if it does, log it. As there
+        // could be multiple reasons for this, it is not safe to trigger the
+        // fallback mode.
+        _mollom_watchdog(array(
+          'Unknown: %teaser' => array('%teaser' => $teaser),
+          'Data:<pre>@data</pre>' => array('@data' => $data),
+          'Result:<pre>@result</pre>' => array('@result' => $result),
+        ));
         break;
     }
   }
@@ -1564,7 +1672,7 @@ function mollom_validate_captcha(&$form, &$form_state) {
   // Next to the Mollom session id and captcha result, the Mollom back-end also
   // takes into account the author's IP and local user id (if registered). Any
   // other values are ignored.
-  $all_data = mollom_form_get_values($form_state['values'], $form_state['mollom']['enabled_fields'], $form_state['mollom']['mapping']);
+  $all_data = mollom_form_get_values($form_state, $form_state['mollom']['enabled_fields'], $form_state['mollom']['mapping']);
   // Cancel processing upon invalid UTF-8 data.
   if ($all_data === FALSE) {
     return;
@@ -1676,7 +1784,7 @@ function mollom_form_submit($form, &$form_state) {
     // new entity id value into $form_state['values'], so we need to rebuild the
     // data mapping. We do not care for the actual fields, only for the value of
     // the mapped post_id.
-    $values = mollom_form_get_values($form_state['values'], array(), $form_state['mollom']['mapping']);
+    $values = mollom_form_get_values($form_state, array(), $form_state['mollom']['mapping']);
     // We only consider non-empty and non-zero values as valid entity ids.
     if (!empty($values['post_id'])) {
       // Save the Mollom session data.
@@ -1686,12 +1794,9 @@ function mollom_form_submit($form, &$form_state) {
       $data->form_id = $form_state['mollom']['form_id'];
       // Set the moderation flag for forms accepting bad posts.
       $data->moderate = $form_state['mollom']['require_moderation'];
-      mollom_data_save($data);
+      $form_state['mollom']['data'] = mollom_data_save($data);
     }
   }
-  // Remove Mollom session information from form state to account for unforeseen
-  // new builds of the form.
-  unset($form_state['mollom']);
 }
 
 /**
@@ -1870,10 +1975,17 @@ function _mollom_watchdog(array $parts, $severity = WATCHDOG_NOTICE) {
 
   // Prettify replacement token values, if possible.
   foreach ($arguments as $token => $array) {
+    // Only prettify NULL, Booleans, arrays, and objects. All other values can
+    // be replaced as is.
+    if (is_scalar($array) && !is_bool($array)) {
+      continue;
+    }
     $flat_value = FALSE;
-    if (is_array($array)) {
+    // Convert arrays and objects.
+    if (isset($array) && !is_scalar($array)) {
       $flat_value = '';
       foreach ($array as $key => $value) {
+        // Only convert one-dimensional arrays, or we would lose debugging data.
         if (is_array($value)) {
           $flat_value = FALSE;
           break;
@@ -1883,10 +1995,12 @@ function _mollom_watchdog(array $parts, $severity = WATCHDOG_NOTICE) {
         $flat_value .= "  {$key} = {$value}\n";
       }
     }
-    // Only convert one-dimensional arrays, or we would lose debugging data.
+    // Use string representation of one-dimensional arrays and objects.
     if ($flat_value !== FALSE) {
       $arguments[$token] = $flat_value;
     }
+    // Use var_export() representation for NULL, Booleans, and multi-dimensional
+    // arrays and objects.
     else {
       $arguments[$token] = var_export($array, TRUE);
     }
