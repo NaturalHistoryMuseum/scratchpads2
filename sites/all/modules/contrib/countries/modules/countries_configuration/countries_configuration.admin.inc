@@ -26,7 +26,7 @@ function countries_configuration_options_form($form, &$form_state, $country, $na
 
   if (!empty($info['file'])) {
     $file_path = empty($info['file path']) ? drupal_get_path('module', $info['module']) : $info['file path'];
-    require_once DRUPAL_ROOT . '/' . $file_path . '/' . $item['file'];
+    require_once DRUPAL_ROOT . '/' . $file_path . '/' . $info['file'];
   }
 
   if (isset($info['title callback']) && $title = $info['title callback']($country)) {
@@ -52,18 +52,34 @@ function countries_configuration_options_form($form, &$form_state, $country, $na
     '#value' => $name,
   );
 
-  $values = countries_load_configuration_options($country, $name);
+  $values = countries_configuration($country, $name);
   $form['data'] = $info['form callback']($country, $values, $form);
 
+  // Allow other modules to hook directly to the form data.
+  $addtional = array(
+    'form_state' => &$form_state,
+    'complete_form' => &$form,
+    'country' => $country,
+  );
+  drupal_alter('countries_configuration_form_' . $name, $form['data'], $values, $addtional);
+
+  // Allow these hooks to define their own submit handlers.
+  $reset_handlers = empty($form['reset']['#submit']) ? array() : $form['reset']['#submit'];
+  $reset_handlers[] = 'countries_configuration_options_form_reset_submit';
   $form['reset'] = array(
     '#type' => 'submit',
     '#value' => t('Reset'),
-    '#submit' => array('countries_configuration_options_form_reset_submit'),
+    '#submit' => $reset_handlers,
+    '#weight' => 98,
   );
+  // Move specified submit handlers onto the base form.
+  $handlers = empty($form['submit']['#submit']) ? array() : $form['submit']['#submit'];
+  $handlers[] = 'countries_configuration_options_form_save_submit';
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#submit' => array('countries_configuration_options_form_save_submit'),
+    '#submit' => $handlers,
+    '#weight' => 99,
   );
 
   return $form;
@@ -77,13 +93,13 @@ function countries_configuration_options_form($form, &$form_state, $country, $na
  */
 function countries_configuration_options_form_reset_submit($form, &$form_state) {
   // This will reset to the default settings on load.
-  $form_state['values']['data'] = array();
-  drupal_write_record('countries_data', $form_state['values'], $form_state['is_update'] ? 'iso2' : array());
+  db_delete('countries_data')->condition('iso2', $form_state['values']['iso2'])
+      ->condition('name', $form_state['values']['name'])->execute();
 }
 
 /**
  * Standard save submit handler for countries_configuration_options_form().
  */
 function countries_configuration_options_form_save_submit($form, &$form_state) {
-  drupal_write_record('countries_data', $form_state['values'], $form_state['is_update'] ? 'iso2' : array());
+  drupal_write_record('countries_data', $form_state['values'], $form_state['is_update'] ? array('iso2', 'name') : array());
 }

@@ -11,7 +11,7 @@
  */
 
 /**
- * Implement hook_menu().
+ * Implements hook_menu().
  */
 function countries_configuration_menu() {
   $items = array();
@@ -20,6 +20,7 @@ function countries_configuration_menu() {
   foreach ($config_options as $name => $info) {
     $items['admin/config/regional/countries/%country/' . $name] = array(
       'title' => $info['title'],
+      'description' => 'Country configuration form for ' . $info['title'],
       'type' => MENU_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('countries_configuration_options_form', 4, $name),
@@ -32,6 +33,8 @@ function countries_configuration_menu() {
 }
 
 /**
+ * Wrapper to collect information from hook_countries_configuration_options().
+ *
  * Loads information about modules that rely on the countries module
  * to store country specific data.
  */
@@ -48,12 +51,15 @@ function countries_configuration_options() {
 }
 
 /**
- * Helper function to load country address configuration options.
+ * Helper function to load country configuration options.
  */
-function countries_load_configuration_options($country, $name, $load_defaults = 1) {
+function countries_configuration($country, $name, $load_defaults = 1) {
   $config = array();
-  if ($data = db_query("SELECT a.data FROM {countries_data} a WHERE iso2 = :iso2 AND name = :name", array(':iso2' => $country->iso2, ':name' => $name))->fetchField()) {
+  $iso2 = is_object($country) ? $country->iso2 : $country;
+  $is_new = TRUE;
+  if ($data = db_query("SELECT a.data FROM {countries_data} a WHERE iso2 = :iso2 AND name = :name", array(':iso2' => $iso2, ':name' => $name))->fetchField()) {
     $config = unserialize($data);
+    $is_new = FALSE;
   }
 
   // Load any defaults.
@@ -63,7 +69,26 @@ function countries_load_configuration_options($country, $name, $load_defaults = 
       $config += $config_options[$name]['default values'];
     }
   }
+  $info = array(
+    'country' => $country,
+    'is_new' => $is_new,
+    'load_defaults' => $load_defaults,
+  );
+  drupal_alter('countries_configuration_options', $config, $name, $info);
+
   return $config;
+}
+
+/**
+ * Depreciated. Use countries_configuration() instead.
+ *
+ * @todo Drop function in next branch.
+ */
+function countries_load_configuration_options($country, $name, $load_defaults = 1) {
+  // Log a watchdog warning to force future compatiability.
+  $config_options = countries_configuration_options();
+  watchdog(WATCHDOG_WARNING, 'The function countries_load_configuration_options() is depreciated. Use countries_configuration() instead. Called by the @module module.', array('@module' => $config_options[$name]['module']));
+  return countries_configuration($country, $name, $load_defaults);
 }
 
 /**
@@ -85,10 +110,10 @@ function countries_configuration_modules_uninstalled($modules) {
  * This tracks iso2 changes for maintaining the {countries_data} table.
  */
 function countries_configuration_country_update($country) {
-  if ($country->original_iso2 != $country->iso2) {
+  if (isset($country->original->iso2) && $country->original->iso2 != $country->iso2) {
     db_update('countries_data')
       ->fields(array('iso2' => $country->iso2))
-      ->condition('iso2', $country->original_iso2)
+      ->condition('iso2', $country->original->iso2)
       ->execute();
   }
 }

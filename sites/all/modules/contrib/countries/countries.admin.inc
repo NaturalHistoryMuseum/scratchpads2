@@ -11,11 +11,11 @@
 function countries_admin_overview() {
   $header = array();
   $header[] = array('data' => t('Name'), 'field' => 'c.name', 'sort' => 'asc');
-  $header[] = array('data' => t('ISO2'), 'field' => 'c.iso2');
+  $header[] = array('data' => t('ISO alpha-2 code'), 'field' => 'c.iso2');
   $columns = variable_get('countries_admin_overview_columns',
     array(
-      'iso3' => t('ISO3'),
-      'numcode' => t('Number code'),
+      'iso3' => t('ISO alpha-3 code'),
+      'numcode' => t('ISO numeric-3 code'),
       'continent' => t('Continent'),
       'official_name' => t('Official name'))
   );
@@ -23,6 +23,7 @@ function countries_admin_overview() {
     $header[] = array('data' => $title, 'field' => 'c.' . $key);
   }
   $header[] = array('data' => t('Status'), 'field' => 'c.enabled');
+
   $header[] = array('data' => t('Operations'));
   $query = db_select('countries_country', 'c')->extend('PagerDefault')->extend('TableSort');
 
@@ -33,38 +34,32 @@ function countries_admin_overview() {
     ->execute();
 
   $destination = drupal_get_destination();
-  $continents = countries_get_continents();
-
-  include_once DRUPAL_ROOT . '/includes/iso.inc';
-  $core_countries = _country_get_predefined_list();
 
   $rows = array();
+  // Note that additional id's are added for testing.
   foreach ($result as $country) {
     $row = array();
     $row[] = l($country->name, 'admin/config/regional/countries/' . $country->iso2, array('query' => $destination));
-    $row[] = $country->iso2;
+    $row[] = array(
+      'data' => country_property($country, 'iso2'),
+      'id' => $country->iso2 . '-iso2',
+    );
     foreach ($columns as $key => $title) {
-      switch ($key) {
-        case 'continent':
-          $row[] = isset($continents[$country->continent]) ? $continents[$country->continent] : t('Unknown');
-          break;
-        case 'numcode':
-          $row[] = theme('countries_number', array('country' => $country));
-          break;
-        default:
-          $row[] = check_plain($country->$key);
-          break;
-      }
+      $row[] = array(
+        'data' => country_property($country, $key, ''),
+        'id' => $country->iso2 . '-' . $key,
+      );
     }
-    $row[] = $country->enabled ? t('Enabled') : t('Disabled');
-    $operations = l(t('edit'), 'admin/config/regional/countries/' . $country->iso2 , array('query' => $destination));
+    $row[] = array(
+      'data' => country_property($country, 'enabled'),
+      'id' => $country->iso2 . '-enabled',
+    );
+    $operations = l(t('edit'), 'admin/config/regional/countries/' . $country->iso2, array('query' => $destination));
     if (module_exists('countries_regions')) {
-
       $count = countries_regions_count($country);
-
       $operations .= '&nbsp;&nbsp;&nbsp;' . l(t('!count regions', array('!count' => $count)), 'admin/config/regional/countries/' . $country->iso2 . '/regions', array('query' => $destination));
     }
-    if (!array_key_exists($country->iso2, $core_countries)) {
+    if (!country_is_locked($country)) {
       $operations .= '&nbsp;&nbsp;&nbsp;' . l(t('delete'), 'admin/config/regional/countries/' . $country->iso2 . '/delete', array('query' => $destination));
     }
     $row[] = $operations;
@@ -90,18 +85,13 @@ function countries_admin_overview() {
  * Menu callback; Display a country form.
  */
 function countries_admin_page($country = NULL) {
-  if (!isset($country->name)) {
+  // Menu callbacks and local actions do not have page titles.
+  if (isset($country)) {
+    drupal_set_title(t('Edit country %title', array('%title' => $country->name)), PASS_THROUGH);
+  }
+  else {
     drupal_set_title(t('Add country'), PASS_THROUGH);
-    $country = (object)array(
-      'cid' => 0,
-      'iso2' => '',
-      'iso3' => '',
-      'name' => '',
-      'official_name' => '',
-      'continent' => 'UN',
-      'enabled' => 1,
-      'numcode' => 0);
-
+    $country = country_create();
   }
   return drupal_get_form('countries_admin_form', $country);
 }
@@ -114,60 +104,38 @@ function countries_admin_page($country = NULL) {
  * @see countries_admin_form_submit()
  */
 function countries_admin_form($form, &$form_state, $country) {
-
-  // Menu callbacks do not have page titles.
-  if ($country->cid) {
-    drupal_set_title(t('Edit country %title', array('%title' => $country->name)), PASS_THROUGH);
-  }
-
-  $form = array();
   $form['cid'] = array(
     '#type' => 'value',
     '#value' => $country->cid,
   );
-
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
     '#default_value' => $country->name,
-    '#description' => t('Specify a unique name for this country.'),
+    '#description' => t('Specify an unique name for this country.'),
     '#required' => TRUE,
     '#maxlength' => 95,
   );
-  $iso2_editable = TRUE;
-  if (!empty($country->iso2)) {
-    include_once DRUPAL_ROOT . '/includes/iso.inc';
-    $core_countries = _country_get_predefined_list();
-    $iso2_editable = ! array_key_exists($country->iso2, $core_countries);
-  }
-  if ($iso2_editable) {
-    $form['iso2'] = array(
-      '#type' => 'textfield',
-      '#title' => t('ISO alpha-2 code'),
-      '#default_value' => $country->iso2,
-      '#description' => t('Specify a unique ISO2 code for this country. This is used as the key to this country, changing it may result in the loss of data.'),
-      '#required' => TRUE,
-      '#maxlength' => 2,
-    );
+  $locked = country_is_locked($country);
+  $form['iso2'] = array(
+    '#type' => 'textfield',
+    '#title' => t('ISO alpha-2 code'),
+    '#default_value' => $country->iso2,
+    '#required' => TRUE,
+    '#maxlength' => 2,
+    '#disabled' => $locked,
+  );
+  if ($locked) {
+    $form['iso2']['#description'] = t('Core country ISO alpha-2 codes are not editable.');
   }
   else {
-    $form['iso2'] = array(
-      '#type' => 'value',
-      '#value' => $country->iso2,
-    );
-    $form['iso2']['iso2_info'] = array(
-      '#type' => 'textfield',
-      '#title' => t('ISO alpha-2 code'),
-      '#value' => $country->iso2,
-      '#disabled' => TRUE,
-      '#description' => t('Core country ISO2 codes are not editable.'),
-    );
+    $form['iso2']['#description'] = t('Specify an unique alpha-2 code for this country. This is used as the key to this country, changing it may result in data loss.');
   }
   $form['iso3'] = array(
     '#type' => 'textfield',
     '#title' => t('ISO alpha-3 code'),
     '#default_value' => $country->iso3,
-    '#description' => t('Specify a unique ISO3 code for this country.'),
+    '#description' => t('Specify an unique ISO alpha-3 code for this country.'),
     '#required' => FALSE,
     '#maxlength' => 3,
   );
@@ -175,7 +143,7 @@ function countries_admin_form($form, &$form_state, $country) {
     '#type' => 'textfield',
     '#title' => t('Official name'),
     '#default_value' => $country->official_name,
-    '#description' => t('Specify the unique official name for this country.'),
+    '#description' => t('Specify an unique official name for this country.'),
     '#required' => FALSE,
     '#maxlength' => 127,
   );
@@ -183,31 +151,34 @@ function countries_admin_form($form, &$form_state, $country) {
     '#type' => 'textfield',
     '#title' => t('ISO numeric-3 code'),
     '#default_value' => empty($country->numcode) ? '' : $country->numcode,
-    '#description' => t('Specify a unique number code for this country.'),
+    '#description' => t('Specify an unique ISO numeric-3 code for this country.'),
     '#required' => FALSE,
     '#maxlength' => 5,
   );
-
-  $form['continent'] = array('#type' => 'select',
+  $form['continent'] = array(
+    '#type' => 'select',
     '#title' => t('Continent'),
     '#options' => countries_get_continents(),
     '#default_value' => $country->continent,
     '#required' => TRUE,
   );
-  $form['enabled'] = array('#type' => 'checkbox',
-    '#title' => t('Enabled'),
+  $form['enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Status'),
     '#default_value' => $country->enabled,
+    '#description' => t('Disabling a country should removing it from all country listings, with the exclusion of views and fields define by the Countries module. These will allow you to choose the status per field.'),
   );
 
   if (!empty($country->iso2)) {
     $form['#country'] = $country;
   }
 
-  $country = (object) $country;
   field_attach_form('country', $country, $form, $form_state);
-
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'), '#weight' => 100);
-
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#weight' => 100,
+  );
   return $form;
 }
 
@@ -215,50 +186,32 @@ function countries_admin_form($form, &$form_state, $country) {
  * Validate country form submissions.
  */
 function countries_admin_form_validate($form, &$form_state) {
-  // Edits
-  $unique_keys = array('name', 'iso2', 'iso3', 'official_name', 'numcode');
+  $country = (object) $form_state['values'];
 
-  foreach ($unique_keys as $key) {
-    if (drupal_strlen($form_state['values'][$key])) {
-      $iso2 = isset($form['#country']) ? $form['#country']->iso2 : FALSE;
-      if ($key == 'iso2' || $key == 'iso3') {
-        $form_state['values'][$key] = drupal_strtoupper($form_state['values'][$key]);
-      }
-      else {
-        $form_state['values'][$key] = trim($form_state['values'][$key]);
-      }
-      switch ($key) {
-        case 'name':
-          break;
-        case 'iso2':
-        case 'iso3':
-          if (preg_match('/[^A-Z]/', $form_state['values'][$key])) {
-            form_set_error($key, t('Please only use uppercase characters for ISO codes.'));
-            continue;
-          }
-          else {
-            $length = $key == 'iso2' ? 2 : 3;
-            if (drupal_strlen($form_state['values'][$key]) != $length) {
-              form_set_error($key, t('The ISO!length code must be exactly !length characters.', array('!length' => $length)));
-              continue;
-            }
-          }
-          break;
-        case 'official_name':
-          break;
-        case 'numcode':
-          if (preg_match('/[^0-9]/', $form_state['values'][$key])) {
-            form_set_error($key, t('Only numbers are allowed for the number code.'));
-            continue;
-          }
-          break;
-      }
-      if ($key == 'numcode' && empty($form_state['values'][$key])) {
-        // Duplicate 0 values are OK.
-      }
-      elseif ((bool) db_query_range("SELECT 1 FROM {countries_country} WHERE iso2 <> :orginaliso2 AND LOWER({$key}) = LOWER(:$key)", 0, 1, array(':orginaliso2' => $iso2, ":$key" => $form_state['values'][$key]))->fetchField()) {
-        form_set_error($key, t('The value %value is already taken.', array('%value' => $form_state['values'][$key])));
-      }
+  // Added to provide a better UI experience. Decide to keep or drop.
+  if (!empty($country->iso2) && $existing = country_load($country->iso2)) {
+    // New country, the ISO alpha-2 must not be used.
+    if (empty($form['#country'])) {
+      form_set_error('iso2',
+        t('Another country was found with this ISO alpha-2 code; !link',
+        array(
+          '!link' => l(countries_t($existing),
+          'admin/config/regional/countries/' . $existing->iso2),
+        )));
+      return;
+    }
+    elseif ($existing->iso2 != $form['#country']->iso2) {
+      form_set_error('iso2', t('Another country was found with this ISO alpha-2 code; !link',
+        array('!link' => l(countries_t($existing), 'admin/config/regional/countries/' . $existing->iso2))));
+      return;
+    }
+  }
+  if (country_validate($country)) {
+    $form_state['values'] = (array) $country;
+  }
+  else {
+    foreach ($country->_errors as $property => $error_message) {
+      form_set_error($property, $error_message);
     }
   }
 }
@@ -292,9 +245,7 @@ function countries_admin_form_submit($form, &$form_state) {
  * @see countries_admin_delete_submit()
  */
 function countries_admin_delete($form, &$form_state, $country) {
-  include_once DRUPAL_ROOT . '/includes/iso.inc';
-  $core_countries = _country_get_predefined_list();
-  if (array_key_exists($country->iso2, $core_countries)) {
+  if (country_is_locked($country)) {
     drupal_set_message(t('Core countries defined by the system can not be deleted.'), 'error');
     drupal_goto('admin/config/regional/countries');
   }
@@ -315,13 +266,7 @@ function countries_admin_delete($form, &$form_state, $country) {
  */
 function countries_admin_delete_submit($form, &$form_state) {
   $country = $form['#country'];
-  field_attach_delete('country', $country);
-  db_delete('countries_country')
-    ->condition('iso2', $country->iso2)
-    ->execute();
-
-  // Hook to allow other modules to interact with this module.
-  module_invoke_all('country_delete', $country);
+  country_delete($country->iso2);
 
   drupal_set_message(t('Deleted country %country.', array('%country' => $country->name)));
   $form_state['redirect'] = 'admin/config/content/countries';
@@ -331,14 +276,15 @@ function countries_admin_delete_submit($form, &$form_state) {
  * Menu callback to update the database from the CSV file.
  */
 function countries_admin_import_form($form, &$form_state) {
-  $changes = countries_csv_updates();
-  if (count($changes['inserts'])) {
-    $form_state['inserts'] = $changes['inserts'];
+  $results = countries_csv_updates();
+
+  if (count($results['inserts'])) {
+    $form_state['inserts'] = $results['inserts'];
     $form['inserts'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Select the countries to import'),
     );
-    foreach ($changes['inserts'] as $iso2 => $country) {
+    foreach ($results['inserts'] as $iso2 => $country) {
       $t_options = array(
         '%name' => $country->name,
         '%continent' => $country->continent,
@@ -358,15 +304,14 @@ function countries_admin_import_form($form, &$form_state) {
       '#markup' => '<div class="form-item">' . t('There are no new records to import.') . '</div>',
     );
   }
-  if (count($changes['updates'])) {
-    $form_state['updates'] = $changes['updates'];
+  if (count($results['updates'])) {
+    $form_state['updates'] = $results['updates'];
     $form['updates'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Select the countries and their properties to update'),
     );
-    //  $updates[$country->iso2][$key] = array('new' => $country->{$key}, 'old' => $existing->{$key});
 
-    foreach ($changes['updates'] as $iso2 => $changes) {
+    foreach ($results['updates'] as $iso2 => $changes) {
       $country = country_load($iso2);
       foreach ($changes as $key => $values) {
         $t_options = array(
@@ -398,6 +343,20 @@ function countries_admin_import_form($form, &$form_state) {
       '#markup' => '<div class="form-item">' . t('There are no updates to import.') . '</div>',
     );
   }
+  if (!empty($results['skipped'])) {
+    $items = array();
+    foreach ($results['skipped'] as $iso => $errors) {
+      foreach ($errors as $error) {
+        $items[] = t('@iso: !error', array('@iso' => $iso, '!error' => $error));
+      }
+    }
+    $form['skipped'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div class="form-item">'
+          . t('The following errors were found. These records have been skipped: !errors',
+          array('!errors' => theme('item_list', array('items' => $items)))) . '</div>',
+    );
+  }
   if (!empty($form_state['inserts']) || !empty($form_state['updates'])) {
     $form['submit'] = array(
       '#type' => 'submit',
@@ -407,24 +366,37 @@ function countries_admin_import_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Submit handler.
+ */
 function countries_admin_import_form_submit($form, &$form_state) {
   $inserted = array();
+  $updated = array();
+  $skipped = array();
+  $core_properties = countries_core_properties();
   if (!empty($form_state['inserts'])) {
     foreach (array_filter($form_state['values']['inserts']) as $iso2) {
       $country = $form_state['inserts'][$iso2];
-      country_save($form_state['inserts'][$iso2]);
-      $inserted[] = l($country->name, 'admin/config/regional/countries/' . $country->iso2);
+      if ($duplicates = country_duplicate_field_check($country)) {
+        $duplicates = array_unique(drupal_array_merge_deep_array($duplicates));
+
+        $skipped[] = t('Skipped @iso2 due to duplicate fields in: @duplicates',
+            array('@iso2' => $iso2, '@duplicates' => implode(', ', $duplicates)));
+      }
+      else {
+        country_save($country);
+        $inserted[] = l($country->name, 'admin/config/regional/countries/' . $country->iso2);
+      }
     }
   }
   if (count($inserted)) {
     drupal_set_message(t('The newly imported countries were: !countries', array('!countries' => implode('; ', $inserted))));
   }
 
-  $updated = array();
   if (!empty($form_state['updates'])) {
     $changes = array();
     foreach (array_filter($form_state['values']['updates']) as $change) {
-      list ($iso2, $key) = explode ('-', $change);
+      list ($iso2, $key) = explode('-', $change);
       $changes[$iso2][$key] = $form_state['updates'][$iso2][$key]['new'];
     }
     foreach ($changes as $iso2 => $values) {
@@ -432,8 +404,15 @@ function countries_admin_import_form_submit($form, &$form_state) {
       foreach ($values as $key => $value) {
         $country->{$key} = $value;
       }
-      country_save($country, $iso2);
-      $updated[] = l($country->name, 'admin/config/regional/countries/' . $country->iso2);
+      if ($duplicates = country_duplicate_field_check($country)) {
+        $duplicates = array_unique(drupal_array_merge_deep_array($duplicates));
+        $skipped[] = t('Skipped @iso2 due to duplicate fields in: @duplicates',
+            array('@iso2' => $iso2, '@duplicates' => implode(', ', $duplicates)));
+      }
+      else {
+        country_save($country, $iso2);
+        $updated[] = l($country->name, 'admin/config/regional/countries/' . $country->iso2);
+      }
     }
   }
   if (count($updated)) {
@@ -443,50 +422,80 @@ function countries_admin_import_form_submit($form, &$form_state) {
   if (empty($inserted) && empty($updated)) {
     drupal_set_message(t('No changes to the countries database were done.'));
   }
+
+  if (!empty($skipped)) {
+    foreach ($skipped as $warning) {
+      drupal_set_message($warning, 'warning');
+    }
+  }
   $form_state['redirect'] = 'admin/config/regional/countries';
 }
 
+/**
+ * Parses the given CSV file.
+ */
 function countries_csv_updates($file = NULL) {
   if (!$file) {
-    $file = drupal_get_path('module', 'countries') . '/countries.csv';
+    $file = variable_get('countries_csv_datasource',
+        drupal_get_path('module', 'countries') . '/countries.csv');
   }
 
+  $defaults = array(
+    'name' => '',
+    'official_name' => '',
+    'enabled' => 0,
+    'iso2' => '',
+    'iso3' => '',
+    'numcode' => 0,
+    'continent' => 'UN',
+  );
   $countries = array();
-  $handle = fopen($file, "r");
-  $headers = fgetcsv($handle, 1024, ",");
-  while (($row = fgetcsv($handle, 1024, ",")) !== FALSE) {
-    $row[0] = trim($row[0]);  // iso2
-    $row[1] = empty($row[1]) || $row[1] == 'NULL' ? '' : trim($row[1]); // iso3
-    $row[2] = empty($row[2]) || $row[2] == 'NULL' ? '' : trim($row[2]); // name
-    $row[3] = empty($row[3]) || $row[3] == 'NULL' ? '' : trim($row[3]); // official name
-    $row[4] = empty($row[4]) || $row[4] == 'NULL' ? 0 : trim($row[4]); // number code
-    $row[5] = empty($row[5]) || $row[5] == 'NULL' ? 'UN' : trim($row[5]); // continent
-    $row[6] = empty($row[6]) || $row[6] == 'NULL' ? '0' : '1'; // enabled
-    if (!empty($row[0]) && $row[0] != 'NULL') {
-      $countries[$row[0]] = array(
-        'iso2' => $row[0],
-        'iso3' => $row[1],
-        'name' => $row[2],
-        'official_name' => $row[3],
-        'numcode' => $row[4],
-        'continent' => $row[5],
-        'enabled' => $row[6],
-      );
-    }
-  }
-  fclose($handle);
 
   $inserts = array();
   $updates = array();
+  $skipped = array();
 
-  foreach ($countries as $country) {
-    $country = (object) $country;
-    if ($existing = country_load($country->iso2)) {
-      foreach (array('iso3', 'name', 'official_name', 'numcode', 'continent', 'enabled') as $key) {
-        if (empty($country->{$key}) && $country->{$key} !== '0') {
+  if ($handle = @fopen($file, "r")) {
+    $headers = fgetcsv($handle, 1024, ",");
+    while (($row = fgetcsv($handle, 1024, ",")) !== FALSE) {
+      $country = new StdClass();
+      $errors = array();
+      foreach ($row as $index => $value) {
+        if (!isset($defaults[$headers[$index]])) {
           continue;
         }
-        if ($existing->{$key} !== $country->{$key}) {
+        $key = $headers[$index];
+        $value = trim($value);
+        if (empty($value) || $value == 'NULL') {
+          $value = $defaults[$key];
+        }
+        elseif ($error = countries_property_invalid($key, $value)) {
+          $errors[] = $error;
+        }
+        $country->$key = $value;
+      }
+
+      if (!empty($country->iso2)) {
+        // Validating the data as the source can not longer be trusted.
+        if (empty($errors)) {
+          $countries[$country->iso2] = $country;
+        }
+        else {
+          $skipped[$country->iso2] = $errors;
+        }
+      }
+    }
+    fclose($handle);
+  }
+
+  foreach ($countries as $country) {
+    if ($existing = country_load($country->iso2)) {
+      foreach (array_keys($defaults) as $key) {
+        // The only empty value we update is enabled.
+        if (empty($country->{$key}) && $key != 'enabled') {
+          continue;
+        }
+        if ((string) $existing->{$key} !== (string) $country->{$key}) {
           $updates[$country->iso2][$key] = array('new' => $country->{$key}, 'old' => $existing->{$key});
         }
       }
@@ -498,5 +507,93 @@ function countries_csv_updates($file = NULL) {
   return array(
     'inserts' => $inserts,
     'updates' => $updates,
+    'skipped' => $skipped,
   );
+}
+
+/**
+ * Helper function to validate a core country property.
+ */
+function countries_property_invalid($property, &$value) {
+  static $schema = NULL;
+  if (!isset($schema)) {
+    $schema = drupal_get_schema('countries_country');
+  }
+
+  $value = trim($value);
+  switch ($property) {
+    case 'iso2':
+      $value = drupal_strtoupper($value);
+      if (preg_match('/[^A-Z]/', $value) || drupal_strlen($value) != 2) {
+        return t('ISO alpha-2 code must contain 2 letters between A and Z. %value was found.', array('%value' => $value));
+      }
+      break;
+
+    case 'iso3':
+      $value = drupal_strtoupper($value);
+      if (preg_match('/[^A-Z]/', $value) || drupal_strlen($value) != 3) {
+        return t('ISO alpha-3 code must contain 3 letters between A and Z. %value was found.', array('%value' => $value));
+      }
+      break;
+
+    case 'numcode':
+      if (!empty($value) && (preg_match('/[^0-9]/', $value) || ($value > 999 || $value < 0))) {
+        return t('ISO numeric-3 code must be a number between 1 and 999. %value was found.', array('%value' => $value));
+      }
+      break;
+
+    default:
+      if (isset($schema['fields'][$property])) {
+        $field_schema = $schema['fields'][$property];
+        if (isset($field_schema['length']) && $field_schema['length'] < drupal_strlen($value)) {
+          $core_properties = countries_core_properties();
+          return t('!property must be less than !count characters.',
+              array('!property' => $core_properties[$property], '!count' => $field_schema['length']));
+        }
+      }
+      break;
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function to check for duplicates.
+ */
+function country_duplicate_field_check($country) {
+  $duplicates = array();
+  $cid = empty($country->cid) ? FALSE : $country->cid;
+  foreach (array('name', 'official_name', 'iso2', 'iso3', 'numcode') as $property) {
+
+    if (drupal_strlen($country->$property)) {
+      if ($property == 'numcode' && empty($country->$property)) {
+        continue;
+      }
+
+      $query = db_select('countries_country', 'c')
+          ->fields('c', array('iso2'));
+      if ($cid) {
+        $query->condition('cid', $cid, '!=');
+      }
+      if ($property == 'official_name' || $property == 'name') {
+        $db_or = db_or();
+        $db_or->condition('official_name', $country->$property)
+            ->condition('name', $country->$property);
+        $query->condition($db_or);
+      }
+      else {
+        $query->condition($property, $country->$property);
+      }
+
+      $value = $query->execute()->fetchColumn();
+      if (!empty($value)) {
+        $conflict = country_load($value);
+        $duplicates[$property] = t('The %value is already used by !country',
+            array(
+              '%value' => $country->$property,
+              '!country' => country_property($conflict, 'name'),
+            ));
+      }
+    }
+  }
+  return empty($duplicates) ? FALSE : $duplicates;
 }

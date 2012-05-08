@@ -11,7 +11,7 @@
 function countries_configuration_schema() {
 
   $schema['countries_data'] = array(
-    'description' => 'Maintains additonal country information on behalf of other modules.',
+    'description' => 'Maintains additional country information on behalf of other modules.',
     'fields' => array(
       'iso2' => array(
         'description' => 'ISO2 country code.',

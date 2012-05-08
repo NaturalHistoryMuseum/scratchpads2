@@ -2,11 +2,13 @@
 
 /**
  * @file
- * views_handler_filter_countries_list.inc
+ * Views module filter handler class.
  */
 
 /**
- * Filter by ISO Code 2. The Lable is defined via 'property' in hook_views_data.
+ * Filter by ISO Code 2.
+ *
+ * The Label is defined via 'property' in hook_views_data().
  */
 class views_handler_filter_countries_list extends views_handler_filter_in_operator {
   function option_definition() {
@@ -17,7 +19,9 @@ class views_handler_filter_countries_list extends views_handler_filter_in_operat
     return $options;
   }
 
-  function has_extra_options() { return TRUE; }
+  function has_extra_options() {
+    return TRUE;
+  }
 
   function extra_options_form(&$form, &$form_state) {
     $form['configuration'] = array(
@@ -93,6 +97,6 @@ class views_handler_filter_countries_list extends views_handler_filter_in_operat
 
     $property = (isset($this->definition['property'])) ? $this->definition['property'] : 'name';
     $this->value_options = countries_filter(countries_get_countries($property), $options);
-    asort($this->value_options);
+    uasort($this->value_options, 'countries_sort');
   }
 }

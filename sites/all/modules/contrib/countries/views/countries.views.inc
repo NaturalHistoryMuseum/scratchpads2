@@ -16,22 +16,22 @@ function countries_views_data() {
   $data['countries_country']['table']['base'] = array(
     'field' => 'cid',
     'title' => t('Countries'),
-    'help' => ''
+    'help' => '',
   );
 
   $data['countries_country']['cid'] = array(
     'title' => t('Country ID'),
     'help' => t('The country ID of the country.'),
     'field' => array(
-       'handler' => 'views_handler_field_numeric',
-       'click sortable' => TRUE,
-     ),
-     'filter' => array(
-       'handler' => 'views_handler_filter_numeric',
-     ),
-     'sort' => array(
-       'handler' => 'views_handler_sort',
-     ),
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
   );
 
   $data['countries_country']['iso2'] = array(
@@ -138,7 +138,7 @@ function countries_views_data() {
   );
 
   $data['countries_country']['official_name_list'] = array(
-    'title' => t('Offical name - list'),
+    'title' => t('Official name - list'),
     'help' => t('The official name of the country.'),
     'real field' => 'iso2',
     'filter' => array(
@@ -149,7 +149,7 @@ function countries_views_data() {
 
   $data['countries_country']['continent'] = array(
     'title' => t('Continent'),
-    'help' => t('The contient of this country.'),
+    'help' => t('The continent of this country.'),
     'field' => array(
       'handler' => 'views_handler_field_countries_continent',
       'click sortable' => TRUE,
@@ -167,7 +167,7 @@ function countries_views_data() {
 
   $data['countries_country']['continent_list'] = array(
     'title' => t('Continent - list'),
-    'help' => t('The contient of this country.'),
+    'help' => t('The continent of this country.'),
     'real field' => 'continent',
     'filter' => array(
       'handler' => 'views_handler_filter_countries_continents_list',
@@ -186,7 +186,7 @@ function countries_views_data() {
       'handler' => 'views_handler_filter_boolean_operator',
       'label' => t('Enabled'),
       'type' => 'yes-no',
-      // use boolean_field = 1 instead of boolean_field <> 0 in WHERE statment
+      // Use boolean_field = 1 instead of boolean_field <> 0 in WHERE statement.
       'use equal' => TRUE,
     ),
     'sort' => array(
