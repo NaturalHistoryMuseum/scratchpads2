@@ -13,7 +13,9 @@ function _scratchpads_cleanup_cron(){
 function scratchpads_cleanup_cleanup_taxonomy(){
   // Just in case a previous vocabulary delete failed, we try again.
   $vocabulary = taxonomy_vocabulary_machine_name_load('__DELETE__');
-  taxonomy_vocabulary_delete($vocabulary->vid);
+  if($vocabulary){
+    taxonomy_vocabulary_delete($vocabulary->vid);
+  }
   $results = db_query('SELECT COUNT(*) AS count FROM {taxonomy_term_data} WHERE vid NOT IN (SELECT vid FROM {taxonomy_vocabulary})')->fetch();
   if($results->count){
     // We have some terms that need deleting.  We need to create a vocabulary
