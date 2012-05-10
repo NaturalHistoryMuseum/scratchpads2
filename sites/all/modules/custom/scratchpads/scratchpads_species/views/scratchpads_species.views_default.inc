@@ -30,14 +30,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['pager']['options']['items_per_page'] = '1';
   $handler->display->display_options['style_plugin'] = 'list';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* No results behavior: Global: Text area */
-  $handler->display->display_options['empty']['area']['id'] = 'area';
-  $handler->display->display_options['empty']['area']['table'] = 'views';
-  $handler->display->display_options['empty']['area']['field'] = 'area';
-  $handler->display->display_options['empty']['area']['empty'] = FALSE;
-  $handler->display->display_options['empty']['area']['content'] = 'Test';
-  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
-  $handler->display->display_options['empty']['area']['tokenize'] = 0;
   /* Relationship: Parent */
   $handler->display->display_options['relationships']['parent']['id'] = 'parent';
   $handler->display->display_options['relationships']['parent']['table'] = 'taxonomy_term_hierarchy';
@@ -713,6 +705,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'spm' => 'spm'
   );
+  /* Filter criterion: Content: General description (field_general_description) */
+  $handler->display->display_options['filters']['field_general_description_value']['id'] = 'field_general_description_value';
+  $handler->display->display_options['filters']['field_general_description_value']['table'] = 'field_data_field_general_description';
+  $handler->display->display_options['filters']['field_general_description_value']['field'] = 'field_general_description_value';
+  $handler->display->display_options['filters']['field_general_description_value']['operator'] = 'not empty';
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
