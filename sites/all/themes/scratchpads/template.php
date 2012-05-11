@@ -264,6 +264,20 @@ function scratchpads_preprocess_page(&$vars){
 }
 
 /**
+ * Implements hook_preprocess_zone().
+ */
+function scratchpads_preprocess_zone(&$vars){
+  $path = drupal_get_path('theme', 'scratchpads');
+  drupal_add_css($path . '/css/ie8.css', array(
+    'media' => 'all',
+    'browsers' => array(
+      'IE' => '(lt IE 9)',
+      '!IE' => FALSE
+    )
+  ));
+}
+
+/**
  * Implements hook_preprocess_html().
  */
 function scratchpads_preprocess_html(&$vars){
