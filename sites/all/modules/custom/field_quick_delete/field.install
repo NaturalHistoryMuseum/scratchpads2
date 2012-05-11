@@ -1,9 +1,9 @@
 <?php
 $filename = basename(__FILE__);
 include DRUPAL_ROOT . '/modules/field/' . $filename;
-// Create the table.  Unfortunately we can't do this in an update as we do
+// Create the table. Unfortunately we can't do this in an update as we do
 // not control the updates for this module.
-if(!db_table_exists('field_quick_delete')){
+if(function_exists('db_table_exists') && !db_table_exists('field_quick_delete')){
   db_create_table('field_quick_delete', array(
     'description' => 'Allows for quick deletion of fields',
     'fields' => array(
