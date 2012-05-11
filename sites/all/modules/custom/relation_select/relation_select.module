@@ -948,7 +948,7 @@ function relation_select_exposed_form_after_build(&$subform){
         '#type' => 'hidden',
         '#value' => key($target_bundles),
         '#name' => $subform['entity_type']['#name'],
-        '#subform_name' => $subform['entity_type']['#subform_name'],
+        '#subform_name' => isset($subform['entity_type']['#subform_name']) ? $subform['entity_type']['#subform_name']: NULL,
         '#pre_render' => $subform['entity_type']['#pre_render']
       );
       // Remove the label
@@ -971,7 +971,7 @@ function relation_select_exposed_form_after_build(&$subform){
         '#type' => 'hidden',
         '#value' => key($bundles),
         '#name' => $subform['bundle']['#name'],
-        '#subform_name' => $subform['bundle']['#subform_name'],
+        '#subform_name' => isset($subform['bundle']['#subform_name']) ? $subform['bundle']['#subform_name'] : NULL,
         '#pre_render' => $subform['bundle']['#pre_render']
       );
       unset($subform['#info']['filter-bundle']);
