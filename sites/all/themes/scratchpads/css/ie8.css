@@ -18,3 +18,10 @@
 #region-header #search-block-form .form-item input.form-text{
   background-position: 100% 9px!important;
 }
+
+h1, 
+h1.site-name, 
+h2.site-name,
+h3{
+  font-family: Georgia, serif !important;
+}
