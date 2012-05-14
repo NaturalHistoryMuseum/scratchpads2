@@ -1,7 +1,8 @@
 @CHARSET "UTF-8";
 
 #main-menu a,
-#region-header #search-block-form div.form-actions input {
+#region-header #search-block-form div.form-actions input,
+.view-front-page-slideshow .views-field-filename {
   background:transparent!important;
   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50000000,endColorstr=#50000000);
   zoom: 1;
