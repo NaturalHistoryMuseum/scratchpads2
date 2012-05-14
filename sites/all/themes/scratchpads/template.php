@@ -267,6 +267,12 @@ function scratchpads_preprocess_page(&$vars){
  * Implements hook_preprocess_zone().
  */
 function scratchpads_preprocess_zone(&$vars){
+  if($vars['elements']['#zone'] == 'content'){
+  	// Add a class so we know when there's a side bar or not
+    if(!empty($vars['elements']['sidebar'])){
+      $vars['content_attributes_array']['class'][] = 'has-sidebar';
+    }
+  }
   $path = drupal_get_path('theme', 'scratchpads');
   drupal_add_css($path . '/css/ie8.css', array(
     'media' => 'all',
