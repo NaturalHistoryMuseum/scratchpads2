@@ -29,18 +29,24 @@
         }
     
       });
-
-      // $('div.slick-cell').hover(function(){
-      //   
-      // })
-      // 
-      // 
-      // // Add bt for cells if this is not editable
-      // if($('#slickgrid:not(.editable)')){
-      //   $('div.slick-cell').bt($(this).html(), ops);
-      // }
+      
+      ops.contentSelector = Drupal.CharacterEditor.cellHover;
+      
+      $('div.slick-cell:not(.l0, :empty)').bt(ops);
       
     },
+    
+    cellHover: function(){
+      
+      var cellText = $(this).html();
+      
+      if(cellText.length > 2){
+        return cellText;
+      }
+      
+      return false;
+      
+    }
      
    }   
 
