@@ -305,14 +305,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       switch($form['#entity_type']){
         case 'character_editor_character':
           // Is this an add link from slickgrid
-          if($form_state['entity']->type != 'group'){
-            if(!isset($form_state['character_project_id'])){
-              if($form_state['entity']->is_new){
-                $form_state['character_project_id'] = arg(7);
-              }else{
-                $form_state['character_project_id'] = $_GET['project'];
-              }
+          if(!isset($form_state['character_project_id'])){
+            if($form_state['entity']->is_new){
+              $form_state['character_project_id'] = arg(7);
+            }else{
+              $form_state['character_project_id'] = $_GET['project'];
             }
+          }
+          if($form_state['entity']->type != 'group'){
             $groups = character_editor_get_groups($form_state['character_project_id']);
             if(count($groups)){
               $form['group'] = array(
@@ -328,7 +328,9 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
             }
           }
-          if(!$form_state['entity']->is_new){
+          if($form_state['entity']->is_new){
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+          }else{
             $destination = drupal_get_destination();
             $form['actions']['back'] = array(
               '#type' => 'submit',
@@ -336,10 +338,24 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               '#submit' => array()
             );
           }
-          $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
           $form['#after_build'][] = 'character_editor_character_form_after_build';
           break;
         case 'character_editor_project':
+          // Character editor project form is broken up into edit characters (relations field)
+          // And settings
+          if(arg(2) == 'settings'){
+            // Hide the characters on the settings form
+            $form['field_characters']['#access'] = false;
+          }else{
+            // Hide all other fields on the edit characters form
+            foreach(array(
+              'title',
+              'field_char_proj_description',
+              'field_taxonomic_name'
+            ) as $key){
+              $form[$key]['#access'] = false;
+            }
+          }
           $form['title']['#title'] = t('Title');
           break;
       }
@@ -474,6 +490,7 @@ function character_editor_entity_access($op){
       $op = 'view';
       break;
     case 'settings':
+    case 'characters':
       $op = 'edit';
       break;
   }
@@ -1014,13 +1031,10 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
  * EXPORT
  * 
  ********************************************************************************************/
-
-
 /**
  * Preprocess xml output template.
  */
-function template_preprocess_views_data_export_sdd(&$vars) {
-
+function template_preprocess_views_data_export_sdd(&$vars){
   // Compute the root XML node, using the base table, and appending an 's' if needed.
 //  $root_node = $vars['view']->base_table;
 //  if (rtrim($root_node, 's') == $root_node) {
@@ -1028,8 +1042,6 @@ function template_preprocess_views_data_export_sdd(&$vars) {
 //  }
 //  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
 }
-
-
 
 /*********************************************************************************************
  * 

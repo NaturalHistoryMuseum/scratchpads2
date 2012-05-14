@@ -9,16 +9,7 @@
    slickgridInit: function () {
        Drupal.CharacterEditor.initBT();       
     },
-    
-    // slickgridCallback: function (e, data) {      
-    //   
-    //   if(typeof data.response.columns !== 'undefined'){
-    //     Drupal.CharacterEditor.initBT();
-    //     $('.slickgrid-wrapper').addClass('slickgrid-has-tabs');
-    //   }
-    //   
-    // },
-    
+
     initBT: function(){
       
       var ops = {
@@ -38,6 +29,16 @@
         }
     
       });
+
+      // $('div.slick-cell').hover(function(){
+      //   
+      // })
+      // 
+      // 
+      // // Add bt for cells if this is not editable
+      // if($('#slickgrid:not(.editable)')){
+      //   $('div.slick-cell').bt($(this).html(), ops);
+      // }
       
     },
      
