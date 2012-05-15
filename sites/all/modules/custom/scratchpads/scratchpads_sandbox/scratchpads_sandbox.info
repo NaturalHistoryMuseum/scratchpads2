@@ -1,5 +1,5 @@
 name = Scratchpads sandbox installed notifier
-description = Creates a small file in the files folder of a sandbox that allows our automatic script to be notified that the install has completed.
+description = Adds the blocks required by a Sandbox.
 package = "Scratchpads"
 dependencies[] = scratchpads_tweaks
 core = 7.x
