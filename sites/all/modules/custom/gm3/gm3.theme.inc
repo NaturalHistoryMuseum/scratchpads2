@@ -19,7 +19,7 @@ function gm3_get_map($variables){
     $variables['map']['id'] = 'gm3-map';
   }
   if(isset($variables['map']['libraries']['point']['convexhull']) && $variables['map']['libraries']['point']['convexhull']){
-    // We need to add a convex hull polygon.  Lets do so.
+    // We need to add a convex hull polygon. Lets do so.
     if(gm3_load_geophp()){
       $points = array();
       foreach($variables['map']['libraries']['point']['points'] as $point){
@@ -44,7 +44,7 @@ function gm3_get_map($variables){
   if(isset($info[$variables['map']['id']])){
     // this map has already been initialized.
     // We can alter settings for the map, but won't be able to add any tools
-    // to the map.  This won't be a problem for viewing a map, but may be an
+    // to the map. This won't be a problem for viewing a map, but may be an
     // issue for editing.
     drupal_add_js(array(
       'gm3' => array(
@@ -186,7 +186,7 @@ function theme_gm3_view_gm3($variables){
   $map = array(
     'libraries' => array()
   );
-  //foreach($variables['view']->result as $index => $row){
+  // foreach($variables['view']->result as $index => $row){
   foreach($variables['rows'] as $index => $row){
     $content = '';
     foreach($none_geo_fields as $key){
@@ -229,10 +229,20 @@ function theme_gm3_view_gm3($variables){
               'points' => array()
             );
           }
-          foreach($row->{"field_$key"} as $item){
-            $point = $item['raw'];
-            $point['content'] = $content;
-            $map['libraries']['point']['points'][] = $point;
+          if(count($row->{"field_$key"})){
+            foreach($row->{"field_$key"} as $item){
+              $point = $item['raw'];
+              $point['content'] = $content;
+              $map['libraries']['point']['points'][] = $point;
+            }
+          }else{
+            if(isset($row->{"field_data_{$key}_{$key}_latitude"})){
+              $map['libraries']['point']['points'][] = array(
+                'latitude' => $row->{"field_data_{$key}_{$key}_latitude"},
+                'longitude' => $row->{"field_data_{$key}_{$key}_longitude"},
+                'content' => $content
+              );
+            }
           }
           break;
         case 'gm3_combination':
@@ -266,7 +276,8 @@ function theme_gm3_view_gm3($variables){
                 );
                 break;
               default:
-                // The default - This field type is not defined by the gm3 module,
+                // The default - This field type is not defined by the gm3
+                // module,
                 // we therefore append call the map_alter function for this
                 // field
                 $function = "{$item['raw']['gm3_type']}_map_alter";
