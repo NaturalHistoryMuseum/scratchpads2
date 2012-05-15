@@ -256,45 +256,47 @@ function theme_gm3_view_gm3($variables){
           }
           break;
         case 'gm3_combination':
-          foreach($row->{"field_$key"} as $item){
-            switch($item['raw']['gm3_type']){
-              case 'point':
-                if(!isset($map['libraries']['point'])){
-                  $map['libraries']['point'] = array(
-                    'points' => array()
+          foreach($row->_field_data as $id => $values){
+            foreach($values['entity']->{$key}[LANGUAGE_NONE] as $item){
+              switch($item['gm3_type']){
+                case 'point':
+                  if(!isset($map['libraries']['point'])){
+                    $map['libraries']['point'] = array(
+                      'points' => array()
+                    );
+                  }
+                  $map['libraries']['point']['points'][] = array(
+                    'latitude' => $item['latitude'],
+                    'longitude' => $item['longitude'],
+                    'content' => $content
                   );
-                }
-                $map['libraries']['point']['points'][] = array(
-                  'latitude' => $item['raw']['latitude'],
-                  'longitude' => $item['raw']['longitude'],
-                  'content' => $content
-                );
-                break;
-              case 'rectangle':
-              case 'polyline':
-              case 'polygon':
-                module_load_include('functions.inc', 'gm3');
-                if(!isset($map['libraries'][$item['raw']['gm3_type']])){
-                  $map['libraries'][$item['raw']['gm3_type']] = array(
-                    $item['raw']['gm3_type'] . 's' => array()
+                  break;
+                case 'rectangle':
+                case 'polyline':
+                case 'polygon':
+                  module_load_include('functions.inc', 'gm3');
+                  if(!isset($map['libraries'][$item['gm3_type']])){
+                    $map['libraries'][$item['gm3_type']] = array(
+                      $item['gm3_type'] . 's' => array()
+                    );
+                  }
+                  $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
+                    $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
+                    'editable' => FALSE,
+                    'content' => $content
                   );
-                }
-                $map['libraries'][$item['raw']['gm3_type']][$item['raw']['gm3_type'] . 's'][] = array(
-                  $item['raw']['gm3_type'] => array_pop(gm3_convert_polygon_string($item['raw'][$item['raw']['gm3_type']])),
-                  'editable' => FALSE,
-                  'content' => $content
-                );
-                break;
-              default:
-                // The default - This field type is not defined by the gm3
-                // module,
-                // we therefore append call the map_alter function for this
-                // field
-                $function = "{$item['raw']['gm3_type']}_map_alter";
-                if(function_exists($function)){
-                  $function($map, $item['raw']);
-                }
-                break;
+                  break;
+                default:
+                  // The default - This field type is not defined by the gm3
+                  // module,
+                  // we therefore append call the map_alter function for this
+                  // field
+                  $function = "{$item['gm3_type']}_map_alter";
+                  if(function_exists($function)){
+                    $function($map, $item);
+                  }
+                  break;
+              }
             }
           }
           break;
@@ -303,9 +305,9 @@ function theme_gm3_view_gm3($variables){
           // we therefore append call the map_alter function for this
           // field
           foreach($row->{"field_$key"} as $item){
-            $function = "{$item['raw']['gm3_type']}_map_alter";
+            $function = "{$item['gm3_type']}_map_alter";
             if(function_exists($function)){
-              $function($map, $item['raw']);
+              $function($map, $item);
             }
           }
           break;
