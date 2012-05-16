@@ -98,9 +98,18 @@ class Node extends RegistryChild{
    *
    * We should save the node at this point. We also need to add any contacts
    * that have been added.
+   * 
+   * FIXME - This does not yet function
    */
   public function save(){
     ;
+  }
+  
+  /**
+   * 
+   */
+  public function getTags(){
+    return new Tags($this->registry, "node/{$this->key}/tag");
   }
 
   /**
@@ -112,14 +121,16 @@ class Node extends RegistryChild{
   /**
    * Sets the contacts for this Node.
    *
-   * FIXME - As the API doesn't currently allow us to delete contacts, this
-   * function is not possible.
+   * FIXME - Need to check that this is possible, it doesn't appear to be given
+   * that removing a contact actually involves deleting it (really?).
    * public function setContacts($contacts){
    * $this->contacts = $contacts;
    * }
    */
   /**
    * Add a single contact to this node.
+   * 
+   * FIXME - Nothing is done here.
    */
   public function addContact(Contact $contact){
     $this->contacts[] = $contact;
