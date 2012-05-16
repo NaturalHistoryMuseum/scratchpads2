@@ -6,8 +6,7 @@
  */
 
 /**
- * Provides the form settings for integrating with the countries configuration
- * module.
+ * Form settings for integrating with the countries configuration module.
  *
  * This API allows multiple forms per module.
  */
@@ -16,19 +15,19 @@ function hook_countries_configuration_options() {
     // This should be an unique key for this option. To avoid conflicts with
     // other modules, use, or prefix with, the modules name.
     'address' => array(
-      // This provides the tab title when editting the form.
+      // This provides the tab title when editing the form.
       'title' => t('Addresses'),
       // This should provide the form of elements that you want to save.
       'form callback' => 'example_address_country_admin_form',
       // Optional: Provides a better title for the page edit.
       'title callback' => 'example_address_country_admin_form_title',
-      // Required: Used when no data exists or when reseting the country data.
+      // Required: Used when no data exists or when resetting the country data.
       'default values' => array(
         'labels' => array(),
       ),
       // Optional: Includes this title before any callbacks are executed.
       'file' => 'address.admin.inc',
-      // Optional: The path to the included file if not in the base module directory.
+      // Optional: included file path if not in the base module directory.
       'file path' => drupal_get_path('module', 'address') . '/includes',
       // Optional: Provides a help section to forms.
       'help' => t('This form allows you to set country specific configuration options for all address fields. Leave these blank to use the field defaults. Available address components are determined by the field settings.'),
@@ -38,6 +37,32 @@ function hook_countries_configuration_options() {
   $items['address']['default values']['labels'] += array_combine(array_keys($components), array_fill(0, count($components), ''));
 
   return $items;
+}
+
+/**
+ * An alter hook for hook_countries_configuration_options().
+ *
+ * Provides a hook into dynamically changing the settings provided by
+ * hook_countries_configuration_options() in relation to a country.
+ *
+ * @param array $values
+ *   The values with the default values loaded.
+ * @param string $name
+ *   The machine name given to this country configuration set.
+ * @param array $info
+ *   Additional info. Keyed elements are:
+ *     country       - the country object or iso2 code.
+ *     is_new        - flag to check if any data is stored for this country.
+ *     load_defaults - flag to load default values.
+ *                     This is used by the field settings to ensure that no
+ *                     defaults are loaded into the Field UI area.
+ */
+function hook_countries_configuration_options_alter(&$values, $name, $info) {
+  if ($name == 'address' && !$info['is_new']) {
+    if ($overrides = address_country_details($info['country'])) {
+      $values['labels'] = $overrides['labels'] + $values['labels'];
+    }
+  }
 }
 
 /**
@@ -60,7 +85,7 @@ function example_address_country_admin_form($country, $values, &$form) {
   foreach (address_field_components() as $key => $info) {
     $form['labels'][$key] = array(
       '#type' => 'textfield',
-      '#title' => t('Label for !title', array('!title' => $info['name'])),
+      '#title' => t('Label for @title', array('@title' => $info['name'])),
       '#default_value' => $values['labels'][$key],
     );
   }
@@ -86,9 +111,13 @@ function example_address_country_admin_form_title($country) {
  * An example implementing how you would use the data saved.
  *
  * @param object $country
+ *   The country object to configure.
  */
 function example_address_country_configuration_usage($country) {
-  $settings = countries_load_configuration_options($country, 'address');
+  // Depreciated: This will log a warning in the watchdog table and will be
+  // removed in future versions.
+  // $settings = countries_load_configuration_options($country, 'address');
+  $settings = countries_configuration($country, 'address');
   drupal_set_message(t('Editting the %region for %country', array(
     '%region' => $settings['labels']['region'],
     '%country' => $country->name,

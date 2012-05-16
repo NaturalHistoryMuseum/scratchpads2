@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Linkit theme functions.
@@ -76,19 +75,64 @@ function theme_linkit_profiles_reorder($variables) {
   $header = array(t('Profile'), t('Roles'), t('Weight'));
   $rows = array();
 
-  foreach (element_children($form['profiles']) as $profile_name) {
-    $rows[] = array(
-      'data' => array(
-        drupal_render($form['profiles'][$profile_name]['name']),
-        drupal_render($form['profiles'][$profile_name]['roles']),
-        drupal_render($form['profiles'][$profile_name]['weight'])
-      ),
-      'class' => array('draggable', 'tabledrag-leaf'),
-     );
+  if (isset($form['profiles'])) {
+    foreach (element_children($form['profiles']) as $profile_name) {
+      $rows[] = array(
+        'data' => array(
+          drupal_render($form['profiles'][$profile_name]['name']),
+          drupal_render($form['profiles'][$profile_name]['roles']),
+          drupal_render($form['profiles'][$profile_name]['weight'])
+        ),
+        'class' => array('draggable', 'tabledrag-leaf'),
+      );
+    }
   }
 
   $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'linkit-profile-reorder'), 'sticky' => FALSE));
   $output .= drupal_render_children($form);
   drupal_add_tabledrag('linkit-profile-reorder', 'order', 'sibling', 'weight', NULL, NULL, FALSE);
   return $output;
+}
+
+/**
+ * Helper function to render settings tables.
+ *
+ * @param $variables.
+ * @param $type
+ *   "plugin" or "attribute".
+ */
+function _linkit_theme_profile_form_table($variables, $type) {
+  $rows = array();
+  $has_description = FALSE;
+
+  // Build table rows.
+  foreach ($variables['linkit_' . $type . '_listing'] as $delta => $element) {
+    $fields = array(
+      $element->title,
+      $element->weight_select,
+      $element->enabled
+    );
+
+    if (isset($element->description)) {
+      $has_description = TRUE;
+      $fields[] = $element->description;
+    }
+
+    $rows[$delta]['data'] = $fields;
+    $rows[$delta]['class'] = array('draggable', 'tabledrag-leaf');
+  }
+
+  drupal_add_tabledrag('linkit-' . $type, 'order', 'sibling', 'weight');
+
+  $header = array(
+    t('Name'),
+    t('Weight'),
+    t('Enabled'),
+  );
+
+  if ($has_description) {
+    $header[] = t('Description');
+  }
+
+  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'linkit-' . $type), 'sticky' => FALSE));
 }

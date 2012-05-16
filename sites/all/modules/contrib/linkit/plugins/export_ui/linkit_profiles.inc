@@ -32,6 +32,9 @@ $plugin = array(
  * Generate a profile form.
  */
 function linkit_profiles_export_ui_form(&$form, &$form_state) {
+  // Get all plugins.
+  $plugins = linkit_get_plugins();
+
   $profile = $form_state['item'];
 
   $form = array();
@@ -68,8 +71,7 @@ function linkit_profiles_export_ui_form(&$form, &$form_state) {
     '#default_value' => $profile->weight,
     '#delta' => 10,
     '#weight' => -98,
-    '#description' => t('If the user has multiple roles, the profile with lowest weight will then be assigned to the user. ' .
-    										'In general, the most permissive profile should be assigned the lowest weight.'),
+    '#description' => t('If the user has multiple roles, the profile with lowest weight will then be assigned to the user. In general, the most permissive profile should be assigned the lowest weight.'),
   );
 
   $form['roles'] = array(
@@ -86,146 +88,18 @@ function linkit_profiles_export_ui_form(&$form, &$form_state) {
   _linkit_build_role_associate_form_fields($form, $profile);
 
   // Append plugin form element to the setttings form.
-  _linkit_build_plugin_form_fields($form, $profile);
+  _linkit_build_plugin_form_fields($form, $profile, $plugins);
+  foreach ($plugins as $plugin) {
 
-  $form['data']['node'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Node plugin'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#tree' => TRUE,
-    '#states' => array(
-      'invisible' => array(
-        'input[name="plugins[node][enabled]"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
+    // Get an instance og the handler for this plugin.
+    $handler = linkit_get_plugin_handler($plugin, $profile);
+    $plugin_form = $handler->buildSettingsForm();
 
-  $form['data']['node']['result_description'] = array(
-    '#title' => t('Result format'),
-    '#type' => 'textfield',
-    '#default_value' => isset($profile->data['node']['result_description']) ? $profile->data['node']['result_description'] : 'by [node:author] · [node:created:short]',
-    '#size' => 120,
-    '#maxlength' => 255,
-    '#description' => t('Available tokens: %tokens.', array('%tokens' => '[node:nid], [node:vid], [node:tnid], [node:type], [node:type-name], [node:title], [node:language], [node:created], [node:changed], [node:author]')),
-  );
-
-  $form['data']['node']['content_types'] = array(
-    '#title' => t('Content type filter'),
-    '#type' => 'checkboxes',
-    '#options' => node_type_get_names(),
-    '#default_value' => isset($profile->data['node']['content_types']) ? $profile->data['node']['content_types'] : array(),
-    '#description' => t('If left blank, all content types will appear in autocomplete results.'),
-  );
-
-  $form['data']['node']['include_unpublished'] = array(
-    '#title' => t('Include unpublished nodes'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($profile->data['node']['include_unpublished']) ? $profile->data['node']['include_unpublished'] : 0,
-  );
-
-  $form['data']['node']['group_by_content_type'] = array(
-    '#title' => t('Group nodes by content type'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($profile->data['node']['group_by_content_type']) ? $profile->data['node']['group_by_content_type'] : 1,
-  );
-
-  $form['data']['user'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('User plugin'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#tree' => TRUE,
-    '#states' => array(
-      'invisible' => array(
-        'input[name="plugins[user][enabled]"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-
-  $form['data']['user']['result_description'] = array(
-    '#title' => t('Result format'),
-    '#type' => 'textfield',
-    '#default_value' => isset($profile->data['user']['result_description']) ? $profile->data['user']['result_description'] : '',
-    '#size' => 120,
-    '#maxlength' => 255,
-    '#description' => t('Available tokens: %tokens.', array('%tokens' => '[user:uid], [user:name], [user:mail], [user:last-login], [user:created]')),
-  );
-
-  $form['data']['taxonomy'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Taxonomy plugin'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#tree' => TRUE,
-    '#states' => array(
-      'invisible' => array(
-        'input[name="plugins[taxonomy][enabled]"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-
-  $form['data']['taxonomy']['result_description'] = array(
-    '#title' => t('Result format'),
-    '#type' => 'textfield',
-    '#default_value' => isset($profile->data['taxonomy']['result_description']) ? $profile->data['taxonomy']['result_description'] : '[term:vocabulary]',
-    '#size' => 120,
-    '#maxlength' => 255,
-    '#description' => t('Available tokens: %tokens.', array('%tokens' => '[term:tid], [term:name], [term:vocabulary], [term:parent]')),
-  );
-
-  $form['data']['taxonomy']['group_by_vocabulary'] = array(
-    '#title' => t('Group terms by vocabulary'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($profile->data['taxonomy']['group_by_vocabulary']) ? $profile->data['taxonomy']['group_by_vocabulary'] : 0,
-  );
-
-  $form['data']['file'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('File plugin'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#tree' => TRUE,
-    '#states' => array(
-      'invisible' => array(
-        'input[name="plugins[file][enabled]"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-
-  $form['data']['file']['result_description'] = array(
-    '#title' => t('Result format'),
-    '#type' => 'textfield',
-    '#default_value' => isset($profile->data['file']['result_description']) ? $profile->data['file']['result_description'] : '[file:mime] · [file:size]',
-    '#size' => 120,
-    '#maxlength' => 255,
-    '#description' => t('Available tokens: %tokens.', array('%tokens' => '[file:fid], [file:name], [file:mime], [file:size], [file:timestamp], [file:owner]')),
-  );
-
-  $form['data']['file']['show_scheme'] = array(
-    '#title' => t('Show file scheme'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($profile->data['file']['show_scheme']) ? $profile->data['file']['show_scheme'] : array()
-  );
-
-  $form['data']['file']['group_by_scheme'] = array(
-    '#title' => t('Group files by scheme'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($profile->data['file']['group_by_scheme']) ? $profile->data['file']['group_by_scheme'] : array(),
-  );
-
-  $image_extra_info_options = array(
-    // Coder is saying "$text argument to l() should be enclosed within t() so that it is translatable." but image styles is not translatable.
-    'thumbnail' => t('Show thumbnails <em>(using the image style !linkit_thumb_link)</em>', array('!linkit_thumb_link' => l('linkit_thumb', 'admin/config/media/image-styles/edit/linkit_thumb'))),
-    'dimensions' => t('Show pixel dimensions'),
-  );
-
-  $form['data']['file']['image_extra_info'] = array(
-    '#title' => t('Images'),
-    '#type' => 'checkboxes',
-    '#options' => $image_extra_info_options,
-    '#default_value' => isset($profile->data['file']['image_extra_info']) ? $profile->data['file']['image_extra_info'] : array('thumbnail', 'dimensions'),
-  );
+    if ($plugin_form) {
+      // Add the handler settings form to the generic.
+      $form['data'] += $plugin_form;
+    }
+  }
 
   if (module_invoke('imce', 'access')) {
     $form['data']['imce'] = array(
@@ -320,7 +194,7 @@ function _linkit_sort_attributes_by_weight($a, $b) {
 /**
  * Append plugin form element to the setttings form.
  */
-function _linkit_build_plugin_form_fields(&$form, $profile) {
+function _linkit_build_plugin_form_fields(&$form, $profile, $plugins) {
   $form['data']['plugins_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Linkit plugins'),
@@ -337,24 +211,24 @@ function _linkit_build_plugin_form_fields(&$form, $profile) {
     '#parents' => array('data', 'plugins'),
   );
 
-  // Get all plugins.
-  $plugins = linkit_get_plugins();
-
   // Used to store plugin form elements temporary so we can use this to sort by weight.
   $tmp_plugins = array();
 
   foreach ($plugins AS $name => $plugin) {
-    $tmp_plugins[$name]['name'] = array('#markup' => $plugin['title']);
-    $tmp_plugins[$name]['description'] = array('#markup' => $plugin['description']);
+    // Get the plugin handler.
+    $handler = linkit_get_plugin_handler($plugin, $profile);
+
+    $tmp_plugins[$name]['name'] = array('#markup' => $handler->ui_title());
+    $tmp_plugins[$name]['description'] = array('#markup' => $handler->ui_description());
     $tmp_plugins[$name]['weight'] = array(
       '#type' => 'weight',
-      '#title' => t('Weight for @title', array('@title' => $plugin['title'])),
+      '#title' => t('Weight for @title', array('@title' => $handler->ui_title())),
       '#title_display' => 'invisible',
       '#default_value' => isset($profile->data['plugins'][$name]['weight']) ? $profile->data['plugins'][$name]['weight'] : LINKIT_DEFAULT_WEIGHT,
     );
     $tmp_plugins[$name]['enabled'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Enable @title', array('@title' => $plugin['title'])),
+      '#title' => t('Enable @title', array('@title' => $handler->ui_title())),
       '#title_display' => 'invisible',
     );
     if (isset($profile->data['plugins'])) {
@@ -444,49 +318,6 @@ function _linkit_build_role_associate_form_fields(&$form, $profile) {
 }
 
 /**
- * Helper function to render settings tables.
- *
- * @param $variables.
- * @param $type
- *   "plugin" or "attribute".
- */
-function _linkit_theme_profile_form_table($variables, $type) {
-  $rows = array();
-  $has_description = FALSE;
-
-  // Build table rows.
-  foreach ($variables['linkit_' . $type . '_listing'] as $delta => $element) {
-    $fields = array(
-      $element->title,
-      $element->weight_select,
-      $element->enabled
-    );
-
-    if (isset($element->description)) {
-      $has_description = TRUE;
-      $fields[] = $element->description;
-    }
-
-    $rows[$delta]['data'] = $fields;
-    $rows[$delta]['class'] = array('draggable', 'tabledrag-leaf');
-  }
-
-  drupal_add_tabledrag('linkit-' . $type, 'order', 'sibling', 'weight');
-
-  $header = array(
-    t('Name'),
-    t('Weight'),
-    t('Enabled'),
-  );
-
-  if ($has_description) {
-    $header[] = t('Description');
-  }
-
-  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'linkit-' . $type), 'sticky' => FALSE));
-}
-
-/**
  * Save callback for linkit_profiles_export_ui_form.
  *
  * @param array $form
@@ -552,13 +383,18 @@ function linkit_profiles_reorder() {
     );
   }
 
-  $form['helptext'] = array('#markup' => t('If a user have multiple roles, the profile weight will determine which profile to use. Lower weight will take precedence.'));
+  if (!$profiles) {
+    $form['helptext'] = array('#markup' => t('No profiles found.'));
+  }
+  else {
+    $form['helptext'] = array('#markup' => t('If a user have multiple roles, the profile weight will determine which profile to use. Lower weight will take precedence.'));
 
-  $form['actions']['#type'] = 'actions';
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
+    $form['actions']['#type'] = 'actions';
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save'),
+    );
+  }
   return $form;
 }
 
@@ -566,7 +402,7 @@ function linkit_profiles_reorder() {
  * Save function for the reorder form.
  */
 function linkit_profiles_reorder_submit($form, &$form_state) {
-  foreach($form_state['values']['profiles'] as $profile_machine_name => $value) {
+  foreach ($form_state['values']['profiles'] as $profile_machine_name => $value) {
     $profile = linkit_profile_load($profile_machine_name);
     $profile->weight = $value['weight'];
     linkit_profile_save($profile);

@@ -194,6 +194,7 @@ function _colorbox_doheader() {
       'initialWidth' => variable_get('colorbox_initialwidth', '300'),
       'initialHeight' => variable_get('colorbox_initialheight', '100'),
       'fixed' => variable_get('colorbox_fixed', 1) ? TRUE : FALSE,
+      'scrolling' => variable_get('colorbox_scrolling', 1) ? TRUE : FALSE,
     );
   }
   else {
@@ -423,6 +424,7 @@ function colorbox_field_formatter_info() {
         'colorbox_gallery' => 'post',
         'colorbox_gallery_custom' => '',
         'colorbox_caption' => 'auto',
+        'colorbox_caption_custom' => '',
       ),
     ),
   );
@@ -493,6 +495,7 @@ function colorbox_field_formatter_settings_form($field, $instance, $view_mode, $
     'title' => t('Title text'),
     'alt' => t('Alt text'),
     'node_title' => t('Node title'),
+    'custom' => t('Custom (with tokens)'),
     'none' => t('None'),
   );
   $element['colorbox_caption'] = array(
@@ -502,6 +505,41 @@ function colorbox_field_formatter_settings_form($field, $instance, $view_mode, $
     '#options' => $caption,
     '#description' => t('Automatic will use the first none empty value of the title, the alt text and the node title.'),
   );
+  $element['colorbox_caption_custom'] = array(
+    '#title' => t('Custom caption'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['colorbox_caption_custom'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name$="[settings_edit_form][settings][colorbox_caption]"]' => array('value' => 'custom'),
+      ),
+    ),
+  );
+  if (module_exists('token')) {
+    $element['colorbox_token'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Replacement patterns'),
+      '#theme' => 'token_tree',
+      '#token_types' => array('node'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][colorbox_caption]"]' => array('value' => 'custom'),
+        ),
+      ),
+    );
+  }
+  else {
+    $element['colorbox_token'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Replacement patterns'),
+      '#description' => '<strong class="error">' . t('For token support the <a href="@token_url">token module</a> must be installed.', array('@token_url' => 'http://drupal.org/project/token')) . '</strong>',
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[settings_edit_form][settings][colorbox_caption]"]' => array('value' => 'custom'),
+        ),
+      ),
+    );
+  }
 
   return $element;
 }
@@ -554,6 +592,7 @@ function colorbox_field_formatter_settings_summary($field, $instance, $view_mode
     'title' => t('Title text'),
     'alt' => t('Alt text'),
     'node_title' => t('Node title'),
+    'custom' => t('Custom (with tokens)'),
     'none' => t('None'),
   );
   if (isset($settings['colorbox_caption'])) {

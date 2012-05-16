@@ -60,6 +60,9 @@ function theme_colorbox_image_formatter($variables) {
     case 'node_title':
       $caption = $node->title;
       break;
+    case 'custom':
+      $caption = token_replace($settings['colorbox_caption_custom'], array('node' => $node));
+      break;
     default:
       $caption = '';
   }

@@ -1,6 +1,5 @@
-; $Id: mollom.info,v 1.6 2010/09/13 00:17:24 dries Exp $
 name = Mollom
-description = Protects forms against spam.
+description = Automatically moderates user-submitted content and protects your site from spam and profanity.
 core = 7.x
 configure = admin/config/content/mollom
 scripts[] = mollom.js
@@ -11,9 +10,9 @@ files[] = mollom.pages.inc
 files[] = mollom.install
 files[] = tests/mollom.test
 
-; Information added by drupal.org packaging script on 2011-01-11
-version = "7.x-1.0"
+; Information added by drupal.org packaging script on 2011-07-09
+version = "7.x-1.1"
 core = "7.x"
 project = "mollom"
-datestamp = "1294772829"
+datestamp = "1310217720"
 

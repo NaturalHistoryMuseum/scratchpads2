@@ -1,4 +1,3 @@
-// $Id: mollom.admin.js,v 1.2 2010/10/13 00:18:52 dries Exp $
 (function ($) {
 
 /**

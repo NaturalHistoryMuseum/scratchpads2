@@ -25,11 +25,11 @@ function spm_node_info() {
   $items = array(
     'spm' => array(
       'name' => t('Taxon Description'),
-      'base' => 'node_content',
       'description' => t('A taxon description content type based on the TDWG/EoL Species Profile Model.'),
       'has_title' => '1',
       'title_label' => t('Taxon'),
       'help' => '',
+      'base' => 'node_content'
     ),
   );
   return $items;

@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom.inc,v 1.10 2010/12/22 17:54:53 sun Exp $
 
 /**
  * @file
@@ -45,12 +44,10 @@ function _mollom_authentication($public_key = NULL, $private_key = NULL) {
   // Generate a random number:
   $nonce = md5(mt_rand());
 
-  // Calculate a HMAC-SHA1 according to RFC2104 (http://www.ietf.org/rfc/rfc2104.txt):
-  $hash = base64_encode(
-    pack('H*', sha1((str_pad($private_key, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
-    pack('H*', sha1((str_pad($private_key, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) .
-    $time . ':' . $nonce . ':' . $private_key))))
-  );
+  // Calculate a HMAC-SHA1 according to RFC 2104.
+  // @see http://www.ietf.org/rfc/rfc2104.txt
+  $request_data = $time . ':' . $nonce . ':' . $private_key;
+  $hash = base64_encode(hash_hmac('sha1', $request_data, $private_key, TRUE));
 
   // Store everything in an array.  Elsewhere in the code, we'll add the
   // actual data before we pass it onto the XML-RPC library:

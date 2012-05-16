@@ -11,11 +11,11 @@ function scratchpads_media_gallery_node_info(){
   $items = array(
     'media_gallery' => array(
       'name' => t('Media gallery'),
-      'base' => 'node_content',
       'description' => t('Upload media, or select media already uploaded to display together in a gallery.'),
       'has_title' => '1',
       'title_label' => t('Title'),
-      'help' => ''
+      'help' => '',
+      'base' => 'node_content'
     )
   );
   return $items;

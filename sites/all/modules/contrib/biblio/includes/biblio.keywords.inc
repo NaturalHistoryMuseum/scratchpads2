@@ -102,7 +102,6 @@ function biblio_load_keywords_multiple($vids = array()) {
  */
 function biblio_update_keywords($node) {
   $kids = biblio_insert_keywords($node, TRUE);
-  biblio_delete_orphan_keywords();
   return $kids;
 }
 
@@ -238,13 +237,27 @@ function biblio_save_keyword(&$keyword) {
 
 function biblio_delete_orphan_keywords($force = FALSE) {
   if (variable_get('biblio_keyword_orphan_autoclean', 0) || $force) {
-//    $sub_select = db_select('biblio_keyword', 'bk');
-//    $sub_select->addField('bk', 'kid');
-//    $sub_select->distinct();
-//    return db_delete('biblio_keyword_data')
-//            ->condition('kid', $sub_select, 'NOT IN')
-//            ->execute();
-     db_query('DELETE FROM {biblio_keyword_data} WHERE kid NOT IN (SELECT DISTINCT(kid) FROM {biblio_keyword})');
+      $query = db_select('biblio_keyword', 'bk');
+    $active_kids = $query
+      ->fields('bk', array('kid'))
+      ->groupBy('kid')
+      ->execute()
+      ->fetchCol();
+
+    $query = db_select('biblio_keyword_data', 'bkd');
+    $all_kids = $query
+      ->fields('bkd', array('kid'))
+      ->groupBy('kid')
+      ->execute()
+      ->fetchCol();
+
+    $orphans = array_diff($all_kids, $active_kids);
+
+    if (!empty($orphans)) {
+      db_delete('biblio_keyword_data')
+        ->condition('kid', $orphans, 'IN')
+        ->execute();
+    }
   }
   return;
 }
@@ -262,7 +275,6 @@ function biblio_delete_keywords($node) {
   $count = db_delete('biblio_keyword')
             ->condition('nid', $node->nid)
             ->execute();
-  biblio_delete_orphan_keywords();
   return $count;
 }
 

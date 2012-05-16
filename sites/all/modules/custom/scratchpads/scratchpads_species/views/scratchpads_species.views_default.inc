@@ -30,14 +30,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['pager']['options']['items_per_page'] = '1';
   $handler->display->display_options['style_plugin'] = 'list';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* No results behavior: Global: Text area */
-  $handler->display->display_options['empty']['area']['id'] = 'area';
-  $handler->display->display_options['empty']['area']['table'] = 'views';
-  $handler->display->display_options['empty']['area']['field'] = 'area';
-  $handler->display->display_options['empty']['area']['empty'] = FALSE;
-  $handler->display->display_options['empty']['area']['content'] = 'Test';
-  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
-  $handler->display->display_options['empty']['area']['tokenize'] = 0;
   /* Relationship: Parent */
   $handler->display->display_options['relationships']['parent']['id'] = 'parent';
   $handler->display->display_options['relationships']['parent']['table'] = 'taxonomy_term_hierarchy';
@@ -713,6 +705,11 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'spm' => 'spm'
   );
+  /* Filter criterion: Content: General description (field_general_description) */
+  $handler->display->display_options['filters']['field_general_description_value']['id'] = 'field_general_description_value';
+  $handler->display->display_options['filters']['field_general_description_value']['table'] = 'field_data_field_general_description';
+  $handler->display->display_options['filters']['field_general_description_value']['field'] = 'field_general_description_value';
+  $handler->display->display_options['filters']['field_general_description_value']['operator'] = 'not empty';
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
@@ -737,33 +734,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['style_plugin'] = 'gmap';
-  /* Field: Content: Map */
-  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
-  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
-  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
-  $handler->display->display_options['fields']['field_map']['label'] = '';
-  $handler->display->display_options['fields']['field_map']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_map']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_map']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_map']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_map']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_map']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_map']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_map']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_map']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
-  $handler->display->display_options['fields']['field_map']['settings'] = array(
-    'display_convex_hull' => '0'
-  );
-  $handler->display->display_options['fields']['field_map']['field_api_classes'] = 0;
   /* Field: Content: Map */
   $handler->display->display_options['fields']['field_spm_map']['id'] = 'field_spm_map';
   $handler->display->display_options['fields']['field_spm_map']['table'] = 'field_data_field_spm_map';
@@ -795,11 +765,6 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_spm_map']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['delta_first_last'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['field_api_classes'] = 0;
-  /* Sort criterion: Content: Post date */
-  $handler->display->display_options['sorts']['created']['id'] = 'created';
-  $handler->display->display_options['sorts']['created']['table'] = 'node';
-  $handler->display->display_options['sorts']['created']['field'] = 'created';
-  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
   /* Contextual filter: Content: Has taxonomy term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
@@ -834,18 +799,7 @@ function scratchpads_species_views_default_views(){
     'spm' => 'spm'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
-  /* Filter criterion: Content: Map (field_map:latitude) */
-  $handler->display->display_options['filters']['field_map_latitude']['id'] = 'field_map_latitude';
-  $handler->display->display_options['filters']['field_map_latitude']['table'] = 'field_data_field_map';
-  $handler->display->display_options['filters']['field_map_latitude']['field'] = 'field_map_latitude';
-  $handler->display->display_options['filters']['field_map_latitude']['operator'] = 'not empty';
-  $handler->display->display_options['filters']['field_map_latitude']['group'] = 2;
-  /* Filter criterion: Content: Map (field_spm_map:gm3_type) */
-  $handler->display->display_options['filters']['field_spm_map_gm3_type']['id'] = 'field_spm_map_gm3_type';
-  $handler->display->display_options['filters']['field_spm_map_gm3_type']['table'] = 'field_data_field_spm_map';
-  $handler->display->display_options['filters']['field_spm_map_gm3_type']['field'] = 'field_spm_map_gm3_type';
-  $handler->display->display_options['filters']['field_spm_map_gm3_type']['operator'] = 'not empty';
-  $handler->display->display_options['filters']['field_spm_map_gm3_type']['group'] = 2;
+  
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;

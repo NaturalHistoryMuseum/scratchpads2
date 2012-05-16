@@ -1,0 +1,5 @@
+name = Scratchpads sandbox installed notifier
+description = Adds the blocks required by a Sandbox.
+package = "Scratchpads"
+dependencies[] = scratchpads_tweaks
+core = 7.x

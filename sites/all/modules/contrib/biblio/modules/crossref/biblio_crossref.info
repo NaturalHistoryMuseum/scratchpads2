@@ -5,9 +5,9 @@ package = Biblio
 dependencies[] = biblio
 files[] = biblio.crossref.client.php
 
-; Information added by drupal.org packaging script on 2012-02-28
-version = "7.x-1.0-rc3+54-dev"
+; Information added by drupal.org packaging script on 2012-03-20
+version = "7.x-1.0-rc4"
 core = "7.x"
 project = "biblio"
-datestamp = "1330430673"
+datestamp = "1332204338"
 

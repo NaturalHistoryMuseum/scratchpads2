@@ -1,0 +1,4 @@
+name = Scratchpad 2 sandbox
+description = Install a Scratchpad 2 sandbox
+core = 7.x
+dependencies[] = scratchpads_sandbox

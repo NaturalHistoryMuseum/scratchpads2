@@ -1,0 +1,23 @@
+name = Countries translation
+description = "Translation of countries."
+
+; Core version (required)
+core = 7.x
+
+package = "Multilingual - Internationalization"
+
+; Loadable code files
+; files[] = countries_i18n.module
+; files[] = countries_i18n.admin.inc
+; files[] = countries_i18n.class.inc
+
+; Module dependencies
+dependencies[] = countries
+dependencies[] = i18n_string
+
+; Information added by drupal.org packaging script on 2012-05-04
+version = "7.x-2.0"
+core = "7.x"
+project = "countries"
+datestamp = "1336135255"
+

@@ -137,8 +137,45 @@ function scratchpads_taxonomic_name_field_update_7003(){
 /**
  * Set the taxonomic_name_field to unlimited cardinality as requested in #981.
  */
-function scratchpads_taxonomic_name_field_update_7004(){
+function scratchpads_taxonomic_name_field_update_7005(){
   $field = field_info_field('field_taxonomic_name');
-  $field['cardinality'] = '0';
+  $field['cardinality'] = '-1';
+  field_update_field($field);
+}
+
+/**
+ * Rekey the settings array.
+ */
+function scratchpads_taxonomic_name_field_update_7006(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
+  $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
+  field_update_field($field);
+}
+
+/**
+ * Rekey the settings array.
+ */
+function scratchpads_taxonomic_name_field_update_7007(){
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
   field_update_field($field);
 }

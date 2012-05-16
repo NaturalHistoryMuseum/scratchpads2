@@ -5,6 +5,7 @@ class CharacterProjectEntityController extends EntityAdminEntityController{
   static public function ops(){
     $ops = parent::ops();
     $ops['settings'] = 'entity_admin_entity_form';
+    $ops['characters'] = 'entity_admin_entity_form';
     return $ops;
   }
 

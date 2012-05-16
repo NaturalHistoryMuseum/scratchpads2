@@ -1,5 +1,4 @@
 <?php
-// $Id: mollom.api.php,v 1.8 2011/01/11 14:03:51 sun Exp $
 
 /**
  * @file
@@ -270,6 +269,19 @@ function hook_mollom_form_list() {
     'report delete callback' => '_mymodule_user_delete',
   );
   return $forms;
+}
+
+/**
+ * Alter the list of forms that can be protected by Mollom.
+ *
+ * @param &$form_list
+ *   An associative array containing information about the forms that can be
+ *   protected, keyed by $form_id. See hook_mollom_form_list() for details.
+ */
+function hook_mollom_form_list_alter(&$form_list) {
+  if (isset($form_list['mymodule_user_register'])) {
+    $form_list['mymodule_user_register']['report delete callback'] = '_mymodule_user_register_delete';
+  }
 }
 
 /**

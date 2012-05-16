@@ -43,30 +43,32 @@ function scratchpads_backend_admin_content(){
         $node_types = node_type_get_types();
         $statistics = scratchpads_backend_statistics($entity_info);
         foreach(array_keys($entity_info['bundles']) as $bundle){
-          $view_url = 'admin/content/' . $bundle;
-          $operations = array(
-            l(t('View'), $view_url),
-            l(t('Add'), 'node/add/' . str_replace('_', '-', $bundle)),
-            l(t('Import'), ($bundle == 'biblio' ? 'biblio/import' : 'import/node_importer_' . $bundle))
-          );
-          // If there's a grid editor for this view, add a link
-          if(views_get_view('slickgrid_admin_' . $bundle)){
-            $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
+          if(!$node_types[$bundle]->disabled){
+            $view_url = 'admin/content/' . $bundle;
+            $operations = array(
+              l(t('View'), $view_url),
+              l(t('Add'), 'node/add/' . str_replace('_', '-', $bundle)),
+              l(t('Import'), ($bundle == 'biblio' ? 'biblio/import' : 'import/node_importer_' . $bundle))
+            );
+            // If there's a grid editor for this view, add a link
+            if(views_get_view('slickgrid_admin_' . $bundle)){
+              $operations[] = l(t('Grid'), 'admin/content/slickgrid/' . $bundle);
+            }
+            $operations = theme('item_list', array(
+              'items' => $operations
+            ));
+            $rows[] = array(
+              'data' => array(
+                l($node_types[$bundle]->name, $view_url) . (!empty($node_types[$bundle]->description) ? '<p class="description">' . $node_types[$bundle]->description . '</p>' : ''),
+                (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
+                (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
+                $operations
+              ),
+              'class' => array(
+                'node-' . $bundle
+              )
+            );
           }
-          $operations = theme('item_list', array(
-            'items' => $operations
-          ));
-          $rows[] = array(
-            'data' => array(
-              l($node_types[$bundle]->name, $view_url) . (!empty($node_types[$bundle]->description) ? '<p class="description">' . $node_types[$bundle]->description . '</p>' : ''),
-              (isset($statistics[$bundle]['published']) ? $statistics[$bundle]['published'] : 0),
-              (isset($statistics[$bundle]['unpublished']) ? $statistics[$bundle]['unpublished'] : 0),
-              $operations
-            ),
-            'class' => array(
-              'node-' . $bundle
-            )
-          );
         }
         // Manually add character projects if it's enabled
         if(array_key_exists('character_editor_project', $entities_info)){

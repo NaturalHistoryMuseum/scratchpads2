@@ -28,13 +28,23 @@
                 var self = this;
                 this.geo.geocode({location: event.latLng}, function(result, status){
                   if(status === 'OK') {
+                    var region_code = false;
                     for(i in result) {
                       if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
-                        var region_code = result[i].address_components[0]['short_name'];
-                        $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/" + self.selecting_level, function(data){
-                          self.add_region_from_click(data);
-                        });
+                        region_code = result[i].address_components[0]['short_name'];
                       }
+                    }
+                    if(!region_code) {
+                      for(i in result[0].address_components) {
+                        if(result[0].address_components[i].types[0] && result[0].address_components[i].types[0] == 'country' && result[0].address_components[i].types[1] && result[0].address_components[i].types[1] == 'political') {
+                          region_code = result[0].address_components[i]['short_name'];
+                        }
+                      }
+                    }
+                    if(region_code) {
+                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code + "/" + self.selecting_level, function(data){
+                        self.add_region_from_click(data);
+                      });
                     }
                   } else if(status === 'OVER_QUERY_LIMIT') {
                     this.GM3.message(Drupal.t('Woah, slow down, Google is getting annoyed.'), 'warning');

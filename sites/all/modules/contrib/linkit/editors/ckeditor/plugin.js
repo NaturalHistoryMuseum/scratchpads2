@@ -64,6 +64,34 @@
         }
       });
 
+      // Add it to the rightclick menu
+      if (editor.addMenuGroup)
+      {
+        editor.addMenuGroup("Linkit", 100);
+      }
+
+      if (editor.addMenuItems)
+      {
+        editor.addMenuItems( {
+          linkit: {
+            label: 'Linkit',
+            command: 'linkit',
+            icon: this.path + 'linkit.png',
+            group : 'Linkit',
+            order : 0
+          }
+        });
+      }
+
+      if (editor.contextMenu)
+      {
+        editor.contextMenu.addListener(function(element, selection) {
+          if (!element || element.isReadOnly() || (selection.getSelectedText().length < 1 && !element.is('a')))
+            return null;
+          return { linkit: CKEDITOR.TRISTATE_ON };
+        });
+      }
+
       // Register an extra fucntion, this will be used in the popup.
       editor._.linkitFnNum = CKEDITOR.tools.addFunction( insertLink, editor );
     }
@@ -108,7 +136,7 @@
       // We have not selected any link element so lets create a new one.
       var ranges = selection.getRanges( true );
       if (ranges.length == 1 && ranges[0].collapsed) {
-        var text = new CKEDITOR.dom.text(data.attributes['data-cke-saved-href'], editor.document);
+        var text = new CKEDITOR.dom.text(Drupal.linkitCache.link_tmp_title, editor.document);
         ranges[0].insertNode(text);
         ranges[0].selectNodeContents(text);
         selection.selectRanges(ranges);

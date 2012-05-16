@@ -8,7 +8,10 @@
  */
 
 /* Reset styles for lists */
-
+ul.better-autocomplete {
+  madding: 0 !important;
+  margin: 0 !important;
+}
 .better-autocomplete,
 .better-autocomplete > .result {
   list-style: none;

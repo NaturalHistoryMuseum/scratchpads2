@@ -161,6 +161,7 @@ abstract class MigrateDestinationVocabulary extends MigrateDestinationEntity{
     $vocabulary_array = (array)$vocabulary;
     drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
     taxonomy_vocabulary_save($vocabulary);
+    $this->numCreated++;
     return array(
       $vocabulary->vid
     );

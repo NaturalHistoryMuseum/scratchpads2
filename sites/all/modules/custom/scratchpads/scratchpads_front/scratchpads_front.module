@@ -124,7 +124,7 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
   switch($view->name){
     case 'front_page_blocks':
       $var = 'front_page_' . $display_id . '_node_type';
-      $view->args[] = variable_get($var);
+      $view->args[] = scratchpads_front_variable_get($var);
       break;
   }
 }

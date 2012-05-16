@@ -1,0 +1,4 @@
+name = GBIF Registry
+description = Allows for querying and registration with a GBIF registry.
+core = 7.x
+files[] = GBIFRegistry.class.inc

@@ -4,9 +4,9 @@ package = Fields
 version = VERSION
 core = 7.x
 
-; Information added by drupal.org packaging script on 2011-09-23
-version = "7.x-2.0-beta2"
+; Information added by drupal.org packaging script on 2012-05-04
+version = "7.x-2.0"
 core = "7.x"
 project = "countries"
-datestamp = "1316788302"
+datestamp = "1336135255"
 

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * views_handler_filter_countries_continents_list.inc
+ * Views module filter handler class.
  */
 
 /**

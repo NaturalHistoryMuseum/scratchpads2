@@ -406,7 +406,7 @@ function legal_user_login(&$edit, $account) {
     $_SESSION['pass_reset_' . $uid] = $token;
     $query = array('destination' => "user/$uid/edit?pass-reset-token=$token");
   }
- 
+  
   if (!empty($_REQUEST['destination'])) {
     $query = array('destination' => $_REQUEST['destination']);
   }
@@ -584,7 +584,7 @@ function legal_login_validate($form, &$form_state) {
 function legal_login_submit($form, &$form_state) {
   global $user;
   $values = $form_state['values'];
-  $user = user_load(array('uid' => $values['uid']));
+  $user = user_load($values['uid']);
 
 	$redirect = 'user/'. $user->uid;
 

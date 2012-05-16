@@ -32,7 +32,8 @@ function scratchpad_2_training_install_configure_form(){
     'roles' => array(
       5 => TRUE
     ),
-    'timezone' => 'UTC'
+    'timezone' => 'UTC',
+    'legal_accept' => FALSE
   );
   user_save($account, $edit);
   // Ensure this user 1 can not login directly.

@@ -2,9 +2,12 @@
 
 /**
  * @file
- * views_handler_field_countries_continent.inc
+ * Views module filter handler class.
  */
 
+/**
+ * Provides a continent filter.
+ */
 class views_handler_field_countries_continent extends views_handler_field {
   function option_definition() {
     $options = parent::option_definition();

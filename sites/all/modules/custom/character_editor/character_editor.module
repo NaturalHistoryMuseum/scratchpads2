@@ -64,7 +64,7 @@ function character_editor_scratchpads_default_permissions(){
 }
 
 /**
- * Implements hook_theme().
+ * Implementation of hook_theme().
  */
 function character_editor_theme(){
   $path = drupal_get_path('module', 'character_editor');
@@ -80,6 +80,51 @@ function character_editor_theme(){
   );
 }
 
+/**
+ * Implementation of hook_theme().
+ */
+function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  // Character edit form has the local tasks for the relation entity which is confusing
+  // So change the local tasks to those used by the character project 
+  if(isset($router_item['map'][0]) && $router_item['map'][0] == 'character' && isset($router_item['map'][1]) && isset($_GET['project'])){
+    $entity = $router_item['map'][1];
+    $tabs = array();
+    $local_tasks = character_editor_get_local_tasks($_GET['project']);
+    foreach($local_tasks as $path => $local_task){
+      $tab = array(
+        '#theme' => 'menu_local_task',
+        '#link' => $local_task
+      );
+      if($path == 'character-project/%/characters'){
+        $tab['#active'] = true;
+      }
+      $tabs[] = $tab;
+    }
+    $data['tabs'] = array(
+      array(
+        'count' => count($tabs),
+        'output' => $tabs
+      )
+    );
+  }
+}
+
+function character_editor_get_local_tasks($project_id){
+  $local_tasks = array();
+  $result = db_select('menu_router', NULL, array(
+    'fetch' => PDO::FETCH_ASSOC
+  ))->fields('menu_router')->condition('tab_parent', 'character-project/%')->condition('context', MENU_CONTEXT_INLINE, '<>')->orderBy('weight')->orderBy('title')->execute();
+  $map = array(
+    'character',
+    $project_id
+  );
+  foreach($result as $item){
+    _menu_translate($item, $map, TRUE);
+    $local_tasks[$item['path']] = $item;
+  }
+  return $local_tasks;
+}
+
 /*********************************************************************************************
  * 
  * VIEWS HOOKS
@@ -92,7 +137,7 @@ function character_editor_views_api(){
   $path = drupal_get_path('module', 'character_editor');
   return array(
     'api' => '3',
-    'path' => $path . '/includes'
+    'path' => $path . '/views'
   );
 }
 
@@ -305,14 +350,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       switch($form['#entity_type']){
         case 'character_editor_character':
           // Is this an add link from slickgrid
-          if($form_state['entity']->type != 'group'){
-            if(!isset($form_state['character_project_id'])){
-              if($form_state['entity']->is_new){
-                $form_state['character_project_id'] = arg(7);
-              }else{
-                $form_state['character_project_id'] = $_GET['project'];
-              }
+          if(!isset($form_state['character_project_id'])){
+            if($form_state['entity']->is_new){
+              $form_state['character_project_id'] = arg(7);
+            }else{
+              $form_state['character_project_id'] = $_GET['project'];
             }
+          }
+          if($form_state['entity']->type != 'group'){
             $groups = character_editor_get_groups($form_state['character_project_id']);
             if(count($groups)){
               $form['group'] = array(
@@ -328,32 +373,50 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
             }
           }
-          if(!$form_state['entity']->is_new){
+          if($form_state['entity']->is_new){
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+          }else{
             $destination = drupal_get_destination();
             $form['actions']['back'] = array(
               '#type' => 'submit',
               '#value' => t('Back'),
               '#submit' => array()
             );
+            // The tabs have been changed so there's no longer delete - add delete button
+            $form['actions']['delete'] = array(
+              '#type' => 'submit',
+              '#value' => t('Delete'),
+              '#submit' => array(
+                'character_editor_character_delete_submit'
+              )
+            );
           }
-          $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
           $form['#after_build'][] = 'character_editor_character_form_after_build';
           break;
         case 'character_editor_project':
+          // Character editor project form is broken up into edit characters (relations field)
+          // And settings
+          if(arg(2) == 'settings'){
+            // Hide the characters on the settings form
+            $form['field_characters']['#access'] = false;
+          }else{
+            // Hide all other fields on the edit characters form
+            foreach(array(
+              'title',
+              'field_char_proj_description',
+              'field_taxonomic_name'
+            ) as $key){
+              $form[$key]['#access'] = false;
+            }
+          }
           $form['title']['#title'] = t('Title');
           break;
       }
       break;
+    case 'entity_admin_entity_delete_form':
+      $form['actions']['cancel']['#href'] = 'character-project/' . $_GET['project'] . '/characters';
+      break;
   }
-}
-
-function character_editor_character_form_after_build(&$form, &$form_state){
-  // Bug fix: subform destroys the $_POST array so slickgrid doesn't know when form has validated
-  // Manually set it here
-  if(empty($_POST)){
-    $form['#validated'] = true;
-  }
-  return $form;
 }
 
 /*********************************************************************************************
@@ -474,6 +537,7 @@ function character_editor_entity_access($op){
       $op = 'view';
       break;
     case 'settings':
+    case 'characters':
       $op = 'edit';
       break;
   }
@@ -565,6 +629,8 @@ function character_editor_project_view($entity){
       )
     );
   }
+  // views_get_view overwites the title so need to reset it here 
+  drupal_set_title($entity->label());
   return $build;
 }
 
@@ -606,6 +672,32 @@ function character_editor_character_form_submit(&$form, &$form_state){
 }
 
 /**
+ * Handle submission of character form delete button
+ * @param array $form
+ * @param array $form_state
+ */
+function character_editor_character_delete_submit($form, &$form_state){
+  unset($_GET['destination']);
+  drupal_static_reset('drupal_get_destination');
+  drupal_get_destination();
+  // Cannot use  $form_state['redirect'] as the query params get mangled
+  drupal_goto('character/' . $form_state['entity']->id . '/delete', array(
+    'query' => array(
+      'project' => $_GET['project']
+    )
+  ));
+}
+
+function character_editor_character_form_after_build(&$form, &$form_state){
+  // Bug fix: subform destroys the $_POST array so slickgrid doesn't know when form has validated
+  // Manually set it here
+  if(empty($_POST)){
+    $form['#validated'] = true;
+  }
+  return $form;
+}
+
+/**
  * 
  * Create a relation between two entities
  * Invoked from character_editor_add_character_form_submit()
@@ -640,7 +732,7 @@ function character_editor_create_relation($parent_entity, $character_entity){
  * TODO - hook into views default
  */
 function character_editor_get_default_view(){
-  module_load_include('inc', 'character_editor', 'includes/character_editor.views_default');
+  module_load_include('inc', 'character_editor', 'views/character_editor.views_default');
   return key(character_editor_views_default_views());
 }
 
@@ -723,10 +815,10 @@ function character_editor_state_form_process($editor){
   $editor->entity_info = entity_get_info($editor->entity_type);
   switch($form_state['values']['character_type']){
     case 'text':
-    	$form_state['title'] = t("Editing text character");
+      $form_state['title'] = t("Editing text character");
       break;
     case 'dna':
-    	$form_state['title'] = t("Editing DNA character");
+      $form_state['title'] = t("Editing DNA character");
       break;
   }
   $form_state['ajax'] = true;
@@ -1007,6 +1099,23 @@ function character_editor_preprocess_slickgrid_control__add(&$variables){
   ) as $character){
     $variables['add_links'][] = $add_links[$character];
   }
+}
+
+/*********************************************************************************************
+ * 
+ * EXPORT
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocess xml output template.
+ */
+function template_preprocess_views_data_export_sdd(&$vars){
+  // Compute the root XML node, using the base table, and appending an 's' if needed.
+//  $root_node = $vars['view']->base_table;
+//  if (rtrim($root_node, 's') == $root_node) {
+//    $root_node .= 's';
+//  }
+//  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
 }
 
 /*********************************************************************************************

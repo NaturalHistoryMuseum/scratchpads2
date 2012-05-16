@@ -67,7 +67,7 @@
 
       function addRowEventHandlers(context){        
         // Check selected & add event handler: row clicked
-        $('.views-view-relation-select tr:not(.processed)', context).each(
+        $('.views-view-relation-select tr', context).once(
             function(){
               id = $(this).parents('.relation-select-views-output').siblings(
                   '.relation-select-entities').attr("id");
@@ -80,7 +80,7 @@
                 return false;
               });
 
-            }).addClass('processed');
+            });
       }
 
       function addInputEventHandlers(context){

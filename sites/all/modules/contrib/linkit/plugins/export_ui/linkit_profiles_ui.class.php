@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Class that extends the regular ctools export ui.
@@ -76,7 +75,7 @@ class linkit_profiles_ui extends ctools_export_ui {
     $options = array(
       'disabled' => t('Weight'),
       'disabled_title' => t('Enabled, title'),
-      'admin_title'=> t('Title'),
+      'admin_title' => t('Title'),
       'name' => t('Name'),
       'storage' => t('Storage'),
     );

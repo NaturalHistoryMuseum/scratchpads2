@@ -1173,7 +1173,7 @@ $handler->display->display_options['menu']['type'] = 'normal';
 $handler->display->display_options['menu']['title'] = 'Species Found';
 $handler->display->display_options['menu']['name'] = 'main-menu';
 
-$xport['bioblitz_finds'] = $view;
+$export['bioblitz_finds'] = $view;
 
   
   return $export;

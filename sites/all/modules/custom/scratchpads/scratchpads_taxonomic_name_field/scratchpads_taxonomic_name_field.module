@@ -5,7 +5,7 @@
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
-    // We have a biological classification.  We need to update the field.
+    // We have a biological classification. We need to update the field.
     field_cache_clear(TRUE);
     $field = field_info_field('field_taxonomic_name');
     $bio_vids = variable_get('biological_vids', array());
@@ -33,32 +33,35 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
  * Implements hook_form_alter()
  */
 function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
-  if(isset($form['#node_edit_form']) && $form['#node_edit_form']){
-    if(isset($form['field_taxonomic_name'])){
-      $biological_vids = variable_get('biological_vids', FALSE);
-      if(!$biological_vids){
-        unset($form['field_taxonomic_name']);
-      }else{
-        $unset = TRUE;
-        foreach($biological_vids as $key => $value){
-          if($value){
-            $unset = FALSE;
-            break;
-          }
-        }
-        if($unset){
-          unset($form['field_taxonomic_name']);
-        }
-      }
+  field_cache_clear(TRUE);
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
     }
   }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
+  field_update_field($field);
 }
 
 /**
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
-  // We have a biological classification.  We need to update the field.
+  // We have a biological classification. We need to update the field.
   $field = field_info_field('field_taxonomic_name');
   $update = FALSE;
   foreach($field['settings']['allowed_values'] as $key => $value){
@@ -75,6 +78,7 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary
     }
   }
   if($update){
+    $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
     field_update_field($field);
   }
 }
@@ -108,7 +112,7 @@ function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info = F
 
 /**
  * Implements hook_ctools_plugin_api().
- * 
+ *
  * Magic happens just because this function exists (fucked up, I know).
  */
 function scratchpads_taxonomic_name_field_ctools_plugin_api(){}
@@ -173,6 +177,36 @@ function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
         break;
       }
     }
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ *
+ * FIXME - This should not be required. Unfortunately I have been unable to
+ * track down why some taxonomic name fields are not always associated with the
+ * correct vocabularies. This will put a giant fucking plaster over the issue.
+ */
+function scratchpads_taxonomic_name_field_cron(){
+  // We have a biological classification. We need to update the field.
+  $field = field_info_field('field_taxonomic_name');
+  $update = FALSE;
+  foreach($field['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary'] == $vocabulary->machine_name){
+      $update = TRUE;
+      unset($field['settings']['allowed_values'][$key]);
+      if(!count($field['settings']['allowed_values'])){
+        $field['settings']['allowed_values'][0] = array(
+          'parent' => 0,
+          'vocabulary' => '__temporary__'
+        );
+      }
+      break;
+    }
+  }
+  if($update){
+    $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
+    field_update_field($field);
   }
 }
 

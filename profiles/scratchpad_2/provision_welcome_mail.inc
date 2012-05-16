@@ -34,15 +34,16 @@ if(function_exists('drush_get_option')){
   $account->field_user_title[LANGUAGE_NONE][] = array(
     'value' => drush_get_option('client_title', 'Dr')
   );
+  // Can the following be removed? What is it doing there?  Need to test it's
+  // actually not doing anything.
   drupal_write_record('legal_accepted', $record);
-  /*
-   * FIXME - Unable to set the country correctly.  This simply means a new user
-   * will have to set the country value.
-   * 
-  $account->field_user_country[LANGUAGE_NONE][] = array(
-    'value' => drush_get_option('country', 'GB')
-  );
-  */
+  // Try to set the country based on what was entered in the drop down.
+  $row = db_select('countries_country', 'c')->fields('c', array(
+    'cid'
+  ))->condition('name', drush_get_option('country', 'United Kingdom'))->execute()->fetch();
+  if($row && count($row)){
+    $account->field_user_country[LANGUAGE_NONE][] = countries_load($row->cid);
+  }
   $name_parts = explode(' ', $account->name);
   if(count($name_parts) > 1){
     $account->field_user_family_name[LANGUAGE_NONE][] = array(
@@ -52,7 +53,7 @@ if(function_exists('drush_get_option')){
   $account->field_user_given_names[LANGUAGE_NONE][] = array(
     'value' => implode(' ', $name_parts)
   );
-  if($instituition = drush_get_option('institution', 'N/A')){
+  if($institution = drush_get_option('institution', 'N/A')){
     $account->field_user_institution[LANGUAGE_NONE][] = array(
       'value' => $institution
     );

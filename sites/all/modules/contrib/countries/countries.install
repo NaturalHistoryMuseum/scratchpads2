@@ -19,28 +19,31 @@ function countries_schema() {
         'description' => 'Primary Key: Unique country ID. Required for the country bundle.',
       ),
       'iso2' => array(
-        'description' => 'ISO2 country code.',
+        'description' => 'ISO 3166-1 alpha-2 country code.',
         'type' => 'char',
         'length' => 2,
         'not null' => TRUE,
       ),
       'iso3' => array(
-        'description' => 'ISO3 country code.',
+        'description' => 'ISO 3166-1 alpha-3 country code.',
         'type' => 'char',
         'length' => 3,
         'not null' => FALSE,
       ),
       'name' => array(
+        'description' => 'ISO 3166-1 official short name.',
         'type' => 'varchar',
         'length' => 95,
         'not null' => TRUE,
       ),
       'official_name' => array(
+        'description' => 'ISO 3166-1 official long name.',
         'type' => 'varchar',
         'length' => 127,
         'not null' => TRUE,
       ),
       'numcode' => array(
+        'description' => 'ISO 3166-1 numeric-3 country code.',
         'type' => 'int',
         'size' => 'small',
         'not null' => FALSE,
@@ -68,10 +71,7 @@ function countries_schema() {
     'primary key' => array('cid'),
     'unique keys' => array(
       'iso2' => array('iso2'),
-      'iso3' => array('iso3'),
-      'numcode' => array('numcode'),
       'name' => array('name'),
-      'official_name' => array('official_name'),
     ),
     'indexes' => array(
       'enabled' => array('enabled'),
@@ -84,7 +84,7 @@ function countries_schema() {
 }
 
 /**
- * Implement hook_field_schema().
+ * Implements hook_field_schema().
  */
 function countries_field_schema($field) {
   return array(
@@ -102,7 +102,7 @@ function countries_field_schema($field) {
 }
 
 /**
- * Implement hook_install().
+ * Implements hook_install().
  */
 function countries_install() {
   // Import the data.
@@ -110,10 +110,24 @@ function countries_install() {
 }
 
 /**
- * Implement hook_uninstall().
+ * Implements hook_uninstall().
  */
 function countries_uninstall() {
   variable_del('countries_continents');
+  variable_del('countries_csv_datasource');
+}
+
+
+/**
+ * Helper function to inform users about available updates.
+ */
+function countries_install_available_update_message($link) {
+  $t = get_t();
+  drupal_set_message($t('Visit the countries !config_page to import the most recent changes from the !link.',
+    array(
+      '!config_page' => l($t('configuration page'), 'admin/config/regional/countries/import'),
+      '!link' => $link,
+    )));
 }
 
 /**
@@ -125,13 +139,20 @@ function countries_import_csv() {
   $handle = fopen(dirname(__FILE__) . '/countries.csv', 'r');
   $headers = fgetcsv($handle, 1024, ",");
   while (($row = fgetcsv($handle, 1024, ",")) !== FALSE) {
-    $row[0] = trim($row[0]);  // iso2
-    $row[1] = empty($row[1]) || $row[1] == 'NULL' ? '' : trim($row[1]); // iso3
-    $row[2] = empty($row[2]) || $row[2] == 'NULL' ? '' : trim($row[2]); // name
-    $row[3] = empty($row[3]) || $row[3] == 'NULL' ? '' : trim($row[3]); // official name
-    $row[4] = empty($row[4]) || $row[4] == 'NULL' ? 0 : trim($row[4]); // number code
-    $row[5] = empty($row[5]) || $row[5] == 'NULL' ? 'UN' : trim($row[5]); // continent
-    $row[6] = empty($row[6]) || $row[6] == 'NULL' ? 0 : 1; // enabled
+    // The iso2 data.
+    $row[0] = trim($row[0]);
+    // The iso3 data.
+    $row[1] = empty($row[1]) || $row[1] == 'NULL' ? '' : trim($row[1]);
+    // The name data.
+    $row[2] = empty($row[2]) || $row[2] == 'NULL' ? '' : trim($row[2]);
+    // The official name data.
+    $row[3] = empty($row[3]) || $row[3] == 'NULL' ? '' : trim($row[3]);
+    // The number code data.
+    $row[4] = empty($row[4]) || $row[4] == 'NULL' ? 0 : trim($row[4]);
+    // The continent data.
+    $row[5] = empty($row[5]) || $row[5] == 'NULL' ? 'UN' : trim($row[5]);
+    // The enabled data.
+    $row[6] = empty($row[6]) || $row[6] == 'NULL' ? 0 : 1;
     if (!empty($row[0]) && $row[0] != 'NULL') {
       $countries[$row[0]] = array(
         'iso2' => $row[0],
@@ -157,30 +178,31 @@ function countries_import_csv() {
         'iso2' => $code,
         'iso3' => '',
         'name' => $name,
-        'official_name' => $name,
+        'official_name' => '',
         'continent' => 'UN',
         'enabled' => 1,
         'numcode' => 0,
       );
     }
   }
-  $insert = db_insert('countries_country')->fields(array('iso2', 'iso3', 'name', 'official_name', 'continent', 'enabled', 'numcode'));
+  $insert = db_insert('countries_country')->fields(array(
+    'iso2',
+    'iso3',
+    'name',
+    'official_name',
+    'continent',
+    'enabled',
+    'numcode',
+  ));
   foreach ($countries as $country) {
     $insert->values($country);
   }
   $insert->execute();
   watchdog('countries', "Pre-populated countries data.");
 }
-/**
- * This will flush the the menu cache to add the new import URL for country imports.
- */
-function countries_update_7100() {
-  $t = get_t();
-  drupal_set_message($t('Visit the countries !config_page to import the most recent iso changes.', array('!config_page' => l('configuration page', 'admin/config/regional/countries/import'))));
-}
 
 /**
- * This adds a translatable country possiblity.
+ * This adds a translatable country possibility.
  */
 function countries_update_7101() {
   db_add_field('countries_country', 'language', array(
@@ -227,13 +249,70 @@ function countries_update_7200() {
 }
 
 /**
- * This will flush any stale cache data and direct the users to the import URL for syncing with the countries csv import file.
+ * This drops the unique indexes on the official name, ISO3 and NumCode.
+ *
+ * These fields are not required, so this will lead to PDO exceptions if two or
+ * more countries have these fields left blank.
  */
-function countries_update_7201() {
+function countries_update_7202() {
+  db_drop_unique_key('countries_country', 'iso3');
+  db_drop_unique_key('countries_country', 'numcode');
+  db_drop_unique_key('countries_country', 'official_name');
+}
+
+/**
+ * This updates the display settings to handle the new singular icon formatter.
+ */
+function countries_update_7203() {
+  if (!module_exists('countryicons')) {
+    return;
+  }
+  $flush = FALSE;
+  foreach (field_info_fields() as $field_name => $field) {
+    if ($field['type'] == 'country' && !empty($field['bundles'])) {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle) {
+          $changed = FALSE;
+          $instance = field_info_instance($entity_type, $field_name, $bundle);
+          if (!empty($instance['display'])) {
+            foreach ($instance['display'] as $view_mode => &$display) {
+              if (strpos($display['type'], 'country_countryicons_') === 0) {
+                list(, , $icon_type, $icon_set_name) = explode('_', $display['type'], 4);
+                $property = '';
+                if ($icon_type == 'imagename') {
+                  $property = 'name';
+                  $icon_type = 'image';
+                }
+                $display['type'] = 'country_icon';
+                $display['settings']['countryiconset'] = $icon_type . '_' . $icon_set_name;
+                $display['settings']['property'] = '';
+                $changed = TRUE;
+              }
+            }
+          }
+          if ($changed) {
+            field_update_instance($instance);
+            $flush = TRUE;
+          }
+        }
+      }
+    }
+  }
+  if ($flush) {
+    field_cache_clear();
+  }
+}
+
+/**
+ * Informs the user about the latest round of name changes.
+ *
+ * The name field is 100% in sync with the ISO standard with this release.
+ */
+function countries_update_7204() {
   $t = get_t();
-  drupal_set_message($t('Visit the countries !config_page to import the most recent iso changes from ISO !link.',
-    array(
-      '!config_page' => l($t('configuration page'), 'admin/config/regional/countries/import'),
-      '!link' => l($t('Newsletter VI-9'), 'http://www.iso.org/iso/newsletter_vi-9_fiji-myanmar_and_other_minor_corrections-incl_bulgaria.pdf', array('external' => 1))
-    )));
+  $link = l($t('ISO Newsletter !version', array('!version' => 'VI-11')),
+    'http://www.iso.org/iso/nl_vi-11_name_change_for_libya.pdf',
+    array('external' => 1));
+  countries_install_available_update_message($link);
+  cache_clear_all();
 }

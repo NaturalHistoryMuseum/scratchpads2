@@ -186,3 +186,12 @@ function scratchpads_media_gallery_update_7001(){
   field_update_instance($instance);
   return 'Updated page media field';
 }
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function scratchpads_media_gallery_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'scratchpads_media_gallery')->execute();
+}
