@@ -1,15 +1,38 @@
 <?php
+/**
+ * Standard PHP class for interacting with the GBIF registry.
+ *
+ * Copyright (C) 2012 Simon David Rycroft
+ * @author s.rycroft@nhm.ac.uk
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+namespace GBIF;
 
 /**
- * Standard class for interacting with the GBIF registry.  Note, this code
- * should NOT rely on any Drupal functions to aid in its portability.  If 
- * Drupal specific functions need to be used, an alternative should be provided.
+ * The Registry class is the central access point to all other GBIF Registy
+ * functions.  This class provides the functions for accessing the registry, and
+ * also provides the authentication methods.
+ * 
+ * This class should be created like:
+ * 
+ * $gbif_registry = new GBIF\Registry();
  * 
  * @author simor
  */
-class GBIFRegistry{
-
-  //private $registry_url = 'http://gbrds.gbif.org/registry/';
+class Registry{
+  // private $registry_url = 'http://gbrds.gbif.org/registry/';
   private $registry_url = 'http://gbrdsdev.gbif.org/registry/';
 
   private $alternative_functions = array();
@@ -30,16 +53,17 @@ class GBIFRegistry{
   }
 
   /**
-   * Allows for defining of alternative functions to be called for HTTP 
+   * Allows for defining of alternative functions to be called for HTTP
    * operations.
-   * 
-   * @param Array $alternatives
+   *
+   * @param Array $alternatives          
    */
   public function set_alternative_functions($alternatives){
     $this->alternative_functions = array_merge($this->alternative_functions, $alternatives);
   }
 
   /**
+   *
    * @return the $alternative_functions
    */
   public function get_alternative_functions(){
@@ -47,6 +71,7 @@ class GBIFRegistry{
   }
 
   /**
+   *
    * @return the $registry_url
    */
   public function get_registry_url(){
@@ -54,15 +79,15 @@ class GBIFRegistry{
   }
 
   /**
-   * @param field_type $registry_url
+   *
+   * @param field_type $registry_url          
    */
   public function set_registry_url($registry_url){
     $this->registry_url = $registry_url;
   }
-
   // -- NODES ------------------------------------------------------------------
   // FIXME - As the Scratchpads are unlikely to create new nodes, we probably
-  // don't need this code yet.  This can be worked on in the future.
+  // don't need this code yet. This can be worked on in the future.
   /**
    * Simple function to get a list of all organisations
    */
@@ -75,7 +100,6 @@ class GBIFRegistry{
       throw new GBIFRegistryError($this->translate('Unable to decode the "node" JSON'));
     }
   }
-
   // -- ORGANISATIONS ----------------------------------------------------------
   /**
    * Simple function to get a list of all organisations
@@ -134,19 +158,19 @@ class GBIFRegistry{
    * authentication.
    */
   function set_organisation($key, $pass){}
-
   // -- RESOURCES --------------------------------------------------------------
   function create_resource($resource){
     // We check the integrity of the data before posting it.
   }
 
   /**
-   * Wrapper for the http_put_file function.  This allows us to simplify the
-   * call, and also allows us to use an alternative function (CURL, etc) if 
+   * Wrapper for the http_put_file function.
+   * This allows us to simplify the
+   * call, and also allows us to use an alternative function (CURL, etc) if
    * required.
-   * 
-   * @param String $path
-   * @param String $file_path
+   *
+   * @param String $path          
+   * @param String $file_path          
    */
   private function put($path, $file){
     if(isset($this->alternative_functions['put']) && function_exists($this->alternative_functions['put'])){
@@ -169,7 +193,8 @@ class GBIFRegistry{
   }
 
   /**
-   * Simple function to allow us to translate text.  Note, this is included to
+   * Simple function to allow us to translate text.
+   * Note, this is included to
    * work nicely with Drupal.
    */
   function translate($untranslated_text){
