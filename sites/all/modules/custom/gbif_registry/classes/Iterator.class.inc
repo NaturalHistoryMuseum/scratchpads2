@@ -27,7 +27,7 @@ class Iterator extends RegistryChild implements \Iterator{
   // surprises if the default on the service is changed.
   protected $resultsPerPage = 20;
   // Store the most recent result of the call to the webservice. Common sense!
-  protected $results = FALSE;
+  protected $results = array();
   // Store whether or not the previous data call should be the last.
   protected $endReached = FALSE;
 
@@ -65,11 +65,23 @@ class Iterator extends RegistryChild implements \Iterator{
     // the offset.
     if(!$this->endReached){
       $data = $this->registry->get_json($this->path . '?offset=' . $this->position . '&limit=' . $this->resultsPerPage);
-      $this->endReached = $data['endOfRecords'];
       $i = $this->position;
-      foreach($data['results'] as $node){
-        $this->results[$i] = $node;
-        $i++;
+      if(isset($data['endOfRecords'])){
+        $this->endReached = $data['endOfRecords'];
+        if(is_array($data['results'])){
+          foreach($data['results'] as $result){
+            $this->results[$i] = $result;
+            $i++;
+          }
+        }
+      }else{
+        // We have all the results at once. The objects here are not within the
+        // results array.
+        $this->endReached = TRUE;
+        foreach($data as $result){
+          $this->results[$i] = $result;
+          $i++;
+        }
       }
     }
   }

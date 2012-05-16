@@ -106,7 +106,7 @@ class Node extends RegistryChild{
   /**
    */
   public function getContacts(){
-    return $this->contacts;
+    return new Contacts($this->registry, "node/{$this->key}/contact");
   }
 
   /**

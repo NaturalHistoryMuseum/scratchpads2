@@ -91,7 +91,7 @@ class Registry{
    * Allows for defining of alternative functions to be called for HTTP
    * operations.
    *
-   * @param Array $alternatives
+   * @param Array $alternatives          
    */
   public function setAlternativeFunctions($alternatives, $clear = FALSE){
     $this->alternativeFunctions = array_merge($this->alternativeFunctions, $alternatives);
@@ -103,8 +103,8 @@ class Registry{
    * call, and also allows us to use an alternative function (CURL, etc) if
    * required.
    *
-   * @param String $path
-   * @param String $file_path
+   * @param String $path          
+   * @param String $file_path          
    */
   public function put($path, $file){
     if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
@@ -119,13 +119,24 @@ class Registry{
    * function if required.
    */
   public function get($path){
-    if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
-      return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
-    }else{
-      return file_get_contents($this->registryURL . $path);
+    try{
+      if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
+        return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
+      }else{
+        if($html = @file_get_contents($this->registryURL . $path)){
+          return $html;
+        } else {
+          return '[]';
+        }
+      }
+    }
+    catch(Exception $e){
+      // Possibly 404 error.  We should probably check!
+      // We return "[]" because when decoded it is an empty array.
+      return '[]';
     }
   }
-  
+
   /**
    * Simple wrapper to the get function that returns a json_decoded'd array.
    */
