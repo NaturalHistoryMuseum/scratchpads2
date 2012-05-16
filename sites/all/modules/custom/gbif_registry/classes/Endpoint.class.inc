@@ -22,9 +22,9 @@ namespace GBIF;
 
 class Endpoint extends RegistryChild{
 
-  private $predicate;
+  protected $predicate;
 
-  private $networkEntityKey;
+  protected $networkEntityKey;
 
   public function __construct(Registry $reg, $data = FALSE){
     if($data){

@@ -22,13 +22,13 @@ namespace GBIF;
 
 class Identifier extends RegistryChild{
 
-  private $id;
+  protected $id;
 
-  private $type;
+  protected $type;
 
-  private $identifier;
+  protected $identifier;
 
-  private $networkEntityKey;
+  protected $networkEntityKey;
 
   public function __construct(Registry $reg, $data = FALSE){
     if($data){

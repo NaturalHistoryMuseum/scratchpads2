@@ -20,35 +20,7 @@
  */
 namespace GBIF;
 
-class Node extends RegistryChild{
-  // String properties
-  private $key;
-
-  private $title;
-
-  private $country;
-
-  private $homepage;
-
-  private $description;
-
-  private $address;
-
-  private $city;
-
-  private $phone;
-
-  private $email;
-
-  private $zip;
-
-  private $contacts = array();
-
-  private $extra_data = array();
-
-  private $endpoints = array();
-
-  private $organizations = FALSE;
+class Node extends RegistryObject{
 
   public function __construct(Registry $reg, $data = FALSE){
     parent::__construct($reg);
@@ -91,6 +63,10 @@ class Node extends RegistryChild{
     }
   }
 
+  final public function getURLPrefix(){
+    return 'node';
+  }
+
   /**
    * Save
    *
@@ -102,217 +78,11 @@ class Node extends RegistryChild{
   public function save(){
     ;
   }
-  /**
-   * 
-   */
-  public function getIdentifiers(){
-    return new Identifiers($this->registry, "node/{$this->key}/identifier");    
-  }
-
-  /**
-   */
-  public function getTags(){
-    return new Tags($this->registry, "node/{$this->key}/tag");
-  }
-
-  /**
-   */
-  public function getEndpoints(){
-    return new Endpoints($this->registry, "node/{$this->key}/endpoint");
-  }
-
-  /**
-   */
-  public function getContacts(){
-    return new Contacts($this->registry, "node/{$this->key}/contact");
-  }
-
-  /**
-   * Sets the contacts for this Node.
-   *
-   * FIXME - Need to check that this is possible, it doesn't appear to be given
-   * that removing a contact actually involves deleting it (really?).
-   * public function setContacts($contacts){
-   * $this->contacts = $contacts;
-   * }
-   */
-  /**
-   * Add a single contact to this node.
-   *
-   * FIXME - Nothing is done here.
-   */
-  public function addContact(Contact $contact){
-    $this->contacts[] = $contact;
-  }
 
   /**
    * Gets the organizations endorsed by this node.
    */
   public function getOrganizations(){
     return new Organizations($this->registry, "node/{$this->key}/organization");
-  }
-
-  /**
-   *
-   * @return the $key
-   */
-  public function getKey(){
-    return $this->key;
-  }
-
-  /**
-   *
-   * @return the $title
-   */
-  public function getTitle(){
-    return $this->title;
-  }
-
-  /**
-   *
-   * @return the $country
-   */
-  public function getCountry(){
-    return $this->country;
-  }
-
-  /**
-   *
-   * @return the $homepage
-   */
-  public function getHomepage(){
-    return $this->homepage;
-  }
-
-  /**
-   *
-   * @return the $description
-   */
-  public function getDescription(){
-    return $this->description;
-  }
-
-  /**
-   *
-   * @return the $address
-   */
-  public function getAddress(){
-    return $this->address;
-  }
-
-  /**
-   *
-   * @return the $city
-   */
-  public function getCity(){
-    return $this->city;
-  }
-
-  /**
-   *
-   * @return the $phone
-   */
-  public function getPhone(){
-    return $this->phone;
-  }
-
-  /**
-   *
-   * @return the $email
-   */
-  public function getEmail(){
-    return $this->email;
-  }
-
-  /**
-   *
-   * @return the $zip
-   */
-  public function getZip(){
-    return $this->zip;
-  }
-
-  /**
-   *
-   * @param field_type $key          
-   */
-  public function setKey($key){
-    $this->key = $key;
-  }
-
-  /**
-   *
-   * @param field_type $title          
-   */
-  public function setTitle($title){
-    $this->title = $title;
-  }
-
-  /**
-   *
-   * @param field_type $country          
-   */
-  public function setCountry($country){
-    $this->country = $country;
-  }
-
-  /**
-   *
-   * @param field_type $homepage          
-   */
-  public function setHomepage($homepage){
-    $this->homepage = $homepage;
-  }
-
-  /**
-   *
-   * @param field_type $description          
-   */
-  public function setDescription($description){
-    $this->description = $description;
-  }
-
-  /**
-   *
-   * @param field_type $address          
-   */
-  public function setAddress($address){
-    $this->address = $address;
-  }
-
-  /**
-   *
-   * @param field_type $city          
-   */
-  public function setCity($city){
-    $this->city = $city;
-  }
-
-  /**
-   *
-   * @param field_type $phone          
-   */
-  public function setPhone($phone){
-    $this->phone = $phone;
-  }
-
-  /**
-   *
-   * @param field_type $email          
-   */
-  public function setEmail($email){
-    $this->email = $email;
-  }
-
-  /**
-   *
-   * @param field_type $zip          
-   */
-  public function setZip($zip){
-    $this->zip = $zip;
-  }
-
-  public function __toString(){
-    return $this->title;
   }
 }

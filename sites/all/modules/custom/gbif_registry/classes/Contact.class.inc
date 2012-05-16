@@ -22,25 +22,25 @@ namespace GBIF;
 
 class Contact extends RegistryChild{
 
-  private $id;
+  protected $id;
 
-  private $type;
+  protected $type;
 
-  private $preferred;
+  protected $preferred;
 
-  private $networkEntityKey;
+  protected $networkEntityKey;
 
-  private $position;
+  protected $position;
 
-  private $firstName;
+  protected $firstName;
 
-  private $lastName;
+  protected $lastName;
 
-  private $email;
+  protected $email;
 
-  private $phone;
+  protected $phone;
 
-  private $address;
+  protected $address;
 
   public function __construct(Registry $reg, $data = FALSE){
     if($data){

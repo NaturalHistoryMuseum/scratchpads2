@@ -35,4 +35,8 @@ class RegistryChild{
   public function getRegistry(){
     return $this->registry;
   }
+
+  public function __toString(){
+    return (isset($this->key) ? $this->key . ': ' : '') . (isset($this->title) ? $this->title : '');
+  }
 }

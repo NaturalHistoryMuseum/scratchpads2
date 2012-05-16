@@ -20,7 +20,7 @@
  */
 namespace GBIF;
 
-class Organization extends RegistryChild{
+class RegistryObject extends RegistryChild{
   // String properties
   protected $key;
 
@@ -52,12 +52,12 @@ class Organization extends RegistryChild{
 
   public function __construct(Registry $reg, $data = FALSE){
     parent::__construct($reg);
-    // If we passed a string, we assume it's the ID of a organization.
+    // If we passed a string, we assume it's the ID of a node.
     if(is_string($data)){
-      $data = $reg->get_json("organization/$data");
+      $data = $reg->get_json("node/$data");
     }
-    // If we passed an array, we assume we're building this organization from a
-    // "Organizations" query.
+    // If we passed an array, we assume we're building this node from a "Nodes"
+    // query.
     if(is_array($data)){
       foreach($data as $key => $value){
         switch($key){
@@ -78,7 +78,7 @@ class Organization extends RegistryChild{
           case 'identifiers':
           case 'tags':
             // We ignore the contacts/endpoints/identifiers/tags, and rely on
-            // the /organization/<k1>/x service
+            // the /node/<k1>/x service
             break;
           case 'language':
             break;
@@ -94,41 +94,41 @@ class Organization extends RegistryChild{
   /**
    * Save
    *
-   * We should save the organization at this point. We also need to add any
-   * contacts that have been added.
+   * We should save the node at this point. We also need to add any contacts
+   * that have been added.
    *
    * FIXME - This does not yet function
    */
   public function save(){
     ;
   }
-
   /**
+   * 
    */
   public function getIdentifiers(){
-    return new Identifiers($this->registry, "organization/{$this->key}/identifier");
+    return new Identifiers($this->registry, $this->getURLPrefix()."/{$this->key}/identifier");    
   }
 
   /**
    */
   public function getTags(){
-    return new Tags($this->registry, "organization/{$this->key}/tag");
+    return new Tags($this->registry, $this->getURLPrefix()."/{$this->key}/tag");
   }
 
   /**
    */
   public function getEndpoints(){
-    return new Endpoints($this->registry, "organization/{$this->key}/endpoint");
+    return new Endpoints($this->registry, $this->getURLPrefix()."/{$this->key}/endpoint");
   }
 
   /**
    */
   public function getContacts(){
-    return new Contacts($this->registry, "organization/{$this->key}/contact");
+    return new Contacts($this->registry, $this->getURLPrefix()."/{$this->key}/contact");
   }
 
   /**
-   * Sets the contacts for this organization.
+   * Sets the contacts for this Node.
    *
    * FIXME - Need to check that this is possible, it doesn't appear to be given
    * that removing a contact actually involves deleting it (really?).
@@ -137,7 +137,7 @@ class Organization extends RegistryChild{
    * }
    */
   /**
-   * Add a single contact to this organization.
+   * Add a single contact to this node.
    *
    * FIXME - Nothing is done here.
    */
@@ -146,12 +146,10 @@ class Organization extends RegistryChild{
   }
 
   /**
-   * Gets the organizations endorsed by this organization.
+   * Gets the organizations endorsed by this node.
    */
   public function getOrganizations(){
-    if($this->organizations === FALSE){
-      $data = $this->registry->get_json('organization/' . $this->key . '/organization');
-    }
+    return new Organizations($this->registry, "node/{$this->key}/organization");
   }
 
   /**

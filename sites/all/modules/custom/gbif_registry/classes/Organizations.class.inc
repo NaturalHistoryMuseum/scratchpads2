@@ -22,8 +22,10 @@ namespace GBIF;
 
 class Organizations extends Iterator{
 
-  public function __construct(Registry $reg){
-    parent::__construct($reg, 'organization');
+  // We set a default path of "organization" for simplicity as this class can be
+  // called direct from the Registry class.
+  public function __construct(Registry $reg, $path = 'organization'){
+    parent::__construct($reg, $path);
   }
 
   protected function getResults(){
