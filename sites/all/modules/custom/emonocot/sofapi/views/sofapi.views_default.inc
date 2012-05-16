@@ -18,7 +18,7 @@ $view->disabled = FALSE; /* Edit this to true to make a default view disabled in
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
 $handler->display->display_options['title'] = 'Swiss Orchid Foundation Images';
-$handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+$handler->display->display_options['css_class'] = 'grid-8 alpha omega view-eol-images';
 $handler->display->display_options['access']['type'] = 'none';
 $handler->display->display_options['cache']['type'] = 'none';
 $handler->display->display_options['query']['type'] = 'views_query';
