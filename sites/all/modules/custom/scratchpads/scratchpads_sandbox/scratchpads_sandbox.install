@@ -35,5 +35,4 @@ function scratchpads_sandbox_install(){
   // Accept the legals for UID 2.
   legal_save_accept(1, 1, 'en', 2);
   variable_set('sandbox_site_created', time());
-  file_put_contents(drupal_realpath('public://sandbox_installed'), 'INSTALLED');
 }

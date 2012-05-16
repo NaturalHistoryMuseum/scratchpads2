@@ -87,6 +87,9 @@ function tools_admin_form($form, &$form_state){
  * Submit handler for the 'manage features' form
  */
 function tools_admin_form_submit(&$form, &$form_state){
+  // Increase limits to ensure we don't fuck up!
+  ini_set('memory_limit', '512M');
+  ini_set('max_execution_time', '60');
   $status = $form_state['values']['status'];
   $install = array_keys(array_filter($status));
   $disable = array_diff(array_keys($status), $install);
