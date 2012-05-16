@@ -1,0 +1,114 @@
+<?php
+
+DEFINE('SOFAPI_URL', 'http://orchid.unibas.ch/sp_interface.php');
+
+function sofapi_menu(){
+  $items['softest'] = array(
+    'title' => '',
+    'page callback' => 'sofapi_test',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK
+  );
+  $items['sofapi'] = array(
+      'title' => 'SOFAPI Callback',
+      'description' => 'Endpoint to enable dynamic creation of SOFAPI content.',
+      'page callback' => 'sofapi_callback',
+      'file' => 'sofapi.ajax.inc',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    );
+    return $items;
+}
+
+function sofapi_test(){
+	sofapi_search(1);
+	return '<p>OK!</p>';
+}
+
+function sofapi_search($tid, $age = 604800){ // Seconds in one week.
+  $term = taxonomy_term_load($tid);
+  if($term){
+    $search_results = simplexml_load_file(SOFAPI_URL . '?genus=orchis&species=militaris');
+    if($search_results){
+      foreach($search_results->ORCHID as $result){
+        $page = sofapi_process_data_object($result, $tid);
+      }
+      return $search_results;
+    }
+  }
+  return FALSE;
+}
+
+function sofapi_process_data_object($data_object, $tid, $age = 604800){
+    $data_object->identifier = 'SOF_'.$data_object->BARCODE;
+	
+    $row = db_select('eolapi', 'e')->condition('label', $data_object->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+    if($row){
+      $eolapi = entity_load_single('eolapi', $row->eid);
+    }else{
+      // New eolapi data object
+      $eolapi = new stdClass();
+    }
+    
+    //We're putting SOF content into the EOL entity type
+    $eolapi->type = 'stillimage';  //We only get still images from the SOF
+    $eolapi->trusted = 1;          //These guys know what they're doing
+    $eolapi->license = 'SOF License text';
+    $eolapi->rating = '';
+    $eolapi->label = $data_object->identifier;
+    $eolapi->data = $data_object->asXml();
+    $eolapi->eolapi_taxonomy = array(
+      'und' => array(
+        array(
+          'tid' => $tid
+        )
+      )
+    );
+    entity_save('eolapi', $eolapi);
+
+  // Check to see if this is an stillimage type, and if so, download the image
+  // for it.
+  if($eolapi->type == 'stillimage' && (!isset($eolapi->eolapi_image) || !count($eolapi->eolapi_image))){
+    // Download the original image so that we can perform image_styles magic on
+    // it.
+    $data = simplexml_load_string($eolapi->data);
+    $file = file_save_data(@file_get_contents($data->MLINK));
+    if(!$file->filesize){
+      // We failed to download a file.  We should therefore delete this file, and
+      // continue with the EOL preview.
+      file_delete($file);
+      $file = file_save_data(@file_get_contents($data->TLINK));
+    }
+    $toolkit = image_get_toolkit();
+    $image = new stdClass();
+    $image->source = $file->uri;
+    $image->toolkit = $toolkit;
+    $details = image_toolkit_invoke('get_info', $image);
+    $file = file_move($file, 'public://eolapi/' . $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'], FILE_EXISTS_REPLACE);
+    $file->title = '';
+    $file->alt = '';
+    $file->width = $details['width'];
+    $file->height = $details['height'];
+    $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
+    file_save($file);
+    $eolapi->eolapi_image = array(
+      'und' => array(
+        (array)$file
+      )
+    );
+    entity_save('eolapi', $eolapi);
+  }
+  return $eolapi;
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function sofapi_views_api(){
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'sofapi') . '/views'
+  );
+}
