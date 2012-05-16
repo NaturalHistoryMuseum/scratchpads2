@@ -629,6 +629,8 @@ function character_editor_project_view($entity){
       )
     );
   }
+  // views_get_view overwites the title so need to reset it here 
+  drupal_set_title($entity->label());
   return $build;
 }
 
