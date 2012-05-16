@@ -20,21 +20,7 @@
  */
 namespace GBIF;
 
-class Nodes extends Iterator{
+class Endpoint extends RegistryChild{
 
-  public function __construct(Registry $reg){
-    parent::__construct($reg, 'node');
-  }
-
-  protected function getResults(){
-    parent::getResults();
-    // Once the parent function has run, we need to convert the array values in
-    // $results to "Node" objects.  Note, this starts from the beggining EVERY
-    // time, and could be an issue for efficiency.
-    foreach($this->results as $key => $value){
-      if(gettype($value) !== 'object'){
-        $this->results[$key] = new Node($this->registry, $value);
-      }
-    }
-  }
+  public function __construct(Registry $reg, $data = FALSE){}
 }
