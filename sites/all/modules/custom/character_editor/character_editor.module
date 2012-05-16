@@ -813,14 +813,13 @@ function character_editor_state_form_process($editor){
   $form_state['values'] = $_POST;
   // Additional form_state settings required for ctools modal forms
   $editor->entity_info = entity_get_info($editor->entity_type);
-  switch($form_state['values']['character_type']){
-    case 'text':
-      $form_state['title'] = t("Editing text character");
-      break;
-    case 'dna':
-      $form_state['title'] = t("Editing DNA character");
-      break;
-  }
+  list(, $character_entity_id) = explode('_', $editor->field_id);
+  $character_entity = entity_load_single('character_editor_character', $character_entity_id);
+  $form_state['title'] = t("Editing %label (!type)", array(
+    '%label' => $character_entity->label(),
+  	'!type' => $form_state['values']['character_type'] 
+  ));
+
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
