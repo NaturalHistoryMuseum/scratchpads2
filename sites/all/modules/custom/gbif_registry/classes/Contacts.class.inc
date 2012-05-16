@@ -20,10 +20,10 @@
  */
 namespace GBIF;
 
-class Nodes extends Iterator{
+class Contacts extends Iterator{
 
-  public function __construct(Registry $reg){
-    parent::__construct($reg, 'node');
+  public function __construct(Registry $reg, $path){
+    parent::__construct($reg, $path);
   }
 
   protected function getResults(){
@@ -33,7 +33,7 @@ class Nodes extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Node($this->registry, $value);
+        $this->results[$key] = new Contact($this->registry, $value);
       }
     }
   }
