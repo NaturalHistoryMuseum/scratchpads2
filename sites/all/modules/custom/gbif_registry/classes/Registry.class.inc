@@ -88,6 +88,13 @@ class Registry{
   }
 
   /**
+   * Similar to the getNodes function, but this returns organizations.
+   */
+  public function getOrganizations(){
+    return new Organizations($this);
+  }
+
+  /**
    * Allows for defining of alternative functions to be called for HTTP
    * operations.
    *
@@ -125,13 +132,13 @@ class Registry{
       }else{
         if($html = @file_get_contents($this->registryURL . $path)){
           return $html;
-        } else {
+        }else{
           return '[]';
         }
       }
     }
     catch(Exception $e){
-      // Possibly 404 error.  We should probably check!
+      // Possibly 404 error. We should probably check!
       // We return "[]" because when decoded it is an empty array.
       return '[]';
     }

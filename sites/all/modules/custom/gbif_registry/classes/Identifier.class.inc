@@ -20,9 +20,13 @@
  */
 namespace GBIF;
 
-class Endpoint extends RegistryChild{
+class Identifier extends RegistryChild{
 
-  private $predicate;
+  private $id;
+
+  private $type;
+
+  private $identifier;
 
   private $networkEntityKey;
 
@@ -30,9 +34,10 @@ class Endpoint extends RegistryChild{
     if($data){
       foreach($data as $key => $value){
         switch($key){
-          case 'predicate':
+          case 'id':
+          case 'type':
+          case 'identifier':
           case 'networkEntityKey':
-          default:
             $this->{$key} = $value;
             break;
         }

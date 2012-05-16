@@ -47,7 +47,7 @@ class Node extends RegistryChild{
   private $extra_data = array();
 
   private $endpoints = array();
-  
+
   private $organizations = FALSE;
 
   public function __construct(Registry $reg, $data = FALSE){
@@ -74,15 +74,13 @@ class Node extends RegistryChild{
             $this->{$key} = $value;
             break;
           case 'contacts':
-            // We ignore the contacts, and rely on the /node/<k1>/contact service
-            break;
           case 'endpoints':
-            break;
           case 'identifiers':
+          case 'tags':
+            // We ignore the contacts/endpoints/identifiers/tags, and rely on
+            // the /node/<k1>/x service
             break;
           case 'language':
-            break;
-          case 'tags':
             break;
           default:
             // Save the extra data that we don't know anything about. This will
@@ -98,18 +96,29 @@ class Node extends RegistryChild{
    *
    * We should save the node at this point. We also need to add any contacts
    * that have been added.
-   * 
+   *
    * FIXME - This does not yet function
    */
   public function save(){
     ;
   }
-  
   /**
    * 
    */
+  public function getIdentifiers(){
+    return new Identifiers($this->registry, "node/{$this->key}/identifier");    
+  }
+
+  /**
+   */
   public function getTags(){
     return new Tags($this->registry, "node/{$this->key}/tag");
+  }
+
+  /**
+   */
+  public function getEndpoints(){
+    return new Endpoints($this->registry, "node/{$this->key}/endpoint");
   }
 
   /**
@@ -129,21 +138,18 @@ class Node extends RegistryChild{
    */
   /**
    * Add a single contact to this node.
-   * 
+   *
    * FIXME - Nothing is done here.
    */
   public function addContact(Contact $contact){
     $this->contacts[] = $contact;
   }
-  
+
   /**
    * Gets the organizations endorsed by this node.
    */
   public function getOrganizations(){
-    if($this->organizations === FALSE){
-    	$data = $this->registry->get_json('node/'.$this->key.'/organization');
-    	
-    }
+    return new Organizations($this->registry, "node/{$this->key}/organization");
   }
 
   /**
