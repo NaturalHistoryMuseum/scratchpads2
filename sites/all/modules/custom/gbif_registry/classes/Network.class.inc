@@ -37,16 +37,4 @@ class Network extends RegistryObject{
   final public function getURLPrefix(){
     return 'network';
   }
-
-  /**
-   * Save
-   *
-   * We should save the node at this point. We also need to add any contacts
-   * that have been added.
-   *
-   * FIXME - This does not yet function
-   */
-  public function save(){
-    ;
-  }
 }

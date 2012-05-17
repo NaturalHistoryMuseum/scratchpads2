@@ -44,27 +44,7 @@ class Registry{
   // protected $registryURL = 'http://gbrds.gbif.org/registry/';
   protected $registryURL = 'http://localhost:8080/registry-ws/';
 
-  protected $alternativeFunctions = array();
-
   protected $organisationKey, $organisationPassword;
-
-  public function __construct($alternatives = FALSE){
-    // Set alternatives if we've been sent any.
-    if($alternatives){
-      $this->setAlternativeFunctions($alternatives);
-    }
-    // Check we have a valid "put" function, if not, we throw an error.
-    if(!isset($this->alternatives['put']) || !function_exists($this->alternatives['put'])){
-      // We check for the presence of the PECL http library, if not present, we
-      // throw an error.
-      if(function_exists('http_put_file')){
-        // We were unable to set the alternatives.
-        $this->alternativeFunctions = array();
-      }else{
-        throw new Exception('PECL HTTP not installed, please pass alternatives to the constructor.');
-      }
-    }
-  }
 
   /**
    * Return the current set Registry URL.
@@ -76,13 +56,6 @@ class Registry{
   }
 
   /**
-   * Get the list of alternative functions (pointless, but here to be complete)
-   */
-  public function getAlternativeFunctions(){
-    return $this->alternativeFunctions;
-  }
-
-  /**
    *
    * @param field_type $registryURL        
    */
@@ -91,16 +64,6 @@ class Registry{
     // error.
     if(substr($registryURL, -1) != '/'){throw new Exception('Registry URL must have a trailing slash');}
     $this->registryURL = $registryURL;
-  }
-
-  /**
-   * Allows for defining of alternative functions to be called for HTTP
-   * operations.
-   *
-   * @param Array $alternatives        
-   */
-  public function setAlternativeFunctions($alternatives, $clear = FALSE){
-    $this->alternativeFunctions = array_merge($this->alternativeFunctions, $alternatives);
   }
 
   /**
@@ -140,38 +103,42 @@ class Registry{
   }
 
   /**
-   * Wrapper for the http_put_file function.
-   * This allows us to simplify the
-   * call, and also allows us to use an alternative function (CURL, etc) if
-   * required.
-   *
-   * @param String $path        
-   * @param String $file_path        
+   * http put
    */
   public function put($path, $file){
-    if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
-      return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
+    
+  }
+
+  /**
+   * http get
+   *
+   * We use file_get_contents here purely for its simplicity.
+   */
+  public function get($path){
+    if($html = @file_get_contents($this->registryURL . $path)){
+      return $html;
     }else{
-      return http_put_file($this->registryURL . $path, $file);
+      // FIXME: Perhaps should throw an error here rather than silently
+      // failing.
+      return '[]';
     }
   }
 
   /**
-   * Wrapper function for file_get_contents, allowing us to use an alternative
-   * function if required.
+   * http delete.
+   *
+   * FIXME - Need to add authentication to this.
    */
-  public function get($path){
-    if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
-      return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
-    }else{
-      if($html = @file_get_contents($this->registryURL . $path)){
-        return $html;
-      }else{
-        // FIXME: Perhaps should throw an error here rather than silently
-        // failing.
-        return '[]';
-      }
-    }
+  function delete($path){
+    $ch = curl_init($this->registryURL . $path);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    $response = curl_exec($ch);
+    print_r(curl_getinfo($ch));
+    print_r(curl_errno($ch));
+    print_r($response);
   }
 
   /**

@@ -39,14 +39,25 @@ class Node extends RegistryObject{
   }
 
   /**
-   * Save
-   *
-   * We should save the node at this point. We also need to add any contacts
-   * that have been added.
-   *
-   * FIXME - This does not yet function
+   * We need to override get/set endorsingNode as the Node object does not
+   * contain such a variable.
    */
-  public function save(){
+  function getEndorsingNode(){
+    return FALSE;
+  }
+
+  function setEndorsingNode($endorsingNode){
+    ;
+  }
+
+  /**
+   * As above, but logoURL.
+   */
+  function getLogoURL(){
+    return FALSE;
+  }
+
+  function setLogoURL($logoURL){
     ;
   }
 

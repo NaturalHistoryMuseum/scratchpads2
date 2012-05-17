@@ -3,7 +3,7 @@
  * Standard PHP class for interacting with the GBIF registry.
  *
  * Copyright (C) 2012 Simon David Rycroft
- * 
+ *
  * @author s.rycroft@nhm.ac.uk
  *        
  *         This program is free software: you can redistribute it and/or modify
@@ -37,17 +37,4 @@ class Organization extends RegistryObject{
    * Get the datasets
    */
   function getDatasets($type = 'hosted'){}
-
-  /**
-   * Save
-   *
-   * We should save the organization at this point. We also need to add any
-   * contacts
-   * that have been added.
-   *
-   * FIXME - This does not yet function
-   */
-  public function save(){
-    ;
-  }
 }

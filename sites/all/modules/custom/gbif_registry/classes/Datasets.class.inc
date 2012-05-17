@@ -36,7 +36,7 @@ class Datasets extends Iterator{
       $parameters['endpointType'] = $endpointType;
     }
     // We refuse to run if no parameters have been set.
-    if(!count($parameters) && $path == 'dataset'){throw new Exception('You must provide a parameter when accessing all "datasets"');}
+    //if(!count($parameters) && $path == 'dataset'){throw new Exception('You must provide a parameter when accessing all "datasets"');}
     parent::__construct($reg, $path, $parameters);
   }
 

@@ -3,52 +3,71 @@
  * Standard PHP class for interacting with the GBIF registry.
  *
  * Copyright (C) 2012 Simon David Rycroft
+ *
  * @author s.rycroft@nhm.ac.uk
- *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
+ *        
+ *         This program is free software: you can redistribute it and/or modify
+ *         it under
+ *         the terms of the GNU General Public License as published by the Free
+ *         Software
+ *         Foundation, either version 3 of the License, or (at your option) any
+ *         later
+ *         version.
+ *        
+ *         This program is distributed in the hope that it will be useful, but
+ *         WITHOUT
+ *         ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *         FITNESS
+ *         FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ *         details.
+ *        
+ *         You should have received a copy of the GNU General Public License
+ *         along with
+ *         this program. If not, see <http://www.gnu.org/licenses/>.
  */
 namespace GBIF;
 
 class RegistryObject extends RegistryChild{
   // String properties
-  // FIXME - A lot of these properties will need moving to the Node class. We
-  // need to find what overlap there is with other objects.
-  protected $key;
-
-  protected $title;
-
-  protected $country;
-
-  protected $homepage;
-
-  protected $description;
-
   protected $address;
 
   protected $city;
 
-  protected $phone;
+  protected $country;
+
+  protected $description;
 
   protected $email;
 
+  protected $endorsingNode;
+
+  protected $homepage;
+
+  protected $key;
+
+  protected $language;
+
+  protected $latitude;
+
+  protected $logoURL;
+
+  protected $longitude;
+
+  protected $phone;
+
+  protected $tags;
+
+  protected $title;
+
   protected $zip;
+
+  protected $technicalInstallations = array();
 
   protected $contacts = array();
 
-  protected $extra_data = array();
-
   protected $endpoints = array();
+
+  protected $identifiers = array();
 
   protected $organizations = FALSE;
 
@@ -62,18 +81,16 @@ class RegistryObject extends RegistryChild{
     // "Objects" query.
     if(is_array($data)){
       foreach($data as $key => $value){
-        echo $key."\n";
         switch($key){
-          case 'key':
-          case 'title':
-          case 'country':
-          case 'homepage':
-          case 'description':
-          case 'address':
-          case 'city':
-          case 'phone':
-          case 'email':
-          case 'zip':
+          default:
+            if(is_string($value)){
+              $this->{$key} = $value;
+            }else{
+              echo "$key\n";
+            }
+            break;
+          case 'latitude':
+          case 'longitude':
             $this->{$key} = $value;
             break;
           case 'contacts':
@@ -85,14 +102,91 @@ class RegistryObject extends RegistryChild{
             // service
             break;
           case 'language':
+            $this->language = $value;
             break;
-          default:
-            // Save the extra data that we don't know anything about. This will
-            // allow this class to be easily extended.
-            $this->extra_data[$key] = $value;
         }
       }
     }
+  }
+
+  /**
+   *
+   * @return the $endorsingNode
+   */
+  public function getEndorsingNode(){
+    return $this->endorsingNode;
+  }
+
+  /**
+   *
+   * @return the $latitude
+   */
+  public function getLatitude(){
+    return $this->latitude;
+  }
+
+  /**
+   *
+   * @return the $longitude
+   */
+  public function getLongitude(){
+    return $this->longitude;
+  }
+
+  /**
+   *
+   * @return the $logoURL
+   */
+  public function getLogoURL(){
+    return $this->logoURL;
+  }
+
+  /**
+   *
+   * @return the $language
+   */
+  public function getLanguage(){
+    return $this->language;
+  }
+
+  /**
+   *
+   * @param field_type $endorsingNode        
+   */
+  public function setEndorsingNode($endorsingNode){
+    $this->endorsingNode = $endorsingNode;
+  }
+
+  /**
+   *
+   * @param field_type $latitude        
+   */
+  public function setLatitude($latitude){
+    $this->latitude = $latitude;
+  }
+
+  /**
+   *
+   * @param field_type $longitude        
+   */
+  public function setLongitude($longitude){
+    $this->longitude = $longitude;
+  }
+
+  /**
+   *
+   * @param field_type $logoURL        
+   */
+  public function setLogoURL($logoURL){
+    $this->logoURL = $logoURL;
+  }
+
+  /**
+   *
+   * @param field_type $language        
+   */
+  public function setLanguage($language){
+    $this->language = $language;
   }
 
   /**
@@ -105,6 +199,16 @@ class RegistryObject extends RegistryChild{
    */
   public function save(){
     ;
+  }
+
+  /**
+   * DELETE
+   *
+   * The RegistryObject is deleted. We should destroy this object at this point
+   * too.
+   */
+  function delete(){
+    $this->registry->delete($this->getURLPrefix() . "/{$this->key}");
   }
 
   /**
@@ -245,7 +349,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $key          
+   * @param field_type $key        
    */
   public function setKey($key){
     $this->key = $key;
@@ -253,7 +357,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $title          
+   * @param field_type $title        
    */
   public function setTitle($title){
     $this->title = $title;
@@ -261,7 +365,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $country          
+   * @param field_type $country        
    */
   public function setCountry($country){
     $this->country = $country;
@@ -269,7 +373,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $homepage          
+   * @param field_type $homepage        
    */
   public function setHomepage($homepage){
     $this->homepage = $homepage;
@@ -277,7 +381,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $description          
+   * @param field_type $description        
    */
   public function setDescription($description){
     $this->description = $description;
@@ -285,7 +389,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $address          
+   * @param field_type $address        
    */
   public function setAddress($address){
     $this->address = $address;
@@ -293,7 +397,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $city          
+   * @param field_type $city        
    */
   public function setCity($city){
     $this->city = $city;
@@ -301,7 +405,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $phone          
+   * @param field_type $phone        
    */
   public function setPhone($phone){
     $this->phone = $phone;
@@ -309,7 +413,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $email          
+   * @param field_type $email        
    */
   public function setEmail($email){
     $this->email = $email;
@@ -317,7 +421,7 @@ class RegistryObject extends RegistryChild{
 
   /**
    *
-   * @param field_type $zip          
+   * @param field_type $zip        
    */
   public function setZip($zip){
     $this->zip = $zip;
