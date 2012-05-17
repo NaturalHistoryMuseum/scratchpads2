@@ -37,4 +37,8 @@ class TechnicalInstallation extends RegistryObject{
   final public function getURLPrefix(){
     return 'technical_installation';
   }
+
+  public function __toString(){
+    return trim("{$this->key} {$this->title} - {$this->description}");
+  }
 }

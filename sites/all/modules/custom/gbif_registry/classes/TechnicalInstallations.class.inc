@@ -26,7 +26,6 @@ class TechnicalInstallations extends Iterator{
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
   public function __construct(Registry $reg, $path = 'organization', $tag = FALSE, $name = FALSE, $isoCountyCode = FALSE){
-    echo "$path\n";
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
