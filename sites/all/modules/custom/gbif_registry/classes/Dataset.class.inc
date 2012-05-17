@@ -23,11 +23,6 @@ namespace GBIF;
 class Dataset extends RegistryObject{
 
   public function __construct(Registry $reg, $data = FALSE){
-    parent::__construct($reg);
-    if($data){
-      foreach($data as $key => $value){
-        $this->{$key} = $value;
-      }
-    }
+    parent::__construct($reg, $data);
   }
 }

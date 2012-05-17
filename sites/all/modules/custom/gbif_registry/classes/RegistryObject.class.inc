@@ -22,8 +22,7 @@ namespace GBIF;
 
 class RegistryObject extends RegistryChild{
   // String properties
-  
-  // FIXME - A lot of these properties will need moving to the Node class.  We
+  // FIXME - A lot of these properties will need moving to the Node class. We
   // need to find what overlap there is with other objects.
   protected $key;
 
@@ -57,12 +56,13 @@ class RegistryObject extends RegistryChild{
     parent::__construct($reg);
     // If we passed a string, we assume it's the ID of a node.
     if(is_string($data)){
-      $data = $reg->get_json("node/$data");
+      $data = $reg->get_json($this->getURLPrefix() . "/$data");
     }
-    // If we passed an array, we assume we're building this node from a "Nodes"
-    // query.
+    // If we passed an array, we assume we're building this object from an
+    // "Objects" query.
     if(is_array($data)){
       foreach($data as $key => $value){
+        echo $key."\n";
         switch($key){
           case 'key':
           case 'title':
@@ -81,7 +81,8 @@ class RegistryObject extends RegistryChild{
           case 'identifiers':
           case 'tags':
             // We ignore the contacts/endpoints/identifiers/tags, and rely on
-            // the /node/<k1>/x service
+            // the /[node|organization|...]/<k1>/[contact|identifier|...]
+            // service
             break;
           case 'language':
             break;

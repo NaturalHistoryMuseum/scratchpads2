@@ -3,20 +3,27 @@
  * Standard PHP class for interacting with the GBIF registry.
  *
  * Copyright (C) 2012 Simon David Rycroft
+ *
  * @author s.rycroft@nhm.ac.uk
- *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
+ *        
+ *         This program is free software: you can redistribute it and/or modify
+ *         it under
+ *         the terms of the GNU General Public License as published by the Free
+ *         Software
+ *         Foundation, either version 3 of the License, or (at your option) any
+ *         later
+ *         version.
+ *        
+ *         This program is distributed in the hope that it will be useful, but
+ *         WITHOUT
+ *         ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ *         FITNESS
+ *         FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ *         details.
+ *        
+ *         You should have received a copy of the GNU General Public License
+ *         along with
+ *         this program. If not, see <http://www.gnu.org/licenses/>.
  */
 namespace GBIF;
 
@@ -77,7 +84,7 @@ class Registry{
 
   /**
    *
-   * @param field_type $registryURL          
+   * @param field_type $registryURL        
    */
   public function setRegistryURL($registryURL){
     // Ensure that the URL we're setting has a trailing slash, else we throw an
@@ -90,7 +97,7 @@ class Registry{
    * Allows for defining of alternative functions to be called for HTTP
    * operations.
    *
-   * @param Array $alternatives          
+   * @param Array $alternatives        
    */
   public function setAlternativeFunctions($alternatives, $clear = FALSE){
     $this->alternativeFunctions = array_merge($this->alternativeFunctions, $alternatives);
@@ -119,13 +126,27 @@ class Registry{
   }
 
   /**
+   * Same again, but returning technicalInstallations
+   */
+  public function getTechnicalInstallations(){
+    return new TechnicalInstallations($this);
+  }
+
+  /**
+   * Same again, but networks
+   */
+  public function getNetworks(){
+    return new Networks($this);
+  }
+
+  /**
    * Wrapper for the http_put_file function.
    * This allows us to simplify the
    * call, and also allows us to use an alternative function (CURL, etc) if
    * required.
    *
-   * @param String $path          
-   * @param String $file_path          
+   * @param String $path        
+   * @param String $file_path        
    */
   public function put($path, $file){
     if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
