@@ -12,6 +12,7 @@ dependencies[] = comment
 dependencies[] = contextual
 dependencies[] = dashboard
 dependencies[] = image
+dependencies[] = link
 dependencies[] = list
 dependencies[] = menu
 dependencies[] = number
