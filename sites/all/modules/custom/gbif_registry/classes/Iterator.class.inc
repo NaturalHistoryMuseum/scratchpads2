@@ -30,11 +30,17 @@ class Iterator extends RegistryChild implements \Iterator{
   protected $results = array();
   // Store whether or not the previous data call should be the last.
   protected $endReached = FALSE;
-
+  // The path used to access the results.
   protected $path;
+  // Some of the classes support paging, some don't. The child class should
+  // override this variable if they support paging.
+  protected $supportsPaging = FALSE;
+  // Allow the provision of parameters
+  protected $parameters = array();
 
-  public function __construct(Registry $reg, $path){
+  public function __construct(Registry $reg, $path, $parameters = array()){
     parent::__construct($reg);
+    $this->parameters = $parameters;
     $this->path = $path;
   }
 
@@ -64,9 +70,11 @@ class Iterator extends RegistryChild implements \Iterator{
     // We get the results from the "paged" service, and rekey them depending on
     // the offset.
     if(!$this->endReached){
-      $data = $this->registry->get_json($this->path . '?offset=' . $this->position . '&limit=' . $this->resultsPerPage);
+      $parameters['offset'] = $this->position;
+      $parameters['limit'] = $this->resultsPerPage;
+      $data = $this->registry->get_json($this->path . '?' . http_build_query($parameters));
       $i = $this->position;
-      if(isset($data['endOfRecords'])){
+      if($this->supportsPaging && isset($data['endOfRecords'])){
         $this->endReached = $data['endOfRecords'];
         if(is_array($data['results'])){
           foreach($data['results'] as $result){
@@ -75,8 +83,7 @@ class Iterator extends RegistryChild implements \Iterator{
           }
         }
       }else{
-        // We have all the results at once. The objects here are not within the
-        // results array.
+        // We don't use paging for this object type.
         $this->endReached = TRUE;
         foreach($data as $result){
           $this->results[$i] = $result;

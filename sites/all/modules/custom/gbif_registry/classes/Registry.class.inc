@@ -93,6 +93,13 @@ class Registry{
   public function getOrganizations(){
     return new Organizations($this);
   }
+  
+  /**
+   * Same again, but returning all datasets.
+   */
+  public function getDatasets(){
+    return new Datasets($this);
+  }
 
   /**
    * Allows for defining of alternative functions to be called for HTTP

@@ -22,6 +22,7 @@ namespace GBIF;
 
 class Organizations extends Iterator{
 
+  protected $supportsPaging = TRUE;
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
   public function __construct(Registry $reg, $path = 'organization'){
@@ -31,7 +32,7 @@ class Organizations extends Iterator{
   protected function getResults(){
     parent::getResults();
     // Once the parent function has run, we need to convert the array values in
-    // $results to "Node" objects.  Note, this starts from the beggining EVERY
+    // $results to "Node" objects. Note, this starts from the beggining EVERY
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){

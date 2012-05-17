@@ -63,6 +63,10 @@ class Node extends RegistryObject{
     }
   }
 
+  /**
+   * getURLPrefix
+   * @return string
+   */
   final public function getURLPrefix(){
     return 'node';
   }

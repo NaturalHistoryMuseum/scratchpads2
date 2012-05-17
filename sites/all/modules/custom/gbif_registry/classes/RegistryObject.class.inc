@@ -22,6 +22,9 @@ namespace GBIF;
 
 class RegistryObject extends RegistryChild{
   // String properties
+  
+  // FIXME - A lot of these properties will need moving to the Node class.  We
+  // need to find what overlap there is with other objects.
   protected $key;
 
   protected $title;
@@ -102,29 +105,36 @@ class RegistryObject extends RegistryChild{
   public function save(){
     ;
   }
+
   /**
-   * 
    */
   public function getIdentifiers(){
-    return new Identifiers($this->registry, $this->getURLPrefix()."/{$this->key}/identifier");    
+    return new Identifiers($this->registry, $this->getURLPrefix() . "/{$this->key}/identifier");
   }
 
   /**
    */
   public function getTags(){
-    return new Tags($this->registry, $this->getURLPrefix()."/{$this->key}/tag");
+    return new Tags($this->registry, $this->getURLPrefix() . "/{$this->key}/tag");
   }
 
   /**
    */
   public function getEndpoints(){
-    return new Endpoints($this->registry, $this->getURLPrefix()."/{$this->key}/endpoint");
+    return new Endpoints($this->registry, $this->getURLPrefix() . "/{$this->key}/endpoint");
   }
 
   /**
    */
   public function getContacts(){
-    return new Contacts($this->registry, $this->getURLPrefix()."/{$this->key}/contact");
+    return new Contacts($this->registry, $this->getURLPrefix() . "/{$this->key}/contact");
+  }
+
+  /**
+   * Return the default URL prefix, which we actually set to be blank.
+   */
+  public function getURLPrefix(){
+    return '';
   }
 
   /**

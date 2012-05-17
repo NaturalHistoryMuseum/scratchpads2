@@ -20,44 +20,17 @@
  */
 namespace GBIF;
 
-class Organization extends RegistryChild{
-  // String properties
-  protected $key;
-
-  protected $title;
-
-  protected $country;
-
-  protected $homepage;
-
-  protected $description;
-
-  protected $address;
-
-  protected $city;
-
-  protected $phone;
-
-  protected $email;
-
-  protected $zip;
-
-  protected $contacts = array();
-
-  protected $extra_data = array();
-
-  protected $endpoints = array();
-
-  protected $organizations = FALSE;
+class Organization extends RegistryObject{
 
   public function __construct(Registry $reg, $data = FALSE){
     parent::__construct($reg);
-    // If we passed a string, we assume it's the ID of a organization.
+    // If we passed a string, we assume it's the ID of a .
     if(is_string($data)){
-      $data = $reg->get_json("organization/$data");
+      $data = $reg->get_json("node/$data");
     }
-    // If we passed an array, we assume we're building this organization from a
-    // "Organizations" query.
+    // If we passed an array, we assume we're building this node from a
+    // "Organizations"
+    // query.
     if(is_array($data)){
       foreach($data as $key => $value){
         switch($key){
@@ -91,226 +64,27 @@ class Organization extends RegistryChild{
     }
   }
 
+  final public function getURLPrefix(){
+    return 'organization';
+  }
+  
+  /**
+   * Get the datasets
+   */
+  function getDatasets($type = 'hosted'){
+    
+  }
+
   /**
    * Save
    *
    * We should save the organization at this point. We also need to add any
-   * contacts that have been added.
+   * contacts
+   * that have been added.
    *
    * FIXME - This does not yet function
    */
   public function save(){
     ;
-  }
-
-  /**
-   */
-  public function getIdentifiers(){
-    return new Identifiers($this->registry, "organization/{$this->key}/identifier");
-  }
-
-  /**
-   */
-  public function getTags(){
-    return new Tags($this->registry, "organization/{$this->key}/tag");
-  }
-
-  /**
-   */
-  public function getEndpoints(){
-    return new Endpoints($this->registry, "organization/{$this->key}/endpoint");
-  }
-
-  /**
-   */
-  public function getContacts(){
-    return new Contacts($this->registry, "organization/{$this->key}/contact");
-  }
-
-  /**
-   * Sets the contacts for this organization.
-   *
-   * FIXME - Need to check that this is possible, it doesn't appear to be given
-   * that removing a contact actually involves deleting it (really?).
-   * public function setContacts($contacts){
-   * $this->contacts = $contacts;
-   * }
-   */
-  /**
-   * Add a single contact to this organization.
-   *
-   * FIXME - Nothing is done here.
-   */
-  public function addContact(Contact $contact){
-    $this->contacts[] = $contact;
-  }
-
-  /**
-   * Gets the organizations endorsed by this organization.
-   */
-  public function getOrganizations(){
-    if($this->organizations === FALSE){
-      $data = $this->registry->get_json('organization/' . $this->key . '/organization');
-    }
-  }
-
-  /**
-   *
-   * @return the $key
-   */
-  public function getKey(){
-    return $this->key;
-  }
-
-  /**
-   *
-   * @return the $title
-   */
-  public function getTitle(){
-    return $this->title;
-  }
-
-  /**
-   *
-   * @return the $country
-   */
-  public function getCountry(){
-    return $this->country;
-  }
-
-  /**
-   *
-   * @return the $homepage
-   */
-  public function getHomepage(){
-    return $this->homepage;
-  }
-
-  /**
-   *
-   * @return the $description
-   */
-  public function getDescription(){
-    return $this->description;
-  }
-
-  /**
-   *
-   * @return the $address
-   */
-  public function getAddress(){
-    return $this->address;
-  }
-
-  /**
-   *
-   * @return the $city
-   */
-  public function getCity(){
-    return $this->city;
-  }
-
-  /**
-   *
-   * @return the $phone
-   */
-  public function getPhone(){
-    return $this->phone;
-  }
-
-  /**
-   *
-   * @return the $email
-   */
-  public function getEmail(){
-    return $this->email;
-  }
-
-  /**
-   *
-   * @return the $zip
-   */
-  public function getZip(){
-    return $this->zip;
-  }
-
-  /**
-   *
-   * @param field_type $key          
-   */
-  public function setKey($key){
-    $this->key = $key;
-  }
-
-  /**
-   *
-   * @param field_type $title          
-   */
-  public function setTitle($title){
-    $this->title = $title;
-  }
-
-  /**
-   *
-   * @param field_type $country          
-   */
-  public function setCountry($country){
-    $this->country = $country;
-  }
-
-  /**
-   *
-   * @param field_type $homepage          
-   */
-  public function setHomepage($homepage){
-    $this->homepage = $homepage;
-  }
-
-  /**
-   *
-   * @param field_type $description          
-   */
-  public function setDescription($description){
-    $this->description = $description;
-  }
-
-  /**
-   *
-   * @param field_type $address          
-   */
-  public function setAddress($address){
-    $this->address = $address;
-  }
-
-  /**
-   *
-   * @param field_type $city          
-   */
-  public function setCity($city){
-    $this->city = $city;
-  }
-
-  /**
-   *
-   * @param field_type $phone          
-   */
-  public function setPhone($phone){
-    $this->phone = $phone;
-  }
-
-  /**
-   *
-   * @param field_type $email          
-   */
-  public function setEmail($email){
-    $this->email = $email;
-  }
-
-  /**
-   *
-   * @param field_type $zip          
-   */
-  public function setZip($zip){
-    $this->zip = $zip;
   }
 }
