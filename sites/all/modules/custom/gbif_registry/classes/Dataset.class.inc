@@ -29,10 +29,106 @@ namespace GBIF;
 
 class Dataset extends RegistryChild{
 
+  private $bibliographicCitations;
+
+  private $citation;
+
+  private $contacts;
+
+  private $curatorialUnits;
+
+  private $dataAvailable;
+
+  private $dataIndexable;
+
+  private $description;
+
+  private $endpoints;
+
+  private $geographicCoverages;
+
+  private $homepage;
+
+  private $hostingOrganization;
+
+  private $hostingOrganizationKey;
+
+  private $identifiers;
+
+  private $isoCountryCodes;
+
+  private $key;
+
+  private $keywordCollections;
+
+  private $keywords;
+
+  private $language;
+
+  private $logoURL;
+
+  private $networkOfOrigin;
+
+  private $owningOrganization;
+
+  private $owningOrganizationKey;
+
+  private $registered;
+
+  private $tags;
+
+  private $taxonomicCoverages;
+
+  private $temporalCoverages;
+
+  private $title;
+
+  private $type;
+
   public function __construct(Registry $reg, $data = FALSE){
     parent::__construct($reg);
-    // As the Dataset object is significanly different to the other core
-    // objects, it does not inherit from the RegistryObject class, so we need
-    // to recreate that functionality here.
+    // If we passed a string, we assume it's the ID of a dataset.
+    if(is_string($data)){
+      $data = $reg->get_json("dataset/$data");
+    }
+    foreach($data as $key => $value){
+      switch($key){
+        default:
+          $this->{$key} = $value;
+        case 'contacts':
+        case 'endpoints':
+        case 'identifiers':
+        case 'tags':
+          break;
+      }
+    }
+  }
+
+  /**
+   */
+  public function getIdentifiers(){
+    return new Identifiers($this->registry, "dataset/{$this->key}/identifier");
+  }
+
+  /**
+   */
+  public function getTags(){
+    return new Tags($this->registry, "dataset/{$this->key}/tag");
+  }
+
+  /**
+   */
+  public function getEndpoints(){
+    return new Endpoints($this->registry, "dataset/{$this->key}/endpoint");
+  }
+
+  /**
+   */
+  public function getContacts(){
+    return new Contacts($this->registry, "dataset/{$this->key}/contact");
+  }
+
+  public function __toString(){
+    return "{$this->key} - {$this->title}";
   }
 }

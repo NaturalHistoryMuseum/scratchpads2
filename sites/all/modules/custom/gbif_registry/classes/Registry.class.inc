@@ -104,9 +104,22 @@ class Registry{
 
   /**
    * http put
+   * 
+   * FIXME - Need to add authentication to this.
    */
-  public function put($path, $file){
-    
+  public function put($path, $filename){
+    $ch = curl_init($this->registryURL . $path);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_PUT, TRUE);
+    $file_handle = fopen($filename, 'r');
+    curl_setopt($ch, CURLOPT_INFILE, $file_handle);
+    curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
+    $response = curl_exec($ch);
+    print_r(curl_getinfo($ch));
+    print_r(curl_errno($ch));
+    print_r($response);
   }
 
   /**

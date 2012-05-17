@@ -86,13 +86,22 @@ class RegistryObject extends RegistryChild{
             if(is_string($value)){
               $this->{$key} = $value;
             }else{
+              // FIXME - Remove this code once complete.
               echo "$key\n";
+            }
+            break;
+          case 'endorsingNode':
+            // We get a complex object here, but we only actually need to save
+            // the key, so that's all we're saving.
+            if(isset($value['key'])){
+              $this->endorsingNode = $value['key'];
             }
             break;
           case 'latitude':
           case 'longitude':
             $this->{$key} = $value;
             break;
+          case 'technicalInstallations':
           case 'contacts':
           case 'endpoints':
           case 'identifiers':
@@ -233,6 +242,12 @@ class RegistryObject extends RegistryChild{
    */
   public function getContacts(){
     return new Contacts($this->registry, $this->getURLPrefix() . "/{$this->key}/contact");
+  }
+
+  /**
+   */
+  public function getTechnicalInstallations(){
+    return new TechnicalInstallations($this->registry, $this->getURLPrefix() . "/{$this->key}/technical_installation");
   }
 
   /**

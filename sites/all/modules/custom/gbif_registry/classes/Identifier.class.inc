@@ -28,8 +28,6 @@ class Identifier extends RegistryChild{
 
   protected $identifier;
 
-  protected $networkEntityKey;
-
   public function __construct(Registry $reg, $data = FALSE){
     if($data){
       foreach($data as $key => $value){
@@ -37,11 +35,14 @@ class Identifier extends RegistryChild{
           case 'id':
           case 'type':
           case 'identifier':
-          case 'networkEntityKey':
             $this->{$key} = $value;
             break;
         }
       }
     }
+  }
+  
+  public function __toString(){
+    return "{$this->id}: {$this->type} - {$this->identifier}";
   }
 }

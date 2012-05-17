@@ -36,5 +36,18 @@ class Organization extends RegistryObject{
   /**
    * Get the datasets
    */
-  function getDatasets($type = 'hosted'){}
+  function getDatasets($type = 'hosted'){
+    if($type == 'hosted' || $type == 'owned'){
+      return new Datasets($this->registry, $this->getURLPrefix() . "/{$this->key}/dataset/$type");
+    }else{
+      // Throw an error.
+    }
+  }
+
+  /**
+   * Get the graph of the object
+   */
+  function getGraph($get_png = FALSE){
+    return $this->registry->get($this->getURLPrefix() . "/{$this->key}/graph" . ($get_png ? '?format=png' : ''));
+  }
 }
