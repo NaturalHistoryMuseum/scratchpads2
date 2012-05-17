@@ -22,14 +22,18 @@ namespace GBIF;
 
 class Endpoints extends Iterator{
 
-  public function __construct(Registry $reg, $path){
-    parent::__construct($reg, $path);
+  public function __construct(Registry $reg, $path, $endpointType = FALSE){
+    $parameters = array();
+    if($endpointType){
+      $parameters['endpointType'] = $endpointType;
+    }
+    parent::__construct($reg, $path, $parameters);
   }
 
   protected function getResults(){
     parent::getResults();
     // Once the parent function has run, we need to convert the array values in
-    // $results to "Node" objects.  Note, this starts from the beggining EVERY
+    // $results to "Node" objects. Note, this starts from the beggining EVERY
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){

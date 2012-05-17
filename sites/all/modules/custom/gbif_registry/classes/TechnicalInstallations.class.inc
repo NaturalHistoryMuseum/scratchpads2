@@ -20,12 +20,21 @@
  */
 namespace GBIF;
 
-class Identifiers extends Iterator{
+class TechnicalInstallations extends Iterator{
 
-  public function __construct(Registry $reg, $path, $identifierType = FALSE){
+  protected $supportsPaging = TRUE;
+  // We set a default path of "organization" for simplicity as this class can be
+  // called direct from the Registry class.
+  public function __construct(Registry $reg, $path = 'organization', $tag = FALSE, $name = FALSE, $isoCountyCode = FALSE){
     $parameters = array();
-    if($identifierType){
-      $parameters['identifierType'] = $identifierType;
+    if($tag){
+      $parameters['tag'] = $tag;
+    }
+    if($name){
+      $parameters['name'] = $name;
+    }
+    if($isoCountyCode){
+      $parameters['isoCountryCode'] = $isoCountyCode;
     }
     parent::__construct($reg, $path, $parameters);
   }
@@ -37,7 +46,7 @@ class Identifiers extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Identifier($this->registry, $value);
+        $this->results[$key] = new TechnicalInstallation($this->registry, $value);
       }
     }
   }

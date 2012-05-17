@@ -23,13 +23,21 @@ namespace GBIF;
 class Datasets extends Iterator{
 
   protected $supportsPaging = TRUE;
-  
-  // Increase the limit for this class, as it works more efficiently when
-  // retrieving larger numbers.
-  protected $resultsPerPage = 200000;
 
-  public function __construct(Registry $reg, $path = 'dataset'){
-    parent::__construct($reg, $path);
+  public function __construct(Registry $reg, $path = 'dataset', $tag = FALSE, $name = FALSE, $endpointType = FALSE){
+    $parameters = array();
+    if($tag){
+      $parameters['tag'] = $tag;
+    }
+    if($name){
+      $parameters['name'] = $name;
+    }
+    if($endpointType){
+      $parameters['endpointType'] = $endpointType;
+    }
+    // We refuse to run if no parameters have been set.
+    if(!count($parameters) && $path == 'dataset'){throw new Exception('You must provide a parameter when accessing all "datasets"');}
+    parent::__construct($reg, $path, $parameters);
   }
 
   protected function getResults(){

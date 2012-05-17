@@ -22,14 +22,18 @@ namespace GBIF;
 
 class Tags extends Iterator{
 
-  public function __construct(Registry $reg, $path){
-    parent::__construct($reg, $path);
+  public function __construct(Registry $reg, $path, $tagNamespace = FALSE){
+    $parameters = array();
+    if($tagNamespace){
+      $parameters['tagNamespace'] = $tagNamespace;
+    }
+    parent::__construct($reg, $path, $parameters);
   }
 
   protected function getResults(){
     parent::getResults();
     // Once the parent function has run, we need to convert the array values in
-    // $results to "Node" objects.  Note, this starts from the beggining EVERY
+    // $results to "Node" objects. Note, this starts from the beggining EVERY
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){

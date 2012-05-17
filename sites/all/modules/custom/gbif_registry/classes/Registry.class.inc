@@ -54,7 +54,7 @@ class Registry{
         // We were unable to set the alternatives.
         $this->alternativeFunctions = array();
       }else{
-        throw new Exception($this->translate('PECL HTTP not installed, please pass alternatives to the constructor.'));
+        throw new Exception('PECL HTTP not installed, please pass alternatives to the constructor.');
       }
     }
   }
@@ -69,14 +69,31 @@ class Registry{
   }
 
   /**
+   * Get the list of alternative functions (pointless, but here to be complete)
+   */
+  public function getAlternativeFunctions(){
+    return $this->alternativeFunctions;
+  }
+
+  /**
    *
    * @param field_type $registryURL          
    */
   public function setRegistryURL($registryURL){
     // Ensure that the URL we're setting has a trailing slash, else we throw an
     // error.
-    if(substr($registryURL, -1) != '/'){throw new Exception($this->translate('Registry URL must have a trailing slash'));}
+    if(substr($registryURL, -1) != '/'){throw new Exception('Registry URL must have a trailing slash');}
     $this->registryURL = $registryURL;
+  }
+
+  /**
+   * Allows for defining of alternative functions to be called for HTTP
+   * operations.
+   *
+   * @param Array $alternatives          
+   */
+  public function setAlternativeFunctions($alternatives, $clear = FALSE){
+    $this->alternativeFunctions = array_merge($this->alternativeFunctions, $alternatives);
   }
 
   /**
@@ -93,22 +110,12 @@ class Registry{
   public function getOrganizations(){
     return new Organizations($this);
   }
-  
+
   /**
    * Same again, but returning all datasets.
    */
   public function getDatasets(){
     return new Datasets($this);
-  }
-
-  /**
-   * Allows for defining of alternative functions to be called for HTTP
-   * operations.
-   *
-   * @param Array $alternatives          
-   */
-  public function setAlternativeFunctions($alternatives, $clear = FALSE){
-    $this->alternativeFunctions = array_merge($this->alternativeFunctions, $alternatives);
   }
 
   /**
@@ -133,21 +140,16 @@ class Registry{
    * function if required.
    */
   public function get($path){
-    try{
-      if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
-        return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
+    if(isset($this->alternativeFunctions['put']) && function_exists($this->alternativeFunctions['put'])){
+      return call_user_func($this->alternativeFunctions['put'], $this->registryURL . $path, $file);
+    }else{
+      if($html = @file_get_contents($this->registryURL . $path)){
+        return $html;
       }else{
-        if($html = @file_get_contents($this->registryURL . $path)){
-          return $html;
-        }else{
-          return '[]';
-        }
+        // FIXME: Perhaps should throw an error here rather than silently
+        // failing.
+        return '[]';
       }
-    }
-    catch(Exception $e){
-      // Possibly 404 error. We should probably check!
-      // We return "[]" because when decoded it is an empty array.
-      return '[]';
     }
   }
 
@@ -156,18 +158,5 @@ class Registry{
    */
   public function get_json($path){
     return json_decode($this->get($path), TRUE);
-  }
-
-  /**
-   * Simple function to allow us to translate text.
-   * Note, this is included to
-   * work nicely with Drupal.
-   */
-  public function translate($untranslated_text){
-    if(isset($this->alternativeFunctions['translate']) && function_exists($this->alternativeFunctions['translate'])){
-      call_user_func($this->alternativeFunctions['translate'], $untranslated_text);
-    }else{
-      return $untranslated_text;
-    }
   }
 }
