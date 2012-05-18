@@ -91,6 +91,7 @@ function sofapi_process_data_object($data_object, $tid, $age = 604800){
         )
       )
     );
+    $eolapi->source = 'SOF';
     entity_save('eolapi', $eolapi);
 
   // Check to see if this is an stillimage type, and if so, download the image
