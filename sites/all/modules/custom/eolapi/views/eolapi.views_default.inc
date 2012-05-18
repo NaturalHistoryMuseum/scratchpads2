@@ -77,6 +77,11 @@ function eolapi_views_default_views(){
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['type'] = 'select';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['vocabulary'] = 'tags';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['hierarchy'] = 1;
+  /* Filter criterion: Encyclopaedia of Life data: Source */
+  $handler->display->display_options['filters']['source']['id'] = 'source';
+  $handler->display->display_options['filters']['source']['table'] = 'eolapi';
+  $handler->display->display_options['filters']['source']['field'] = 'source';
+  $handler->display->display_options['filters']['source']['value'] = 'EOL';
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
@@ -152,6 +157,11 @@ function eolapi_views_default_views(){
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['type'] = 'select';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['vocabulary'] = 'tags';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['hierarchy'] = 1;
+  /* Filter criterion: Encyclopaedia of Life data: Source */
+  $handler->display->display_options['filters']['source']['id'] = 'source';
+  $handler->display->display_options['filters']['source']['table'] = 'eolapi';
+  $handler->display->display_options['filters']['source']['field'] = 'source';
+  $handler->display->display_options['filters']['source']['value'] = 'EOL';
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
@@ -227,6 +237,11 @@ function eolapi_views_default_views(){
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['type'] = 'select';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['vocabulary'] = 'tags';
   $handler->display->display_options['filters']['eolapi_taxonomy_tid']['hierarchy'] = 1;
+  /* Filter criterion: Encyclopaedia of Life data: Source */
+  $handler->display->display_options['filters']['source']['id'] = 'source';
+  $handler->display->display_options['filters']['source']['table'] = 'eolapi';
+  $handler->display->display_options['filters']['source']['field'] = 'source';
+  $handler->display->display_options['filters']['source']['value'] = 'EOL';
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
