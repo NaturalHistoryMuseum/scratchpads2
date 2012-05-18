@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -19,8 +20,6 @@
  *
  * @author s.rycroft@nhm.ac.uk
  */
-namespace GBIF;
-
 /**
  * The RegistryCache class allows us to take advantage of different caching
  * mechanisms used in different applications.
@@ -32,17 +31,19 @@ namespace GBIF;
  *
  * @author simor
  */
-class RegistryCache{
+class DrupalRegistryCache extends GBIF\RegistryCache{
 
-  public function create($cid, $data){
-    $this->update($cid, $data);
+  public function update($cid, $data){
+    cache_set($cid, $data, 'cache_gbif_registry', time() + 3600);
   }
 
-  public function update($cid, $data){}
-
-  public function delete($cid){}
+  public function delete($cid){
+    cache_clear_all($cid, 'cache_gbif_registry');
+  }
 
   public function retrieve($cid){
+    $cache = cache_get($cid, 'cache_gbif_registry');
+    if($cache && $cache->expire > time()){return $cache->data;}
     return FALSE;
   }
 }

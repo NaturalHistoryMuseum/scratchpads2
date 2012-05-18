@@ -24,7 +24,23 @@ function gbif_registry_menu(){
     ),
     'admin/config/services/gbif_registry/test' => array(
       'title' => 'Test',
-      'description' => 'Check the GBIF Registry code is performing as expected, and also view what details are stored about this Scratchpad.',
+      'description' => t('Display various tests to check the registry code is performing as expected.'),
+      'page callback' => 'gbif_registry_test_page',
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/test/organizations' => array(
+      'title' => 'Organizations',
+      'description' => t('Lists all "organizations" held in the registry.'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/services/gbif_registry/test/nodes' => array(
+      'title' => 'Nodes',
+      'description' => t('Lists all "nodes" held in the registry.'),
       'page callback' => 'gbif_registry_test_page',
       'access arguments' => array(
         'administer gbif registry'

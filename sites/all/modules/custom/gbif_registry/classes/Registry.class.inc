@@ -46,7 +46,7 @@ class Registry{
 
   protected function __construct(){}
 
-  private $registryCache = FALSE;
+  protected $registryCache = FALSE;
 
   /**
    * Basic singleton code copied straight from php.net

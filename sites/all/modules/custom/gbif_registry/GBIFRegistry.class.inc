@@ -48,18 +48,14 @@ class GBIFRegistry extends GBIF\Registry{
    * Override the getNodes() function, to enable caching.
    */
   public function getNodes(){
-    $cache = $this->getRegistryCache();
-    $cache->get('all_nodes');
-    $cache = cache_get('all_nodes', 'cache_gbif_registry');
-    if($cache){
-      if($cache->expire > time()){return $cache->data;}
-    }
+    $rc = $this->getRegistryCache();
+    if($cache = $rc->retrieve('all_nodes')){return $cache;}
     $nodes = parent::getNodes();
     $cache_nodes = array();
     foreach($nodes as $node){
       $cache_nodes[] = $node;
     }
-    cache_set('all_nodes', $cache_nodes, 'cache_gbif_registry', time() + 3600);
+    $rc->create('all_nodes', $cache_nodes);
     return $cache_nodes;
   }
 
@@ -67,16 +63,14 @@ class GBIFRegistry extends GBIF\Registry{
    * Override the getOrganizations() function, to enable caching.
    */
   public function getOrganizations(){
-    $cache = cache_get('all_organizations', 'cache_gbif_registry');
-    if($cache){
-      if($cache->expire > time()){return $cache->data;}
-    }
+    $rc = $this->getRegistryCache();
+    if($cache = $rc->retrieve('all_organizations')){return $cache;}
     $organizations = parent::getOrganizations();
     $cache_organizations = array();
     foreach($organizations as $organization){
       $cache_organizations[] = $organization;
     }
-    cache_set('all_organizations', $cache_organizations, 'cache_gbif_registry', time() + 3600);
+    $rc->create('all_organizations', $cache_organizations);
     return $cache_organizations;
   }
 }

@@ -28,30 +28,56 @@ function gbif_registry_admin_form_validate(&$form, &$form_state){
  * Display the test page.
  */
 function gbif_registry_test_page(){
-  // We need to register our own autoloader, as it appears the Drupal one does
-  // not support namespaces (or I've screwed up with my configuration).
-  $registry = GBIFRegistry::singleton();
-  $nodes = array();
-  foreach($registry->getOrganizations() as $organization){
-    $nodes[] = array(
-      'title' => $organization->getTitle(),
-      'description' => l($organization->getHomepage(), $organization->getHomepage())
-    );
+  switch(arg(5)){
+    default:
+      $registry = GBIFRegistry::singleton();
+      $organizations = array();
+      foreach($registry->getOrganizations() as $organization){
+        $organizations[] = array(
+          'title' => $organization->getTitle(),
+          'description' => l($organization->getHomepage(), $organization->getHomepage())
+        );
+      }
+      return array(
+        'organizations' => array(
+          '#type' => 'fieldset',
+          '#title' => t('Organizations'),
+          '#collapsed' => TRUE,
+          '#collapsible' => TRUE,
+          'table' => array(
+            '#theme' => 'table',
+            '#header' => array(
+              t('Title'),
+              t('Homepage')
+            ),
+            '#rows' => $organizations
+          )
+        )
+      );
+    case 'nodes':
+      $registry = GBIFRegistry::singleton();
+      $nodes = array();
+      foreach($registry->getNodes() as $node){
+        $nodes[] = array(
+          'title' => $node->getTitle(),
+          'description' => l($node->getHomepage(), $node->getHomepage())
+        );
+      }
+      return array(
+        'organizations' => array(
+          '#type' => 'fieldset',
+          '#title' => t('Organizations'),
+          '#collapsed' => TRUE,
+          '#collapsible' => TRUE,
+          'table' => array(
+            '#theme' => 'table',
+            '#header' => array(
+              t('Title'),
+              t('Homepage')
+            ),
+            '#rows' => $nodes
+          )
+        )
+      );
   }
-  return array(
-    'organizations' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Organizations'),
-      '#collapsed' => TRUE,
-      '#collapsible' => TRUE,
-      'table' => array(
-        '#theme' => 'table',
-        '#header' => array(
-          t('Title'),
-          t('Homepage')
-        ),
-        '#rows' => $nodes
-      )
-    )
-  );
 }
