@@ -80,6 +80,7 @@ function eolapi_data_objects($id, $tid, $age = 604800){
         )
       )
     );
+    $eolapi->source = 'EOL';
     entity_save('eolapi', $eolapi);
   }else{
     $eolapi = eolapi_get('data_objects', $id, $tid);
@@ -158,6 +159,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
             $eolapi->license = $data->dataObjects[0]->license;
             $eolapi->rating = $data->dataObjects[0]->dataRating;
             $eolapi->data = serialize($data->dataObjects[0]);
+            $eolapi->source = 'EOL';
           }
           if(substr($eolapi->type, 0, 4) == 'http'){
             $eolapi->type = array_pop(explode("/", $eolapi->type));
@@ -169,6 +171,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
               )
             )
           );
+          $eolapi->source = 'EOL';
           entity_save('eolapi', $eolapi);
           return $eolapi;
         }

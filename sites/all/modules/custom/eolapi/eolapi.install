@@ -278,6 +278,13 @@ function eolapi_schema(){
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0
+        ),
+        'source' => array(
+          'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
         )
       ),
       'indexes' => array(
@@ -356,6 +363,13 @@ function eolapi_schema(){
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0
+        ),
+        'source' => array(
+          'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
         )
       ),
       'indexes' => array(
@@ -371,4 +385,19 @@ function eolapi_schema(){
       )
     )
   );
+}
+
+function eolapi_update_7001(){
+  $field_spec = array(
+    'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+    'type' => 'varchar',
+    'length' => 256,
+    'not null' => TRUE,
+    'default' => ''
+  );
+  db_add_field('eolapi', 'source', $field_spec);
+  db_add_field('eolapi_revision', 'source', $field_spec);
+  //Set EOL flag on existing eolapi entities
+  db_query("UPDATE {eolapi} SET source = 'EOL' WHERE source = ''");
+  db_query("UPDATE {eolapi_revision} SET source = 'EOL' WHERE source = ''");
 }
