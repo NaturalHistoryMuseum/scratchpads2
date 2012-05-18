@@ -11,7 +11,7 @@ function sofapi_callback(){
   $output = $view->render('block');
   if(count($view->result)){
     echo $output;
-  } else {
+  }else{
     echo "";
   }
 }
