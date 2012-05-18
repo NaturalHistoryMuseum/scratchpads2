@@ -23,6 +23,17 @@ function gbif_registry_autload($class_name){
 class GBIFRegistry extends GBIF\Registry{
 
   /**
+   * Basic singleton code copied straight from php.net
+   */
+  public static function singleton(){
+    if(!isset(self::$instance)){
+      $className = __CLASS__;
+      self::$instance = new $className();
+    }
+    return self::$instance;
+  }
+
+  /**
    * Override the getNodes() function, to enable caching.
    */
   public function getNodes(){

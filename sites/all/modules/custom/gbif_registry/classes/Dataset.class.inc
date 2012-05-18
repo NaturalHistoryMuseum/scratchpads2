@@ -83,7 +83,7 @@ class Dataset extends RegistryChild{
     parent::__construct();
     // If we passed a string, we assume it's the ID of a dataset.
     if(is_string($data)){
-      $data = $this->registry->get_json("dataset/$data");
+      $data = Registry::singleton()->get_json("dataset/$data");
     }
     foreach($data as $key => $value){
       switch($key){

@@ -1,8 +1,9 @@
 <?php
-
 /**
  * Return the form which allows us to set the Registry to use.
  */
+use GBIF\Registry;
+
 function gbif_registry_admin_form(){
   return system_settings_form(array(
     'gbif_registry_web_service_url' => array(
@@ -34,7 +35,7 @@ function gbif_registry_test_page(){
   foreach($registry->getOrganizations() as $organization){
     $nodes[] = array(
       'title' => $organization->getTitle(),
-      'description' => l($organization->getHomepage(),$organization->getHomepage())
+      'description' => l($organization->getHomepage(), $organization->getHomepage())
     );
   }
   return theme('table', array(

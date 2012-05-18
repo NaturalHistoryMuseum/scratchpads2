@@ -38,7 +38,7 @@ class Identifiers extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Identifier($this->registry, $value);
+        $this->results[$key] = new Identifier($value);
       }
     }
   }

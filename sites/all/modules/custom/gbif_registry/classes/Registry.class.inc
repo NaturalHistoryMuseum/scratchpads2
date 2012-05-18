@@ -33,7 +33,7 @@ namespace GBIF;
  *
  * @author simor
  */
-class Registry extends RegistryCache{
+class Registry{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
   // protected $registryURL = 'http://gbrds.gbif.org/registry/';
   private $registryURL = 'http://localhost:8080/registry-ws/';
@@ -42,16 +42,17 @@ class Registry extends RegistryCache{
 
   private $count = 0;
 
-  private static $instance;
+  protected static $instance;
 
-  private function __construct(){}
+  protected function __construct(){}
+
+  private $registryCache = FALSE;
 
   /**
    * Basic singleton code copied straight from php.net
    */
   public static function singleton(){
     if(!isset(self::$instance)){
-      echo 'Creating new instance.';
       $className = __CLASS__;
       self::$instance = new $className();
     }
@@ -68,6 +69,18 @@ class Registry extends RegistryCache{
 
   public function __wakeup(){
     trigger_error('Unserializing is not allowed.', E_USER_ERROR);
+  }
+
+  /**
+   * Return an instance of the RegistryCache class.
+   * This allows us to override
+   * this function, and return a different class which actually does caching
+   */
+  public function getRegistryCache(){
+    if(!$this->registryCache){
+      $this->registryCache = new RegistryCache();
+    }
+    return $this->registryCache;
   }
 
   /**
@@ -95,35 +108,35 @@ class Registry extends RegistryCache{
    * over to potentially return a list of all nodes.
    */
   public function getNodes(){
-    return new Nodes($this);
+    return new Nodes();
   }
 
   /**
    * Similar to the getNodes function, but this returns organizations.
    */
   public function getOrganizations(){
-    return new Organizations($this);
+    return new Organizations();
   }
 
   /**
    * Same again, but returning all datasets.
    */
   public function getDatasets($type = FALSE){
-    return new Datasets($this);
+    return new Datasets();
   }
 
   /**
    * Same again, but returning technicalInstallations
    */
   public function getTechnicalInstallations(){
-    return new TechnicalInstallations($this);
+    return new TechnicalInstallations();
   }
 
   /**
    * Same again, but networks
    */
   public function getNetworks(){
-    return new Networks($this);
+    return new Networks();
   }
 
   /**

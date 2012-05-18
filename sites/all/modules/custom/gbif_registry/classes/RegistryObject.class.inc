@@ -69,7 +69,7 @@ class RegistryObject extends RegistryChild{
     parent::__construct();
     // If we passed a string, we assume it's the ID of a node.
     if(is_string($data)){
-      $data = $this->registry->get_json($this->getURLPrefix() . "/$data");
+      $data = Registry::singleton()->get_json($this->getURLPrefix() . "/$data");
     }
     // If we passed an array, we assume we're building this object from an
     // "Objects" query.
@@ -211,7 +211,7 @@ class RegistryObject extends RegistryChild{
    * too.
    */
   function delete(){
-    $this->registry->delete($this->getURLPrefix() . "/{$this->key}");
+    Registry::singleton()->delete($this->getURLPrefix() . "/{$this->key}");
   }
 
   /**
