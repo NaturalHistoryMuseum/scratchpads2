@@ -23,12 +23,12 @@ namespace GBIF;
 
 class Endpoints extends Iterator{
 
-  public function __construct(Registry $reg, $path, $endpointType = FALSE){
+  public function __construct($path, $endpointType = FALSE){
     $parameters = array();
     if($endpointType){
       $parameters['endpointType'] = $endpointType;
     }
-    parent::__construct($reg, $path, $parameters);
+    parent::__construct($path, $parameters);
   }
 
   protected function getResults(){

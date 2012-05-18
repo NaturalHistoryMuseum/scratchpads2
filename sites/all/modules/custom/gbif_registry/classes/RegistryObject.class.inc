@@ -65,11 +65,11 @@ class RegistryObject extends RegistryChild{
 
   protected $organizations = FALSE;
 
-  public function __construct(Registry $reg, $data = FALSE){
-    parent::__construct($reg);
+  public function __construct($data = FALSE){
+    parent::__construct();
     // If we passed a string, we assume it's the ID of a node.
     if(is_string($data)){
-      $data = $reg->get_json($this->getURLPrefix() . "/$data");
+      $data = $this->registry->get_json($this->getURLPrefix() . "/$data");
     }
     // If we passed an array, we assume we're building this object from an
     // "Objects" query.
@@ -217,31 +217,31 @@ class RegistryObject extends RegistryChild{
   /**
    */
   public function getIdentifiers(){
-    return new Identifiers($this->registry, $this->getURLPrefix() . "/{$this->key}/identifier");
+    return new Identifiers($this->getURLPrefix() . "/{$this->key}/identifier");
   }
 
   /**
    */
   public function getTags(){
-    return new Tags($this->registry, $this->getURLPrefix() . "/{$this->key}/tag");
+    return new Tags($this->getURLPrefix() . "/{$this->key}/tag");
   }
 
   /**
    */
   public function getEndpoints(){
-    return new Endpoints($this->registry, $this->getURLPrefix() . "/{$this->key}/endpoint");
+    return new Endpoints($this->getURLPrefix() . "/{$this->key}/endpoint");
   }
 
   /**
    */
   public function getContacts(){
-    return new Contacts($this->registry, $this->getURLPrefix() . "/{$this->key}/contact");
+    return new Contacts($this->getURLPrefix() . "/{$this->key}/contact");
   }
 
   /**
    */
   public function getTechnicalInstallations(){
-    return new TechnicalInstallations($this->registry, $this->getURLPrefix() . "/{$this->key}/technical_installation");
+    return new TechnicalInstallations($this->getURLPrefix() . "/{$this->key}/technical_installation");
   }
 
   /**
@@ -273,7 +273,7 @@ class RegistryObject extends RegistryChild{
    * Gets the organizations endorsed by this node.
    */
   public function getOrganizations(){
-    return new Organizations($this->registry, "node/{$this->key}/organization");
+    return new Organizations("node/{$this->key}/organization");
   }
 
   /**

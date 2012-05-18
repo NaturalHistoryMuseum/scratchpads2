@@ -23,12 +23,12 @@ namespace GBIF;
 
 class Identifiers extends Iterator{
 
-  public function __construct(Registry $reg, $path, $identifierType = FALSE){
+  public function __construct($path, $identifierType = FALSE){
     $parameters = array();
     if($identifierType){
       $parameters['identifierType'] = $identifierType;
     }
-    parent::__construct($reg, $path, $parameters);
+    parent::__construct($path, $parameters);
   }
 
   protected function getResults(){

@@ -39,8 +39,8 @@ class Iterator extends RegistryChild implements \Iterator{
   // Allow the provision of parameters
   protected $parameters = array();
 
-  public function __construct(Registry $reg, $path, $parameters = array()){
-    parent::__construct($reg);
+  public function __construct($path, $parameters = array()){
+    parent::__construct();
     $this->parameters = $parameters;
     $this->path = $path;
   }

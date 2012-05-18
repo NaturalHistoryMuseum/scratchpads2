@@ -79,11 +79,11 @@ class Dataset extends RegistryChild{
 
   private $type;
 
-  public function __construct(Registry $reg, $data = FALSE){
-    parent::__construct($reg);
+  public function __construct($data = FALSE){
+    parent::__construct();
     // If we passed a string, we assume it's the ID of a dataset.
     if(is_string($data)){
-      $data = $reg->get_json("dataset/$data");
+      $data = $this->registry->get_json("dataset/$data");
     }
     foreach($data as $key => $value){
       switch($key){
@@ -101,25 +101,25 @@ class Dataset extends RegistryChild{
   /**
    */
   public function getIdentifiers(){
-    return new Identifiers($this->registry, "dataset/{$this->key}/identifier");
+    return new Identifiers("dataset/{$this->key}/identifier");
   }
 
   /**
    */
   public function getTags(){
-    return new Tags($this->registry, "dataset/{$this->key}/tag");
+    return new Tags("dataset/{$this->key}/tag");
   }
 
   /**
    */
   public function getEndpoints(){
-    return new Endpoints($this->registry, "dataset/{$this->key}/endpoint");
+    return new Endpoints("dataset/{$this->key}/endpoint");
   }
 
   /**
    */
   public function getContacts(){
-    return new Contacts($this->registry, "dataset/{$this->key}/contact");
+    return new Contacts("dataset/{$this->key}/contact");
   }
 
   public function __toString(){

@@ -59,6 +59,6 @@ class Node extends RegistryObject{
    * Gets the organizations endorsed by this node.
    */
   public function getOrganizations(){
-    return new Organizations($this->registry, "node/{$this->key}/organization");
+    return new Organizations("node/{$this->key}/organization");
   }
 }

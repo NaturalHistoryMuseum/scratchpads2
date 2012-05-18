@@ -25,7 +25,7 @@ class Nodes extends Iterator{
 
   protected $supportsPaging = TRUE;
 
-  public function __construct(Registry $reg, $tag = FALSE, $name = FALSE){
+  public function __construct($tag = FALSE, $name = FALSE){
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -33,7 +33,7 @@ class Nodes extends Iterator{
     if($name){
       $parameters['name'] = $name;
     }
-    parent::__construct($reg, 'node', $parameters);
+    parent::__construct('node', $parameters);
   }
 
   protected function getResults(){
@@ -43,7 +43,7 @@ class Nodes extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Node($this->registry, $value);
+        $this->results[$key] = new Node($value);
       }
     }
   }
