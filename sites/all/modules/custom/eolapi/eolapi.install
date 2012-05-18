@@ -399,4 +399,5 @@ function eolapi_update_7001(){
   db_add_field('eolapi_revision', 'source', $field_spec);
   //Set EOL flag on existing eolapi entities
   db_query("UPDATE {eolapi} SET source = 'EOL' WHERE source = ''");
+  db_query("UPDATE {eolapi_revision} SET source = 'EOL' WHERE source = ''");
 }
