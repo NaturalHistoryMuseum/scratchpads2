@@ -54,6 +54,8 @@ class RegistryObject extends RegistryChild{
   protected $title;
 
   protected $zip;
+  
+  protected $hostingOrganization;
 
   protected $technicalInstallations = array();
 
@@ -84,11 +86,12 @@ class RegistryObject extends RegistryChild{
               echo "$key\n";
             }
             break;
+          case 'hostingOrganization':
           case 'endorsingNode':
             // We get a complex object here, but we only actually need to save
             // the key, so that's all we're saving.
             if(isset($value['key'])){
-              $this->endorsingNode = $value['key'];
+              $this->{$key} = $value['key'];
             }
             break;
           case 'latitude':

@@ -25,6 +25,10 @@ class RegistryChild{
 
   public function __construct(){}
 
+  public function getAsArray(){
+    return get_object_vars($this);
+  }
+
   public function __toString(){
     return (isset($this->key) ? $this->key . ': ' : '') . (isset($this->title) ? $this->title : '');
   }

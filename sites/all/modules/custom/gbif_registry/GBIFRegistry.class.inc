@@ -12,7 +12,7 @@ spl_autoload_register('gbif_registry_autload');
 function gbif_registry_autload($class_name){
   if(substr($class_name, 0, 4) == 'GBIF'){
     $class_parts = explode('\\', $class_name);
-    include_once "classes/{$class_parts[1]}.class.inc";
+    @include_once "classes/{$class_parts[1]}.class.inc";
   }
 }
 
@@ -57,6 +57,21 @@ class GBIFRegistry extends GBIF\Registry{
     }
     $rc->create('all_nodes', $cache_nodes);
     return $cache_nodes;
+  }
+
+  /**
+   * Same again, but returning technicalInstallations
+   */
+  public function getTechnicalInstallations(){
+    $rc = $this->getRegistryCache();
+    if($cache = $rc->retrieve('all_technicalinstallations')){return $cache;}
+    $tis = parent::getTechnicalInstallations();
+    $cache_tis = array();
+    foreach($tis as $ti){
+      $cache_tis[] = $ti;
+    }
+    $rc->create('all_technicalinstallations', $cache_tis);
+    return $cache_tis;
   }
 
   /**
