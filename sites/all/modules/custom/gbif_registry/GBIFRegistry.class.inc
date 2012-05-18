@@ -34,9 +34,22 @@ class GBIFRegistry extends GBIF\Registry{
   }
 
   /**
+   * Override the getRegistryCache() function to allow us to return a Drupal
+   * specific RegistryCache class.
+   */
+  public function getRegistryCache(){
+    if(!$this->registryCache){
+      $this->registryCache = new DrupalRegistryCache();
+    }
+    return $this->registryCache;
+  }
+
+  /**
    * Override the getNodes() function, to enable caching.
    */
   public function getNodes(){
+    $cache = $this->getRegistryCache();
+    $cache->get('all_nodes');
     $cache = cache_get('all_nodes', 'cache_gbif_registry');
     if($cache){
       if($cache->expire > time()){return $cache->data;}

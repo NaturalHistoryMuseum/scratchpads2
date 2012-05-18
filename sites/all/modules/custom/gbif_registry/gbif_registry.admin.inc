@@ -38,11 +38,20 @@ function gbif_registry_test_page(){
       'description' => l($organization->getHomepage(), $organization->getHomepage())
     );
   }
-  return theme('table', array(
-    'header' => array(
-      t('Title'),
-      t('Homepage')
-    ),
-    'rows' => $nodes
-  ));
+  return array(
+    'organizations' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Organizations'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'table' => array(
+        '#theme' => 'table',
+        '#header' => array(
+          t('Title'),
+          t('Homepage')
+        ),
+        '#rows' => $nodes
+      )
+    )
+  );
 }
