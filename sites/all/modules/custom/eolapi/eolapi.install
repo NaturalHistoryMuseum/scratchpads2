@@ -278,7 +278,14 @@ function eolapi_schema(){
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0
-        )
+        ),
+        'source' => array(
+          'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
+        ),
       ),
       'indexes' => array(
         'eid' => array(
@@ -356,7 +363,14 @@ function eolapi_schema(){
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0
-        )
+        ),
+        'source' => array(
+          'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
+        ),
       ),
       'indexes' => array(
         'eid' => array(
@@ -371,4 +385,17 @@ function eolapi_schema(){
       )
     )
   );
+}
+
+function eolapi_update_7001(){
+	$field_spec = array(
+          'description' => 'Used to record the source. E.g. Swiss Orchid Foundation',
+          'type' => 'varchar',
+          'length' => 256,
+          'not null' => TRUE,
+          'default' => ''
+        );
+	
+	db_add_field('eolapi', 'source', $field_spec);
+	db_add_field('eolapi_revision', 'source', $field_spec);
 }
