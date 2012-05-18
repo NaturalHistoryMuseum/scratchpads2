@@ -25,7 +25,7 @@ class Datasets extends Iterator{
 
   protected $supportsPaging = TRUE;
 
-  public function __construct(Registry $reg, $path = 'dataset', $tag = FALSE, $name = FALSE, $endpointType = FALSE){
+  public function __construct($path = 'dataset', $tag = FALSE, $name = FALSE, $endpointType = FALSE){
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -39,7 +39,7 @@ class Datasets extends Iterator{
     // We refuse to run if no parameters have been set.
     // if(!count($parameters) && $path == 'dataset'){throw new Exception('You
     // must provide a parameter when accessing all "datasets"');}
-    parent::__construct($reg, $path, $parameters);
+    parent::__construct($path, $parameters);
   }
 
   protected function getResults(){

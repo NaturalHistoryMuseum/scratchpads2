@@ -33,12 +33,42 @@ namespace GBIF;
  *
  * @author simor
  */
-class Registry{
+class Registry extends RegistryCache{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
   // protected $registryURL = 'http://gbrds.gbif.org/registry/';
-  protected $registryURL = 'http://localhost:8080/registry-ws/';
+  private $registryURL = 'http://localhost:8080/registry-ws/';
 
-  protected $organisationKey, $organisationPassword;
+  private $organisationKey, $organisationPassword;
+
+  private $count = 0;
+
+  private static $instance;
+
+  private function __construct(){}
+
+  /**
+   * Basic singleton code copied straight from php.net
+   */
+  public static function singleton(){
+    if(!isset(self::$instance)){
+      echo 'Creating new instance.';
+      $className = __CLASS__;
+      self::$instance = new $className();
+    }
+    return self::$instance;
+  }
+
+  public function increment(){
+    return $this->count++;
+  }
+
+  public function __clone(){
+    trigger_error('Clone is not allowed.', E_USER_ERROR);
+  }
+
+  public function __wakeup(){
+    trigger_error('Unserializing is not allowed.', E_USER_ERROR);
+  }
 
   /**
    * Return the current set Registry URL.
@@ -98,7 +128,7 @@ class Registry{
 
   /**
    * http put
-   * 
+   *
    * FIXME - Need to add authentication to this.
    */
   public function put($path, $filename){

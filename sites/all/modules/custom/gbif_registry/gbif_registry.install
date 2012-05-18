@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function gbif_registry_schema(){
+  return array(
+    'cache_gbif_registry' => drupal_get_schema_unprocessed('system', 'cache')
+  );
+}

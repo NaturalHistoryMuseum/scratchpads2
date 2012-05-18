@@ -21,25 +21,26 @@
  */
 namespace GBIF;
 
-class Endpoints extends Iterator{
+/**
+ * The RegistryCache class allows us to take advantage of different caching
+ * mechanisms used in different applications.
+ * A great example of a class that
+ * overrides this one, is that provided by the DrupalRegistryCache class present
+ * in the Scratchpads code.
+ *
+ * Simple CRUD interface for cache items.
+ *
+ * @author simor
+ */
+class RegistryCache{
 
-  public function __construct($path, $endpointType = FALSE){
-    $parameters = array();
-    if($endpointType){
-      $parameters['endpointType'] = $endpointType;
-    }
-    parent::__construct($path, $parameters);
-  }
+  protected function create($cid, $data){}
 
-  protected function getResults(){
-    parent::getResults();
-    // Once the parent function has run, we need to convert the array values in
-    // $results to "Node" objects. Note, this starts from the beggining EVERY
-    // time, and could be an issue for efficiency.
-    foreach($this->results as $key => $value){
-      if(gettype($value) !== 'object'){
-        $this->results[$key] = new Endpoint($this->registry, $value);
-      }
-    }
+  protected function update($cid, $data){}
+
+  protected function delete($cid){}
+
+  protected function retrieve($cid){
+    return FALSE;
   }
 }

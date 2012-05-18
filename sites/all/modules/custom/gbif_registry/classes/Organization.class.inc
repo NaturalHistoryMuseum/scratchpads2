@@ -32,7 +32,7 @@ class Organization extends RegistryObject{
    */
   function getDatasets($type = 'hosted'){
     if($type == 'hosted' || $type == 'owned'){
-      return new Datasets($this->registry, $this->getURLPrefix() . "/{$this->key}/dataset/$type");
+      return new Datasets($this->getURLPrefix() . "/{$this->key}/dataset/$type");
     }else{
       // Throw an error.
     }

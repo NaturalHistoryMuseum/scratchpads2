@@ -43,7 +43,7 @@ class Contact extends RegistryChild{
 
   protected $address;
 
-  public function __construct(Registry $reg, $data = FALSE){
+  public function __construct($data = FALSE){
     if($data){
       foreach($data as $key => $value){
         $this->{$key} = $value;

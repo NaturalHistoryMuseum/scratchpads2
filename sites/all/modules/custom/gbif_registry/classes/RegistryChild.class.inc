@@ -21,20 +21,12 @@
  */
 namespace GBIF;
 
-class RegistryChild{
+class RegistryChild extends RegistryCache{
 
   protected $registry;
 
-  public function __construct(Registry $reg){
-    $this->registry = $reg;
-  }
-
-  public function setRegistry(Registry $reg){
-    $this->registry = $reg;
-  }
-
-  public function getRegistry(){
-    return $this->registry;
+  public function __construct(){
+    $this->registry = Registry::singleton();
   }
 
   public function __toString(){

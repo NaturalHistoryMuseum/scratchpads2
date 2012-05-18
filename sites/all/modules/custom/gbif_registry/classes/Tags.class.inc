@@ -23,12 +23,12 @@ namespace GBIF;
 
 class Tags extends Iterator{
 
-  public function __construct(Registry $reg, $path, $tagNamespace = FALSE){
+  public function __construct($path, $tagNamespace = FALSE){
     $parameters = array();
     if($tagNamespace){
       $parameters['tagNamespace'] = $tagNamespace;
     }
-    parent::__construct($reg, $path, $parameters);
+    parent::__construct($path, $parameters);
   }
 
   protected function getResults(){
@@ -38,7 +38,7 @@ class Tags extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Tag($this->registry, $value);
+        $this->results[$key] = new Tag($value);
       }
     }
   }

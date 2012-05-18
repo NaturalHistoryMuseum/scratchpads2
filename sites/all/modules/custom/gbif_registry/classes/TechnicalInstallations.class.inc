@@ -26,7 +26,7 @@ class TechnicalInstallations extends Iterator{
   protected $supportsPaging = TRUE;
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
-  public function __construct(Registry $reg, $path = 'organization', $tag = FALSE, $name = FALSE, $isoCountyCode = FALSE){
+  public function __construct($path = 'organization', $tag = FALSE, $name = FALSE, $isoCountyCode = FALSE){
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -37,7 +37,7 @@ class TechnicalInstallations extends Iterator{
     if($isoCountyCode){
       $parameters['isoCountryCode'] = $isoCountyCode;
     }
-    parent::__construct($reg, $path, $parameters);
+    parent::__construct($path, $parameters);
   }
 
   protected function getResults(){
@@ -47,7 +47,7 @@ class TechnicalInstallations extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new TechnicalInstallation($this->registry, $value);
+        $this->results[$key] = new TechnicalInstallation($value);
       }
     }
   }
