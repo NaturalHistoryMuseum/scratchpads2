@@ -11,10 +11,10 @@
  * Implements hook_install().
  * 
  * This funciton should register an individual instance of a Scratchpad with the
- * GBIF registry, and set the scratchpads_registry_client_uuid variable to the
+ * GBIF registry, and set the gbif_registry_client_uuid variable to the
  * UUID returned by the service.  This means we can then register endpoints and
  * associate them with this instance.
  */
-function scratchpads_registry_client_install(){
+function gbif_registry_client_install(){
   // 
 }
