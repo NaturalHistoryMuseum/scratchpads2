@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook
+ */
+/**
+ * Implements hook_uninstall().
+ */
+function scratchpads_registry_stats_uninstall(){
+  // Remove the various node types that we have added, as setting the base as
+  // "node_content" prevents them from being removed automatically when this
+  // module is disabled.
+  node_type_delete('scratchpad');
+  node_type_delete('entity_data');
+  node_type_delete('user_data');
+}
