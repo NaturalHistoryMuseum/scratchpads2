@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Install file for the Scratchpads GBIF registry module.
+ *
+ * All the work for this module is done in this install file. There should not
+ * be any need for any code to run regularly, unless of course registration of
+ * the site fails on install.
+ */
+/**
+ * Implements hook_install().
+ * 
+ * This funciton should register an individual instance of a Scratchpad with the
+ * GBIF registry, and set the scratchpads_registry_client_uuid variable to the
+ * UUID returned by the service.  This means we can then register endpoints and
+ * associate them with this instance.
+ */
+function scratchpads_registry_client_install(){
+  // 
+}
