@@ -38,6 +38,8 @@ class Iterator extends RegistryChild implements \Iterator{
   protected $supportsPaging = FALSE;
   // Allow the provision of parameters
   protected $parameters = array();
+  // Allow us to start from a set point rather than from the start.
+  protected $offset;
 
   public function __construct($path, $parameters = array()){
     parent::__construct();
@@ -46,7 +48,11 @@ class Iterator extends RegistryChild implements \Iterator{
   }
 
   public function rewind(){
-    $this->position = 0;
+    $this->position = 0 + $this->offset;
+  }
+
+  public function setOffset($offset){
+    $this->offset = $offset;
   }
 
   public function current(){

@@ -25,59 +25,101 @@ function gbif_registry_admin_form_validate(&$form, &$form_state){
 }
 
 /**
+ * Display a single GBIF Registry object
+ */
+function gbif_registry_view_object($type = FALSE, $id = FALSE){
+  if(!$type || !$id){
+    return t('An example object is shown below.');
+  }else{
+    // Create the registry object first to ensure we're using our cache one!
+    $registry = GBIFRegistry::singleton();
+    if(class_exists('GBIF\\' . $type)){
+      $class = gbif_registry_create_instance('GBIF\\' . $type, array(
+        $id
+      ));
+      $rows = array(
+        array(
+          'Type',
+          implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $type))
+        )
+      );
+      foreach($class->getAsArray() as $key => $value){
+        switch($key){
+          default:
+            if(is_string($value) && trim($value)){
+              $key = implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', ucfirst($key)));
+              $rows[] = array(
+                $key,
+                $value
+              );
+            }
+        }
+      }
+      return array(
+        'table' => array(
+          '#theme' => 'table',
+          '#header' => array(
+            t('Key'),
+            t('Value')
+          ),
+          '#rows' => $rows
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Dynamically create an instance of a GBIF class.
+ */
+function gbif_registry_create_instance($class, $params){
+  $reflection_class = new ReflectionClass($class);
+  return $reflection_class->newInstanceArgs($params);
+}
+
+/**
  * Display the test page.
  */
 function gbif_registry_test_page(){
-  switch(arg(5)){
-    default:
-      $registry = GBIFRegistry::singleton();
-      $organizations = array();
-      foreach($registry->getOrganizations() as $organization){
-        $organizations[] = array(
-          'title' => $organization->getTitle(),
-          'description' => l($organization->getHomepage(), $organization->getHomepage())
-        );
-      }
-      return array(
-        'organizations' => array(
-          '#type' => 'fieldset',
-          '#title' => t('Organizations'),
-          '#collapsed' => TRUE,
-          '#collapsible' => TRUE,
-          'table' => array(
-            '#theme' => 'table',
-            '#header' => array(
-              t('Title'),
-              t('Homepage')
-            ),
-            '#rows' => $organizations
-          )
-        )
+  $registry = GBIFRegistry::singleton();
+  $class = arg(5) ? ucfirst(arg(5)) : 'Organizations';
+  if(method_exists($registry, "get$class")){
+    $objects = call_user_func(array(
+      $registry,
+      "get$class"
+    ));
+    $rows = array();
+    $i = 0;
+    if(isset($_GET['offset'])){
+      $objects->setOffset($_GET['offset']);
+    }
+    foreach($objects as $object){
+      $rows[] = array(
+        'title' => $object->getTitle(),
+        'description' => l($object->getHomepage(), $object->getHomepage()),
+        'key' => l($object->getKey(), "admin/config/services/gbif_registry/view/" . substr($class, 0, -1) . "/{$object->getKey()}")
       );
-    case 'nodes':
-      $registry = GBIFRegistry::singleton();
-      $nodes = array();
-      foreach($registry->getNodes() as $node){
-        $nodes[] = array(
-          'title' => $node->getTitle(),
-          'description' => l($node->getHomepage(), $node->getHomepage())
-        );
+      $i++;
+      if($i == 20){
+        break;
       }
-      return array(
-        'organizations' => array(
-          '#type' => 'fieldset',
-          '#title' => t('Organizations'),
-          '#collapsed' => TRUE,
-          '#collapsible' => TRUE,
-          'table' => array(
-            '#theme' => 'table',
-            '#header' => array(
-              t('Title'),
-              t('Homepage')
-            ),
-            '#rows' => $nodes
-          )
+    }
+    return array(
+      'objects' => array(
+        '#type' => 'fieldset',
+        '#title' => t($class),
+        '#collapsed' => TRUE,
+        '#collapsible' => TRUE,
+        'table' => array(
+          '#theme' => 'table',
+          '#header' => array(
+            t('Title'),
+            t('Homepage'),
+            t('Key')
+          ),
+          '#rows' => $rows
         )
-      );
+      )
+    );
   }
 }

@@ -47,6 +47,59 @@ function gbif_registry_menu(){
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/test/networks' => array(
+      'title' => 'Networks',
+      'description' => t('Lists all "networks" held in the registry.'),
+      'page callback' => 'gbif_registry_test_page',
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/test/datasets' => array(
+      'title' => 'Datasets',
+      'description' => t('Lists all "datasets" held in the registry.'),
+      'page callback' => 'gbif_registry_test_page',
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/test/technicalInstallations' => array(
+      'title' => 'Technical Installations',
+      'description' => t('Lists all "technical installations" held in the registry.'),
+      'page callback' => 'gbif_registry_test_page',
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/view' => array(
+      'title' => 'View GBIF Registry object',
+      'description' => t('View an Object retrieved from the GBIF Registry'),
+      'page callback' => 'gbif_registry_view_object',
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/view/%/%' => array(
+      'title' => 'View GBIF Registry object',
+      'description' => t('View an Object retrieved from the GBIF Registry'),
+      'page callback' => 'gbif_registry_view_object',
+      'page arguments' => array(
+        5,
+        6
+      ),
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'file' => 'gbif_registry.admin.inc'
     )
   );
 }

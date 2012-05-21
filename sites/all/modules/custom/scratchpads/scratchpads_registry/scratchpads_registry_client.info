@@ -1,0 +1,5 @@
+name = GBIF Registry client
+package = GBIF Registry
+description = Registers a Scratchpad with the GBIF registry.
+core = 7.x
+dependencies[] = gbif_registry

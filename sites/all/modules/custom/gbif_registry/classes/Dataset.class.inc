@@ -99,6 +99,76 @@ class Dataset extends RegistryChild{
   }
 
   /**
+ * @return the $description
+ */
+public function getDescription(){
+    return $this->description;
+}
+
+/**
+ * @return the $homepage
+ */
+public function getHomepage(){
+    return $this->homepage;
+}
+
+/**
+ * @return the $key
+ */
+public function getKey(){
+    return $this->key;
+}
+
+/**
+ * @return the $title
+ */
+public function getTitle(){
+    return $this->title;
+}
+
+/**
+ * @return the $type
+ */
+public function getType(){
+    return $this->type;
+}
+
+/**
+ * @param field_type $description
+ */
+public function setDescription($description){
+    $this->description = $description;
+}
+
+/**
+ * @param field_type $homepage
+ */
+public function setHomepage($homepage){
+    $this->homepage = $homepage;
+}
+
+/**
+ * @param field_type $key
+ */
+public function setKey($key){
+    $this->key = $key;
+}
+
+/**
+ * @param field_type $title
+ */
+public function setTitle($title){
+    $this->title = $title;
+}
+
+/**
+ * @param field_type $type
+ */
+public function setType($type){
+    $this->type = $type;
+}
+
+/**
    */
   public function getIdentifiers(){
     return new Identifiers("dataset/{$this->key}/identifier");
