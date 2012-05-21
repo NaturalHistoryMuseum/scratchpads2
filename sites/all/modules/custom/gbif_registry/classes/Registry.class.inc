@@ -107,15 +107,15 @@ class Registry{
    * Simple function that returns a GBIF\Nodes object that can then be itterated
    * over to potentially return a list of all nodes.
    */
-  public function getNodes(){
-    return new Nodes();
+  public function getNodes($tag = FALSE, $name = FALSE){
+    return new Nodes($tag, $name);
   }
 
   /**
    * Similar to the getNodes function, but this returns organizations.
    */
   public function getOrganizations(){
-    return new Organizations();
+    return new Organizations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE);
   }
 
   /**
@@ -128,10 +128,9 @@ class Registry{
   /**
    * Same again, but returning technicalInstallations
    */
-  public function getTechnicalInstallations(){
-    return new TechnicalInstallations();
+  public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+    return new TechnicalInstallations($tag, $name, $isoCountryCode);
   }
-
   /**
    * Same again, but networks
    */

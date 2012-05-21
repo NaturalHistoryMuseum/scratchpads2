@@ -47,9 +47,10 @@ class GBIFRegistry extends GBIF\Registry{
   /**
    * Override the getNodes() function, to enable caching.
    */
-  public function getNodes(){
+  public function getNodes($tag = FALSE, $name = FALSE){
     $rc = $this->getRegistryCache();
-    if($cache = $rc->retrieve('all_nodes')){return $cache;}
+    $cid = "all_nodes:$tag:$name";
+    if($cache = $rc->retrieve($cid)){return $cache;}
     $nodes = parent::getNodes();
     $cache_nodes = array();
     foreach($nodes as $node){
@@ -62,9 +63,10 @@ class GBIFRegistry extends GBIF\Registry{
   /**
    * Same again, but returning technicalInstallations
    */
-  public function getTechnicalInstallations(){
+  public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     $rc = $this->getRegistryCache();
-    if($cache = $rc->retrieve('all_technicalinstallations')){return $cache;}
+    $cid = "all_technicalinstallations:$tag:$name:$isoCountryCode";
+    if($cache = $rc->retrieve($cid)){return $cache;}
     $tis = parent::getTechnicalInstallations();
     $cache_tis = array();
     foreach($tis as $ti){
@@ -77,9 +79,10 @@ class GBIFRegistry extends GBIF\Registry{
   /**
    * Override the getOrganizations() function, to enable caching.
    */
-  public function getOrganizations(){
+  public function getOrganizations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     $rc = $this->getRegistryCache();
-    if($cache = $rc->retrieve('all_organizations')){return $cache;}
+    $cid = "all_organizations:$tag:$name:$isoCountryCode";
+    if($cache = $rc->retrieve($cid)){return $cache;}
     $organizations = parent::getOrganizations();
     $cache_organizations = array();
     foreach($organizations as $organization){
