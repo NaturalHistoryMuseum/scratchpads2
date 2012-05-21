@@ -70,10 +70,11 @@ function sofapi_process_data_object($data_object, $tid, $age = 604800){
   //We're putting SOF content into the EOL entity type
   $eolapi->type = 'stillimage'; //We only get still images from the SOF
   $eolapi->trusted = 1; //These guys know what they're doing
-  $eolapi->license = $data_object->license = 'SOF License text';
-  $eolapi->rating = '';
+  $eolapi->license = $data_object->license = 'Collector: '.$data_object->COLLECTOR . '. SOF License text';
+  //$eolapi->rating = '';
   $eolapi->label = $data_object->identifier;
-  $data_object->agents[]->full_name = $data_object->COLLECTOR;
+  //$data_object->agents[$data_object->COLLECTOR]->full_name = $data_object->COLLECTOR;
+  //$data_object->agents[$data_object->COLLECTOR]->role = 'Collector';
   $data_object->mediaURL = $data_object->MLINK;
   $eolapi->data = $data = serialize(json_decode(json_encode($data_object))); //can't serialize built in objects
   $eolapi->eolapi_taxonomy = array(

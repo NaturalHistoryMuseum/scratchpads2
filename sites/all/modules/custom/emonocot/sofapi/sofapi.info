@@ -3,5 +3,3 @@ description = "Provides additional blocks of data for displaying on taxon pages.
 package = "eMonocot"
 core = 7.x
 dependencies[] = eolapi
-
-tool = true
