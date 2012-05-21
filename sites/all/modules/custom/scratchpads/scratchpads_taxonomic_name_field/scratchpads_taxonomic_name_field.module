@@ -237,6 +237,7 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
       'blocks' => array()
     )
   );
+  module_load_include('block.inc', 'facetapi');
   $map = facetapi_get_delta_map();
   foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
     $delta = array_search($facet->name, $map);

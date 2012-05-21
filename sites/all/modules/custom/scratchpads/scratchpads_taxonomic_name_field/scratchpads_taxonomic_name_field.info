@@ -3,3 +3,4 @@ description = Create a single default taxonomic name field that can be used acro
 package = "Scratchpads"
 core = 7.x
 dependencies[] = biblio
+dependencies[] = facetapi
