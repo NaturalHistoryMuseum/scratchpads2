@@ -22,56 +22,56 @@ function gbif_registry_menu(){
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     ),
-    'admin/config/services/gbif_registry/test' => array(
-      'title' => 'Test',
-      'description' => t('Display various tests to check the registry code is performing as expected.'),
-      'page callback' => 'gbif_registry_test_page',
+    'admin/config/services/gbif_registry/browse' => array(
+      'title' => 'Browse',
+      'description' => t('Display data from GBIF Registry.'),
+      'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'administer gbif registry'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
-    'admin/config/services/gbif_registry/test/organizations' => array(
-      'title' => 'Organizations',
-      'description' => t('Lists all "organizations" held in the registry.'),
+    'admin/config/services/gbif_registry/browse/nodes' => array(
+      'title' => 'Nodes',
+      'description' => t('Lists all "nodes" held in the registry.'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10
     ),
-    'admin/config/services/gbif_registry/test/nodes' => array(
-      'title' => 'Nodes',
-      'description' => t('Lists all "nodes" held in the registry.'),
-      'page callback' => 'gbif_registry_test_page',
+    'admin/config/services/gbif_registry/browse/organizations' => array(
+      'title' => 'Organizations',
+      'description' => t('Lists all "organizations" held in the registry.'),
+      'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'administer gbif registry'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
-    'admin/config/services/gbif_registry/test/networks' => array(
+    'admin/config/services/gbif_registry/browse/networks' => array(
       'title' => 'Networks',
       'description' => t('Lists all "networks" held in the registry.'),
-      'page callback' => 'gbif_registry_test_page',
+      'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'administer gbif registry'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
-    'admin/config/services/gbif_registry/test/datasets' => array(
+    'admin/config/services/gbif_registry/browse/datasets' => array(
       'title' => 'Datasets',
       'description' => t('Lists all "datasets" held in the registry.'),
-      'page callback' => 'gbif_registry_test_page',
+      'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'administer gbif registry'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
-    'admin/config/services/gbif_registry/test/technicalInstallations' => array(
+    'admin/config/services/gbif_registry/browse/technicalInstallations' => array(
       'title' => 'Technical Installations',
       'description' => t('Lists all "technical installations" held in the registry.'),
-      'page callback' => 'gbif_registry_test_page',
+      'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'administer gbif registry'
       ),

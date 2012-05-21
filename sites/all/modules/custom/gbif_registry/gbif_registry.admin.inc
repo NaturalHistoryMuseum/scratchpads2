@@ -40,7 +40,7 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
       $rows = array(
         array(
           'Type',
-          implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $type))
+          check_plain(implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $type)))
         )
       );
       foreach($class->getAsArray() as $key => $value){
@@ -49,8 +49,8 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
             if(is_string($value) && trim($value)){
               $key = implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', ucfirst($key)));
               $rows[] = array(
-                $key,
-                $value
+                check_plain($key),
+                filter_xss_admin($value)
               );
             }
         }
@@ -78,26 +78,35 @@ function gbif_registry_create_instance($class, $params){
 }
 
 /**
- * Display the test page.
+ * Display the browse page.
+ * 
+ * FIXME - Need to add the "Next" and "Previous" links.
  */
-function gbif_registry_test_page(){
+function gbif_registry_browse_page(){
   $registry = GBIFRegistry::singleton();
-  $class = arg(5) ? ucfirst(arg(5)) : 'Organizations';
+  $class = arg(5) ? ucfirst(arg(5)) : 'Nodes';
   if(method_exists($registry, "get$class")){
     $objects = call_user_func(array(
       $registry,
       "get$class"
     ));
     $rows = array();
-    $i = 0;
     if(isset($_GET['offset'])){
-      $objects->setOffset($_GET['offset']);
+      if(is_array($objects)){
+        // We have all the items, simply knock the first x off the start.
+        for($i = 0; $i < $_GET['offset']; $i++){
+          array_shift($objects);
+        }
+      }else{
+        $objects->setOffset($_GET['offset']);
+      }
     }
+    $i = 0;
     foreach($objects as $object){
       $rows[] = array(
-        'title' => $object->getTitle(),
-        'description' => l($object->getHomepage(), $object->getHomepage()),
-        'key' => l($object->getKey(), "admin/config/services/gbif_registry/view/" . substr($class, 0, -1) . "/{$object->getKey()}")
+        'title' => check_plain($object->getTitle()),
+        'description' => l(check_plain($object->getHomepage()), $object->getHomepage()),
+        'key' => l(check_plain($object->getKey()), "admin/config/services/gbif_registry/view/" . substr($class, 0, -1) . "/{$object->getKey()}")
       );
       $i++;
       if($i == 20){
