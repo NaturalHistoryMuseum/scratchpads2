@@ -43,30 +43,54 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
           check_plain(implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $type)))
         )
       );
-      foreach($class->getAsArray() as $key => $value){
-        switch($key){
-          default:
-            if(is_string($value) && trim($value)){
-              $key = implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', ucfirst($key)));
-              $rows[] = array(
-                check_plain($key),
-                filter_xss_admin($value)
-              );
-            }
-        }
-      }
-      return array(
+      $content = array(
         'table' => array(
           '#theme' => 'table',
           '#header' => array(
             t('Key'),
             t('Value')
           ),
-          '#rows' => $rows
+          '#rows' => gbif_registry_get_as_formatted_array($class),
+          'contacts' => array()
         )
       );
+      foreach($class->getContacts() as $contact){
+        $content['contacts'][] = array(
+          '#theme' => 'table',
+          '#header' => array(
+            t('Key'),
+            t('Value')
+          ),
+          '#rows' => gbif_registry_get_as_formatted_array($contact)
+        );
+      }
+      return $content;
+    }else{
+      return t('There has been an error, @class class not found.', array(
+        '@class' => $type
+      ));
     }
   }
+}
+
+/**
+ * Get a GBIF Object as an array that can be put in theme_html().
+ */
+function gbif_registry_get_as_formatted_array($object){
+  $rows = array();
+  foreach($object->getAsArray() as $key => $value){
+    switch($key){
+      default:
+        if(is_string($value) && trim($value)){
+          $key = implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', ucfirst($key)));
+          $rows[] = array(
+            check_plain($key),
+            filter_xss_admin($value)
+          );
+        }
+    }
+  }
+  return $rows;
 }
 
 /**
@@ -79,7 +103,7 @@ function gbif_registry_create_instance($class, $params){
 
 /**
  * Display the browse page.
- * 
+ *
  * FIXME - Need to add the "Next" and "Previous" links.
  */
 function gbif_registry_browse_page(){
