@@ -599,20 +599,35 @@ h2.site-name {
 
 /* Biblio */
 
-.node-biblio table,
-table.biblio,
-.biblio table{
+table{
   width: 100%;
   border-width: 1px;
   border-color: #D9DADD;
   border-style: solid solid none solid;
 }
 
-.biblio table thead tr,
-table.biblio thead tr{
+table thead tr,
+table thead tr{
   background: #EBEDED;
 }
 
+table td,
+table td,
+table th{
+  padding: 6px 5px;
+}
+
+table tr,
+table tr,
+table tr{
+ background: #fff;  
+}
+
+table tr.odd,
+table tr.odd,
+table tr.odd{
+ background: #F1F4FB;  
+}
 
 .node-biblio table td.biblio-row-title,
 table.biblio td.biblio-row-title{
@@ -622,23 +637,7 @@ table.biblio td.biblio-row-title{
   font-weight: bold;
 }
 
-.node-biblio table td,
-table.biblio td,
-table.biblio th{
-  padding: 6px 5px;
-}
 
-.node-biblio table tr,
-.biblio table tr,
-table.biblio tr{
- background: #fff;  
-}
-
-.node-biblio table tr.odd,
-.biblio table tr.odd,
-table.biblio tr.odd{
- background: #F1F4FB;  
-}
 
 /* Just biblio view & solr table */
 
