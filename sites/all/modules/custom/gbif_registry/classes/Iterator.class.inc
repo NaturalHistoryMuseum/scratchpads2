@@ -79,7 +79,7 @@ class Iterator extends RegistryChild implements \Iterator{
     if(!$this->endReached){
       $parameters['offset'] = $this->position;
       $parameters['limit'] = $this->resultsPerPage;
-      $data = Registry::singleton()->get_json($this->path . '?' . http_build_query($parameters));
+      $data = Registry::singleton()->get_json($this->path, $parameters);
       $i = $this->position;
       if($this->supportsPaging && isset($data['endOfRecords'])){
         $this->endReached = $data['endOfRecords'];

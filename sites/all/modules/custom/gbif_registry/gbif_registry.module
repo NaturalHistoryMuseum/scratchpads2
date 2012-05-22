@@ -27,7 +27,7 @@ function gbif_registry_menu(){
       'description' => t('Display data from GBIF Registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -43,7 +43,7 @@ function gbif_registry_menu(){
       'description' => t('Lists all "organizations" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -53,7 +53,7 @@ function gbif_registry_menu(){
       'description' => t('Lists all "networks" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -63,7 +63,7 @@ function gbif_registry_menu(){
       'description' => t('Lists all "datasets" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -73,7 +73,7 @@ function gbif_registry_menu(){
       'description' => t('Lists all "technical installations" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -83,7 +83,7 @@ function gbif_registry_menu(){
       'description' => t('View an Object retrieved from the GBIF Registry'),
       'page callback' => 'gbif_registry_view_object',
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
@@ -97,7 +97,7 @@ function gbif_registry_menu(){
         6
       ),
       'access arguments' => array(
-        'administer gbif registry'
+        'view gbif registry data'
       ),
       'file' => 'gbif_registry.admin.inc'
     )
@@ -111,6 +111,9 @@ function gbif_registry_permission(){
   return array(
     'administer gbif registry' => array(
       'title' => t('Administer GBIF Registry')
+    ),
+    'view gbif registry data' => array(
+      'title' => t('View GBIF Registry data')
     )
   );
 }
