@@ -29,6 +29,9 @@ class TechnicalInstallations extends Iterator{
   protected $path = 'technical_installation';
 
   public function __construct($path = FALSE, $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+    if($path){
+      $this->path = $path;
+    }
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -39,7 +42,7 @@ class TechnicalInstallations extends Iterator{
     if($isoCountryCode){
       $parameters['isoCountryCode'] = $isoCountryCode;
     }
-    parent::__construct($path, $parameters);
+    parent::__construct($this->path, $parameters);
   }
 
   protected function getResults(){
