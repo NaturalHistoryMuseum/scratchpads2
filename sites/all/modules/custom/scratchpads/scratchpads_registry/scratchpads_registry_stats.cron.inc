@@ -20,13 +20,21 @@ function _scratchpads_registry_stats_cron(){
  *
  * Performs functions once a week. Non-essential tasks, like updating nodes/
  * organizations/scratchpads should be placed here.
+ *
+ * FIXME - Not sure what the "tag" is going to be for a "scratchpad", although
+ * it is likely to be "scratchpad". This needs checking.
  */
 function scratchpads_registry_stats_cron_weekly(){
-  $gbif_registry = new GBIFRegistry();
+  $gbif_registry = GBIFRegistry::singleton();
+  //foreach($gbif_registry->getTechnicalInstallations('scratchpad') as $technical_installation){
   foreach($gbif_registry->getTechnicalInstallations() as $technical_installation){
-    
+    // Check that the organization that this installation is linked to exists.
+    // If it doesn't, we need to create it.
+    print_r($technical_installation);
+    exit;
   }
-  variable_set('scratchpads_registry_stats_cron_weekly', time());
+  // FIXME - For debugging - remove the comments on the next line
+  //variable_set('scratchpads_registry_stats_cron_weekly', time());
 }
 
 /**
@@ -35,7 +43,8 @@ function scratchpads_registry_stats_cron_weekly(){
  * Perform daily updates, such as querying a Scratchpad for metadata.
  */
 function scratchpads_registry_stats_cron_daily(){
-  variable_set('scratchpads_registry_stats_cron_daily', time());
+  // FIXME - For debugging - remove the comments on the next line
+  //variable_set('scratchpads_registry_stats_cron_daily', time());
 }
 
 /**
