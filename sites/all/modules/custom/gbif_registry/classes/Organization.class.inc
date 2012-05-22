@@ -42,6 +42,10 @@ class Organization extends RegistryObject{
    * Get the graph of the object
    */
   function getGraph($get_png = FALSE){
-    return Registry::singleton()->get($this->getURLPrefix() . "/{$this->key}/graph" . ($get_png ? '?format=png' : ''));
+    $parameters = array();
+    if($get_png){
+      $parameters['format'] = 'png';
+    }
+    return Registry::singleton()->get($this->getURLPrefix() . "/{$this->key}/graph", $parameters);
   }
 }

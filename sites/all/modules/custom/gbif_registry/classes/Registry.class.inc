@@ -166,8 +166,8 @@ class Registry{
    *
    * We use file_get_contents here purely for its simplicity.
    */
-  public function get($path){
-    if($html = @file_get_contents($this->registryURL . $path)){
+  public function get($path, Array $parameters = array()){
+    if($html = @file_get_contents($this->registryURL . $path . '?' . http_build_query($parameters))){
       return $html;
     }else{
       // FIXME: Perhaps should throw an error here rather than silently
@@ -196,7 +196,9 @@ class Registry{
   /**
    * Simple wrapper to the get function that returns a json_decoded'd array.
    */
-  public function get_json($path){
-    return json_decode($this->get($path), TRUE);
+  public function get_json($path, Array $parameters = array()){
+    // FIXME - Need to tweak the path or parameters here to ensure that we are
+    // returned JSON.
+    return json_decode($this->get($path, $parameters), TRUE);
   }
 }
