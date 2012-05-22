@@ -26,15 +26,17 @@ function _scratchpads_registry_stats_cron(){
  */
 function scratchpads_registry_stats_cron_weekly(){
   $gbif_registry = GBIFRegistry::singleton();
-  //foreach($gbif_registry->getTechnicalInstallations('scratchpad') as $technical_installation){
+  // foreach($gbif_registry->getTechnicalInstallations('scratchpad') as
+  // $technical_installation){
   foreach($gbif_registry->getTechnicalInstallations() as $technical_installation){
+    echo "HERE";exit;
     // Check that the organization that this installation is linked to exists.
     // If it doesn't, we need to create it.
     print_r($technical_installation);
-    exit;
+    exit();
   }
   // FIXME - For debugging - remove the comments on the next line
-  //variable_set('scratchpads_registry_stats_cron_weekly', time());
+  // variable_set('scratchpads_registry_stats_cron_weekly', time());
 }
 
 /**
@@ -44,7 +46,7 @@ function scratchpads_registry_stats_cron_weekly(){
  */
 function scratchpads_registry_stats_cron_daily(){
   // FIXME - For debugging - remove the comments on the next line
-  //variable_set('scratchpads_registry_stats_cron_daily', time());
+  // variable_set('scratchpads_registry_stats_cron_daily', time());
 }
 
 /**

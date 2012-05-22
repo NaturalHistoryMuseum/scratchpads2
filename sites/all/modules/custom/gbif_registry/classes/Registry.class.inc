@@ -131,7 +131,7 @@ class Registry{
    * Same again, but returning technicalInstallations
    */
   public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
-    return new TechnicalInstallations($tag, $name, $isoCountryCode);
+    return new TechnicalInstallations('technical_installation', $tag, $name, $isoCountryCode);
   }
 
   /**

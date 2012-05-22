@@ -26,7 +26,9 @@ class TechnicalInstallations extends Iterator{
   protected $supportsPaging = TRUE;
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
-  public function __construct($path = 'technical_installation', $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+  protected $path = 'technical_installation';
+
+  public function __construct($path = FALSE, $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
