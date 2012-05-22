@@ -264,7 +264,7 @@ function scratchpads_registry_stats_field_default_fields() {
           'biblio' => 0,
           'entity_data' => 0,
           'media_gallery' => 0,
-          'organisation' => 0,
+          'organization' => 0,
           'page' => 0,
           'scratchpad' => 'scratchpad',
           'spm' => 0,
@@ -326,8 +326,8 @@ function scratchpads_registry_stats_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-organisation-body'
-  $fields['node-organisation-body'] = array(
+  // Exported field: 'node-organization-body'
+  $fields['node-organization-body'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
@@ -355,7 +355,7 @@ function scratchpads_registry_stats_field_default_fields() {
       'type' => 'text_with_summary',
     ),
     'field_instance' => array(
-      'bundle' => 'organisation',
+      'bundle' => 'organization',
       'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
@@ -405,8 +405,8 @@ function scratchpads_registry_stats_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-organisation-field_homepage'
-  $fields['node-organisation-field_homepage'] = array(
+  // Exported field: 'node-organization-field_homepage'
+  $fields['node-organization-field_homepage'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
@@ -435,7 +435,7 @@ function scratchpads_registry_stats_field_default_fields() {
       'type' => 'link_field',
     ),
     'field_instance' => array(
-      'bundle' => 'organisation',
+      'bundle' => 'organization',
       'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
@@ -497,8 +497,8 @@ function scratchpads_registry_stats_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-organisation-field_uuid'
-  $fields['node-organisation-field_uuid'] = array(
+  // Exported field: 'node-organization-field_uuid'
+  $fields['node-organization-field_uuid'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
@@ -526,7 +526,7 @@ function scratchpads_registry_stats_field_default_fields() {
       'type' => 'text',
     ),
     'field_instance' => array(
-      'bundle' => 'organisation',
+      'bundle' => 'organization',
       'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
@@ -746,14 +746,14 @@ function scratchpads_registry_stats_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-scratchpad-field_organisation'
-  $fields['node-scratchpad-field_organisation'] = array(
+  // Exported field: 'node-scratchpad-field_organization'
+  $fields['node-scratchpad-field_organization'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_organisation',
+      'field_name' => 'field_organization',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
@@ -772,7 +772,7 @@ function scratchpads_registry_stats_field_default_fields() {
         'referenceable_types' => array(
           'biblio' => 0,
           'media_gallery' => 0,
-          'organisation' => 'organisation',
+          'organization' => 'organization',
           'page' => 0,
           'scratchpad' => 0,
           'spm' => 0,
@@ -813,8 +813,8 @@ function scratchpads_registry_stats_field_default_fields() {
         ),
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_organisation',
-      'label' => 'Organisation',
+      'field_name' => 'field_organization',
+      'label' => 'Organization',
       'required' => 1,
       'settings' => array(
         'user_register_form' => FALSE,
@@ -1165,7 +1165,7 @@ function scratchpads_registry_stats_field_default_fields() {
           'biblio' => 0,
           'entity_data' => 0,
           'media_gallery' => 0,
-          'organisation' => 0,
+          'organization' => 0,
           'page' => 0,
           'scratchpad' => 'scratchpad',
           'spm' => 0,
@@ -1236,7 +1236,7 @@ function scratchpads_registry_stats_field_default_fields() {
   t('Label');
   t('Last login');
   t('Machine name');
-  t('Organisation');
+  t('Organization');
   t('Quantity');
   t('Scratchpad');
   t('UUID');

@@ -27,10 +27,10 @@ function scratchpads_registry_stats_node_info() {
       'title_label' => t('ID'),
       'help' => '',
     ),
-    'organisation' => array(
-      'name' => t('Organisation'),
+    'organization' => array(
+      'name' => t('Organization'),
       'base' => 'node_content',
-      'description' => t('Represents the organisation registered with GBIF that is associated with a Scratchpad.'),
+      'description' => t('Represents the organization registered with GBIF that is associated with a Scratchpad.'),
       'has_title' => '1',
       'title_label' => t('Title'),
       'help' => '',
