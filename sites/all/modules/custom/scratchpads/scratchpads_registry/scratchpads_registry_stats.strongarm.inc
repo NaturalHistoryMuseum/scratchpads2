@@ -1,249 +1,266 @@
 <?php
+
 /**
  * @file
  * scratchpads_registry_stats.strongarm.inc
  */
-
 /**
  * Implements hook_strongarm().
  */
-function scratchpads_registry_stats_strongarm() {
+function scratchpads_registry_stats_strongarm(){
   $export = array();
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_anonymous_entity_data';
   $strongarm->value = '0';
   $export['comment_anonymous_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_anonymous_organization';
   $strongarm->value = '0';
   $export['comment_anonymous_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_anonymous_scratchpad';
   $strongarm->value = '0';
   $export['comment_anonymous_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_anonymous_user_data';
   $strongarm->value = '0';
   $export['comment_anonymous_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_mode_entity_data';
   $strongarm->value = 1;
   $export['comment_default_mode_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_mode_organization';
   $strongarm->value = 1;
   $export['comment_default_mode_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_mode_scratchpad';
   $strongarm->value = 1;
   $export['comment_default_mode_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_mode_user_data';
   $strongarm->value = 1;
   $export['comment_default_mode_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_per_page_entity_data';
   $strongarm->value = '50';
   $export['comment_default_per_page_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_per_page_organization';
   $strongarm->value = '50';
   $export['comment_default_per_page_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_per_page_scratchpad';
   $strongarm->value = '50';
   $export['comment_default_per_page_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_default_per_page_user_data';
   $strongarm->value = '50';
   $export['comment_default_per_page_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_entity_data';
   $strongarm->value = '2';
   $export['comment_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_form_location_entity_data';
   $strongarm->value = 1;
   $export['comment_form_location_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_form_location_organization';
   $strongarm->value = 1;
   $export['comment_form_location_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_form_location_scratchpad';
   $strongarm->value = 1;
   $export['comment_form_location_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_form_location_user_data';
   $strongarm->value = 1;
   $export['comment_form_location_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_organization';
   $strongarm->value = '2';
   $export['comment_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_preview_entity_data';
   $strongarm->value = '1';
   $export['comment_preview_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_preview_organization';
   $strongarm->value = '1';
   $export['comment_preview_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_preview_scratchpad';
   $strongarm->value = '1';
   $export['comment_preview_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_preview_user_data';
   $strongarm->value = '1';
   $export['comment_preview_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_scratchpad';
   $strongarm->value = '2';
   $export['comment_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_subject_field_entity_data';
   $strongarm->value = 1;
   $export['comment_subject_field_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_subject_field_organization';
   $strongarm->value = 1;
   $export['comment_subject_field_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_subject_field_scratchpad';
   $strongarm->value = 1;
   $export['comment_subject_field_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_subject_field_user_data';
   $strongarm->value = 1;
   $export['comment_subject_field_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'comment_user_data';
   $strongarm->value = '2';
   $export['comment_user_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'node_options_entity_data';
   $strongarm->value = array(
     0 => 'status',
-    1 => 'promote',
+    1 => 'promote'
   );
   $export['node_options_entity_data'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'node_options_organization';
   $strongarm->value = array(
     0 => 'status',
-    1 => 'promote',
+    1 => 'promote'
   );
   $export['node_options_organization'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'node_options_scratchpad';
   $strongarm->value = array(
-    0 => 'status',
+    0 => 'status'
   );
   $export['node_options_scratchpad'] = $strongarm;
-
-  $strongarm = new stdClass;
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'node_options_user_data';
   $strongarm->value = array(
     0 => 'status',
-    1 => 'promote',
+    1 => 'promote'
   );
   $export['node_options_user_data'] = $strongarm;
-
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_anonymous_endpoint';
+  $strongarm->value = 0;
+  $export['comment_anonymous_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_default_mode_endpoint';
+  $strongarm->value = 1;
+  $export['comment_default_mode_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_default_per_page_endpoint';
+  $strongarm->value = '50';
+  $export['comment_default_per_page_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_endpoint';
+  $strongarm->value = '2';
+  $export['comment_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_form_location_endpoint';
+  $strongarm->value = 1;
+  $export['comment_form_location_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_preview_endpoint';
+  $strongarm->value = '1';
+  $export['comment_preview_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'comment_subject_field_endpoint';
+  $strongarm->value = 1;
+  $export['comment_subject_field_endpoint'] = $strongarm;
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'node_options_endpoint';
+  $strongarm->value = array(
+    0 => 'status'
+  );
+  $export['node_options_endpoint'] = $strongarm;
   return $export;
 }
