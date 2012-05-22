@@ -58,10 +58,10 @@ function scratchpads_registry_stats_cron_weekly(){
     $node = node_load($row->nid);
     $scratchpad = new TechnicalInstallation($node->field_uuid[LANGUAGE_NONE][0]['value']);
     foreach($scratchpad->getEndpoints() as $endpoint){
-      print_r($endpoint);
-      exit();
+      scratchpads_registry_stats_create_endpoint($endpoint, $node->nid);
     }
   }
+  variable_set('scratchpads_registry_stats_cron_weekly', time());
 }
 
 /**
@@ -140,6 +140,53 @@ function scratchpads_registry_stats_create_technical_installation($technical_ins
     )
   );
   $node->type = 'scratchpad';
+  // FIXME - Add option to set the UID to a specific value/user.
+  $node->uid = 0;
+  node_save($node);
+  return $node;
+}
+
+/**
+ * Create a new TI.
+ */
+function scratchpads_registry_stats_create_endpoint($endpoint, $scratchpad_nid){
+  $scratchpad = node_load($scratchpad_nid);
+  $node = new stdClass();
+  $node->title = $scratchpad->field_uuid[LANGUAGE_NONE][0]['value'] . '::' . $endpoint->getID();
+  // Check if an endpoint with this title already exists. If so, we return.
+  $row = db_query("SELECT COUNT(*) as num_nodes FROM node n, node_revision r WHERE r.vid = n.vid AND r.title = :title AND type = 'endpoint'", array(
+    ':title' => $node->title
+  ))->fetch();
+  if($row->num_nodes){return;}
+  $node->field_id = array(
+    LANGUAGE_NONE => array(
+      array(
+        'value' => $endpoint->getID()
+      )
+    )
+  );
+  $node->field_endpoint_url = array(
+    LANGUAGE_NONE => array(
+      array(
+        'url' => $endpoint->getURL()
+      )
+    )
+  );
+  $node->field_endpoint_type = array(
+    LANGUAGE_NONE => array(
+      array(
+        'value' => $endpoint->getType()
+      )
+    )
+  );
+  $node->field_scratchpad = array(
+    LANGUAGE_NONE => array(
+      array(
+        'nid' => $scratchpad_nid
+      )
+    )
+  );
+  $node->type = 'endpoint';
   // FIXME - Add option to set the UID to a specific value/user.
   $node->uid = 0;
   node_save($node);
