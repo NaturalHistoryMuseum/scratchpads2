@@ -3,5 +3,12 @@
  * @file
  * Code for the scratchpads_registry_stats feature.
  */
+include_once ('scratchpads_registry_stats.features.inc');
 
-include_once('scratchpads_registry_stats.features.inc');
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_registry_stats_cron(){
+  module_load_include('cron.inc', 'scratchpads_registry_stats');
+  _scratchpads_registry_stats_cron();
+}

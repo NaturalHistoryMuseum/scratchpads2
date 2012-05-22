@@ -275,8 +275,8 @@ class RegistryObject extends RegistryChild{
   /**
    * Gets the organizations endorsed by this node.
    */
-  public function getOrganizations(){
-    return new Organizations("node/{$this->key}/organization");
+  public function getHostingOrganization(){
+    return new Organization($this->hostingOrganization);
   }
 
   /**
