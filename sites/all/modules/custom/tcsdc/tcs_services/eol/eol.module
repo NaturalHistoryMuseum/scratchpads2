@@ -42,7 +42,9 @@ function eol_tcsdc_form($form, $form_state){
           'event' => 'click',
           'wrapper' => 'eol-import-full'
         ),
-        '#validate' => array('eol_validate')
+        '#validate' => array(
+          'eol_validate'
+        )
       ),
       'import-full' => array(
         '#weight' => 5,
@@ -76,9 +78,9 @@ function eol_tcsdc_form($form, $form_state){
  * Callback for the ajax
  */
 function eol_classifications_js($form, $form_state){
-  // We rebuild the form here, and output only the bit that we need (the eol 
+  // We rebuild the form here, and output only the bit that we need (the eol
   // options).
-  //sleep(30);
+  // sleep(30);
   $url = EOL_QUERY_URL . urlencode($_POST['eol-name']);
   $eol_xml = file_get_contents($url);
   if($eol_xml){
@@ -86,9 +88,9 @@ function eol_classifications_js($form, $form_state){
     $num_results = count($eol_xml->value);
     $options = array();
     for($i = 0; $i < $num_results; $i++){
-      $options[check_plain($eol_xml->value[$i]->id) . '|' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms)] = check_plain($eol_xml->value[$i]->ancestry . '|' . $eol_xml->value[$i]->name) . " <br/>(" . l($eol_xml->value[$i]->metadata->title, $eol_xml->value[$i]->metadata->url, array(
+      $options[check_plain($eol_xml->value[$i]->id) . '|' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms)] = check_plain($eol_xml->value[$i]->ancestry . '|' . $eol_xml->value[$i]->name) . " <br/>(" . ($eol_xml->value[$i]->metadata->url ? l($eol_xml->value[$i]->metadata->title, $eol_xml->value[$i]->metadata->url, array(
         'abosulte' => 1
-      )) . ') [approx. ' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms) . ' taxa]';
+      )) : $eol_xml->value[$i]->metadata->title) . ') [approx. ' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms) . ' taxa]';
     }
   }
   $form['eol']['eol-import-id'] = array(
@@ -105,9 +107,9 @@ function eol_classifications_js($form, $form_state){
     '#suffix' => '</div>'
   );
   form_set_cache($form['#build_id'], $form, $form_state);
-  // The following few lines of code are clearly not right.  I shouldn't have
+  // The following few lines of code are clearly not right. I shouldn't have
   // to manually set the '#name' for each 'radio' element within the radios
-  // element.  Ah well, it works!
+  // element. Ah well, it works!
   $form_to_return = form_process_radios($form['eol']['eol-import-id']);
   $children = element_children($form_to_return);
   foreach($children as $key){
@@ -125,7 +127,7 @@ function eol_validate($form, &$form_state){
   // Lets just check that the eol-import-id is set in #post, and that it is
   // numeric (is this likely to change Patrick?).
   if(!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid']){
-    form_set_error('taxonomy_vid', t('Please select a vocabulary first.'));    
+    form_set_error('taxonomy_vid', t('Please select a vocabulary first.'));
   }
   if(!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2)){
     form_set_error('eol-import-id', t('Please ensure you select a classification to import.'));
@@ -136,9 +138,9 @@ function eol_validate($form, &$form_state){
  * Callback function when pressing "Import from EOL"
  */
 function eol_submit($form, $form_state){
-  // Validation doesn't appear to work, so we instead piss people off and 
-  // do it here.  
-  if((!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid'])||(!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2))){
+  // Validation doesn't appear to work, so we instead piss people off and
+  // do it here.
+  if((!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid']) || (!(isset($form_state['values']['eol-import-id']) && count(explode("|", $form_state['values']['eol-import-id'])) == 2))){
     drupal_set_message('Please ensure you select a source and destination vocabulary.', 'error');
     drupal_goto('admin/import');
   }
