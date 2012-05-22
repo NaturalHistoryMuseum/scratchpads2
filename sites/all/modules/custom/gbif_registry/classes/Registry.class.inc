@@ -117,7 +117,7 @@ class Registry{
    * Similar to the getNodes function, but this returns organizations.
    */
   public function getOrganizations(){
-    return new Organizations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE);
+    return new Organizations(FALSE, FALSE, FALSE, FALSE);
   }
 
   /**
@@ -131,7 +131,7 @@ class Registry{
    * Same again, but returning technicalInstallations
    */
   public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
-    return new TechnicalInstallations('technical_installation', $tag, $name, $isoCountryCode);
+    return new TechnicalInstallations(FALSE, $tag, $name, $isoCountryCode);
   }
 
   /**
