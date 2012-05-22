@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_metadata_service_menu(){
+  return array(
+    'metadata.json' => array(
+      'title' => '',
+      'title callback' => FALSE,
+      'page callback' => 'scratchpads_metadata_service_json_page',
+      'access callback' => TRUE,
+      'file' => 'scratchpads_metadata_service.pages.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
