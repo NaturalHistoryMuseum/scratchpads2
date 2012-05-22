@@ -88,7 +88,7 @@ function eol_classifications_js($form, $form_state){
     $num_results = count($eol_xml->value);
     $options = array();
     for($i = 0; $i < $num_results; $i++){
-      $options[check_plain($eol_xml->value[$i]->id) . '|' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms)] = check_plain($eol_xml->value[$i]->ancestry . '|' . $eol_xml->value[$i]->name) . " <br/>(" . ($eol_xml->value[$i]->metadata->url ? l($eol_xml->value[$i]->metadata->title, $eol_xml->value[$i]->metadata->url, array(
+      $options[check_plain($eol_xml->value[$i]->id) . '|' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms)] = check_plain($eol_xml->value[$i]->ancestry . '|' . $eol_xml->value[$i]->name) . " <br/>(" . (strlen(trim($eol_xml->value[$i]->metadata->url)) > 5 ? l($eol_xml->value[$i]->metadata->title, $eol_xml->value[$i]->metadata->url, array(
         'abosulte' => 1
       )) : $eol_xml->value[$i]->metadata->title) . ') [approx. ' . check_plain($eol_xml->value[$i]->number_of_children + $eol_xml->value[$i]->number_of_children_synonyms) . ' taxa]';
     }
