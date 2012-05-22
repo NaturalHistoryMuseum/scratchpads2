@@ -608,7 +608,7 @@ table{
 
 table thead tr,
 table thead tr{
-  background: #EBEDED;
+  background: #EBEDED!important;
 }
 
 table td,
@@ -626,7 +626,7 @@ table tr{
 table tr.odd,
 table tr.odd,
 table tr.odd{
- background: #F1F4FB;  
+ background: #F1F4FB!important;  
 }
 
 .node-biblio table td.biblio-row-title,
