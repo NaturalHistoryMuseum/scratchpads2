@@ -35,10 +35,12 @@ namespace GBIF;
  */
 class Registry{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
-  // protected $registryURL = 'http://gbrds.gbif.org/registry/';
+  // private $registryURL = 'http://gbrds.gbif.org/registry/';
   private $registryURL = 'http://localhost:8080/registry-ws/';
 
-  private $organisationKey, $organisationPassword;
+  private $organisationKey;
+
+  private $organisationPassword;
 
   private $count = 0;
 
@@ -131,6 +133,7 @@ class Registry{
   public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     return new TechnicalInstallations($tag, $name, $isoCountryCode);
   }
+
   /**
    * Same again, but networks
    */
