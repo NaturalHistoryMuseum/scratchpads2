@@ -620,7 +620,7 @@ table th{
 table tr,
 table tr,
 table tr{
- background: #fff;  
+ background: #fff!important;  
 }
 
 table tr.odd,
