@@ -35,7 +35,7 @@ class DrupalContentType6Migration extends DrupalContentTypeMigration{
       'description',
       'title_label',
       'help'
-    ))->condition('module', 'node')->condition('type', array_keys(scratchpads_migrate_migration_node_types()), 'IN');
+    ))->condition('module', 'node')->condition('type', array_keys(scratchpads_migrate_type_mappings()), 'NOT IN');
   }
 }
 

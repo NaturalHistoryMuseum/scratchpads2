@@ -16,11 +16,20 @@ abstract class DrupalFieldMigration extends DrupalMigration{
    */
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
-    // Get the migration type
-    $migration_type = scratchpads_migrate_migration_types($row->type_name);
-    // If this field should be exlcuded, return false to skip it
-    if(isset($migration_type['exclude_fields']) && in_array($row->field_name, $migration_type['exclude_fields'])){return false;}
-    return TRUE;
+    // Check if this field has a different destination entity type / bundle
+    $mapping = scratchpads_migrate_type_mappings($row->type_name);
+    if($mapping && is_array($mapping)){
+      $row->entity_type = $mapping['entity_type'];
+      $row->type_name = $mapping['bundle'];
+      if(isset($mapping['fields']) && isset($mapping['fields'][$row->field_name])){
+        $row->field_name = $mapping['fields'][$row->field_name];
+      }
+    }else{
+      $row->entity_type = 'node';
+    }
+    // Does an instance of this field already exists?
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){return false;// Instance already exists, so skip it
+}
   }
 
   /**
@@ -51,38 +60,42 @@ abstract class MigrateDestinationField extends MigrateDestination{
   }
 
   public function import(stdClass $object, stdClass $row){
-    // Create the import
-    if(!module_exists($row->module)){
-      throw new MigrateException(t('Module %module does not exist', array(
-        '%module' => $row->module
-      )));
-      return false;
-    }
+    // Entity type has been set in prepareRow()
+    $object->entity_type = $row->entity_type;
+    $field_instance = (array)$object;
+    $field_instance['widget'] = array(
+      'active' => $row->active,
+      'weight' => $row->weight,
+      'type' => $row->widget_type,
+      'module' => $row->widget_module,
+      'settings' => unserialize($row->widget_settings)
+    );
     // Only create if the field does not already exist
-    $field = field_read_field($row->field_name);
+    $field = field_read_field($object->field_name);
     if(empty($field)){
       // Create the field if it doesn't exist
       $field_config = array(
         'active' => $row->active,
-        'cardinality' => ($row->multiple === 0 ? 1 : -1),
+        'cardinality' => ($row->multiple == 0 ? 1 : -1),
         'deleted' => '0',
         'entity_types' => array(
-          'node'
+          $object->entity_type
         ),
-        'field_name' => $row->field_name,
+        'field_name' => $object->field_name,
         'module' => $row->module,
         'settings' => unserialize($row->global_settings),
         'translatable' => '1',
         'type' => $row->type
       );
-      $field_instance['widget'] = array(
-        'active' => $row->active,
-        'weight' => $row->weight,
-        'type' => $row->widget_type,
-        'module' => $row->widget_module
-      );
       // Let content migrate module change all the field settings for D7 
-      content_migrate_content_migrate_field_alter($field_config, $field_instance);
+      drupal_alter('content_migrate_field', $field_config, $field_instance);
+      // Check the module exists - needs to happen here after the field has been altered
+      if(!module_exists($field_config['module'])){
+        throw new MigrateException(t('Module %module does not exist', array(
+          '%module' => $field_config['module']
+        )));
+        return false;
+      }
       try{
         field_create_field($field_config);
       }
@@ -91,12 +104,9 @@ abstract class MigrateDestinationField extends MigrateDestination{
         return false;
       }
     }
-    $field_instance = (array)$object;
-    $widget_settings = unserialize($row->widget_settings);
-    if(isset($widget_settings['default_value'])){
-      $field_instance['default_value'] = $widget_settings['default_value'][0]['value'];
+    if(isset($field_instance['widget']['settings']['default_value'])){
+      $field_instance['default_value'] = array_shift($field_instance['widget']['settings']['default_value'][0]);
     }
-    $field_instance['required'] = $row->required;
     $field_instance = field_create_instance($field_instance);
     // Has the field been created?
     if(isset($field_instance['field_id'])){
@@ -104,9 +114,8 @@ abstract class MigrateDestinationField extends MigrateDestination{
       return array(
         $object->entity_type . ':' . $object->bundle . ':' . $object->field_name
       );
-    }else{
-      return FALSE;
     }
+    return false;
   }
 
   public function fields(){

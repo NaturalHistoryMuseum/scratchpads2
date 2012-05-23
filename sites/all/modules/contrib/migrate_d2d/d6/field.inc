@@ -28,7 +28,7 @@ class DrupalField6Migration extends DrupalFieldMigration{
     // content_node_field
     $this->addFieldMapping(NULL, 'global_settings'); // Merge into field_config.data
     $this->addFieldMapping(NULL, 'db_columns'); // Merge into field_config.data
-    $this->addFieldMapping(NULL, 'db_storage'); // USed to create field
+    $this->addFieldMapping(NULL, 'db_storage'); // Used to create field
     $this->addFieldMapping(NULL, 'module'); // Used to create field
     $this->addFieldMapping(NULL, 'locked'); // Used to create field
     $this->addFieldMapping(NULL, 'active'); // Used to create field
@@ -54,10 +54,23 @@ class DrupalField6Migration extends DrupalFieldMigration{
     $query->innerJoin('content_node_field', 'f', 'f.field_name = i.field_name');
     $query->fields('f');
     $query->condition('i.widget_active', 1);
-    $query->condition('i.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
+    $query->condition('i.type_name', $this->excludedNodeTypes(), 'NOT IN');
     return $query;
   }
 
+  /**
+   * Get a list of node types not to migrate fields for
+   *
+   */
+  public function excludedNodeTypes(){
+    $node_types = array();
+    foreach(scratchpads_migrate_type_mappings() as $node_type => $mapping){
+      if($mapping === MIGRATE_NONE || $mapping === MIGRATE_CONTENT){
+        $node_types[] = $node_type;
+      }
+    }
+    return $node_types;
+  }
 }
 
 class MigrateDestinationField6 extends MigrateDestinationField{
