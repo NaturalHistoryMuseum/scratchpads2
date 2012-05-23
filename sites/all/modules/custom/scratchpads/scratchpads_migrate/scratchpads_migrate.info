@@ -5,3 +5,5 @@ core = 7.x
 dependencies[] = scratchpads_tweaks
 dependencies[] = migrate_d2d
 dependencies[] = content_migrate
+
+files[] = user.inc
