@@ -80,57 +80,47 @@ function scratchpads_metadata_service_set_metadata_for_all_users(&$metadata){
  * Adds information for each entity type.
  */
 function scratchpads_metadata_service_set_metadata_for_entity($key, $entity_type, &$metadata, $uid = FALSE){
-  $where = '';
-  if($uid !== FALSE){
-    $where = 'WHERE uid = :uid';
-  }
   $matches = FALSE;
   preg_match('/[a-z_A-Z]+/', $entity_type['base table'], $matches);
   if($matches){
     $table_name = $matches[0];
-    try{
+    if(db_table_exists($table_name)){
+      $schema = drupal_get_schema($table_name);
+      $where = '';
+      if($uid !== FALSE){
+        // Ensure this table has a "uid" column.
+        if(!isset($schema['fields']['uid'])){return;}
+        $where = 'WHERE uid = :uid';
+      }
       $row = db_query("SELECT COUNT(*) AS num_of_entity FROM $table_name $where", array(
         ':uid' => $uid
       ))->fetch();
       if(!$row->num_of_entity){return;}
       $metadata[$key]['count'] = $row->num_of_entity;
-    }
-    catch(Exception $e){
-      // If this has failed, we have no "uid" column, so we simply continue.
-    }
-    $table_name = $matches[0];
-    try{
-      if($where){
-        $where .= ' AND status > 0 ';
-      }else{
-        $where = ' WHERE status > 0 ';
+      $table_name = $matches[0];
+      if(isset($schema['fields']['status'])){
+        if($where){
+          $where .= ' AND status > 0 ';
+        }else{
+          $where = ' WHERE status > 0 ';
+        }
+        $row = db_query("SELECT COUNT(*) AS num_of_entity FROM $table_name $where", array(
+          ':uid' => $uid
+        ))->fetch();
+        $metadata[$key]['count_status'] = $row->num_of_entity;
       }
-      $row = db_query("SELECT COUNT(*) AS num_of_entity FROM $table_name $where", array(
-        ':uid' => $uid
-      ))->fetch();
-      if(!$row->num_of_entity){return;}
-      $metadata[$key]['count_status'] = $row->num_of_entity;
-    }
-    catch(Exception $e){
-      // If this has failed, we have no "uid" or "status" column, so we simply
-      // continue.
-    }
-    try{
-      $row = db_query("SELECT MAX(changed) AS entity_changed FROM $table_name $where", array(
-        ':uid' => $uid
-      ))->fetch();
-      $metadata[$key]['last_changed'] = $row->entity_changed;
-    }
-    catch(Exception $e){
-      // No changed column. Try the created column.
-      try{
-        $row = db_query("SELECT MAX(created) AS entity_changed FROM $table_name $where", array(
+      if(isset($schema['fields']['changed'])){
+        $row = db_query("SELECT MAX(changed) AS entity_changed FROM $table_name $where", array(
           ':uid' => $uid
         ))->fetch();
         $metadata[$key]['last_changed'] = $row->entity_changed;
-      }
-      catch(Exception $e){
-        ; // Do nothing, no created/changed columns.
+      }else{
+        if(isset($schema['fields']['created'])){
+          $row = db_query("SELECT MAX(created) AS entity_changed FROM $table_name $where", array(
+            ':uid' => $uid
+          ))->fetch();
+          $metadata[$key]['last_changed'] = $row->entity_changed;
+        }
       }
     }
   }
