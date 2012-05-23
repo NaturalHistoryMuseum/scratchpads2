@@ -38,6 +38,7 @@ dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit
 dependencies[] = role_delegation
+dependencies[] = uuid
 
 ; Scratchpads modules
 dependencies[] = scratchpads_apachesolr_instant
