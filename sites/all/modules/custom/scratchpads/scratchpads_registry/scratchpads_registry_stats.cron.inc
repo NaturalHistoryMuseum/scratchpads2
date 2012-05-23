@@ -1,16 +1,21 @@
 <?php
+
 /**
  * Does all the heavy lifting for this module's hook_cron().
  */
-use GBIF\TechnicalInstallation;
-use GBIF\Organization;
-
 function _scratchpads_registry_stats_cron(){
+  // Increase the timeout.
+  ini_set('max_execution_time', 3600);
   if(variable_get('scratchpads_registry_stats_cron_weekly', 0) < (time() - 604800)){
     scratchpads_registry_stats_cron_weekly();
+    // If we've carried out the weekly cron, we don't do the daily or hourly
+    // stuff.
+    return;
   }
   if(variable_get('scratchpads_registry_stats_cron_daily', 0) < (time() - 86400)){
     scratchpads_registry_stats_cron_daily();
+    // If we've carried out the daily cron, we don't do the hourly stuff.
+    return;
   }
   // Add any additional functions here that need performing more often than once
   // per day.
@@ -56,8 +61,9 @@ function scratchpads_registry_stats_cron_weekly(){
   ))->condition('type', 'scratchpad')->execute();
   foreach($results as $row){
     $node = node_load($row->nid);
-    $scratchpad = new TechnicalInstallation($node->field_uuid[LANGUAGE_NONE][0]['value']);
+    $scratchpad = new GBIF\TechnicalInstallation($node->field_uuid[LANGUAGE_NONE][0]['value']);
     foreach($scratchpad->getEndpoints() as $endpoint){
+      // Only store the endpoint that we're interested in (the metadata one).
       scratchpads_registry_stats_create_endpoint($endpoint, $node->nid);
     }
   }
@@ -70,8 +76,24 @@ function scratchpads_registry_stats_cron_weekly(){
  * Perform daily updates, such as querying a Scratchpad for metadata.
  */
 function scratchpads_registry_stats_cron_daily(){
-  // FIXME - For debugging - remove the comments on the next line
-  // variable_set('scratchpads_registry_stats_cron_daily', time());
+  $results = db_select('node', 'n')->condition('type', 'endpoint')->fields('n', array(
+    'nid'
+  ))->execute();
+  $context = stream_context_create(array(
+    'timeout' => 3
+  ));
+  foreach($results as $row){
+    $node = node_load($row->nid);
+    // Get the data, and quickly save it.
+    // $data =
+    // file_get_contents($node->field_endpoint_url[LANGUAGE_NONE][0]['url'],
+    // FALSE, $context);
+    echo $node->field_endpoint_url[LANGUAGE_NONE][0]['url'] . "\n";
+    if($data){
+      print_r($data);
+      exit();
+    }
+  }
 }
 
 function scratchpads_registry_stats_create_organization($organization){
