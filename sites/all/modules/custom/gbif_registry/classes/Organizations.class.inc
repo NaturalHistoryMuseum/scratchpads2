@@ -26,7 +26,12 @@ class Organizations extends Iterator{
   protected $supportsPaging = TRUE;
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
-  public function __construct($path = 'organization', $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+  protected $path = 'organization';
+
+  public function __construct($path = FALSE, $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+    if($path){
+      $this->path = $path;
+    }
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -37,7 +42,7 @@ class Organizations extends Iterator{
     if($isoCountryCode){
       $parameters['isoCountryCode'] = $isoCountryCode;
     }
-    parent::__construct($path, $parameters);
+    parent::__construct($this->path, $parameters);
   }
 
   protected function getResults(){

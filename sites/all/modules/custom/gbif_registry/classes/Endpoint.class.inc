@@ -43,6 +43,30 @@ class Endpoint extends RegistryChild{
     }
   }
 
+  public function getID(){
+    return $this->id;
+  }
+
+  public function getURL(){
+    return $this->url;
+  }
+
+  public function getType(){
+    return $this->type;
+  }
+
+  public function setID($id){
+    $this->id = $id;
+  }
+
+  public function setURL($url){
+    $this->url = $url;
+  }
+
+  public function setType($type){
+    $this->type = $type;
+  }
+
   public function __toString(){
     return "{$this->id}: {$this->type} - {$this->url}";
   }

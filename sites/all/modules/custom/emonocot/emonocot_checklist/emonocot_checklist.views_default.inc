@@ -3,7 +3,6 @@
 function emonocot_checklist_views_default_views(){
   $views = array();
   $view = new view();
-  $view = new view();
   $view->name = 'checklist_children';
   $view->description = '';
   $view->tag = 'default';
@@ -73,7 +72,8 @@ function emonocot_checklist_views_default_views(){
   $handler->display->display_options['fields']['field_unacceptability_reason']['field'] = 'field_unacceptability_reason';
   $handler->display->display_options['fields']['field_unacceptability_reason']['label'] = '';
   $handler->display->display_options['fields']['field_unacceptability_reason']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['text'] = '[[field_unacceptability_reason]]';
   $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['external'] = 0;
@@ -124,7 +124,7 @@ function emonocot_checklist_views_default_views(){
   $handler->display->display_options['fields']['name']['label'] = '';
   $handler->display->display_options['fields']['name']['exclude'] = TRUE;
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['name']['alter']['text'] = '= <a href="taxonomy/term/[tid]">[name]</a> [field_authors] [[field_unacceptability_reason]]';
+  $handler->display->display_options['fields']['name']['alter']['text'] = '= <a href="taxonomy/term/[tid]">[name]</a> [field_authors] [field_unacceptability_reason]';
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['name']['alter']['external'] = 0;
@@ -443,6 +443,7 @@ function emonocot_checklist_views_default_views(){
   );
   $handler->display->display_options['path'] = 'checklist/valid';
   $views[] = $view;
+  
   $view = new view();
   $view->name = 'checklist_types';
   $view->description = '';

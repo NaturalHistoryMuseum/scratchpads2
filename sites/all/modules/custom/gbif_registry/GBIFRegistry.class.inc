@@ -56,7 +56,9 @@ class GBIFRegistry extends GBIF\Registry{
     foreach($nodes as $node){
       $cache_nodes[] = $node;
     }
-    $rc->create('all_nodes', $cache_nodes);
+    if(count($cache_nodes)){
+      $rc->create($cid, $cache_nodes);
+    }
     return $cache_nodes;
   }
 
@@ -72,7 +74,9 @@ class GBIFRegistry extends GBIF\Registry{
     foreach($tis as $ti){
       $cache_tis[] = $ti;
     }
-    $rc->create('all_technicalinstallations', $cache_tis);
+    if(count($cache_tis)){
+      $rc->create($cid, $cache_tis);
+    }
     return $cache_tis;
   }
 
@@ -88,7 +92,9 @@ class GBIFRegistry extends GBIF\Registry{
     foreach($organizations as $organization){
       $cache_organizations[] = $organization;
     }
-    $rc->create('all_organizations', $cache_organizations);
+    if(count($cache_organizations)){
+      $rc->create($cid, $cache_organizations);
+    }
     return $cache_organizations;
   }
 }

@@ -24,8 +24,13 @@ namespace GBIF;
 class Datasets extends Iterator{
 
   protected $supportsPaging = TRUE;
+  
+  protected $path = 'dataset';
 
-  public function __construct($path = 'dataset', $tag = FALSE, $name = FALSE, $endpointType = FALSE){
+  public function __construct($path = FALSE, $tag = FALSE, $name = FALSE, $endpointType = FALSE){
+    if($path){
+      $this->path = $path;
+    }
     $parameters = array();
     if($tag){
       $parameters['tag'] = $tag;
@@ -39,7 +44,7 @@ class Datasets extends Iterator{
     // We refuse to run if no parameters have been set.
     // if(!count($parameters) && $path == 'dataset'){throw new Exception('You
     // must provide a parameter when accessing all "datasets"');}
-    parent::__construct($path, $parameters);
+    parent::__construct($this->path, $parameters);
   }
 
   protected function getResults(){
