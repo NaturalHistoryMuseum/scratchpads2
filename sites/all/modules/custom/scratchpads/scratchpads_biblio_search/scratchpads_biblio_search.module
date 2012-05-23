@@ -91,8 +91,8 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
   if(isset($searcher_info['types']['node'])){return array(
       'im_biblio_contributor' => array(
         'name' => 'im_biblio_contributor',
-        'label' => t('Biblio: Contributor'),
-        'description' => t('Biblio: Contributor'),
+        'label' => t('Biblio: Author'),
+        'description' => t('Biblio: Author'),
         'query types' => array(
           'term'
         ),
