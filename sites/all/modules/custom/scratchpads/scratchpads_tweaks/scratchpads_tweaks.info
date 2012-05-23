@@ -60,6 +60,7 @@ dependencies[] = scratchpads_issues_block
 dependencies[] = scratchpads_legal
 dependencies[] = scratchpads_logins
 dependencies[] = scratchpads_media_gallery
+dependencies[] = scratchpads_metadata_service
 dependencies[] = scratchpads_mollom
 dependencies[] = scratchpads_pages
 dependencies[] = scratchpads_roles_and_permissions
