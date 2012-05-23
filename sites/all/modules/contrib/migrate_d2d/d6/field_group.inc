@@ -45,7 +45,9 @@ class DrupalFieldGroup6Migration extends DrupalFieldGroupMigration{
     $query->groupBy('g.group_name');
     $query->addExpression('GROUP_CONCAT(f.field_name)', 'children');
     // Limit to only node types we want to import
-    $query->condition('g.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
+    
+    // TODO Change this to field groups?
+//    $query->condition('g.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
     return $query;
   }
 }

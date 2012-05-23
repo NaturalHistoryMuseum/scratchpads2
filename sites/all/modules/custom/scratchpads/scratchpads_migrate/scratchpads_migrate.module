@@ -1,7 +1,7 @@
 <?php
-
-define(MIGRATE_FIELDS_ONLY, 1);
-
+define("MIGRATE_NONE", 0);
+define("MIGRATE_ALL", 1);
+define("MIGRATE_CONTENT", 2);
 /**
  * Add the database connection.
  * 
@@ -55,7 +55,7 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of users from Drupal 6'),
     'machine_name' => 'User'
   );
-  Migration::registerMigration('DrupalUser6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('ScratchpadsUser6Migration', $arguments['machine_name'], $arguments);
   // -- ContentTypes ----------------------------------------------------------
   $arguments = $common_arguments + array(
     'description' => t('Migration of content types from Drupal 6'),
@@ -80,6 +80,25 @@ function scratchpads_migrate_register_migrations(){
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalField6Migration', $arguments['machine_name'], $arguments);
   $arguments = $common_arguments + array(
+    'description' => t('Migration of body fields from Drupal 6'),
+    'machine_name' => 'FieldBody',
+    'dependencies' => array(
+      'ContentType'
+    )
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldBody6Migration', $arguments['machine_name'], $arguments);
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of taxonomy fields from Drupal 6'),
+    'machine_name' => 'FieldTaxonomy',
+    'dependencies' => array(
+      'ContentType',
+  		'Vocabulary'
+    )
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldTaxonomy6Migration', $arguments['machine_name'], $arguments);
+  $arguments = $common_arguments + array(
     'description' => t('Migration of field groups from Drupal 6'),
     'machine_name' => 'FieldGroup',
     'dependencies' => array(
@@ -88,61 +107,109 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldGroup6Migration', $arguments['machine_name'], $arguments);
-}
-
-/**
- * Array of migration types to import
- */
-function scratchpads_migrate_migration_types($type = null){
-  /* An array of node types to be imported, strcutrue as:
-	 *   node_type => array(
-   *		skip_fields => array(field_name_not_to_import),
-   *		status => MIGRATE_FIELDS_ONLY
-   *	 )
-   *
-   *  Set status to MIGRATE_FIELDS_ONLY if you know you only want to migrate fileds attached to node
-   *  For example, the page node
-   *
-	 * 
-	 */
-  // TODO - Extend to set destination entity_type and destination bundle? Then use it for profile too?
-  $types = array(
-    'test' => array(
-      'exclude_fields' => array(
-        'field_test'
-      )
-    ),
-    'page' => array(
-			'status' => MIGRATE_FIELDS_ONLY
+  // Register the actual content type migrations
+  // Tell the node migrations where the users are coming from, so they can
+  // set up the dependency and resolve D6->D7 uids.
+  $common_node_arguments = $common_arguments + array(
+    'user_migration' => 'User',
+    'dependencies' => array( // Content types & fields must be migrated first 
+      'ContentType',
+      'Field',
+      'FieldGroup'
     )
   );
-  if($type){
-    return $types[$type];
-  }else{
-    return $types;
+  foreach(scratchpads_migrate_type_mappings() as $type => $mapping){
+    // Skip if we don't want to migrate this content type
+    if($mapping == MIGRATE_NONE){
+      continue;
+    }
+    if(is_array($mapping)){
+      if(isset($mapping['entity_type']) && $mapping['entity_type'] != 'node'){
+        // Only do nodes at the moment
+        continue;
+      }
+      if(isset($mapping['bundle'])){
+        $destination_type = $mapping['bundle'];
+      }
+    }else{
+      $destination_type = $type;
+    }
+    // Create the arguments array from the mapping
+    $arguments = array(
+      'class_name' => DrupalNode6Migration,
+      'description' => t('Migration of %type nodes from Drupal 6', array(
+        '%type' => $type
+      )),
+      'machine_name' => ucfirst($type),
+      'source_type' => $type,
+      'destination_type' => $destination_type
+    );
+    $arguments = array_merge_recursive($arguments, $common_node_arguments);
+    Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
   }
 }
 
 /**
- * Return an array of node types requiring migration
- * This will filter out types with status MIGRATE_FIELDS_ONLY
+ * Mapping old node types to new entity / bundle types
+ * @param string $type
  */
-function scratchpads_migrate_migration_node_types(){
-	return array_filter(scratchpads_migrate_migration_types(), "_scratchpads_migrate_migration_node_type_filter");
+function scratchpads_migrate_type_mappings($type = null){
+  // NB: Any node type not in this array will be created
+  $mappings = array(
+    'biblio' => MIGRATE_CONTENT, // migrate content only
+    'blog' => MIGRATE_CONTENT, // migrate content only
+    'nexus_project' => MIGRATE_NONE, // do not migrate
+    'countriesmap' => MIGRATE_NONE, // do not migrate
+    'forum' => MIGRATE_CONTENT, // migrate content only
+    'glossary' => MIGRATE_ALL, // Migrate everything
+    'group' => MIGRATE_CONTENT, // migrate content only
+    'itis_term' => MIGRATE_NONE, // do not migrate
+    'image' => MIGRATE_NONE, // do not migrate
+    'ispecies' => MIGRATE_NONE, // do not migrate
+    'darwincorelocation' => array(
+      'entity_type' => 'node',
+      'bundle' => 'location'
+    ),
+    'simplenews' => MIGRATE_NONE, // do not migrate
+    'nexus_controlled_state' => MIGRATE_NONE, // do not migrate
+    'nexus_free_state' => MIGRATE_NONE, // do not migrate
+    'nexus_note' => MIGRATE_NONE, // do not migrate
+    'page' => MIGRATE_ALL, // migrate using the same entity & bundle type
+    'tree' => MIGRATE_CONTENT, // migrate using the same entity / bundle
+    'poll' => MIGRATE_NONE, // migrate using the same entity & bundle type
+    'publication' => MIGRATE_NONE,
+    'publication_image_caption' => MIGRATE_NONE,
+    'publication_section' => MIGRATE_NONE,
+    'publication_taxon_description' => MIGRATE_NONE,
+    'publication_taxon_section' => MIGRATE_NONE,
+    'profile' => array(
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'fields' => array( // If fields have been renamed, map them here
+        'field_title' => 'field_user_title',
+        'field_givennames' => 'field_user_given_names',
+        'field_familyname' => 'field_user_family_name',
+        'field_institution' => 'field_user_institution',
+        'field_taxonomicinterest' => 'field_user_taxonomic_interest'
+      )
+    ),
+    'darwincore' => array(
+      'entity_type' => 'node',
+      'bundle' => 'specimen_observation'
+    ),
+    'spm' => MIGRATE_ALL, // migrate using the same entity & bundle type
+    'webform' => MIGRATE_NONE // TODO - Webforms!!!
+  );
+  if($type){
+    if(isset($mappings[$type])){
+      return $mappings[$type];
+    }else{
+      return false;
+    }
+    return $mappings[$type];
+  }else{
+    return $mappings;
+  }
 }
-
-/**
- * array_filter function
- * Filter out types with MIGRATE_FIELDS_ONLY
- */
-function _scratchpads_migrate_migration_node_type_filter($type){
-	if(isset($type['status']) && $type['status'] == MIGRATE_FIELDS_ONLY){
-		return false;
-	}
-	return true;
-}
-
-
-
 
 
