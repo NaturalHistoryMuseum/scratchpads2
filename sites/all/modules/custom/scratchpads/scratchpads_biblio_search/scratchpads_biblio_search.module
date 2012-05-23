@@ -213,6 +213,9 @@ function scratchpads_biblio_search_context_default_contexts(){
  */
 function scratchpads_biblio_search_block_view_alter(&$data, $block){
   if($block->module == 'facetapi'){
+    if($data['subject'] == 'Filter by author:'){
+  	  $data['subject'] = 'Filter by contributor:';
+    }
     $map = facetapi_get_delta_map();
     $facet_info = scratchpads_biblio_search_facetapi_facet_info(array('types' => array('node' => TRUE)));
     foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $facet){
