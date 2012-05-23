@@ -7,11 +7,34 @@ function emonocot_ipni_menu(){
 	  'access callback' => TRUE,
 	  'type' => MENU_CALLBACK,
 	);
+	$items['ipnishortpub'] = array(
+	  'title' => t('IPNI publication autocomplete'),
+	  'page callback' => 'emonocot_ipni_autocomplete_publication_short',
+	  'access callback' => TRUE,
+	  'type' => MENU_CALLBACK,
+	);
 	return $items;
 }
 
 function emonocot_ipni_autocomplete_publication($string){
-	$ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_title='.$string.'%25&&output_format=delimited');
+  $ipni_matches = emonocot_ipni_get_publication_data($string);
+    foreach ($ipni_matches as $result){
+    	$return_matches[$result[3]] = $result[3];
+    }
+	print drupal_json_output($return_matches);
+}
+
+function emonocot_ipni_autocomplete_publication_short($string){
+  $ipni_matches = emonocot_ipni_get_publication_data($string);
+    foreach ($ipni_matches as $result){
+    	$return_matches[$result[2]] = $result[2].' | '.$result[3];
+    }
+	print drupal_json_output($return_matches);
+}
+
+
+function emonocot_ipni_get_publication_data($string){
+		$ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_title='.$string.'%25&&output_format=delimited');
 	$ipni_result = explode("\n", $ipni_result);
 	$i=0;
 	$ipni_matches = array();
@@ -22,15 +45,16 @@ function emonocot_ipni_autocomplete_publication($string){
     }
     $return_matches = array();
     array_shift($ipni_matches);
-    foreach ($ipni_matches as $result){
-    	$return_matches[$result[3]] = $result[3];
-    }
-	print drupal_json_output($return_matches);
+    
+    return $ipni_matches;
 }
 
 function emonocot_ipni_form_alter(&$form, &$form_state, $form_id){
   if ($form_id == 'biblio_node_form'){
   	$form['biblio_tabs'][2]['biblio_secondary_title']['#autocomplete_path'] = 'ipnipublication';
+  	$form['biblio_tabs'][8]['biblio_alternate_title']['#autocomplete_path'] = 'ipnipublication';
+  	$form['biblio_tabs'][8]['biblio_original_publication']['#autocomplete_path'] = 'ipnipublication';
+  	$form['biblio_tabs'][8]['biblio_short_title']['#autocomplete_path'] = 'ipnishortpub';
   	$form['title']['#autocomplete_path'] = 'ipnipublication';
   }
 }
