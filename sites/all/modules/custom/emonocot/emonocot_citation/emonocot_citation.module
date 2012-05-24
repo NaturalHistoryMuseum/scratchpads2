@@ -1,0 +1,84 @@
+<?php
+
+
+function emonocot_citation_block_info(){
+  $blocks['cite-this-page'] = array(
+    'info' => t('Cite this page'),
+    'status' => TRUE,
+    'region' => 'content',
+    'weight' => 90,
+    'visibility' => 1,
+  );
+  return $blocks;
+}
+
+function emonocot_citation_block_view($delta = ''){
+  switch ($delta){
+  	case 'cite-this-page':
+  		return emonocot_citation_cite_this_page();
+  		break;
+  }	
+}
+
+function emonocot_citation_cite_this_page(){
+  //Get URL
+  $path = isset($_GET['q']) ? $_GET['q'] : '<front>';
+  $link = url($path, array('absolute' => TRUE));
+
+  //Site title
+  $title = variable_get('site_name', "Default site name");
+  
+  //Access date
+  $date = getdate();
+  $date_string = "(accessed ".$date['mday']." ".$date['month']." ".$date['year'].")";
+
+  $block['subject'] = '';
+  $block['content'] = '<p>Cite this page: '.variable_get('emonocot_citation_author_text', 'eMonocot Team').' '.drupal_get_title().' <i>'.$title.'</i> '.$link.' '.$date_string.'</p>';
+  return $block;
+}
+
+function emonocot_citation_context_load_alter(&$context){
+
+      $context->reactions['block']['blocks']['emonocot_citation-cite-this-page'] = array(
+        'module' => 'emonocot_citation',
+        'delta' => 'cite-this-page',
+        'region' => 'footer',
+        'weight' => -50
+      );
+  
+}
+
+function emonocot_citation_menu(){
+  $items['admin/config/em_citation'] = array(
+    'title' => 'Citation configuration',
+    'description' => 'Adjust how citations for this site are made.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/em_citation/settings'] = array(
+    'title' => 'Citation settings',
+    'description' => 'Change citation text',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('emonocot_citation_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+function emonocot_citation_admin_settings(){
+	$form['emonocot_citation_text'] = array(
+	  '#type' => 'textfield',
+	  '#title' => 'Author text',
+	  '#description' => t('Please enter a formatted list of authors for the site citation'),
+	  '#default_value' => variable_get('emonocot_citation_author_text', 'eMonocot Team'),
+	);
+	$form['#submit'][] = 'emonocot_citation_admin_settings_submit';
+	return system_settings_form($form);
+}
+
+function emonocot_citation_admin_settings_submit($form, $form_state){
+	variable_set('emonocot_citation_author_text', $form_state['values']['emonocot_citation_text']);
+}
