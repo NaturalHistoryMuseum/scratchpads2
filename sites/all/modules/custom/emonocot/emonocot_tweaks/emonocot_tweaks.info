@@ -5,6 +5,7 @@ package="eMonocot"
 
 dependencies[] = scratchpads_tweaks
 dependencies[] = emonocot_blocks
+dependencies[] = emonocot_citation
 dependencies[] = emonocot_itis
 dependencies[] = emonocot_media
 dependencies[] = emonocot_spm

@@ -2,3 +2,5 @@ name = eMonocot IPNI
 description = Autocomplete publication titles from IPNI
 core = 7.x
 package="eMonocot"
+
+tool=true

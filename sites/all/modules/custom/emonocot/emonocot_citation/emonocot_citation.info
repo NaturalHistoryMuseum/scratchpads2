@@ -3,3 +3,5 @@ description = "Provides citation instructions"
 name = "eMonocot Citation"
 package = "eMonocot"
 
+tool=true
+
