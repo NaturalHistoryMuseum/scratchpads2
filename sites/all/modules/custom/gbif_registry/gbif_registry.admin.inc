@@ -3,6 +3,7 @@
  * Return the form which allows us to set the Registry to use.
  */
 use GBIF\Registry;
+define('GBIF_REGISTRY_OBJECTS_PER_PAGE', 20);
 
 function gbif_registry_admin_form(){
   return system_settings_form(array(
@@ -133,11 +134,11 @@ function gbif_registry_browse_page(){
         'key' => l(check_plain($object->getKey()), "admin/config/services/gbif_registry/view/" . substr($class, 0, -1) . "/{$object->getKey()}")
       );
       $i++;
-      if($i == 20){
+      if($i == GBIF_REGISTRY_OBJECTS_PER_PAGE){
         break;
       }
     }
-    return array(
+    $content = array(
       'objects' => array(
         '#type' => 'fieldset',
         '#title' => t($class),
@@ -154,5 +155,35 @@ function gbif_registry_browse_page(){
         )
       )
     );
+    if(isset($_GET['offset']) && $_GET['offset'] >= GBIF_REGISTRY_OBJECTS_PER_PAGE){
+      $content['objects']['previous_lot'] = array(
+        '#theme' => 'link',
+        '#text' => t('Previous'),
+        '#path' => $_GET['q'],
+        '#options' => array(
+          'attributes' => array(),
+          'html' => FALSE,
+          'query' => array(
+            'offset' => $_GET['offset'] - GBIF_REGISTRY_OBJECTS_PER_PAGE
+          )
+        )
+      );
+    }
+    if(count($rows) == GBIF_REGISTRY_OBJECTS_PER_PAGE){
+      $content['objects']['next_lot'] = array(
+        '#prefix' => isset($content['objects']['previous_lot']) ? ' | ' : '',
+        '#theme' => 'link',
+        '#text' => t('Next'),
+        '#path' => $_GET['q'],
+        '#options' => array(
+          'attributes' => array(),
+          'html' => FALSE,
+          'query' => array(
+            'offset' => isset($_GET['offset']) ? $_GET['offset'] + GBIF_REGISTRY_OBJECTS_PER_PAGE : GBIF_REGISTRY_OBJECTS_PER_PAGE
+          )
+        )
+      );
+    }
+    return $content;
   }
 }
