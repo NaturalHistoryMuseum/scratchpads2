@@ -107,9 +107,8 @@ function gbif_registry_create_instance($class, $params){
  *
  * FIXME - Need to add the "Next" and "Previous" links.
  */
-function gbif_registry_browse_page(){
+function gbif_registry_browse_page($class = 'Nodes'){
   $registry = GBIFRegistry::singleton();
-  $class = arg(5) ? ucfirst(arg(5)) : 'Nodes';
   if(method_exists($registry, "get$class")){
     $objects = call_user_func(array(
       $registry,

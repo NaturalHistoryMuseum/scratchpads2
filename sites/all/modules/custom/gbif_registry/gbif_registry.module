@@ -26,6 +26,9 @@ function gbif_registry_menu(){
       'title' => 'Browse',
       'description' => t('Display data from GBIF Registry.'),
       'page callback' => 'gbif_registry_browse_page',
+      'page arguments' => array(
+        'Nodes'
+      ),
       'access arguments' => array(
         'view gbif registry data'
       ),
@@ -42,6 +45,9 @@ function gbif_registry_menu(){
       'title' => 'Organizations',
       'description' => t('Lists all "organizations" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
+      'page arguments' => array(
+        'Organizations'
+      ),
       'access arguments' => array(
         'view gbif registry data'
       ),
@@ -65,6 +71,9 @@ function gbif_registry_menu(){
       'access arguments' => array(
         'view gbif registry data'
       ),
+      'page arguments' => array(
+        'Datasets'
+      ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
@@ -74,6 +83,9 @@ function gbif_registry_menu(){
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'view gbif registry data'
+      ),
+      'page arguments' => array(
+        'TechnicalInstallations'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
