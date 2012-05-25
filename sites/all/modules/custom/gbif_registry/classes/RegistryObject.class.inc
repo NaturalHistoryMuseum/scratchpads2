@@ -54,18 +54,15 @@ class RegistryObject extends RegistryChild{
   protected $title;
 
   protected $zip;
-  
-  protected $hostingOrganization;
 
-  protected $technicalInstallations = array();
+  protected $hostingOrganization;
 
   protected $contacts = array();
 
+  // Endpoints can be associated with a node/organization/technical_installation
   protected $endpoints = array();
 
   protected $identifiers = array();
-
-  protected $organizations = FALSE;
 
   public function __construct($data = FALSE){
     parent::__construct();
@@ -196,15 +193,23 @@ class RegistryObject extends RegistryChild{
   }
 
   /**
-   * Save
+   * Save.
    *
-   * We should save the node at this point. We also need to add any contacts
-   * that have been added.
-   *
-   * FIXME - This does not yet function
+   * This saves a basic Registry object, and adds the children to it.
    */
   public function save(){
-    ;
+    if($this->key){
+      // A key has already been set. This object already exists on the server,
+      // and therefore just needs updating.
+    }else{
+      // No key, we simply need to create a new object, and save the key.
+      $this->key = json_decode(Registry::singleton()->post($this->getURLPrefix(), json_encode($this->getAsArray())), TRUE);
+      if(!$this->key){
+        // An error occurred. PANIC!
+      }
+    }
+    // Now save any additional child objects.
+    print_r($this);
   }
 
   /**
@@ -239,12 +244,6 @@ class RegistryObject extends RegistryChild{
    */
   public function getContacts(){
     return new Contacts($this->getURLPrefix() . "/{$this->key}/contact");
-  }
-
-  /**
-   */
-  public function getTechnicalInstallations(){
-    return new TechnicalInstallations($this->getURLPrefix() . "/{$this->key}/technical_installation");
   }
 
   /**

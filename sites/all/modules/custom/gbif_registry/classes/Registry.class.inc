@@ -214,9 +214,11 @@ class Registry{
     ));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     $response = curl_exec($ch);
-    print_r(curl_getinfo($ch));
-    print_r(curl_errno($ch));
-    print_r($response);
+    if(!curl_errno($ch)){
+      return $response;
+    }else{
+      return FALSE;
+    }
   }
 
   /**
