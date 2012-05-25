@@ -106,7 +106,7 @@ function scratchpads_taxonomic_name_field_install(){
 
 /**
  * Attempt to fix issue #955.
- * 
+ *
  * I have renamed update 7002 to 7003 just to run this update again.
  */
 function scratchpads_taxonomic_name_field_update_7003(){
@@ -171,11 +171,23 @@ function scratchpads_taxonomic_name_field_update_7007(){
 }
 
 /**
- * Set the cardinality to allow multiple names.  Note, this was originally run
+ * Set the cardinality to allow multiple names.
+ * Note, this was originally run
  * as update 7006.
  */
 function scratchpads_taxonomic_name_field_update_7008(){
   $field = field_info_field('field_taxonomic_name');
   $field['cardinality'] = '-1';
   field_update_field($field);
+}
+
+/**
+ * Set the weight of this module to one more than that of the taxonomy module.
+ * This ensures that the feeds shit is executed by this module, and not the
+ * pile of steamy crap in the feeds module.
+ */
+function scratchpads_taxonomic_name_field_update_7009(){
+  db_update('system')->fields(array(
+    'weight' => 1
+  ))->condition('name', 'scratchpads_taxonomic_name_field')->execute();
 }
