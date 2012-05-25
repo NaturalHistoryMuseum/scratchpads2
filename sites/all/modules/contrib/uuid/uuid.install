@@ -29,6 +29,18 @@ function uuid_schema_alter(&$schema = array()) {
  * Implements hook_install().
  */
 function uuid_install() {
+  _uuid_install_uuid_fields();
+  uuid_sync_all();
+}
+
+/**
+ * Install the 'uuid' and 'vuuid' fields into Drupal core entity tables where needed.
+ *
+ * IMPORTANT:  This function is called both at install and update time.  If this method
+ * is modified to add additional fields in the future, the update strategy must be
+ * considered.  See the comment in uuid_update_7102.
+ */
+function _uuid_install_uuid_fields() {
   $field = uuid_schema_field_definition();
   foreach (uuid_get_core_entity_info() as $entity_type => $info) {
     if (!db_field_exists($info['base table'], $info['entity keys']['uuid'])) {
@@ -42,7 +54,6 @@ function uuid_install() {
       }
     }
   }
-  uuid_sync_all();
 }
 
 /**
@@ -182,4 +193,24 @@ function uuid_update_7100() {
  */
 function uuid_update_7101() {
   drupal_flush_all_caches();
+}
+
+/**
+ * Insure that the uuid and vuuid fields are added where needed.
+ *
+ * Note that update 7102 calls _uuid_install_uuid_fields(), which is an
+ * idempotent function.  If _uuid_install_uuid_fields() is changed at some
+ * point in the future (but remains idempotent), then some uuid users
+ * will have run update 7102, and some will not.  A new uuid_update_7103()
+ * function would would therefore be necessary to update all users to
+ * the latest schema.  At the same time, uuid_update_7102() could become
+ * an empty function, as it would not be necessary to call _uuid_install_uuid_fields()
+ * twice.
+ */
+function uuid_update_7102() {
+  // If the user have disabled the UUID module during upgrade (as UPGRADE.txt
+  // instructs), some functions will be missing. So include the module file.
+  module_load_include('module', 'uuid', 'uuid');
+  _uuid_install_uuid_fields();
+  uuid_sync_all();
 }

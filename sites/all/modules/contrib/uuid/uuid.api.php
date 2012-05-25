@@ -68,3 +68,80 @@ function hook_entity_uuid_presave(&$entity, $entity_type) {
 function hook_field_uuid_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
 }
+
+/**
+ * Let modules transform their properties when an entity is saved.
+ */
+function hook_entity_uuid_save($entity, $entity_type) {
+
+}
+
+/**
+ * Let modules act when an entity is deleted.
+ */
+function hook_entity_uuid_delete($entity, $entity_type) {
+
+}
+
+/**
+ * Let modules modify paths when they are being converted to UUID ones.
+ */
+function hook_uuid_menu_path_to_uri_alter($path, &$uri) {
+
+}
+
+/**
+ * Let modules modify paths when they are being converted from UUID ones.
+ */
+function hook_uuid_menu_uri_to_path(&$path, $uri) {
+
+}
+
+/**
+ * Allow modules to provide a list of default entities that will be imported.
+ */
+function hook_uuid_default_entities() {
+
+}
+
+/**
+ * Let other modules do things before default entities are created on rebuild.
+ */
+function hook_uuid_entities_pre_rebuild($plan_name) {
+
+}
+
+/**
+ * Let other modules do things after default entities are created on rebuild.
+ */
+function hook_uuid_entities_post_rebuild($plan_name) {
+
+}
+
+/**
+ * Let other modules do things before default entities are created on revert.
+ */
+function hook_uuid_entities_pre_rebuild($plan_name) {
+
+}
+
+/**
+ * Let other modules do things after default entities are created on revert.
+ */
+function hook_uuid_entities_post_rebuild($plan_name) {
+
+}
+
+/**
+ * Let other modules alter entities that are about to be exported.
+ */
+function hook_uuid_entities_features_export_entity_alter(&$entity, $entity_type) {
+
+}
+
+/**
+ * Let other modules alter fields on entities that are about to be exported.
+ */
+function hook_uuid_entities_features_export_field_alter($entity_type, &$entity, $field, $instance, $langcode, &$items) {
+
+}

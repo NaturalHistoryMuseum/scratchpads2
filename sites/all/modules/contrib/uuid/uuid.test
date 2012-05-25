@@ -71,7 +71,7 @@ class UUIDEntityTestCase extends UUIDTestCase {
   }
 
   function setUp() {
-    parent::setUp('uuid', 'node');
+    parent::setUp('uuid');
   }
 
   /**
@@ -479,5 +479,218 @@ class UUIDSyncTestCase extends UUIDTestCase {
     // Test if UUID was generated for users.
     $user_test = user_load($user->uid, TRUE);
     $this->assertUUID($user_test->uuid, 'User UUID was generated when clicking the sync button.');
+  }
+}
+
+class UUIDExportEntitiesWithDeploy extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Export UUID entities',
+      'description' => 'Test exporting UUID entities with Deploy and Features.',
+      'group' => 'UUID',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('taxonomy', 'uuid', 'entity', 'features', 'deploy', 'deploy_example');
+  }
+
+  function testExport() {
+    $test_user = $this->drupalCreateUser();
+    $test_node = $this->drupalCreateNode(array(
+      'uid' => $test_user->uid,
+    ));
+    deploy_manager_add_to_plan('deploy_example_plan', 'node', $test_node);
+    // TODO: Test the actual insert.
+    $this->assertTrue(TRUE, 'Added a node with a user dependency to be exported as a Feature module.');
+
+    // Login and recreate the example feature. The feature isn't installed. But
+    // Features can still export the code, and we can test it.
+    $web_user = $this->drupalCreateUser(array('administer features'));
+    $this->drupalLogin($web_user);
+    $code = $this->drupalPost('admin/structure/features/uuid_default_entities_example/recreate', array(), t('Download feature'));
+    $this->assertTrue($code, 'Feature module was exported.');
+
+    // Ensure that we find what we expect in the exported code.
+    $node_test1 = preg_match('/' . $test_node->title . '/', $code);
+    $node_test2 = preg_match("/'uri' => 'node\/" . $test_node->uuid . "'/", $code);
+    $this->assertTrue($node_test1, 'Node title was found in the expoted code.');
+    $this->assertTrue($node_test2, 'Node URI was found in the expoted code.');
+    $user_test1 = preg_match('/' . $test_user->name . '/', $code);
+    $user_test2 = preg_match("/'uri' => 'user\/" . $test_user->uuid . "'/", $code);
+    $this->assertTrue($user_test1, 'User was found in the expoted code.');
+    $this->assertTrue($user_test2, 'User URI was found in the expoted code.');
+  }
+}
+
+/**
+ * Tests for the UUID synchronization.
+ */
+class UUIDImportEntitiesTestCase extends UUIDTestCase {
+
+  /**
+   * Representation of the UUIDs that is exported in our example feature, that
+   * we use for testing.
+   */
+  public $term1_uuid = 'bcb92ce8-2236-e264-65c8-0c163ae716d1';
+  public $term2_uuid = '4293a15c-531a-6164-7d1b-668ed019a6bd';
+  public $term3_uuid = 'af738a46-f278-cf84-d94d-9e03879fd71e';
+  public $node1_uuid = 'b0558664-c94b-3674-d9df-3e1696b2e471';
+  public $node2_uuid = '5e3d8bbe-a1f2-f2d4-fdc0-71e6c23aa837';
+  public $user1_uuid = '7cf875e6-dc15-4404-f190-5a7c3e91d14c';
+
+  /**
+   * Helper method to assert the uuid_entities component in any features.
+   */
+  function assertFeatureState($feature, $state, $message = '') {
+    if (empty($message)) {
+      switch ($state) {
+        case FEATURES_DEFAULT:
+          $readable_state = 'default';
+          break;
+        case FEATURES_OVERRIDDEN:
+          $readable_state = 'overridden';
+          break;
+        default:
+          $readable_state = 'unknown';
+          break;
+      }
+      $message = format_string('%component in %feature had state: %state', array('%component' => 'uuid_entities', '%feature' => $feature, '%state' => $readable_state));
+    }
+    // Ensure that the features we used is in default state.
+    $states = features_get_component_states(array($feature), TRUE, TRUE);
+    if (!$this->assertEqual($states[$feature]['uuid_entities'], $state, $message)) {
+      debug(format_string('Enabling functionality to show diff output for debug purposes.'));
+      $success = module_enable(array('diff'));
+      if ($success) {
+        // Make sure we run on cold caches.
+        drupal_flush_all_caches();
+        drupal_static_reset();
+
+        $user = $this->drupalCreateUser(array('administer features'));
+        $this->drupalLogin($user);
+        $this->drupalGet('admin/structure/features/' . $feature . '/diff');
+      }
+      else {
+        debug(format_string('Download !module to see diff output for debug purposes.', array('!module' => 'diff.module')));
+      }
+    }
+  }
+
+  function getEntityByUuid($entity_type, $uuid) {
+    $ids = entity_get_id_by_uuid($entity_type, array($uuid));
+    $entities = entity_load($entity_type, $ids, NULL, TRUE);
+    return reset($entities);
+  }
+
+  function enableFeature($feature) {
+    $success = module_enable(array($feature), TRUE);
+    $this->assertTrue($success, t('Enabled modules: %modules', array('%modules' => implode(', ', array($feature)))));
+    // Make sure we run on cold caches.
+    drupal_flush_all_caches();
+    drupal_static_reset();
+  }
+
+  function revertFeature($feature) {
+    features_revert(array($feature => array('uuid_entities')));
+    $this->assertTrue(TRUE, format_string('Reverted feature: %feature', array('%feature' => $feature)));
+  }
+
+  function testImport() {
+    $term1 = $this->getEntityByUuid('taxonomy_term', $this->term1_uuid);
+    $term2 = $this->getEntityByUuid('taxonomy_term', $this->term2_uuid);
+    $term3 = $this->getEntityByUuid('taxonomy_term', $this->term3_uuid);
+    $node1 = $this->getEntityByUuid('node', $this->node1_uuid);
+    $node2 = $this->getEntityByUuid('node', $this->node2_uuid);
+    $user1 = $this->getEntityByUuid('user', $this->user1_uuid);
+
+    // Ensure that we don't have our entities yet.
+    $this->assertTrue(empty($term1), 'Term 1 has not been created yet.');
+    $this->assertTrue(empty($term2), 'Term 2 has not been created yet.');
+    $this->assertTrue(empty($term3), 'Term 3 has not been created yet.');
+    $this->assertTrue(empty($node1), 'Node 1 has not been created yet.');
+    $this->assertTrue(empty($node2), 'Node 2 has not been created yet.');
+    $this->assertTrue(empty($user1), 'User 1 has not been created yet.');
+
+    $this->enableFeature('uuid_default_entities_example');
+
+    $term1 = $this->getEntityByUuid('taxonomy_term', $this->term1_uuid);
+    $term2 = $this->getEntityByUuid('taxonomy_term', $this->term2_uuid);
+    $term3 = $this->getEntityByUuid('taxonomy_term', $this->term3_uuid);
+    $node1 = $this->getEntityByUuid('node', $this->node1_uuid);
+    $node2 = $this->getEntityByUuid('node', $this->node2_uuid);
+    $user1 = $this->getEntityByUuid('user', $this->user1_uuid);
+
+    $this->drupalGet('term/foo');
+    $this->assertResponse(200, 'Taxonomy term\'s url alias works.');
+
+    $this->drupalGet('lorem-ipsum');
+    $this->assertResponse(200, 'Node\' url alias works.');
+
+    // Ensure that our entities was created.
+    $this->assertEqual($term1->uuid, $this->term1_uuid, 'Term 1 was created.');
+    $this->assertEqual($term2->uuid, $this->term2_uuid, 'Term 2 was created.');
+    $this->assertEqual($term3->uuid, $this->term3_uuid, 'Term 3 was created.');
+    $this->assertEqual($node1->uuid, $this->node1_uuid, 'Node 1 was created.');
+    $this->assertEqual($node2->uuid, $this->node2_uuid, 'Node 2 was created.');
+    $this->assertEqual($user1->uuid, $this->user1_uuid, 'User 1 was created.');
+
+    // Check the features state.
+    $this->assertFeatureState('uuid_default_entities_example', FEATURES_DEFAULT);
+
+    // New property.
+    $new = 'foo bar';
+    // Change a term.
+    $term1->name = $new;
+    $status = taxonomy_term_save($term1);
+    $this->assertEqual($status, SAVED_UPDATED, 'Updated term 1.');
+    // Change a node.
+    $node1->title = $new;
+    node_save($node1);
+    $this->assertEqual($node1->title, $new, 'Updated node 1.');
+    // Change a user.
+    $user1->name = $new;
+    $updated_user = user_save($user1);
+    $this->assertEqual($user1->name, $updated_user->name, 'Updated user 1.');
+
+    // Check the features state.
+    $this->assertFeatureState('uuid_default_entities_example', FEATURES_OVERRIDDEN);
+
+    // Revert the feature.
+    $this->revertFeature('uuid_default_entities_example');
+
+    // Check the features state.
+    $this->assertFeatureState('uuid_default_entities_example', FEATURES_DEFAULT);
+  }
+}
+
+class UUIDImportEntitiesWithDeploy extends UUIDImportEntitiesTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Import UUID entities, with Deploy',
+      'description' => 'Test importing UUID entities with Features and Deploy.',
+      'group' => 'UUID',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('taxonomy', 'uuid', 'entity', 'features', 'deploy', 'deploy_example');
+  }
+}
+
+class UUIDImportEntitiesWithoutDeploy extends UUIDImportEntitiesTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Import UUID entities, without Deploy',
+      'description' => 'Test importing UUID entities with Features only.',
+      'group' => 'UUID',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('taxonomy', 'uuid', 'entity', 'features');
   }
 }
