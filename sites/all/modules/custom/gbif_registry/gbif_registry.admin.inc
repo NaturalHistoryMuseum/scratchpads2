@@ -45,12 +45,11 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
         )
       );
       $content = array(
+        'title' => array(
+          '#markup' => '<h2>' . check_plain(implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $type))) . '</h2>'
+        ),
         'table' => array(
           '#theme' => 'table',
-          '#header' => array(
-            t('Key'),
-            t('Value')
-          ),
           '#rows' => gbif_registry_get_as_formatted_array($class),
           'contacts' => array()
         )
@@ -58,12 +57,36 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
       foreach($class->getContacts() as $contact){
         $content['contacts'][] = array(
           '#theme' => 'table',
-          '#header' => array(
-            t('Key'),
-            t('Value')
-          ),
           '#rows' => gbif_registry_get_as_formatted_array($contact)
         );
+      }
+      if(isset($content['contacts'])){
+        $content['contacts']['#type'] = 'fieldset';
+        $content['contacts']['#title'] = t('Contacts');
+      }
+      if(method_exists($class, 'getEndpoints')){
+        foreach($class->getEndpoints() as $endpoint){
+          $content['endpoints'][] = array(
+            '#theme' => 'table',
+            '#rows' => gbif_registry_get_as_formatted_array($endpoint)
+          );
+        }
+        if(isset($content['endpoints'])){
+          $content['endpoints']['#type'] = 'fieldset';
+          $content['endpoints']['#title'] = t('Endpoints');
+        }
+      }
+      if(method_exists($class, 'getTechnicalInstallations')){
+        foreach($class->getTechnicalInstallations() as $ti){
+          $content['technicalinstallations'][] = array(
+            '#theme' => 'table',
+            '#rows' => gbif_registry_get_as_formatted_array($ti)
+          );
+        }
+        if(isset($content['technicalinstallations'])){
+          $content['technicalinstallations']['#type'] = 'fieldset';
+          $content['technicalinstallations']['#title'] = t('Technical installations');
+        }
       }
       return $content;
     }else{
@@ -140,7 +163,7 @@ function gbif_registry_browse_page($class = 'Nodes'){
     $content = array(
       'objects' => array(
         '#type' => 'fieldset',
-        '#title' => t($class),
+        '#title' => check_plain(implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', $class))),
         '#collapsed' => TRUE,
         '#collapsible' => TRUE,
         'table' => array(
