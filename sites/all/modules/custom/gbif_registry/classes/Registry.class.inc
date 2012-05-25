@@ -42,6 +42,10 @@ class Registry{
 
   private $organisationPassword;
 
+  private $user;
+
+  private $password;
+
   private $count = 0;
 
   protected static $instance;
@@ -141,10 +145,27 @@ class Registry{
     return new Networks();
   }
 
+  public function getUser(){
+    return $this->user;
+  }
+
+  public function getPassword(){
+    return $this->password;
+  }
+
+  public function setUser($user){
+    $this->user = $user;
+  }
+
+  public function setPassword($password){
+    $this->password = $password;
+  }
+
   /**
    * http put
    *
    * FIXME - Need to add authentication to this.
+   * FIXME - Should this be data, or a filename?
    */
   public function put($path, $filename){
     $ch = curl_init($this->registryURL . $path);
@@ -174,6 +195,28 @@ class Registry{
       // failing.
       return '[]';
     }
+  }
+
+  /**
+   * http post.
+   */
+  function post($path, $data){
+    $ch = curl_init($this->registryURL . $path);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_USERPWD, "{$this->user}:{$this->password}");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      "Content-Type: application/json",
+      "Accept: application/json"
+    ));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    $response = curl_exec($ch);
+    print_r(curl_getinfo($ch));
+    print_r(curl_errno($ch));
+    print_r($response);
   }
 
   /**
