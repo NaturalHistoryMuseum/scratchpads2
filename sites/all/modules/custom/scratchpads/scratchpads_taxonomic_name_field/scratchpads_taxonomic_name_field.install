@@ -6,7 +6,7 @@
 function scratchpads_taxonomic_name_field_install(){
   $field = array(
     'active' => '1',
-    'cardinality' => '0',
+    'cardinality' => '-1',
     'deleted' => '0',
     'entity_types' => array(),
     'field_name' => 'field_taxonomic_name',
@@ -146,16 +146,6 @@ function scratchpads_taxonomic_name_field_update_7005(){
 /**
  * Rekey the settings array.
  */
-function scratchpads_taxonomic_name_field_update_7006(){
-  $field = field_info_field('field_taxonomic_name');
-  $field['cardinality'] = '-1';
-  $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
-  field_update_field($field);
-}
-
-/**
- * Rekey the settings array.
- */
 function scratchpads_taxonomic_name_field_update_7007(){
   $field = field_info_field('field_taxonomic_name');
   $bio_vids = variable_get('biological_vids', array());
@@ -177,5 +167,15 @@ function scratchpads_taxonomic_name_field_update_7007(){
       'vocabulary' => '__temporary__'
     );
   }
+  field_update_field($field);
+}
+
+/**
+ * Set the cardinality to allow multiple names.  Note, this was originally run
+ * as update 7006.
+ */
+function scratchpads_taxonomic_name_field_update_7008(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
   field_update_field($field);
 }
