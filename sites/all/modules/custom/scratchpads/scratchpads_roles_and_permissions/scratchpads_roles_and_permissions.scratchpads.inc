@@ -2,8 +2,9 @@
 
 /**
  * Implements hook_scratchpads_default_permissions_alter().
- * 
- * Simply enforces inheritance, so that editor's have all the contributor permissions,
+ *
+ * Simply enforces inheritance, so that editor's have all the contributor
+ * permissions,
  * and maintainers have all the editor permissions.
  */
 function scratchpads_roles_and_permissions_scratchpads_default_permissions_alter(&$permissions){
@@ -43,7 +44,7 @@ function contact_scratchpads_default_permissions(){
 
 /**
  * Simplenews module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function simplenews_scratchpads_default_permissions(){
@@ -62,7 +63,7 @@ function simplenews_scratchpads_default_permissions(){
 
 /**
  * Legal module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function legal_scratchpads_default_permissions(){
@@ -75,9 +76,10 @@ function legal_scratchpads_default_permissions(){
     )
   );
 }
+
 /**
  * Forum module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function forum_scratchpads_default_permissions(){
@@ -90,7 +92,7 @@ function forum_scratchpads_default_permissions(){
 
 /**
  * role_delegation module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function role_delegation_scratchpads_default_permissions(){
@@ -103,7 +105,7 @@ function role_delegation_scratchpads_default_permissions(){
 
 /**
  * Filter module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function filter_scratchpads_default_permissions(){
@@ -119,7 +121,7 @@ function filter_scratchpads_default_permissions(){
 
 /**
  * Redirect module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function redirect_scratchpads_default_permissions(){
@@ -132,7 +134,7 @@ function redirect_scratchpads_default_permissions(){
 
 /**
  * Webform module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function webform_scratchpads_default_permissions(){
@@ -155,7 +157,7 @@ function webform_scratchpads_default_permissions(){
 
 /**
  * Pathauto module
- * 
+ *
  * Implements hook_scratchpads_default_permissions()
  */
 function pathauto_scratchpads_default_permissions(){
@@ -168,7 +170,7 @@ function pathauto_scratchpads_default_permissions(){
 
 /**
  * Google analytics module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function googleanalytics_scratchpads_default_permissions(){
@@ -181,7 +183,7 @@ function googleanalytics_scratchpads_default_permissions(){
 
 /**
  * Subpermissions module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function subpermissions_scratchpads_default_permissions(){
@@ -196,7 +198,7 @@ function subpermissions_scratchpads_default_permissions(){
 
 /**
  * Formflow module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function formflow_scratchpads_default_permissions(){
@@ -214,7 +216,7 @@ function formflow_scratchpads_default_permissions(){
 
 /**
  * Hashcash module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function hashcash_scratchpads_default_permissions(){
@@ -243,7 +245,8 @@ function femail_scratchpads_default_permissions(){
 /**
  * Tools module
  *
- * Note, because this is a custom module that may be release to drupal.org, this specific
+ * Note, because this is a custom module that may be release to drupal.org, this
+ * specific
  * Scratchpad code belongs here.
  *
  * Implements hook_scratchpads_default_permissions().
@@ -258,7 +261,7 @@ function tools_scratchpads_default_permissions(){
 
 /**
  * Views module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function views_scratchpads_default_permissions(){
@@ -352,7 +355,7 @@ function system_scratchpads_default_permissions(){
 
 /**
  * Search module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function shortcut_scratchpads_default_permissions(){
@@ -363,13 +366,16 @@ function shortcut_scratchpads_default_permissions(){
     ),
     'contributor' => array(
       'customize shortcut links'
+    ),
+    'anonymous user' => array(
+      'view the administration theme'
     )
   );
 }
 
 /**
  * Search module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function search_scratchpads_default_permissions(){
@@ -384,7 +390,7 @@ function search_scratchpads_default_permissions(){
 
 /**
  * Overlay module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function overlay_scratchpads_default_permissions(){
@@ -397,7 +403,7 @@ function overlay_scratchpads_default_permissions(){
 
 /**
  * Clone module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function clone_scratchpads_default_permissions(){
@@ -411,7 +417,7 @@ function clone_scratchpads_default_permissions(){
 
 /**
  * Menu module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function menu_scratchpads_default_permissions(){
@@ -424,7 +430,7 @@ function menu_scratchpads_default_permissions(){
 
 /**
  * File entity module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function file_entity_scratchpads_default_permissions(){
@@ -441,7 +447,7 @@ function file_entity_scratchpads_default_permissions(){
 
 /**
  * Field group module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function field_group_scratchpads_default_permissions(){
@@ -454,7 +460,7 @@ function field_group_scratchpads_default_permissions(){
 
 /**
  * Feeds module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function feeds_scratchpads_default_permissions(){
@@ -477,7 +483,7 @@ function feeds_scratchpads_default_permissions(){
 
 /**
  * Contextual module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function contextual_scratchpads_default_permissions(){
@@ -490,7 +496,7 @@ function contextual_scratchpads_default_permissions(){
 
 /**
  * Dashboard module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function dashboard_scratchpads_default_permissions(){
@@ -503,7 +509,7 @@ function dashboard_scratchpads_default_permissions(){
 
 /**
  * Comment module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function comment_scratchpads_default_permissions(){
@@ -524,7 +530,7 @@ function comment_scratchpads_default_permissions(){
 
 /**
  * Biblio module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function biblio_scratchpads_default_permissions(){
@@ -550,7 +556,7 @@ function biblio_scratchpads_default_permissions(){
 
 /**
  * Block module.
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function block_scratchpads_default_permissions(){
@@ -563,7 +569,7 @@ function block_scratchpads_default_permissions(){
 
 /**
  * Node module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function node_scratchpads_default_permissions(){
