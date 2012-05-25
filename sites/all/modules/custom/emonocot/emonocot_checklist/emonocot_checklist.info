@@ -4,3 +4,4 @@ name = "eMonocot Checklist"
 package = "eMonocot"
 dependencies[] = scratchpads_species
 
+tool=true

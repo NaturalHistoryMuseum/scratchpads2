@@ -1,0 +1,7 @@
+core = "7.x"
+description = "Provides citation instructions"
+name = "eMonocot Citation"
+package = "eMonocot"
+
+tool=true
+
