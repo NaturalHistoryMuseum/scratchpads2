@@ -1,16 +1,88 @@
 <?php
 
+/**
+ * Alter the taxonomy/autocomplete function so that we can add the vocabulary
+ * name to the end of the term string "term (vocabulary)" when multiple
+ * vocabularies are present.
+ *
+ * @param unknown_type $items        
+ */
 function scratchpads_taxonomic_name_field_menu_alter(&$items){
   $items['taxonomy/autocomplete'] = array(
     'title' => 'Autocomplete taxonomy',
     'page callback' => 'scratchpads_taxonomic_name_field_autocomplete',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK
   );
-  
   return $items;
 }
 
+/**
+ * Identical to the original function, but with added brackets and vocabulary
+ * name.
+ *
+ * @param unknown_type $field_name        
+ * @param unknown_type $tags_typed        
+ */
+function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed = ''){
+  // If the request has a '/' in the search text, then the menu system will have
+  // split it into multiple arguments, recover the intended $tags_typed.
+  $args = func_get_args();
+  // Shift off the $field_name argument.
+  array_shift($args);
+  $tags_typed = implode('/', $args);
+  // Make sure the field exists and is a taxonomy field.
+  if(!($field = field_info_field($field_name)) || $field['type'] !== 'taxonomy_term_reference'){
+    // Error string. The JavaScript handler will realize this is not JSON and
+    // will display it as debugging information.
+    print t('Taxonomy field @field_name not found.', array(
+      '@field_name' => $field_name
+    ));
+    exit();
+  }
+  // The user enters a comma-separated list of tags. We only autocomplete the
+  // last tag.
+  $tags_typed = drupal_explode_tags($tags_typed);
+  $tag_last = drupal_strtolower(array_pop($tags_typed));
+  $matches = array();
+  if($tag_last != ''){
+    // Part of the criteria for the query come from the field's own settings.
+    $vids = array();
+    $vocabularies = taxonomy_vocabulary_get_names();
+    foreach($field['settings']['allowed_values'] as $tree){
+      $vids[] = $vocabularies[$tree['vocabulary']]->vid;
+    }
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+    $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->addField('v', 'name', 'vocab_name');
+    // Do not select already entered terms.
+    if(!empty($tags_typed)){
+      $query->condition('t.name', $tags_typed, 'NOT IN');
+    }
+    // Select rows that match by term name.
+    $tags_return = $query->fields('t', array(
+      'tid',
+      'name',
+      'vid'
+    ))->condition('t.vid', $vids)->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10)->execute()->fetchAll();
+    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+    $term_matches = array();
+    foreach($tags_return as $tag){
+      $n = $tag->name;
+      // Term names containing commas or quotes must be wrapped in quotes.
+      if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
+        $n = '"' . str_replace('"', '""', $tag->name) . '"';
+      }
+      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? check_plain($tag->name . ' (' . $tag->vocab_name . ')') : check_plain($tag->name);
+    }
+  }
+  drupal_json_output($term_matches);
+}
+// -- Update the field functions ----------------------------------------------
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
  */
@@ -41,34 +113,6 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary
 }
 
 /**
- * Implements hook_form_alter()
- */
-function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
-  field_cache_clear(TRUE);
-  $field = field_info_field('field_taxonomic_name');
-  $bio_vids = variable_get('biological_vids', array());
-  $i = 0;
-  $field['settings']['allowed_values'] = array();
-  foreach($bio_vids as $vid => $value){
-    $voc = taxonomy_vocabulary_load($vid);
-    if($voc){
-      $field['settings']['allowed_values'][$i] = array(
-        'parent' => 0,
-        'vocabulary' => $voc->machine_name
-      );
-      $i++;
-    }
-  }
-  if(!count($field['settings']['allowed_values'])){
-    $field['settings']['allowed_values'][0] = array(
-      'parent' => 0,
-      'vocabulary' => '__temporary__'
-    );
-  }
-  field_update_field($field);
-}
-
-/**
  * Implementation of hook_taxonomy_vocabulary_delete().
  */
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
@@ -91,6 +135,55 @@ function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary
   if($update){
     $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
     field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ *
+ * FIXME - This should not be required. Unfortunately I have been unable to
+ * track down why some taxonomic name fields are not always associated with the
+ * correct vocabularies. This will put a giant fucking plaster over the issue.
+ */
+function scratchpads_taxonomic_name_field_cron(){
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
+  field_update_field($field);
+}
+// -- End of Update the field functions-----------------------------------------
+/**
+ * Implements hook_form_alter()
+ */
+function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['field_taxonomic_name'])){
+    $field = field_info_field('field_taxonomic_name');
+    if(count($field['settings']['allowed_values']) && $field['settings']['allowed_values'][0]['vocabulary'] != '__temporary__'){
+      // We check the number of terms per vocabulary. If any has a single term,
+      // we return before the field is removed.
+      foreach($field['settings']['allowed_values'] as $vocabulary){
+        $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary['vocabulary']);
+        if(count(taxonomy_get_tree($vocabulary->vid, 0, 1, FALSE))){return;}
+      }
+    }
+    unset($form['field_taxonomic_name']);
   }
 }
 
@@ -192,37 +285,6 @@ function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
 }
 
 /**
- * Implementation of hook_cron().
- *
- * FIXME - This should not be required. Unfortunately I have been unable to
- * track down why some taxonomic name fields are not always associated with the
- * correct vocabularies. This will put a giant fucking plaster over the issue.
- */
-function scratchpads_taxonomic_name_field_cron(){
-  $field = field_info_field('field_taxonomic_name');
-  $bio_vids = variable_get('biological_vids', array());
-  $i = 0;
-  $field['settings']['allowed_values'] = array();
-  foreach($bio_vids as $vid => $value){
-    $voc = taxonomy_vocabulary_load($vid);
-    if($voc){
-      $field['settings']['allowed_values'][$i] = array(
-        'parent' => 0,
-        'vocabulary' => $voc->machine_name
-      );
-      $i++;
-    }
-  }
-  if(!count($field['settings']['allowed_values'])){
-    $field['settings']['allowed_values'][0] = array(
-      'parent' => 0,
-      'vocabulary' => '__temporary__'
-    );
-  }
-  field_update_field($field);
-}
-
-/**
  * Implementation of hook_context_default_contexts().
  */
 function scratchpads_taxonomic_name_field_context_default_contexts(){
@@ -264,74 +326,4 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
   $context->condition_mode = 0;
   $export['taxonomic_name_facet'] = $context;
   return $export;
-}
-
-function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed = '') {
-  // If the request has a '/' in the search text, then the menu system will have
-  // split it into multiple arguments, recover the intended $tags_typed.
-  $args = func_get_args();
-  // Shift off the $field_name argument.
-  array_shift($args);
-  $tags_typed = implode('/', $args);
-
-  // Make sure the field exists and is a taxonomy field.
-  if (!($field = field_info_field($field_name)) || $field['type'] !== 'taxonomy_term_reference') {
-    // Error string. The JavaScript handler will realize this is not JSON and
-    // will display it as debugging information.
-    print t('Taxonomy field @field_name not found.', array('@field_name' => $field_name));
-    exit;
-  }
-  
-  //Only show vocabulary name when there is more than vocabularly allowed
-  $multiple = FALSE;
-  $field = field_info_field($field_name);
-  if (count($field['settings']['allowed_values']) > 1) {$multiple = TRUE;}
-
-  // The user enters a comma-separated list of tags. We only autocomplete the last tag.
-  $tags_typed = drupal_explode_tags($tags_typed);
-  $tag_last = drupal_strtolower(array_pop($tags_typed));
-
-  $matches = array();
-  if ($tag_last != '') {
-
-    // Part of the criteria for the query come from the field's own settings.
-    $vids = array();
-    $vocabularies = taxonomy_vocabulary_get_names();
-    foreach ($field['settings']['allowed_values'] as $tree) {
-      $vids[] = $vocabularies[$tree['vocabulary']]->vid;
-    }
-
-    $query = db_select('taxonomy_term_data', 't');
-    $query->addTag('translatable');
-    $query->addTag('term_access');
-    $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
-    $query->addField('v', 'name', 'vocab_name');
-
-    // Do not select already entered terms.
-    if (!empty($tags_typed)) {
-      $query->condition('t.name', $tags_typed, 'NOT IN');
-    }
-    // Select rows that match by term name.
-    $tags_return = $query
-      ->fields('t', array('tid', 'name', 'vid'))
-      ->condition('t.vid', $vids)
-      ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
-      ->range(0, 10)
-      ->execute()
-      ->fetchAll();
-
-    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
-
-    $term_matches = array();
-    foreach ($tags_return as $tag) {
-      $n = $tag->name;
-      // Term names containing commas or quotes must be wrapped in quotes.
-      if (strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE) {
-        $n = '"' . str_replace('"', '""', $tag->name) . '"';
-      }
-      $term_matches[$prefix . $n] = $multiple ? check_plain($tag-> name.' ('.$tag->vocab_name.')') : check_plain($tag->name);
-    }
-  }
-
-  drupal_json_output($term_matches);
 }
