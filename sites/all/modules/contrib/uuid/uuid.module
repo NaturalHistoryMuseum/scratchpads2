@@ -84,6 +84,33 @@ function uuid_permission() {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function uuid_hook_info() {
+  $hook_names = array(
+    'uuid_info',
+    'uuid_sync',
+    'entity_uuid_load',
+    'field_uuid_load',
+    'entity_uuid_presave',
+    'entity_uuid_save',
+    'entity_uuid_delete',
+    'field_uuid_presave',
+    'uuid_menu_path_to_uri_alter',
+    'uuid_menu_uri_to_path_alter',
+    'uuid_default_entities',
+    'uuid_entities_pre_rebuild',
+    'uuid_entities_pre_revert',
+    'uuid_entities_post_rebuild',
+    'uuid_entities_post_revert',
+    'uuid_entities_features_export_entity_alter',
+    'uuid_entities_features_export_field_alter',
+  );
+
+  return array_fill_keys($hook_names, array('group' => 'uuid'));
+}
+
+/**
  * Helper function that returns a schema field definition for UUID fields.
  *
  * @see uuid_schema_alter()
@@ -171,16 +198,20 @@ function _uuid_sync_table($table, $id_field, $uuid_field) {
  * identify all dependencies for all entities.
  */
 function uuid_features_api() {
-  if (module_exists('deploy')) {
-    return array(
-      'uuid_entities' => array(
-        'name' => t('UUID entities'),
-        'default_hook' => 'uuid_default_entities',
-        'default_file' => FEATURES_DEFAULTS_INCLUDED,
-        'features_source' => TRUE,
-        'file' => drupal_get_path('module', 'uuid') .'/uuid.features.inc',
-      ),
-    );
-  }
-  return array();
+  return array(
+    'uuid_entities' => array(
+      'name' => t('UUID entities'),
+      'default_hook' => 'uuid_default_entities',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'features_source' => TRUE,
+      'file' => drupal_get_path('module', 'uuid') .'/uuid.features.inc',
+    ),
+    'uuid_menu_links' => array(
+      'name' => t('UUID Menu links'),
+      'default_hook' => 'uuid_menu_default_menu_links',
+      'feature_source' => TRUE,
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'file' => drupal_get_path('module', 'uuid') .'/uuid.features.menu.inc',
+    )
+  );
 }
