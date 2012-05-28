@@ -3,9 +3,16 @@
 /**
  * Callback to provide metadata as JSON about this Scratchpad.
  */
-function scratchpads_metadata_service_json_page(){
+function scratchpads_metadata_service_json_page($authorised = FALSE){
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
-  print json_encode(scratchpads_metadata_service_get_metadata());
+  // As a simple method of checking authorisation, we simply check that the
+  // client has originated from "stats.scratchpads.eu". This leaves us open to
+  // hacks from our local server, but given that we do not allow posting of PHP,
+  // this should not be possible.
+  if($_SERVER['REMOTE_ADDR'] == gethostbyname('stats.scratchpads.eu') || $_SERVER['REMOTE_ADDR'] == '127.0.0.1'){
+    $authorised = TRUE;
+  }
+  print json_encode(scratchpads_metadata_service_get_metadata($authorised));
 }
 
 /**
@@ -16,7 +23,7 @@ function scratchpads_metadata_service_xml_page(){}
 /**
  * Helper function that builds the metadata about this Scratchpad.
  */
-function scratchpads_metadata_service_get_metadata(){
+function scratchpads_metadata_service_get_metadata($authorised = FALSE){
   $entity_info = entity_get_info();
   $metadata = array();
   foreach($entity_info as $key => $entity_type){
@@ -38,7 +45,7 @@ function scratchpads_metadata_service_get_metadata(){
       // Woot
       $metadata['entities']['user']['users'][$user->uuid] = array();
       $metadata['entities']['user']['users'][$user->uuid]['metadata'] = array(
-        'mail' => $user->mail,
+        'mail' => $authorised ? $user->mail : '',
         'name' => $user->name,
         'roles' => array_keys($user->roles)
       );
