@@ -35,8 +35,7 @@ namespace GBIF;
  */
 class Registry{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
-  // private $registryURL = 'http://gbrds.gbif.org/registry/';
-  private $registryURL = 'http://localhost:8080/registry-ws/';
+  private $registryURL = 'http://gbrds.gbif.org/registry/';
 
   private $organisationKey;
 
