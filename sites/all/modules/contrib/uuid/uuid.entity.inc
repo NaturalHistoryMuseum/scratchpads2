@@ -59,6 +59,14 @@ function uuid_get_core_entity_info() {
       ),
     );
   }
+  if (module_exists('field_collection')) {
+    $info['field_collection_item'] = array(
+      'base table' => 'field_collection_item',
+      'entity keys' => array(
+        'uuid' => 'uuid',
+      ),
+    );
+  }
   return $info;
 }
 
@@ -89,20 +97,20 @@ function uuid_entity_info_alter(&$info) {
  * which automatically gives us token and Rules integration.
  */
 function uuid_entity_property_info_alter(&$info) {
-  foreach (entity_get_info() as $entity_type => $info) {
-    if (isset($info['uuid']) && $info['uuid'] == TRUE && !empty($info['entity keys']['uuid'])) {
-      $info[$entity_type]['properties'][$info['entity keys']['uuid']] = array(
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    if (isset($entity_info['uuid']) && $entity_info['uuid'] == TRUE && !empty($entity_info['entity keys']['uuid'])) {
+      $info[$entity_type]['properties'][$entity_info['entity keys']['uuid']] = array(
         'label' => t('UUID'),
         'type' => 'text',
         'description' => t('The universally unique ID.'),
-        'schema field' => $info['entity keys']['uuid'],
+        'schema field' => $entity_info['entity keys']['uuid'],
       );
-      if (!empty($info['entity keys']['revision uuid'])) {
-        $info[$entity_type]['properties'][$info['entity keys']['revision uuid']] = array(
+      if (!empty($entity_info['entity keys']['revision uuid'])) {
+        $info[$entity_type]['properties'][$entity_info['entity keys']['revision uuid']] = array(
           'label' => t('Revision UUID'),
           'type' => 'text',
           'description' => t("The revision's universally unique ID."),
-          'schema field' => $info['entity keys']['revision uuid'],
+          'schema field' => $entity_info['entity keys']['revision uuid'],
         );
       }
     }
@@ -237,9 +245,11 @@ function entity_make_entity_local($entity_type, $entity) {
     // Set the correct local ID.
     if (empty($id)) {
       unset($entity->{$id_key});
+      $entity->is_new = TRUE;
     }
     else {
       $entity->{$id_key} = $id;
+      $entity->is_new = FALSE;
     }
 
     if (!empty($info['entity keys']['revision uuid'])) {
@@ -252,12 +262,20 @@ function entity_make_entity_local($entity_type, $entity) {
         $vids = entity_get_id_by_uuid($entity_type, array($entity->{$vuuid_key}), TRUE);
         $vid = reset($vids);
       }
-      if (empty($vid)) {
+      if (empty($vid) && isset($entity->{$vid_key})) {
         unset($entity->{$vid_key});
-        $entity->revision = TRUE;
       }
-      else {
+      elseif (!empty($vid)) {
         $entity->{$vid_key} = $vid;
+      }
+      // Nodes need this when trying to save an existing node without a vid.
+      if ($entity_type == 'node' && !isset($entity->vid) && !$entity->is_new) {
+        $entity->revision = 0;
+        $entity->vid = db_select('node', 'n')
+          ->condition('n.nid', $entity->nid)
+          ->fields('n', array('vid'))
+          ->execute()
+          ->fetchField();
       }
     }
 

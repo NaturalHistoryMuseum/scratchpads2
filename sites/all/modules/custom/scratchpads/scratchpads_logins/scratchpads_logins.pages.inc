@@ -9,6 +9,7 @@ function scratchpad_admin_openids(){
     'http://vbrant.eu/users/isa-vandevelde/openid' => 'Isa Vandevelde (http://vbrant.eu/users/isa-vandevelde/openid)',
     'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
     'http://openid.simon.rycroft.name/' => 'Simon Rycroft (http://openid.simon.rycroft.name/)',
+    'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
     'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
   );
 }
@@ -39,12 +40,14 @@ function scratchpad_logins(){
   foreach($results as $row){
     $users[$roles[$row->rid]][$row->uid] = $row->name . " [" . $row->uid . "]";
   }
-  //db_query('SELECT uid FROM {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc();
+  // db_query('SELECT uid FROM {users_roles} WHERE rid = 5 AND uid >
+  // 1')->fetchAllAssoc();
   $lowest_maintainer_uid = db_select('users_roles', 'u')->fields('u', array(
     'uid'
   ))->condition('rid', 5)->condition('uid', 1, '>')->orderBy('uid', 'ASC')->range(0, 1)->execute()->fetchCol(0);
-  //$lowest_maintainer_uid = array_pop(db_query('SELECT MIN(uid) FROM {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc());
-  //$lowest_maintainer_uid = 2;
+  // $lowest_maintainer_uid = array_pop(db_query('SELECT MIN(uid) FROM
+  // {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc());
+  // $lowest_maintainer_uid = 2;
   $boost_warning = '';
   if(module_exists('boost')){
     $boost_warning = '<p>' . t("Note, this page will be cached by Boost.  If you've recently added a new maintainer and they're not in the list below, press Ctrl-F5 (<a href=\"http://en.wikipedia.org/wiki/Wikipedia:Bypass_your_cache#Instructions_for_various_browsers\">or something else</a>)") . '</p>';
@@ -114,7 +117,8 @@ function scratchpad_do_openid_login($uid){
     drupal_goto();
   }else{
     watchdog('logins', print_r($result, 1));
-    //db_query("DELETE FROM {openid_association} WHERE idp_endpoint_uri = '%s'")
+    // db_query("DELETE FROM {openid_association} WHERE idp_endpoint_uri =
+    // '%s'")
     drupal_set_message(t('Login failed, are you sure the OpenID "%openid" is permitted to "Logins"', array(
       '%openid' => $result['openid.claimed_id']
     )), 'error');

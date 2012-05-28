@@ -23,6 +23,10 @@ namespace GBIF;
 
 class Node extends RegistryObject{
 
+  // Not sure why we actually need an "organizations" variable, but its here,
+  // just in case.
+  protected $organizations = FALSE;
+
   /**
    * getURLPrefix
    *
