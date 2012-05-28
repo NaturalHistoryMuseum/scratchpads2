@@ -1,12 +1,13 @@
 <?php
+define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
 
 /**
  * Implements hook_cron().
  */
 function gbif_registry_client_cron(){
-  // If we have already registered this site with the registry, we do not need
-  // to continue.
-  if(variable_get('gbif_registry_client_uuid', FALSE)){return;}
+  if(variable_get('gbif_registry_client_last_update', 0) + 604800 > time()){return;}
+  // Once a week we update the information that GBIF holds about us.
   module_load_include('install', 'gbif_registry_client');
   gbif_registry_client_install();
+  variable_set('gbif_registry_client_last_update', time());
 }
