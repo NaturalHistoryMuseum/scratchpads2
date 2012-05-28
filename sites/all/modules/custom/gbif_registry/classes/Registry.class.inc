@@ -57,6 +57,7 @@ class Registry{
    * Basic singleton code copied straight from php.net
    */
   public static function singleton(){
+    if(!function_exists('curl_init')){throw new Exception('CURL functions not found');}
     if(!isset(self::$instance)){
       $className = __CLASS__;
       self::$instance = new $className();
