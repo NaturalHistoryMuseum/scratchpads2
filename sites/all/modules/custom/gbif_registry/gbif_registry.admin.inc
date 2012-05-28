@@ -57,6 +57,14 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
       foreach($class->getContacts() as $contact){
         $content['contacts'][] = array(
           '#theme' => 'table',
+            '#prefix' => '<div style="margin:3px;">',
+            '#suffix' => '</div>',
+            '#header' => array(
+              array(
+                'data' => 'Contact',
+                'colspan' => 2
+              )
+            ),
           '#rows' => gbif_registry_get_as_formatted_array($contact)
         );
       }
@@ -68,6 +76,14 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
         foreach($class->getEndpoints() as $endpoint){
           $content['endpoints'][] = array(
             '#theme' => 'table',
+            '#prefix' => '<div style="margin:3px;">',
+            '#suffix' => '</div>',
+            '#header' => array(
+              array(
+                'data' => 'Endpoint',
+                'colspan' => 2
+              )
+            ),
             '#rows' => gbif_registry_get_as_formatted_array($endpoint)
           );
         }
@@ -80,6 +96,14 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
         foreach($class->getTechnicalInstallations() as $ti){
           $content['technicalinstallations'][] = array(
             '#theme' => 'table',
+            '#prefix' => '<div style="margin:3px;">',
+            '#suffix' => '</div>',
+            '#header' => array(
+              array(
+                'data' => 'Technical Installation',
+                'colspan' => 2
+              )
+            ),
             '#rows' => gbif_registry_get_as_formatted_array($ti)
           );
         }
@@ -108,8 +132,14 @@ function gbif_registry_get_as_formatted_array($object){
         if(is_string($value) && trim($value)){
           $key = implode(" ", preg_split('/(?<=\\w)(?=[A-Z])/', ucfirst($key)));
           $rows[] = array(
-            check_plain($key),
-            filter_xss_admin($value)
+            array(
+              'data' => check_plain($key),
+              'style' => 'width:40%;'
+            ),
+            array(
+              'data' => filter_xss_admin($value),
+              'style' => 'width:60%;'
+            )
           );
         }
     }
