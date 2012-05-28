@@ -22,8 +22,17 @@ function emonocot_citation_block_view($delta = ''){
 
 function emonocot_citation_cite_this_page(){
   //Get URL
+  global $base_url;
   $path = isset($_GET['q']) ? $_GET['q'] : '<front>';
-  $link = url($path, array('absolute' => TRUE));
+  switch ($path) {
+  	case '<front>':
+  	case 'scratchpads-front':
+  	  $link = $base_url;
+  	  break;
+  	default :
+  	  $link = url($path, array('absolute' => TRUE));
+  }
+  
 
   //Site title
   $title = variable_get('site_name', "Default site name");
