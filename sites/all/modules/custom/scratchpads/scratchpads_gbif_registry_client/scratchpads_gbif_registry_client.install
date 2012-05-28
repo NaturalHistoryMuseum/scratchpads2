@@ -11,7 +11,8 @@
  * Implements hook_install().
  *
  * This funciton should register an individual instance of a Scratchpad with the
- * GBIF registry, and set the scratchpads_gbif_registry_client_uuid variable to the
+ * GBIF registry, and set the scratchpads_gbif_registry_client_uuid variable to
+ * the
  * UUID returned by the service. This means we can then register endpoints and
  * associate them with this instance.
  */
@@ -23,10 +24,21 @@ function scratchpads_gbif_registry_client_install($uuid = FALSE){
   $registry = GBIFRegistry::singleton();
   if($uuid){
     $ti = new GBIF\TechnicalInstallation($uuid);
+    $ti->setTitle(variable_get('site_name', 'Scratchpad'));
+    $ti->setHomepage(url('', array(
+      'absolute' => TRUE
+    )));
+    $ti->save();
   }else{
     // We need to create a new TechnicalInstallation from the Scratchpad
     // organization.
-    $organization = new GBIF\Organization('');
+    $organization = new GBIF\Organization(SCRATCHPAD_ORGANIZATION);
+    $ti = $organization->addTechnicalInstallation(array(
+      'title' => variable_get('site_name', 'Scratchpad'),
+      'homepage' => url('', array(
+        'absolute' => TRUE
+      ))
+    ));
+    variable_set('scratchpads_gbif_registry_client_uuid', $ti->getKey());
   }
-  $ti->setTitle(variable_get('site_name', 'Scratchpad'));
 }

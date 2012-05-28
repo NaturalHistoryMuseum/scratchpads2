@@ -80,7 +80,7 @@ class RegistryObject extends RegistryChild{
               $this->{$key} = $value;
             }else{
               // FIXME - Remove this code once complete.
-              echo "$key\n";
+              //echo "$key\n";
             }
             break;
           case 'hostingOrganization':
@@ -209,7 +209,7 @@ class RegistryObject extends RegistryChild{
       }
     }
     // Now save any additional child objects.
-    print_r($this);
+    // FIXME - Add the save stuff.
   }
 
   /**

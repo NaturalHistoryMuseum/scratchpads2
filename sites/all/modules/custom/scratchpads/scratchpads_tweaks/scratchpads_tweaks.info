@@ -54,6 +54,7 @@ dependencies[] = scratchpads_contact
 dependencies[] = scratchpads_error
 dependencies[] = scratchpads_file_colorboxed
 dependencies[] = scratchpads_front
+dependencies[] = scratchpads_gbif_registry_client
 dependencies[] = scratchpads_hands_off
 dependencies[] = scratchpads_help
 dependencies[] = scratchpads_issues_block
