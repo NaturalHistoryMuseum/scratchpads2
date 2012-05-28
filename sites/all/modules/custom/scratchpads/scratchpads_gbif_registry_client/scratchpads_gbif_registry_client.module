@@ -9,5 +9,7 @@ function scratchpads_gbif_registry_client_cron(){
   // Once a week we update the information that GBIF holds about us.
   module_load_include('install', 'scratchpads_gbif_registry_client');
   scratchpads_gbif_registry_client_install(variable_get('scratchpads_gbif_registry_client_uuid', FALSE));
-  variable_set('scratchpads_gbif_registry_client_last_update', time());
+  if(variable_get('scratchpads_gbif_registry_client_uuid', FALSE)){
+    variable_set('scratchpads_gbif_registry_client_last_update', time());
+  }
 }

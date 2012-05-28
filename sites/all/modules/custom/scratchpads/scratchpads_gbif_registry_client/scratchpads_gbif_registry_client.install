@@ -42,3 +42,17 @@ function scratchpads_gbif_registry_client_install($uuid = FALSE){
     variable_set('scratchpads_gbif_registry_client_uuid', $ti->getKey());
   }
 }
+
+/**
+ * Ensure the 7001 update and any other subsequent updates that erase the site's
+ * UUID are not run.
+ */
+function scratchpads_gbif_registry_client_update_7000(){}
+
+/**
+ * Clear the scratchpads_gbif_registry_* variables.
+ */
+function scratchpads_gbif_registry_client_update_7001(){
+  variable_del('scratchpads_gbif_registry_client_last_update');
+  variable_del('scratchpads_gbif_registry_client_uuid');
+}
