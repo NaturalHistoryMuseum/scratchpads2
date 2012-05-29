@@ -207,8 +207,7 @@ function scratchpads_colour_form($form, $form_state){
     '#pre_render' => array(
       'scratchpads_colour_radios_pre_render'
     ),
-    '#weight' => 3 // Reverse weight for floating
-  ;
+    '#weight' => 3);
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
