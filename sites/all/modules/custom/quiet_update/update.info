@@ -1,0 +1,7 @@
+name = Quiet Update manager
+description = Tweaked update module that checks for available updates, and can securely install or update modules and themes via a web interface, but in a slightly quieter way.
+version = VERSION
+package = Core
+core = 7.x
+files[] = update.test
+configure = admin/reports/updates/settings
