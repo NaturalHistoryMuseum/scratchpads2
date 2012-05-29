@@ -1142,7 +1142,7 @@ function scratchpads_registry_stats_field_default_fields(){
         'tz_handling' => 'none'
       ),
       'translatable' => '0',
-      'type' => 'datetime'
+      'type' => 'datestamp'
     ),
     'field_instance' => array(
       'bundle' => 'user_data',
