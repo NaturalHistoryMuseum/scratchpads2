@@ -123,8 +123,7 @@ function scratchpads_registry_stats_create_organization($organization){
     )
   );
   $node->type = 'organization';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
+  $node->uid = variable_get('scratchpads_registry_stats_user', 1);
   node_save($node);
   return $node;
 }
@@ -164,8 +163,7 @@ function scratchpads_registry_stats_create_technical_installation($technical_ins
     )
   );
   $node->type = 'scratchpad';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
+  $node->uid = variable_get('scratchpads_registry_stats_user', 1);
   node_save($node);
   return $node;
 }
@@ -211,8 +209,7 @@ function scratchpads_registry_stats_create_endpoint($endpoint, $scratchpad_nid){
     )
   );
   $node->type = 'endpoint';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
+  $node->uid = variable_get('scratchpads_registry_stats_user', 1);
   node_save($node);
   return $node;
 }
