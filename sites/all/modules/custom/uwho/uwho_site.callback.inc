@@ -1,12 +1,13 @@
 <?php
 
 /**
- * Callback that is the core of this module.  Here we'll decode the data sent to
- * us, check it, and then create a user (if required), and log the user in.  We
+ * Callback that is the core of this module.
+ * Here we'll decode the data sent to
+ * us, check it, and then create a user (if required), and log the user in. We
  * can also redirect to a set page if required.
  */
 function uwho_site_callback(){
-  // First, we need to get the key that has been set, if no key is set, we 
+  // First, we need to get the key that has been set, if no key is set, we
   // panic, redirect to the front page, and display an error.
   $key = variable_get('uwho_site_key', FALSE);
   $url = url('uwho', array(
@@ -18,7 +19,7 @@ function uwho_site_callback(){
     drupal_goto();
   }
   // Load the class file
-  module_load_include('inc', 'uwho_site', 'uwho.cryptastic');
+  require_once libraries_get_path('cryptastic') . '/cryptastic.php';
   $cryptastic = new cryptastic();
   $key = $cryptastic->pbkdf2($key, $key . $url, 1000, 32);
   if(!isset($_POST['uwhodata']) && isset($_GET['uwhodata'])){
@@ -30,21 +31,23 @@ function uwho_site_callback(){
     $decrypted = $cryptastic->decrypt(urldecode($_POST['uwhodata']), $key);
   }
   if(!$decrypted){
-    // We've failed to decrypt the stuff, doh!  Error, and redirect to the front
+    // We've failed to decrypt the stuff, doh! Error, and redirect to the front
     // page.
     drupal_set_message('Failed to decrypt your data.  Please inform a maintainer', 'error');
     watchdog('uwho', 'Decryption failed');
     drupal_goto();
   }
-  // Lets make sure this user hasn't been created before.  We'll use the guid
-  // that has been sent to check this.  If they haven't been created, we'll 
+  // Lets make sure this user hasn't been created before. We'll use the guid
+  // that has been sent to check this. If they haven't been created, we'll
   // create a new user.
-  //$uid = db_result(db_query("SELECT uid FROM {uwho} WHERE guid = '%s'", $decrypted['guid']));
+  // $uid = db_result(db_query("SELECT uid FROM {uwho} WHERE guid = '%s'",
+  // $decrypted['guid']));
   $uid = db_select('uwho', 'u')->fields('u', array(
     'uid'
   ))->condition('guid', $decrypted['guid'])->execute()->fetchField();
   global $user;
-  if($uid && $uid > 1){ // Sanity check to ensure this won't login a user as admin
+  if($uid && $uid > 1){ // Sanity check to ensure this won't login a user as
+                        // admin
     $user = user_load($uid, TRUE);
     drupal_session_regenerate();
   }else{
@@ -58,8 +61,8 @@ function uwho_site_callback(){
       $new_user->name
     ))->fetchField()){
       // We've got a username conflict most likely.
-      // Lets change the username and add a random int on the end.  We'll only 
-      // try this 5 times, if it is still failing at that point, it's most 
+      // Lets change the username and add a random int on the end. We'll only
+      // try this 5 times, if it is still failing at that point, it's most
       // likely we've got other issues.
       $i = 0;
       while(db_query("SELECT COUNT(*) FROM {users} WHERE name = ?", array(
@@ -80,7 +83,8 @@ function uwho_site_callback(){
       $user->uid,
       serialize($decrypted)
     ))->execute();
-     //db_query("INSERT INTO {uwho} (guid, uid, data) VALUES ('%s', %d, '%s')", $decrypted['guid'], $user->uid, serialize($decrypted));
+    // db_query("INSERT INTO {uwho} (guid, uid, data) VALUES ('%s', %d, '%s')",
+  // $decrypted['guid'], $user->uid, serialize($decrypted));
   }
   drupal_set_message(t('You have been logged in as "!user_name"', array(
     '!user_name' => $user->name

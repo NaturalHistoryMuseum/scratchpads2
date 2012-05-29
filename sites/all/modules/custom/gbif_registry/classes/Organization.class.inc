@@ -42,10 +42,26 @@ class Organization extends RegistryObject{
 
   /**
    * Get the technical installations.
+   *
    * @return \GBIF\TechnicalInstallations
    */
   public function getTechnicalInstallations(){
     return new TechnicalInstallations($this->getURLPrefix() . "/{$this->key}/technical_installation");
+  }
+
+  /**
+   * Add a single technical installation.
+   *
+   * @return \GBIF\TechnicalInstallation
+   */
+  public function addTechnicalInstallation($ti){
+    // Ensure we have been sent an array.
+    if(!is_array($ti)){return FALSE;}
+    // Set the key to this organization's key.
+    $ti['hostingOrganizationKey'] = $this->getKey();
+    $ti = new TechnicalInstallation($ti);
+    $ti->save();
+    return $ti;
   }
 
   /**

@@ -80,7 +80,9 @@ function scratchpads_registry_stats_cron_daily(){
     'nid'
   ))->execute();
   $context = stream_context_create(array(
-    'timeout' => 3
+    'http' => array(
+      'timeout' => 3
+    )
   ));
   foreach($results as $row){
     $node = node_load($row->nid);
