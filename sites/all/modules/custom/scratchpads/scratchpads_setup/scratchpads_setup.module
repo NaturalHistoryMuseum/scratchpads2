@@ -8,8 +8,8 @@
 /**
  * Implementation of hook_default_flows().
  */
-function scratchpads_setup_default_flows(){
-  return array(
+function scratchpads_setup_default_flows($name = null){
+  $default_flows = array(
     'site_setup' => array(
       'title' => t('Site setup'),
       'name' => 'site_setup',
@@ -44,6 +44,11 @@ function scratchpads_setup_default_flows(){
       )
     )
   );
+  if($name){
+    return $default_flows[$name];
+  }else{
+    return $default_flows;
+  }
 }
 
 /**
@@ -93,8 +98,9 @@ function scratchpads_setup_module_implements_alter(&$implementations, $hook){
  * 
  ********************************************************************************************/
 function scratchpads_welcome_form($form, &$form_state){
-  // Sanity check - ensure this hasn't already run
-  if(variable_get('scratchpads_setup_complete', false)){
+  // Sanity check - ensure this hasn't already been completed
+  // If it hasn't been filled in, scratchpads_setup will be integer 0 - 5
+  if(variable_get('scratchpads_setup', false) === false){
     drupal_goto();
   }
   $form['welcome'] = array(
@@ -125,7 +131,6 @@ function scratchpads_setup_front_form($form, &$form_state){
 function scratchpads_setup_front_form_submit($form, &$form_state){
   variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']['value']);
 }
-
 
 function scratchpads_setup_about_form($form, &$form_state){
   $form['about_us'] = array(
@@ -179,6 +184,10 @@ function scratchpads_setup_licence_form_submit($form, &$form_state){
 
 function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
   global $user;
+  // Add scratchpads_setup_form_submit() to all set up flow forms
+  if(scratchpads_setup_get_step_delta('site_setup', $form_id) !== false){
+    $form['#submit'][] = 'scratchpads_setup_form_submit';
+  }
   switch($form_id){
     case 'user_profile_form':
       if($user->uid == 2 && !variable_get('scratchpads_setup_complete', false)){
@@ -193,13 +202,34 @@ function scratchpads_setup_user_profile_form_submit(&$form, &$form_state){
   drupal_get_messages();
 }
 
+/**
+ * Get the position of the current step
+ * @param name of flow $flow_name
+ * @param $form_id
+ */
+function scratchpads_setup_get_step_delta($flow_name, $form_id){
+  $setup_flow = scratchpads_setup_default_flows($flow_name);
+  foreach($setup_flow['steps'] as $delta => $step){
+    if($step['form_id'] == $form_id){return $delta;}
+  }
+  return false;
+}
+
+function scratchpads_setup_form_submit(&$form, &$form_state){
+  if(isset($form_state['formflow']) && isset($form_state['form_info'])){
+    $delta = scratchpads_setup_get_step_delta($form_state['form_info']['id'], $form_state['values']['form_id']);
+    // Keep a record of what step we're up to 
+    variable_set('scratchpads_setup', $delta + 1);
+  }
+}
+
 /*********************************************************************************************
  * 
  * COMPLETE PAGE
  * 
  ********************************************************************************************/
 function scratchpads_setup_complete_page(){
-  variable_set('scratchpads_setup_complete', true);
+  //  variable_set('scratchpads_setup_complete', true);
   return array(
     '#show_messages' => TRUE,
     '#theme' => 'page',
@@ -234,4 +264,78 @@ function scratchpads_setup_complete_page(){
   );
 }
 
+/*********************************************************************************************
+ * 
+ * BLOCKS
+ * 
+ ********************************************************************************************/
+function scratchpads_setup_block_info(){
+  // This example comes from node.module.
+  $blocks['scratchpads_setup'] = array(
+    'info' => t('Scratchpads setup'),
+    'cache' => DRUPAL_NO_CACHE,
+    'region' => 'dashboard_sidebar',
+    'status' => 1,
+    'theme' => 'scratchpads_admin'
+  );
+  return $blocks;
+}
+
+function scratchpads_setup_block_view($delta = ''){
+  // This example is adapted from node.module.
+  $block = array();
+  switch($delta){
+    case 'scratchpads_setup':
+      $path = drupal_get_path('module', 'scratchpads_setup');
+      $block['subject'] = t('Setup status');
+      $setup_flow = scratchpads_setup_default_flows('site_setup');
+      $current_step = variable_get('scratchpads_setup', false);
+      if(is_numeric($current_step)){
+        $percentage_complete = ($current_step / count($setup_flow['steps'])) * 100;
+      }else{
+        $percentage_complete = 100;
+      }
+      if($percentage_complete <= 0){
+        $class = 'zero-complete';
+      }elseif($percentage_complete < 60){
+        $class = 'half-complete';
+      }else{
+        $class = 'complete';
+      }
+      $block['content'] = array(
+        'bar' => array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => '&nbsp;',
+          '#attributes' => array(
+            'style' => 'width: ' . ($percentage_complete > 0 ? $percentage_complete : '1') . '%',
+            'class' => $class
+          ),
+          '#prefix' => '<div class="setup-complete">',
+          '#suffix' => '</div>'
+        ),
+        'text' => array(
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => t('!percentage% complete', array(
+            '!percentage' => $percentage_complete
+          ))
+        ),
+        '#attached' => array(
+          'css' => array(
+            $path . '/css/scratchpads-setup.css'
+          )
+        )
+      );
+      if($percentage_complete < 100){
+        $block['content']['link'] = array(
+          '#type' => 'link',
+          '#href' => 'setup/' . $current_step,
+          '#title' => t("Finish setting up the site")
+        );
+      }
+      break;
+  }
+  return $block;
+}
 
