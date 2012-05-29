@@ -84,6 +84,7 @@ function scratchpads_registry_stats_cron_daily(){
       }
     }
   }
+  variable_set('scratchpads_registry_stats_cron_daily', time());
 }
 
 /**
