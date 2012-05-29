@@ -124,6 +124,10 @@ function tui_module_implements_alter(&$imps, $hook){
  * Implementation of hook_form_FORM_ID_alter().
  */
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
+  //Change the widget of the parent relation to deal with large taxonomies
+  $form['relations']['parent']['#type'] = 'textfield';
+  unset($form['relations']['parent']['#options']);
+  
   if(arg(5) == 'form_callback'){
     // Hide the alias field.
     $form['path']['alias']['#type'] = 'hidden';

@@ -394,11 +394,14 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
           $form['#after_build'][] = 'character_editor_character_form_after_build';
           break;
         case 'character_editor_project':
+          // Do not do anything for character project creation
+          if($form['#entity']->is_new){return;}
           // Character editor project form is broken up into edit characters (relations field)
           // And settings
           if(arg(2) == 'settings'){
             // Hide the characters on the settings form
             $form['field_characters']['#access'] = false;
+            $form['title']['#title'] = t('Title');
           }else{
             // Hide all other fields on the edit characters form
             foreach(array(
@@ -409,7 +412,6 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
               $form[$key]['#access'] = false;
             }
           }
-          $form['title']['#title'] = t('Title');
           break;
       }
       break;
@@ -817,9 +819,8 @@ function character_editor_state_form_process($editor){
   $character_entity = entity_load_single('character_editor_character', $character_entity_id);
   $form_state['title'] = t("Editing %label (!type)", array(
     '%label' => $character_entity->label(),
-  	'!type' => $form_state['values']['character_type'] 
+    '!type' => $form_state['values']['character_type']
   ));
-
   $form_state['ajax'] = true;
   // Pass the editor object into the form_state
   $form_state['editor'] = $editor;
