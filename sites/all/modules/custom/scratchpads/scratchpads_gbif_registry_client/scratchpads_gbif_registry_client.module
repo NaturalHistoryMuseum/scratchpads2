@@ -13,3 +13,8 @@ function scratchpads_gbif_registry_client_cron(){
     variable_set('scratchpads_gbif_registry_client_last_update', time());
   }
 }
+
+/**
+ * Implements hook_gbif_registry_endpoint().
+ */
+function scratchpads_gbif_registry_client_gbif_registry_endpoint(){}

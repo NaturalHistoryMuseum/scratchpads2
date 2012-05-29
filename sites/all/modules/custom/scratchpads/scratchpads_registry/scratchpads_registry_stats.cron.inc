@@ -54,19 +54,6 @@ function scratchpads_registry_stats_cron_weekly(){
       $technical_installation_node = scratchpads_registry_stats_create_technical_installation($technical_installation, $organization_nid);
     }
   }
-  // Now that we have all the TechnicalInstallations, we update the endpoints
-  // for each one.
-  $results = db_select('node', 'n')->fields('n', array(
-    'nid'
-  ))->condition('type', 'scratchpad')->execute();
-  foreach($results as $row){
-    $node = node_load($row->nid);
-    $scratchpad = new GBIF\TechnicalInstallation($node->field_uuid[LANGUAGE_NONE][0]['value']);
-    foreach($scratchpad->getEndpoints() as $endpoint){
-      // Only store the endpoint that we're interested in (the metadata one).
-      scratchpads_registry_stats_create_endpoint($endpoint, $node->nid);
-    }
-  }
   variable_set('scratchpads_registry_stats_cron_weekly', time());
 }
 
@@ -76,7 +63,7 @@ function scratchpads_registry_stats_cron_weekly(){
  * Perform daily updates, such as querying a Scratchpad for metadata.
  */
 function scratchpads_registry_stats_cron_daily(){
-  $results = db_select('node', 'n')->condition('type', 'endpoint')->fields('n', array(
+  $results = db_select('node', 'n')->condition('type', 'scratchpad')->fields('n', array(
     'nid'
   ))->execute();
   $context = stream_context_create(array(
@@ -86,18 +73,98 @@ function scratchpads_registry_stats_cron_daily(){
   ));
   foreach($results as $row){
     $node = node_load($row->nid);
-    // Get the data, and quickly save it.
-    // $data =
-    // file_get_contents($node->field_endpoint_url[LANGUAGE_NONE][0]['url'],
-    // FALSE, $context);
-    echo $node->field_endpoint_url[LANGUAGE_NONE][0]['url'] . "\n";
-    if($data){
-      print_r($data);
-      exit();
+    if(@isset($node->field_homepage[LANGUAGE_NONE][0]['url']) && $node->field_homepage[LANGUAGE_NONE][0]['url']){
+      $url = $node->field_homepage[LANGUAGE_NONE][0]['url'];
+      if(!strpos($url, ':', 6) && substr($url, -1) == '/'){
+        // Get the metadata.
+        $data = @file_get_contents($url . 'metadata.json', NULL, $context);
+        if($data && $data = json_decode($data, TRUE)){
+          scratchpads_registry_stats_create_statistics_nodes($data, $row->nid);
+        }
+      }
     }
   }
 }
 
+/**
+ * Create the statistics nodes.
+ */
+function scratchpads_registry_stats_create_statistics_nodes($data, $scratchpad_nid){
+  foreach($data['entities'] as $type => $entity_data){
+    if($type == 'user'){
+      $node = new stdClass();
+      $node->field_scratchpad = array(
+        LANGUAGE_NONE => array(
+          array(
+            'nid' => $scratchpad_nid
+          )
+        )
+      );
+      $node->title = "$scratchpad_nid:$type:" . time();
+      $node->type = 'user_data';
+      $node->field_active_in_last_7_days = array(
+        LANGUAGE_NONE => array(
+          array(
+            'value' => $entity_data['active_in_last_7_days']
+          )
+        )
+      );
+      $node->field_active_in_last_28_days = array(
+        LANGUAGE_NONE => array(
+          array(
+            'value' => $entity_data['active_in_last_28_days']
+          )
+        )
+      );
+      $node->field_last_login = array(
+        LANGUAGE_NONE => array(
+          array(
+            'value' => $entity_data['last_login']
+          )
+        )
+      );
+      $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+      node_save($node);
+    }
+    $node = new stdClass();
+    $node->field_scratchpad = array(
+      LANGUAGE_NONE => array(
+        array(
+          'nid' => $scratchpad_nid
+        )
+      )
+    );
+    $node->field_machine_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $type
+        )
+      )
+    );
+    $node->field_label = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $entity_data['label']
+        )
+      )
+    );
+    $node->field_quantity = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $entity_data['count']
+        )
+      )
+    );
+    $node->title = "$scratchpad_nid:$type:" . time();
+    $node->type = 'entity_data';
+    $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+    node_save($node);
+  }
+}
+
+/**
+ * Create a new organization.
+ */
 function scratchpads_registry_stats_create_organization($organization){
   $node = new stdClass();
   $node->title = $organization->getTitle();
@@ -123,8 +190,7 @@ function scratchpads_registry_stats_create_organization($organization){
     )
   );
   $node->type = 'organization';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
+  $node->uid = variable_get('scratchpads_registry_stats_user', 1);
   node_save($node);
   return $node;
 }
@@ -164,55 +230,7 @@ function scratchpads_registry_stats_create_technical_installation($technical_ins
     )
   );
   $node->type = 'scratchpad';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
-  node_save($node);
-  return $node;
-}
-
-/**
- * Create a new TI.
- */
-function scratchpads_registry_stats_create_endpoint($endpoint, $scratchpad_nid){
-  $scratchpad = node_load($scratchpad_nid);
-  $node = new stdClass();
-  $node->title = $scratchpad->field_uuid[LANGUAGE_NONE][0]['value'] . '::' . $endpoint->getID();
-  // Check if an endpoint with this title already exists. If so, we return.
-  $row = db_query("SELECT COUNT(*) as num_nodes FROM node n, node_revision r WHERE r.vid = n.vid AND r.title = :title AND type = 'endpoint'", array(
-    ':title' => $node->title
-  ))->fetch();
-  if($row->num_nodes){return;}
-  $node->field_id = array(
-    LANGUAGE_NONE => array(
-      array(
-        'value' => $endpoint->getID()
-      )
-    )
-  );
-  $node->field_endpoint_url = array(
-    LANGUAGE_NONE => array(
-      array(
-        'url' => $endpoint->getURL()
-      )
-    )
-  );
-  $node->field_endpoint_type = array(
-    LANGUAGE_NONE => array(
-      array(
-        'value' => $endpoint->getType()
-      )
-    )
-  );
-  $node->field_scratchpad = array(
-    LANGUAGE_NONE => array(
-      array(
-        'nid' => $scratchpad_nid
-      )
-    )
-  );
-  $node->type = 'endpoint';
-  // FIXME - Add option to set the UID to a specific value/user.
-  $node->uid = 0;
+  $node->uid = variable_get('scratchpads_registry_stats_user', 1);
   node_save($node);
   return $node;
 }
