@@ -431,7 +431,7 @@ function scratchpads_media_gallery_field_default_fields(){
   $fields['file-image-field_taxonomic_name'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '1',
+      'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_taxonomic_name',
@@ -521,7 +521,7 @@ function scratchpads_media_gallery_field_default_fields(){
   $fields['file-video-field_taxonomic_name'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '1',
+      'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_taxonomic_name',
@@ -599,7 +599,7 @@ function scratchpads_media_gallery_field_default_fields(){
   $fields['file-audio-field_taxonomic_name'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '1',
+      'cardinality' => '-1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_taxonomic_name',
