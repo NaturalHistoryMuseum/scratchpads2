@@ -1,0 +1,20 @@
+/**
+* System Charts 
+*/
+#system-charts {
+  margin: 15px;
+}
+
+/**
+* @group overview sections 
+*/
+#system-charts .system-chart-section {
+  margin: 25px 0;
+}
+
+/**
+* @group charts 
+*/
+#system-charts img {
+  margin: 25px 5px;
+}

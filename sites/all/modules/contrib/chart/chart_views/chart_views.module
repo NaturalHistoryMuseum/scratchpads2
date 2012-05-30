@@ -1,0 +1,18 @@
+<?php
+/**
+ * @file
+ * Provides primary Drupal hook implementations.
+ *
+ * @author Jimmy Berry ("boombatower", http://drupal.org/user/214218)
+ * @package Chart
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function chart_views_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'chart_views') . '/views',
+  );
+}
