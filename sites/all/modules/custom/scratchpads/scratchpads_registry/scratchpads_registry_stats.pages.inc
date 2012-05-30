@@ -65,6 +65,7 @@ function scratchpads_registry_stats_statistics_page(){
       $node->field_active_in_last_28_days[LANGUAGE_NONE][0]['value']
     );
   }
+  uasort($rows, 'scratchpads_registry_stats_uasort');
   $rows[] = array(
     'data' => array(
       t('Totals'),
