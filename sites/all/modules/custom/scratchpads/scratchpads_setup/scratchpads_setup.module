@@ -218,8 +218,9 @@ function scratchpads_setup_get_step_delta($flow_name, $form_id){
 function scratchpads_setup_form_submit(&$form, &$form_state){
   if(isset($form_state['formflow']) && isset($form_state['form_info'])){
     $delta = scratchpads_setup_get_step_delta($form_state['form_info']['id'], $form_state['values']['form_id']);
-    // Keep a record of what step we're up to 
-    variable_set('scratchpads_setup', $delta + 1);
+    // Keep a record of what step we're up to
+    $delta++;
+    variable_set('scratchpads_setup', $delta);
   }
 }
 
