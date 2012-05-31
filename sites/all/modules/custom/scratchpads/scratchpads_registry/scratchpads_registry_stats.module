@@ -33,3 +33,19 @@ function scratchpads_registry_stats_form_gbif_registry_admin_form_alter(&$form, 
     '#default_value' => variable_get('scratchpads_registry_stats_user', 1)
   );
 }
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_registry_stats_menu(){
+  return array(
+    'scratchpad-stats' => array(
+      'title' => 'Scratchpad statistics',
+      'description' => t('View statistics about all of the ViBRANT Scratchpads'),
+      'page callback' => 'scratchpads_registry_stats_statistics_page',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK, // Set as MENU_CALLBACK as we'll use as the front page.
+      'file' => 'scratchpads_registry_stats.pages.inc'
+    )
+  );
+}

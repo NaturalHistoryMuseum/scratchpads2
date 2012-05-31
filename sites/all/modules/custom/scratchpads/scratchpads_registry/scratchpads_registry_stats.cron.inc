@@ -84,6 +84,7 @@ function scratchpads_registry_stats_cron_daily(){
       }
     }
   }
+  variable_set('scratchpads_registry_stats_cron_daily', time());
 }
 
 /**
@@ -124,6 +125,7 @@ function scratchpads_registry_stats_create_statistics_nodes($data, $scratchpad_n
         )
       );
       $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+  $node->language = LANGUAGE_NONE;
       node_save($node);
     }
     $node = new stdClass();
@@ -158,6 +160,7 @@ function scratchpads_registry_stats_create_statistics_nodes($data, $scratchpad_n
     $node->title = "$scratchpad_nid:$type:" . time();
     $node->type = 'entity_data';
     $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+  $node->language = LANGUAGE_NONE;
     node_save($node);
   }
 }
@@ -191,6 +194,7 @@ function scratchpads_registry_stats_create_organization($organization){
   );
   $node->type = 'organization';
   $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+  $node->language = LANGUAGE_NONE;
   node_save($node);
   return $node;
 }
@@ -231,6 +235,7 @@ function scratchpads_registry_stats_create_technical_installation($technical_ins
   );
   $node->type = 'scratchpad';
   $node->uid = variable_get('scratchpads_registry_stats_user', 1);
+  $node->language = LANGUAGE_NONE;
   node_save($node);
   return $node;
 }

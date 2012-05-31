@@ -42,7 +42,7 @@ function emonocot_tweaks_system_info_alter(&$info, $file, $type){
     case 'sofapi':
       $info['tool'] = TRUE;
       $info['name'] = 'SOF World Orchid Iconography Images';
-      $info['description'] = 'Enables the creation of simple online forms. Useful for questionnaires, conference signup, polls, and much more.';
+      $info['description'] = 'Show images from the WOI on taxon pages.';
       break;
     case 'emonocot_tcs':
       $info['tool'] = TRUE;
