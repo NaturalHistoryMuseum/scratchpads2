@@ -1,0 +1,24 @@
+<?php
+
+function scratchpads_training_install(){
+  // Enable the training site blocks
+  $values = array(
+    array(
+      'module' => 'scratchpads_training',
+      'delta' => 'links',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    )
+  );
+  foreach($values as $record){
+    db_merge('block')->key(array(
+      'module' => $record['module'],
+      'delta' => $record['delta'],
+      'theme' => $record['theme']
+    ))->fields($record)->execute();
+  }
+}
