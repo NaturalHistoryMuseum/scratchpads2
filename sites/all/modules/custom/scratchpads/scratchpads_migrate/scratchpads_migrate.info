@@ -6,4 +6,18 @@ dependencies[] = scratchpads_tweaks
 dependencies[] = migrate_d2d
 dependencies[] = content_migrate
 
+; Base classes
 files[] = user.inc
+files[] = content_type.inc
+files[] = field.inc
+files[] = field_body.inc
+files[] = field_group.inc
+files[] = field_taxonomy.inc
+files[] = vocabulary.inc
+
+; D6 implementations
+files[] = d6/content_type.inc
+files[] = d6/field.inc
+files[] = d6/field_body.inc
+files[] = d6/field_taxonomy.inc
+files[] = d6/field_group.inc
