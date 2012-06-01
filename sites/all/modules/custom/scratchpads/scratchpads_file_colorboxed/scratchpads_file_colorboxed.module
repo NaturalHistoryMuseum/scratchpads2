@@ -24,6 +24,19 @@ function scratchpads_file_colorboxed_menu(){
  * Callback for the above menu entry.
  */
 function scratchpads_file_colorboxed_entity_simple_view($fid){
+  // Check first to see if this file is associated with an eolapi entity.  If it
+  // is, we display that instead.
+  if(module_exists('eolapi') && db_table_exists('field_data_eolapi_image')){
+    $results = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('eolapi_image_fid', $fid)->execute();
+    foreach($results as $row){
+      $eolapi = eolapi_load($row->entity_id);
+      $markup = eolapi_page_view($eolapi);
+      echo drupal_render($markup);
+      exit();
+    }
+  }
   $entity = entity_load_single('file', $fid);
   $view_type = 'file_styles_colorbox';
   // Wrap the audio file specially.
