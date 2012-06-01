@@ -187,6 +187,16 @@ function scratchpads_tweaks_install(){
       'cache' => -1
     ),
     array(
+      'module' => 'scratchpads_setup',
+      'delta' => 'scratchpads_setup',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
       'module' => 'forum',
       'delta' => 'active',
       'theme' => 'scratchpads_admin',
