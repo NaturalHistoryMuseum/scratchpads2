@@ -283,7 +283,6 @@ function scratchpads_setup_block_info(){
 }
 
 function scratchpads_setup_block_view($delta = ''){
-  // This example is adapted from node.module.
   $block = array();
   switch($delta){
     case 'scratchpads_setup':
