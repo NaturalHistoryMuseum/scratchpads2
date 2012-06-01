@@ -734,6 +734,13 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['style_plugin'] = 'gmap';
+  /* Relationship: Content: Location (field_location) */
+  $handler->display->display_options['relationships']['field_location_nid']['id'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['table'] = 'field_data_field_location';
+  $handler->display->display_options['relationships']['field_location_nid']['field'] = 'field_location_nid';
+  $handler->display->display_options['relationships']['field_location_nid']['label'] = 'Specimen-Location';
+  $handler->display->display_options['relationships']['field_location_nid']['required'] = 0;
+  $handler->display->display_options['relationships']['field_location_nid']['delta'] = '-1';
   /* Field: Content: Map */
   $handler->display->display_options['fields']['field_spm_map']['id'] = 'field_spm_map';
   $handler->display->display_options['fields']['field_spm_map']['table'] = 'field_data_field_spm_map';
@@ -765,6 +772,34 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_spm_map']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['delta_first_last'] = 0;
   $handler->display->display_options['fields']['field_spm_map']['field_api_classes'] = 0;
+  /* Field: Content: Map */
+  $handler->display->display_options['fields']['field_map']['id'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['table'] = 'field_data_field_map';
+  $handler->display->display_options['fields']['field_map']['field'] = 'field_map';
+  $handler->display->display_options['fields']['field_map']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_map']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_map']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_map']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_map']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_map']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_map']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_map']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_map']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_map']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
+  $handler->display->display_options['fields']['field_map']['settings'] = array(
+    'display_convex_hull' => '0'
+  );
+  $handler->display->display_options['fields']['field_map']['field_api_classes'] = 0;
   /* Contextual filter: Content: Has taxonomy term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
@@ -795,7 +830,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'location' => 'location',
+    'specimen_observation' => 'specimen_observation',
     'spm' => 'spm'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
@@ -814,7 +849,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -980,7 +1015,7 @@ function scratchpads_species_views_default_views(){
     $view->context = 'species_overview';
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
     /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+            $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = 'Specimen count';
     $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
     $handler->display->display_options['group_by'] = TRUE;
@@ -1365,7 +1400,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Literature';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega biblio';
   $handler->display->display_options['use_ajax'] = TRUE;
@@ -1537,7 +1572,7 @@ function scratchpads_species_views_default_views(){
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1637,7 +1672,7 @@ function scratchpads_species_views_default_views(){
   $view->context = 'species_specimens';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
+      $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Specimens';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
   $handler->display->display_options['access']['type'] = 'perm';
@@ -1884,7 +1919,7 @@ function scratchpads_species_views_default_views(){
     $view->api_version = '3.0';
     $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
     /* Display: Master */
-    $handler = $view->new_display('default', 'Master', 'default');
+            $handler = $view->new_display('default', 'Master', 'default');
     $handler->display->display_options['title'] = 'Species media';
     $handler->display->display_options['css_class'] = 'view-inline-filters';
     $handler->display->display_options['use_ajax'] = TRUE;
