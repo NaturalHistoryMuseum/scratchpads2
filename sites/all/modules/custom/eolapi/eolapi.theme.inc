@@ -21,6 +21,7 @@ function theme_eolapi_stillimage_full($variables){
  */
 function theme_eolapi_stillimage_teaser($variables){
   $data = unserialize($variables['entity']->data);
+  drupal_add_js(drupal_get_path('module', 'eolapi').'/js/eolapi.js');
   return l(theme('image_style', array(
     'style_name' => 'square_thumbnail',
     'path' => substr($variables['entity']->eolapi_image['und'][0]['uri'], 9),
