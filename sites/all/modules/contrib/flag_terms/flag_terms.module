@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Allows users to flag taxonomy terms.
+ */
+
+/**
+ * Implements hook_flag_definitions().
+ */
+function flag_terms_flag_definitions() {
+  return array(
+    'taxonomy_term' => array(
+      'title' => t('Taxonomy terms'),
+      'description' => t('Taxonomy terms are used to classify content.'),
+      'handler' => 'flag_term',
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function flag_terms_page_alter(&$page) {
+  if (drupal_match_path(current_path(), 'taxonomy/term/*')) {
+    $term = menu_get_object('taxonomy_term', 2);
+    $links = flag_link('taxonomy_term', $term);
+    $page['content']['system_main']['flag_terms'] = array(
+      '#theme' => 'links',
+      '#links' => $links,
+      '#attributes' => array('class' => array('links', 'inline')),
+    );
+  }
+}
