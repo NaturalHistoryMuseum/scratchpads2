@@ -102,7 +102,7 @@ function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE)
         'mail' => $user->mail,
         'drupal_user_object' => $user
       )
-    ), $crypt_key);
+    ), $crypt_key, TRUE);
     if(!$encrypted[$key][$url]){
       watchdog('uwho', 'Encryption failed');
       return '';
