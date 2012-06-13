@@ -1112,37 +1112,7 @@ other|Other',
   );
   // Exported field: 'character_editor_project-default_character_project-field_taxonomic_name'
   $fields['character_editor_project-default_character_project-field_taxonomic_name'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_taxonomic_name',
-      'foreign keys' => array(
-        'tid' => array(
-          'columns' => array(
-            'tid' => 'tid'
-          ),
-          'table' => 'taxonomy_term_data'
-        )
-      ),
-      'indexes' => array(
-        'tid' => array(
-          0 => 'tid'
-        )
-      ),
-      'module' => 'taxonomy',
-      'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'parent' => '0',
-            'vocabulary' => ''
-          )
-        )
-      ),
-      'translatable' => '1',
-      'type' => 'taxonomy_term_reference'
-    ),
+    'field_config' => field_info_field('field_taxonomic_name'),
     'field_instance' => array(
       'bundle' => 'default_character_project',
       'default_value' => NULL,
