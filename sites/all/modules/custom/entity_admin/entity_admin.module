@@ -190,7 +190,12 @@ function entity_admin_type_load($bundle){
   list($url) = explode($bundle, $_GET['q']);
   $url .= $bundle;
   $menu_item = menu_get_item($url);
-  $entity_type = array_shift($menu_item['page_arguments']);
+  if(is_array($menu_item['page_arguments'])){
+    $entity_type = array_shift($menu_item['page_arguments']);
+  }else{
+    $page_arguments = unserialize($menu_item['page_arguments']);
+    $entity_type = array_shift($page_arguments);
+  }
   if($entities = entity_load_multiple_by_name($entity_type, array(
     $bundle
   ))){return $entities[$bundle];}
