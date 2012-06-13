@@ -49,6 +49,16 @@ function tui_ajax_form_callback_callback(&$form, &$form_state){
     $ajax['#commands'][] = ajax_command_replace('[data-tui-this-term="' . $form_state['values']['tid'] . '"] div', theme('tui_term_name', array(
       'term' => taxonomy_term_load($form_state['values']['tid'])
     )));
+    // Get the parent TIDs
+    $tids = array();
+    foreach(taxonomy_get_parents_all($form_state['values']['tid']) as $parent_term){
+      $tids[] = $parent_term->tid;
+    }
+    $ajax['#commands'][] = ajax_command_html('#tui-tree-subcontainer', theme('tui_branch', array(
+      'vocabulary' => taxonomy_vocabulary_load($form_state['values']['vid']),
+      'tids' => $tids,
+      'highlight_tids' => $tids
+    )));
   }
   foreach($form_state['values']['parent'] as $parent_tid){
     $ajax['#commands'][] = ajax_command_invoke('[data-tui-this-term="' . $parent_tid . '"]', 'removeClass', array(
