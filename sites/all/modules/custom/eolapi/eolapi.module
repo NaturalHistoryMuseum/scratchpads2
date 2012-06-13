@@ -75,7 +75,7 @@ function eolapi_apachesolr_index_documents_alter(array &$documents, $entity, $en
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
  * 
- * Exactly the same function (almost) from the field_taxonomic_name module.
+ * Exactly the same function (almost) from the Scratchpads taxonomic name module
  */
 function eolapi_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
