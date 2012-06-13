@@ -2766,37 +2766,7 @@ function darwincore_field_default_fields(){
   );
   // Exported field: 'node-specimen_observation-field_taxonomic_name'
   $fields['node-specimen_observation-field_taxonomic_name'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_taxonomic_name',
-      'foreign keys' => array(
-        'tid' => array(
-          'columns' => array(
-            'tid' => 'tid'
-          ),
-          'table' => 'taxonomy_term_data'
-        )
-      ),
-      'indexes' => array(
-        'tid' => array(
-          0 => 'tid'
-        )
-      ),
-      'module' => 'taxonomy',
-      'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'parent' => '0',
-            'vocabulary' => ''
-          )
-        )
-      ),
-      'translatable' => '1',
-      'type' => 'taxonomy_term_reference'
-    ),
+    'field_config' => field_info_field('field_taxonomic_name'),
     'field_instance' => array(
       'bundle' => 'specimen_observation',
       'default_value' => NULL,
@@ -2842,18 +2812,6 @@ function darwincore_field_default_fields(){
       )
     )
   );
-  $bio_vids = variable_get('biological_vids', array());
-  $i = 0;
-  foreach($bio_vids as $vid => $value){
-    $voc = taxonomy_vocabulary_load($vid);
-    if($voc){
-      $field['node-specimen_observation-field_taxonomic_name']['field_config']['settings']['allowed_values'][$i] = array(
-        'parent' => 0,
-        'vocabulary' => $voc->machine_name
-      );
-      $i++;
-    }
-  }
   // Exported field: 'node-specimen_observation-field_type_status'
   $fields['node-specimen_observation-field_type_status'] = array(
     'field_config' => array(
