@@ -14,22 +14,6 @@ class EntityAdminEntityController extends EntityAdminController{
     $items = array();
     // Do we want an admin interface?
     if(!isset($this->entityInfo['admin ui']['access']) || $this->entityInfo['admin ui']['access']){
-      $items[$this->path] = array(
-        'title' => $plural_label,
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array(
-          $this->entityType . '_overview_form',
-          $this->entityType
-        ),
-        'description' => 'Manage ' . $plural_label . '.',
-        'access callback' => 'entity_access',
-        'access arguments' => array(
-          'view',
-          $this->entityType
-        ),
-        'file' => 'includes/entity.ui.inc',
-        'type' => MENU_LOCAL_TASK
-      );
       // Add menu items to add each different type of entity.
       foreach(entity_admin_get_entities($this->entityInfo['type of']) as $type){
         $items[$this->path . '/add/' . $type->type] = array(
@@ -59,16 +43,19 @@ class EntityAdminEntityController extends EntityAdminController{
       'load arguments' => (isset($this->entityInfo['admin ui']['load arguments']) ? isset($this->entityInfo['admin ui']['load arguments']) : array(
         $this->entityType
       )),
-      'title callback' => 'entity_admin_page_title',
+      'title callback' => (isset($this->entityInfo['admin ui']['title callback']) ? $this->entityInfo['admin ui']['title callback'] : 'entity_admin_page_title'),
       'title arguments' => (isset($this->entityInfo['admin ui']['title arguments']) ? isset($this->entityInfo['admin ui']['title arguments']) : array(
-        $arg_pos
+        $arg_pos,
+        $this->entityType
       )),
-      'page callback' => 'entity_admin_page_view',
+      'page callback' => (isset($this->entityInfo['admin ui']['page callback']) ? $this->entityInfo['admin ui']['page callback'] : 'entity_admin_page_view'),
       'page arguments' => array(
-        $arg_pos
+        $arg_pos,
+        $this->entityType
       ),
       'page arguments' => (isset($this->entityInfo['admin ui']['page arguments']) ? isset($this->entityInfo['admin ui']['page arguments']) : array(
-        $arg_pos
+        $arg_pos,
+        $this->entityType
       )),
       'access callback' => 'entity_access',
       'access arguments' => (isset($this->entityInfo['admin ui']['access arguments']) ? isset($this->entityInfo['admin ui']['access arguments']) : array(
@@ -76,6 +63,12 @@ class EntityAdminEntityController extends EntityAdminController{
         $this->entityType
       ))
     );
+    if(isset($this->entityInfo['admin ui']['file'])){
+      $items[$entity_path]['file'] = $this->entityInfo['admin ui']['file'];
+    }
+    if(isset($this->entityInfo['admin ui']['file path'])){
+      $items[$entity_path]['file path'] = $this->entityInfo['admin ui']['file path'];
+    }
     if(count($this->ops())){
       // Set view as the default task
       $items[$entity_path . '/view'] = array(
@@ -105,58 +98,5 @@ class EntityAdminEntityController extends EntityAdminController{
       }
     }
     return $items;
-  }
-
-  public function overviewTable($conditions = array()){
-    $entities = entity_load($this->entityType, FALSE, $conditions);
-    ksort($entities);
-    $rows = array();
-    foreach($entities as $entity){
-      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity);
-    }
-    // Assemble the right table header.
-    $header = array(
-      t('Label'),
-      t("Type")
-    );
-    $header[] = array(
-      'data' => t('Operations'),
-      'colspan' => count($this->ops())
-    );
-    $render = array(
-      '#theme' => 'table',
-      '#header' => $header,
-      '#rows' => $rows,
-      '#empty' => t('None.')
-    );
-    return $render;
-  }
-
-  /**
-   * Generates the row for the passed entity and may be overridden in order to
-   * customize the rows.
-   *
-   * @param $additional_cols
-   * Additional columns to be added after the entity label column.
-   */
-  protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()){
-    $entity_uri = entity_uri($this->entityType, $entity);
-    list($entity_id, $vid, $bundle) = entity_extract_ids($this->entityType, $entity);
-    $row[] = array(
-      'data' => array(
-        '#theme' => 'entity_ui_overview_item',
-        '#label' => entity_label($this->entityType, $entity),
-        '#name' => !empty($this->entityInfo['exportable']) ? entity_id($this->entityType, $entity) : FALSE,
-        '#url' => $entity_uri ? $entity_uri : FALSE,
-        '#entity_type' => $this->entityType
-      )
-    );
-    $row[] = $bundle;
-    if(count($this->ops())){
-      foreach(array_keys($this->ops()) as $op){
-        $row[] = l($op, $entity_uri['path'] . '/' . $op);
-      }
-      return $row;
-    }
   }
 }
