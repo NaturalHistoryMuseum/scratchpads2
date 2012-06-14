@@ -58,15 +58,8 @@ function emonocot_citation_context_load_alter(&$context){
 }
 
 function emonocot_citation_menu(){
-  $items['admin/config/em_citation'] = array(
-    'title' => 'Citation configuration',
-    'description' => 'Adjust how citations for this site are made.',
-    'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('administer site configuration'),
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-  );
-  $items['admin/config/em_citation/settings'] = array(
+
+  $items['admin/config/emonocot/settings'] = array(
     'title' => 'Citation settings',
     'description' => 'Change citation text',
     'page callback' => 'drupal_get_form',

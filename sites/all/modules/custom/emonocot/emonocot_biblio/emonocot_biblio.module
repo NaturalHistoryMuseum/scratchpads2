@@ -1,0 +1,265 @@
+<?php
+
+function emonocot_biblio_taxonomy_term_insert($term){
+	//TODO: Check this belongs to a botanical vocab
+	if (!isset($term->field_reference['und'][0]['nid'])){
+	  $biblio_node = emonocot_biblio_create_biblio_from_protologue($term);
+	  if (is_object($biblio_node)){
+	    $term->field_reference['und'][0]['nid'] = $biblio_node->nid;
+	    taxonomy_term_save($term);
+	  }
+	}
+}
+
+
+
+function emonocot_biblio_create_biblio_from_protologue($term){
+  if (is_int($term)){
+  	$term = taxonomy_term_load($term);
+  }	
+	
+  if (isset($term->tid)){
+	$data_array = emonocot_biblio_get_wcm_data($term);
+
+	  $data_array['term_data'] = array(
+	    'tid' => $term->tid,
+	  );
+	
+	$data_array['title'] = 'Original description of '.$term->name;
+	return emonocot_biblio_create_node($data_array);
+  }
+  return FALSE;
+}
+
+function emonocot_biblio_get_wcm_data($term){
+  $protologue = $term->field_itis_em_other_ref['und'][0]['value'];
+	
+  $return = array();
+  $return['author_string'] = $term->field_authors['und'][0]['value'];
+  $return['authors'] = emonocot_bilbio_process_wcm_author_string($return['author_string']);
+  $return['short_title'] = emonocot_biblio_get_short_title($protologue, $return['author_string']);
+  $return['year'] = emonocot_biblio_get_year($protologue);
+  $return['volume'] = emonocot_biblio_get_volume($protologue);
+  $return['start_page'] = emonocot_biblio_get_start_page($protologue);
+
+  emonocot_biblio_add_ipni_data($return);
+  emonocot_biblio_get_biblio_type($return);
+  
+  return $return;
+	
+}
+
+function emonocot_biblio_get_short_title($reference, $author_string){
+	
+  $reference = substr($reference, strlen($author_string) + 1);
+  $reference = substr($reference, 0, strpos($reference, ':'));
+  $reference = substr($reference, 0, strrpos($reference, ' '));
+  $reference = trim($reference);
+  return $reference;
+}
+
+function emonocot_biblio_get_year($protologue){
+  $year = substr($protologue, strrpos($protologue, '(') + 1, 4);
+  return $year;
+}
+
+function emonocot_biblio_get_volume($protologue){
+  $volume = substr($protologue, 0, strpos($protologue, ':'));
+  $volume = substr($volume, strrpos($volume, ' '), 100);
+  $volume = trim($volume);
+  return $volume;	
+}
+
+function emonocot_biblio_get_start_page($protologue){
+	$start_page = substr($protologue, strpos($protologue, ':')+1, strpos($protologue, '(') - strpos($protologue, ':') - 1);
+	$start_page = trim($start_page);
+	return $start_page;
+}
+
+function emonocot_bilbio_process_wcm_author_string($author_string){
+	
+  //If there is an author is parentheses that's the only part of the string we should return for biblio
+  if (strstr($author_string, '(')){
+  	$start = strpos($author_string, '(') + 1;
+  	$end = strpos($author_string, ')');
+  	$author_string = substr($author_string, $start, $end - $start);
+  }
+  
+	//If the taxon author string has 'ex' or 'in' in the title discard unwanted authors
+	if (strstr($author_string, ' ex ')){
+	  $author_string = substr($author_string, -strpos($author_string, ' ex ') -1); 
+	}
+	if (strstr($author_string, ' in ')){
+	  $author_string = substr($author_string, 0, strpos($author_string, ' in '));
+	}
+	
+	//Separate authors into array
+	$authors = explode('&', $author_string);
+	array_walk($authors, 'emonocot_biblio_array_trim');
+	return $authors;
+
+	
+}
+
+function emonocot_biblio_array_trim(&$value){
+	$value = trim($value);
+}
+
+function emonocot_biblio_add_ipni_data(&$data){
+	$ipni_pub_matches = emonocot_ipni_publication_short($data['short_title']);
+	foreach ($ipni_pub_matches as $short_title => $title){
+		if ($data['short_title'] == $short_title) {
+			break;
+		}
+	}
+
+	
+	for ($i=0; $i < count($data['authors']); $i++){
+	  $ipni_auth_matches = emonocot_ipni_author_short($data['authors'][$i]);
+	  foreach ($ipni_auth_matches as $abbreviation => $full_name){
+	  	if ($data['authors'][$i] == $abbreviation){
+	  		$data['authors'][$i] = $full_name;
+	  		break;
+	  	}
+	  }
+	}
+}
+
+function emonocot_biblio_get_biblio_type(&$data){
+  //Might use other types in future
+  $sql = "SELECT tid FROM biblio_types WHERE name = 'Botanical Protologue'";
+  $result = db_query($sql);
+  foreach ($result as $tid){
+	$data['biblio_type'] = $tid->tid;
+  }
+}
+
+function emonocot_biblio_create_node($data){
+  $node = new stdClass();
+  $node->type = 'biblio';
+  $node->biblio_type = $data['biblio_type'];
+  node_object_prepare($node);
+  
+  $node->title = $data['title'];
+  $node->biblio_short_title = $data['short_title'];
+  $node->biblio_year = $data['year'];
+
+  $node->biblio_section = $data['start_page'];
+  $node->biblio_volume = $data['volume'];
+  
+  foreach ($data['authors'] as $author){
+   $node->biblio_contributors[] = array('name' => $author, 'auth_category' => 1);
+  }
+ 
+  $node->field_taxonomic_name['und'][0] = $data['term_data'];
+  require_once drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc';
+ 
+  node_save($node);
+  biblio_insert_contributors($node);
+  return $node;
+}
+
+function emonocot_biblio_menu() {
+  $items = array();
+  $items['admin/config/emonocot/protologues'] = array(
+    'title' => 'Generate missing Botanical Protologues',
+    'description' => 'Generate biblio nodes from WCM protologues',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('emonocot_biblio_batch_protologues_form'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+function emonocot_biblio_batch_protologues_form(){
+  $form['description'] = array(
+    '#type' => 'markup',
+    '#markup' => t('Create missing Botanical Protologue microcitations for the taxonomy selected below.'),
+  );
+  
+  $biological_vids = variable_get('biological_vids', array());
+  $values = array();
+  foreach ($biological_vids as $biological_vid => $type){
+  	if ($type == 2){
+      $values[$biological_vid] = taxonomy_vocabulary_load($biological_vid)->name;
+  	}
+  }
+  
+  $form['vocabulary'] = array(
+    '#type' => 'select',
+    '#title' => t('Select taxonomy'),
+    '#options' => $values,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Go',
+  );
+  
+  $form['#submit'][] = 'emonocot_biblio_batch_protologues_form_submit';
+  
+  return $form;
+}
+
+function emonocot_biblio_batch_protologues_form_submit($form, &$form_state){
+	$function = 'emonocot_biblio_batch_protologues';
+	$batch = $function($form_state['values']['vocabulary']);
+	batch_set($batch);
+}
+
+function emonocot_biblio_batch_protologues($vid){
+	$vocabulary = taxonomy_vocabulary_load($vid);
+	//Get all term tids for the vocabulary
+	$result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(':vid' => $vid));
+	$data = $result->fetchCol();
+	$num_operations = count($data);
+	
+	$operations = array();
+	foreach ($data as $tid){
+	  $operations[] = array('emonocot_biblio_batch_protologues_process', array($tid));
+	}
+	
+	$batch = array(
+	  'operations' => $operations,
+	  'finished' => 'emonocot_biblio_batch_protologues_finished',
+	  'title' => 'Generate missing Botanical Protologues for '.$vocabulary->name,
+	);
+	
+	return $batch;
+}
+
+function emonocot_biblio_batch_protologues_finished($success, $results, $operations){
+  if ($success) {
+    drupal_set_message(t('Finished!'));
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+  }
+}
+
+function emonocot_biblio_batch_protologues_process($tid, &$context){
+  $term = taxonomy_term_load($tid);
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    $context['sandbox']['progress'] = 0;
+    
+    $result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(':vid' => $term->vid));
+	$data = $result->fetchCol();
+    $context['sandbox']['max'] =  count ($data);
+  }
+  
+  
+  emonocot_biblio_create_biblio_from_protologue($term);
+  
+    $context['sandbox']['progress']++;
+    $context['message'] = check_plain($node->title);
+
+  // Inform the batch engine that we are not finished,
+  // and provide an estimation of the completion level we reached.
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  }
+}

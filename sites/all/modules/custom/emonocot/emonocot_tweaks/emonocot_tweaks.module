@@ -49,3 +49,15 @@ function emonocot_tweaks_system_info_alter(&$info, $file, $type){
       break;
   }
 }
+
+function emonocot_tweaks_menu(){
+	  $items['admin/config/emonocot'] = array(
+    'title' => 'eMonocot Scratchpads configuration',
+    'description' => 'Adjust how eMonocot specific functions behave.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  return $items;
+}
