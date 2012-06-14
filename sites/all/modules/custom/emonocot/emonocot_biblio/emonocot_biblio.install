@@ -1,0 +1,145 @@
+<?php
+
+
+function emonocot_biblio_install(){
+  $values['name'] = 'Botanical Protologue';
+  $values['description'] = 'A botanical protologue';
+  $values['tid'] = variable_get('biblio_max_user_tid', '999') + 1;
+
+  db_insert('biblio_types')
+    ->fields($values)
+    ->execute();
+
+  variable_set('biblio_max_user_tid', $values['tid']);
+  $result = db_query('SELECT * FROM {biblio_field_type} WHERE tid=0', array(), array('fetch' => PDO::FETCH_ASSOC));
+  foreach ($result as $row) {
+    $row['tid'] = $values['tid'];
+    db_insert('biblio_field_type')
+      ->fields($row)
+      ->execute();
+  }
+  // Fill contributor types. Use the first 4 defaults.
+  for ($type = 1; $type <= 4; $type++) {
+    $ct_vals = array(
+      'auth_category' => $type,
+      'biblio_type' => $values['tid'],
+      'auth_type' => $type,
+      );
+
+    db_insert('biblio_contributor_type')
+      ->fields($ct_vals)
+      ->execute();
+  }
+  
+  
+  	    //We need to add some extra fields (values taken from biblio_field_type)
+  $sql = "SELECT tid FROM biblio_types WHERE name = 'Botanical Protologue'";
+  $result = db_query($sql)->fetchCol();
+  $protologue_type = $result[0];
+
+  
+  $biblio_fields = array(
+    'biblio_volume' => array(
+      'tid' => $protologue_type,
+      'fid' => 17,
+      'ftdid' => 17,
+      'cust_tdid' => 17,
+      'common' => 0,
+      'vtab' => 2,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 14,
+      'visible' => 1,
+    ),
+    'biblio_short_title' => array(
+      'tid' => $protologue_type,
+      'fid' => 38,
+      'ftdid' => 38,
+      'cust_tdid' => 38,
+      'common' => 0,
+      'vtab' => 8,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 169,
+      'visible' => 1,
+    ),
+    'biblio_section' => array(
+      'tid' => $protologue_type,
+      'fid' => 43,
+      'ftdid' => 165,
+      'cust_tdid' => 165,
+      'common' => 0,
+      'vtab' => 2,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 15,
+      'visible' => 1,
+    ),
+  );
+  
+  foreach ($biblio_fields as $field){
+    $query = db_update('biblio_field_type')	
+      ->fields($field)
+      ->condition('tid', $protologue_type)
+      ->condition('fid', $field['fid'])
+      ->execute();
+  } 
+}
+
+function emonocot_biblio_update_7001(){
+	
+	  	    //We need to add some extra fields (values taken from biblio_field_type)
+  $sql = "SELECT tid FROM biblio_types WHERE name = 'Botanical Protologue'";
+  $result = db_query($sql)->fetchCol();
+  $protologue_type = $result[0];
+	
+  
+	$biblio_fields = array(
+    'biblio_volume' => array(
+      'tid' => $protologue_type,
+      'fid' => 17,
+      'ftdid' => 17,
+      'cust_tdid' => 17,
+      'common' => 0,
+      'vtab' => 2,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 14,
+      'visible' => 1,
+    ),
+    'biblio_short_title' => array(
+      'tid' => $protologue_type,
+      'fid' => 38,
+      'ftdid' => 38,
+      'cust_tdid' => 38,
+      'common' => 0,
+      'vtab' => 8,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 169,
+      'visible' => 1,
+    ),
+    'biblio_section' => array(
+      'tid' => $protologue_type,
+      'fid' => 43,
+      'ftdid' => 165,
+      'cust_tdid' => 165,
+      'common' => 0,
+      'vtab' => 2,
+      'autocomplete' => 0,
+      'required' => 0,
+      'weight' => 15,
+      'visible' => 1,
+    ),
+  );
+  
+  foreach ($biblio_fields as $field){
+    $query = db_update('biblio_field_type')	
+      ->fields($field)
+      ->condition('tid', $protologue_type)
+      ->condition('fid', $field['fid'])
+      ->execute();
+  } 
+}
+
+

@@ -1,0 +1,6 @@
+name = eMonocot Biblio tweaks
+description = Allows automatic creation of bible nodes from WCM protologues.
+package = "eMonocot"
+core = 7.x
+dependencies[] = emonocot_ipni
+dependencies[] = biblio

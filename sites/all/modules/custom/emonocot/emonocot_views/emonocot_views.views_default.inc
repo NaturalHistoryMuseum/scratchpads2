@@ -318,6 +318,30 @@ function emonocot_views_nomenclature($vid){
   $handler->display->display_options['fields']['field_usage']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_usage']['hide_alter_empty'] = 0;
   $handler->display->display_options['fields']['field_usage']['field_api_classes'] = 0;
+  /* Field: Taxonomy term: WCM Protologue Reference */
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['id'] = 'field_itis_em_other_ref';
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['table'] = 'field_data_field_itis_em_other_ref';
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['field'] = 'field_itis_em_other_ref';
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['label'] = 'Protologue Citation';
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_empty'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_other_ref']['field_api_classes'] = 0;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
