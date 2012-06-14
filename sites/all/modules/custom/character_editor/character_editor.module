@@ -95,7 +95,7 @@ function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_pat
         '#theme' => 'menu_local_task',
         '#link' => $local_task
       );
-      if($path == 'character-project/%/characters'){
+      if($path == 'character-editor-project/%/characters'){
         $tab['#active'] = true;
       }
       $tabs[] = $tab;
@@ -113,7 +113,7 @@ function character_editor_get_local_tasks($project_id){
   $local_tasks = array();
   $result = db_select('menu_router', NULL, array(
     'fetch' => PDO::FETCH_ASSOC
-  ))->fields('menu_router')->condition('tab_parent', 'character-project/%')->condition('context', MENU_CONTEXT_INLINE, '<>')->orderBy('weight')->orderBy('title')->execute();
+  ))->fields('menu_router')->condition('tab_parent', 'character-editor-project/%')->condition('context', MENU_CONTEXT_INLINE, '<>')->orderBy('weight')->orderBy('title')->execute();
   $map = array(
     'character',
     $project_id
@@ -416,7 +416,7 @@ function character_editor_form_alter(&$form, &$form_state, $form_id){
       }
       break;
     case 'entity_admin_entity_delete_form':
-      $form['actions']['cancel']['#href'] = 'character-project/' . $_GET['project'] . '/characters';
+      $form['actions']['cancel']['#href'] = 'character-editor-project/' . $_GET['project'] . '/characters';
       break;
   }
 }
@@ -528,6 +528,32 @@ function character_editor_entity_info(){
     )
   );
   return $return;
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function character_editor_entity_property_info_alter(&$info){
+  $properties = &$info['character_editor_project']['properties'];
+  $properties['created'] = array(
+    'label' => t("Date created"),
+    'type' => 'date',
+    'description' => t("The date the character project was created."),
+    'schema field' => 'created'
+  );
+  $properties['changed'] = array(
+    'label' => t("Date changed"),
+    'type' => 'date',
+    'description' => t("The date the character project was updated."),
+    'schema field' => 'created'
+  );
+  $properties['uid'] = array(
+    'label' => t("Author"),
+    'type' => 'user',
+    'setter callback' => 'entity_property_verbatim_set',
+    'description' => t("The author of the character project."),
+    'schema field' => 'uid'
+  );
 }
 
 /**

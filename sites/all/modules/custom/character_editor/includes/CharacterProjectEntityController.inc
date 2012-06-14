@@ -12,11 +12,11 @@ class CharacterProjectEntityController extends EntityAdminEntityController{
   public function hook_menu(){
     $items = parent::hook_menu();
     // We actually want to map edit to the character project view
-    $items['character-project/%entity_object/edit']['page callback'] = 'character_editor_project_view';
-    $items['character-project/%entity_object']['page callback'] = 'character_editor_project_view';
+    $items['character-editor-project/%entity_object/edit']['page callback'] = 'character_editor_project_view';
+    $items['character-editor-project/%entity_object']['page callback'] = 'character_editor_project_view';
     // The first argument in the edit callback is the form id
     // Remove it - character_editor_project_view() expects just the entity
-    array_shift($items['character-project/%entity_object/edit']['page arguments']);
+		array_shift($items['character-editor-project/%entity_object/edit']['page arguments']);
     return $items;
   }
 }
