@@ -8,7 +8,7 @@ abstract class DrupalFieldMigration extends DrupalMigration{
   public function __construct(array $arguments){
     parent::__construct($arguments);
     // Create our three main objects - source, destination, and map
-    $this->source = new MigrateSourceSQL($this->fieldQuery(), $this->sourceFields, NULL, $this->sourceOptions);
+    $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
   }
 
   /**
@@ -37,10 +37,10 @@ abstract class DrupalFieldMigration extends DrupalMigration{
    * Version-specific classes must implement contentTypeQuery, returning a query
    * that provides all the basic fields for each node type.
    */
-  abstract protected function fieldQuery();
+  abstract protected function sourceQuery();
 }
 
-abstract class MigrateDestinationField extends MigrateDestination{
+class MigrateDestinationField extends MigrateDestination{
 
   public function __construct(){
     // No options.
