@@ -461,5 +461,14 @@ function entity_admin_entity_load_simple($entity_type, $ids = FALSE, $conditions
   return $controller->load($ids, $conditions);
 }
 
+function entity_admin_preprocess_views_view(&$variables){
+	
+	if($variables['view']->tag == 'entity admin'){
+		drupal_add_css(drupal_get_path('module', 'entity_admin') . '/css/entity-admin.css');
+	}
+	
+	
+}
+
 
 
