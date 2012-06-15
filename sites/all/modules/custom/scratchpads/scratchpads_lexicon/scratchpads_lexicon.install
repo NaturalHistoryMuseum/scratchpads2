@@ -38,3 +38,11 @@ function scratchpads_lexicon_disable(){
     'lexicon'
   ));
 }
+
+/**
+ * Run the install again, as the enabled status of the filter will have been
+ * removed.
+ */
+function scratchpads_lexicon_update_7001(){
+  scratchpads_lexicon_install();
+}
