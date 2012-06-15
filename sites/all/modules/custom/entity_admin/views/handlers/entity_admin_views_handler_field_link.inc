@@ -39,7 +39,11 @@ class entity_admin_views_handler_field_link extends views_handler_field_entity{
     $entity_uri = entity_uri($entity->entityType(), $entity);
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = $entity_uri['path'];
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('view');
-    return $text;
+    if($this->options['exclude']){
+      $ret = $entity_uri['path'];
+    }else{
+      $ret = !empty($this->options['text']) ? $this->options['text'] : t('View');
+    }
+    return $ret;
   }
 }
