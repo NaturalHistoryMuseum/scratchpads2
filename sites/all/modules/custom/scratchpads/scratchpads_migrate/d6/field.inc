@@ -12,8 +12,8 @@ class DrupalField6Migration extends DrupalFieldMigration{
         'type' => 'varchar',
         'length' => 255
       )
-    ), MigrateDestinationField6::getKeySchema());
-    $this->destination = new MigrateDestinationField6();
+    ), MigrateDestinationField::getKeySchema());
+    $this->destination = new MigrateDestinationField();
     // Field mappings
     $this->addSimpleMappings(array(
       'label',
@@ -48,7 +48,7 @@ class DrupalField6Migration extends DrupalFieldMigration{
    *
    * @return QueryConditionInterface
    */
-  protected function fieldQuery(){
+  protected function sourceQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('content_node_field_instance', 'i');
     $query->fields('i');
     $query->innerJoin('content_node_field', 'f', 'f.field_name = i.field_name');
@@ -70,16 +70,5 @@ class DrupalField6Migration extends DrupalFieldMigration{
       }
     }
     return $node_types;
-  }
-}
-
-class MigrateDestinationField6 extends MigrateDestinationField{
-
-  public function __construct(){
-    parent::__construct();
-  }
-
-  public function import(stdClass $object, stdClass $row){
-    return parent::import($object, $row);
   }
 }

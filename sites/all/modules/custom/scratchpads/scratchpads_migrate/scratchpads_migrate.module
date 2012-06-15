@@ -50,24 +50,25 @@ function scratchpads_migrate_register_migrations(){
     'source_connection' => 'scratchpad_1',
     'source_version' => 6
   );
-  // -- Users -----------------------------------------------------------------
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of users from Drupal 6'),
-    'machine_name' => 'User'
-  );
-  Migration::registerMigration('ScratchpadsUser6Migration', $arguments['machine_name'], $arguments);
-  // -- ContentTypes ----------------------------------------------------------
+  /*********************************************************************************************
+   * ContentTypes
+   ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of content types from Drupal 6'),
     'machine_name' => 'ContentType'
   );
   Migration::registerMigration('DrupalContentType6Migration', $arguments['machine_name'], $arguments);
-  // -- Vocabularies ----------------------------------------------------------
+  /*********************************************************************************************
+   * Vocabularies
+   ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of vocabularies from Drupal 6'),
     'machine_name' => 'Vocabulary'
   );
   Migration::registerMigration('DrupalVocabulary6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Fields
+   ********************************************************************************************/
   // The description and the migration machine name are also required arguments,
   // which will be unique for each migration you register.
   $arguments = $common_arguments + array(
@@ -79,6 +80,9 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalField6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Body fields
+   ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of body fields from Drupal 6'),
     'machine_name' => 'FieldBody',
@@ -88,16 +92,22 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldBody6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Taxonomy fields
+   ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of taxonomy fields from Drupal 6'),
     'machine_name' => 'FieldTaxonomy',
     'dependencies' => array(
       'ContentType',
-  		'Vocabulary'
+      'Vocabulary'
     )
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldTaxonomy6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Field groups
+   ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of field groups from Drupal 6'),
     'machine_name' => 'FieldGroup',
@@ -107,6 +117,26 @@ function scratchpads_migrate_register_migrations(){
   );
   // We just use the migrate_d2d D6 migration class as-is.
   Migration::registerMigration('DrupalFieldGroup6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * User
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of users from Drupal 6'),
+    'machine_name' => 'User'
+  );
+  Migration::registerMigration('ScratchpadsUser6Migration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Views
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of views from Drupal 6'),
+    'machine_name' => 'Views'
+  );//    'dependencies' => array(
+//      'Field'
+  //    )
+  
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalViews6Migration', $arguments['machine_name'], $arguments);
   // Register the actual content type migrations
   // Tell the node migrations where the users are coming from, so they can
   // set up the dependency and resolve D6->D7 uids.

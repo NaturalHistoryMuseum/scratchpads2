@@ -12,8 +12,8 @@ class DrupalContentType6Migration extends DrupalContentTypeMigration{
         'type' => 'varchar',
         'length' => 255
       )
-    ), MigrateDestinationContentType6::getKeySchema());
-    $this->destination = new MigrateDestinationContentType6();
+    ), MigrateDestinationContentType::getKeySchema());
+    $this->destination = new MigrateDestinationContentType();
     $this->addSimpleMappings(array(
       'type',
       'name',
@@ -28,7 +28,7 @@ class DrupalContentType6Migration extends DrupalContentTypeMigration{
    *
    * @return QueryConditionInterface
    */
-  protected function contentTypeQuery(){
+  protected function sourceQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('node_type', 'nt');
     $query->fields('nt', array(
       'type',
@@ -42,22 +42,5 @@ class DrupalContentType6Migration extends DrupalContentTypeMigration{
     $query->condition('nt.module', 'node');
     $query->condition('nt.type', array_keys(scratchpads_migrate_type_mappings()), 'NOT IN');
     return $query;
-  }
-}
-
-class MigrateDestinationContentType6 extends MigrateDestinationContentType{
-
-  public function __construct(){
-    parent::__construct();
-  }
-
-  public function import(stdClass $object, stdClass $row){
-    if(!parent::import($object, $row)){return FALSE;}
-    // As we're importing from Drupal 6, we always had a body field, so should
-    // create one.
-    // FIXME - Add body field.
-    return array(
-      $object->type
-    );
   }
 }

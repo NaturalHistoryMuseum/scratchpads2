@@ -12,8 +12,8 @@ class DrupalFieldBody6Migration extends DrupalFieldBodyMigration{
         'type' => 'varchar',
         'length' => 255
       )
-    ), MigrateDestinationFieldBody6::getKeySchema());
-    $this->destination = new MigrateDestinationFieldBody6();
+    ), MigrateDestinationFieldBody::getKeySchema());
+    $this->destination = new MigrateDestinationFieldBody();
     $this->addSimpleMappings(array(
       'body_label',
       'type'
@@ -25,7 +25,7 @@ class DrupalFieldBody6Migration extends DrupalFieldBodyMigration{
    *
    * @return QueryConditionInterface
    */
-  protected function fieldQuery(){
+  protected function sourceQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('node_type', 'nt');
     $query->fields('nt', array(
       'type',
@@ -34,17 +34,6 @@ class DrupalFieldBody6Migration extends DrupalFieldBodyMigration{
     $query->condition('nt.type', DrupalField6Migration::excludedNodeTypes(), 'NOT IN');
     $query->condition('nt.has_body', 1);
     return $query;
-  }
-}
-
-class MigrateDestinationFieldBody6 extends MigrateDestinationFieldBody{
-
-  public function __construct(){
-    parent::__construct();
-  }
-
-  public function import(stdClass $object, stdClass $row){
-    return parent::import($object, $row);
   }
 }
 

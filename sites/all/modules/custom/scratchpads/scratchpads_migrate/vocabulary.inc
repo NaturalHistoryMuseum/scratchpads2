@@ -75,41 +75,11 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
   abstract protected function vocabularyQuery();
 }
 
-class DrupalVocabulary6Migration extends DrupalVocabularyMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    $this->map = new MigrateSQLMap($this->machineName, array(
-      'vid' => array(
-        'type' => 'int',
-        'length' => 255
-      )
-    ), MigrateDestinationVocabulary6::getKeySchema());
-    $this->destination = new MigrateDestinationVocabulary6();
-    $this->addSimpleMappings(array(
-      'vid',
-      'name',
-      'description',
-      'hierarchy',
-      'weight'
-    ));
-  }
-
-  protected function vocabularyQuery(){
-    return Database::getConnection('default', $this->sourceConnection)->select('vocabulary', 'v')->fields('v', array(
-      'vid',
-      'name',
-      'description',
-      'hierarchy',
-      'weight'
-    ))->condition('module', 'taxonomy');
-  }
-}
 
 /**
  * Destination class implementing migration into vocabularies.
  */
-abstract class MigrateDestinationVocabulary extends MigrateDestinationEntity{
+class MigrateDestinationVocabulary extends MigrateDestinationEntity{
 
   static public function getKeySchema(){
     return array(
@@ -165,12 +135,5 @@ abstract class MigrateDestinationVocabulary extends MigrateDestinationEntity{
     return array(
       $vocabulary->vid
     );
-  }
-}
-
-class MigrateDestinationVocabulary6 extends MigrateDestinationVocabulary{
-
-  public function __construct(array $options = array()){
-    parent::__construct($options);
   }
 }
