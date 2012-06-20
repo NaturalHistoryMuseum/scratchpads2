@@ -1,5 +1,14 @@
 <?php
 
+function emonocot_views_views_default_views(){
+  $bio_vids = variable_get('biological_vids', array());
+  $views = array();
+  foreach ($bio_vids as $vid => $value){
+  	$views[] = emonocot_views_nomenclature($vid);
+  }
+  return $views;
+}
+
 function emonocot_views_nomenclature($vid){
   $vocab = taxonomy_vocabulary_load($vid);
   $view = new view();
@@ -318,56 +327,59 @@ function emonocot_views_nomenclature($vid){
   $handler->display->display_options['fields']['field_usage']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_usage']['hide_alter_empty'] = 0;
   $handler->display->display_options['fields']['field_usage']['field_api_classes'] = 0;
-  /* Field: Taxonomy term: WCM Protologue Reference */
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['id'] = 'field_itis_em_other_ref';
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['table'] = 'field_data_field_itis_em_other_ref';
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['field'] = 'field_itis_em_other_ref';
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['label'] = 'Protologue Citation';
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_empty'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['field_itis_em_other_ref']['field_api_classes'] = 0;
+/* Field: Taxonomy term: WCM Protologue Reference */
+$handler->display->display_options['fields']['field_itis_em_other_ref']['id'] = 'field_itis_em_other_ref';
+$handler->display->display_options['fields']['field_itis_em_other_ref']['table'] = 'field_data_field_itis_em_other_ref';
+$handler->display->display_options['fields']['field_itis_em_other_ref']['field'] = 'field_itis_em_other_ref';
+$handler->display->display_options['fields']['field_itis_em_other_ref']['label'] = 'Protologue Citation';
+$handler->display->display_options['fields']['field_itis_em_other_ref']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['external'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['alter']['html'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['hide_empty'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['empty_zero'] = 0;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['field_itis_em_other_ref']['field_api_classes'] = 0;
   /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'field_reference_nid';
-  $handler->display->display_options['fields']['title']['label'] = 'Citation';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['trim'] = 1;
-  $handler->display->display_options['fields']['title']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['title']['element_label_type'] = 'strong';
-  $handler->display->display_options['fields']['title']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['title']['element_default_classes'] = 0;
-  $handler->display->display_options['fields']['title']['hide_empty'] = 1;
-  $handler->display->display_options['fields']['title']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['title']['link_to_node'] = 1;
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['relationship'] = 'field_reference_nid';
+$handler->display->display_options['fields']['title']['label'] = 'Protologue Citation';
+$handler->display->display_options['fields']['title']['alter']['alter_text'] = 1;
+$handler->display->display_options['fields']['title']['alter']['text'] = '[field_itis_em_other_ref]';
+$handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['title']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['title']['alter']['external'] = 0;
+$handler->display->display_options['fields']['title']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['title']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['title']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['title']['alter']['max_length'] = '30';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['title']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['title']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['title']['alter']['html'] = 0;
+$handler->display->display_options['fields']['title']['element_label_type'] = 'strong';
+$handler->display->display_options['fields']['title']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['title']['element_default_classes'] = 0;
+$handler->display->display_options['fields']['title']['hide_empty'] = 1;
+$handler->display->display_options['fields']['title']['empty_zero'] = 0;
+$handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Field: Taxonomy term: Hybrid parents */
   $handler->display->display_options['fields']['field_hp_' . $vid]['id'] = 'field_hp_' . $vid;
   $handler->display->display_options['fields']['field_hp_' . $vid]['table'] = 'field_data_field_hp_' . $vid;

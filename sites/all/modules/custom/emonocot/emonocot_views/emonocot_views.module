@@ -13,14 +13,18 @@ function emonocot_views_context_load_alter(&$context){
     //Remove default Scratchpads nomenclature and specimen blocks
     unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
     unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
+    foreach ($context->reactions['block']['blocks'] as $name => $block){
+    	if (substr($name,0, 29) == 'views-em_species_nomenclature'){
+    	  unset($context->reactions['block']['blocks'][$name]);
+    	}
+    }
     //Replace with the eMonocot one(s)
     global $_GET;
     $args = explode('/', $_GET['q']);
     if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
-      $result = db_query("SELECT vid FROM {taxonomy_term_data} WHERE tid = :tid", array(
-        ':tid' => $args[2]
-      ));
-      $bio_id = $result->fetchObject()->vid;
+      $term = taxonomy_term_load($args[2]);
+     
+      $bio_id = $term->vid;
 
       $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
         'module' => 'views',
