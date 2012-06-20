@@ -27,6 +27,7 @@ dependencies[] = taxonomy
 dependencies[] = toolbar
 
 ; Contrib
+dependencies[] = advanced_help
 dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
