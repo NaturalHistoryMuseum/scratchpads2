@@ -17,7 +17,7 @@ function scratchpads_tweaks_install(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+          'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -816,7 +816,7 @@ function scratchpads_tweaks_update_7016(){
 /**
  * De-fuck-up the filter formats.
  */
-function scratchpads_tweaks_update_7017(){
+function scratchpads_tweaks_update_7018(){
   $filters = array(
     // URL filter.
     'filter_url' => array(
@@ -828,7 +828,7 @@ function scratchpads_tweaks_update_7017(){
       'weight' => 1,
       'status' => 1,
       'settings' => array(
-        'allowed_html' => '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+        'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
         'filter_html_help' => 0,
         'filter_html_nofollow' => 0
       )
@@ -858,4 +858,8 @@ function scratchpads_tweaks_update_7017(){
   $filtered_html_format = filter_format_load('comment_filtered_html');
   $filtered_html_format->filters = $filters;
   filter_format_save($filtered_html_format);
+  if(module_exists('scratchpads_lexicon')){
+    module_load_include('install', 'scratchpads_lexicon');
+    scratchpads_lexicon_install();
+  }
 }
