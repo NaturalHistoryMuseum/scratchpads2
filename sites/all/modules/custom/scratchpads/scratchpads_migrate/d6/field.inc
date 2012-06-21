@@ -11,6 +11,10 @@ class DrupalField6Migration extends DrupalFieldMigration{
       'field_name' => array(
         'type' => 'varchar',
         'length' => 255
+      ),
+      'type_name' => array(
+        'type' => 'varchar',
+        'length' => 255
       )
     ), MigrateDestinationField::getKeySchema());
     $this->destination = new MigrateDestinationField();

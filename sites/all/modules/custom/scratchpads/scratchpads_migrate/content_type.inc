@@ -18,7 +18,12 @@ abstract class DrupalContentTypeMigration extends DrupalMigration{
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // Check whether or not this content type already exists.
     $node_info = node_entity_info();
-    if(isset($node_info['node']['bundles'][$row->type])){return FALSE;}
+    if(isset($node_info['node']['bundles'][$row->type])){
+      watchdog('scratchpads_migrate', t('Skipped node %type - already exists.'), array(
+        '%type' => $row->type
+      ), WATCHDOG_NOTICE);
+      return FALSE;
+    }
     return TRUE;
   }
 
@@ -67,10 +72,16 @@ class MigrateDestinationContentType extends MigrateDestination{
       node_types_rebuild();
       menu_rebuild();
       $this->numCreated++;
+      watchdog('scratchpads_migrate', t('Created node %type.'), array(
+        '%type' => $object->type
+      ), WATCHDOG_INFO);
       return array(
         $type->type
       );
     }else{
+      throw new MigrateException(t('There was an error creating node %type.'), array(
+        '%type' => $object->type
+      ));
       return FALSE;
     }
   }

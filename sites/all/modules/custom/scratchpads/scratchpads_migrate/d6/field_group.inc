@@ -12,8 +12,8 @@ class DrupalFieldGroup6Migration extends DrupalFieldGroupMigration{
         'type' => 'varchar',
         'length' => 255
       )
-    ), MigrateDestinationFieldGroup6::getKeySchema());
-    $this->destination = new MigrateDestinationFieldGroup6();
+    ), MigrateDestinationFieldGroup::getKeySchema());
+    $this->destination = new MigrateDestinationFieldGroup();
     // Field mappings
     $this->addSimpleMappings(array(
       'group_name',
@@ -44,21 +44,7 @@ class DrupalFieldGroup6Migration extends DrupalFieldGroupMigration{
     $query->innerJoin('content_group_fields', 'f', 'f.type_name = g.type_name AND f.group_name = g.group_name');
     $query->groupBy('g.group_name');
     $query->addExpression('GROUP_CONCAT(f.field_name)', 'children');
-    // Limit to only node types we want to import
-    
-    // TODO Change this to field groups?
-//    $query->condition('g.type_name', array_keys(scratchpads_migrate_migration_types()), 'IN');
+    $query->condition('g.type_name', DrupalField6Migration::excludedNodeTypes(), 'NOT IN');
     return $query;
-  }
-}
-
-class MigrateDestinationFieldGroup6 extends MigrateDestinationFieldGroup{
-
-  public function __construct(){
-    parent::__construct();
-  }
-
-  public function import(stdClass $object, stdClass $row){
-    return parent::import($object, $row);
   }
 }

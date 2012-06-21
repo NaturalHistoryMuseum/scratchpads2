@@ -28,7 +28,7 @@ abstract class DrupalFieldGroupMigration extends DrupalMigration{
   abstract protected function fieldQuery();
 }
 
-abstract class MigrateDestinationFieldGroup extends MigrateDestination{
+class MigrateDestinationFieldGroup extends MigrateDestination{
 
   public function __construct(){
     // No options.
