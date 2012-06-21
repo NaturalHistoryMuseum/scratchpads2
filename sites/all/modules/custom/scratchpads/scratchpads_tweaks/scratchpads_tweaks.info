@@ -27,6 +27,7 @@ dependencies[] = taxonomy
 dependencies[] = toolbar
 
 ; Contrib
+dependencies[] = advanced_help
 dependencies[] = boost
 dependencies[] = ckeditor
 dependencies[] = clone
@@ -83,4 +84,5 @@ dependencies[] = spm
 dependencies[] = subpermissions
 dependencies[] = taxonomy_breadcrumb_lite
 dependencies[] = tools
+dependencies[] = tree_widget
 dependencies[] = tui

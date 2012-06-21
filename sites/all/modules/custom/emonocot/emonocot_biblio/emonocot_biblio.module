@@ -1,7 +1,7 @@
 <?php
 
 function emonocot_biblio_taxonomy_term_insert($term){
-	//TODO: Check this belongs to a botanical vocab
+  if (in_array($term->vid, variable_get('biological_vids', array())) && variable_get('em_biblio_autogen', FALSE)){
 	if (!isset($term->field_reference['und'][0]['nid'])){
 	  $biblio_node = emonocot_biblio_create_biblio_from_protologue($term);
 	  if (is_object($biblio_node)){
@@ -9,8 +9,8 @@ function emonocot_biblio_taxonomy_term_insert($term){
 	    taxonomy_term_save($term);
 	  }
 	}
+  }
 }
-
 
 
 function emonocot_biblio_create_biblio_from_protologue($term){
@@ -107,20 +107,31 @@ function emonocot_biblio_array_trim(&$value){
 
 function emonocot_biblio_add_ipni_data(&$data){
 	$ipni_pub_matches = emonocot_ipni_publication_short($data['short_title']);
+	$match_found = FALSE;
 	foreach ($ipni_pub_matches as $short_title => $title){
 		if ($data['short_title'] == $short_title) {
+			//TODO: Put the title somewhere (alt title)
+			$match_found = TRUE;
 			break;
 		}
+	}
+	if (!$match_found){
+	  //drupal_set_message('IPNI Publication match failed for :'.$data['short_title'], 'info');
 	}
 
 	
 	for ($i=0; $i < count($data['authors']); $i++){
 	  $ipni_auth_matches = emonocot_ipni_author_short($data['authors'][$i]);
+	  $match_found = FALSE;
 	  foreach ($ipni_auth_matches as $abbreviation => $full_name){
 	  	if ($data['authors'][$i] == $abbreviation){
 	  		$data['authors'][$i] = $full_name;
+	  		$match_found = TRUE;
 	  		break;
 	  	}
+	  }
+   	  if (!$match_found){
+	    //drupal_set_message('IPNI Author match failed for :'.$data['authors'][$i], 'info');
 	  }
 	}
 }
@@ -162,14 +173,50 @@ function emonocot_biblio_create_node($data){
 function emonocot_biblio_menu() {
   $items = array();
   $items['admin/config/emonocot/protologues'] = array(
+    'title' => 'Configure generation of Botanical Protologues',
+    'description' => 'Configure generation of Botanical Protologues',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('emonocot_biblio_autogenerate_admin_form'),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/emonocot/protologues/generate'] = array(
     'title' => 'Generate missing Botanical Protologues',
     'description' => 'Generate biblio nodes from WCM protologues',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('emonocot_biblio_batch_protologues_form'),
     'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
   );
-
+  
+  $items['admin/config/emonocot/protologues/settings'] = array(
+    'title' => 'Configure generation of Botanical Protologues',
+    'description' => 'Configure generation of Botanical Protologues',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('emonocot_biblio_autogenerate_admin_form'),
+    'access callback' => TRUE,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
   return $items;
+}
+
+function emonocot_biblio_autogenerate_admin_form(){
+  $form['autogen'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Autogenerate Botanical Protologue biblio nodes on term creation and taxonomy import'),
+    '#default_value' => variable_get('em_biblio_autogen', TRUE),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+  );
+  
+  $form['#submit'][] = 'emonocot_biblio_autogenerate_admin_form_submit';
+  return $form;
+}
+
+function emonocot_biblio_autogenerate_admin_form_submit($form, &$form_state){
+	variable_set('em_biblio_autogen', $form_state['values']['autogen']);
 }
 
 function emonocot_biblio_batch_protologues_form(){
@@ -191,12 +238,25 @@ function emonocot_biblio_batch_protologues_form(){
     '#title' => t('Select taxonomy'),
     '#options' => $values,
   );
-
+  $form['delete_first'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete all currently associated Botanical Protologues first (use with care)'),
+    '#default_value' => FALSE,
+  );
+  $form['generate_new'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Generate missing Botanical Protologue biblio nodes'),
+    '#description' => t('Use with the delete all function to generate new nodes for all terms'),
+    '#default_value' => TRUE,
+  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Go',
   );
-  
+
+  if (count($biological_vids) == 0){
+  	$form['submit']['#disabled'] = TRUE;
+  }
   $form['#submit'][] = 'emonocot_biblio_batch_protologues_form_submit';
   
   return $form;
@@ -204,21 +264,34 @@ function emonocot_biblio_batch_protologues_form(){
 
 function emonocot_biblio_batch_protologues_form_submit($form, &$form_state){
 	$function = 'emonocot_biblio_batch_protologues';
-	$batch = $function($form_state['values']['vocabulary']);
+	$batch = $function($form_state['values']['vocabulary'], $form_state['values']['generate_new'], $form_state['values']['delete_first']);
 	batch_set($batch);
 }
 
-function emonocot_biblio_batch_protologues($vid){
+function emonocot_biblio_batch_protologues($vid, $generate_new = TRUE, $delete_first = FALSE){
 	$vocabulary = taxonomy_vocabulary_load($vid);
-	//Get all term tids for the vocabulary
-	$result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(':vid' => $vid));
-	$data = $result->fetchCol();
-	$num_operations = count($data);
 	
 	$operations = array();
-	foreach ($data as $tid){
-	  $operations[] = array('emonocot_biblio_batch_protologues_process', array($tid));
-	}
+	//First delete nodes if required
+    if ($delete_first){
+      $result = db_query('SELECT field_reference_nid FROM {field_data_field_reference} r INNER JOIN {taxonomy_term_data} t ON  r.entity_id = t.tid AND t.vid = :vid', array(':vid' => $vid));
+      $data = $result->fetchCol();
+      
+      foreach ($data as $nid){
+      	$operations[] = array('node_delete', array($nid));
+      }
+    }	
+	
+    //Then make new
+    if ($generate_new) {
+	  $result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(':vid' => $vid));
+	  $data = $result->fetchCol();
+	  $num_operations = count($data);
+
+	  foreach ($data as $op => $tid){
+	    $operations[] = array('emonocot_biblio_batch_protologues_process', array($tid));
+	  }
+    }
 	
 	$batch = array(
 	  'operations' => $operations,
@@ -248,18 +321,41 @@ function emonocot_biblio_batch_protologues_process($tid, &$context){
     
     $result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(':vid' => $term->vid));
 	$data = $result->fetchCol();
-    $context['sandbox']['max'] =  count ($data);
+    $context['sandbox']['max'] =  count($data);
   }
   
   
-  emonocot_biblio_create_biblio_from_protologue($term);
+  $biblio_node = emonocot_biblio_create_biblio_from_protologue($term);
+  if (is_object($biblio_node)){
+    $term->field_reference['und'][0]['nid'] = $biblio_node->nid;
+	taxonomy_term_save($term);
+  }
   
     $context['sandbox']['progress']++;
     $context['message'] = check_plain($node->title);
 
   // Inform the batch engine that we are not finished,
   // and provide an estimation of the completion level we reached.
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
-    $context['finished'] = ($context['sandbox']['progress'] >= $context['sandbox']['max']);
+  if (is_object($biblio_node)) {
+    $context['finished'] = TRUE;
   }
+}
+
+
+function emonocot_biblio_feeds_plugins() {
+  $path = drupal_get_path('module', 'emonocot_biblio');
+
+  $info = array();
+  $info['ProtologueNodeProcessor'] = array(
+    'name' => 'Botanical Protologue processor',
+    'description' => 'Update Botanical Protologues with URLs',
+    'help' => 'Specific to the eMonocot project.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'ProtologueNodeProcessor',
+      'file' => 'ProtologueNodeProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
 }

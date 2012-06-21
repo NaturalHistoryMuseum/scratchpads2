@@ -70,7 +70,7 @@ function sofapi_process_data_object($data_object, $tid, $age = 604800){
   //We're putting SOF content into the EOL entity type
   $eolapi->type = 'stillimage'; //We only get still images from the SOF
   $eolapi->trusted = 1; //These guys know what they're doing
-  $eolapi->license = $data_object->license = 'Collector: '.$data_object->COLLECTOR . '. SOF License text';
+  $eolapi->license = $data_object->license = 'Swiss Orchid Foundation. All rights reserved.';
   //$eolapi->rating = '';
   $eolapi->label = $data_object->identifier;
   //$data_object->agents[$data_object->COLLECTOR]->full_name = $data_object->COLLECTOR;
