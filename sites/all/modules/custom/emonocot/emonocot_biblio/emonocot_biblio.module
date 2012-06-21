@@ -340,3 +340,22 @@ function emonocot_biblio_batch_protologues_process($tid, &$context){
     $context['finished'] = TRUE;
   }
 }
+
+
+function emonocot_biblio_feeds_plugins() {
+  $path = drupal_get_path('module', 'emonocot_biblio');
+
+  $info = array();
+  $info['ProtologueNodeProcessor'] = array(
+    'name' => 'Botanical Protologue processor',
+    'description' => 'Update Botanical Protologues with URLs',
+    'help' => 'Specific to the eMonocot project.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'ProtologueNodeProcessor',
+      'file' => 'ProtologueNodeProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
+}
