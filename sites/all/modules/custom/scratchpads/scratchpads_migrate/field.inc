@@ -15,7 +15,9 @@ abstract class DrupalFieldMigration extends DrupalMigration{
    * Implementation of Migration::prepareRow().
    */
   public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
+    if(parent::prepareRow($row) === FALSE){
+    	 watchdog('scratchpads_migrate', 'nope');
+    	return FALSE;}
     // Check if this field has a different destination entity type / bundle
     $mapping = scratchpads_migrate_type_mappings($row->type_name);
     if($mapping && is_array($mapping)){
@@ -28,8 +30,14 @@ abstract class DrupalFieldMigration extends DrupalMigration{
       $row->entity_type = 'node';
     }
     // Does an instance of this field already exists?
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){return false;// Instance already exists, so skip it
-}
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){
+      watchdog('scratchpads_migrate', t('Skipped field %name - already exists %entity_type:%bundle'), array(
+        '%name' => $row->field_name,
+        '%entity_type' => $row->entity_type,
+        '%bundle' => $row->type_name
+      ), WATCHDOG_NOTICE);
+      return false; // Instance already exists, so skip it
+    }
   }
 
   /**
@@ -107,16 +115,32 @@ class MigrateDestinationField extends MigrateDestination{
     if(isset($field_instance['widget']['settings']['default_value'])){
       $field_instance['default_value'] = array_shift($field_instance['widget']['settings']['default_value'][0]);
     }
-
-    $field_instance = field_create_instance($field_instance);
-    // Has the field been created?
-    if(isset($field_instance['field_id'])){
-      $this->numCreated++;
-      return array(
-        $object->entity_type . ':' . $object->bundle . ':' . $object->field_name
-      );
+    try{
+      $field_instance = field_create_instance($field_instance);
+      // Has the field been created?
+      if(isset($field_instance['field_id'])){
+        watchdog('scratchpads_migrate', t('Added field %name to %entity_type:%bundle'), array(
+          '%name' => $object->field_name,
+          '%entity_type' => $object->entity_type,
+          '%bundle' => $object->bundle
+        ), WATCHDOG_INFO);
+        $this->numCreated++;
+        return array(
+          $object->entity_type . ':' . $object->bundle . ':' . $object->field_name
+        );
+      }else{
+        watchdog('scratchpads_migrate', t('Field %name on %entity_type:%bundle not created'), array(
+          '%name' => $object->field_name,
+          '%entity_type' => $object->entity_type,
+          '%bundle' => $object->bundle
+        ), WATCHDOG_ERROR);
+        return false;
+      }
     }
-    return false;
+    catch(FieldException $e){
+      throw new MigrateException($e->getMessage());
+      return false;
+    }
   }
 
   public function fields(){

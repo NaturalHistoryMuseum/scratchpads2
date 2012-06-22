@@ -65,6 +65,9 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
     db_update('taxonomy_term_data')->expression('vid', 'vid - :value_to_reduce', array(
       ':value_to_reduce' => 10000000 - $max_vid
     ))->condition('vid', 10000000, '>')->execute();
+    // BUG fix: reset the auto increment field
+    $vid = db_query("SELECT MAX(vid) FROM {taxonomy_vocabulary}")->fetchField();
+    db_query("ALTER TABLE {taxonomy_vocabulary} AUTO_INCREMENT = {$vid}");
   }
 
   /**
@@ -74,7 +77,6 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
    */
   abstract protected function vocabularyQuery();
 }
-
 
 /**
  * Destination class implementing migration into vocabularies.
@@ -103,7 +105,6 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
       'name' => t('Vocabulary: Name'),
       'description' => t('Vocabulary: Description'),
       'hierarchy' => t('Vocabulary: Hierarchy level'),
-      'format' => t('Term: Format'),
       'weight' => t('Term: Weight')
     );
   }
@@ -126,12 +127,19 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
     // Set the machine name for this entity.  I'm sure there is a more "migrate"
     // way of doing this, but it's not very apparent.
     $vocabulary->machine_name = preg_replace('/[^0-9a-z_]/', '', preg_replace('/\ +/', '_', strtolower($vocabulary->name)));
+    // Is this a biological classifcation?
+    if(!empty($row->classification_type)){
+      itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $row->classification_type);
+    }
     // We need to insert a dummy row in to the taxonomy_vocabulary table first
     // as we are specifying the VID of the taxonomy.
     $vocabulary_array = (array)$vocabulary;
     drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
     taxonomy_vocabulary_save($vocabulary);
     $this->numCreated++;
+    watchdog('scratchpads_migrate', t('Created vocabulary %name'), array(
+      '%name' => $vocabulary->name
+    ), WATCHDOG_INFO);
     return array(
       $vocabulary->vid
     );
