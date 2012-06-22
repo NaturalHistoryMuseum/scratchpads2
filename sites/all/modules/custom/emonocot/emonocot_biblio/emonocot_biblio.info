@@ -4,5 +4,6 @@ package = "eMonocot"
 core = 7.x
 dependencies[] = emonocot_ipni
 dependencies[] = biblio
+dependencies[] = ctools
 
 files[] = ProtologueNodeProcessor.inc
