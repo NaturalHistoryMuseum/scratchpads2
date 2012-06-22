@@ -216,8 +216,8 @@ function hashcash_validate($form, $form_state){
       // failed;
       form_set_error('hashcash', t('Your hashcash value failed.  Please ensure you have JavaScript enabled in your browser.'));
       if(variable_get('hashcash_log', FALSE)){
-        watchdog('hashcash', 'Invalid hashcash (SHA1 fails) "!hashcash"', array(
-          '!hashcash' => $hashcash
+        watchdog('hashcash', 'Invalid hashcash (SHA1 fails) "@hashcash"', array(
+          '@hashcash' => $hashcash
         ));
       }
       $form['extra'] = array(
@@ -266,8 +266,8 @@ function hashcash_validate($form, $form_state){
         }else{
           // There must be a row, eep, SPAM
           form_set_error('hashcash', t('Your hashcash has already been submitted before.  Have you attempted to submit this form twice?'));
-          watchdog('hashcash', 'Invalid hashcash (Already submitted) "!hashcash"', array(
-            '!hashcash' => $hashcash
+          watchdog('hashcash', 'Invalid hashcash (Already submitted) "@hashcash"', array(
+            '@hashcash' => $hashcash
           ));
         }
       }

@@ -162,8 +162,8 @@ class ProtologueNodeProcessor extends FeedsProcessor {
       '#default_value' => $this->config['expire'],
     );
     $form['update_existing']['#options'] = array(
-      //FEEDS_SKIP_EXISTING => 'Do not update existing nodes',
-      //FEEDS_REPLACE_EXISTING => 'Replace existing nodes',
+      FEEDS_SKIP_EXISTING => 'Do not update existing nodes',
+      FEEDS_REPLACE_EXISTING => 'Replace existing nodes',
       FEEDS_UPDATE_EXISTING => 'Update existing nodes (slower than replacing them)',
     );
     $form['update_existing']['#default_value'] = FEEDS_UPDATE_EXISTING;
@@ -301,7 +301,7 @@ class ProtologueNodeProcessor extends FeedsProcessor {
     $db_result = db_query("SELECT r.field_reference_nid AS nid FROM taxonomy_term_data t INNER JOIN field_data_field_itis_em_other_ref w ON t.tid = w.entity_id INNER JOIN field_data_field_reference r ON r.entity_id = t.tid WHERE t.name = :species AND w.field_itis_em_other_ref_value = :protologue", array(':species' => $result->current_item['Species'], ':protologue' => $protologue_string));
     $nids = $db_result->fetchCol();
     
-    $result->current_item['bundle'] = 'biblio';
+    $result->current_item['URL'] = array(0 => $result->current_item['URL']);
     
     if (isset($nids)){ //Change to ensire one unique value after above SQL limits to single vocabulary
     	$nid = $nids[0];
@@ -313,4 +313,115 @@ class ProtologueNodeProcessor extends FeedsProcessor {
       }
     return 0;
   }
+  
+  
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {
+    $state = $source->state(FEEDS_PROCESS);
+
+    while ($item = $parser_result->shiftItem()) {
+      if ($entity_id = $this->existingEntityId($source, $parser_result)) {
+
+
+        try {
+          // Assemble node, map item to it, save.
+          if (empty($entity_id)) {
+            $entity = $this->newEntity($source);
+            $this->newItemInfo($entity, $source->feed_nid, $hash);
+          }
+          else {
+            $entity = $this->entityLoad($source, $entity_id);
+            // The feeds_item table is always updated with the info for the most recently processed entity.
+            // The only carryover is the entity_id.
+            $this->newItemInfo($entity, $source->feed_nid, $hash);
+            $entity->feeds_item->entity_id = $entity_id;
+          }
+          $this->map($source, $parser_result, $entity);
+          $this->entityValidate($entity);
+
+          // Allow modules to alter the entity before saving.
+          module_invoke_all('feeds_presave', $source, $entity);
+          if (module_exists('rules')) {
+            rules_invoke_event('feeds_import_'. $source->importer()->id, $entity);
+          }
+
+          // Enable modules to skip saving at all.
+          if (empty($entity->feeds_item->skip)) {
+            $this->entitySave($entity);
+            // Track progress.
+            if (empty($entity_id)) {
+              $state->created++;
+            }
+            else {
+              $state->updated++;
+            }
+          }
+        }
+        catch (Exception $e) {
+          $state->failed++;
+          drupal_set_message($e->getMessage(), 'warning');
+          $message = $e->getMessage();
+          $message .= '<h3>Original item</h3>';
+          $message .= '<pre>' . var_export($item, TRUE) . '</pre>';
+          $message .= '<h3>Entity</h3>';
+          $message .= '<pre>' . var_export($entity, TRUE) . '</pre>';
+          $source->log('import', $message, array(), WATCHDOG_ERROR);
+        }
+      }
+    }
+
+    // Set messages if we're done.
+    if ($source->progressImporting() != FEEDS_BATCH_COMPLETE) {
+      return;
+    }
+    $info = $this->entityInfo();
+    $tokens = array(
+      '@entity' => strtolower($info['label']),
+      '@entities' => strtolower($info['label plural']),
+    );
+    $messages = array();
+    if ($state->created) {
+      $messages[] = array(
+       'message' => format_plural(
+          $state->created,
+          'Created @number @entity.',
+          'Created @number @entities.',
+          array('@number' => $state->created) + $tokens
+        ),
+      );
+    }
+    if ($state->updated) {
+      $messages[] = array(
+       'message' => format_plural(
+          $state->updated,
+          'Updated @number @entity.',
+          'Updated @number @entities.',
+          array('@number' => $state->updated) + $tokens
+        ),
+      );
+    }
+    if ($state->failed) {
+      $messages[] = array(
+       'message' => format_plural(
+          $state->failed,
+          'Failed importing @number @entity.',
+          'Failed importing @number @entities.',
+          array('@number' => $state->failed) + $tokens
+        ),
+        'level' => WATCHDOG_ERROR,
+      );
+    }
+    if (empty($messages)) {
+      $messages[] = array(
+        'message' => t('There are no new @entities.', array('@entities' => strtolower($info['label plural']))),
+      );
+    }
+    foreach ($messages as $message) {
+      drupal_set_message($message['message']);
+      $source->log('import', $message['message'], array(), isset($message['level']) ? $message['level'] : WATCHDOG_INFO);
+    }
+  }
+  
+  
+  
+  
 }

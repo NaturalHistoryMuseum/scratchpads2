@@ -23,6 +23,37 @@ function feeds_xls_download_template($feeds_importer){
   }
 }
 
+/**
+ * Help text for the import template.
+ */
+function feeds_xls_field_type_help_text($field){
+  switch($field['type']){
+    case 'date':
+      return "Dates should be entered in the format 'YYYY/MM/DD'.  You may need to specify that this column is a 'text' column type to ensure the formatting is preserved.";
+    case 'gm3_combination':
+      return 'Please enter data in the following format, entering multiple values on a single line (this is easier to do in a text editor, and then paste into Excel):
+
+{TYPE OF DATA}:{DATA}
+REGION:{TDWG region code}
+POINT:{latitude},{longitude}
+POLYGON:{Well known text}
+POLYLINE:{Well known text}
+RECTANGLE:{Well known text}
+
+e.g.
+
+REGION:SPA-SP
+REGION:FRA-FR
+REGION:GER-OO
+REGION:1
+POINT:56.802292017627,-3.1201171875
+POINT:53.2798967926641,3.0322265625
+POLYGON:POLYGON ((-33.0029296875 60.37170546875135,-20.5224609375 60.84616839706054,-18.6767578125 59.22225529448783,-21.4892578125 55.926032385960966,-29.4873046875 55.579804150399035,-35.4638671875 57.08991816945666,-35.9912109375 59.22225529448783))';
+    case 'default':
+      return FALSE;
+  }
+}
+
 function feeds_xls_download_template_helper($feeds_importer){
   // Load the library.
   if(function_exists('libraries_get_path')){
@@ -77,10 +108,14 @@ function feeds_xls_download_template_helper($feeds_importer){
         $field_instance = field_info_instance($entity_type, $field['field_name'], $bundle);
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
         $objValidation->setAllowBlank($field_instance['required'] ? FALSE : TRUE);
+        if($help_text = feeds_xls_field_type_help_text($field)){
+          $objValidation->setPromptTitle(t('Help'));
+          $objValidation->setPrompt($help_text);
+        }
         if($field_instance['required']){
           $required_cells[] = $column;
           $objValidation->setPromptTitle(t('Required'));
-          $objValidation->setPrompt(t('This cell may not be left blank'));
+          $objValidation->setPrompt(t('This cell may not be left blank') . $help_text ? $help_text : '');
         }
         $objValidation->setShowInputMessage(TRUE);
         $objValidation->setShowErrorMessage(TRUE);
@@ -92,7 +127,10 @@ function feeds_xls_download_template_helper($feeds_importer){
         }else if($field['type'] == 'node_reference'){
           // If the view name is set, we can not do anything.
           if(!$field['settings']['view']['view_name']){
-            $results = db_select('node', 'n')->condition('type', $field['settings']['referenceable_types'])->fields('n', array('nid', 'title'))->execute();
+            $results = db_select('node', 'n')->condition('type', $field['settings']['referenceable_types'])->fields('n', array(
+              'nid',
+              'title'
+            ))->execute();
             $target_parts = explode(':', $header['target']);
             foreach($results as $row){
               $allowed_values[] = $row->$target_parts[1];
