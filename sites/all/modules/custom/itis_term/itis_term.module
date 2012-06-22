@@ -32,45 +32,52 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
 function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
   if(!isset($form_state['confirm_delete'])){
     if($form_state['values']['biological_classification']){
-      $vids = variable_get('biological_vids', array());
-      if(!isset($vids[$form_state['values']['vid']])){
-        $vids[$form_state['values']['vid']] = $form_state['values']['biological_classification'];
-        variable_set('biological_vids', $vids);
-        // Add all the required fields to this vocabulary.
-        module_load_include('fields.inc', 'itis_term');
-        // Create a new field for the associated accepted name (and possibly others)
-        $additional_fields = itis_term_fields_per_vocabulary();
-        $field_names_in_groups_to_change = array();
-        foreach($additional_fields as $field){
-          $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
-          $field['field_config']['field_name'] .= "_" . $form_state['vocabulary']->vid;
-          $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $form_state['vocabulary']->machine_name;
-          $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
-          $field['field_instance']['field_name'] .= "_" . $form_state['vocabulary']->vid;
-          field_create_field($field['field_config']);
-          field_create_instance($field['field_instance']);
-        }
-        // Associate all the other fields with this instance.
-        foreach(itis_term_fields() as $field){
-          // Create the field if it hasn't already been created.
-          if(!field_info_field($field['field_config']['field_name'])){
-            field_create_field($field['field_config']);
-          }
-          $field['field_instance']['bundle'] = $form_state['vocabulary']->machine_name;
-          field_create_instance($field['field_instance']);
-        }
-        foreach(itis_term_groups() as $group){
-          $group['bundle'] = $form_state['vocabulary']->machine_name;
-          foreach($group['children'] as $key => $child){
-            if(in_array($child, $field_names_in_groups_to_change)){
-              $group['children'][$key] .= "_" . $form_state['vocabulary']->vid;
-            }
-          }
-          $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
-          $group = (object)$group;
-          field_group_group_save($group);
+      itis_term_taxonomy_vocabulary_biological_classification($form_state['vocabulary'], $form_state['values']['biological_classification']);
+    }
+  }
+}
+
+/**
+ * Make a vocabulary a biological classification, adding fields etc.,
+ */
+function itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $classifcation_type){
+  $vids = variable_get('biological_vids', array());
+  if(!isset($vids[$vocabulary->vid])){
+    $vids[$vocabulary->vid] = $classifcation_type;
+    variable_set('biological_vids', $vids);
+    // Add all the required fields to this vocabulary.
+    module_load_include('fields.inc', 'itis_term');
+    // Create a new field for the associated accepted name (and possibly others)
+    $additional_fields = itis_term_fields_per_vocabulary();
+    $field_names_in_groups_to_change = array();
+    foreach($additional_fields as $field){
+      $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
+      $field['field_config']['field_name'] .= "_" . $vocabulary->vid;
+      $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $vocabulary->machine_name;
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;
+      field_create_field($field['field_config']);
+      field_create_instance($field['field_instance']);
+    }
+    // Associate all the other fields with this instance.
+    foreach(itis_term_fields() as $field){
+      // Create the field if it hasn't already been created.
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+      }
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      field_create_instance($field['field_instance']);
+    }
+    foreach(itis_term_groups() as $group){
+      $group['bundle'] = $vocabulary->machine_name;
+      foreach($group['children'] as $key => $child){
+        if(in_array($child, $field_names_in_groups_to_change)){
+          $group['children'][$key] .= "_" . $vocabulary->vid;
         }
       }
+      $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
+      $group = (object)$group;
+      field_group_group_save($group);
     }
   }
 }

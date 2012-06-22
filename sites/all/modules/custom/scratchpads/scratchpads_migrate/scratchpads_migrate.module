@@ -29,8 +29,19 @@ Database::addConnectionInfo('scratchpad_1', 'default', array(
  * 
  * Include the settings file mentioned above.
  */
-function scratchpads_migrate_init(){
-  require_once (drupal_realpath('public://scratchpad_1_database.php'));
+function scratchpads_migrate_init(){}
+require_once (drupal_realpath('public://scratchpad_1_database.php'));
+
+function scratchpads_migrate_menu(){
+  $items['example'] = array(
+    'title' => 'Example Page',
+    'page callback' => 'example_page',
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_SUGGESTED_ITEM
+  );
+  return $items;
 }
 
 /**
@@ -247,6 +258,10 @@ function scratchpads_migrate_type_mappings($type = null){
   }else{
     return $mappings;
   }
+}
+
+function scratchpads_migrate_form_alter(&$form, &$form_state, $form_id){
+  //	dd($form_id);
 }
 
 

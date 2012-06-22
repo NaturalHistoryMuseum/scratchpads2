@@ -16,14 +16,28 @@ abstract class DrupalFieldBodyMigration extends DrupalMigration{
    */
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
+    // darwincore / location have body fields, but are hidden. Skip them 
+    if(in_array($row->type, array(
+      'darwincore',
+      'darwincorelocation'
+    ))){ // Instance already exists, so skip it
+      watchdog('scratchpads_migrate', t('Skipping body field for %type'), array(
+        '%type' => $row->type
+      ), WATCHDOG_NOTICE);
+      return false;
+    }
     // Check if this field has a different destination entity type / bundle
     $mapping = scratchpads_migrate_type_mappings($row->type);
     if($mapping && is_array($mapping) && isset($mapping['bundle'])){
       $row->type = $mapping['bundle'];
     }
     // Does an instance of this field already exists?
-    if(field_read_instance('node', 'body_field', $row->type)){// Instance already exists, so skip it
-return false;}
+    if(field_read_instance('node', 'body_field', $row->type)){ // Instance already exists, so skip it
+      watchdog('scratchpads_migrate', t('Body field already exists for %type'), array(
+        '%type' => $row->type
+      ), WATCHDOG_NOTICE);
+      return false;
+    }
   }
 
   /**
@@ -59,6 +73,9 @@ class MigrateDestinationFieldBody extends MigrateDestination{
       // Has the field been created?
       if(isset($instance['field_id'])){
         $this->numCreated++;
+        watchdog('scratchpads_migrate', t('Created body field for %type'), array(
+          '%type' => $object->type
+        ), WATCHDOG_INFO);
         return array(
           $object->type
         );

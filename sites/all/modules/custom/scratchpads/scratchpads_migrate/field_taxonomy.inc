@@ -17,15 +17,20 @@ abstract class DrupalFieldTaxonomyMigration extends DrupalMigration{
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     // Is this a taxa field?
-    if(!empty($row->biological_classification_vid)){
+    if(!empty($row->classification_type)){
       $row->field_name = 'field_taxonomic_name';
       $row->label = 'Classification';
     }else{
       $row->field_name = $this->getFieldName($row->name);
       $row->label = $row->name;
     }
-    if(field_read_instance('node', $row->field_name, $row->type)){// Instance already exists, so skip it
-return false;}
+    if(field_read_instance('node', $row->field_name, $row->type)){ // Instance already exists, so skip it
+      watchdog('scratchpads_migrate', t('Field %name already exists for %type'), array(
+        '%name' => $row->field_name,
+        '%type' => $row->type
+      ), WATCHDOG_NOTICE);
+      return false;
+    }
   }
 
   /**
@@ -64,6 +69,11 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
 
   public function import(stdClass $object, stdClass $row){
     $field = field_read_field($row->field_name);
+    // Load the vocabulary
+    $vocabulary = taxonomy_vocabulary_load($row->vid);
+    if(!is_object($vocabulary)){throw new MigrateException(t('Vocabulary %vid does not exist', array(
+        '%vid' => $row->vid
+      )));}
     if(empty($field)){
       // Create the field if it doesn't exist
       $field_config = array(
@@ -76,7 +86,15 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
         'field_name' => $row->field_name,
         'module' => 'taxonomy',
         'translatable' => '1',
-        'type' => 'taxonomy_term_reference'
+        'type' => 'taxonomy_term_reference',
+        'settings' => array(
+          'allowed_values' => array(
+            array(
+              'vocabulary' => $vocabulary->machine_name,
+              'parent' => 0
+            )
+          )
+        )
       );
       try{
         field_create_field($field_config);
@@ -85,6 +103,20 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
         throw new MigrateException($e->getMessage());
         return false;
       }
+    }else{
+      // Update field with VID
+      foreach($field['settings']['allowed_values'] as $delta => $allowed_value){
+        if($allowed_value['vocabulary'] == $vocabulary->machine_name){
+          $exists = true;
+        }
+      }
+      if(!isset($exists)){
+        $field['settings']['allowed_values'][] = array(
+          'vocabulary' => $vocabulary->machine_name,
+          'parent' => 0
+        );
+      }
+      field_update_field($field);
     }
     $field_instance = array(
       'required' => $object->required,
@@ -92,19 +124,40 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
       'bundle' => $object->bundle,
       'field_name' => $row->field_name,
       'module' => 'taxonomy',
-      'type' => 'taxonomy_term_reference',
-      'label' => $row->label
+      'label' => $row->label,
+      'deleted' => '0'
     );
     if($row->field_name == 'field_taxonomic_name'){
       $field_instance['widget'] = array(
-        'type' => 'taxonomy_autocomplete',
-        'module' => 'taxonomy'
+        'type' => 'tree_widget',
+        'weight' => -2,
+        'active' => 1
       );
     }else{
-      $field_instance['widget'] = array(
-        'type' => 'options_select',
-        'module' => 'options'
-      );
+      // How many terms in this vocabulary?
+      $term_count = Database::getConnection('default', 'scratchpad_1')->query('SELECT count(vid) FROM {term_data} WHERE vid = :vid', array(
+        ':vid' => $vocabulary->vid
+      ))->fetchField();
+      // If greater than 100, use an autocomplete widget
+      if($term_count > 100){
+        $field_instance['widget'] = array(
+          'type' => 'taxonomy_autocomplete',
+          'module' => 'taxonomy',
+          'active' => 1,
+          'settings' => array(
+            'autocomplete_path' => 'taxonomy/autocomplete',
+            'size' => 60
+          ),
+          'weight' => 1
+        );
+      }else{
+        $field_instance['widget'] = array(
+          'type' => 'options_select',
+          'module' => 'options',
+          'active' => 1,
+          'weight' => 1
+        );
+      }
     }
     try{
       $field_instance = field_create_instance($field_instance);
@@ -116,6 +169,10 @@ class MigrateDestinationFieldTaxonomy extends MigrateDestination{
     // Has the field been created?
     if(isset($field_instance['field_id'])){
       $this->numCreated++;
+      watchdog('scratchpads_migrate', t('Created taxonomy field %name for %type'), array(
+        '%name' => $row->field_name,
+        '%type' => $object->bundle
+      ), WATCHDOG_INFO);
       return array(
         $object->bundle . ':' . $row->field_name
       );

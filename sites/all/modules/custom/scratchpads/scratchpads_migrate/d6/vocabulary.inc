@@ -18,15 +18,21 @@ class DrupalVocabulary6Migration extends DrupalVocabularyMigration{
       'hierarchy',
       'weight'
     ));
+    $this->addFieldMapping(NULL, 'classification_type');
   }
 
   protected function vocabularyQuery(){
-    return Database::getConnection('default', $this->sourceConnection)->select('vocabulary', 'v')->fields('v', array(
+    $query = Database::getConnection('default', $this->sourceConnection)->select('vocabulary', 'v');
+    $query->fields('v', array(
       'vid',
       'name',
       'description',
       'hierarchy',
       'weight'
-    ))->condition('module', 'taxonomy');
+    ));
+    $query->condition('module', 'taxonomy');
+    $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
+    $query->addField('mbc', 'type', 'classification_type');
+    return $query;
   }
 }
