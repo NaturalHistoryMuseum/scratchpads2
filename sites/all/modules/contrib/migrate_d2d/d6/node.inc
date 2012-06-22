@@ -52,7 +52,8 @@ class DrupalNode6Migration extends DrupalNodeMigration {
     $this->sourceFieldTypes = array();
 
     // Get each CCK field attached to this type.
-    if (db_table_exists('content_node_field_instance')) {
+    if (Database::getConnection('default', $this->sourceConnection)
+          ->schema()->tableExists('content_node_field_instance')) {
       $query = Database::getConnection('default', $this->sourceConnection)
                ->select('content_node_field_instance', 'i')
                ->fields('i', array('label'))

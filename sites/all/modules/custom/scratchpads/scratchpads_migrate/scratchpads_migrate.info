@@ -14,7 +14,7 @@ files[] = field.inc
 files[] = field_body.inc
 files[] = field_group.inc
 files[] = field_taxonomy.inc
-files[] = views.inc
+;files[] = views.inc
 files[] = vocabulary.inc
 
 ; D6 implementations
@@ -24,5 +24,5 @@ files[] = d6/field_body.inc
 files[] = d6/field_group.inc
 files[] = d6/field_taxonomy.inc
 files[] = d6/user.inc
-files[] = d6/views.inc
+;files[] = d6/views.inc
 files[] = d6/vocabulary.inc
