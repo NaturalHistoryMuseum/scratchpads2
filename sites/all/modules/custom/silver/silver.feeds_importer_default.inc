@@ -4,6 +4,9 @@
  * 
  */
 function silver_feeds_importer_default(){
+  if(function_exists('strongarm_init')){
+    strongarm_init();
+  }
   // Array of Feeds importers.
   $export = array();
   // Get a list of the vocabularies.
@@ -77,24 +80,29 @@ function silver_feeds_importer_default(){
     $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
     foreach($field_info as $key => $field){
       $field_info = field_info_field($field['field_name']);
-      if($field_info['type'] == 'node_reference'){
-        // We add two columns for the node reference field.
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (NID)',
-          'target' => $key . ':nid:duplicates',
-          'unique' => 0
-        );
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (' . t('Title') . ')',
-          'target' => $key . ':title:duplicates',
-          'unique' => 0
-        );
-      }else{
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'],
-          'target' => $key,
-          'unique' => 0
-        );
+      switch($field_info['type']){
+        case 'file':
+          // Do nothing.  We can't import files in an Excel template.
+          break;
+        case 'node_reference':
+          // We add two columns for the node reference field.
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'] . ' (NID)',
+            'target' => $key . ':nid:duplicates',
+            'unique' => 0
+          );
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'] . ' (' . t('Title') . ')',
+            'target' => $key . ':title:duplicates',
+            'unique' => 0
+          );
+          break;
+        default:
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'],
+            'target' => $key,
+            'unique' => 0
+          );
       }
     }
     $export['taxonomy_importer_' . $vocabulary->machine_name] = $feeds_importer;
@@ -133,11 +141,6 @@ function silver_feeds_importer_default(){
           'author' => 0,
           'mappings' => array(
             array(
-              'source' => 'Title',
-              'target' => 'title',
-              'unique' => FALSE
-            ),
-            array(
               'source' => 'GUID',
               'target' => 'guid',
               'unique' => TRUE
@@ -154,27 +157,39 @@ function silver_feeds_importer_default(){
       'import_on_create' => TRUE,
       'process_in_background' => FALSE
     );
+    if(auto_nodetitle_get_setting($node_type) != AUTO_NODETITLE_ENABLED){
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => 'Title',
+        'target' => 'title',
+        'unique' => FALSE
+      );
+    }
     $field_info = field_info_instances('node', $node_type);
     foreach($field_info as $key => $field){
       $field_info = field_info_field($field['field_name']);
-      if($field_info['type'] == 'node_reference'){
-        // We add two columns for the node reference field.
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (NID)',
-          'target' => $key . ':nid:duplicates',
-          'unique' => 0
-        );
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'] . ' (' . t('Title') . ')',
-          'target' => $key . ':title:duplicates',
-          'unique' => 0
-        );
-      }else{
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => $field['label'],
-          'target' => $key,
-          'unique' => 0
-        );
+      switch($field_info['type']){
+        case 'file':
+          // Do nothing.  We can't import files in an Excel template.
+          break;
+        case 'node_reference':
+          // We add two columns for the node reference field.
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'] . ' (NID)',
+            'target' => $key . ':nid:duplicates',
+            'unique' => 0
+          );
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'] . ' (' . t('Title') . ')',
+            'target' => $key . ':title:duplicates',
+            'unique' => 0
+          );
+          break;
+        default:
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => $field['label'],
+            'target' => $key,
+            'unique' => 0
+          );
       }
     }
     $export['node_importer_' . $node_type] = $feeds_importer;
