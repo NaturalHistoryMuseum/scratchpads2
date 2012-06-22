@@ -26,8 +26,10 @@ function feeds_xls_download_template($feeds_importer){
 /**
  * Help text for the import template.
  */
-function feeds_xls_field_type_help_text($type){
-  switch($type){
+function feeds_xls_field_type_help_text($field){
+  switch($field['type']){
+    case 'date':
+      return "Dates should be entered in the format 'YYYY/MM/DD'.  You may need to specify that this column is a 'text' column type to ensure the formatting is preserved.";
     case 'gm3_combination':
       return 'Please enter data in the following format, entering multiple values on a single line (this is easier to do in a text editor, and then paste into Excel):
 
@@ -106,7 +108,7 @@ function feeds_xls_download_template_helper($feeds_importer){
         $field_instance = field_info_instance($entity_type, $field['field_name'], $bundle);
         $objValidation = $objPHPExcel->getActiveSheet()->getDataValidation($column . '2:' . $column . '65536');
         $objValidation->setAllowBlank($field_instance['required'] ? FALSE : TRUE);
-        if($help_text = feeds_xls_field_type_help_text($field['type'])){
+        if($help_text = feeds_xls_field_type_help_text($field)){
           $objValidation->setPromptTitle(t('Help'));
           $objValidation->setPrompt($help_text);
         }
