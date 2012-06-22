@@ -47,3 +47,71 @@ function emonocot_views_context_load_alter(&$context){
     }
   }
 }
+
+
+/**
+* Implements hook_field_formatter_info().
+*/
+function emonocot_views_field_formatter_info() {
+    return array(
+        'url_icon' => array(
+          'label' => t('URL icon'),
+          'description' => t('Displays a URL as an icon.'),
+          'field types' => array('node_reference'),
+    ),  );
+}
+
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+    $element = array();
+    $settings = $display['settings'];
+    $formatter = $display['type'];
+    foreach ($items as $delta => $item) {
+      $biblio_node = node_load($item['nid'], NULL, FALSE); //Replace with simple db_query?
+      
+      $known_sites = array(
+        'biodiversitylibrary.org' => array(
+          'title' => 'Biodiversity Heritage Library',
+          'icon'  => drupal_get_path('module', 'emonocot_views').'/icons/bhl.ico',
+          'host'  => 'biodiversitylibrary.org',
+        ),
+        '.pdf' => array(
+          'title' => 'PDF',
+          'icon'  => drupal_get_path('module', 'emonocot_views').'/icons/pdf.png',
+        ),
+      );
+      
+      $match_found = FALSE;
+      foreach($known_sites as $match => $info){
+      	if (stristr($biblio_node->biblio_url, $match)){
+      	  $match_found = TRUE;
+      	  if (!isset($info['host'])){
+      	  	$parse = parse_url($biblio_node->biblio_url);
+      	  	$info['host'] = $parse['host'];
+      	  }
+          $element[$delta] = array('#markup' => '<a title="'.$info['title'].' ('.$info['host'].')'.'" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');  
+          break;    		
+      	}
+      }
+      
+      if (!$match_found){
+      	$parse = parse_url($biblio_node->biblio_url);
+      	
+        $doc = new DOMDocument();
+        $doc->strictErrorChecking = FALSE;
+        $doc->loadHTML(file_get_contents('http://'.$parse['host']));
+        $xml = simplexml_import_dom($doc);
+        $arr = $xml->xpath('//link[@rel="shortcut icon"]');
+        $info['icon'] = 'http://'.$parse['host'].$arr[0]['href'];
+      	
+  
+      	$element[$delta] = array('#markup' => '<a title="('.$parse['host'].')" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');
+      }
+      
+
+    }
+    return $element;
+}
