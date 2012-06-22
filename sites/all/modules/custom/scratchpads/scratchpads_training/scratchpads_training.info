@@ -2,4 +2,5 @@ name = Scratchpads training
 description = Adds the blocks required by scratchpads training sites.
 package = "Scratchpads"
 dependencies[] = scratchpads_tweaks
+dependencies[] = darwincore
 core = 7.x
