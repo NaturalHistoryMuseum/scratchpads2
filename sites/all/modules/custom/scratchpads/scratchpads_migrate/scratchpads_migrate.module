@@ -33,15 +33,21 @@ function scratchpads_migrate_init(){}
 require_once (drupal_realpath('public://scratchpad_1_database.php'));
 
 function scratchpads_migrate_menu(){
-  $items['example'] = array(
-    'title' => 'Example Page',
-    'page callback' => 'example_page',
+  $items['mig'] = array(
+    'title' => 'Migrate',
+    'page callback' => 'scratchpads_migrate_page',
     'access arguments' => array(
       'access content'
     ),
     'type' => MENU_SUGGESTED_ITEM
   );
   return $items;
+}
+
+function scratchpads_migrate_page(){
+  //	$view = views_get_view('specimen_map');
+  //	dd($view);
+  return '';
 }
 
 /**
@@ -131,7 +137,9 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of field groups from Drupal 6'),
     'machine_name' => 'FieldGroup',
     'dependencies' => array(
-      'Field'
+      'Field',
+      'FieldBody',
+      'FieldTaxonomy'
     )
   );
   // We just use the migrate_d2d D6 migration class as-is.
@@ -147,14 +155,14 @@ function scratchpads_migrate_register_migrations(){
   /*********************************************************************************************
    * Views
    ********************************************************************************************/
-  $arguments = $common_arguments + array(
-    'description' => t('Migration of views from Drupal 6'),
-    'machine_name' => 'Views'
-  ); //    'dependencies' => array(
+  //  $arguments = $common_arguments + array(
+  //    'description' => t('Migration of views from Drupal 6'),
+  //    'machine_name' => 'Views'
+  //  ); //    'dependencies' => array(
   //      'Field'
   //    )
   // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalViews6Migration', $arguments['machine_name'], $arguments);
+  //  Migration::registerMigration('DrupalViews6Migration', $arguments['machine_name'], $arguments);
   // Register the actual content type migrations
   // Tell the node migrations where the users are coming from, so they can
   // set up the dependency and resolve D6->D7 uids.
@@ -166,7 +174,16 @@ function scratchpads_migrate_register_migrations(){
       'FieldGroup'
     )
   );
-  foreach(scratchpads_migrate_type_mappings() as $type => $mapping){
+  $mappings = scratchpads_migrate_type_mappings();
+  // Get unmapped node types (custom content types on site)
+  $query = Database::getConnection('default', 'scratchpad_1')->select('node_type', 'nt');
+  $query->addField('nt', 'type');
+  $query->condition('nt.type', array_keys($mappings), 'NOT IN');
+  $result = $query->execute();
+  foreach($result as $unmapped_node_type){
+    $mappings[$unmapped_node_type->type] = MIGRATE_ALL;
+  }
+  foreach($mappings as $type => $mapping){
     // Skip if we don't want to migrate this content type
     if($mapping == MIGRATE_NONE){
       continue;
@@ -245,6 +262,7 @@ function scratchpads_migrate_type_mappings($type = null){
       'entity_type' => 'node',
       'bundle' => 'specimen_observation'
     ),
+    'story' => MIGRATE_NONE, // Not in use
     'spm' => MIGRATE_ALL, // migrate using the same entity & bundle type
     'webform' => MIGRATE_NONE // TODO - Webforms!!!
   );

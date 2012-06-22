@@ -17,7 +17,18 @@ abstract class DrupalFieldGroupMigration extends DrupalMigration{
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
     $row->children = explode(',', $row->children);
-    return TRUE;
+    // We only want to migrate groups of content types created by migration
+    // Existing types have changed so much the field groups are not useful
+    $destid = Migration::getInstance('ContentType')->getMap()->lookupDestinationID(array(
+      array(
+        $row->type_name
+      )
+    ));
+    if($destid){
+      return TRUE;
+    }else{
+      return false;
+    }
   }
 
   /**
@@ -84,6 +95,11 @@ throw new MigrateException(t("Node type %type does not exist", array(
     }
     if($status == 2 * SAVED_NEW){
       $this->numCreated++;
+      watchdog('scratchpads_migrate', t('Added field group %name to %entity_type:%bundle'), array(
+        '%name' => $object->group_name,
+        '%entity_type' => $object->entity_type,
+        '%bundle' => $object->bundle
+      ), WATCHDOG_INFO);
       return array(
         $object->entity_type . ':' . $object->bundle . ':' . $object->group_name
       );
@@ -99,7 +115,7 @@ throw new MigrateException(t("Node type %type does not exist", array(
       'group_name' => t('Group name'),
       'weight' => t("Weight"),
       'entity_type' => t('Entity type'),
-    	'children' => t('Children')
+      'children' => t('Children')
     );
   }
 

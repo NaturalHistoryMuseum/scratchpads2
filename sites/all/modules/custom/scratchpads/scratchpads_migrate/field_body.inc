@@ -20,7 +20,7 @@ abstract class DrupalFieldBodyMigration extends DrupalMigration{
     if(in_array($row->type, array(
       'darwincore',
       'darwincorelocation'
-    ))){ // Instance already exists, so skip it
+    ))){
       watchdog('scratchpads_migrate', t('Skipping body field for %type'), array(
         '%type' => $row->type
       ), WATCHDOG_NOTICE);
@@ -32,7 +32,7 @@ abstract class DrupalFieldBodyMigration extends DrupalMigration{
       $row->type = $mapping['bundle'];
     }
     // Does an instance of this field already exists?
-    if(field_read_instance('node', 'body_field', $row->type)){ // Instance already exists, so skip it
+    if(field_read_instance('node', 'body', $row->type)){ // Instance already exists, so skip it
       watchdog('scratchpads_migrate', t('Body field already exists for %type'), array(
         '%type' => $row->type
       ), WATCHDOG_NOTICE);
