@@ -19,14 +19,6 @@ See migrate_d2d_example for one approach, where instances are registered when
 the Drupal caches are cleared (note that registration updates previously-
 registered classes with any argument changes).
 
-migrate_d2d_csv
-===============
-
-This is based on the project which migrate_d2d is derived from, where your
-project-specific module provides CSV files specifying mappings from the source
-to the destination. Don't look too closely at this point - only the taxonomy
-migration is currently semi-functional.
-
 migrate_d2d_auto
 ================
 
