@@ -182,7 +182,7 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       break;
     case 'forum':
       $info['tool'] = TRUE;
-      $info['dependencies'][] = 'femail';
+      $info['package'] = 'Forum';
       break;
     case 'blog':
     case 'simplenews':

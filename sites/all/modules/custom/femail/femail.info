@@ -1,14 +1,9 @@
 name = "Forum e-mail (femail)"
-description = "Adds e-mail messages to the forum"
+description = "Adds the ability to post messages to the forum via your e-mail."
 core = 7.x
-files[] = femail.admin.inc
-files[] = femail.drush.inc
-files[] = femail.install
-files[] = femail.mail.inc
-files[] = femail.module
-files[] = femail.pages.inc
 scripts[] = js/femail.js
 stylesheets[all][] = css/femail.css
 dependencies[] = forum
 dependencies[] = file
-package = Scratchpads
+package = Forum
+tool=yes
