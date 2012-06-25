@@ -20,8 +20,11 @@ function scratchpads_taxonomic_name_field_menu_alter(&$items){
 }
 
 /**
- * Identical to the original function, but with added brackets and vocabulary
- * name.
+ * Almost identical to the original function, but with added brackets,  
+ * vocabulary name and tweak to return exact matches first.
+ * 
+ * FIXME - This does not currently allow for homonyms in different vocabularies
+ * AAARGH!
  *
  * @param unknown_type $field_name        
  * @param unknown_type $tags_typed        
@@ -64,11 +67,28 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       $query->condition('t.name', $tags_typed, 'NOT IN');
     }
     // Select rows that match by term name.
-    $tags_return = $query->fields('t', array(
+    $query->fields('t', array(
       'tid',
       'name',
       'vid'
-    ))->condition('t.vid', $vids)->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10)->execute()->fetchAll();
+    ))->condition('t.vid', $vids);
+    // Clone the query to give three different queries, and union them together.
+    // This gives us the sort order we want.
+    // 1. TERM
+    // 2. TERM%
+    // 3. %TERM%
+    $query_no_prefix_or_suffix = clone $query;
+    $query_no_prefix = clone $query;
+    $query_no_prefix_or_suffix->condition('t.name', db_like($tag_last), 'LIKE')->range(0, 10);
+    $query_no_prefix->condition('t.name', db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    $query->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    // Union the three queries.
+    $query_no_prefix_or_suffix->union($query_no_prefix);
+    $query_no_prefix_or_suffix->union($query);
+    // Execute, and fetch!
+    // Note, the range is included four times to keep the size of the results
+    // to a minimum.
+    $tags_return = $query_no_prefix_or_suffix->range(0, 10)->execute()->fetchAll();
     $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
     $term_matches = array();
     foreach($tags_return as $tag){
