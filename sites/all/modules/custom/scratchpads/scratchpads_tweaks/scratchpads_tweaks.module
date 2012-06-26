@@ -29,11 +29,29 @@ function scratchpads_tweaks_cron(){
   if(count($modules_to_enable)){
     module_enable($modules_to_enable);
   }
-  // Register a shutdown which can perhaps be used elsewhere.  The shutdown
-  // function will help improve performance.
-  drupal_register_shutdown_function('scratchpads_tweaks_shutdown', TRUE);
+  // Rebuild caches
+  _scratchpads_tweaks_register_shutdown();
 }
 
+
+/**
+ * Implements hook_flush_caches
+ */
+function scratchpads_tweaks_flush_caches(){
+  // Rebuild caches
+  _scratchpads_tweaks_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_tweaks_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_tweaks_shutdown', TRUE);
+  }
+}
 /**
  * Shutdown function used to improve performance.
  */
