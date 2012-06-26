@@ -3,7 +3,7 @@
 /**
  * Implements hook_cron().
  *
- * This function ensures that all required
+ * This function ensures that all required modules are enabled.
  */
 function scratchpads_tweaks_cron(){
   // Note, we need to parse the scratchpads_tweaks info file ourselves as it
@@ -29,6 +29,23 @@ function scratchpads_tweaks_cron(){
   if(count($modules_to_enable)){
     module_enable($modules_to_enable);
   }
+  // Register a shutdown which can perhaps be used elsewhere.  The shutdown
+  // function will help improve performance.
+  drupal_register_shutdown_function('scratchpads_tweaks_shutdown', TRUE);
+}
+
+/**
+ * Shutdown function used to improve performance.
+ */
+function scratchpads_tweaks_shutdown($reset = FALSE){
+  // Ensure that certain caches are built.  This should help speed up cold start
+  // page loads.
+  theme_get_registry();
+  views_get_all_views($reset);
+  context_enabled_contexts($reset);
+  context_get_plugin('condition', 'path', $reset);
+  context_get_plugin('condition', 'language', $reset);
+  context_get_plugin('condition', 'user', $reset);
 }
 
 /**
