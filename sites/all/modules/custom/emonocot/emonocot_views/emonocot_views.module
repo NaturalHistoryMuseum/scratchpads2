@@ -72,11 +72,27 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
     foreach ($items as $delta => $item) {
       $biblio_node = node_load($item['nid'], NULL, FALSE); //Replace with simple db_query?
       
+      $icon_path = drupal_get_path('module', 'emonocot_views').'/icons/';
       $known_sites = array(
         'biodiversitylibrary.org' => array(
           'title' => 'Biodiversity Heritage Library',
-          'icon'  => drupal_get_path('module', 'emonocot_views').'/icons/bhl.ico',
+          'icon'  => $icon_path.'bhl.ico',
           'host'  => 'biodiversitylibrary.org',
+        ),
+        'gallica.bnf.fr' => array(
+          'title' => 'Gallica digital library',
+          'icon' => $icon_path.'gallica.ico',
+          'host' => 'gallica.bnf.fr',
+        ),
+        'archive.org' => array(
+          'title' => 'Internet Archive',
+          'icon' => $icon_path.'internet_archive.ico',
+          'host' => 'archive.org',
+        ),
+        'botanicus.org' => array(
+          'title' => 'Botanicus Digital Library',
+          'icon' => $icon_path.'botanicus.ico',
+          'host' => 'botanicus.org',
         ),
         '.pdf' => array(
           'title' => 'PDF',
