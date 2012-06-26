@@ -4,6 +4,8 @@ core = 7.x
 package="eMonocot"
 
 dependencies[] = scratchpads_tweaks
+
+dependencies[] = emonocot_biblio
 dependencies[] = emonocot_blocks
 dependencies[] = emonocot_citation
 dependencies[] = emonocot_itis

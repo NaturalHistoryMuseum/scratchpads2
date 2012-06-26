@@ -443,7 +443,6 @@ function emonocot_checklist_views_default_views(){
   );
   $handler->display->display_options['path'] = 'checklist/valid';
   $views[] = $view;
-  
   $view = new view();
   $view->name = 'checklist_types';
   $view->description = '';
@@ -584,6 +583,20 @@ function emonocot_checklist_views_default_views(){
   $handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['tid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['tid']['not'] = 0;
+  /* Filter criterion: Content: Type status (field_type_status) */
+  $handler->display->display_options['filters']['field_type_status_value']['id'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['table'] = 'field_data_field_type_status';
+  $handler->display->display_options['filters']['field_type_status_value']['field'] = 'field_type_status_value';
+  $handler->display->display_options['filters']['field_type_status_value']['relationship'] = 'nid';
+  $handler->display->display_options['filters']['field_type_status_value']['value'] = array(
+    'Holotype' => 'Holotype',
+    'Isotype' => 'Isotype',
+    'Lectotype' => 'Lectotype',
+    'Neotype' => 'Neotype',
+    'Paralectotype' => 'Paralectotype',
+    'Paratype' => 'Paratype',
+    'Syntype' => 'Syntype'
+  );
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'checklist-types';
