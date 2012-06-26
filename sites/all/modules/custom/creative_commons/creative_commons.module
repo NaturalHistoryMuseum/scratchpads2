@@ -160,12 +160,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   if(!isset($image)){
     $image = CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
   }
-  
   if(!isset($url)){
     $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
   }
-  
-  
   return array(
     '#type' => 'html_tag',
     '#tag' => 'a',
@@ -177,7 +174,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
     ),
     '#value' => theme('image', array(
       'alt' => t('Creative Commons Licence'),
-      'path' => $image
+      'path' => $image,
+      'width' => $display_type == CC_LARGE_IMAGE ? '88px' : '80px',
+      'height' => $display_type == CC_LARGE_IMAGE ? '31px' : '15px',
     ))
   );
 }
