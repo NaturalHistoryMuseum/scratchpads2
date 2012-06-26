@@ -36,13 +36,13 @@ function emonocot_views_context_load_alter(&$context){
         'module' => 'emonocot_blocks',
         'delta' => 'typification_overview',
         'region' => 'content',
-        'weight' => -8
+        'weight' => -30
       );
       $context->reactions['block']['blocks']['hybrid_children'] = array(
         'module' => 'emonocot_blocks',
         'delta' => 'hybrid_children',
         'region' => 'content',
-        'weight' => -7
+        'weight' => -40
       );
     }
   }
