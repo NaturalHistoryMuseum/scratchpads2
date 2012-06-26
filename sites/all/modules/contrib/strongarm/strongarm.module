@@ -1,52 +1,4 @@
 <?php
-// $Id: strongarm.module,v 1.1.2.6.2.9.2.4 2010/09/27 03:30:02 yhahn Exp $
-
-/**
- * Implements hook_init().
- */
-function strongarm_init() {
-  strongarm_set_conf();
-
-  // This is a workaround for the very early check of the 'site_frontpage'
-  // variable in the Drupal bootstrap process. The workaround re-runs
-  // drupal_path_initialize() to ensure the strongarm'ed version of
-  // 'site_frontpage' is used. Note that this may be too late if other modules
-  // weighted even lower than strongarm (which is a superlightweight -1000)
-  // rely on $_GET['q'] or 'site_frontpage' in hook_init().
-  $_GET['q'] = request_path();
-  drupal_path_initialize();
-}
-
-/**
- * Retrieve variable configuration from the cache.
- */
-function strongarm_set_conf($reset = FALSE) {
-  $varcache = cache_get('variables', 'cache_bootstrap');
-  $cache = cache_get('strongarm', 'cache');
-  // The > comparison here is cautious but ensures that the strongarm cache
-  // actually was populated after the variable cache. It is possible with
-  // >= for the var cache to be populated again during the same stale second.
-  if (!$reset && ($cache && $varcache && $cache->created > $varcache->created)) {
-    $var_conf = $cache->data;
-  }
-  else {
-    $var_conf = array();
-    foreach (strongarm_vars_load(FALSE, TRUE) as $var) {
-      $var_conf[$var->name] = $var->value;
-    }
-    cache_set('strongarm', $var_conf);
-  }
-  global $conf;
-
-  // Store the original variable values. This allows additional calls to
-  // strongarm_set_conf() to properly set Strongarm values.
-  static $original_conf;
-  if (!isset($original_conf)) {
-    $original_conf = $conf;
-  }
-
-  $conf = array_merge($var_conf, $original_conf);
-}
 
 /**
  * Implements hook_menu().
@@ -80,7 +32,7 @@ function strongarm_form_system_module_alter(&$form, &$form_state) {
 function strongarm_theme() {
   return array(
     'strongarm_admin_form' => array(
-      'render element' => 'form', 
+      'render element' => 'form',
       'file' => 'strongarm.admin.inc',
       'path' => drupal_get_path('module', 'strongarm'),
     ),
@@ -156,9 +108,83 @@ function strongarm_vars_load($sorted = TRUE, $reset = FALSE) {
  */
 if (!function_exists('variable_features_revert')) {
   function variable_features_revert($module) {
-    ctools_component_features_revert('variable', $module);
-    cache_clear_all('variables', 'cache');
+    $defaults = features_get_default('variable', $module);
+    if (empty($defaults)) {
+      return;
+    }
+
+    $vars = strongarm_vars_load(TRUE, TRUE);
+    foreach ($defaults as $name => $default) {
+      if (!empty($vars[$name]->in_code_only) || ($default->value !== $vars[$name]->value)) {
+        variable_set($name, $default->value);
+      }
+    }
   }
+}
+
+ /**
+ * Implements hook_features_rebuild().
+ * Same as revert, but we only want to force variables only in code into the database
+ */
+function variable_features_rebuild($module) {
+  $defaults = features_get_default('variable', $module);
+  if (empty($defaults)) {
+    return;
+  }
+
+  $vars = strongarm_vars_load(TRUE, TRUE);
+  foreach ($defaults as $name => $default) {
+    if (!empty($vars[$name]->in_code_only) || (drupal_installation_attempted() && $vars[$name]->export_type & EXPORT_IN_CODE)) {
+      variable_set($name, $default->value);
+    }
+  }
+}
+
+/**
+ * Implements hook_features_export().
+ *
+ * This is implemented to remove variables that are in code, but not DB.
+ * This is a result of Strongarm vars now living in the DB, so unlike other
+ * ctools components, an update of this Feature with a variable in code but
+ * not the database, should remove the variable form the Feature.
+ */
+function variable_features_export($data, &$export, $module_name) {
+  // First delegate to the Features ctools export
+  $pipe = ctools_component_features_export('variable', $data, $export, $module_name);
+
+  // Then remove any vars from the export that are only in code
+  $vars = strongarm_vars_load(TRUE, TRUE);
+  foreach ($data as $object_name) {
+    if (!isset($vars[$object_name]) || !empty($vars[$object_name]->in_code_only)) {
+      unset($export['features']['variable'][$object_name]);
+    }
+  }
+  return $pipe;
+}
+
+/**
+ * Implements hook_features_export_render().
+ *
+ * Loads default values from the DB since it is now the system of record.
+ */
+function variable_features_export_render($module, $data) {
+  ctools_include('export');
+  $schema = ctools_export_get_schema('variable');
+  $code = '  $export = array();'."\n\n";
+  $identifier = $schema['export']['identifier'];
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name', 'value'))
+    ->condition('name', $data, 'IN')
+    ->orderBy('name')
+    ->execute();
+  foreach ($result as $object) {
+    $object = _ctools_export_unpack_object($schema, $object);
+    $code .= _ctools_features_export_crud_export('variable', $object, '  ');
+    $code .= "  \$export[" . ctools_var_export($object->name) . "] = \${$identifier};\n\n";
+  }
+  $code .= '  return $export;';
+
+  return array($schema['export']['default hook'] => $code);
 }
 
 /**
@@ -177,9 +203,13 @@ function strongarm_features_pipe_node_alter(&$pipe, $data, $export) {
       'comment_form_location',
       'comment_preview',
       'comment_subject_field',
+      'field_bundle_settings_node_',
       'language_content_type',
+      'menu_options',
+      'menu_parent',
       'node_options',
-      'upload',
+      'node_preview',
+      'node_submitted',
     );
     foreach ($data as $node_type) {
       foreach ($variables as $variable_name) {
