@@ -100,6 +100,7 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
 function scratchpads_hands_off_menu_alter(&$items){
   foreach(array(
     'admin/config/content/clone',
+    'admin/config/regional/date-time',
     'admin/config/system/boost',
     'admin/config/system/customerror',
     'admin/config/system/globalredirect',
