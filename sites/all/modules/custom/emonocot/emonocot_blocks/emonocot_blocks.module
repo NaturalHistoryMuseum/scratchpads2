@@ -55,7 +55,7 @@ function emonocot_blocks_block_view($delta = ''){
           'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
           'alt' => 'Scratchpads logo',
           'title' => 'Scratchpads'
-        )), 'http://scratchpads.eu/', $options),
+        )), 'http://scratchpads.eu/', $options)
       );
       $block['content'] = array(
         '#theme' => 'item_list',
@@ -73,7 +73,7 @@ function emonocot_blocks_block_view($delta = ''){
         //Type taxon
         if(sizeof($term[$type_taxon_field]) > 0){
           $type_term = taxonomy_term_load($term[$type_taxon_field]['und'][0]['tid']);
-          $type_taxon = '<strong>Type taxon:</strong> '.l($type_term->name,'taxonomy/term/' . $type_term->tid).'<br/><br/>';
+          $type_taxon = '<strong>Type taxon:</strong> ' . l($type_term->name, 'taxonomy/term/' . $type_term->tid) . '<br/><br/>';
         }
         ;
         //Type specimens
@@ -84,7 +84,7 @@ function emonocot_blocks_block_view($delta = ''){
         ));
         $type_specimens = NULL;
         foreach($types as $type){
-          $type_specimens .= l($type->field_type_status_value . ' (' . $type->field_institution_code_value . ')', 'node/'.$type->nid).'<br/>';
+          $type_specimens .= l($type->field_type_status_value . ' (' . $type->field_institution_code_value . ')', 'node/' . $type->nid) . '<br/>';
         }
         if(!is_null($type_specimens)){
           $type_specimens = '<strong>Type specimens:</strong><br/>' . $type_specimens . '<br/>';
@@ -155,13 +155,17 @@ function emonocot_blocks_block_view($delta = ''){
               $parent->name = '<strong>' . $parent->name . '</strong>';
             }
             if($first_parent == TRUE){
-              $parents_text = l($parent->name, 'taxonomy/term/'.$parent->tid, array('html' => TRUE));
+              $parents_text = l($parent->name, 'taxonomy/term/' . $parent->tid, array(
+                'html' => TRUE
+              ));
             }else{
-              $parents_text .= ' x '.l($parent->name, 'taxonomy/term/'.$parent->tid, array('html' => TRUE));
+              $parents_text .= ' x ' . l($parent->name, 'taxonomy/term/' . $parent->tid, array(
+                'html' => TRUE
+              ));
             }
             $first_parent = FALSE;
           }
-          $block['content'] = $parents_text . ' = '.l($hybrid, 'taxonomy/term/'.$result->entity_id).'</a><br/>';
+          $block['content'] = $parents_text . ' = ' . l($hybrid, 'taxonomy/term/' . $result->entity_id) . '</a><br/>';
         }
         break;
       }

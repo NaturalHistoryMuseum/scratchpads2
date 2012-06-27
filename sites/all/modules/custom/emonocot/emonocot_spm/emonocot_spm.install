@@ -6,14 +6,13 @@ function emonocot_spm_install(){
   foreach($em_spm_groups as $em_group){
     $group = field_group_load_field_group($em_group->group_name, 'node', 'spm', 'form');
     foreach($em_group->data['children'] as $child){
-      if (!in_array($child, $group->children)){
+      if(!in_array($child, $group->children)){
         $group->children[] = $child;
       }
     }
     field_group_group_save($group);
   }
-  
-    $group = field_group_load_field_group('group_vertical_tabs', 'node', 'spm', 'form');
+  $group = field_group_load_field_group('group_vertical_tabs', 'node', 'spm', 'form');
   $group->children[] = 'group_spm_em_misc';
   $group->children[] = 'group_spm_em_taxonomy';
   field_group_group_save($group);

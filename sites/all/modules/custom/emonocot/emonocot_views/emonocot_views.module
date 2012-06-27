@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements hook_views_api().
+ */
 function emonocot_views_views_api(){
   $path = drupal_get_path('module', 'emonocot_views');
   return array(
@@ -8,24 +11,25 @@ function emonocot_views_views_api(){
   );
 }
 
+/**
+ * Implements hook_context_load_alter().
+ */
 function emonocot_views_context_load_alter(&$context){
   if($context->name === 'species_overview' && isset($context->reactions['block'])){
     //Remove default Scratchpads nomenclature and specimen blocks
     unset($context->reactions['block']['blocks']['views-species_nomenclature-block']);
     unset($context->reactions['block']['blocks']['views-species_specimens_overview-block']);
-    foreach ($context->reactions['block']['blocks'] as $name => $block){
-    	if (substr($name,0, 29) == 'views-em_species_nomenclature'){
-    	  unset($context->reactions['block']['blocks'][$name]);
-    	}
+    foreach($context->reactions['block']['blocks'] as $name => $block){
+      if(substr($name, 0, 29) == 'views-em_species_nomenclature'){
+        unset($context->reactions['block']['blocks'][$name]);
+      }
     }
     //Replace with the eMonocot one(s)
     global $_GET;
     $args = explode('/', $_GET['q']);
     if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
       $term = taxonomy_term_load($args[2]);
-     
       $bio_id = $term->vid;
-
       $context->reactions['block']['blocks']['views-em_species_nomenclature_' . $bio_id . '-block'] = array(
         'module' => 'views',
         'delta' => 'em_species_nomenclature_' . $bio_id . '-block',
@@ -48,86 +52,121 @@ function emonocot_views_context_load_alter(&$context){
   }
 }
 
-
 /**
-* Implements hook_field_formatter_info().
-*/
-function emonocot_views_field_formatter_info() {
-    return array(
-        'url_icon' => array(
-          'label' => t('URL icon'),
-          'description' => t('Displays a URL as an icon.'),
-          'field types' => array('node_reference'),
-    ),  );
+ * Implements hook_field_formatter_info().
+ */
+function emonocot_views_field_formatter_info(){
+  return array(
+    'url_icon' => array(
+      'label' => t('URL icon'),
+      'description' => t('Displays a URL as an icon.'),
+      'field types' => array(
+        'node_reference'
+      )
+    )
+  );
 }
-
 
 /**
  * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
  */
-function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-    $element = array();
-    $settings = $display['settings'];
-    $formatter = $display['type'];
-    foreach ($items as $delta => $item) {
-      $biblio_node = node_load($item['nid'], NULL, FALSE); //Replace with simple db_query?
-      
-      $icon_path = drupal_get_path('module', 'emonocot_views').'/icons/';
-      $known_sites = array(
-        'biodiversitylibrary.org' => array(
-          'title' => 'Biodiversity Heritage Library',
-          'icon'  => $icon_path.'bhl.ico',
-          'host'  => 'biodiversitylibrary.org',
-        ),
-        'gallica.bnf.fr' => array(
-          'title' => 'Gallica digital library',
-          'icon' => $icon_path.'gallica.ico',
-          'host' => 'gallica.bnf.fr',
-        ),
-        'archive.org' => array(
-          'title' => 'Internet Archive',
-          'icon' => $icon_path.'internet_archive.ico',
-          'host' => 'archive.org',
-        ),
-        'botanicus.org' => array(
-          'title' => 'Botanicus Digital Library',
-          'icon' => $icon_path.'botanicus.ico',
-          'host' => 'botanicus.org',
-        ),
-        '.pdf' => array(
-          'title' => 'PDF',
-          'icon'  => drupal_get_path('module', 'emonocot_views').'/icons/pdf.png',
-        ),
-      );
-      
-      $match_found = FALSE;
-      foreach($known_sites as $match => $info){
-      	if (stristr($biblio_node->biblio_url, $match)){
-      	  $match_found = TRUE;
-      	  if (!isset($info['host'])){
-      	  	$parse = parse_url($biblio_node->biblio_url);
-      	  	$info['host'] = $parse['host'];
-      	  }
-          $element[$delta] = array('#markup' => '<a title="'.$info['title'].' ('.$info['host'].')'.'" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');  
-          break;    		
-      	}
+function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  switch($display['type']){
+    case 'url_icon':
+      $element = array();
+      $settings = $display['settings'];
+      $formatter = $display['type'];
+      foreach($items as $delta => $item){
+        $node = node_load($item['nid'], NULL, FALSE);
+        $links = array(); //Used to store paths for all urls and file attachments
+        if($node->type == 'biblio'){
+          if(isset($node->biblio_url) && $node->biblio_url != '' && $node->biblio_url != NULL){
+            $links[] = array(
+              'type' => 'url',
+              'url' => $node->biblio_url
+            );
+          }
+        }
+        if(isset($node->field_file)){
+          foreach($node->field_file['und'] as $file){
+            $links[] = array(
+              'type' => 'file',
+              'url' => file_create_url($file['uri'])
+            );
+          }
+        }
+        $icon_path = $base_url . '/' . drupal_get_path('module', 'emonocot_views') . '/icons/';
+        $known_sites = array(
+          'biodiversitylibrary.org' => array(
+            'title' => 'Biodiversity Heritage Library',
+            'icon' => $icon_path . 'bhl.ico',
+            'host' => 'biodiversitylibrary.org'
+          ),
+          'gallica.bnf.fr' => array(
+            'title' => 'Gallica digital library',
+            'icon' => $icon_path . 'gallica.ico',
+            'host' => 'gallica.bnf.fr'
+          ),
+          'archive.org' => array(
+            'title' => 'Internet Archive',
+            'icon' => $icon_path . 'internet_archive.ico',
+            'host' => 'archive.org'
+          ),
+          'botanicus.org' => array(
+            'title' => 'Botanicus Digital Library',
+            'icon' => $icon_path . 'botanicus.ico',
+            'host' => 'botanicus.org'
+          ),
+          '.pdf' => array(
+            'title' => 'PDF',
+            'icon' => $icon_path . 'pdf.png'
+          )
+        );
+        foreach($links as $link){
+          $match_found = FALSE;
+          foreach($known_sites as $match => $info){
+            if(stristr($link['url'], $match)){
+              $match_found = TRUE;
+              if(!isset($info['host'])){
+                $parse = parse_url($link['url']);
+                $info['host'] = $parse['host'];
+              }
+              $element[] = array(
+                '#markup' => '<a title="' . $info['title'] . ' (' . $info['host'] . ')' . '" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
+              );
+              break;
+            }
+          }
+          if(!$match_found){
+            switch($link['type']){
+              case 'url':
+                $parse = parse_url($link['url']);
+                $doc = new DOMDocument();
+                $doc->strictErrorChecking = FALSE;
+                $doc->loadHTML(file_get_contents('http://' . $parse['host']));
+                $xml = simplexml_import_dom($doc);
+                $arr = $xml->xpath('//link[@rel="shortcut icon"]');
+                $info['icon'] = 'http://' . $parse['host'] . $arr[0]['href'];
+                $info['host'] = $parse['host'];
+                break;
+              case 'file':
+                $info['icon'] = $icon_path . 'default.png';
+                $info['host'] = $base_url;
+                break;
+            }
+            $element[] = array(
+              '#markup' => '<a title="(' . $info['host'] . ')" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
+            );
+          }
+        }
       }
-      
-      if (!$match_found){
-      	$parse = parse_url($biblio_node->biblio_url);
-      	
-        $doc = new DOMDocument();
-        $doc->strictErrorChecking = FALSE;
-        $doc->loadHTML(file_get_contents('http://'.$parse['host']));
-        $xml = simplexml_import_dom($doc);
-        $arr = $xml->xpath('//link[@rel="shortcut icon"]');
-        $info['icon'] = 'http://'.$parse['host'].$arr[0]['href'];
-      	
-  
-      	$element[$delta] = array('#markup' => '<a title="('.$parse['host'].')" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');
-      }
-      
-
-    }
-    return $element;
+      return $element;
+  }
 }
+

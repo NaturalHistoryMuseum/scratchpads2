@@ -8,14 +8,14 @@ function emonocot_dwca_views_default_views_alter(&$views){
         emonocot_dwca_add_field($view);
       }
       if($view->display['default']->display_options['fields']['tid']['label'] == 'id' || !isset($view->display['default']->display_options['fields']['tid']['label'])){
-      	$relationship = NULL;
-      	$label = isset($view->display['default']->display_options['fields']['tid']['label']) ? $view->display['default']->display_options['fields']['tid']['label'] : 'Term ID';
-      	if (isset($view->display['default']->display_options['fields']['tid']['relationship'])){
-      	  $relationship = $view->display['default']->display_options['fields']['tid']['relationship'];
-      	}
+        $relationship = NULL;
+        $label = isset($view->display['default']->display_options['fields']['tid']['label']) ? $view->display['default']->display_options['fields']['tid']['label'] : 'Term ID';
+        if(isset($view->display['default']->display_options['fields']['tid']['relationship'])){
+          $relationship = $view->display['default']->display_options['fields']['tid']['relationship'];
+        }
         unset($view->display['default']->display_options['fields']['tid']);
         emonocot_dwca_add_field($view);
-        if (!is_null($relationship)){
+        if(!is_null($relationship)){
           $view->display['default']->display_options['fields']['field_id']['relationship'] = $relationship;
         }
         $view->display['default']->display_options['fields']['tid']['label'] = $label;
@@ -51,9 +51,7 @@ function emonocot_dwca_add_field(&$view){
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
-  
-  
-  $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true); 
-    $view->display['default']->display_options['fields']['field_id'] = $new_field; 
-    $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true); 
+  $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
+  $view->display['default']->display_options['fields']['field_id'] = $new_field;
+  $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
 }

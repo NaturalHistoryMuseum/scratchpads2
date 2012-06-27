@@ -5,7 +5,7 @@
  *
  * Perform actions to set up the site for this profile.
  */
-function emonocot_tweaks_install() {
+function emonocot_tweaks_install(){
   // Set the default theme to be "scratchpads_em".
   variable_set('theme_default', 'scratchpads_em');
   // Disable scratchpads theme.
