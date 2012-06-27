@@ -72,7 +72,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
     foreach ($items as $delta => $item) {
       $biblio_node = node_load($item['nid'], NULL, FALSE); //Replace with simple db_query?
       
-      $icon_path = drupal_get_path('module', 'emonocot_views').'/icons/';
+      $icon_path = '/'.drupal_get_path('module', 'emonocot_views').'/icons/';
       $known_sites = array(
         'biodiversitylibrary.org' => array(
           'title' => 'Biodiversity Heritage Library',
@@ -128,7 +128,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
       	$element[$delta] = array('#markup' => '<a title="('.$parse['host'].')" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');
       }
       	}
-      }
+      	
       
 
     }
