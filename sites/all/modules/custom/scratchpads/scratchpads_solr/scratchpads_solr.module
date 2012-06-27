@@ -221,7 +221,6 @@ function scratchpads_solr_node_type_insert($info){
  * Implementation of hook_taxonomy_vocabulary_insert().
  */
 function scratchpads_solr_taxonomy_vocabulary_insert($vocabulary){
-  drupal_set_message(print_r($vocabulary, 1));
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
     // We have a biological classification. We need to insert a record in the
     // database.
