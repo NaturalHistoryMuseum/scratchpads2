@@ -1,43 +1,31 @@
 <?php
 
-
 function emonocot_biblio_install(){
   $values['name'] = 'Botanical Protologue';
   $values['description'] = 'A botanical protologue';
   $values['tid'] = variable_get('biblio_max_user_tid', '999') + 1;
-
-  db_insert('biblio_types')
-    ->fields($values)
-    ->execute();
-
+  db_insert('biblio_types')->fields($values)->execute();
   variable_set('biblio_max_user_tid', $values['tid']);
-  $result = db_query('SELECT * FROM {biblio_field_type} WHERE tid=0', array(), array('fetch' => PDO::FETCH_ASSOC));
-  foreach ($result as $row) {
+  $result = db_query('SELECT * FROM {biblio_field_type} WHERE tid=0', array(), array(
+    'fetch' => PDO::FETCH_ASSOC
+  ));
+  foreach($result as $row){
     $row['tid'] = $values['tid'];
-    db_insert('biblio_field_type')
-      ->fields($row)
-      ->execute();
+    db_insert('biblio_field_type')->fields($row)->execute();
   }
   // Fill contributor types. Use the first 4 defaults.
-  for ($type = 1; $type <= 4; $type++) {
+  for($type = 1; $type <= 4; $type++){
     $ct_vals = array(
       'auth_category' => $type,
       'biblio_type' => $values['tid'],
-      'auth_type' => $type,
-      );
-
-    db_insert('biblio_contributor_type')
-      ->fields($ct_vals)
-      ->execute();
+      'auth_type' => $type
+    );
+    db_insert('biblio_contributor_type')->fields($ct_vals)->execute();
   }
-  
-  
-  	    //We need to add some extra fields (values taken from biblio_field_type)
+  //We need to add some extra fields (values taken from biblio_field_type)
   $sql = "SELECT tid FROM biblio_types WHERE name = 'Botanical Protologue'";
   $result = db_query($sql)->fetchCol();
   $protologue_type = $result[0];
-
-  
   $biblio_fields = array(
     'biblio_volume' => array(
       'tid' => $protologue_type,
@@ -49,7 +37,7 @@ function emonocot_biblio_install(){
       'autocomplete' => 0,
       'required' => 0,
       'weight' => 14,
-      'visible' => 1,
+      'visible' => 1
     ),
     'biblio_short_title' => array(
       'tid' => $protologue_type,
@@ -61,7 +49,7 @@ function emonocot_biblio_install(){
       'autocomplete' => 0,
       'required' => 0,
       'weight' => 169,
-      'visible' => 1,
+      'visible' => 1
     ),
     'biblio_section' => array(
       'tid' => $protologue_type,
@@ -73,18 +61,12 @@ function emonocot_biblio_install(){
       'autocomplete' => 0,
       'required' => 0,
       'weight' => 15,
-      'visible' => 1,
-    ),
+      'visible' => 1
+    )
   );
-  
-  foreach ($biblio_fields as $field){
-    $query = db_update('biblio_field_type')	
-      ->fields($field)
-      ->condition('tid', $protologue_type)
-      ->condition('fid', $field['fid'])
-      ->execute();
-  } 
-  
+  foreach($biblio_fields as $field){
+    $query = db_update('biblio_field_type')->fields($field)->condition('tid', $protologue_type)->condition('fid', $field['fid'])->execute();
+  }
   variable_set('em_biblio_autogen', TRUE);
 }
 

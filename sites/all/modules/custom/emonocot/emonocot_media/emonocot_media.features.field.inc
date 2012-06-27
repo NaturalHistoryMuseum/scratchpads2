@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * emonocot_media.features.field.inc
  */
-
 /**
  * Implements hook_field_default_fields().
  */
-function emonocot_media_field_default_fields() {
+function emonocot_media_field_default_fields(){
   $fields = array();
-
   // Exported field: 'node-media_gallery-field_rights_holder'
   $fields['node-media_gallery-field_rights_holder'] = array(
     'field_config' => array(
@@ -21,22 +20,22 @@ function emonocot_media_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'media_gallery',
@@ -49,20 +48,20 @@ function emonocot_media_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 2,
+          'weight' => 2
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
+          'weight' => 0
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'node',
       'field_name' => 'field_rights_holder',
@@ -70,22 +69,20 @@ function emonocot_media_field_default_fields() {
       'required' => FALSE,
       'settings' => array(
         'text_processing' => 0,
-        'user_register_form' => FALSE,
+        'user_register_form' => FALSE
       ),
       'widget' => array(
         'module' => 'text',
         'settings' => array(
-          'size' => 60,
+          'size' => 60
         ),
         'type' => 'text_textfield',
-        'weight' => '-2',
-      ),
-    ),
+        'weight' => '-2'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Rights Holder');
-
   return $fields;
 }
