@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Implements hook_date_formats()
+ */
+function scratchpads_tweaks_date_formats(){
+  return array(
+    array(
+      'type' => 'short',
+      'format' => 'Y-m-d'
+    ),
+    array(
+      'type' => 'medium',
+      'format' => 'Y-m-d H:i'
+    )
+  );
+}
+
+/**
  * Implements hook_cron().
  *
  * This function ensures that all required modules are enabled.
@@ -33,7 +49,6 @@ function scratchpads_tweaks_cron(){
   _scratchpads_tweaks_register_shutdown();
 }
 
-
 /**
  * Implements hook_flush_caches
  */
@@ -52,6 +67,7 @@ function _scratchpads_tweaks_register_shutdown(){
     drupal_register_shutdown_function('scratchpads_tweaks_shutdown', TRUE);
   }
 }
+
 /**
  * Shutdown function used to improve performance.
  */

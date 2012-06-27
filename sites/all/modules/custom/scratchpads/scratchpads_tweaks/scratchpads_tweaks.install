@@ -863,3 +863,12 @@ function scratchpads_tweaks_update_7018(){
     scratchpads_lexicon_install();
   }
 }
+
+/**
+ * Fix the date/time formats across all Scratchpads - no flexibility.
+ */
+function scratchpads_tweaks_update_7019(){
+  variable_set('date_format_long', 'l, F j, Y - g:ia');
+  variable_set('date_format_medium', 'Y-m-d H:i');
+  variable_set('date_format_short', 'Y-m-d');
+}
