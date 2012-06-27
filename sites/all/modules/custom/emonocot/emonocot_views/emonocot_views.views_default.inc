@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements hook_views_default_views().
+ */
 function emonocot_views_views_default_views(){
   $bio_vids = variable_get('biological_vids', array());
   $views = array();
@@ -9,6 +12,15 @@ function emonocot_views_views_default_views(){
   return $views;
 }
 
+/**
+ * Create a nomenclature block for a given vocabulary.
+ * 
+ * @param $vid
+ * The vid of the vocabulary to create a view for
+ * 
+ * @return
+ * A view object
+ */
 function emonocot_views_nomenclature($vid){
   $vocab = taxonomy_vocabulary_load($vid);
   $view = new view();
