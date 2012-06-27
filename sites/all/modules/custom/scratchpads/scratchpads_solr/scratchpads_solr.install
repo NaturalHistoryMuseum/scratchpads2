@@ -34,3 +34,29 @@ function scratchpads_solr_uninstall(){
   // Reset the variable.
   variable_del('apachesolr_query_class');
 }
+
+/**
+ * Update the list of bundles to search to include the taxonomy terms.
+ */
+function scratchpads_solr_update_7001(){
+  module_enable(array(
+    'apachesolr_term'
+  ));
+  foreach(variable_get('biological_vids', array()) as $vid => $type){
+    if($type){
+      // We have a biological classification. We need to insert a record in the
+      // database.
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      try{
+        db_insert('apachesolr_index_bundles')->fields(array(
+          'env_id' => apachesolr_default_environment(),
+          'entity_type' => 'taxonomy_term',
+          'bundle' => $vocabulary->machine_name
+        ))->execute();
+      }
+      catch(Exception $e){
+        ; // Ignore.  Probably just a duplicate in the table.
+      }
+    }
+  }
+}

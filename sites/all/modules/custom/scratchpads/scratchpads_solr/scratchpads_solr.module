@@ -47,7 +47,7 @@ function scratchpads_solr_node_type_form_submit($form, $form_state){
       }
       catch(Exception $e){
         ; // Do nothing, most likely a result of the entry in the DB already 
-      // existing.
+        // existing.
       }
     }
   }else{
@@ -215,6 +215,34 @@ function scratchpads_solr_node_type_insert($info){
     // This is thrown on install.  We don't do anything though!
     $transaction->rollback();
   }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_solr_taxonomy_vocabulary_insert($vocabulary){
+  drupal_set_message(print_r($vocabulary, 1));
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+    // We have a biological classification. We need to insert a record in the
+    // database.
+    try{
+      db_insert('apachesolr_index_bundles')->fields(array(
+        'env_id' => apachesolr_default_environment(),
+        'entity_type' => 'taxonomy_term',
+        'bundle' => $vocabulary->machine_name
+      ))->execute();
+    }
+    catch(Exception $e){
+      ; // Ignore.  Probably just a duplicate in the table.
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_solr_taxonomy_vocabulary_delete($vocabulary){
+  db_delete('apachesolr_index_bundles')->condition('entity_type', 'taxonomy_term')->condition('bundle', $vocabulary->machine_name)->execute();
 }
 
 /**
