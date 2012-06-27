@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL', 'http://dev.scratchpads.eu/project/issues/rss/');
 
 /**
  * Implements hook_install().
@@ -7,21 +8,21 @@ function scratchpads_issues_block_install(){
   // Create an aggregator feed.
   $feed = array(
     'title' => 'Scratchpads issue queue',
-    'url' => 'http://dev.scratchpads.eu/project/issues/rss/',
+    'url' => SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL,
     'refresh' => 3600,
     'block' => 10
   );
   try{
     aggregator_save_feed($feed);
-    $feed = aggregator_feed_load($feed['fid']);
   }
   catch(Exception $e){
-    // We've no doubt already saved this feed before.  Lets load it.
-    $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
-      'fid'
-    ))->condition('url', $feed['url'])->execute()->fetchCol(0));
-    $feed = aggregator_feed_load($fid);
+    // We've no doubt already saved this feed before, we can safely ignore this
+    // error.
   }
+  $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0));
+  $feed = aggregator_feed_load($fid);
   // Update the feed.
   aggregator_refresh($feed);
   // Save the block settings so that the uwho stuff is save, and the
@@ -48,4 +49,14 @@ function scratchpads_issues_block_install(){
   catch(Exception $e){
     ; // Do nothing, we're proabably just inserting the same record again.
   }
+}
+
+/**
+ * Ensure the issues tab has the feed set.
+ */
+function scratchpads_issues_block_update_7001(){
+  $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0));
+  variable_set('remote_issue_tab_feed', $fid);
 }
