@@ -49,14 +49,9 @@ class ProtologueNodeProcessor extends FeedsProcessor {
    * table will be loaded, foregoing the node_load API for better performance.
    */
   protected function entityLoad(FeedsSource $source, $nid) {
-    if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
-      $node = node_load($nid, NULL, TRUE);
-    }
-    else {
-      // We're replacing the existing node. Only save the absolutely necessary.
-      $node = db_query("SELECT created, nid, vid, type FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchObject();
-      $node->uid = $this->config['author'];
-    }
+
+    $node = node_load($nid, NULL, TRUE);
+    
     node_object_prepare($node);
     // Populate properties that are set by node_object_prepare().
     if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
