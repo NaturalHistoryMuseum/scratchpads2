@@ -102,6 +102,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
       
       $match_found = FALSE;
       foreach($known_sites as $match => $info){
+      	if (isset($biblio_node->biblio_url) && $biblio_node->biblio_url != '' && $biblio_node->biblio_url != NULL) {
       	if (stristr($biblio_node->biblio_url, $match)){
       	  $match_found = TRUE;
       	  if (!isset($info['host'])){
@@ -111,7 +112,7 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
           $element[$delta] = array('#markup' => '<a title="'.$info['title'].' ('.$info['host'].')'.'" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');  
           break;    		
       	}
-      }
+      
       
       if (!$match_found){
       	$parse = parse_url($biblio_node->biblio_url);
@@ -126,8 +127,13 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
   
       	$element[$delta] = array('#markup' => '<a title="('.$parse['host'].')" href="'.$biblio_node->biblio_url.'"><img height="16px" width="16px" src="'.$info['icon'].'"/></a>');
       }
+      	}
+      }
       
 
     }
+
     return $element;
+    
 }
+

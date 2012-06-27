@@ -352,7 +352,7 @@ $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_em
 $handler->display->display_options['fields']['field_itis_em_other_ref']['empty_zero'] = 0;
 $handler->display->display_options['fields']['field_itis_em_other_ref']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['field_itis_em_other_ref']['field_api_classes'] = 0;
-  /* Field: Content: Title */
+ /* Field: Content: Title */
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'node';
 $handler->display->display_options['fields']['title']['field'] = 'title';
@@ -380,6 +380,31 @@ $handler->display->display_options['fields']['title']['hide_empty'] = 1;
 $handler->display->display_options['fields']['title']['empty_zero'] = 0;
 $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['title']['link_to_node'] = 1;
+/* Field: Taxonomy term: Reference */
+$handler->display->display_options['fields']['field_reference']['id'] = 'field_reference';
+$handler->display->display_options['fields']['field_reference']['table'] = 'field_data_field_reference';
+$handler->display->display_options['fields']['field_reference']['field'] = 'field_reference';
+$handler->display->display_options['fields']['field_reference']['label'] = '';
+$handler->display->display_options['fields']['field_reference']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['external'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['field_reference']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['field_reference']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['field_reference']['alter']['html'] = 0;
+$handler->display->display_options['fields']['field_reference']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['field_reference']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['field_reference']['hide_empty'] = 0;
+$handler->display->display_options['fields']['field_reference']['empty_zero'] = 0;
+$handler->display->display_options['fields']['field_reference']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['field_reference']['type'] = 'url_icon';
+$handler->display->display_options['fields']['field_reference']['field_api_classes'] = 0;
   /* Field: Taxonomy term: Hybrid parents */
   $handler->display->display_options['fields']['field_hp_' . $vid]['id'] = 'field_hp_' . $vid;
   $handler->display->display_options['fields']['field_hp_' . $vid]['table'] = 'field_data_field_hp_' . $vid;
