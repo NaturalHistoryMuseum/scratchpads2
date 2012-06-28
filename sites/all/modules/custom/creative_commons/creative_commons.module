@@ -341,7 +341,7 @@ function creative_commons_block_view($delta = ''){
         ))
       );
       if($licence != CC_NONE){
-        $block['#attached'] = array(
+        $block['content']['#attached'] = array(
           'css' => array(
             drupal_get_path('module', 'creative_commons') . '/css/creative_commons.css'
           )
