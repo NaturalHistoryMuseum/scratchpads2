@@ -124,10 +124,7 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
   switch($licence_type){
     // These licence types are text only
     case CC_NONE:
-      return array(
-        '#type' => 'markup',
-        '#markup' => creative_commons_get_licence_types($licence_type)
-      );
+      return array();
       break;
     case CC_0:
       $image = $path . '/images/zero.png';
@@ -176,7 +173,7 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       'alt' => t('Creative Commons Licence'),
       'path' => $image,
       'width' => $display_type == CC_LARGE_IMAGE ? '88px' : '80px',
-      'height' => $display_type == CC_LARGE_IMAGE ? '31px' : '15px',
+      'height' => $display_type == CC_LARGE_IMAGE ? '31px' : '15px'
     ))
   );
 }
@@ -339,15 +336,17 @@ function creative_commons_block_view($delta = ''){
       $block['content'] = array(
         '#theme' => 'creative_commons_block',
         '#licence' => creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), variable_get('creative_commons_block_display_type', CC_LARGE_IMAGE)),
-        '#text' => t('Except where otherwise noted, content on this site is licensed under a Creative Commons !licence Licence.', array(
+        '#text' => $licence == CC_NONE ? creative_commons_get_licence_types(CC_NONE) : t('Except where otherwise noted, content on this site is licensed under a Creative Commons !licence Licence.', array(
           '!licence' => creative_commons_get_licence_types($licence)
-        )),
-        '#attached' => array(
+        ))
+      );
+      if($licence != CC_NONE){
+        $block['#attached'] = array(
           'css' => array(
             drupal_get_path('module', 'creative_commons') . '/css/creative_commons.css'
           )
-        )
-      );
+        );
+      }
       break;
   }
   return $block;
