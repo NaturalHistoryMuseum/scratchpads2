@@ -132,10 +132,13 @@ function scratchpads_pages_form_node_form_alter(&$form, $form_state){
   $type = $form['#node']->type;
   // If this is page display type, force providing a menu link
   if(isset($display_settings[$type]) && $display_settings[$type] == 'page'){
-    $form['menu']['enabled']['#default_value'] = 1;
-    $form['menu']['enabled']['#disabled'] = true;
-    $form['menu']['link']['link_title']['#required'] = true;
-    $form['menu']['link']['weight']['#default_value'] = 1; // Home is 0, so ensure by default pages are weighting higher
+    // Don't do this on edit pages, as the menu item should already be set.
+    if(arg(2) != 'edit'){
+      $form['menu']['enabled']['#default_value'] = 1;
+      $form['menu']['enabled']['#disabled'] = true;
+      $form['menu']['link']['link_title']['#required'] = true;
+      $form['menu']['link']['weight']['#default_value'] = 1; // Home is 0, so ensure by default pages are weighting higher
+    }
   }else{ // If this isn't a page, remove the menu link option
     unset($form['menu']);
   }
