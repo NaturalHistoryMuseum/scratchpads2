@@ -198,8 +198,22 @@ function eolapi_enable(){
 function eolapi_disable(){
   field_delete_field('eolapi_taxonomy');
   field_delete_field('eolapi_image');
-  // Delete "eolapi" from the file_usage table.
+  // Delete all the eolapi entities.
+  $results = db_select('eolapi', 'e')->fields('e', array(
+    'eid'
+  ))->execute();
+  $ids = array();
+  foreach($results as $row){
+    $ids[] = $row->eid;
+  }
+  if(count($ids)){
+    entity_delete_multiple('eolapi', $ids);
+  }
+  // Delete all the files that were associated with those entities.
   db_delete('file_usage')->condition('type', 'eolapi')->execute();
+  // We do it this way round, as this will catch all eolapi files, and not just
+  // those that still have entries in the file_usage table (which I would expect
+  // to be emptied after the entity is deleted).
   $results = db_select('file_managed', 'f')->fields('f', array(
     'fid'
   ))->condition('uri', db_like('public://eolapi/') . '%', 'LIKE')->execute();
