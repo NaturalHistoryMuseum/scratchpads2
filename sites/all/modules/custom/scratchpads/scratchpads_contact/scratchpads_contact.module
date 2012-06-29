@@ -60,6 +60,10 @@ function scratchpads_contact_mail_alter(&$message){
     ));
     $message['body'][3] = $message['params']['message'];
   }
+  // Remove the modal_forms/ajax text from links.
+  foreach($message['body'] as $line => $text){
+    $message['body'][$line] = str_replace('/modal_forms/ajax', '', $text);
+  }
 }
 
 function scratchpads_contact_abuse_types(){
