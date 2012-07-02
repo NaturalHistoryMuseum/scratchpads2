@@ -1,6 +1,21 @@
 <?php
-/**
- * @file
- */
 
-// Drupal needs this blank file.
+/**
+ * Implements hook_form_FORM_ID_alter.
+ */
+function scratchpads_biblio_form_node_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == 'biblio_node_form' && arg(2) == 'clone'){
+    $form_state['biblio_type'] = 'set biblio type so that we can save!';
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter.
+ */
+function scratchpads_biblio_module_implements_alter(&$implementations, $hook){
+  if($hook == 'form_alter' && isset($implementations['scratchpads_biblio'])){
+    $set = $implementations['scratchpads_biblio'];
+    unset($implementations['scratchpads_biblio']);
+    array_unshift($implementations, $set);
+  }
+}
