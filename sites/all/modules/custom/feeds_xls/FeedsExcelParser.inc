@@ -40,10 +40,16 @@ class FeedsExcelParser extends FeedsParser{
         $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
       }
       require_once $path;
-      $file_type = PHPExcel_IOFactory::identify($fetcher_result->getFilePath());
+      // We use drupal_realpath here as it appears that the ZipArchive class is
+      // not able to handle our use of public://... Stream URIs.  This will need
+      // to be fixed before Drupal 8.
+      $import_file_path = drupal_realpath($fetcher_result->getFilePath());
+      $file_type = PHPExcel_IOFactory::identify($import_file_path);
       $reader = PHPExcel_IOFactory::createReader($file_type);
-      $reader->setReadDataOnly(true);
-      $this->PHPExcel_object = $reader->load($fetcher_result->getFilePath());
+      if(method_exists($reader, 'setReadDataOnly')){
+        $reader->setReadDataOnly(true);
+      }
+      $this->PHPExcel_object = $reader->load($import_file_path);
       $PHPExcel_ws = array();
       foreach($this->PHPExcel_object->getWorksheetIterator() as $worksheet){
         if($worksheet->getTitle() != 'PermittedValues'){
