@@ -637,7 +637,9 @@ table.biblio td.biblio-row-title{
   font-weight: bold;
 }
 
-
+.node ol, .node ul{
+	padding-left: 2em !important;
+}
 
 /* Just biblio view & solr table */
 
