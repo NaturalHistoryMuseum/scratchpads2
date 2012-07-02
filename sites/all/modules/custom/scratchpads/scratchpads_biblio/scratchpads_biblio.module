@@ -14,8 +14,12 @@ function scratchpads_biblio_form_node_form_alter(&$form, &$form_state, $form_id)
  */
 function scratchpads_biblio_module_implements_alter(&$implementations, $hook){
   if($hook == 'form_alter' && isset($implementations['scratchpads_biblio'])){
-    $set = $implementations['scratchpads_biblio'];
+    $new_implementations = array();
+    $new_implementations['scratchpads_biblio'] = $implementations['scratchpads_biblio'];
     unset($implementations['scratchpads_biblio']);
-    array_unshift($implementations, $set);
+    foreach($implementations as $key => $value){
+      $new_implementations[$key] = $value;
+    }
+    $implementations = $new_implementations;
   }
 }
