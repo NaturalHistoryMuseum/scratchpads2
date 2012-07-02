@@ -2,7 +2,7 @@
 /**
  * PHPExcel
  *
- * Copyright (c) 2006 - 2011 PHPExcel
+ * Copyright (c) 2006 - 2012 PHPExcel
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,9 +20,9 @@
  *
  * @category	PHPExcel
  * @package		PHPExcel_Cell
- * @copyright	Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright	Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license		http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version		1.7.6, 2011-02-27
+ * @version		1.7.7, 2012-05-19
  */
 
 
@@ -31,7 +31,7 @@
  *
  * @category   PHPExcel
  * @package	PHPExcel_Cell
- * @copyright  Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
 class PHPExcel_Cell
 {
@@ -101,6 +101,7 @@ class PHPExcel_Cell
 
 	/**
 	 * Send notification to the cache controller
+	 *
 	 * @return void
 	 **/
 	public function notifyCacheController() {
@@ -121,7 +122,7 @@ class PHPExcel_Cell
 	 * Create a new Cell
 	 *
 	 * @param	string				$pColumn
-	 * @param	int				$pRow
+	 * @param	int					$pRow
 	 * @param	mixed				$pValue
 	 * @param	string				$pDataType
 	 * @param	PHPExcel_Worksheet	$pSheet
@@ -201,15 +202,15 @@ class PHPExcel_Cell
 	 */
 	public function getFormattedValue()
 	{
-		return PHPExcel_Style_NumberFormat::toFormattedString( $this->getCalculatedValue(),
-						$this->_parent->getParent()->getCellXfByIndex($this->getXfIndex())->getNumberFormat()->getFormatCode()
-			   );
+		return (string) PHPExcel_Style_NumberFormat::toFormattedString( $this->getCalculatedValue(),
+						         $this->_parent->getParent()->getCellXfByIndex($this->getXfIndex())->getNumberFormat()->getFormatCode()
+			            );
 	}
 
 	/**
 	 * Set cell value
 	 *
-	 * This clears the cell formula.
+	 * Sets the value for a cell, automatically determining the datatype using the value binder
 	 *
 	 * @param mixed	$pValue					Value
 	 * @return PHPExcel_Cell
@@ -223,7 +224,7 @@ class PHPExcel_Cell
 	}
 
 	/**
-	 * Set cell value (with explicit data type given)
+	 * Set the value for a cell, with the explicit data type passed to the method (bypassing any use of the value binder)
 	 *
 	 * @param mixed	$pValue			Value
 	 * @param string	$pDataType		Explicit data type
@@ -283,6 +284,10 @@ class PHPExcel_Cell
 				$result = PHPExcel_Calculation::getInstance()->calculateCellValue($this,$resetLog);
 //				echo $this->getCoordinate().' calculation result is '.$result.'<br />';
 			} catch ( Exception $ex ) {
+				if (($ex->getMessage() === 'Unable to access External Workbook') && ($this->_calculatedValue !== NULL)) {
+//					echo 'Returning fallback value of '.$this->_calculatedValue.' for cell '.$this->getCoordinate().'<br />';
+					return $this->_calculatedValue; // Fallback for calculations referencing external files.
+				}
 //				echo 'Calculation Exception: '.$ex->getMessage().'<br />';
 				$result = '#N/A';
 				throw(new Exception($this->getParent()->getTitle().'!'.$this->getCoordinate().' -> '.$ex->getMessage()));
@@ -296,7 +301,7 @@ class PHPExcel_Cell
 			return $result;
 		}
 
-//		if (is_null($this->_value)) {
+//		if ($this->_value === NULL) {
 //			echo 'Cell '.$this->getCoordinate().' has no value, formula or otherwise<br />';
 //			return null;
 //		}
@@ -312,8 +317,8 @@ class PHPExcel_Cell
 	 */
 	public function setCalculatedValue($pValue = null)
 	{
-		if (!is_null($pValue)) {
-			$this->_calculatedValue = $pValue;
+		if ($pValue !== NULL) {
+			$this->_calculatedValue = (is_numeric($pValue)) ? (float) $pValue : $pValue;
 		}
 
 		return $this->notifyCacheController();
@@ -542,10 +547,18 @@ class PHPExcel_Cell
 	{
 		if (strpos($pCoordinateString,':') === false && strpos($pCoordinateString,',') === false) {
 			// Create absolute coordinate
+			$worksheet = '';
+			$cellAddress = explode('!',$pCoordinateString);
+			if (count($cellAddress) == 2) {
+				list($worksheet,$pCoordinateString) = $cellAddress;
+			}
+
 			list($column, $row) = PHPExcel_Cell::coordinateFromString($pCoordinateString);
 			if ($column[0] == '$')	$column = substr($column,1);
 			if ($row[0] == '$')		$row = substr($row,1);
-			return '$' . $column . '$' . $row;
+			if ($worksheet > '')
+				$worksheet .= '!';
+			return $worksheet . '$' . $column . '$' . $row;
 		} else {
 			throw new Exception("Coordinate string should not be a cell range.");
 		}
@@ -577,7 +590,7 @@ class PHPExcel_Cell
 	public static function buildRange($pRange)
 	{
 		// Verify range
-		if (!is_array($pRange) || count($pRange) == 0 || !is_array($pRange[0])) {
+		if (!is_array($pRange) || empty($pRange) || !is_array($pRange[0])) {
 			throw new Exception('Range does not contain any information.');
 		}
 
@@ -665,6 +678,14 @@ class PHPExcel_Cell
 	 */
 	public static function columnIndexFromString($pString = 'A')
 	{
+		//	Using a lookup cache adds a slight memory overhead, but boosts speed
+		//	caching using a static within the method is faster than a class static,
+		//		though it's additional memory overhead
+		static $_indexCache = array();
+
+		if (isset($_indexCache[$pString]))
+			return $_indexCache[$pString];
+
 		//	It's surprising how costly the strtoupper() and ord() calls actually are, so we use a lookup array rather than use ord()
 		//		and make it case insensitive to get rid of the strtoupper() as well. Because it's a static, there's no significant
 		//		memory overhead either
@@ -679,11 +700,14 @@ class PHPExcel_Cell
 		//		for improved performance
 		if (isset($pString{0})) {
 			if (!isset($pString{1})) {
-				return $_columnLookup[$pString];
+				$_indexCache[$pString] = $_columnLookup[$pString];
+				return $_indexCache[$pString];
 			} elseif(!isset($pString{2})) {
-				return $_columnLookup[$pString{0}] * 26 + $_columnLookup[$pString{1}];
+				$_indexCache[$pString] = $_columnLookup[$pString{0}] * 26 + $_columnLookup[$pString{1}];
+				return $_indexCache[$pString];
 			} elseif(!isset($pString{3})) {
-				return $_columnLookup[$pString{0}] * 676 + $_columnLookup[$pString{1}] * 26 + $_columnLookup[$pString{2}];
+				$_indexCache[$pString] = $_columnLookup[$pString{0}] * 676 + $_columnLookup[$pString{1}] * 26 + $_columnLookup[$pString{2}];
+				return $_indexCache[$pString];
 			}
 		}
 		throw new Exception("Column string index can not be " . ((isset($pString{0})) ? "longer than 3 characters" : "empty") . ".");
@@ -697,13 +721,25 @@ class PHPExcel_Cell
 	 */
 	public static function stringFromColumnIndex($pColumnIndex = 0)
 	{
-		// Determine column string
-		if ($pColumnIndex < 26) {
-			return chr(65 + $pColumnIndex);
-		} elseif ($pColumnIndex < 702) {
-			return chr(64 + ($pColumnIndex / 26)).chr(65 + $pColumnIndex % 26);
+		//	Using a lookup cache adds a slight memory overhead, but boosts speed
+		//	caching using a static within the method is faster than a class static,
+		//		though it's additional memory overhead
+		static $_indexCache = array();
+
+		if (!isset($_indexCache[$pColumnIndex])) {
+			// Determine column string
+			if ($pColumnIndex < 26) {
+				$_indexCache[$pColumnIndex] = chr(65 + $pColumnIndex);
+			} elseif ($pColumnIndex < 702) {
+				$_indexCache[$pColumnIndex] = chr(64 + ($pColumnIndex / 26)) .
+											  chr(65 + $pColumnIndex % 26);
+			} else {
+				$_indexCache[$pColumnIndex] = chr(64 + (($pColumnIndex - 26) / 676)) .
+											  chr(65 + ((($pColumnIndex - 26) % 676) / 26)) .
+											  chr(65 + $pColumnIndex % 26);
+			}
 		}
-		return chr(64 + (($pColumnIndex - 26) / 676)).chr(65 + ((($pColumnIndex - 26) % 676) / 26)).chr(65 + $pColumnIndex % 26);
+		return $_indexCache[$pColumnIndex];
 	}
 
 	/**
@@ -786,7 +822,7 @@ class PHPExcel_Cell
 	 * @return PHPExcel_Cell_IValueBinder
 	 */
 	public static function getValueBinder() {
-		if (is_null(self::$_valueBinder)) {
+		if (self::$_valueBinder === NULL) {
 			self::$_valueBinder = new PHPExcel_Cell_DefaultValueBinder();
 		}
 
@@ -800,7 +836,7 @@ class PHPExcel_Cell
 	 * @throws Exception
 	 */
 	public static function setValueBinder(PHPExcel_Cell_IValueBinder $binder = null) {
-		if (is_null($binder)) {
+		if ($binder === NULL) {
 			throw new Exception("A PHPExcel_Cell_IValueBinder is required for PHPExcel to function correctly.");
 		}
 

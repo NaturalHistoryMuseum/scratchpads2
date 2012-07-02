@@ -2,7 +2,7 @@
 /**
  * PHPExcel
  *
- * Copyright (c) 2006 - 2011 PHPExcel
+ * Copyright (c) 2006 - 2012 PHPExcel
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,9 +20,9 @@
  *
  * @category   PHPExcel
  * @package    PHPExcel_Shared
- * @copyright  Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version    1.7.6, 2011-02-27
+ * @version    1.7.7, 2012-05-19
  */
 
 
@@ -31,7 +31,7 @@
  *
  * @category   PHPExcel
  * @package    PHPExcel_Shared
- * @copyright  Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
 class PHPExcel_Shared_Font
 {
@@ -47,8 +47,8 @@ class PHPExcel_Shared_Font
 	const CHARSET_ANSI_JAPANESE_SHIFTJIS	= 0x80;
 	const CHARSET_ANSI_KOREAN_HANGUL		= 0x81;
 	const CHARSET_ANSI_KOREAN_JOHAB			= 0x82;
-	const CHARSET_ANSI_CHINESE_SIMIPLIFIED	= 0x86;
-	const CHARSET_ANSI_CHINESE_TRADITIONAL	= 0x88;
+	const CHARSET_ANSI_CHINESE_SIMIPLIFIED	= 0x86;		//	gb2312
+	const CHARSET_ANSI_CHINESE_TRADITIONAL	= 0x88;		//	big5
 	const CHARSET_ANSI_GREEK				= 0xA1;
 	const CHARSET_ANSI_TURKISH				= 0xA2;
 	const CHARSET_ANSI_VIETNAMESE			= 0xA3;
@@ -56,7 +56,7 @@ class PHPExcel_Shared_Font
 	const CHARSET_ANSI_ARABIC				= 0xB2;
 	const CHARSET_ANSI_BALTIC				= 0xBA;
 	const CHARSET_ANSI_CYRILLIC				= 0xCC;
-	const CHARSET_ANSI_THAI					= 0xDE;
+	const CHARSET_ANSI_THAI					= 0xDD;
 	const CHARSET_ANSI_LATIN_II				= 0xEE;
 	const CHARSET_OEM_LATIN_I				= 0xFF;
 

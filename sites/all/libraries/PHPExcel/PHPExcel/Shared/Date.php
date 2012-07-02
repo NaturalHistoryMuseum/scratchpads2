@@ -3,7 +3,7 @@
 /**
  * PHPExcel
  *
- * Copyright (c) 2006 - 2011 PHPExcel
+ * Copyright (c) 2006 - 2012 PHPExcel
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,9 +21,9 @@
  *
  * @category   PHPExcel
  * @package	PHPExcel_Shared
- * @copyright  Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @license	http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version	1.7.6, 2011-02-27
+ * @version	1.7.7, 2012-05-19
  */
 
 
@@ -32,7 +32,7 @@
  *
  * @category   PHPExcel
  * @package	PHPExcel_Shared
- * @copyright  Copyright (c) 2006 - 2011 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @copyright  Copyright (c) 2006 - 2012 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
 class PHPExcel_Shared_Date
 {
@@ -40,8 +40,41 @@ class PHPExcel_Shared_Date
 	const CALENDAR_WINDOWS_1900 = 1900;		//	Base date of 1st Jan 1900 = 1.0
 	const CALENDAR_MAC_1904 = 1904;			//	Base date of 2nd Jan 1904 = 1.0
 
+	/*
+	 * Names of the months of the year, indexed by shortname
+	 * Planned usage for locale settings
+	 *
+	 * @public
+	 * @var	string[]
+	 */
+	public static $_monthNames = array(	'Jan' => 'January',
+										'Feb' => 'February',
+										'Mar' => 'March',
+										'Apr' => 'April',
+										'May' => 'May',
+										'Jun' => 'June',
+										'Jul' => 'July',
+										'Aug' => 'August',
+										'Sep' => 'September',
+										'Oct' => 'October',
+										'Nov' => 'November',
+										'Dec' => 'December'
+									  );
+
+	/*
+	 * Base calendar year to use for calculations
+	 *
+	 * @private
+	 * @var	int
+	 */
 	private static $ExcelBaseDate	= self::CALENDAR_WINDOWS_1900;
 
+	/*
+	 * Object type for PHP Date/Time values
+	 *
+	 * @private
+	 * @var	string
+	 */
 	public static $dateTimeObjectType	= 'DateTime';
 
 
@@ -91,14 +124,14 @@ class PHPExcel_Shared_Date
 		// Perform conversion
 		if ($dateValue >= 1) {
 			$utcDays = $dateValue - $myExcelBaseDate;
-			$returnValue = round($utcDays * 24 * 60 * 60);
+			$returnValue = round($utcDays * 86400);
 			if (($returnValue <= PHP_INT_MAX) && ($returnValue >= -PHP_INT_MAX)) {
 				$returnValue = (integer) $returnValue;
 			}
 		} else {
 			$hours = round($dateValue * 24);
-			$mins = round($dateValue * 24 * 60) - round($hours * 60);
-			$secs = round($dateValue * 24 * 60 * 60) - round($hours * 60 * 60) - round($mins * 60);
+			$mins = round($dateValue * 1440) - round($hours * 60);
+			$secs = round($dateValue * 86400) - round($hours * 3600) - round($mins * 60);
 			$returnValue = (integer) gmmktime($hours, $mins, $secs);
 		}
 
@@ -181,9 +214,9 @@ class PHPExcel_Shared_Date
 
 		//	Julian base date Adjustment
 		if ($month > 2) {
-			$month = $month - 3;
+			$month -= 3;
 		} else {
-			$month = $month + 9;
+			$month += 9;
 			--$year;
 		}
 
