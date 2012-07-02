@@ -12,6 +12,10 @@
 	background: none;
 }
 
+.page-title{
+  padding-right:300px !important;
+}
+
 /* Admin content table */
 
 table.scratchpads-admin-content  caption{
