@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Implementation of hook_wysiwyg_plugin().
+ */
+function footnotes_wysiwyg_wysiwyg_plugin($editor, $version) {
+  $plugin = array(
+    'footnotes' => array(
+      'buttons' => array('footnotes' => t('Add Footnote')),
+      // This is annoying since it entices you to click on the link in 
+      // admin/settings/wysiwyg/profile/2/edit and if you do, you lose all unsaved settings.
+      // 'url' => 'http://drupal.org/project/footnotes', 
+      // CKEditor specific, moved: 'extended_valid_elements' => array('fn'), 
+      'basePath' => base_path(),
+      // TinyMCE specific, moved: 'load' => 1 
+    ),
+  );
+  switch ($editor) {
+    case 'tinymce':
+      // This is a hack, the plugin is not loaded without this. (no button shows up.)
+      // wysiwyg_tinymce_plugin_settings() removes plugins that have empty($plugin['load'])
+      // I'm assuming the wysiwyg module should actually set this for plugins it wants to load?
+      // Since there aren't many native external TinyMCE plugins currently, this is likely a bug nobody has noticed.
+      $plugin['footnotes']['load'] = 1;
+      // For TinyMCE it used to be that 'path' was actually pointing to the editor_plugin.js file.
+      // In Drupal 7 this is separated into 'path' and 'filename'.
+      // Again wysiwyg_tinymce_plugin_settings() requires this to be present.
+      $plugin['footnotes']['filename'] = 'editor_plugin.js';
+      $plugin['footnotes']['path'] = drupal_get_path('module', 'footnotes_wysiwyg') . '/tinymce_plugin/';
+      return $plugin;
+      break;
+    case 'ckeditor':
+      // For CKEditor, path must be to the directory, not the .js file. The .js file must be called 'plugin.js'.
+      // (If including filename here, images to the buttons (defined in js/css) 
+      // are lost because they are appended to this path.)
+      $plugin['footnotes']['path'] = drupal_get_path('module', 'footnotes_wysiwyg') . '/ckeditor_plugin/';
+      $plugin['footnotes']['extended_valid_elements'] = array('fn');
+      return $plugin;
+      break;
+  }
+}
+

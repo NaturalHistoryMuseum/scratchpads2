@@ -1,0 +1,13 @@
+name = Footnotes with Views 
+description = Add views support to the footnotes module by allowing you to cut the footnotes from the rest of the body (or teaser).
+dependencies[] = footnotes
+dependencies[] = views
+package = Other
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-03-13
+version = "7.x-2.5"
+core = "7.x"
+project = "footnotes"
+datestamp = "1300041367"
+
