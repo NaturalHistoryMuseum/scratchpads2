@@ -39,6 +39,7 @@ function field_schema_alter(&$schema){
       ),
       'entity' => array(
         'type' => 'text',
+        'size' => 'big',
         'not null' => TRUE,
         'serialize' => TRUE
       )
