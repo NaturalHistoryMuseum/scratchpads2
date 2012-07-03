@@ -30,6 +30,24 @@ function scratchpads_block_view_alter(&$data, $block){
   }
 }
 
+/**
+ * Implements hook_preprocess_maintenance_page().
+ * 
+ * This is a copy from the Bartik theme.
+ */
+function scratchpads_preprocess_maintenance_page(&$variables){
+  // By default, site_name is set to Drupal if no db connection is available
+  // or during site installation. Setting site_name to an empty string makes
+  // the site and update pages look cleaner.
+  // @see template_preprocess_maintenance_page
+  if(!$variables['db_is_active']){
+    $variables['site_name'] = '';
+  }
+  if(function_exists('alpha_css_include')){
+    alpha_css_include();
+  }
+}
+
 function scratchpads_contextual_links_view_alter(&$element, &$items){
   if(isset($element['#element']['#block'])){
     // Remove contextual links for some blocks
@@ -268,7 +286,7 @@ function scratchpads_preprocess_page(&$vars){
  */
 function scratchpads_preprocess_zone(&$vars){
   if($vars['elements']['#zone'] == 'content'){
-  	// Add a class so we know when there's a side bar or not
+    // Add a class so we know when there's a side bar or not
     if(!empty($vars['elements']['sidebar'])){
       $vars['content_attributes_array']['class'][] = 'has-sidebar';
     }
