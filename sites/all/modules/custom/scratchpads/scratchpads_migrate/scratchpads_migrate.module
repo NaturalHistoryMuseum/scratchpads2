@@ -2,7 +2,6 @@
 define("MIGRATE_NONE", 0);
 define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
-
 /**
  * Add the database connection.
  * 
@@ -24,14 +23,7 @@ Database::addConnectionInfo('scratchpad_1', 'default', array(
 ));
 //----------
  */
-/**
- * Implements hook_init().
- * 
- * Include the settings file mentioned above.
- */
-function scratchpads_migrate_init(){
-  require_once (drupal_realpath('public://scratchpad_1_database.php'));
-}
+require_once (conf_path() . '/files/scratchpad_1_database.php');
 
 function scratchpads_migrate_menu(){
   $items['mig'] = array(
