@@ -82,9 +82,6 @@ function scratchpad_logins(){
 }
 
 function scratchpad_logins_submit(){
-  // If we're not offline, then we can use the nice URL, else we need to divert
-  // via /user (which won't allow us to alter whom we are logged in as if we are
-  // already logged in).
   global $user;
   if(variable_get('site_offline', 0) && !$user->uid){
     openid_begin($_POST['openid'], url('user', array(

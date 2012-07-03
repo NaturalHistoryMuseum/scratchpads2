@@ -31,3 +31,12 @@ function scratchpads_logins_menu(){
     )
   );
 }
+
+/**
+ * Implements hook_menu_site_status_alter().
+ */
+function scratchpads_logins_menu_site_status_alter(&$menu_site_status, $path){
+  if(arg(0) == 'logins'){
+    $menu_site_status = MENU_SITE_ONLINE;
+  }
+}
