@@ -29,8 +29,9 @@ Database::addConnectionInfo('scratchpad_1', 'default', array(
  * 
  * Include the settings file mentioned above.
  */
-function scratchpads_migrate_init(){}
-require_once (drupal_realpath('public://scratchpad_1_database.php'));
+function scratchpads_migrate_init(){
+  require_once (drupal_realpath('public://scratchpad_1_database.php'));
+}
 
 function scratchpads_migrate_menu(){
   $items['mig'] = array(
