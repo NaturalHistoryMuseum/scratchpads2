@@ -38,7 +38,7 @@ class MigrateDestinationVotingapi extends MigrateDestination {
     migrate_instrument_start(__METHOD__);
     
     foreach ($ids as $id) {
-      $votes[]->vote_id = $id;
+      $votes[]['vote_id'] = $id;
     }
     votingapi_delete_votes($votes);
     

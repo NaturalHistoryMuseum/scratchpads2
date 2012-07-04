@@ -3,7 +3,7 @@ description = "Adds migrate module integration with contrib modules and other mi
 core = 7.x
 package=Development
 
-dependencies[] = migrate
+dependencies[] = migrate (>2.3)
 files[] = addressfield.inc
 files[] = cck_phone.inc
 files[] = entity_api.inc
@@ -22,9 +22,9 @@ files[] = user_relationships.inc
 files[] = webform.inc
 files[] = tests/pathauto.test
 
-; Information added by drupal.org packaging script on 2012-03-21
-version = "7.x-2.3"
+; Information added by drupal.org packaging script on 2012-06-02
+version = "7.x-2.4"
 core = "7.x"
 project = "migrate_extras"
-datestamp = "1332348948"
+datestamp = "1338662478"
 

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Migrate Extras Media feature.
+ */
+
+include_once('migrate_extras_media.features.inc');

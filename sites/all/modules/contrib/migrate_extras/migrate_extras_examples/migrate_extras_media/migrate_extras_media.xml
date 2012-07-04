@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source_data>
+  <item>
+    <id>3</id>
+    <title>Simple example</title>
+    <body>This is pretty straight-forward.</body>
+    <document>
+      <filename>docs/test_doc.txt</filename>
+    </document>
+    <video>
+      <uri>http://www.youtube.com/watch?v=tgbNymZ7vqY</uri>
+      <description>Best video ever</description>
+    </video>
+  </item>
+  <item>
+    <id>8</id>
+    <title>Another example</title>
+    <body><![CDATA[So is this. Well, except for the image here, which we want to translate
+      from an &lt;img&gt; tag to Media module tagging:
+      <img src="images/watchdog-ok.png" />]]>
+    </body>
+    <document>
+      <filename>docs/random.docx</filename>
+    </document>
+      <image>
+        <filename>images/watchdog-ok.png</filename>
+        <description>A simple checkmark</description>
+      </image>
+    <video>
+      <uri>http://www.youtube.com/watch?v=kfVsfOSbJY0</uri>
+      <description>NOT the best video ever</description>
+    </video>
+  </item>
+</source_data>

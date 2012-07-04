@@ -33,7 +33,7 @@ Webform
 
 Compatibility
 -------------
-This release of Migrate Extras requires Migrate V2.2 or later.
+This release of Migrate Extras requires Migrate V2.4-beta1 or later.
 
 Migrate_Extras_Examples
 ----------------

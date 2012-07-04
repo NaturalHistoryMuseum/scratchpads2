@@ -3,14 +3,13 @@
 /**
  * @file
  * Support for entity types implementing the Entity API.
- *
- * @todo Remove this when the class lands in migrate_extras (http://drupal.org/node/1133914)
  */
 
 /**
  * Destination class implementing migration into entity types.
  */
 class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
+
   /**
    * Info about the current entity type.
    *
@@ -26,21 +25,42 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
   protected $id;
 
   /**
-   * Get the schema for the base key.
+   * Name of the entity revision key (for example, vid for nodes).
+   *
+   * @var string
+   */
+  protected $revision;
+
+  /**
+   * Gets the schema for the base key(s) of an entity type.
    *
    * @param string $entity_type
+   *   A Drupal entity type.
    */
   static public function getKeySchema($entity_type = NULL) {
-    // Done this way so that the Migrate UI doesn't blow
-    // up trying to call getKeySchema without params.
+    // Migrate UI invokes $destination->getKeySchema() without any parameters.
     if (!$entity_type) {
-      return array();
+      if (isset($this)) {
+        if ($this instanceof MigrateDestination) {
+          $entity_type = $this->entityType;
+        }
+        elseif ($this instanceof Migration) {
+          $entity_type = $this->destination->entityType;
+        }
+      }
+      else {
+        return array();
+      }
     }
 
     $info = entity_get_info($entity_type);
     $schema = drupal_get_schema($info['base table']);
+
     $key = isset($info['entity keys']['name']) ? $info['entity keys']['name'] : $info['entity keys']['id'];
     $key_schema = $schema['fields'][$key];
+
+    $revision_key = isset($info['entity keys']['revision']) ? $info['entity keys']['revision'] : NULL;
+    $revision_schema = empty($revision_key) ? NULL : $schema['fields'][$revision_key];
 
     // We can't have any form of serial fields here, since the mapping table
     // already has it's own.
@@ -49,7 +69,12 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
       $key_schema['type'] = 'int';
     }
 
-    return array($key => $key_schema);
+    $return = array($key => $key_schema);
+    if (!empty($revision_key)) {
+      $return[$revision_key] = $revision_schema;
+    }
+
+    return $return;
   }
 
   /**
@@ -75,17 +100,20 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
 
     $this->info = entity_get_info($entity_type);
     $this->id = isset($this->info['entity keys']['name']) ? $this->info['entity keys']['name'] : $this->info['entity keys']['id'];
+    $this->revision = isset($this->info['entity keys']['revision']) ? $this->info['entity keys']['revision'] : NULL;
   }
 
   /**
    * Returns a list of fields available to be mapped for entities attached to
    * a particular bundle.
    *
+   * @param Migration $migration
+   *  Optionally, the migration containing this destination.
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
    */
-  public function fields() {
+  public function fields($migration = NULL) {
     $properties = entity_get_property_info($this->entityType);
     $fields = array();
 
@@ -102,36 +130,36 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
   }
 
   /**
-   * Delete an entity.
-   * @todo Support bulkRollback() once http://drupal.org/node/1124558 gets in.
+   * Deletes multiple entities.
    *
-   * @param $ids
-   *  Array of fields representing the key.
+   * @param array $ids
+   *   An array of entity ids of the entities to delete.
    */
-  public function rollback(array $ids) {
-    $id = reset($ids);
+  public function bulkRollback(array $ids) {
+    migrate_instrument_start('entity_delete_multiple');
+    $this->prepareRollback($ids);
+    $result = entity_delete_multiple($this->entityType, $ids);
+    $this->completeRollback($ids);
+    migrate_instrument_stop('entity_delete_multiple');
 
-    migrate_instrument_start('entity_delete');
-    $this->prepareRollback($id);
-    $result = entity_delete($this->entityType, $id);
-    $this->completeRollback($id);
-    migrate_instrument_stop('entity_delete');
     return $result;
   }
 
   /**
-   * Import a single entity.
+   * Imports a single entity.
    *
-   * @param $entity
-   *  Generic entity object, refilled with any fields mapped in the Migration.
-   * @param $row
-   *  Raw source data object - passed through to prepare/complete handlers.
+   * @param stdClass $entity
+   *   Generic entity object, refilled with any fields mapped in the Migration.
+   * @param stdClass $row
+   *   Raw source data object - passed through to prepare/complete handlers.
+   *
    * @return array
-   *  Array of key fields (entity id only in this case) of the entity that was
-   *  saved if successful. FALSE on failure.
+   *   An array of key fields (entity id, and revision id if applicable) of the
+   *   entity that was saved if successful. FALSE on failure.
    */
   public function import(stdClass $entity, stdClass $row) {
     $migration = Migration::currentMigration();
+
     // Updating previously-migrated content?
     if (isset($row->migrate_map_destid1)) {
       if (isset($entity->{$this->id})) {
@@ -143,17 +171,25 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
       else {
         $entity->{$this->id} = $row->migrate_map_destid1;
       }
-      if (!empty($this->info['entity keys']['revision'])) {
-        // We need to load the revision to allow updates. There might be a more
-        // efficent way to do this.
-        $old_entity = entity_load_single($this->entityType, $entity->{$this->id});
-        $revision_key = $this->info['entity keys']['revision'];
-        $entity->$revision_key = $old_entity->$revision_key;
+    }
+    else {
+      unset($entity->{$this->id});
+    }
+
+    if (isset($row->migrate_map_destid2)) {
+      if (isset($entity->{$this->revision})) {
+        if ($entity->{$this->revision} != $row->migrate_map_destid2) {
+          throw new MigrateException(t("Incoming revision !id and map destination revision !destid2 don't match",
+            array('!id' => $entity->{$this->revision}, '!destid2' => $row->migrate_map_destid2)));
+        }
+      }
+      else {
+        $entity->{$this->revision} = $row->migrate_map_destid2;
       }
     }
 
     if ($migration->getSystemOfRecord() == Migration::DESTINATION) {
-      if (empty($entity->{$this->id})) {
+      if (!isset($entity->{$this->id})) {
         throw new MigrateException(t('System-of-record is DESTINATION, but no destination id provided'));
       }
       // Load the entity that's being updated, update its values, then
@@ -162,17 +198,20 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
       if (empty($old_entity)) {
         throw new MigrateException(t("Failed to load entity of type %type and id %id", array('%type' => $this->entityType, '%id' => $entity->{$this->id})));
       }
+
+      // Prepare the entity to get the right array structure.
+      $this->prepare($entity, $row);
+
       foreach ($entity as $field => $value) {
         $old_entity->$field = $entity->$field;
       }
       $entity = $old_entity;
-      $this->prepare($entity, $row);
     }
     else {
       // Create a real entity object, update its values with the ones we have
       // and pass it along.
       $new_entity = array();
-      if (!empty($this->info['entity keys']['bundle'])) {
+      if (!empty($this->bundle) && !empty($this->info['entity keys']['bundle'])) {
         $new_entity[$this->info['entity keys']['bundle']] = $this->bundle;
       }
       $new_entity = entity_create($this->entityType, $new_entity);
@@ -181,7 +220,7 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
       }
 
       // If a destination id exists, the entity is obviously not new.
-      if (!empty($new_entity->{$this->id})) {
+      if (!empty($new_entity->{$this->id}) && isset($new_entity->is_new)) {
         unset($new_entity->is_new);
       }
       $entity = $new_entity;
@@ -192,6 +231,8 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
 
     migrate_instrument_start('entity_save');
     entity_save($this->entityType, $entity);
+    // It's probably not worth keeping the static cache around.
+    entity_get_controller($this->entityType)->resetCache();
     migrate_instrument_stop('entity_save');
 
     $this->complete($entity, $row);
@@ -203,13 +244,19 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
       else {
         $this->numCreated++;
       }
-      return array($entity->{$this->id});
+      $return = array($entity->{$this->id});
+
+      if (isset($entity->{$this->revision}) && $entity->{$this->revision} > 0) {
+        $return[] = array($entity->{$this->revision});
+      }
+
+      return $return;
     }
     return FALSE;
   }
 
   /**
-   * After the import do cleanup actions like clearing the field cache.
+   * Clear the field cache after an import or rollback.
    */
   public function postImport() {
     field_cache_clear();
@@ -217,5 +264,4 @@ class MigrateDestinationEntityAPI extends MigrateDestinationEntity {
   public function postRollback() {
     field_cache_clear();
   }
-
 }
