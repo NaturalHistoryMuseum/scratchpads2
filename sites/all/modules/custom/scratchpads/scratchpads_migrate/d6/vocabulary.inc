@@ -19,6 +19,7 @@ class DrupalVocabulary6Migration extends DrupalVocabularyMigration{
       'weight'
     ));
     $this->addFieldMapping(NULL, 'classification_type');
+    $this->addFieldMapping(NULL, 'module');
   }
 
   protected function vocabularyQuery(){
@@ -28,9 +29,16 @@ class DrupalVocabulary6Migration extends DrupalVocabularyMigration{
       'name',
       'description',
       'hierarchy',
-      'weight'
+      'weight',
+      'module'
     ));
-    $query->condition('module', 'taxonomy');
+    $query->condition('module', array(
+      'forum',
+      'scratchpadify',
+    	'taxonomy'
+    ), 'IN');
+    // We're not migrating image galleries vocabulary
+    $query->condition('name', 'Image Galleries', '!=');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
     return $query;

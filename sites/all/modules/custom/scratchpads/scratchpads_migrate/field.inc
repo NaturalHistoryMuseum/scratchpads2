@@ -16,8 +16,9 @@ abstract class DrupalFieldMigration extends DrupalMigration{
    */
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){
-    	 watchdog('scratchpads_migrate', 'nope');
-    	return FALSE;}
+      watchdog('scratchpads_migrate', 'nope');
+      return FALSE;
+    }
     // Check if this field has a different destination entity type / bundle
     $mapping = scratchpads_migrate_type_mappings($row->type_name);
     if($mapping && is_array($mapping)){
@@ -28,6 +29,10 @@ abstract class DrupalFieldMigration extends DrupalMigration{
       }
     }else{
       $row->entity_type = 'node';
+    }
+    // We want all image fields to use the media field
+    if($row->type == 'image' || $row->type == 'filefield'){
+      $row->field_name = 'field_media';
     }
     // Does an instance of this field already exists?
     if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){
@@ -76,10 +81,24 @@ class MigrateDestinationField extends MigrateDestination{
       'weight' => $row->weight,
       'type' => $row->widget_type,
       'module' => $row->widget_module,
-      'settings' => unserialize($row->widget_settings)
+      'settings' => unserialize($row->widget_settings),
+      'description' => $row->description
     );
+    $field_instance['display'] = unserialize($row->display_settings);
+    if(is_array($field_instance['display'])){
+      foreach(array_keys($field_instance['display']) as $display){
+        // Ensure it's an array
+        // Fields groups are added as a string here, so it's safe to remove
+        // FieldGroup import will handle the groups 
+        if(is_array($display)){
+          $field_instance['display'][$display]['type'] = $field_instance['display'][$display]['format'];
+        }else{
+          unset($field_instance['display'][$display]);
+        }
+      }
+    }
     // Only create if the field does not already exist
-    $field = field_read_field($object->field_name);
+    $field = field_info_field($object->field_name);
     if(empty($field)){
       // Create the field if it doesn't exist
       $field_config = array(
@@ -95,8 +114,47 @@ class MigrateDestinationField extends MigrateDestination{
         'translatable' => '1',
         'type' => $row->type
       );
+      // Instance alterations
+      drupal_alter('content_migrate_instance', $field_instance, $field_config);
       // Let content migrate module change all the field settings for D7 
       drupal_alter('content_migrate_field', $field_config, $field_instance);
+      // Merge settings
+      $field_instance['settings'] = array_merge_recursive($field_config['settings'], $field_instance['widget']['settings']);
+      // Make my own alterations
+      switch($field_config['type']){
+        case 'filefield':
+          $field_config['module'] = 'image';
+          $field_config['type'] = 'image';
+          break;
+      }
+      switch($field_instance['widget']['type']){
+        case 'image':
+          $field_instance['widget']['type'] = 'media_generic';
+          $field_instance['widget']['module'] = 'media';
+          $settings = array(
+            'file_extensions' => 'file_path',
+            'max_filesize' => 'max_filesize_per_file',
+            'file_directory' => 'file_path',
+            'description_field' => 'file_path',
+            'max_resolution' => 'max_resolution',
+            'min_resolution' => 'min_resolution',
+            'alt_field' => 'custom_alt',
+            'title_field' => 'custom_title'
+          );
+          foreach($settings as $new_setting => $old_setting){
+            if(isset($field_instance['widget']['settings'][$old_setting])){
+              $field_instance['widget']['settings'][$new_setting] = $field_instance['widget']['settings'][$old_setting];
+            }
+          }
+          break;
+      }
+      // Check the widget exists
+      if(!field_info_widget_types($field_instance['widget']['type'])){
+        throw new MigrateException(t('Field widget %widget does not exist', array(
+          '%widget' => $field_instance['widget']['type']
+        )));
+        return false;
+      }
       // Check the module exists - needs to happen here after the field has been altered
       if(!module_exists($field_config['module'])){
         throw new MigrateException(t('Module %module does not exist', array(

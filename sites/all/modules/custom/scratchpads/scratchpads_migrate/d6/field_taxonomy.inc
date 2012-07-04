@@ -45,8 +45,11 @@ class DrupalFieldTaxonomy6Migration extends DrupalFieldTaxonomyMigration{
       'required',
       'tags'
     ));
+    $query->condition('v.module', 'forum', '!=');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
+    // We're not migrating image galleries vocabulary
+    $query->condition('name', 'Image Galleries', '!=');
     $query->condition('vnt.type', array(
       DrupalField6Migration::excludedNodeTypes()
     ), 'NOT IN');

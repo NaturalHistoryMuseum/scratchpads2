@@ -31,7 +31,15 @@ class DrupalFieldBody6Migration extends DrupalFieldBodyMigration{
       'type',
       'body_label'
     ));
-    $query->condition('nt.type', DrupalField6Migration::excludedNodeTypes(), 'NOT IN');
+    // darwincore / location have body fields, but are hidden. Skip them 
+    $excluded_node_types = DrupalField6Migration::excludedNodeTypes();
+    // Add a few more node types we know to exclude
+    $excluded_node_types[] = 'darwincore';
+    $excluded_node_types[] = 'darwincorelocation';
+    $excluded_node_types[] = 'page';
+    $excluded_node_types[] = 'forum';
+    $excluded_node_types[] = 'links';
+    $query->condition('nt.type', $excluded_node_types, 'NOT IN');
     $query->condition('nt.has_body', 1);
     return $query;
   }

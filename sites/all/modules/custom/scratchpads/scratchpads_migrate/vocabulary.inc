@@ -8,66 +8,24 @@ abstract class DrupalVocabularyMigration extends DrupalMigration{
     $this->source = new MigrateSourceSQL($this->vocabularyQuery(), $this->sourceFields, NULL, $this->sourceOptions);
   }
 
-  /**
-   * Implementation of Migration::prepareRow().
-   */
-  public function prepareRow($vocabulary){
-    if(parent::prepareRow($vocabulary) === FALSE){return FALSE;}
-    // Check for collisions of the machine name.  If there is a collision, we
-    // don't bother importing the vocabulary (terms from the old site should 
-    // probably be imported into the new vocabulary anyway).    
-    $machine_name = preg_replace('/[^0-9a-z]/', '', preg_replace('/\ +/', '_', strtolower($vocabulary->name)));
-    $result = db_query('SELECT COUNT(*) AS machine_name_exists FROM {taxonomy_vocabulary} WHERE machine_name = :machine_name', array(
-      ':machine_name' => $machine_name
-    ))->fetch();
-    if($result->machine_name_exists){return FALSE;}
-    return TRUE;
-  }
-
-  /**
-   * Implementation of Migration::beginProcess().
-   */
   public function beginProcess($newStatus){
     parent::beginProcess($newStatus);
-    // Here we move asside the VIDs of existing vocabularies (that haven't been
-    // imported by this module).
-    //Migration::get
-    $current_migration = Migration::currentMigration();
-    $machine_name = $current_migration->getMachineName();
-    $results = db_select('migrate_map_' . drupal_strtolower($machine_name), 'm')->fields('m')->execute();
-    $vids = array(
-      -1
-    );
-    foreach($results as $row){
-      // We need destid1 to ensure we don't change that.
-      $vids[] = $row->destid1;
+    if($newStatus == Migration::STATUS_IMPORTING){
+      // Here we move asside the VIDs of existing vocabularies (that haven't been
+      // imported by this module).
+      $current_migration = Migration::currentMigration();
+      $machine_name = $current_migration->getMachineName();
+      $results = db_select('migrate_map_' . drupal_strtolower($machine_name), 'm')->fields('m')->execute();
+      $vids = array(
+        -1
+      );
+      foreach($results as $row){
+        // We need destid1 to ensure we don't change that.
+        $vids[] = $row->destid1;
+      }
+      db_update('taxonomy_vocabulary')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
+      db_update('taxonomy_term_data')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
     }
-    db_update('taxonomy_vocabulary')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
-    db_update('taxonomy_term_data')->expression('vid', 'vid + 10000000')->condition('vid', $vids, 'NOT IN')->execute();
-  }
-
-  /**
-   * Implementation of Migration::endProcess().
-   */
-  public function endProcess(){
-    parent::endProcess();
-    // We get the maximum vid below 10000000
-    $query = db_select('taxonomy_vocabulary', 't');
-    $query->addExpression('MAX(t.vid)', 'max_vid');
-    $query->condition('vid', 10000000, '<');
-    $max_vid = $query->execute()->fetch();
-    $max_vid = $max_vid->max_vid;
-    // And then reduce all the VIDs greater than 10000000 making sure there are
-    // no collisions.
-    db_update('taxonomy_vocabulary')->expression('vid', 'vid - :value_to_reduce', array(
-      ':value_to_reduce' => 10000000 - $max_vid
-    ))->condition('vid', 10000000, '>')->execute();
-    db_update('taxonomy_term_data')->expression('vid', 'vid - :value_to_reduce', array(
-      ':value_to_reduce' => 10000000 - $max_vid
-    ))->condition('vid', 10000000, '>')->execute();
-    // BUG fix: reset the auto increment field
-    $vid = db_query("SELECT MAX(vid) FROM {taxonomy_vocabulary}")->fetchField();
-    db_query("ALTER TABLE {taxonomy_vocabulary} AUTO_INCREMENT = {$vid}");
   }
 
   /**
@@ -110,38 +68,122 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
   }
 
   /**
-   * Delete a migrated vocabulary.
-   * 
-   * FIXME
-   */
-  public function rollback(array $key){
-    taxonomy_vocabulary_delete($key['destid1']);
-  }
-
-  /**
    * Import a single vocabulary.
    */
   public function import(stdClass $vocabulary, stdClass $row){
-    // Hacked a lot of code from this function that needs replacing.
+    $status = false;
     $this->prepare($vocabulary, $row);
-    // Set the machine name for this entity.  I'm sure there is a more "migrate"
-    // way of doing this, but it's not very apparent.
-    $vocabulary->machine_name = preg_replace('/[^0-9a-z_]/', '', preg_replace('/\ +/', '_', strtolower($vocabulary->name)));
-    // Is this a biological classifcation?
-    if(!empty($row->classification_type)){
-      itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $row->classification_type);
+    switch($row->module){
+      case 'forum':
+        // The forum classifcation should already exist if the forum module has been activated
+        if(!module_exists('forum')){
+          throw new MigrateException(t('Forum module is not active'));
+          return false;
+        }
+        $status = $this->updateVocabulary('forums', $row->vid);
+        variable_set('forum_nav_vocabulary', $row->vid);
+        break;
+      case 'scratchpadify':
+        switch($vocabulary->name){
+          case 'Keywords':
+            $machine_name = 'image_keywords';
+            break;
+          case 'Imaging Technique':
+            $machine_name = 'imaging_technique';
+            break;
+          case 'Preparation Technique':
+            $machine_name = 'preparation_technique';
+            break;
+        }
+        if(isset($machine_name)){
+          $status = $this->updateVocabulary($machine_name, $row->vid);
+        }else{
+          throw new MigrateException(t('Unknown scratchpadify vocabulary %name', array(
+            '%name' => $vocabulary->name
+          )));
+          return false;
+        }
+        break;
+      // If module is taxonomy, it's been created by user & just needs to bve created on the new site  
+      case 'taxonomy':
+        $vocabulary->machine_name = $this->machineName($vocabulary->name);
+        // Ensure the vocabulary doesn't already exist
+        $result = db_query('SELECT COUNT(*) AS machine_name_exists FROM {taxonomy_vocabulary} WHERE machine_name = :machine_name', array(
+          ':machine_name' => $vocabulary->machine_name
+        ))->fetch();
+        if($result->machine_name_exists){throw new MigrateException(t('Vocabulary %name already exists.', array(
+            '%name' => $vocabulary->machine_name
+          )));}
+        // Is this a biological classifcation?
+        if(!empty($row->classification_type)){
+          itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $row->classification_type);
+        }
+        // We need to insert a dummy row in to the taxonomy_vocabulary table first
+        // as we are specifying the VID of the taxonomy.
+        $vocabulary_array = (array)$vocabulary;
+        drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
+        if(taxonomy_vocabulary_save($vocabulary)){
+          $status = SAVED_NEW;
+        }
+        break;
     }
-    // We need to insert a dummy row in to the taxonomy_vocabulary table first
-    // as we are specifying the VID of the taxonomy.
-    $vocabulary_array = (array)$vocabulary;
-    drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
-    taxonomy_vocabulary_save($vocabulary);
-    $this->numCreated++;
-    watchdog('scratchpads_migrate', t('Created vocabulary %name'), array(
-      '%name' => $vocabulary->name
-    ), WATCHDOG_INFO);
-    return array(
-      $vocabulary->vid
-    );
+    if($status){
+      if($status == SAVED_UPDATED){
+        $this->numUpdated++;
+        $op = 'Updated';
+      }else{
+        $this->numCreated++;
+        $op = 'Created';
+      }
+      watchdog('scratchpads_migrate', t('!op vocabulary %name'), array(
+        '!op' => $op,
+        '%name' => $vocabulary->name
+      ), WATCHDOG_INFO);
+      return array(
+        $vocabulary->vid
+      );
+    }
+  }
+
+  /**
+   * Make a machine name
+   */
+  public function machineName($name){
+    return preg_replace('/[^0-9a-z_]/', '', preg_replace('/\ +/', '_', strtolower($name)));
+  }
+
+  /**
+   * Update a vocabulary using the machine name as key
+   */
+  public function updateVocabulary($machine_name, $vid){
+    // Load the forum vocabulary
+    $vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
+    if(!$vocabulary){
+      throw new MigrateException(t('Could not load the %name vocabulary', array(
+        '%name' => $machine_name
+      )));
+      return false;
+    }
+    try{
+      db_update('taxonomy_vocabulary')->fields(array(
+        'vid' => $vid
+      ))->condition('machine_name', $vocabulary->machine_name)->execute();
+      return SAVED_UPDATED;
+    }
+    catch(PDOException $e){
+      throw new MigrateException($e->getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Delete a migrated vocabulary.
+   */
+  public function rollback(array $key){
+    // Only delete taxonomy vocabularies
+    $vocabulary = taxonomy_vocabulary_load($key['destid1']);
+    if($vocabulary && $vocabulary->module == 'taxonomy'){
+      taxonomy_vocabulary_delete($key['destid1']);
+    }
   }
 }

@@ -16,16 +16,6 @@ abstract class DrupalFieldBodyMigration extends DrupalMigration{
    */
   public function prepareRow($row){
     if(parent::prepareRow($row) === FALSE){return FALSE;}
-    // darwincore / location have body fields, but are hidden. Skip them 
-    if(in_array($row->type, array(
-      'darwincore',
-      'darwincorelocation'
-    ))){
-      watchdog('scratchpads_migrate', t('Skipping body field for %type'), array(
-        '%type' => $row->type
-      ), WATCHDOG_NOTICE);
-      return false;
-    }
     // Check if this field has a different destination entity type / bundle
     $mapping = scratchpads_migrate_type_mappings($row->type);
     if($mapping && is_array($mapping) && isset($mapping['bundle'])){
@@ -72,6 +62,9 @@ class MigrateDestinationFieldBody extends MigrateDestination{
       $instance = node_add_body_field($object, $object->body_label);
       // Has the field been created?
       if(isset($instance['field_id'])){
+        // Do not show the summary
+        $instance['settings']['display_summary'] = 0;
+        field_update_instance($instance);
         $this->numCreated++;
         watchdog('scratchpads_migrate', t('Created body field for %type'), array(
           '%type' => $object->type

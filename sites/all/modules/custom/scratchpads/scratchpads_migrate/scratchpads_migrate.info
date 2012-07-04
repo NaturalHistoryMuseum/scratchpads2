@@ -6,6 +6,7 @@ dependencies[] = scratchpads_tweaks
 dependencies[] = migrate_d2d
 dependencies[] = content_migrate
 dependencies[] = migrate_ui
+dependencies[] = migrate_extras
 dependencies[] = darwincore
 
 ; Base classes
@@ -14,7 +15,6 @@ files[] = field.inc
 files[] = field_body.inc
 files[] = field_group.inc
 files[] = field_taxonomy.inc
-;files[] = views.inc
 files[] = vocabulary.inc
 
 ; D6 implementations
@@ -23,6 +23,10 @@ files[] = d6/field.inc
 files[] = d6/field_body.inc
 files[] = d6/field_group.inc
 files[] = d6/field_taxonomy.inc
+files[] = d6/forum.inc
+files[] = d6/file.inc
+files[] = d6/node.inc
+files[] = d6/og.inc
+files[] = d6/taxonomy.inc
 files[] = d6/user.inc
-;files[] = d6/views.inc
 files[] = d6/vocabulary.inc
