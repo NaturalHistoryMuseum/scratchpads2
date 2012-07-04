@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file
@@ -127,7 +126,9 @@ class MigrateDestinationTable extends MigrateDestination {
         $select->condition($key, $entity->{$key});
       }
       $old_entity = $select->execute()->fetchObject();
-
+      if (empty($old_entity)) {
+        throw new MigrateException(t('System-of-record is DESTINATION, but the destination entity does not exist'));
+      }
       foreach ($entity as $field => $value) {
         $old_entity->$field = $entity->$field;
       }
@@ -155,11 +156,13 @@ class MigrateDestinationTable extends MigrateDestination {
   /**
    * Returns a list of fields available to be mapped.
    *
+   * @param Migration $migration
+   *  Optionally, the migration containing this destination.
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
    */
-  public function fields() {
+  public function fields($migration = NULL) {
     $fields = array();
     foreach ($this->schema['fields'] as $column => $schema) {
       $fields[$column] = t('Type: !type', array('!type' => $schema['type']));

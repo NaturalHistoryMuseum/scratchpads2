@@ -11,12 +11,16 @@ class MigratePathEntityHandler extends MigrateDestinationHandler {
   }
 
   public function fields() {
-    // TODO: Only surface when path module is enabled, and for appropriate entities
-    return array('path' => t('Node: Path alias'));
+    if (module_exists('path')) {
+      return array('path' => t('Node: Path alias'));
+    }
+    else {
+      return array();
+    }
   }
 
   public function prepare($entity, stdClass $row) {
-    if (isset($entity->path)) {
+    if (module_exists('path') && isset($entity->path)) {
       $path = $entity->path;
       $entity->path = array();
       $entity->path['alias'] = $path;

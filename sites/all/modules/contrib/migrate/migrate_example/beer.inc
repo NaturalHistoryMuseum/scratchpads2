@@ -2,7 +2,22 @@
 
 /**
  * @file
- * A basic migration example.
+ * A basic example of using the Migrate module to import taxonomy, users, nodes,
+ * and comments.
+ *
+ * The basic idea is
+ * - The users in the source application are listed in the
+ *   migrate_example_beer_account table and are transformed into Drupal users.
+ * - Drupal "beer" nodes describe beers; The information to create the nodes
+ *   comes from the migrate_example_beer_node table.
+ * - Taxonomy terms for the beer nodes (ale, pilsner) come from the
+ *   migrate_example_beer_topic table and they are applied to nodes using the
+ *   source information in the migrate_example_beer_topic_node table.
+ * - Comments to be attached to the beer nodes are described in the source
+ *   migrate_example_beer_comment table.
+ *
+ * We will use the Migrate API to import and transform this data and turn it into
+ * a working Drupal system.
  */
 
 /**
@@ -78,11 +93,13 @@ class BeerTermMigration extends BasicExampleMigration {
         MigrateDestinationTerm::getKeySchema()
       );
 
-    // We are getting data from tables in the Drupal default database - first,
-    // set up a query for this data.
-    // Note that by ordering on style_parent, we guarantee root terms are
-    // migrated first, so the parent_name mapping below will find that the
-    // parent exists.
+    // In this example, we're using tables that have been added to the existing
+    // Drupal database but which are not Drupal tables. You can examine the
+    // various tables (starting here with migrate_example_beer_topic) using a
+    // database browser like phpMyAdmin.
+    // First, we set up a query for this data. Note that by ordering on
+    // style_parent, we guarantee root terms are migrated first, so the
+    // parent_name mapping below will find that the parent exists.
     $query = db_select('migrate_example_beer_topic', 'met')
              ->fields('met', array('style', 'details', 'style_parent', 'region', 'hoppiness'))
              // This sort assures that parents are saved before children.
@@ -144,6 +161,17 @@ class BeerTermMigration extends BasicExampleMigration {
          ->issueGroup(t('DNM'));
     $this->addFieldMapping('parent')
          ->issueGroup(t('DNM'));
+
+    // We conditionally DNM these fields, so your field mappings will be clean
+    // whether or not you have path and or pathauto enabled
+    if (module_exists('path')) {
+      $this->addFieldMapping('path')
+           ->issueGroup(t('DNM'));
+      if (module_exists('pathauto')) {
+        $this->addFieldMapping('pathauto')
+             ->issueGroup(t('DNM'));
+      }
+    }
   }
 }
 
@@ -164,11 +192,11 @@ class BeerUserMigration extends BasicExampleMigration {
     $this->description = t('Beer Drinkers of the world');
     $this->map = new MigrateSQLMap($this->machineName,
         array('aid' => array(
-                'type' => 'int',
-                'not null' => TRUE,
-                'description' => 'Account ID.'
-                )
-             ),
+              'type' => 'int',
+              'not null' => TRUE,
+              'description' => 'Account ID.'
+              )
+        ),
         MigrateDestinationUser::getKeySchema()
     );
     $query = db_select('migrate_example_beer_account', 'mea')
@@ -181,28 +209,33 @@ class BeerUserMigration extends BasicExampleMigration {
 
     // Mapped fields
 
-    // This is a shortcut you can use when the source and destination fields are
-    // identical
+    // This is a shortcut you can use when the source and destination field
+    // names are identical (i.e., the email address field is named 'mail' in
+    // both the source table and in Drupal).
     $this->addSimpleMappings(array('status', 'mail'));
 
-    // Dedupe assures that value is unique. Use it when source data is non-unique.
-    // Pass the Drupal table and column for determining uniqueness.
+    // Our source table has two entries for 'alice', but we must have a unique
+    // username in the Drupal 'users' table. dedupe() creates new, unique
+    // destination values when the source field of that value already exists.
+    // For example, if we're importing a user with name 'test' and a user
+    // 'test' already exists in the target, we'll create a new user named
+    // 'test_1'.
+    // dedupe() takes the Drupal table and column for determining uniqueness.
     $this->addFieldMapping('name', 'name')
          ->dedupe('users', 'name');
 
     // The migrate module automatically converts date/time strings to UNIX timestamps.
     $this->addFieldMapping('created', 'posted');
 
-    // TODO Add dedupe with custom replacement pattern.
-//    $this->addFieldMapping('mail', 'mail');
-
     $this->addFieldMapping('pass', 'password');
+
     // Instead of mapping a source field to a destination field, you can
     // hardcode a default value. You can also use both together - if a default
     // value is provided in addition to a source field, the default value will
     // be applied to any rows where the source field is empty or NULL.
     $this->addFieldMapping('roles')
-         ->defaultValue(2);
+         ->defaultValue(DRUPAL_AUTHENTICATED_RID);
+
     $this->addFieldMapping('field_migrate_example_gender', 'sex');
 
     // The source field has beer names separated by a pipe character ('|'). By
@@ -223,7 +256,7 @@ class BeerUserMigration extends BasicExampleMigration {
     // This is a shortcut you can use to mark several destination fields as DNM
     // at once
     $this->addUnmigratedDestinations(array('theme', 'signature', 'access', 'login',
-      'timezone', 'language', 'picture', 'is_new'));
+      'timezone', 'language', 'picture', 'is_new', 'signature_format', 'role_names'));
 
     // Oops, we made a typo - this should have been 'init'! If you have
     // migrate_ui enabled, look at the BeerUser info page - you'll see that it
@@ -232,9 +265,22 @@ class BeerUserMigration extends BasicExampleMigration {
     // where it highlights "init" as unmapped.
     $this->addFieldMapping('int')
          ->issueGroup(t('DNM'));
+
+    if (module_exists('path')) {
+      $this->addFieldMapping('path')
+           ->issueGroup(t('DNM'));
+      if (module_exists('pathauto')) {
+        $this->addFieldMapping('pathauto')
+             ->issueGroup(t('DNM'));
+      }
+    }
   }
 }
 
+/**
+ * The BeerNodeMigration uses the migrate_example_beer_node table as source
+ * and creates Drupal nodes of type 'Beer' as destination.
+ */
 class BeerNodeMigration extends BasicExampleMigration {
   public function __construct() {
     parent::__construct();
@@ -295,7 +341,8 @@ class BeerNodeMigration extends BasicExampleMigration {
 
     // To maintain node identities between the old and new systems (i.e., have
     // the same unique IDs), map the ID column from the old system to nid and
-    // set is_new to TRUE.
+    // set is_new to TRUE. This works only if we're importing into a system that
+    // has no existing nodes with the nids being imported.
     $this->addFieldMapping('nid', 'bid')
          ->description(t('Preserve old beer ID as nid in Drupal'));
     $this->addFieldMapping('is_new')
@@ -319,34 +366,53 @@ class BeerNodeMigration extends BasicExampleMigration {
     $this->addFieldMapping('migrate_example_beer_styles', 'terms')
          ->separator(',');
 
-    // Drupal 7 fields can have attributes such as text formats, or excerpts
+    // Some fields may have subfields such as text formats or summaries
     // (equivalent to teasers in previous Drupal versions).
-    // The source_field argument specifies what field in the source query maps
-    // to the corresponding attribute (excerpt in this case)
-    $arguments = MigrateTextFieldHandler::arguments(array('source_field' => 'excerpt'));
-    $this->addFieldMapping('body', 'body')
-         ->arguments($arguments);
-    // Since the excerpt is mapped via an argument, add a null mapping so it's
-    // not flagged as unmapped
-    $this->addFieldMapping(NULL, 'excerpt');
+    // These can be individually mapped as we see here.
+    $this->addFieldMapping('body', 'body');
+    $this->addFieldMapping('body:summary', 'excerpt');
 
     // Copy an image file, write DB record to files table, and save in Field storage.
-    // Note we specify the source query fields that will map to the file alt/title/description
-    // values.
-    $arguments = MigrateFileFieldHandler::arguments(drupal_get_path('module', 'migrate_example'),
-      'file_copy', FILE_EXISTS_RENAME, NULL, array('source_field' => 'image_alt'),
-      array('source_field' => 'image_title'), array('source_field' => 'image_description'));
-    $this->addFieldMapping('field_migrate_example_image', 'image')
-         ->arguments($arguments);
+    // We map the filename (relative to the source_dir below) to the field itself.
+    $this->addFieldMapping('field_migrate_example_image', 'image');
+    // Here we specify the directory containing the source files.
+    $this->addFieldMapping('field_migrate_example_image:source_dir')
+         ->defaultValue(drupal_get_path('module', 'migrate_example'));
+    // And we map the alt and title values in the database to those on the image.
+    $this->addFieldMapping('field_migrate_example_image:alt', 'image_alt');
+    $this->addFieldMapping('field_migrate_example_image:title', 'image_title');
 
-    // No unmapped source fields
+    // No description for images, only alt and title
+    $this->addUnmigratedSources(array('image_description'));
 
     // Unmapped destination fields
-    $this->addUnmigratedDestinations(array('name', 'created', 'changed', 'status',
-      'promote', 'revision', 'language'));
+    $this->addUnmigratedDestinations(array('created', 'changed', 'status',
+      'promote', 'revision', 'language', 'revision_uid', 'log', 'tnid',
+      'body:format', 'body:language', 'migrate_example_beer_styles:source_type',
+      'migrate_example_beer_styles:create_term', 'field_migrate_example_image:destination_dir',
+      'field_migrate_example_image:language', 'field_migrate_example_image:file_replace',
+      'field_migrate_example_image:preserve_files', 'field_migrate_example_country:format',
+      'field_migrate_example_country:language', 'comment',
+      'field_migrate_example_image:file_class', 'field_migrate_example_image:destination_file'));
+
+    if (module_exists('path')) {
+      $this->addFieldMapping('path')
+           ->issueGroup(t('DNM'));
+      if (module_exists('pathauto')) {
+        $this->addFieldMapping('pathauto')
+             ->issueGroup(t('DNM'));
+      }
+    }
+    if (module_exists('statistics')) {
+      $this->addUnmigratedDestinations(array('totalcount', 'daycount', 'timestamp'));
+    }
   }
 }
 
+/**
+ * Import items from the migrate_example_beer_comment table and make them into
+ * Drupal comment objects.
+ */
 class BeerCommentMigration extends BasicExampleMigration {
   public function __construct() {
     parent::__construct();
@@ -377,6 +443,7 @@ class BeerCommentMigration extends BasicExampleMigration {
     $this->addFieldMapping('uid', 'aid')
          ->sourceMigration('BeerUser')
          ->defaultValue(0);
+
     $this->addFieldMapping('pid', 'cid_parent')
          ->sourceMigration('BeerComment')
          ->description('Parent comment.');
@@ -386,7 +453,12 @@ class BeerCommentMigration extends BasicExampleMigration {
     // No unmapped source fields
 
     // Unmapped destination fields
-    $this->addUnmigratedDestinations(array('user_name', 'user_email', 'hostname',
-      'created', 'changed', 'thread', 'homepage', 'language'));
+    $this->addUnmigratedDestinations(array('hostname', 'created', 'changed',
+      'thread', 'homepage', 'language', 'comment_body:format', 'comment_body:language'));
+
+    if (module_exists('path')) {
+      $this->addFieldMapping('path')
+           ->issueGroup(t('DNM'));
+    }
   }
 }

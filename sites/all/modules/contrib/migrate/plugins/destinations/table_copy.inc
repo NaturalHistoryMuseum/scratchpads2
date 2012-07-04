@@ -76,7 +76,7 @@ class MigrateDestinationTableCopy extends MigrateDestination {
     }
   }
 
-  public function fields() {
+  public function fields($migration = NULL) {
     return array();
   }
 

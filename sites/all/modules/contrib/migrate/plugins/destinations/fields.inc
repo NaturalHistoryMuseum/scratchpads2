@@ -10,14 +10,43 @@ class MigrateFieldsEntityHandler extends MigrateDestinationHandler {
     $this->registerTypes(array('entity'));
   }
 
-  public function fields($entity_type, $bundle) {
+  /**
+   * Implementation of MigrateDestinationHandler::fields().
+   *
+   * @param $entity_type
+   *  The entity type (node, user, etc.) for which to list fields.
+   * @param $bundle
+   *  The bundle (article, blog, etc.), if any, for which to list fields.
+   * @param Migration $migration
+   *  Optionally, the migration providing the context.
+   * @return array
+   *  An array keyed by field name, with field descriptions as values.
+   */
+  public function fields($entity_type, $bundle, $migration = NULL) {
     $fields = array();
     $field_instance_info = field_info_instances($entity_type, $bundle);
     foreach ($field_instance_info as $machine_name => $instance) {
       $field_info = field_info_field($machine_name);
+      $type = $field_info['type'];
 
       $fields[$machine_name] = t('Field:') . ' ' . $instance['label'] .
         ' (' . $field_info['type'] . ')';
+
+      // Look for subfields
+      $class_list = _migrate_class_list('MigrateFieldHandler');
+      $disabled = unserialize(variable_get('migrate_disabled_handlers', serialize(array())));
+      foreach ($class_list as $class_name => $handler) {
+        if (!in_array($class_name, $disabled) && $handler->handlesType($type)
+            && method_exists($handler, 'fields')) {
+          migrate_instrument_start($class_name . '->fields');
+          $subfields = call_user_func(array($handler, 'fields'), $type,
+                                      $machine_name, $migration);
+          migrate_instrument_stop($class_name . '->fields');
+          foreach ($subfields as $subfield_name => $subfield_label) {
+            $fields[$machine_name . ':' . $subfield_name] = $subfield_label;
+          }
+        }
+      }
     }
 
     return $fields;
@@ -44,7 +73,6 @@ class MigrateFieldsEntityHandler extends MigrateDestinationHandler {
     }
     migrate_instrument_stop('MigrateDestinationEntity->prepareFields');
   }
-
 
   public function complete($entity, stdClass $row) {
     migrate_instrument_start('MigrateDestinationEntity->completeFields');
@@ -147,16 +175,32 @@ abstract class MigrateSimpleFieldHandler extends MigrateFieldHandler {
 
     // Let the derived class skip empty values.
     if ($this->skipEmpty) {
-      $values = array_filter($values);
+      $values = array_filter($values, array($this, 'notNull'));
     }
 
     // Setup the Field API array for saving.
     $delta = 0;
     foreach ($values as $value) {
-      $return[$language][$delta][$this->fieldValueKey] = $value;
+      if (is_array($language)) {
+        $current_language = $language[$delta];
+      }
+      else {
+        $current_language = $language;
+      }
+      $return[$current_language][] = array($this->fieldValueKey => $value);
       $delta++;
     }
     return isset($return) ? $return : NULL;
+  }
+
+  /**
+   * Returns TRUE only for values which are not NULL.
+   *
+   * @param $value
+   * @return bool
+   */
+  protected function notNull($value) {
+    return !is_null($value);
   }
 }
 
@@ -169,7 +213,7 @@ class MigrateTextFieldHandler extends MigrateFieldHandler {
     $arguments = array();
     if (!is_null($summary)) {
       $arguments['summary'] = $summary;
-   }
+    }
     if (!is_null($format)) {
       $arguments['format'] = $format;
     }
@@ -177,6 +221,18 @@ class MigrateTextFieldHandler extends MigrateFieldHandler {
       $arguments['language'] = $language;
     }
     return $arguments;
+  }
+
+  public function fields($type) {
+    $fields = array();
+    if ($type == 'text_with_summary') {
+      $fields['summary'] = t('Subfield: Summary of field contents');
+    }
+    $fields += array(
+      'format' => t('Subfield: Text format for the field'),
+      'language' => t('Subfield: Language for the field'),
+    );
+    return $fields;
   }
 
   public function prepare($entity, array $field_info, array $instance, array $values) {
@@ -199,10 +255,24 @@ class MigrateTextFieldHandler extends MigrateFieldHandler {
     foreach ($values as $value) {
       $item = array();
       if (isset($arguments['summary'])) {
-        $item['summary'] = $arguments['summary'];
+        if (is_array($arguments['summary'])) {
+          $item['summary'] = $arguments['summary'][$delta];
+        }
+        else {
+          $item['summary'] = $arguments['summary'];
+        }
       }
-      $format = isset($arguments['format']) ?
-        $arguments['format'] : $destination->getTextFormat();
+      if (isset($arguments['format'])) {
+        if (is_array($arguments['format'])) {
+          $format = $arguments['format'][$delta];
+        }
+        else {
+          $format = $arguments['format'];
+        }
+      }
+      else {
+        $format = $destination->getTextFormat();
+      }
       $item['format'] = $item['value_format'] = $format;
       // Make sure the value will fit
       if ($max_length) {
@@ -222,7 +292,13 @@ class MigrateTextFieldHandler extends MigrateFieldHandler {
         $item['value'] = $value;
       }
 
-      $return[$language][$delta] = $item;
+      if (is_array($language)) {
+        $current_language = $language[$delta];
+      }
+      else {
+        $current_language = $language;
+      }
+      $return[$current_language][] = $item;
       $delta++;
     }
 
@@ -246,8 +322,14 @@ class MigrateTaxonomyTermReferenceFieldHandler extends MigrateFieldHandler {
     $this->registerTypes(array('taxonomy_term_reference'));
   }
 
+  public function fields($type) {
+    return array(
+      'source_type' => t('Option: Set to \'tid\' when the value is a source ID'),
+      'create_term' => t('Option: Set to TRUE to create referenced terms when necessary')
+    );
+  }
+
   public function prepare($entity, array $field_info, array $instance, array $values) {
-    $migration = Migration::currentMigration();
     if (isset($values['arguments'])) {
       $arguments = $values['arguments'];
       unset($values['arguments']);
@@ -300,19 +382,66 @@ class MigrateTaxonomyTermReferenceFieldHandler extends MigrateFieldHandler {
 
     $language = $this->getFieldLanguage($entity, $field_info, $arguments);
     $result = array();
+    $delta = 0;
     foreach ($tids as $tid) {
-      $result[$language][] = array('tid' => $tid);
+      if (is_array($language)) {
+        $current_language = $language[$delta];
+      }
+      else {
+        $current_language = $language;
+      }
+      $result[$current_language][] = array('tid' => $tid);
+      $delta++;
     }
     return $result;
   }
 }
 
-class MigrateFileFieldHandler extends MigrateFieldHandler {
-  public function __construct() {
-    $this->registerTypes(array('file', 'image'));
+/**
+ * The next generation of file field handler. This class focuses on the file
+ * field itself, and offloads understanding of obtaining the actual file and
+ * dealing with the file entity to an embedded MigrateFileInterface instance.
+ */
+abstract class MigrateFileFieldBaseHandler extends MigrateFieldHandler {
+  /**
+   * Implementation of MigrateFieldHandler::fields().
+   *
+   * @param $type
+   *  The file field type - 'file', 'image', etc.
+   * @param $parent_field
+   *  Name of the parent field.
+   * @param Migration $migration
+   *  The migration context for the parent field. We can look at the mappings
+   *  and determine which subfields are relevant.
+   * @return array
+   */
+  public function fields($type, $parent_field, $migration = NULL) {
+    $fields = array(
+      'file_class' => t('Option: <a href="@doc">Implementation of MigrateFile to use</a>',
+        array('@doc' => 'http://drupal.org/node/1540106#file_class')),
+      'language' => t('Subfield: Language for the field'),
+    );
+
+    // If we can identify the file class mapped to this field, pick up the
+    // subfields specific to that class.
+    if ($migration) {
+      $field_mappings = $migration->getFieldMappings();
+      $class_mapping = $parent_field . ':file_class';
+      if (isset($field_mappings[$class_mapping])) {
+        $mapping = $field_mappings[$class_mapping];
+        $file_class = $mapping->getDefaultValue();
+      }
+    }
+    if (!isset($file_class)) {
+      $file_class = 'MigrateFileUri';
+    }
+    $fields += call_user_func(array($file_class, 'fields'));
+    return $fields;
   }
 
   /**
+   * Implementation of MigrateFieldHandler::prepare().
+   *
    * Prepare file data for saving as a Field API file field.
    *
    * @return array
@@ -326,376 +455,201 @@ class MigrateFileFieldHandler extends MigrateFieldHandler {
     else {
       $arguments = array();
     }
-    $migration = Migration::currentMigration();
-    $language = $this->getFieldLanguage($entity, $field_info, $arguments);
 
-    if (empty($arguments['file_function'])) {
-      $arguments['file_function'] = 'file_copy';
+    $language = $this->getFieldLanguage($entity, $field_info, $arguments);
+    $migration = Migration::currentMigration();
+
+    // One can override the source class via CLI or drushrc.php (the
+    // option is named file_function for historical reasons)
+    if ($migration->getOption('file_function')) {
+      $file_class = $migration->getOption('file_function');
+    }
+    elseif (!empty($arguments['file_class'])) {
+      $file_class = $arguments['file_class'];
+    }
+    else {
+      $file_class = 'MigrateFileUri';
     }
 
-    if ($arguments['file_function'] == 'file_blob') {
-      if (empty($arguments['source_path'])) {
-        throw new MigrateException("You must specify a filename in the 'source_path' argument for file_blog migrations.");
-        return FALSE;
-      }
-      $destination_dir = $this->destinationDir($field_info, $instance);
-      $destination_file = file_stream_wrapper_uri_normalize($destination_dir . "/" . str_replace('/', '-', $arguments['source_path']));
-      if (!file_exists($destination_file)) {
-        file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
-        try {
-          $return = (bool) file_put_contents($destination_file, $values[0]);
-        }
-        catch (Exception $exception) {
-          throw new MigrateException("Can't write file to: $destination_file");
-          return FALSE;
-        }
-      }
+    // If a destination directory (relative to the Drupal public files directory)
+    // is not explicitly provided, use the default for the field.
+    if (empty($arguments['destination_dir'])) {
+      $arguments['destination_dir'] = $this->destinationDir($field_info, $instance);
     }
 
     $return = array();
-    foreach ($values as $delta => $value) {
-      // Empty stuff is skipped
+    $delta = 0;
+    // Note that what $value represents depends on the file class -
+    // MigrateFileUri expects a filespec/URI, MigrateFileFid expects a file ID,
+    // etc.
+    foreach ($values as $value) {
       if ($value) {
-        $file_array = $this->buildFileArray($entity, $field_info, $instance, $migration, $arguments, $value);
-        if (!empty($file_array)) {
-          $return[$language][$delta] = $file_array;
-          if (!empty($arguments['preserve_files'])) {
-            file_usage_add((object)$file_array, 'migrate', 'file', $file_array['fid']);
-          }
+        // If the parent entity doesn't have an explicit uid, give ownership
+        // to the anonymous account
+        $owner = isset($entity->uid) ? $entity->uid : 0;
+        // Call the MigrateFileInterface implementation to do the real work
+        $source = new $file_class($arguments);
+        $file = $source->processFile($value, $owner);
+
+        // Assuming we got back a valid file ID, build the proper field
+        // array out of it. We assume that if we did not get back a fid, the
+        // MigrateFile class has saved a message indicating why.
+        if ($file) {
+          $field_array = array('fid' => $file->fid);
+          $return[$language][] = $this->buildFieldArray($field_array, $arguments, $delta);
         }
       }
+      $delta++;
     }
+
     return $return;
   }
 
+  /**
+   * Determine where the migrated file should go.
+   *
+   * @param $field_info
+   *  Field API info on the general field.
+   * @param $instance
+   *  Field API info on the field instance for this entity type.
+   * @return string
+   *  Directory relative to the Drupal public files directory.
+   */
   protected function destinationDir($field_info, $instance) {
     $destination_dir = file_field_widget_uri($field_info, $instance);
     return $destination_dir;
   }
 
   /**
-   * Parses file information to create an appropriate data array.
+   * Add any type-specific subfields to a file field array.
    *
-   * @param $entity
-   * @param array $field_info
-   * @param array $instance
-   * @param $migration
+   * @param $field_array
+   *  The field array so far (generally will just contain a fid).
    * @param $arguments
-   *   Supported arguments are
-   *   - 'file_function': One of
-   *     - 'file_fid' if the incoming $value is a fid that we can use as is.
-   *     - 'file_copy' to use the file_copy() function
-   *     - 'file_move' to use file_move()
-   *     - 'file_fast' to use the existing file
-   *     - 'file_link'
-   *     - 'file_blob'
-   *   - 'file_replace' See file_copy(). FILE_EXISTS_REPLACE, FILE_EXISTS_RENAME,
-   *      or FILE_EXISTS_ERROR.
-   *   - 'source_path': A path to be prepended to the path of the source item.
-   * @param $value
-   *   If file_function is set to file_fid, this will be a fid. Otherwise, it may
-   *   be a path to the source file, or a json-encoded array of properties:
-   *   - path
-   *   - alt
-   *   - title
-   *   - description
-   *   - display
-   * @return array
+   *  Array of arguments passed to the field handler, from which we'll extract
+   *  our own subfields.
+   * @param $delta
+   *  Index of field values being worked on, for pulling the corresponding
+   *  subfield values if we have an array of them.
    */
-  protected function buildFileArray($entity, array $field_info, array $instance, $migration, $arguments, $value) {
-    static $fids;
+  abstract protected function buildFieldArray($field_array, $arguments, $delta);
+}
 
-    // If we've been passed a fid, all the hard work's been done
-    if ($arguments['file_function'] == 'file_fid') {
-      $file = file_load($value);
-      if (empty($file)) {
-        $migration->saveMessage(t('The fid provided to create a file field (%fid) does not exist in the managed_file table.', array('%fid' => $value)), Migration::MESSAGE_ERROR);
-        return;
-      }
-    }
-    else {
-      // Is the value a straight path, or JSON containing a set of properties?
-      if ($value{0} == '{') {
-        $properties = drupal_json_decode($value);
-        $path = $properties['path'];
-        // Properties passed in with the image override any set via arguments
-        if (!empty($properties['alt'])) {
-          $arguments['alt'] = $properties['alt'];
-        }
-        if (!empty($properties['title'])) {
-          $arguments['title'] = $properties['title'];
-        }
-        if (!empty($properties['description'])) {
-          $arguments['description'] = $properties['description'];
-        }
-        if (!empty($properties['display'])) {
-          $arguments['display'] = $properties['display'];
-        }
-      }
-      else {
-        $path = $value;
-      }
-
-      // One can override a file_function via CLI or drushrc.php
-      if ($migration->getOption('file_function')) {
-        $file_function = $migration->getOption('file_function');
-      }
-      else {
-        $file_function = $arguments['file_function'];
-      }
-
-      $destination_dir = $this->destinationDir($field_info, $instance);
-      file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
-      if (!empty($arguments['source_path'])) {
-        // $full_path needs adjusting for file_blob
-        if ($file_function == 'file_blob') {
-          $full_path = file_stream_wrapper_uri_normalize($destination_dir . "/" . str_replace('/', '-', $arguments['source_path']));
-        }
-        else {
-          $full_path = rtrim($arguments['source_path'], "/\\") .
-            '/' . ltrim($path, "/\\");
-        }
-      }
-      else {
-        $full_path = $path;
-      }
-      $remote = FALSE;
-
-      // TODO: belongs in prepare or validate?
-      // Check that source exists. If not, mark the entity as 'needs_update' and bail.
-      // Sometimes the source file arrives later, when rsync is slower than DB.
-      if (!is_file($full_path)) {
-        // is_file() won't handle URLs, check to see if we have a remote file
-        // (only relevant in the file_copy case)
-        if ($file_function == 'file_copy') {
-          $headers = @get_headers($full_path);
-          if (is_array($headers) && preg_match('%^HTTP/[0-9]\.[0-9] 200 OK$%', $headers[0])) {
-            $remote = TRUE;
-          }
-        }
-        if (!$remote) {
-          $migration->saveMessage(t('Source file does not exist: !path',
-            array('!path' => $full_path)), Migration::MESSAGE_WARNING);
-          $migration->needsUpdate = MigrateMap::STATUS_NEEDS_UPDATE;
-          return;
-        }
-      }
-
-      if ($remote) {
-        $destination_file = $destination_dir . "/" . basename($full_path);
-      }
-      else {
-        $destination_file = file_stream_wrapper_uri_normalize($destination_dir . "/" . str_replace('/', '-', basename($full_path)));
-      }
-
-      $file_replace = empty($arguments['file_replace']) ? FILE_EXISTS_RENAME : $arguments['file_replace'];
-      $destination_file = file_destination($destination_file, $file_replace);
-      $real_destination_file = drupal_realpath($destination_file);
-      $source = (object) array(
-        'uri' => $full_path,
-        'uid' => isset($entity->uid) ? $entity->uid : 0,
-        'filename' => basename($full_path),
-        'filemime' => file_get_mimetype($full_path),
-        'timestamp' => REQUEST_TIME,
-      );
-
-      // Check that destination does not exist. If it does, reuse it and return.
-      if (file_exists($real_destination_file)) {
-        // Save this file to DB.
-        if ($existing_files = file_load_multiple(array(), array('uri' => $destination_file))) {
-          // Existing record exists. Reuse it. TODO: Perhaps we never should re-use records.
-          $file = reset($existing_files);
-          $file = file_save($file);
-        }
-        else {
-          // Get this orphaned file into the file table.
-          $file = clone $source;
-          $file->fid = NULL;
-          $file->uri = $destination_file;
-          $file->status |= FILE_STATUS_PERMANENT; // Save a write in file_field_presave().
-          $file = file_save($file);
-        }
-      }
-      else {
-        migrate_instrument_start('MigrateFileFieldHandler file_function');
-        switch ($file_function) {
-          case 'file_copy':
-            if ($remote) {
-              $result = @copy($source->uri, $destination_file);
-              if ($result) {
-                $source->uri = $destination_file;
-                $file = file_save($source);
-              }
-              else {
-                $migration->saveMessage(t('Unable to copy file from !source',
-                  array('!source' => $source->uri)));
-              }
-            }
-            else {
-              $file = file_copy($source, $destination_dir, $file_replace);
-            }
-            break;
-          case 'file_move':
-            // file_move() does a copy then delete which slow. So we implement our own.
-            if (file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY)) {
-              if (rename($source->uri, $real_destination_file)) {
-                $file = clone $source;
-                $file->fid = NULL;
-                $file->uri = $destination_file;
-                $file->status |= FILE_STATUS_PERMANENT; // Save a write in file_field_presave().
-                $file = file_save($file);
-
-                // Inform modules that the file has been copied.
-                module_invoke_all('file_copy', $file, $source);
-                break;
-              }
-              else {
-                $migration->saveMessage(t('Unable to rename !source to !uri', array('!source' => $source->uri, '!uri' => $destination_file)), Migration::MESSAGE_ERROR);
-                return;
-              }
-            }
-            else {
-              $migration->saveMessage(t('Unable to prepare directory !dir', array('!dir' => $destination_dir)), Migration::MESSAGE_ERROR);
-              return;
-            }
-            break;
-          case 'file_fast':
-            // Keep re-using an existing file. We still benefit from the file_exists() check above.
-            if (!isset($fids[$source])) {
-              $full_path = DRUPAL_ROOT . '/misc/druplicon.png';
-              $source = (object) array(
-                'uri' => $full_path,
-                'uid' => isset($entity->uid) ? isset($entity->uid) : 0,
-                'filename' => basename($full_path),
-                'filemime' => file_get_mimetype($full_path),
-                'timestamp' => REQUEST_TIME,
-              );
-              $file = file_copy($source, $destination_dir, FILE_EXISTS_RENAME);
-              $fid = $file->fid;
-            }
-            else {
-              $file = new stdClass();
-              $file->fid = $fids[$source];
-            }
-            break;
-          case 'file_link':
-          case 'file_blob':
-            // The file is copied by some outside process (e.g., rsync), and we
-            // just need to make sure it's present and has a files table row.
-            // Not present - skip
-            migrate_instrument_start('file_link: file_exists');
-            if (!file_exists($full_path)) {
-              migrate_instrument_stop('file_link: file_exists');
-              $message = t('File does not exist in Drupal files directory: !path',
-                array('!path' => $full_path));
-              if (!empty($arguments['throw_error'])) {
-                throw new MigrateException($message, MigrationBase::MESSAGE_ERROR);
-              }
-              else {
-                $migration->saveMessage($message, MigrationBase::MESSAGE_INFORMATIONAL);
-              }
-              $message_saved = TRUE;
-              // TODO     $migration->needsUpdate = MigrateMap::STATUS_NEEDS_UPDATE;
-              continue;
-            }
-            migrate_instrument_stop('file_link: file_exists');
-
-            // Files table entry exists? Use that...
-            migrate_instrument_start('file_link: select existing');
-            // Note that indexing files.filepath can be very helpful.
-            // TODO: Might be better way that straight query in D7?
-            $file = db_select('file_managed', 'f')
-                    ->fields('f')
-                    ->condition('uri', $full_path)
-                    ->execute()
-                    ->fetchObject();
-            migrate_instrument_stop('file_link: select existing');
-            if (!$file) {
-              migrate_instrument_start('file_link: create file record');
-              $file = clone $source;
-              $file->uri = $full_path;
-              $file->uid = isset($entity->uid) ? $entity->uid : 0;
-              $file->status |= FILE_STATUS_PERMANENT;
-              $file = file_save($file);
-              migrate_instrument_stop('file_link: create file record');
-            }
-            break;
-        }
-        migrate_instrument_stop('MigrateFileFieldHandler file_function');
-      }
-    }
-
-    if ($file) {
-      // Build up a return object.
-      $object_field['fid'] = $file->fid;
-      if (!empty($arguments['alt'])) {
-        $object_field['alt'] = $arguments['alt'];
-      }
-      else {
-        $object_field['alt'] = '';
-      }
-      if (!empty($arguments['title'])) {
-        $object_field['title'] = $arguments['title'];
-      }
-      else {
-        $object_field['title'] = '';
-      }
-      if (!empty($arguments['description'])) {
-        $object_field['description'] = $arguments['description'];
-      }
-      else {
-        $object_field['description'] = '';
-      }
-      if (!empty($arguments['display'])) {
-        $object_field['display'] = $arguments['display'];
-      }
-      else {
-        $object_field['display'] = TRUE;
-      }
-      return $object_field;
-    }
-    else {
-      $migration->saveMessage(t('Unable to create file record for value=%value, arguments=%arguments', array('%value' => print_r($value, TRUE), '%arguments' => print_r($arguments, TRUE))), Migration::MESSAGE_ERROR);
-    }
+/**
+ * Handle for file fields.
+ */
+class MigrateFileFieldHandler extends MigrateFileFieldBaseHandler {
+  public function __construct() {
+    $this->registerTypes(array('file'));
   }
 
-  /*
-   * Arguments for a file_field migration.
+  /**
+   * Implementation of MigrateFieldHandler::fields().
+   * Note that file and image fields support slightly different field lists.
    *
-   * @param source_path
-   *   Path to source file. In the case of file_blob, the desired filename to write.
-   * @param file_function
-   *   file_fast, file_move, file_copy, file_link, file_fid, or file_blob.
-   * @param file_replace
-   *   Value of $replace in that file function. Does not apply to file_fast(). Defaults to FILE_EXISTS_RENAME.
-   * @param language
-   *   Language of the text (defaults to destination language)
-   * @param alt
-   *   String to be used as the alt value for all file fields, or
-   *   array('source_field' => 'source_field_name') to obtain the alt value from
-   *   the query field named source_field_name.
-   * @param title
-   *   String to be used as the title value for all file fields, or
-   *   array('source_field' => 'source_field_name') to obtain the title value from
-   *   the query field named source_field_name.
-   * @param description
-   *   String to be used as the description value for all file fields, or
-   *   array('source_field' => 'source_field_name') to obtain the description value from
-   *   the query field named source_field_name.
-   * @param display
-   *   String to be used as the display value for all file fields, or
-   *   array('source_field' => 'source_field_name') to obtain the display value from
-   *   the query field named source_field_name.
+   * @param $type
+   *  The file field type - 'file' or 'image'
+   * @param $parent_field
+   *  Name of the parent field.
+   * @param Migration $migration
+   *  The migration context for the parent field. We can look at the mappings
+   *  and determine which subfields are relevant.
+   * @return array
    */
- static function arguments($source_path = NULL, $file_function = 'file_copy',
-      $file_replace = FILE_EXISTS_RENAME, $language = NULL, $alt = NULL, $title = NULL,
-      $description = NULL, $display = NULL, $preserve_files = FALSE) {
-    return get_defined_vars();
+  public function fields($type, $parent_field, $migration = NULL) {
+    $fields = parent::fields($type, $parent_field, $migration);
+    $fields += array(
+      'description' => t('Subfield: String to be used as the description value'),
+      'display' => t('Subfield: String to be used as the display value'),
+    );
+    return $fields;
+  }
+
+  /**
+   * Implementation of MigrateFileFieldBaseHandler::buildFieldArray().
+   */
+  protected function buildFieldArray($field_array, $arguments, $delta) {
+    if (isset($arguments['description'])) {
+      if (is_array($arguments['description'])) {
+        $field_array['description'] = $arguments['description'][$delta];
+      }
+      else {
+        $field_array['description'] = $arguments['description'];
+      }
+    }
+    else {
+      $field_array['description'] = '';
+    }
+
+    if (isset($arguments['display'])) {
+      if (is_array($arguments['display'])) {
+        $field_array['display'] = $arguments['display'][$delta];
+      }
+      else {
+        $field_array['display'] = $arguments['display'];
+      }
+    }
+    else {
+      $field_array['display'] = 1;
+    }
+    return $field_array;
   }
 }
 
-// TODO: node_reference and user_reference are contrib fields - should be moved
-// to CCK, or migrate_extras
+/**
+ * Handle for image fields;
+ */
+class MigrateImageFieldHandler extends MigrateFileFieldBaseHandler {
+  public function __construct() {
+    $this->registerTypes(array('image'));
+  }
+
+  /**
+   * Implementation of MigrateFieldHandler::fields().
+   * Note that file and image fields support slightly different field lists.
+   *
+   * @param $type
+   *  The file field type - 'file' or 'image'
+   * @param $parent_field
+   *  Name of the parent field.
+   * @param Migration $migration
+   *  The migration context for the parent field. We can look at the mappings
+   *  and determine which subfields are relevant.
+   * @return array
+   */
+  public function fields($type, $parent_field, $migration = NULL) {
+    $fields = parent::fields($type, $parent_field, $migration);
+    $fields += array(
+      'alt' => t('Subfield: String to be used as the alt value'),
+      'title' => t('Subfield: String to be used as the title value'),
+    );
+    return $fields;
+  }
+
+  /**
+   * Implementation of MigrateFileFieldBaseHandler::buildFieldArray().
+   */
+  protected function buildFieldArray($field_array, $arguments, $delta) {
+    if (isset($arguments['alt'])) {
+      if (is_array($arguments['alt'])) {
+        $field_array['alt'] = $arguments['alt'][$delta];
+      }
+      else {
+        $field_array['alt'] = $arguments['alt'];
+      }
+    }
+    if (isset($arguments['title'])) {
+      if (is_array($arguments['title'])) {
+        $field_array['title'] = $arguments['title'][$delta];
+      }
+      else {
+        $field_array['title'] = $arguments['title'];
+      }
+    }
+    return $field_array;
+  }
+}
+
 class MigrateNodeReferenceFieldHandler extends MigrateSimpleFieldHandler {
   public function __construct() {
     parent::__construct(array(

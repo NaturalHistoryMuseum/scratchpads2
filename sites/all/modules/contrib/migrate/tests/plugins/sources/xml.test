@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Tests for the XML source plugins.
+ */
+
+/**
  * Test node migration.
  */
 class MigrateXMLUnitTest extends DrupalWebTestCase {

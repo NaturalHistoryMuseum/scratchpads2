@@ -116,7 +116,7 @@ function migrate_schema_log() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  * Drop map/message tables, in case implementing classes did not.
  */
 function migrate_uninstall() {
@@ -130,6 +130,13 @@ function migrate_uninstall() {
   foreach (db_find_tables('migrate_message_%') as $tablename) {
     db_drop_table($tablename);
   }
+
+  // Remove any file_usage entries we've written
+  if (db_table_exists('file_usage')) {
+    db_delete('file_usage')
+      ->condition('module', 'migrate')
+      ->execute();
+  }
 }
 
 /**
@@ -137,14 +144,16 @@ function migrate_uninstall() {
  */
 function migrate_update_7001() {
   $ret = array();
-  db_add_field('migrate_status', 'highwater', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-        'description' => 'Highwater mark for detecting updated content',
-      )
-  );
+  if (!db_field_exists('migrate_status', 'highwater')) {
+    db_add_field('migrate_status', 'highwater', array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Highwater mark for detecting updated content',
+        )
+    );
+  }
 
   $ret[] = t('Added highwater column to migrate_status table');
   return $ret;
@@ -156,7 +165,7 @@ function migrate_update_7001() {
 function migrate_update_7002() {
   $ret = array();
   foreach (db_find_tables('migrate_map_%') as $tablename) {
-    if (!db_column_exists($tablename, 'last_imported')) {
+    if (!db_field_exists($tablename, 'last_imported')) {
       db_add_field($tablename, 'last_imported', array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -175,13 +184,15 @@ function migrate_update_7002() {
  */
 function migrate_update_7003() {
   $ret = array();
-  db_add_field('migrate_status', 'lastthroughput', array(
-      'type' => 'int',
-      'length' => 11,
-      'not null' => FALSE,
-      'description' => 'Rate of success during most recent completed import (# per minute)',
-    )
-  );
+  if (!db_field_exists('migrate_status', 'lastthroughput')) {
+    db_add_field('migrate_status', 'lastthroughput', array(
+        'type' => 'int',
+        'length' => 11,
+        'not null' => FALSE,
+        'description' => 'Rate of success during most recent completed import (# per minute)',
+      )
+    );
+  }
 
   $ret[] = t('Added lastthroughput column to migrate_status table');
   return $ret;
@@ -192,28 +203,32 @@ function migrate_update_7003() {
  */
 function migrate_update_7004() {
   $ret = array();
-  db_add_field('migrate_status', 'lastimportedtime', array(
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => FALSE,
-      'description' => 'Date and time of last completed import',
-    )
-  );
+  if (!db_field_exists('migrate_status', 'lastimportedtime')) {
+    db_add_field('migrate_status', 'lastimportedtime', array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Date and time of last completed import',
+      )
+    );
 
-  $result = db_select('migrate_status', 'ms')
-            ->fields('ms', array('machine_name', 'lastimported'))
-            ->execute();
-  foreach ($result as $row) {
-    $lastimportedtime = strtotime($row->lastimported);
-    db_update('migrate_status')
-      ->fields(array('lastimportedtime' => $lastimportedtime))
-      ->condition('machine_name', $row->machine_name)
-      ->execute();
+    if (!db_field_exists('migrate_status', 'lastimported')) {
+      $result = db_select('migrate_status', 'ms')
+                ->fields('ms', array('machine_name', 'lastimported'))
+                ->execute();
+      foreach ($result as $row) {
+        $lastimportedtime = strtotime($row->lastimported);
+        db_update('migrate_status')
+          ->fields(array('lastimportedtime' => $lastimportedtime))
+          ->condition('machine_name', $row->machine_name)
+          ->execute();
+      }
+
+      db_drop_field('migrate_status', 'lastimported');
+
+      $ret[] = t('Converted lastimported datetime field to lastimportedtime int field');
+    }
   }
-
-  db_drop_field('migrate_status', 'lastimported');
-
-  $ret[] = t('Converted lastimported datetime field to lastimportedtime int field');
   return $ret;
 }
 
@@ -222,11 +237,13 @@ function migrate_update_7004() {
  */
 function migrate_update_7005() {
   $ret = array();
-  $ret[] = t('Create migrate_log table');
-  db_create_table('migrate_log', migrate_schema_log());
-  $ret[] = t('Remove historic columns from migrate_status table');
-  db_drop_field('migrate_status', 'lastthroughput');
-  db_drop_field('migrate_status', 'lastimportedtime');
+  if (!db_table_exists('migrate_log')) {
+    $ret[] = t('Create migrate_log table');
+    db_create_table('migrate_log', migrate_schema_log());
+    $ret[] = t('Remove historic columns from migrate_status table');
+    db_drop_field('migrate_status', 'lastthroughput');
+    db_drop_field('migrate_status', 'lastimportedtime');
+  }
   return $ret;
 }
 
@@ -236,19 +253,21 @@ function migrate_update_7005() {
  */
 function migrate_update_7006() {
   $ret = array();
-  db_add_field('migrate_status', 'class_name', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-        'description' => 'Name of class to instantiate for this migration',
-      )
-  );
+  if (!db_field_exists('migrate_status', 'class_name')) {
+    db_add_field('migrate_status', 'class_name', array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Name of class to instantiate for this migration',
+        )
+    );
 
-  db_query("UPDATE {migrate_status}
-            SET class_name = CONCAT(machine_name, 'Migration')
-           ");
-  $ret[] = t('Added class_name column to migrate_status table');
+    db_query("UPDATE {migrate_status}
+              SET class_name = CONCAT(machine_name, 'Migration')
+             ");
+    $ret[] = t('Added class_name column to migrate_status table');
+  }
   return $ret;
 }
 
@@ -257,16 +276,18 @@ function migrate_update_7006() {
  */
 function migrate_update_7007() {
   $ret = array();
-  db_add_field('migrate_status', 'arguments', array(
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-        'serialize' => TRUE,
-        'description' => 'A serialized array of arguments to the migration constructor',
-        )
-  );
+  if (!db_field_exists('migrate_status', 'arguments')) {
+    db_add_field('migrate_status', 'arguments', array(
+          'type' => 'blob',
+          'not null' => FALSE,
+          'size' => 'big',
+          'serialize' => TRUE,
+          'description' => 'A serialized array of arguments to the migration constructor',
+          )
 
-  $ret[] = t('Added arguments column to migrate_status table');
+    );
+    $ret[] = t('Added arguments column to migrate_status table');
+  }
   return $ret;
 }
 
@@ -311,7 +332,7 @@ function migrate_update_7008() {
         $keys = array();
         $index = 1;
         foreach ($row as $field => $value) {
-          if (substr($field, 0, 8) == 'sourceid') {
+          if (drupal_substr($field, 0, 8) == 'sourceid') {
             $keys['sourceid' . $index++] = $value;
           }
         }
@@ -328,4 +349,15 @@ function migrate_update_7008() {
   }
 
   return $ret;
+}
+
+/**
+ * Warn that there have been incompatible changes to file handling.
+ */
+function migrate_update_7201() {
+  return t('File field and destination handling has been completely refactored
+    - if you are migrating files, you will need to change your migration
+    implementation to reflect these changes. Please see
+    <a href="@doc">Handling files in Drupal 7</a> for more information',
+    array('@doc' => 'http://drupal.org/node/1540106'));
 }

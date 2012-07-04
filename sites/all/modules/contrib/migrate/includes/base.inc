@@ -154,22 +154,10 @@ abstract class MigrationBase {
    * Name of a function for displaying feedback. It must take the message to display
    * as its first argument, and a (string) message type as its second argument
    * (see drush_log()).
-   * Deprecated in favor of the static displayFunction - remove in next API release.
-   * @var string
-   */
-  protected $outputFunction;
-  public function setOutputFunction($output_function) {
-    $this->outputFunction = $output_function;
-  }
-
-  /**
-   * Name of a function for displaying feedback. It must take the message to display
-   * as its first argument, and a (string) message type as its second argument
-   * (see drush_log()).
    * @var string
    */
   protected static $displayFunction;
-  public function setDisplayFunction($display_function) {
+  public static function setDisplayFunction($display_function) {
     self::$displayFunction = $display_function;
   }
 
@@ -315,7 +303,7 @@ abstract class MigrationBase {
     }
     else {
       if (!is_numeric($limit)) {
-        $last = strtolower($limit[strlen($limit)-1]);
+        $last = drupal_strtolower($limit[strlen($limit)-1]);
         switch ($last) {
           case 'g':
             $limit *= 1024;
@@ -335,16 +323,6 @@ abstract class MigrationBase {
     // Record the time limit
     $this->timeLimit = ini_get('max_execution_time');
 
-    // Default the displayFunction outputFunction based on context
-    if (function_exists('drush_log')) {
-      self::$displayFunction = 'drush_log';
-    }
-    else {
-      self::$displayFunction = 'drupal_set_message';
-    }
-    // Maintain deprecated version for now
-    $this->outputFunction = self::$displayFunction;
-
     // Prevent any emails from being sent out on migration
     global $conf;
     if (!empty($conf['mail_system'])) {
@@ -355,6 +333,19 @@ abstract class MigrationBase {
 
     // Make sure we clear our semaphores in case of abrupt exit
     register_shutdown_function(array($this, 'endProcess'));
+  }
+
+  /**
+   * Initialize static members, before any class instances are created.
+   */
+  static public function staticInitialize() {
+    // Default the displayFunction outputFunction based on context
+    if (function_exists('drush_log')) {
+      self::$displayFunction = 'drush_log';
+    }
+    else {
+      self::$displayFunction = 'drupal_set_message';
+    }
   }
 
   /**
@@ -406,7 +397,8 @@ abstract class MigrationBase {
 
   protected static function machineFromClass($class_name) {
     if (preg_match('/Migration$/', $class_name)) {
-      $machine_name = substr($class_name, 0, strlen($class_name) - strlen('Migration'));
+      $machine_name = drupal_substr($class_name, 0,
+        strlen($class_name) - strlen('Migration'));
     }
     else {
       $machine_name = $class_name;
@@ -422,16 +414,16 @@ abstract class MigrationBase {
   static public function getInstance($machine_name, $class_name = NULL, array $arguments = array()) {
     $migrations = &drupal_static(__FUNCTION__, array());
     // Otherwise might miss cache hit on case difference
-    $machine_name_key = strtolower($machine_name);
+    $machine_name_key = drupal_strtolower($machine_name);
     if (!isset($migrations[$machine_name_key])) {
       // Skip the query if our caller already made it
       if (!$class_name) {
         // See if we know about this migration
         $row = db_select('migrate_status', 'ms')
-                 ->fields('ms', array('class_name', 'arguments'))
-                 ->condition('machine_name', $machine_name)
-                 ->execute()
-                 ->fetchObject();
+               ->fields('ms', array('class_name', 'arguments'))
+               ->condition('machine_name', $machine_name)
+               ->execute()
+               ->fetchObject();
         if ($row) {
           $class_name = $row->class_name;
           $arguments = unserialize($row->arguments);
@@ -482,20 +474,6 @@ abstract class MigrationBase {
     }
 
     self::displayMessage($message, $level);
-  }
-
-  /**
-   * Output the given message appropriately (drush_print/drupal_set_message/etc.)
-   * Deprecated in favor of static displayMessage(), remove in next API update.
-   *
-   * @param string $message
-   *  The message to output.
-   * @param int $level
-   *  Optional message severity as understood by drupal_set_message and drush_log
-   *  (defaults to 'error').
-   */
-  public function showMessage($message, $level = 'error') {
-    call_user_func(self::$displayFunction, $message, $level);
   }
 
   /**
@@ -560,33 +538,6 @@ abstract class MigrationBase {
       $this->saveMessage($message);
     }
     self::displayMessage($message);
-  }
-
-  /**
-   * Database logging callback - called when there's a database error. We
-   * log non-critical stuff, and throw an exception otherwise
-   * TODO: Eliminate in favor of hook_watchdog()?
-   *
-   * @param string $type
-   *  Ignored
-   * @param string $message
-   *  Message to display or throw, potentially with t() placeholders
-   * @param array $variables
-   *  Variables to substitute into $message
-   * @param unknown_type $severity
-   *  Watchdog severity level
-   * @param $link
-   *  ???
-   */
-  public function loggingCallback($type, $message, $variables = array(),
-          $severity = WATCHDOG_NOTICE, $link = NULL) {
-    if ($severity == WATCHDOG_NOTICE || $severity == WATCHDOG_INFO ||
-        $severity == WATCHDOG_DEBUG) {
-      $this->saveMessage(t($message, $variables), MigrationBase::MESSAGE_INFORMATIONAL);
-    }
-    else {
-      throw new MigrateException(t($message, $variables), MigrationBase::MESSAGE_ERROR);
-    }
   }
 
   /**
@@ -707,13 +658,24 @@ abstract class MigrationBase {
 
   /**
    * Reports whether all (hard) dependencies have completed migration
-   * TODO: Support rollback (reverse dependencies)
    */
-  protected function dependenciesComplete() {
-    foreach ($this->dependencies as $dependency) {
-      $migration = MigrationBase::getInstance($dependency);
-      if (!$migration->isComplete()) {
-        return FALSE;
+  protected function dependenciesComplete($rollback = FALSE) {
+    if ($rollback) {
+      foreach (migrate_migrations() as $migration) {
+        $dependencies = $migration->getHardDependencies();
+        if (array_search($this->machineName, $dependencies) !== FALSE) {
+          if (method_exists($migration, 'importedCount') && $migration->importedCount() > 0) {
+            return FALSE;
+          }
+        }
+      }
+    }
+    else {
+      foreach ($this->dependencies as $dependency) {
+        $migration = MigrationBase::getInstance($dependency);
+        if (!$migration->isComplete()) {
+          return FALSE;
+        }
       }
     }
     return TRUE;
@@ -779,10 +741,6 @@ abstract class MigrationBase {
                        ))
                      ->execute();
     }
-
-    // And capture anything the DB tries to log to the watchdog
-    // TODO: Broken by http://drupal.org/node/711108 - what to do?
-    //Database::setLoggingCallback(array($this, 'loggingCallback'), WATCHDOG_NOTICE, WATCHDOG_ERROR);
   }
 
   /**
@@ -863,12 +821,11 @@ abstract class MigrationBase {
       $return = MigrationBase::RESULT_COMPLETED;
       if (method_exists($this, 'rollback')) {
         $this->options = $options;
-        // TODO: Validate dependencies (migrations depending on us have no imported rows)
-    /*    if (!isset($options['force'])) {
-          if (!$this->dependenciesComplete()) {
-            return Migration::RESULT_SKIPPED;
+        if (!isset($options['force'])) {
+          if (!$this->dependenciesComplete(TRUE)) {
+            return MigrationBase::RESULT_SKIPPED;
           }
-        }*/
+        }
         $this->beginProcess(MigrationBase::STATUS_ROLLING_BACK);
         try {
           $return = $this->rollback();
@@ -899,7 +856,8 @@ abstract class MigrationBase {
       $return = MigrationBase::RESULT_COMPLETED;
       if (method_exists($this, 'import')) {
         $this->options = $options;
-        if (!isset($options['force'])) {
+
+        if (!isset($options['force']) || !$options['force']) {
           if (!$this->dependenciesComplete()) {
             return MigrationBase::RESULT_SKIPPED;
           }
@@ -1051,3 +1009,7 @@ abstract class MigrationBase {
     return $time;
   }
 }
+
+// Make sure static members (in particular, $displayFunction) get
+// initialized even if there are no class instances.
+MigrationBase::staticInitialize();

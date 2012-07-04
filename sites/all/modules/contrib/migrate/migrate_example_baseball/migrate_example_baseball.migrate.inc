@@ -119,7 +119,8 @@ class GameBaseball extends DynamicMigration {
    * Construct the machine name from the source file name.
    */
   protected function generateMachineName($class_name = NULL) {
-    return strtolower(pathinfo($this->arguments['source_file'], PATHINFO_FILENAME));
+    return drupal_strtolower(pathinfo($this->arguments['source_file'],
+                                      PATHINFO_FILENAME));
   }
 
   function fields() {

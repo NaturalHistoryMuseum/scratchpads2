@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Tests for the node destination plugin.
+ */
+
+/**
  * Test node migration.
  */
 class MigrateNodeUnitTest extends DrupalWebTestCase {
@@ -202,13 +207,13 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     $query->execute();
 
     db_update('migrate_example_wine')
-             ->fields(array(
-              'body' => 'Not so much berry character',
-              // Timestamp 1285058521
-              'last_changed' => strtotime('2010-10-21 04:42:01'),
-             ))
-             ->condition('wineid', 2)
-             ->execute();
+      ->fields(array(
+       'body' => 'Not so much berry character',
+       // Timestamp 1285058521
+       'last_changed' => strtotime('2010-10-21 04:42:01'),
+      ))
+      ->condition('wineid', 2)
+      ->execute();
 
     $migration = Migration::getInstance('WineWine');
     $result = $migration->processImport();
@@ -227,7 +232,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     }
 
     // Test rollback
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Wine node rollback returned RESULT_COMPLETED'));
     $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_wine'), TRUE);
@@ -249,14 +254,14 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     $migration->getSource()->setMapJoinable(FALSE);
     $result = $migration->processImport(array('limit' =>
       array('value' => 2, 'unit' => 'items')));
-    $query = db_update('migrate_example_wine')
-             ->fields(array(
-              'body' => 'Very berry',
-              // Timestamp 1286008921
-              'last_changed' => strtotime('2010-10-02 04:42:01'),
-             ))
-             ->condition('wineid', 1)
-             ->execute();
+    db_update('migrate_example_wine')
+      ->fields(array(
+        'body' => 'Very berry',
+        // Timestamp 1286008921
+        'last_changed' => strtotime('2010-10-02 04:42:01'),
+      ))
+      ->condition('wineid', 1)
+      ->execute();
     $result = $migration->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Wine node import returned RESULT_COMPLETED'));
@@ -272,7 +277,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     }
 
     // Test itemlimit (joined map table)
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $migration->getSource()->setMapJoinable(TRUE);
     $result = $migration->processImport(array('limit' =>
       array('value' => 1, 'unit' => 'item')));
@@ -282,7 +287,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     $this->assertEqual(count($rawnodes), 1, t('One node imported'));
 
     // Test idlist (joined map table)
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $result = $migration->processImport(array('idlist' => 2));
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Wine node import with idlist returned RESULT_COMPLETED'));
@@ -293,7 +298,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
       t('Single specified node imported'));
 
     // Test itemlimit (unjoined map table)
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $migration->getSource()->setMapJoinable(FALSE);
     $result = $migration->processImport(array('limit' =>
       array('value' => 1, 'unit' => 'item')));
@@ -303,7 +308,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
     $this->assertEqual(count($rawnodes), 1, t('One node imported'));
 
     // Test idlist (unjoined map table)
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $result = $migration->processImport(array('idlist' => 2));
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Wine node import with idlist returned RESULT_COMPLETED'));
@@ -314,7 +319,7 @@ class MigrateNodeUnitTest extends DrupalWebTestCase {
       t('Single specified node imported'));
 
     // Test integer highwater marks (http://drupal.org/node/1161612)
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     db_update('migrate_example_wine')
       ->fields(array('last_changed' => 100000000))
       ->condition('wineid', 1)

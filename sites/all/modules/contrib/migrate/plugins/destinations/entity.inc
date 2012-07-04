@@ -161,7 +161,14 @@ abstract class MigrateDestinationEntity extends MigrateDestination {
     // Then call any complete handler for this specific Migration.
     $migration = Migration::currentMigration();
     if (method_exists($migration, 'complete')) {
-      $migration->complete($entity, $source_row);
+      try {
+        $migration->complete($entity, $source_row);
+      }
+      catch (Exception $e) {
+        // If we catch any errors here, save the messages without letting
+        // the exception prevent the saving of the entity being recorded.
+        $migration->saveMessage($e->getMessage());
+      }
     }
   }
 }

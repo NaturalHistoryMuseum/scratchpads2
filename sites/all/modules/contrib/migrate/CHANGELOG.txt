@@ -1,4 +1,79 @@
 
+Migrate 2.4
+===========
+
+IMPORTANT: The file migration support (both MigrateDestinationFile and
+the file field handler) has been completely refactored since Migrate 2.3 - if you
+are importing files as part of your migration, you MUST change your migrations
+to properly use the new implementation. See http://drupal.org/node/1540106 for
+details on how to use the new handlers and destination.
+
+Features and enhancements
+- #1606586 - Add activeUrl public method to MigrateSourceXML.
+
+Bug fixes
+- #1614318 - MigrateFileUri failed to pass file object through.
+- #1601974 - Remove percent sign fix-up, leave to particular application.
+- #1600912 - Base constructor was undermining UI override of displayFunction.
+- #1595056 - Handle empty arguments from migrate_status table.
+- #1595166 - Support multiple source keys in MigrateList.
+
+Migrate 2.4 Release Candidate 1
+===============================
+
+Features and enhancements
+- #1587842 - Remove sample CSV files from migrate project.
+- #1152878 - drush migrate-analyze command, for source data analysis.
+- #1587566 - Support escape option for CSV sources on PHP 5.3.
+- #1189328 - UI option to ignore dependencies.
+- #1016452 - Support migrating user role assignments by name.
+- #653636 - Add migrate-messages command to dump message table.
+
+Bug fixes
+- #919108 - Cleaner error-handling when updating destinations that don't exist.
+- #1574502 - Coder review, remove dead code.
+- #1570536 - Undefined property in term.inc.
+
+Migrate 2.4 Beta 1
+==================
+
+Features and enhancements
+- #1428166 - Make message columns sortable.
+- #1459888 - Removed deprecated source count(), showMessage(), setOutputFunction().
+- #1528916 - Link field descriptions to drupal.org documentation.
+- #722686  - Support for node statistics.
+- #1299646 - Enforce dependencies on rollback.
+- #1328408 - Support --group on drush migrate-status.
+- #1402822 - Cleaner handling of exceptions from source plugins.
+- #1240928 - File handling completely refactored - see note above.
+- #1279778 - Improved method for mapping options and subfields.
+- #1403044 - Added menu destination plugins.
+- #1350284 - Visually group migrations by group in drush.
+
+Bug fixes
+- #1569612 - skip_empty should only skip NULL values.
+- #1561448 - Proper handling of is_new for users.
+- #1205278 - Don't multiply-increment usage counts when preserving files; remove
+             file_usages on uninstall.
+- #1438282 - Handle errors thrown when getting counts.
+- #1358318 - Fix dedupe() overdeduping on --update.
+- #1538046 - Give highwater marks a chance at preparation before using them.
+- #1408248 - Handle errors in complete() cleanly.
+- #1541882 - Make sure displayFunction is set before calling it.
+- #1529362 - Make proper check if previously imported.
+- #1537076 - Apply languages to each value in a multi-value field.
+- #1542922 - Fix XML parsing bug.
+- #1538508 - Fix notice when mapping parent_name.
+- #1537352 - Check limits and status before next().
+- #1540120 - Zero not working as defaultValue.
+- #1508654 - MigrateSourceSQL needs to respect join aliases.
+- #1518076 - UI side of subfield handling.
+- #1480762 - Fix cross-database joins to map table.
+- #1520688 - setDisplayFunction needs to be static.
+- #1518064 - Upgrade needs to check field existence.
+- #1518008 - Upgrade uses obsolete db_column_exists API.
+- #1308268 - Term migration should link to pre-existing terms.
+
 Migrate 2.3
 ===========
 

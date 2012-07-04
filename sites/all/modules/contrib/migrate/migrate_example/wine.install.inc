@@ -74,6 +74,7 @@ function migrate_example_wine_disable() {
   Migration::deregisterMigration('WineBestWith');
   Migration::deregisterMigration('WineProducer');
   Migration::deregisterMigration('WineProducerXML');
+  Migration::deregisterMigration('WineProducerXMLPull');
   Migration::deregisterMigration('WineProducerMultiXML');
   Migration::deregisterMigration('WineWine');
   Migration::deregisterMigration('WineComment');
@@ -828,7 +829,7 @@ function migrate_example_wine_fields() {
     $field = array(
       'field_name' => 'field_migrate_example_image',
       'type' => 'image',
-      'cardinality' => -1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'translatable' => TRUE,
       'indexes' => array('fid' => array('fid')),
       'settings' => array(
@@ -1211,7 +1212,7 @@ function migrate_example_wine_data_files() {
   $query = db_insert('migrate_example_wine_files')
     ->fields($fields);
   $data = array(
-    array(1, 'http://drupal.org/files/images/DA-individual.thumbnail.png', NULL, NULL, NULL),
+    array(1, 'http://drupal.org/sites/all/modules/drupalorg/drupalorg/images/association-individual.png', NULL, NULL, NULL),
     array(2, 'http://cyrve.com/files/penguin.jpeg', 'Penguin alt', 'Penguin title', 1),
     array(3, 'http://cyrve.com/files/rioja.jpeg', 'Rioja alt', 'Rioja title', 2),
     array(4, 'http://cyrve.com/files/boutisse_0.jpeg', 'Boutisse alt', 'Boutisse title', 2),

@@ -34,6 +34,8 @@ abstract class MigrateDestination {
    * Derived classes must implement fields(), returning a list of available
    * destination fields.
    *
+   * @param Migration $migration
+   *  Optionally, the migration containing this destination.
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.

@@ -510,7 +510,7 @@ function migrate_example_beer_gender() {
       'type' => 'list_integer',
       'settings' => array(
       'allowed_values' =>
-        "0|Male\n".
+        "0|Male\n" .
         "1|Female\n",
       ),
     );

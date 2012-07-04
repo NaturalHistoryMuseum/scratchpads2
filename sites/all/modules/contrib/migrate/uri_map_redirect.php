@@ -66,7 +66,7 @@ $uri_table = variable_get('migrate_source_uri_table', 'migrate_source_uri_map');
 if ($uri_map = db_query("SELECT migration_name, source_id FROM $uri_table WHERE source_uri = :source_uri", array(':source_uri' => $source_uri))->fetchObject()) {
   // Hurray, we do recognize this URI.
   // Consult migrate_map_x table to determine corresponding Drupal nid/tid/cid/etc.
-  $map_table = 'migrate_map_' . strtolower($uri_map->migration_name);
+  $map_table = 'migrate_map_' . drupal_strtolower($uri_map->migration_name);
   $sql = "SELECT destid1 FROM $map_table WHERE sourceid1 = :source_id";
   if ($destid1 = $migrate_map = db_query($sql, array(':source_id' => $uri_map->source_id))->fetchField()) {
     // Hurray. We already migrated this content. Go there.
@@ -81,5 +81,3 @@ else {
   header('Status=Not Found', TRUE, 404);
   print 'Sorry folks. Park is closed.';
 }
-
-?>

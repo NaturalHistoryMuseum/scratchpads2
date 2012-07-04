@@ -49,35 +49,51 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
   /**
    * Returns a list of fields available to be mapped for the node type (bundle)
    *
+   * @param Migration $migration
+   *  Optionally, the migration containing this destination.
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
    */
-  public function fields() {
+  public function fields($migration = NULL) {
     $fields = array();
     // First the core (node table) properties
-    $fields['nid'] = t('Node: Existing node ID');
-    $fields['is_new'] = t('Node: Indicates a new node with the specified nid should be created');
-    $fields['uid'] = t('Node: Authored by (uid)');
-    $fields['revision_uid'] = t('Node: Modified (uid)');
-    $fields['created'] = t('Node: Created timestamp');
-    $fields['changed'] = t('Node: Modified timestamp');
-    $fields['status'] = t('Node: Published');
-    $fields['promote'] = t('Node: Promoted to front page');
-    $fields['sticky'] = t('Node: Sticky at top of lists');
-    $fields['revision'] = t('Node: Create new revision');
-    $fields['log'] = t('Node: Revision Log message');
-    $fields['language'] = t('Node: Language (fr, en, ...)');
-    $fields['tnid'] = t('Node: The translation set id for this node');
-
+    $fields['nid'] = t('Node: <a href="@doc">Existing node ID</a>',
+                array('@doc' => 'http://drupal.org/node/1349696#nid'));
     $node_type = node_type_load($this->bundle);
     if ($node_type->has_title) {
-      $fields['title'] = t('Node:') . ' ' . $node_type->title_label;
+      $fields['title'] = t('Node: <a href="@doc">',
+                           array('@doc' => 'http://drupal.org/node/1349696#title'))
+                         . $node_type->title_label . '</a>';
     }
+    $fields['uid'] = t('Node: <a href="@doc">Authored by (uid)</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#uid'));
+    $fields['created'] = t('Node: <a href="@doc">Created timestamp</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#created'));
+    $fields['changed'] = t('Node: <a href="@doc">Modified timestamp</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#changed'));
+    $fields['status'] = t('Node: <a href="@doc">Published</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#status'));
+    $fields['promote'] = t('Node: <a href="@doc">Promoted to front page</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#promote'));
+    $fields['sticky'] = t('Node: <a href="@doc">Sticky at top of lists</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#sticky'));
+    $fields['revision'] = t('Node: <a href="@doc">Create new revision</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#revision'));
+    $fields['log'] = t('Node: <a href="@doc">Revision Log message</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#log'));
+    $fields['language'] = t('Node: <a href="@doc">Language (fr, en, ...)</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#language'));
+    $fields['tnid'] = t('Node: <a href="@doc">The translation set id for this node</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#tnid'));
+    $fields['revision_uid'] = t('Node: <a href="@doc">Modified (uid)</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#revision_uid'));
+    $fields['is_new'] = t('Option: <a href="@doc">Indicates a new node with the specified nid should be created</a>',
+                    array('@doc' => 'http://drupal.org/node/1349696#is_new'));
 
     // Then add in anything provided by handlers
-    $fields += migrate_handler_invoke_all('Entity', 'fields', $this->entityType, $this->bundle);
-    $fields += migrate_handler_invoke_all('Node', 'fields', $this->entityType, $this->bundle);
+    $fields += migrate_handler_invoke_all('Entity', 'fields', $this->entityType, $this->bundle, $migration);
+    $fields += migrate_handler_invoke_all('Node', 'fields', $this->entityType, $this->bundle, $migration);
 
     return $fields;
   }
@@ -124,10 +140,14 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
       }
       // Get the existing vid, tnid so updates don't generate notices
       $values = db_select('node', 'n')
-                   ->fields('n', array('vid', 'tnid'))
-                   ->condition('nid', $node->nid)
-                   ->execute()
-                   ->fetchAssoc();
+                ->fields('n', array('vid', 'tnid'))
+                ->condition('nid', $node->nid)
+                ->execute()
+                ->fetchAssoc();
+      if (empty($values)) {
+        throw new MigrateException(t("Incoming node ID !nid no longer exists",
+                    array('!nid' => $node->nid)));
+      }
       $node->vid = $values['vid'];
       if (empty($row->tnid)) {
         $node->tnid = $values['tnid'];
@@ -138,6 +158,10 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
         throw new MigrateException(t('System-of-record is DESTINATION, but no destination nid provided'));
       }
       $old_node = node_load($node->nid);
+      if (empty($old_node)) {
+        throw new MigrateException(t('System-of-record is DESTINATION, but node !nid does not exist',
+                                   array('!nid' => $node->nid)));
+      }
       if (!isset($node->created)) {
         $node->created = $old_node->created;
       }
@@ -151,7 +175,7 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
         $node->uid = $old_node->uid;
       }
     }
-    else if (!isset($node->type)) {
+    elseif (!isset($node->type)) {
       // Default the type to our designated destination bundle (by doing this
       // conditionally, we permit some flexibility in terms of implementing
       // migrations which can affect more than one type).
@@ -193,6 +217,7 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
 
     // Invoke migration prepare handlers
     $this->prepare($node, $row);
+
     if (!isset($node->revision)) {
       $node->revision = 0; // Saves disk space and writes. Can be overridden.
     }
@@ -243,7 +268,7 @@ class MigrateDestinationNode extends MigrateDestinationEntity {
 
       // Potentially fix uid and timestamp in node_revisions.
       $query = db_update('node_revision')
-                 ->condition('vid', $node->vid);
+               ->condition('vid', $node->vid);
       if (isset($changed)) {
         $fields['timestamp'] = $changed;
       }

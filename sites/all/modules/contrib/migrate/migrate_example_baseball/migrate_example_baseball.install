@@ -7,9 +7,33 @@
 
 function migrate_example_baseball_enable() {
   $path = dirname(__FILE__) . '/data';
+  migrate_example_baseball_get_files($path);
   for ($i=0; $i<=9; $i++) {
-    $file = 'GL200' . $i . '.TXT';
-    Migration::registerMigration('GameBaseball', strtolower(pathinfo($file, PATHINFO_FILENAME)), array('source_file' => $path . '/' . $file));
+    $file = 'gl200' . $i . '.txt';
+    Migration::registerMigration('GameBaseball',
+      pathinfo($file, PATHINFO_FILENAME),
+      array('source_file' => $path . '/' . $file));
+  }
+}
+
+/**
+ * Obtain our sample data from Retrosheet.
+ *
+ * @param $path
+ */
+function migrate_example_baseball_get_files($path) {
+  // Don't replace old upper-case names
+  if (!file_exists("$path/GL2000.TXT") && !file_exists("$path/gl2000.txt")) {
+    file_prepare_directory($path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    $result = copy('http://www.retrosheet.org/gamelogs/gl2000_09.zip',
+                   $path . '/gl2000_09.zip');
+    if ($result) {
+      $zip = new ZipArchive();
+      $zip->open($path . '/gl2000_09.zip');
+      $zip->extractTo($path);
+      $zip->close();
+      unlink("$path/gl2000_09.zip");
+    }
   }
 }
 
@@ -30,7 +54,18 @@ function migrate_example_baseball_uninstall() {
 
 function migrate_example_baseball_disable() {
   for ($i=0; $i<=9; $i++) {
-    $file = 'GL200' . $i . '.TXT';
-    // Migration::deregisterMigration(strtolower(pathinfo($file, PATHINFO_FILENAME)));
+    $file = 'gl200' . $i . '.txt';
+    Migration::deregisterMigration(pathinfo($file, PATHINFO_FILENAME));
+    $filename = dirname(__FILE__) . '/data/' . $file;
+    if (file_exists($filename)) {
+      unlink($filename);
+    }
   }
+}
+
+/**
+ * Get a copy of the sample CSV data if necessary.
+ */
+function migrate_example_baseball_update_7201() {
+  migrate_example_baseball_get_files(dirname(__FILE__) . '/data');
 }

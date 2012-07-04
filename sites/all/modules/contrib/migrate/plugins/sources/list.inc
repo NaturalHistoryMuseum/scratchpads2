@@ -36,17 +36,9 @@ abstract class MigrateList {
   /**
    * Implementors are expected to return a count of IDs available to be migrated.
    *
-   * @API: Commented out so not to break implementations which haven't implemented
-   *  this yet - require it in the next API.
-   *
    * @return int
    */
-  //abstract public function computeCount();
-
-  /**
-   * Deprecated - implement computeCount() instead
-   */
-  //abstract public function count($refresh = TRUE);
+  abstract public function computeCount();
 }
 
 /**
@@ -173,21 +165,28 @@ class MigrateSourceList extends MigrateSource {
   public function getNextRow() {
     $row = NULL;
     while ($this->idIterator->valid()) {
-      $id = $this->idIterator->current();
+      $ids = $this->idIterator->current();
       $this->idIterator->next();
 
       // Skip empty IDs
-      if (empty($id)) {
+      if (empty($ids)) {
         continue;
       }
 
       // Got a good ID, get the data and get out.
-      $row = $this->itemClass->getItem($id);
+      $row = $this->itemClass->getItem($ids);
       if ($row) {
-        // Save the ID using the map source key - it will be used for mapping
-        $sourceKey = $this->activeMap->getSourceKey();
-        $key_name = key($sourceKey);
-        $row->$key_name = $id;
+        // No matter what $ids is, be it a string, integer, object, or array, we
+        // cast it to an array so that it can be properly mapped to the source
+        // keys as specified by the map. This is done after getItem is called so
+        // that the ItemClass doesn't have to care about this requirement.
+        $ids = (array) $ids;
+        foreach (array_keys($this->activeMap->getSourceKey()) as $key_name) {
+          // Grab the first id and advance the array cursor. Then save the ID
+          // using the map source key - it will be used for mapping.
+          list(, $id) = each($ids);
+          $row->$key_name = $id;
+        }
       }
       break;
     }

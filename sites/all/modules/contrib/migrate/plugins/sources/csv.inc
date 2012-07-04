@@ -73,25 +73,24 @@ class MigrateSourceCSV extends MigrateSource {
     // a header row we can use the names from that
     if ($this->headerRows && empty($csvcolumns)) {
       $this->csvcolumns = array();
-      $result = fopen($this->file, 'r');
+      $this->csvHandle = fopen($this->file, 'r');
       // Skip all but the last header
       for ($i = 0; $i < $this->headerRows - 1; $i++) {
-        fgets($this->result);
+        $this->getNextLine();
       }
 
-      $row = fgetcsv($result, $this->fgetcsv['length'], $this->fgetcsv['delimiter'],
-        $this->fgetcsv['enclosure']);
+      $row = $this->getNextLine();
       foreach ($row as $header) {
         $header = trim($header);
         $this->csvcolumns[] = array($header, $header);
       }
-      fclose($result);
+      fclose($this->csvHandle);
+      unset($this->csvHandle);
     }
     else {
       $this->csvcolumns = $csvcolumns;
     }
   }
-
 
   /**
    * Return a string representing the source query.
@@ -110,6 +109,7 @@ class MigrateSourceCSV extends MigrateSource {
    *  Values: Human-friendly descriptions of the fields.
    */
   public function fields() {
+    $fields = array();
     foreach ($this->csvcolumns as $values) {
       $fields[$values[0]] = $values[1];
     }
@@ -137,7 +137,7 @@ class MigrateSourceCSV extends MigrateSource {
         fgets($result);
       }
       $count = 0;
-      while (fgetcsv($result, $this->fgetcsv['length'], $this->fgetcsv['delimiter'], $this->fgetcsv['enclosure'])) {
+      while ($this->getNextLine()) {
         $count++;
       }
       fclose($result);
@@ -163,7 +163,7 @@ class MigrateSourceCSV extends MigrateSource {
     // Load up the first row, skipping the header(s) if necessary
     $this->csvHandle = fopen($this->file, 'r');
     for ($i = 0; $i < $this->headerRows; $i++) {
-      fgets($this->csvHandle);
+      $this->getNextLine();
     }
   }
 
@@ -174,8 +174,7 @@ class MigrateSourceCSV extends MigrateSource {
    * @return null|object
    */
   public function getNextRow() {
-    // @todo $this->fgetcsv['escape'] not used as it gives warning in 5.2 - http://drupal.org/node/1039808.
-    $row = fgetcsv($this->csvHandle, $this->fgetcsv['length'], $this->fgetcsv['delimiter'], $this->fgetcsv['enclosure']);
+    $row = $this->getNextLine();
     if ($row) {
       // Set meaningful keys for the columns mentioned in $this->csvcolumns().
       foreach ($this->csvcolumns as $int => $values) {
@@ -191,5 +190,19 @@ class MigrateSourceCSV extends MigrateSource {
       $this->csvHandle = NULL;
       return NULL;
     }
+  }
+
+  protected function getNextLine() {
+    // escape parameter was added in PHP 5.3.
+    if (version_compare(phpversion(), '5.3', '<')) {
+      $row = fgetcsv($this->csvHandle, $this->fgetcsv['length'],
+        $this->fgetcsv['delimiter'], $this->fgetcsv['enclosure']);
+    }
+    else {
+      $row = fgetcsv($this->csvHandle, $this->fgetcsv['length'],
+        $this->fgetcsv['delimiter'], $this->fgetcsv['enclosure'],
+        $this->fgetcsv['escape']);
+    }
+    return $row;
   }
 }

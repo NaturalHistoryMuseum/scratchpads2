@@ -25,6 +25,9 @@ files[] = plugins/destinations/fields.inc
 files[] = plugins/destinations/poll.inc
 files[] = plugins/destinations/table.inc
 files[] = plugins/destinations/table_copy.inc
+files[] = plugins/destinations/menu.inc
+files[] = plugins/destinations/menu_links.inc
+files[] = plugins/destinations/statistics.inc
 files[] = plugins/sources/csv.inc
 files[] = plugins/sources/files.inc
 files[] = plugins/sources/json.inc
@@ -35,6 +38,7 @@ files[] = plugins/sources/sqlmap.inc
 files[] = plugins/sources/mssql.inc
 files[] = plugins/sources/oracle.inc
 files[] = plugins/sources/xml.inc
+files[] = tests/import/options.test
 files[] = tests/plugins/destinations/comment.test
 files[] = tests/plugins/destinations/node.test
 files[] = tests/plugins/destinations/table.test
@@ -42,9 +46,9 @@ files[] = tests/plugins/destinations/term.test
 files[] = tests/plugins/destinations/user.test
 files[] = tests/plugins/sources/xml.test
 
-; Information added by drupal.org packaging script on 2012-03-13
-version = "7.x-2.3"
+; Information added by drupal.org packaging script on 2012-06-02
+version = "7.x-2.4"
 core = "7.x"
 project = "migrate"
-datestamp = "1331659246"
+datestamp = "1338661580"
 

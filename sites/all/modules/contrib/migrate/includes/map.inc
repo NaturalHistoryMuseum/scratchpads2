@@ -128,7 +128,7 @@ abstract class MigrateMap implements Iterator {
    * Retrieve an array of map rows marked as needing update.
    */
   abstract public function getRowsNeedingUpdate($count);
-  
+
   /**
    * Given a (possibly multi-field) destination key, return the (possibly multi-field)
    * source key mapped to it.

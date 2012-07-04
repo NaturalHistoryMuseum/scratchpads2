@@ -38,8 +38,12 @@ function migrate_migrations() {
     if (class_exists($row->class_name)) {
       $reflect = new ReflectionClass($row->class_name);
       if (!$reflect->isAbstract() && $reflect->isSubclassOf('MigrationBase')) {
+        $arguments = unserialize($row->arguments);
+        if (!$arguments || !is_array($arguments)) {
+          $arguments = array();
+        }
         $migration = MigrationBase::getInstance($row->machine_name,
-          $row->class_name, unserialize($row->arguments));
+          $row->class_name, $arguments);
         $dependencies = $migration->getDependencies();
         if (count($dependencies) > 0) {
           // Set classes with dependencies aside for reordering
@@ -155,7 +159,7 @@ function migrate_flush_caches() {
     if (!$class->isAbstract() && $class->isSubclassOf('MigrationBase')) {
       // Verify that it's not a dynamic class (the implementor will be responsible
       // for registering those).
-      $dynamic = call_user_func(array($class_name,'isDynamic'));
+      $dynamic = call_user_func(array($class_name, 'isDynamic'));
       if (!$dynamic) {
         // OK, this is a new non-dynamic migration class, register it
         MigrationBase::registerMigration($class_name);
@@ -351,7 +355,7 @@ function _migrate_class_list($parent_class, array $existing = array()) {
 }
 
 /**
- * Implementation of hook_hook_info().
+ * Implements hook_hook_info().
  */
 function migrate_hook_info() {
   $hooks['migrate_api'] = array(
@@ -361,7 +365,7 @@ function migrate_hook_info() {
 }
 
 /*
- * Implementation of hook_migrate_api().
+ * Implements hook_migrate_api().
  */
 function migrate_migrate_api() {
   $api = array(
@@ -388,9 +392,9 @@ function migrate_get_module_apis($reset = FALSE) {
       }
       else {
         drupal_set_message(t('%function supports Migrate API version %modversion,
-           Migrate module API version is %version - migration support not loaded.',
-           array('%function' => $function, '%modversion' => $info['api'],
-                 '%version' => MIGRATE_API_VERSION)));
+          Migrate module API version is %version - migration support not loaded.',
+          array('%function' => $function, '%modversion' => $info['api'],
+                '%version' => MIGRATE_API_VERSION)));
       }
     }
   }
@@ -399,7 +403,7 @@ function migrate_get_module_apis($reset = FALSE) {
 }
 
 /**
- * Implementation of hook_watchdog().
+ * Implements hook_watchdog().
  * Find the migration that is currently running and notify it.
  *
  * @param array $log_entry
@@ -552,124 +556,3 @@ function migrate_overview() {
   }
   return $overview;
 }
-
-// TODO: The functions below are D6 functions of some potential use in D7, that
-// haven't been updated/integrated yet
-
-/**
- * Implementation of hook_schema_alter().
- */
-/*
-function migrate_schema_alter(&$schema) {
-  // Check for table existence - at install time, hook_schema_alter() may be called
-  // before our install hook.
-  if (db_table_exists('migrate_content_sets')) {
-    $result = db_query("SELECT * FROM {migrate_content_sets}");
-    while ($content_set = db_fetch_object($result)) {
-      $maptablename = migrate_map_table_name($content_set->mcsid);
-      $msgtablename = migrate_message_table_name($content_set->mcsid);
-
-      // Get the proper field definition for the sourcekey
-      $view = views_get_view($content_set->view_name);
-      if (!$view) {
-        drupal_set_message(t('View !view does not exist - either (re)create this view, or
-          remove the migrate content set using it.', array('!view' => $content_set->view_name)));
-        continue;
-      }
-      // Must do this to load the database
-      $view->init_query();
-
-      // TODO: For now, PK must be in base_table
-      if (isset($view->base_database)) {
-        $tabledb = $view->base_database;
-      }
-      else {
-        $tabledb = 'default';
-      }
-      $tablename = $view->base_table;
-
-      $sourceschema = _migrate_inspect_schema($tablename, $tabledb);
-
-      // If the PK of the content set is defined, make sure we have a mapping table
-      $sourcekey = $content_set->sourcekey;
-      if ($sourcekey) {
-        $sourcefield = $sourceschema['fields'][$sourcekey];
-        if (!$sourcefield) {
-          // strip base table name if views prepended it
-          $baselen = drupal_strlen($tablename);
-          if (!strncasecmp($sourcekey, $tablename . '_', $baselen + 1)) {
-            $sourcekey = drupal_substr($sourcekey, $baselen + 1);
-          }
-          $sourcefield = $sourceschema['fields'][$sourcekey];
-        }
-        // We don't want serial fields to behave serially, so change to int
-        if ($sourcefield['type'] == 'serial') {
-          $sourcefield['type'] = 'int';
-        }
-        $schema[$maptablename] = _migrate_map_table_schema($sourcefield);
-        $schema[$maptablename]['name'] = $maptablename;
-        $schema[$msgtablename] = _migrate_message_table_schema($sourcefield);
-        $schema[$msgtablename]['name'] = $msgtablename;
-      }
-    }
-  }
-}
-*/
-
-/*
- * Translate URIs from an old site to the new one
- * Requires adding RewriteRules to .htaccess. For example, if the URLs
- * for news articles had the form
- * http://example.com/issues/news/[OldID].html, use this rule:
- *
- * RewriteRule ^issues/news/([0-9]+).html$ /migrate/xlat/node/$1 [L]
- *
- * @param $contenttype
- *  Content type to translate (e.g., 'node', 'user', etc.)
- * @param $oldid
- *  Primary key from input view
- */
-function migrate_xlat($contenttype, $oldid) {
-  if ($contenttype && $oldid) {
-    $newid = _migrate_xlat_get_new_id($contenttype, $oldid);
-    if ($newid) {
-      $uri = migrate_invoke_all("xlat_$contenttype", $newid);
-      drupal_goto($uri[0], NULL, NULL, 301);
-    }
-  }
-}
-
-/*
- * Helper function to translate an ID from a source file to the corresponding
- * Drupal-side ID (nid, uid, etc.)
- * Note that the result may be ambiguous - for example, if you are importing
- * nodes from different content sets, they might have overlapping source IDs.
- *
- * @param $contenttype
- *  Content type to translate (e.g., 'node', 'user', etc.)
- * @param $oldid
- *  Primary key from input view
- * @return
- *  Drupal-side ID of the object
- */
-function _migrate_xlat_get_new_id($contenttype, $oldid) {
-  $result = db_query("SELECT mcsid
-                      FROM {migrate_content_sets}
-                      WHERE contenttype='%s'",
-                     $contenttype);
-  while ($row = db_fetch_object($result)) {
-    static $maptables = array();
-    if (!isset($maptables[$row->mcsid])) {
-      $maptables[$row->mcsid] = migrate_map_table_name($row->mcsid);
-    }
-    $sql = "SELECT destid
-            FROM {" . $maptables[$row->mcsid] . "}
-            WHERE sourceid='%s'";
-    $id = db_result(db_query($sql, $oldid));
-    if ($id) {
-      return $id;
-    }
-  }
-  return NULL;
-}
-

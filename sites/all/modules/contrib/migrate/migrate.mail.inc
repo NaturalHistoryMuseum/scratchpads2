@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Null-op mail class, to keep migration from spamming innocent users.
+ */
+
 class MigrateMailIgnore extends DefaultMailSystem {
   /**
    * On an email request, do nothing and say we did.

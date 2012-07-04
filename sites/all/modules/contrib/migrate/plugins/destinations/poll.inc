@@ -64,7 +64,7 @@ class MigratePollEntityHandler extends MigrateDestinationHandler {
     if ($bundle == 'poll') {
       $fields = array(
         'active' => t('Poll: Active status'),
-        'runtime' => t('Poll: Now long the poll runs for in seconds'),
+        'runtime' => t('Poll: How long the poll runs for in seconds'),
         'choice' => t('Poll: Choices. Each choice is an array with chtext, chvotes, and weight keys.'),
         'votes' => t('Poll: Votes. Each vote is an array with chid (or chtext), uid, hostname, and timestamp keys'),
       );

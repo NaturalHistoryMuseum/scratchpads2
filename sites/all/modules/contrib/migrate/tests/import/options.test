@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Tests for import options.
+ */
+
+/**
+ * Test node migration.
+ */
+class MigrateImportOptionsTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Import options',
+      'description' => 'Test the import options',
+      'group' => 'Migrate',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('migrate_example');
+  }
+
+  function testItemLimitOption() {
+    $migration = Migration::getInstance('BeerTerm');
+    $limit = 1;
+    $options = array(
+      'limit' => array(
+        'unit' => 'item',
+        'value' => $limit,
+      ),
+    );
+
+    // We use the timers to track how many times prepareRow() is called.
+    global $timers, $_migrate_track_timer;
+    $_migrate_track_timer = TRUE;
+
+    $result = $migration->processImport($options);
+
+    $this->verbose(print_r($timers, 1));
+    $successes = $migration->importedCount();
+    $this->verbose("Total successes: {$successes}");
+    $assertion = format_plural($limit, 'The migration successfully processed 1 item.',
+      'The migration successfully processed @count items.');
+    $this->assertEqual($limit, $successes, $assertion);
+
+    $prepare_row_count = $timers['BeerTermMigration prepareRow']['count'];
+    $this->verbose("prepareRow() count: {$prepare_row_count}");
+    $processed = $migration->processedCount();
+    $this->verbose("Total processed count: {$processed}");
+    $assertion = format_plural($processed, 'The migration executed processRow() on 1 item.',
+      'The migration executed processRow() on @count items.');
+    $this->assertEqual($prepare_row_count, $processed, $assertion);
+  }
+}

@@ -56,31 +56,47 @@ class MigrateDestinationComment extends MigrateDestinationEntity {
    * Returns a list of fields available to be mapped for comments attached to
    * a particular bundle (node type)
    *
+   * @param Migration $migration
+   *  Optionally, the migration containing this destination.
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
    */
-  public function fields() {
+  public function fields($migration = NULL) {
     $fields = array();
     // First the core (comment table) properties
-    $fields['cid'] = t('Comment: Existing comment ID');
-    $fields['pid'] = t('Comment: Parent (by Drupal ID)');
-    $fields['nid'] = t('Comment: Node (by Drupal ID)');
-    $fields['uid'] = t('Comment: User (by Drupal ID)');
-    $fields['subject'] = t('Comment: Subject');
-    $fields['hostname'] = t('Comment: Hostname/IP address');
-    $fields['created'] = t('Comment: Created timestamp');
-    $fields['changed'] = t('Comment: Modified timestamp');
-    $fields['status'] = t('Comment: Status');
-    $fields['thread'] = t('Comment: Thread');   // ???
-    $fields['name'] = t('Comment: User name (not username)');
-    $fields['mail'] = t('Comment: Email address');
-    $fields['homepage'] = t('Comment: Homepage');
-    $fields['language'] = t('Comment: Language');
+    $fields['cid'] = t('Comment: <a href="@doc">Existing comment ID</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#cid'));
+    $fields['nid'] = t('Comment: <a href="@doc">Node (by Drupal ID)</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#nid'));
+    $fields['uid'] = t('Comment: <a href="@doc">User (by Drupal ID)</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#uid'));
+    $fields['pid'] = t('Comment: <a href="@doc">Parent (by Drupal ID)</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#pid'));
+    $fields['subject'] = t('Comment: <a href="@doc">Subject</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#subject'));
+    $fields['created'] = t('Comment: <a href="@doc">Created timestamp</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#created'));
+    $fields['changed'] = t('Comment: <a href="@doc">Modified timestamp</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#changed'));
+    $fields['status'] = t('Comment: <a href="@doc">Status</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#status'));
+    $fields['hostname'] = t('Comment: <a href="@doc">Hostname/IP address</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#hostname'));
+    $fields['name'] = t('Comment: <a href="@doc">User name (not username)</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#name'));
+    $fields['mail'] = t('Comment: <a href="@doc">Email address</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#mail'));
+    $fields['homepage'] = t('Comment: <a href="@doc">Homepage</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#homepage'));
+    $fields['language'] = t('Comment: <a href="@doc">Language</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#language'));
+    $fields['thread'] = t('Comment: <a href="@doc">Thread</a>',
+                array('@doc' => 'http://drupal.org/node/1349714#thread'));
 
     // Then add in anything provided by handlers
-    $fields += migrate_handler_invoke_all('Entity', 'fields', $this->entityType, $this->bundle);
-    $fields += migrate_handler_invoke_all('Comment', 'fields', $this->entityType, $this->bundle);
+    $fields += migrate_handler_invoke_all('Entity', 'fields', $this->entityType, $this->bundle, $migration);
+    $fields += migrate_handler_invoke_all('Comment', 'fields', $this->entityType, $this->bundle, $migration);
 
     return $fields;
   }
@@ -139,6 +155,10 @@ class MigrateDestinationComment extends MigrateDestinationEntity {
       }
       $rawcomment = $comment;
       $old_comment = comment_load($comment->cid);
+      if (empty($old_comment)) {
+        throw new MigrateException(t('System-of-record is DESTINATION, but commend !cid does not exist',
+          array('!cid' => $comment->cid)));
+      }
       if (!isset($comment->nid)) {
         $comment->nid = $old_comment->nid;
       }
@@ -160,7 +180,6 @@ class MigrateDestinationComment extends MigrateDestinationEntity {
         'language' => $this->language,
         'node_type' => $this->bundle,
         'subject' => '',
-        'comment' => '',
         'status' => COMMENT_PUBLISHED,
         'uid' => 0,
         'cid' => 0,

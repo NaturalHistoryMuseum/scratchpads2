@@ -240,7 +240,7 @@ abstract class MigrateSource implements Iterator {
     migrate_instrument_stop(get_class($this) . ' performRewind');
     $this->next();
   }
-  
+
   /**
    * Implementation of Iterator::next() - subclasses of MigrateSource should
    * implement getNextRow() to retrieve the next valid source rocord to process.
@@ -272,6 +272,7 @@ abstract class MigrateSource implements Iterator {
       // entirely. The rules are:
       // 1. If there's an explicit idlist, that's all we care about (ignore
       //    highwaters and map rows).
+      $prepared = FALSE;
       if (!empty($this->idList)) {
         if (in_array(reset($this->currentKey), $this->idList)) {
           // In the list, fall through.
@@ -284,7 +285,7 @@ abstract class MigrateSource implements Iterator {
       }
       // 2. If the row is not in the map (we have never tried to import it before),
       //    we always want to try it.
-      elseif (!isset($row->migrate_map_destid1)) {
+      elseif (!isset($row->migrate_map_sourceid1)) {
         // Fall through
       }
       // 3. If the row is marked as needing update, pass it.
@@ -301,24 +302,36 @@ abstract class MigrateSource implements Iterator {
       }
       // 5. So, we are using highwater marks. Take the row if its highwater field
       //    value is greater than the saved marked, otherwise skip it.
-      elseif ($row->{$this->highwaterField['name']} > $this->activeMigration->getHighwater()) {
-        // Fall through
-      }
       else {
-        // Skip
-        $this->currentRow = NULL;
-        continue;
+        // Call prepareRow() here, in case the highwaterField needs preparation
+        if ($this->prepareRow($row) !== FALSE) {
+          if ($row->{$this->highwaterField['name']} > $this->activeMigration->getHighwater()) {
+            $this->currentRow = $row;
+            break;
+          }
+          else {
+            // Skip
+            $this->currentRow = NULL;
+            continue;
+          }
+        }
+        else {
+          $this->currentRow = NULL;
+        }
+        $prepared = TRUE;
       }
 
       // Allow the Migration to prepare this row. prepareRow() can return boolean
       // FALSE to ignore this row.
-      if ($this->prepareRow($row) !== FALSE) {
-        // Finally, we've got a keeper.
-        $this->currentRow = $row;
-        break;
-      }
-      else {
-        $this->currentRow = NULL;
+      if (!$prepared) {
+        if ($this->prepareRow($row) !== FALSE) {
+          // Finally, we've got a keeper.
+          $this->currentRow = $row;
+          break;
+        }
+        else {
+          $this->currentRow = NULL;
+        }
       }
     }
     migrate_instrument_stop(get_class($this) . ' getNextRow');

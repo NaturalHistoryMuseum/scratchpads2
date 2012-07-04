@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Tests for the taxonomy term destination plugin.
+ */
+
+/**
  * Test taxonomy migration.
  */
 class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
@@ -87,7 +92,7 @@ class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
     }
 
     // Test rollback
-    $result = $migration->processRollback();
+    $result = $migration->processRollback(array('force' => TRUE));
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Variety term rollback returned RESULT_COMPLETED'));
     $rawterms = taxonomy_term_load_multiple(array(), array('vid' => $vocab->vid));

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Tests for the table destination plugin.
+ */
+
+/**
  * Test table migration.
  */
 class MigrateTableUnitTest extends DrupalWebTestCase {

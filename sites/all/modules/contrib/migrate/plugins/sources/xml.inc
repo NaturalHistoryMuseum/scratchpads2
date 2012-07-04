@@ -659,6 +659,14 @@ class MigrateXMLReader implements Iterator {
   protected $currentId = NULL;
 
   /**
+   * When matching element names, whether to compare to the namespace-prefixed
+   * name, or the local name.
+   *
+   * @var bool
+   */
+  protected $prefixedName = FALSE;
+
+  /**
    * Prepares our extensions to the XMLReader object.
    *
    * @param $xml_url
@@ -694,6 +702,12 @@ class MigrateXMLReader implements Iterator {
       preg_match_all('|^\[@([^=]+)=[\'"](.*)[\'"]\]$|', $attribute_query, $matches);
       $this->attributeName = $matches[1][0];
       $this->attributeValue = $matches[2][0];
+    }
+
+    // If the element path contains any colons, it must be specifying namespaces,
+    // so we need to compare using the prefixed element name in next().
+    if (strpos($element_path, ':')) {
+      $this->prefixedName = TRUE;
     }
   }
 
@@ -731,7 +745,12 @@ class MigrateXMLReader implements Iterator {
     // matching the input query string (represented in $this->elementsToMatch).
     while ($this->reader->read()) {
       if ($this->reader->nodeType == XMLREADER::ELEMENT) {
-        $this->currentPath[$this->reader->depth] = $this->reader->localName;
+        if ($this->prefixedName) {
+          $this->currentPath[$this->reader->depth] = $this->reader->name;
+        }
+        else {
+          $this->currentPath[$this->reader->depth] = $this->reader->localName;
+        }
         if ($this->currentPath == $this->elementsToMatch) {
           // We're positioned to the right element path - if filtering on an
           // attribute, check that as well before accepting this element.
@@ -749,7 +768,13 @@ class MigrateXMLReader implements Iterator {
               $dom->appendChild($node);
               $this->currentElement = simplexml_import_dom($node);
               $idnode = $this->currentElement->xpath($this->idQuery);
-              $this->currentId = (string)reset($idnode);
+              if (is_array($idnode)) {
+                $this->currentId = (string)reset($idnode);
+              }
+              else {
+                throw new Exception(t('Failure retrieving ID, xpath: !xpath',
+                  array('!xpath' => $this->idQuery)));
+              }
               break;
             }
             else {
@@ -767,8 +792,12 @@ class MigrateXMLReader implements Iterator {
         }
       }
       elseif ($this->reader->nodeType == XMLREADER::END_ELEMENT) {
-        // Trim currentPath as we exit each element
-        unset($this->currentPath[$this->reader->depth]);
+        // Remove this element and any deeper ones from the current path
+        foreach ($this->currentPath as $depth => $name) {
+          if ($depth >= $this->reader->depth) {
+            unset($this->currentPath[$depth]);
+          }
+        }
       }
     }
     migrate_instrument_stop('MigrateXMLReader::next');
@@ -927,6 +956,17 @@ class MigrateSourceXML extends MigrateSource {
   }
 
   /**
+   * Returns the active Url.
+   *
+   * @return string
+   */
+  public function activeUrl() {
+    if ($this->activeUrl) {
+      return $this->sourceUrls[$this->activeUrl];
+    }
+  }
+
+  /**
    * Return a count of all available source records.
    */
   public function computeCount() {
@@ -1010,7 +1050,7 @@ class MigrateSourceXML extends MigrateSource {
         // Increment the activeUrl so we try to load the next source
         $this->activeUrl = $this->activeUrl + 1;
       }
-      
+
       $this->reader = new $this->readerClass($this->sourceUrls[$this->activeUrl], $this->elementQuery, $this->idQuery);
       $this->reader->rewind();
 

@@ -35,17 +35,9 @@ abstract class MigrateItems {
   /**
    * Implementors are expected to return a count of IDs available to be migrated.
    *
-   * @API: Commented out so not to break implementations which haven't implemented
-   *  this yet - require it in the next API.
-   *
    * @return int
    */
-  //abstract public function computeCount();
-
-  /**
-   * Deprecated - implement computeCount() instead
-   */
-  //abstract public function count($refresh = TRUE);
+  abstract public function computeCount();
 
   /**
    * Implementors are expected to return an object representing a source item.

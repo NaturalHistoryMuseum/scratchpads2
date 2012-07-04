@@ -4,5 +4,7 @@ multiple migrations).
 
 We currently depend on Features module just for easy export of a content type.
 
-The data comes from
-http://www.retrosheet.org/gamelogs/index.html
+The data comes from http://www.retrosheet.org/gamelogs/index.html:
+
+The information used here was obtained free of charge from and is copyrighted by
+Retrosheet.  Interested parties may contact Retrosheet at "www.retrosheet.org".

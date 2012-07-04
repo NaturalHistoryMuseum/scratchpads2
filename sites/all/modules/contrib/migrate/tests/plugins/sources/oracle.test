@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Tests for the Oracle source plugin.
+ */
+
+/**
  * Test migration from Oracle.
  *
  * NOTE: Test won't run correctly due to http://drupal.org/node/362373, enable
