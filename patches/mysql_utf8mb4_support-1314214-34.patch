@@ -1,0 +1,129 @@
+diff --git a/core/includes/database/mysql/database.inc b/core/includes/database/mysql/database.inc
+index e024a7f..0622b78 100644
+--- a/core/includes/database/mysql/database.inc
++++ b/core/includes/database/mysql/database.inc
+@@ -19,6 +19,15 @@ class DatabaseConnection_mysql extends DatabaseConnection {
+    */
+   protected $shutdownRegistered = FALSE;
+ 
++  /**
++   * Flag to indicate our charset. It can either be utf8 or utf8mb4 (adds
++   * support for 4-byte UTF8 characters). See settings.default.php to learn more
++   * about utf8mb4. The charset() method can be used to read this property.
++   *
++   * @var string
++   */
++  protected $charset = 'utf8';
++
+   public function __construct(array $connection_options = array()) {
+     // This driver defaults to transaction support, except if explicitly passed FALSE.
+     $this->transactionSupport = !isset($connection_options['transactions']) || ($connection_options['transactions'] !== FALSE);
+@@ -52,14 +61,16 @@ class DatabaseConnection_mysql extends DatabaseConnection {
+ 
+     parent::__construct($dsn, $connection_options['username'], $connection_options['password'], $connection_options['pdo']);
+ 
+-    // Force MySQL to use the UTF-8 character set. Also set the collation, if a
+-    // certain one has been set; otherwise, MySQL defaults to 'utf8_general_ci'
+-    // for UTF-8.
++    // Default Drupal to use the UTF-8 character set, but allow the use of
++    // utf8mb4 for better internationalization and full 4-byte UTF-8 support if
++    // set. Also set the collation, if a certain one has been set; otherwise,
++    // MySQL defaults to 'utf8_general_ci' for UTF-8.
++    $this->charset = (isset($connection_options['charset']) ? ($connection_options['charset'] == 'utf8mb4' ? 'utf8mb4' : 'utf8') : 'utf8');
+     if (!empty($connection_options['collation'])) {
+-      $this->exec('SET NAMES utf8 COLLATE ' . $connection_options['collation']);
++      $this->exec('SET NAMES ' . $this->charset . ' COLLATE ' . $connection_options['collation']);
+     }
+     else {
+-      $this->exec('SET NAMES utf8');
++      $this->exec('SET NAMES ' . $this->charset);
+     }
+ 
+     // Set MySQL init_commands if not already defined.  Default Drupal's MySQL
+@@ -196,6 +207,15 @@ class DatabaseConnection_mysql extends DatabaseConnection {
+       }
+     }
+   }
++
++  /**
++   * This is used to fetch readonly charset property.
++   *
++   * @return string
++   */
++  public function charset() {
++    return $this->charset;
++  }
+ }
+ 
+ 
+diff --git a/core/includes/database/mysql/install.inc b/core/includes/database/mysql/install.inc
+index 75f2ae3..f7f6bdd 100644
+--- a/core/includes/database/mysql/install.inc
++++ b/core/includes/database/mysql/install.inc
+@@ -29,5 +29,22 @@ class DatabaseTasks_mysql extends DatabaseTasks {
+   public function minimumVersion() {
+     return '5.0.15';
+   }
++
++  /**
++   * Validates settings, specifically the character set.
++   */
++  public function validateDatabaseSettings($database) {
++    // Perform standard validation.
++    $errors = parent::validateDatabaseSettings($database);
++
++    // If we are using utf8mb4 charset, make sure the database supports it.
++    if (isset($database['charset']) && $database['charset'] == 'utf8mb4') {
++      if (!db_query("SHOW CHARACTER SET WHERE Charset = 'utf8mb4'")->rowCount()) {
++        $errors['mysql_charset'] = st('Your database does not support the utf8mb4 character set');
++      }
++    }
++
++    return $errors;
++  }
+ }
+ 
+diff --git a/core/includes/database/mysql/schema.inc b/core/includes/database/mysql/schema.inc
+index 4e88fa1..b79d830 100644
+--- a/core/includes/database/mysql/schema.inc
++++ b/core/includes/database/mysql/schema.inc
+@@ -142,6 +142,12 @@ class DatabaseSchema_mysql extends DatabaseSchema {
+       $sql .= ' unsigned';
+     }
+ 
++    // If it's a text field, check to see if we should use utf8mb4 (4-byte UTF8)
++    // as the character set.
++    if (in_array($spec['mysql_type'], array('TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'TEXT')) && Database::getConnection()->charset() == 'utf8mb4') {
++      $sql .= ' CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci';
++    }
++
+     if (isset($spec['not null'])) {
+       if ($spec['not null']) {
+         $sql .= ' NOT NULL';
+diff --git a/sites/default/default.settings.php b/sites/default/default.settings.php
+index 360e556..300eb22 100755
+--- a/sites/default/default.settings.php
++++ b/sites/default/default.settings.php
+@@ -153,6 +153,22 @@
+  * @endcode
+  * NOTE: MySQL and SQLite's definition of a schema is a database.
+  *
++ * By default MySQL only uses a 3-byte UTF8 character set. This can cause
++ * problems when trying to save data that contains high-order UTF8 characters,
++ * such as math symbols and rarer languages. If you have MySQL 5.5.3+, you can
++ * turn on support for 4-byte UTF8 characters in text fields by enabling the
++ * utf8mb4 character set on all text columns. More information on utf8mb4 can be
++ * found here:
++ * http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
++ *
++ * An example of using the utf8mb4 character set:
++ *
++ * @code
++ * $databases['default']['default'] = array(
++ *   'charset' => 'utf8mb4'
++ * );
++ * @endcode
++ *
+  * Advanced users can add or override initial commands to execute when
+  * connecting to the database server, as well as PDO connection settings. For
+  * example, to enable MySQL SELECT queries to exceed the max_join_size system
