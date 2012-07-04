@@ -100,12 +100,9 @@ function autotag_search_text($text, $vid){
     $insert->execute();
   }
   catch(Exception $e){
-    drupal_set_message('<p>' . t('The error reported on <a href="http://dev.scratchpads.eu/node/1002">http://dev.scratchpads.eu/node/1002</a> has occurred on your site.  Please paste the following into a new comment for that issue:') . '</p><p>Autotag error experienced on ' . url('', array(
-      'absolute' => TRUE
-    )) . ' at ' . date(DATE_RFC822));
-    watchdog('autotag', t('It looks like the insert into "words" failed.  The values being inserted were: !list_of_words') . check_plain($text), array(
-      '!list_of_words' => theme('item_list', $words)
-    ));
+    // FIXME - This currently does not work with 4-byte characters.  I need to
+    // change this code so that it does not use a temporary table.
+    return array();
   }
   // Select the direct single word matches.
   $select = db_select('taxonomy_term_data', 't');
