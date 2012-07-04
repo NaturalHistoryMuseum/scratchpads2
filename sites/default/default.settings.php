@@ -153,6 +153,22 @@
  * @endcode
  * NOTE: MySQL and SQLite's definition of a schema is a database.
  *
+ * By default MySQL only uses a 3-byte UTF8 character set. This can cause
+ * problems when trying to save data that contains high-order UTF8 characters,
+ * such as math symbols and rarer languages. If you have MySQL 5.5.3+, you can
+ * turn on support for 4-byte UTF8 characters in text fields by enabling the
+ * utf8mb4 character set on all text columns. More information on utf8mb4 can be
+ * found here:
+ * http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
+ *
+ * An example of using the utf8mb4 character set:
+ *
+ * @code
+ * $databases['default']['default'] = array(
+ *   'charset' => 'utf8mb4'
+ * );
+ * @endcode
+ *
  * Advanced users can add or override initial commands to execute when
  * connecting to the database server, as well as PDO connection settings. For
  * example, to enable MySQL SELECT queries to exceed the max_join_size system

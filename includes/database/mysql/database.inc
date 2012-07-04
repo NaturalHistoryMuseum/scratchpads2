@@ -19,6 +19,15 @@ class DatabaseConnection_mysql extends DatabaseConnection {
    */
   protected $shutdownRegistered = FALSE;
 
+  /**
+   * Flag to indicate our charset. It can either be utf8 or utf8mb4 (adds
+   * support for 4-byte UTF8 characters). See settings.default.php to learn more
+   * about utf8mb4. The charset() method can be used to read this property.
+   *
+   * @var string
+   */
+  protected $charset = 'utf8';
+
   public function __construct(array $connection_options = array()) {
     // This driver defaults to transaction support, except if explicitly passed FALSE.
     $this->transactionSupport = !isset($connection_options['transactions']) || ($connection_options['transactions'] !== FALSE);
@@ -50,14 +59,16 @@ class DatabaseConnection_mysql extends DatabaseConnection {
 
     parent::__construct($dsn, $connection_options['username'], $connection_options['password'], $connection_options['pdo']);
 
-    // Force MySQL to use the UTF-8 character set. Also set the collation, if a
-    // certain one has been set; otherwise, MySQL defaults to 'utf8_general_ci'
-    // for UTF-8.
+    // Default Drupal to use the UTF-8 character set, but allow the use of
+    // utf8mb4 for better internationalization and full 4-byte UTF-8 support if
+    // set. Also set the collation, if a certain one has been set; otherwise,
+    // MySQL defaults to 'utf8_general_ci' for UTF-8.
+    $this->charset = (isset($connection_options['charset']) ? ($connection_options['charset'] == 'utf8mb4' ? 'utf8mb4' : 'utf8') : 'utf8');
     if (!empty($connection_options['collation'])) {
-      $this->exec('SET NAMES utf8 COLLATE ' . $connection_options['collation']);
+      $this->exec('SET NAMES ' . $this->charset . ' COLLATE ' . $connection_options['collation']);
     }
     else {
-      $this->exec('SET NAMES utf8');
+      $this->exec('SET NAMES ' . $this->charset);
     }
 
     // Set MySQL init_commands if not already defined.  Default Drupal's MySQL
@@ -193,6 +204,15 @@ class DatabaseConnection_mysql extends DatabaseConnection {
         }
       }
     }
+  }
+
+  /**
+   * This is used to fetch readonly charset property.
+   *
+   * @return string
+   */
+  public function charset() {
+    return $this->charset;
   }
 }
 

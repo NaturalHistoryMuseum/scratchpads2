@@ -147,6 +147,12 @@ class DatabaseSchema_mysql extends DatabaseSchema {
       $sql .= ' unsigned';
     }
 
+    // If it's a text field, check to see if we should use utf8mb4 (4-byte UTF8)
+    // as the character set.
+    if (in_array($spec['mysql_type'], array('TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'TEXT')) && Database::getConnection()->charset() == 'utf8mb4') {
+      $sql .= ' CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci';
+    }
+
     if (isset($spec['not null'])) {
       if ($spec['not null']) {
         $sql .= ' NOT NULL';
