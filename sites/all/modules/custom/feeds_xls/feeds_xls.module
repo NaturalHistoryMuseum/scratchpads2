@@ -78,9 +78,35 @@ function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
   foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
     $info = field_info_field($name);
     if(in_array($info['type'], $numeric_types)){
-      $targets[$name]['callback'] = 'field_feeds_set_target_numeric';
+      $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_numeric';
     }
   }
+}
+
+/**
+ * Callback for mapping numerics.
+ *
+ * Ensure that $value is a numeric to avoid database errors.  This will also map
+ * from a value to a key for list fields.
+ */
+function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
+  if(!is_array($value)){
+    $value = array(
+      $value
+    );
+  }
+  foreach($value as $k => $v){
+    if(!is_numeric($v)){
+      // We load the field and try to do the mapping.
+      $field = field_info_field($target);
+      if($field && $key = array_search($v, $field['settings']['allowed_values'])){
+        $value[$k] = $key;
+      }else{
+        unset($value[$k]);
+      }
+    }
+  }
+  _field_feeds_set_target($source, $entity, $target, $value, FALSE);
 }
 
 /**
