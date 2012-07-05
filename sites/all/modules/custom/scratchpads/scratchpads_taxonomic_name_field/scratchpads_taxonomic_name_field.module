@@ -352,16 +352,6 @@ function scratchpads_taxonomic_name_field_context_default_contexts(){
 }
 
 /**
- * Implements hook_module_implements_alter().
- */
-function scratchpads_taxonomic_name_field_module_implements_alter(&$implementations, $hook){
-  if($hook == 'feeds_processor_targets_alter'){
-    print_r($implementations);
-    exit();
-  }
-}
-
-/**
  * Implements hook_feeds_processor_targets_alter().
  */
 function scratchpads_taxonomic_name_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
