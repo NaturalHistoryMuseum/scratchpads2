@@ -27,7 +27,7 @@ function taxonomy_feeds_parser_sources_alter(&$sources, $content_type) {
  */
 function taxonomy_feeds_get_source(FeedsSource $source, FeedsParserResult $result, $key) {
   if ($node = node_load($source->feed_nid)) {
-    $terms = taxonomy_node_get_terms($node);
+    $terms = taxonomy_feeds_node_get_terms($node);
     $vocabularies = taxonomy_vocabulary_load_multiple(array(), array('machine_name' => str_replace('parent:taxonomy:', '', $key)));
     $vocabulary = array_shift($vocabularies);
     $result = array();
@@ -103,6 +103,49 @@ function taxonomy_feeds_set_target($source, $entity, $target, $terms) {
     }
     $i++;
   }
+}
+
+/**
+ * Find all terms associated with the given node, within one vocabulary.
+ */
+function taxonomy_feeds_node_get_terms($node, $key = 'tid') {
+  $terms = &drupal_static(__FUNCTION__);
+
+  if (!isset($terms[$node->nid][$key])) {
+    // Get tids from all taxonomy_term_reference fields.
+    $tids = array();
+    $fields = field_info_fields();
+    foreach ($fields as $field_name => $field) {
+      if ($field['type'] == 'taxonomy_term_reference' && field_info_instance('node', $field_name, $node->type)) {
+        if (($items = field_get_items('node', $node, $field_name)) && is_array($items)) {
+          $tids = array_merge($tids, array_map('_taxonomy_extract_tid', $items));
+        }
+      }
+    }
+
+    // Load terms and cache them in static var.
+    $curr_terms = taxonomy_term_load_multiple($tids);
+    $terms[$node->nid][$key] = array();
+    foreach ($curr_terms as $term) {
+      $terms[$node->nid][$key][$term->$key] = $term;
+    }
+  }
+  return $terms[$node->nid][$key];
+}
+
+/**
+ * Helper function used in taxonomy_feeds_node_get_terms(). Extracts
+ * tid from array item returned by field_get_items().
+ *
+ * @param $item tid information in a form of single element array (key == 'tid', value == tid we're looking for)
+ *
+ * @return tid extracted from $item.
+ *
+ * @see taxonomy_feeds_node_get_terms()
+ * @see field_get_items()
+ */
+function _taxonomy_extract_tid($item) {
+  return $item['tid'];
 }
 
 /**

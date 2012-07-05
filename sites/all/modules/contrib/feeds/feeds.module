@@ -572,7 +572,7 @@ function feeds_node_presave($node) {
 function feeds_node_insert($node) {
   // Source attached to node.
   feeds_node_update($node);
-  if ($importer_id = feeds_get_importer_id($node->type)) {
+  if (isset($node->feeds) && $importer_id = feeds_get_importer_id($node->type)) {
     $source = feeds_source($importer_id, $node->nid);
     // Start import if requested.
     if (feeds_importer($importer_id)->config['import_on_create'] && !isset($node->feeds['suppress_import'])) {
@@ -589,7 +589,7 @@ function feeds_node_insert($node) {
  */
 function feeds_node_update($node) {
   // Source attached to node.
-  if ($importer_id = feeds_get_importer_id($node->type)) {
+  if (isset($node->feeds) && $importer_id = feeds_get_importer_id($node->type)) {
     $source = feeds_source($importer_id, $node->nid);
     $source->addConfig($node->feeds);
     $source->save();

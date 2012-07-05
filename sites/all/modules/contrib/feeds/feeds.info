@@ -23,6 +23,7 @@ files[] = tests/feeds_processor_term.test
 files[] = tests/feeds_processor_user.test
 files[] = tests/feeds_scheduler.test
 files[] = tests/feeds_mapper_link.test
+files[] = tests/feeds_mapper_taxonomy.test
 files[] = tests/parser_csv.test
 files[] = views/feeds_views_handler_argument_importer_id.inc
 files[] = views/feeds_views_handler_field_importer_name.inc
@@ -31,9 +32,9 @@ files[] = views/feeds_views_handler_field_severity.inc
 files[] = views/feeds_views_handler_field_source.inc
 files[] = views/feeds_views_handler_filter_severity.inc
 
-; Information added by drupal.org packaging script on 2012-02-09
-version = "7.x-2.0-alpha4+39-dev"
+; Information added by drupal.org packaging script on 2012-05-28
+version = "7.x-2.0-alpha5"
 core = "7.x"
 project = "feeds"
-datestamp = "1328746531"
+datestamp = "1338228956"
 

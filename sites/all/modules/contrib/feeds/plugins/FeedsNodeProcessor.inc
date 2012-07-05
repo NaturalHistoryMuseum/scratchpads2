@@ -46,6 +46,8 @@ class FeedsNodeProcessor extends FeedsProcessor {
    *
    * If the update existing method is not FEEDS_UPDATE_EXISTING, only the node
    * table will be loaded, foregoing the node_load API for better performance.
+   *
+   * @todo Reevaluate the use of node_object_prepare().
    */
   protected function entityLoad(FeedsSource $source, $nid) {
     if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
@@ -57,6 +59,14 @@ class FeedsNodeProcessor extends FeedsProcessor {
       $node->uid = $this->config['author'];
     }
     node_object_prepare($node);
+
+    // Workaround for issue #1247506. See #1245094 for backstory.
+    if (!empty($node->menu)) {
+      // If the node has a menu item(with a valid mlid) it must be flagged
+      // 'enabled'.
+      $node->menu['enabled'] = (int) (bool) $node->menu['mlid'];
+    }
+
     // Populate properties that are set by node_object_prepare().
     if ($this->config['update_existing'] == FEEDS_UPDATE_EXISTING) {
       $node->log = 'Updated by FeedsNodeProcessor';

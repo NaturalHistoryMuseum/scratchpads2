@@ -61,12 +61,16 @@ function feeds_import_form($form, &$form_state, $importer_id) {
     '#tree' => TRUE,
     '#value' => feeds_source_status($source),
   );
-  $form['feeds'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Import'),
-    '#tree' => TRUE,
-  );
-  $form['feeds'] += $source->configForm($form_state);
+
+  $source_form = $source->configForm($form_state);
+  if (!empty($source_form)) {
+    $form['feeds'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Import'),
+      '#tree' => TRUE,
+    ) + $source_form;
+  }
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
@@ -92,11 +96,13 @@ function feeds_import_form_validate($form, &$form_state) {
  * Submit handler for feeds_import_form().
  */
 function feeds_import_form_submit($form, &$form_state) {
-
   // Save source and import.
   $source = feeds_source($form['#importer_id']);
-  $source->addConfig($form_state['values']['feeds']);
-  $source->save();
+
+  if (!empty($form_state['values']['feeds']) && is_array($form_state['values']['feeds'])) {
+    $source->addConfig($form_state['values']['feeds']);
+    $source->save();
+  }
 
   // Refresh feed if import on create is selected.
   if ($source->importer->config['import_on_create']) {

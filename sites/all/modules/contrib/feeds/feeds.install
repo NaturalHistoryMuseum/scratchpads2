@@ -70,14 +70,14 @@ function feeds_schema() {
         'description' => 'Main source resource identifier. E. g. a path or a URL.',
       ),
       'state' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
         'not null' => FALSE,
         'description' => 'State of import or clearing batches.',
         'serialize' => TRUE,
       ),
       'fetcher_result' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
         'not null' => FALSE,
         'description' => 'Cache for fetcher result.',
@@ -516,4 +516,25 @@ function feeds_update_7205() {
   db_add_index('feeds_item', 'lookup_guid', array('entity_type', 'id', 'feed_nid', array('guid', 128)));
   db_add_index('feeds_item', 'global_lookup_url', array('entity_type', array('url', 128)));
   db_add_index('feeds_item', 'global_lookup_guid', array('entity_type', array('guid', 128)));
+}
+
+/**
+ * Change state and fetcher_result fields from text to blob.
+ */
+function feeds_update_7206() {
+  db_change_field('feeds_source', 'state', 'state', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'State of import or clearing batches.',
+    'serialize' => TRUE,
+  ));
+
+  db_change_field('feeds_source', 'fetcher_result', 'fetcher_result', array(
+    'type' => 'blob',
+    'size' => 'big',
+    'not null' => FALSE,
+    'description' => 'Cache for fetcher result.',
+    'serialize' => TRUE,
+  ));
 }
