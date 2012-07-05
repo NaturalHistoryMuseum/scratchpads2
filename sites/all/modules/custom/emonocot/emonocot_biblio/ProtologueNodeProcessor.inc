@@ -2,10 +2,12 @@
 
 /**
  * @file
- * Class definition of FeedsNodeProcessor.
+ * Class definition of ProtologueNodeProcessor.
  */
+
 /**
- * Creates nodes from feed items.
+ * Updates Biblio nodes with URLS from Excel files.
+ * Unique to the eMonocot project.
  */
 class ProtologueNodeProcessor extends FeedsProcessor{
 
