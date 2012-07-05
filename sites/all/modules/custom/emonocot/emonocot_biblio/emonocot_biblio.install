@@ -1,6 +1,12 @@
 <?php
 
+/**
+ * Implements hook_install().
+ */
 function emonocot_biblio_install(){
+  /**
+   * Create a new Biblio type: Botanical Protologue
+   */
   $values['name'] = 'Botanical Protologue';
   $values['description'] = 'A botanical protologue';
   $values['tid'] = variable_get('biblio_max_user_tid', '999') + 1;
@@ -67,6 +73,9 @@ function emonocot_biblio_install(){
   foreach($biblio_fields as $field){
     $query = db_update('biblio_field_type')->fields($field)->condition('tid', $protologue_type)->condition('fid', $field['fid'])->execute();
   }
+  /**
+   * Set default variables
+   */
   variable_set('em_biblio_autogen', TRUE);
 }
 
