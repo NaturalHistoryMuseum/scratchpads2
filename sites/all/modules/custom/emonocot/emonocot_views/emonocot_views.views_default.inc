@@ -445,6 +445,29 @@ function emonocot_views_nomenclature($vid){
   $handler->display->display_options['fields']['field_hp_' . $vid]['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_hp_' . $vid]['delta_first_last'] = 0;
   $handler->display->display_options['fields']['field_hp_' . $vid]['field_api_classes'] = 0;
+  /* Field: Taxonomy term: Etymology */
+  $handler->display->display_options['fields']['field_itis_em_etymology']['id'] = 'field_itis_em_etymology';
+  $handler->display->display_options['fields']['field_itis_em_etymology']['table'] = 'field_data_field_itis_em_etymology';
+  $handler->display->display_options['fields']['field_itis_em_etymology']['field'] = 'field_itis_em_etymology';
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_itis_em_etymology']['field_api_classes'] = 0;
   /* Contextual filter: Taxonomy term: Term ID */
   $handler->display->display_options['arguments']['tid']['id'] = 'tid';
   $handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_term_data';
