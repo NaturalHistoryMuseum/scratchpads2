@@ -210,7 +210,7 @@ function scratchpads_backend_views_default_views(){
       'label' => ''
     ),
     'action::node_publish_action' => array(
-      'selected' => 0,
+      'selected' => 1,
       'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
