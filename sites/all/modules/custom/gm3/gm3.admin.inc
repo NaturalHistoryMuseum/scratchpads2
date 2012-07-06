@@ -43,7 +43,6 @@ function gm3_test_page(){
   ))->condition('level_4_code', '', '!=')->condition('level_3_code', 'ANT', '!=')->execute();
   foreach($results as $row){
     $regions[] = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$row->level_3_code}-{$row->level_4_code}";
-    //break;
   }
   return array(
     'map' => array(
