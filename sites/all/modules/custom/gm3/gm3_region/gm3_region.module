@@ -61,6 +61,7 @@ function gm3_region_cron(){
     }
     $polygons = cache_get($cid, 'cache_gm3_polygon');
     if($polygons === false){
+      module_load_include('callback.inc', 'gm3_region');
       gm3_region_get_points($cid);
       break;
     }
