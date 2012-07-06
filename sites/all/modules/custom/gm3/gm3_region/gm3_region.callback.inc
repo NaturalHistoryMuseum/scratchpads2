@@ -165,6 +165,15 @@ function gm3_region_get_points($region_ids){
           break;
       }
       if($row){
+        $matches = array();
+        preg_match_all('/\.[0-9]{1,20}/', $row->polygons, $matches);
+        $matches = $matches[0];
+        usort($matches, 'gm3_region_sort_by_length');
+        $replaces = array();
+        foreach($matches as $match){
+          $replaces[] = substr($match, 0, 5); // Accurate to 4 decimal places, or 11 metres.
+        }
+        $row->polygons = str_replace($matches, $replaces, $row->polygons);
         $polygons = $wkt_reader->read($row->polygons, TRUE);
         $polygons = $polygons->out('json');
         $polygons = '{"' . $region_id . '":{"name":"' . $row->name . '","shape":' . $polygons . '}}';
@@ -176,5 +185,11 @@ function gm3_region_get_points($region_ids){
     print $polygons;
   }
   print "]";
-  exit();
+}
+
+/**
+ * Helper function to sort the array of matches by their length.
+ */
+function gm3_region_sort_by_length($a, $b){
+  return strlen($b) - strlen($a);
 }

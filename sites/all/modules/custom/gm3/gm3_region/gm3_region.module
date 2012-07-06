@@ -40,6 +40,34 @@ function gm3_region_menu(){
 }
 
 /**
+ * Implements hook_cron().
+ */
+function gm3_region_cron(){
+  // Populate the cache_gm3_polygon table to greatly improve the performance of
+  // the sites.
+  // Most important items to cache are the bigger ones, so we start with level 1
+  // and move down to level 4.
+  $results = db_query('SELECT level_1_code, level_2_code, level_3_code, level_4_code FROM {gm3_region_data} ORDER BY LENGTH(polygons) DESC');
+  foreach($results as $row){
+    $cid = $row->level_1_code;
+    if($row->level_2_code){
+      $cid .= ":{$row->level_2_code}";
+    }
+    if($row->level_3_code){
+      $cid .= ":{$row->level_3_code}";
+    }
+    if($row->level_4_code){
+      $cid .= ":{$row->level_3_code}-{$row->level_4_code}";
+    }
+    $polygons = cache_get($cid, 'cache_gm3_polygon');
+    if($polygons === false){
+      gm3_region_get_points($cid);
+      break;
+    }
+  }
+}
+
+/**
  * Implementation of hook_library().
  * 
  * FIXME - Select countries.  Click on a region could bring up an option to 
