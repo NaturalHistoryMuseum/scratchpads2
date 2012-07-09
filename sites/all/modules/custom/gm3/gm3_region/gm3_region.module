@@ -43,6 +43,7 @@ function gm3_region_menu(){
  * Implements hook_cron().
  */
 function gm3_region_cron(){
+  return;
   // Set the time limit 
   drupal_set_time_limit(600);
   // Populate the cache_gm3_polygon table to greatly improve the performance of
