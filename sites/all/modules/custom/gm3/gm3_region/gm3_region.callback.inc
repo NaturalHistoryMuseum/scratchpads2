@@ -29,7 +29,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   $latlng = explode(", ", $latlng);
   $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
   $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code) as code 
-  										 FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_4_code != ''", array(
+                       FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_4_code != ''", array(
     ':iso_code' => $iso_codes,
     ':point_wkt' => $point_wkt
   ));
@@ -65,7 +65,21 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     foreach($results as $result){
       $polygon = $wkt_reader->read($result->polygons, TRUE);
       if($point->within($polygon)){
-        print json_encode("{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}");
+        switch(arg(4)){
+          case 4:
+            $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}";
+            break;
+          case 3:
+            $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}";
+            break;
+          case 2:
+            $region_id = "{$result->level_1_code}:{$result->level_2_code}";
+            break;
+          case 1:
+            $region_id = "{$result->level_1_code}";
+            break;
+        }
+        print json_encode($results->code);
         exit();
       }
     }
