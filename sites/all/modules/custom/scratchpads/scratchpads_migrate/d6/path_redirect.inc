@@ -17,11 +17,9 @@ class PathRedirect6Migration extends PathRedirectMigration{
     // Field mappings
     $this->addSimpleMappings(array(
       'source',
-      'redirect',
-      'query',
-      'fragment',
-      'type'
+      'redirect'
     ));
+    $this->addFieldMapping('status_code', 'type');
   }
 
   /**
@@ -33,8 +31,6 @@ class PathRedirect6Migration extends PathRedirectMigration{
     return Database::getConnection('default', $this->sourceConnection)->select('path_redirect', 'p')->fields('p', array(
       'source',
       'redirect',
-      'query',
-      'fragment',
       'type'
     ))->condition('last_used', time() - 31556926, '>'); // Seconds in one year (Google).
   }
