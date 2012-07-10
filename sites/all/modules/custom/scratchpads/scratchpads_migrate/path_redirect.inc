@@ -55,6 +55,7 @@ class MigrateDestinationPathRedirect extends MigrateDestination{
     redirect_object_prepare($object);
     redirect_save($object);
     if($object->rid){
+      $this->numCreated++;
       return array(
         $object->source
       );
