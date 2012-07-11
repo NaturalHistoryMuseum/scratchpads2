@@ -64,6 +64,21 @@ function gm3_region_install(){
   }
   // Finally, we set the shape data.  This query is MySQL specific.
   db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+  // Load the cache data from the install file to avoid having to build it.
+  $file = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/cache_gm3_polygon.txt', "r");
+  while($line = fgetcsv($file, 0, "\t")){
+    $line['cid'] = $line[0];
+    $line['data'] = $line[1];
+    $line['expire'] = 0;
+    $line['created'] = time();
+    $line['serialized'] = 0;
+    for($i = 0; $i <= 4; $i++){
+      unset($line[$i]);
+    }
+    $query = db_merge('cache_gm3_polygon')->key(array(
+      'cid' => $line['cid']
+    ))->fields($line)->execute();
+  }
 }
 
 /**
@@ -159,4 +174,24 @@ function gm3_region_update_7001(){
  */
 function gm3_region_update_7002(){
   db_drop_field('gm3_region_data', 'binary_polygons');
+}
+
+/**
+ * Remove the binary_polygons field.
+ */
+function gm3_region_update_7003(){
+  $file = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/cache_gm3_polygon.txt', "r");
+  while($line = fgetcsv($file, 0, "\t")){
+    $line['cid'] = $line[0];
+    $line['data'] = $line[1];
+    $line['expire'] = 0;
+    $line['created'] = time();
+    $line['serialized'] = 0;
+    for($i = 0; $i <= 4; $i++){
+      unset($line[$i]);
+    }
+    $query = db_merge('cache_gm3_polygon')->key(array(
+      'cid' => $line['cid']
+    ))->fields($line)->execute();
+  }
 }
