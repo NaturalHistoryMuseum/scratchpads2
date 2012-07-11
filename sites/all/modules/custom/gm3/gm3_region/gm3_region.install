@@ -177,7 +177,7 @@ function gm3_region_update_7002(){
 }
 
 /**
- * Remove the binary_polygons field.
+ * Populate the cache_gm3_polygon table.
  */
 function gm3_region_update_7003(){
   $file = fopen(drupal_get_path('module', 'gm3_region') . '/region_data/cache_gm3_polygon.txt', "r");
