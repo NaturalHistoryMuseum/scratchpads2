@@ -934,6 +934,7 @@ function _view_reference(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/reference/csv';
+  $handler->display->display_options['use_batch'] = '0';
   return $view;
 }
 
@@ -1139,6 +1140,7 @@ function _view_image(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/image/csv';
+  $handler->display->display_options['use_batch'] = '0';
   return $view;
 }
 
@@ -1313,6 +1315,7 @@ function _view_specimen(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca_export/specimen/csv';
+  $handler->display->display_options['use_batch'] = '0';
   return $view;
 }
 
@@ -1438,6 +1441,7 @@ function _view_distribution(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/distribution/csv';
+  $handler->display->display_options['use_batch'] = '0';
   return $view;
 }
 
