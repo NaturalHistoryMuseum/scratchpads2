@@ -203,6 +203,10 @@ function scratchpads_migrate_register_migrations(){
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
     $common_node_arguments['dependencies'][] = $arguments['machine_name'];
   }
+  /****************************************************************************
+   * Dependencies for the PathRedirect migration
+   ****************************************************************************/
+  $path_dependencies = array();
   /*********************************************************************************************
    * Nodes
    ********************************************************************************************/
@@ -259,9 +263,19 @@ function scratchpads_migrate_register_migrations(){
       'source_type' => $type,
       'destination_type' => $destination_type
     );
+    $path_dependencies[] = $arguments['machine_name'];
     $arguments = array_merge_recursive($arguments, $common_node_arguments);
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
   }
+  /*********************************************************************************************
+   * PathRedirect
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of URL redirects from Drupal 6'),
+    'machine_name' => 'PathRedirect',
+    'dependencies' => $path_dependencies
+  );
+  Migration::registerMigration('PathRedirect6Migration', $arguments['machine_name'], $arguments);
 }
 
 function scratchpads_migrate_term_machine_name($name){

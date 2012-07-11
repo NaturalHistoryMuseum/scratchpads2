@@ -345,6 +345,21 @@ function gm3_menu(){
         'administer gm3'
       ),
       'file' => 'gm3.admin.inc'
+    ),
+    'admin/config/content/gm3/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/content/gm3/test' => array(
+      'title' => 'Test',
+      'description' => t('Google Map test page - ensure the GM3 module is working correctly on your site.'),
+      'page callback' => 'gm3_test_page',
+      'file' => 'gm3.admin.inc',
+      'access arguments' => array(
+        'administer gm3'
+      ),
+      'type' => MENU_LOCAL_TASK
     )
   );
 }

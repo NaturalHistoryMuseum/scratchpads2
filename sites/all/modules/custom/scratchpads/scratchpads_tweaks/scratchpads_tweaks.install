@@ -17,7 +17,7 @@ function scratchpads_tweaks_install(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+          'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -871,4 +871,18 @@ function scratchpads_tweaks_update_7019(){
   variable_set('date_format_long', 'l, F j, Y - g:ia');
   variable_set('date_format_medium', 'Y-m-d H:i');
   variable_set('date_format_short', 'Y-m-d');
+}
+
+/**
+ * Update the filtered HTML format (add <u>).
+ */
+function scratchpads_tweaks_update_7020(){
+  $settings = array(
+    'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>',
+    'filter_html_help' => 0,
+    'filter_html_nofollow' => 0
+  );
+  db_update('filter')->fields(array(
+    'settings' => serialize($settings)
+  ))->condition('module', 'filter')->condition('name', 'filter_html')->condition('format', 'plain_text', '!=')->execute();
 }

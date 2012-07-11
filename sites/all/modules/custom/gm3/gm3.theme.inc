@@ -18,7 +18,7 @@ function gm3_get_map($variables){
     'region' => 'polygon'
   );
   foreach($dependencies as $library => $dependent){
-    if(isset($variables['map']['libraries'][$library]) && !isset($variables['map'][$dependent])){
+    if(isset($variables['map']['libraries'][$library]) && !isset($variables['map']['libraries'][$dependent])){
       $variables['map']['libraries'][$dependent] = array();
     }
   }

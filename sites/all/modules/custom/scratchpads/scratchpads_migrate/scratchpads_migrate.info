@@ -15,6 +15,7 @@ files[] = field.inc
 files[] = field_body.inc
 files[] = field_group.inc
 files[] = field_taxonomy.inc
+files[] = path_redirect.inc
 files[] = vocabulary.inc
 
 ; D6 implementations
@@ -27,6 +28,7 @@ files[] = d6/forum.inc
 files[] = d6/file.inc
 files[] = d6/node.inc
 files[] = d6/og.inc
+files[] = d6/path_redirect.inc
 files[] = d6/taxonomy.inc
 files[] = d6/user.inc
 files[] = d6/vocabulary.inc
