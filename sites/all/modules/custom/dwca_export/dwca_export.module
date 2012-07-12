@@ -227,10 +227,13 @@ function _dwca_export_archive_descriptor_file_map($file_name = NULL, $out_file_u
 function dwca_export_cron(){
   if(function_exists('drush_get_context')){
     module_load_include('drush.inc', 'views_data_export');
-    $view_names = dwca_export_views_names_array();
+    $view_names = dwca_export_view_names_array();
     foreach($view_names as $key => $name){
       $view_name = "dwca_export_$name";
-      drush_views_data_export($view_name, 'views_data_export_1', substr(drupal_realpath("public://" . $name . FILE_EXTENSION), strlen(realpath(drush_get_context('DRUSH_OLDCWD', getcwd()))) + 1));
+	  $file_name = substr(drupal_realpath("public://" . $name . FILE_EXTENSION), strlen(realpath(drush_get_context('DRUSH_OLDCWD', getcwd()))) + 1);
+	  //print $file_name; return;
+      drush_views_data_export($view_name, 'views_data_export_1', $file_name);
+	  return;
     }
     // Create the Zip file.
   }
@@ -241,6 +244,78 @@ function dwca_export_cron(){
   variable_set('dwca_export_latest', $filename);
   variable_set('dwca_export_rebuild', FALSE);
 }
+
+/*function dwca_export_taxonomy_term_insert($term){
+  $biological_vids = variable_get('biological_vids', array());
+  if (isset($biological_vids[$term->vid]) && $biological_vids[$term->vid]) {
+	variable_set('dwca_export_rebuild', TRUE);
+  }
+}
+
+function dwca_export_taxonomy_term_delete($term){
+  dwca_export_taxonomy_term_insert($term);
+}
+
+function dwca_export_taxonomy_term_update($term){
+  dwca_export_taxonomy_term_insert($term);
+}
+
+function dwca_export_node_insert($node){
+  
+  if ($node->type == 'spm' || $node->type == 'biblio'
+  || $node->type == 'specimen_observation') {
+	variable_set('dwca_export_rebuild', TRUE);
+  }
+}
+
+function dwca_export_node_delete($node){
+  
+  dwca_export_node_insert($node);
+}
+
+function dwca_export_node_update($node){
+  
+  dwca_export_node_insert($node);
+  drupal_set_message(t('LORNA The node type... ') . $node->type);
+}*/
+
+function dwca_export_entity_insert($entity, $type) {
+	switch ($type) {
+		case 'taxonomy_term' :
+		drupal_set_message(t('LORNA The taxonomy term type... ') . $type);
+		$biological_vids = variable_get('biological_vids', array());
+		if (isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]) {
+			variable_set('dwca_export_rebuild', TRUE);
+		}
+		break;
+		case 'node':
+		drupal_set_message(t('LORNA The ENTITY type... ') . $type);
+		if ($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation') {
+			variable_set('dwca_export_rebuild', TRUE);
+		}			
+	}	
+}
+
+function dwca_export_entity_delete($entity, $type){
+  dwca_export_entity_insert($entity, $type);
+}
+
+function dwca_export_entity_update($entity, $type){  
+drupal_set_message(t('LORNA Updating entity of type... ') . $type);
+  dwca_export_entity_insert($entity, $type);
+}
+//hook_file_insert
+
+/**
+ * hook_node_insert
+ * hook_node_update
+ * hook_node_delete
+ * $node->type == 'darwincore'
+ *
+ * hook_taxonomy_term_insert
+ * hook_taxonomy_term_update
+ * hook_taxonomy_term_delete
+ */
 
 /**
  * Walks all view export paths defined in the $views_map.
