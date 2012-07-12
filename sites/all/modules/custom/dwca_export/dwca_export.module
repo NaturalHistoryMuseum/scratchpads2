@@ -5,34 +5,33 @@ define("STATIC_DIR", "/static/");
 //define ("ARCHIVE_ROOT_DIR", "dwca_export/");/
 define('FILE_MAP', 'dwca_export_archive_descriptor_file_map');
 define('FILE_EXTENSION', ".txt");
-
 //$view_all_names_except_description = array('classification', 'specimen', 'reference', 'image', 'distribution');
 /**
  * Implements hook_menu().
  */
 function dwca_export_menu(){
-  $items = array();
-  $items['admin/config/system/dwca_export'] = array(
-    'title' => 'Darwin Core Archive export',
-    'description' => t('Create a DarwinCore Archive of this scratchpad.'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array(
-      'dwca_export_config_form'
+  return array(
+    'admin/config/system/dwca_export' => array(
+      'title' => 'Darwin Core Archive export',
+      'description' => t('Create a DarwinCore Archive of this scratchpad.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwca_export_config_form'
+      ),
+      'access arguments' => array(
+        'access DwC-A export settings'
+      ),
+      //'file' => 'dwca_export.admin.inc'
+      'type' => MENU_NORMAL_ITEM
     ),
-    'access arguments' => array(
-      'access DwC-A export settings'
-    ),
-    'type' => MENU_NORMAL_ITEM
-  )//'file' => 'dwca_export.admin.inc'
-  ;
-  $items['dwca_export'] = array(
-    'page callback' => 'dwca_export_deliver_archive',
-    'access arguments' => array(
-      'access content'
-    ),
-    'type' => MENU_CALLBACK
+    'dwca_export' => array(
+      'page callback' => 'dwca_export_deliver_archive',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
   );
-  return $items;
 }
 
 function dwca_export_view_names_array(){
@@ -43,6 +42,7 @@ function dwca_export_view_names_array(){
     'image',
     'distribution'
   );
+  drupal_alter('dwca_export_views', $view_names);
   return $view_names;
 }
 
@@ -78,10 +78,9 @@ function dwca_export_config_form($form, &$form_state){
   );
   $form['dwca_export_execute'] = array(
     '#markup' => '<p>The DarwinCore Archive export is available at ' . l('dwca_export', 'dwca_export') . '</p>'
-  )//'#type' => 'button',
+  ); //'#type' => 'button',
   //'#value' => t('Export Scratchpad to DarwinCore Archive'), 
   //'#weight' => 19,
-  ;
   $form['dwca_export_view_mapping'] = dwca_export_select_view_form();
   $form['#submit'][] = 'dwca_export_config_form_submit';
   return system_settings_form($form);
@@ -91,9 +90,7 @@ function dwca_export_select_view_form(){
   $views = array(
     '#type' => 'fieldset',
     '#title' => t('View to file mapping')
-  )//'#tree' => TRUE,
-  ;
-  
+  ); //'#tree' => TRUE,
   foreach(variable_get(FILE_MAP, 'dwca_export_archive_descriptor_file_map') as $dwca_filename => $view_data){
     if($dwca_filename == 'description'){
       $views[$dwca_filename] = array(
@@ -113,10 +110,9 @@ function dwca_export_select_view_form(){
           '#default_value' => $view_data_inner['view_name'],
           '#size' => 60,
           '#description' => t('specify view for ' . $dwca_filename_inner)
-        )//'#prefix' => '<tr>',
+        ); //'#prefix' => '<tr>',
         //'#suffix' => '</tr>',
-        ;
-         //TODO: Change collaped discription form to table, layout using <td> and <tr> e.g. try 3 description types per row
+        //TODO: Change collaped discription form to table, layout using <td> and <tr> e.g. try 3 description types per row
       }
     }else{
       $views[$dwca_filename] = array(
@@ -138,7 +134,7 @@ function dwca_export_config_form_submit($form, &$form_state){
   foreach($variables as $key => $value){
     if(array_key_exists($key, $dwca_export_archive_descriptor_file_map)){
       $dwca_export_archive_descriptor_file_map[$key]['view_name'] = $value;
-       //$save_variables .= '<p>' . $key . ' ' . $value . '</p>';
+      //$save_variables .= '<p>' . $key . ' ' . $value . '</p>';
     }else{
       $description_key = 'description';
       if(array_key_exists($description_key, $dwca_export_archive_descriptor_file_map)){
@@ -153,9 +149,8 @@ function dwca_export_config_form_submit($form, &$form_state){
   }
   variable_del(FILE_MAP);
   variable_set(FILE_MAP, $dwca_export_archive_descriptor_file_map);
-   //drupal_set_message(t('The classification view is ') . $save_variables);// . '<pre>' . print_r($form_state,true) . '</pre>');//$save_variables);
+  //drupal_set_message(t('The classification view is ') . $save_variables);// . '<pre>' . print_r($form_state,true) . '</pre>');//$save_variables);
 }
-
 // Reports an error if view name entered by the user does not exist in the database.
 function dwca_export_config_form_validate($form, &$form_state){
   $variables = $form_state['input'];
@@ -184,10 +179,12 @@ function dwca_export_config_form_validate($form, &$form_state){
  * menu callback
  */
 function dwca_export_deliver_archive(){
-  if (variable_get('dwca_export_latest', FALSE)){
-  	file_transfer(variable_get('dwca_export_latest', array('Content-Type' => 'application/zip')));
+  if(variable_get('dwca_export_latest', FALSE)){
+    file_transfer(variable_get('dwca_export_latest', array(
+      'Content-Type' => 'application/zip'
+    )));
   }
-  /**$tmp_archive_file_name = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
+/**$tmp_archive_file_name = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
   if($tmp_archive_file_name && file_valid_uri($tmp_archive_file_name)){
     file_transfer($tmp_archive_file_name, array(
       'Content-Type' => 'application/zip'
@@ -228,9 +225,18 @@ function _dwca_export_archive_descriptor_file_map($file_name = NULL, $out_file_u
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-drupal_set_time_limit(1200);
-  if (variable_get('dwca_export_rebuild', TRUE)){
-  	$filename = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
+  if(function_exists('drush_get_context')){
+    module_load_include('drush.inc', 'views_data_export');
+    $view_names = dwca_export_views_names_array();
+    foreach($view_names as $key => $name){
+      $view_name = "dwca_export_$name";
+      drush_views_data_export($view_name, 'views_data_export_1', substr(drupal_realpath("public://" . $name . FILE_EXTENSION), strlen(realpath(drush_get_context('DRUSH_OLDCWD', getcwd()))) + 1));
+    }
+    // Create the Zip file.
+  }
+  drupal_set_time_limit(1200);
+  if(variable_get('dwca_export_rebuild', TRUE)){
+    $filename = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
   }
   variable_set('dwca_export_latest', $filename);
   variable_set('dwca_export_rebuild', FALSE);
@@ -301,7 +307,7 @@ function dwca_export_create_archive($views_map){
         )));
       }
     }
-     //end lorna
+    //end lorna
   }
   // add the csv data files
   foreach(_dwca_export_archive_descriptor_file_map() as $dwca_filename => $view_data){
