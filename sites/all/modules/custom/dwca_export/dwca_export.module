@@ -1,7 +1,7 @@
 <?php
 // at the moment we are using a static meta.xml file
 define("METADATA_FILE_NAME", "meta.xml");
-define("STATIC_DIR", "/static/");
+define("STATIC_DIR", DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR);
 //define ("ARCHIVE_ROOT_DIR", "dwca_export/");/
 define('FILE_MAP', 'dwca_export_archive_descriptor_file_map');
 define('FILE_EXTENSION', ".txt");
@@ -225,55 +225,70 @@ function _dwca_export_archive_descriptor_file_map($file_name = NULL, $out_file_u
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  if(function_exists('drush_get_context') && function_exists){
+  variable_del('dwca_export_zip_built');
+  if(function_exists('drush_get_context') && variable_get('dwca_export_zip_built', 0) < time() + 86400){
     $drush_oldcwd = drush_get_context('DRUSH_OLDCWD', getcwd());
     module_load_include('drush.inc', 'views_data_export');
     $view_names = dwca_export_view_names_array();
+    $i = 0;
     foreach($view_names as $name){
-      drupal_set_message("Doing the view for $name");
-      $view_name = "dwca_export_$name";
-      drush_set_context('DRUSH_OLDCWD', drupal_realpath('public://'));
-      drush_views_data_export($view_name, 'views_data_export_1', $name . FILE_EXTENSION);
+      if(!file_exists('public://' . $name . FILE_EXTENSION)){
+        drush_set_context('DRUSH_OLDCWD', drupal_realpath('public://'));
+        drush_views_data_export("dwca_export_$name", 'views_data_export_1', $name . FILE_EXTENSION);
+        drush_set_context('DRUSH_OLDCWD', $drush_oldcwd);
+        // We're only able to create one file at once, so we return here.
+        return;
+      }
     }
-    drush_set_context('DRUSH_OLDCWD', $drush_oldcwd);
-    // Create the Zip file.
+    // If we have reached here, then we have all the files we require, and can
+    // therefore build the zip file and delete the files.
+    variable_set('dwca_export_zip_built', time());
+    $tmp_archive_file_name = drupal_realpath(drupal_tempnam("temporary://", "dwca_export_archive_"));
+    // Unfortunately we cannot use drupals ArchiverZip because there ís
+    // no way to pass in ZipArchive::CREATE to the constructor to create the archive
+    // TODO test if zip functionality is available (i.e. if(function_exists('zip_open'))
+    // but I don't know where the proper location for such a check would be
+    $zip = new ZipArchive();
+    $result = $zip->open($tmp_archive_file_name, ZipArchive::CREATE);
+    // there might be a better way to get at this information
+    if($result !== TRUE){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
+    // add metadata
+    $zip->addFile(drupal_realpath(drupal_get_path('module', 'dwca_export') . STATIC_DIR . METADATA_FILE_NAME), METADATA_FILE_NAME);
+    // add the csv data files
+    foreach($view_names as $name){
+      $zip->addFile(drupal_realpath('public://' . $name . FILE_EXTENSION), $name . FILE_EXTENSION);
+    }
+    $zip->close();
+    file_unmanaged_move($tmp_archive_file_name, 'public://dwca.zip', FILE_EXISTS_REPLACE);
   }
-  /*
-  drupal_set_time_limit(1200);
-  if(variable_get('dwca_export_rebuild', TRUE)){
-    $filename = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
-  }
-  variable_set('dwca_export_latest', $filename);
-  variable_set('dwca_export_rebuild', FALSE);*/
 }
 
-function dwca_export_entity_insert($entity, $type) {
-	switch ($type) {
-		case 'taxonomy_term' :
-		drupal_set_message(t('LORNA The taxonomy term type... ') . $type);
-		$biological_vids = variable_get('biological_vids', array());
-		if (isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]) {
-			variable_set('dwca_export_rebuild', TRUE);
-		}
-		break;
-		case 'node':
-		drupal_set_message(t('LORNA The ENTITY type... ') . $type);
-		if ($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation') {
-			variable_set('dwca_export_rebuild', TRUE);
-		}			
-	}	
+function dwca_export_entity_insert($entity, $type){
+  switch($type){
+    case 'taxonomy_term':
+      drupal_set_message(t('LORNA The taxonomy term type... ') . $type);
+      $biological_vids = variable_get('biological_vids', array());
+      if(isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]){
+        variable_set('dwca_export_rebuild', TRUE);
+      }
+      break;
+    case 'node':
+      drupal_set_message(t('LORNA The ENTITY type... ') . $type);
+      if($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation'){
+        variable_set('dwca_export_rebuild', TRUE);
+      }
+  }
 }
 
 function dwca_export_entity_delete($entity, $type){
   dwca_export_entity_insert($entity, $type);
 }
 
-function dwca_export_entity_update($entity, $type){  
-drupal_set_message(t('LORNA Updating entity of type... ') . $type);
+function dwca_export_entity_update($entity, $type){
+  drupal_set_message(t('LORNA Updating entity of type... ') . $type);
   dwca_export_entity_insert($entity, $type);
 }
 //hook_file_insert
-
 /**
  * hook_node_insert
  * hook_node_update
@@ -284,7 +299,6 @@ drupal_set_message(t('LORNA Updating entity of type... ') . $type);
  * hook_taxonomy_term_update
  * hook_taxonomy_term_delete
  */
-
 /**
  * Walks all view export paths defined in the $views_map.
  * Each file is downloaded to the tmp folder and a zip file
@@ -381,7 +395,7 @@ function _dwca_export_concatenate_description_files($view_data, $zip){
       $lineOfText = fgets($descTypeFile, 4096);
       $items = explode(',', $lineOfText);
       //don't include empty descriptions or lines at the end of the view which start with the field name id
-  //some lines just contain a single " if there is a carriage return within the description text so remove these too
+      //some lines just contain a single " if there is a carriage return within the description text so remove these too
       if(isset($items[0]) && isset($items[2])){
         if($items[0] !== "\"id\"" && trim($items[2]) !== "\"\""){
           // fix conflict with files that have an EOL that differs from the server EOL
