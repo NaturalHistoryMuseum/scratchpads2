@@ -225,59 +225,27 @@ function _dwca_export_archive_descriptor_file_map($file_name = NULL, $out_file_u
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  if(function_exists('drush_get_context')){
+  if(function_exists('drush_get_context') && function_exists){
+    $drush_oldcwd = drush_get_context('DRUSH_OLDCWD', getcwd());
     module_load_include('drush.inc', 'views_data_export');
     $view_names = dwca_export_view_names_array();
-    foreach($view_names as $key => $name){
+    foreach($view_names as $name){
+      drupal_set_message("Doing the view for $name");
       $view_name = "dwca_export_$name";
-	  $file_name = substr(drupal_realpath("public://" . $name . FILE_EXTENSION), strlen(realpath(drush_get_context('DRUSH_OLDCWD', getcwd()))) + 1);
-	  //print $file_name; return;
-      drush_views_data_export($view_name, 'views_data_export_1', $file_name);
-	  return;
+      drush_set_context('DRUSH_OLDCWD', drupal_realpath('public://'));
+      drush_views_data_export($view_name, 'views_data_export_1', $name . FILE_EXTENSION);
     }
+    drush_set_context('DRUSH_OLDCWD', $drush_oldcwd);
     // Create the Zip file.
   }
+  /*
   drupal_set_time_limit(1200);
   if(variable_get('dwca_export_rebuild', TRUE)){
     $filename = dwca_export_create_archive(_dwca_export_archive_descriptor_file_map());
   }
   variable_set('dwca_export_latest', $filename);
-  variable_set('dwca_export_rebuild', FALSE);
+  variable_set('dwca_export_rebuild', FALSE);*/
 }
-
-/*function dwca_export_taxonomy_term_insert($term){
-  $biological_vids = variable_get('biological_vids', array());
-  if (isset($biological_vids[$term->vid]) && $biological_vids[$term->vid]) {
-	variable_set('dwca_export_rebuild', TRUE);
-  }
-}
-
-function dwca_export_taxonomy_term_delete($term){
-  dwca_export_taxonomy_term_insert($term);
-}
-
-function dwca_export_taxonomy_term_update($term){
-  dwca_export_taxonomy_term_insert($term);
-}
-
-function dwca_export_node_insert($node){
-  
-  if ($node->type == 'spm' || $node->type == 'biblio'
-  || $node->type == 'specimen_observation') {
-	variable_set('dwca_export_rebuild', TRUE);
-  }
-}
-
-function dwca_export_node_delete($node){
-  
-  dwca_export_node_insert($node);
-}
-
-function dwca_export_node_update($node){
-  
-  dwca_export_node_insert($node);
-  drupal_set_message(t('LORNA The node type... ') . $node->type);
-}*/
 
 function dwca_export_entity_insert($entity, $type) {
 	switch ($type) {
@@ -413,7 +381,7 @@ function _dwca_export_concatenate_description_files($view_data, $zip){
       $lineOfText = fgets($descTypeFile, 4096);
       $items = explode(',', $lineOfText);
       //don't include empty descriptions or lines at the end of the view which start with the field name id
-      //some lines just contain a single " if there is a carriage return within the description text so remove these too
+  //some lines just contain a single " if there is a carriage return within the description text so remove these too
       if(isset($items[0]) && isset($items[2])){
         if($items[0] !== "\"id\"" && trim($items[2]) !== "\"\""){
           // fix conflict with files that have an EOL that differs from the server EOL

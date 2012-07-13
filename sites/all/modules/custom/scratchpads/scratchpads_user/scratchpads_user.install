@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Add the homepage field.
+ */
+function scratchpads_user_update_7001(){
+  module_load_include('features.field.inc', 'scratchpads_user');
+  $fields = scratchpads_user_field_default_fields();
+  field_create_field($fields['user-user-field_homepage']['field_config']);
+  field_create_instance($fields['user-user-field_homepage']['field_instance']);
+}
