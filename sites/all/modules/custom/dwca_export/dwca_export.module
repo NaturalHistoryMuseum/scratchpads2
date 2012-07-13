@@ -259,7 +259,14 @@ function dwca_export_cron(){
       $zip->addFile(drupal_realpath('public://' . $name . FILE_EXTENSION), $name . FILE_EXTENSION);
     }
     $zip->close();
-    file_unmanaged_move($tmp_archive_file_name, 'public://dwca.zip', FILE_EXISTS_REPLACE);
+    if(file_unmanaged_move($tmp_archive_file_name, 'public://dwca.zip', FILE_EXISTS_REPLACE)){
+      // We have moved the file.  Now we delete the .txt files
+      foreach($view_names as $name){
+        file_unmanaged_delete(drupal_realpath('public://' . $name . FILE_EXTENSION));
+      }
+    }else{
+      throw new Exception(t('Unable to move the DwC-A'));
+    }
   }
 }
 
