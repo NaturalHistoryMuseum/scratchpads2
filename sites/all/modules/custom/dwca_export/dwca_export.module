@@ -225,8 +225,7 @@ function _dwca_export_archive_descriptor_file_map($file_name = NULL, $out_file_u
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  variable_del('dwca_export_zip_built');
-  if(function_exists('drush_get_context') && variable_get('dwca_export_zip_built', 0) < time() + 86400){
+  if(function_exists('drush_get_context') && variable_get('dwca_export_zip_built', 0) < time() + 86400 && variable_set('dwca_export_rebuild', FALSE)){
     $drush_oldcwd = drush_get_context('DRUSH_OLDCWD', getcwd());
     module_load_include('drush.inc', 'views_data_export');
     $view_names = dwca_export_view_names_array();
@@ -273,14 +272,12 @@ function dwca_export_cron(){
 function dwca_export_entity_insert($entity, $type){
   switch($type){
     case 'taxonomy_term':
-      drupal_set_message(t('LORNA The taxonomy term type... ') . $type);
       $biological_vids = variable_get('biological_vids', array());
       if(isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]){
         variable_set('dwca_export_rebuild', TRUE);
       }
       break;
     case 'node':
-      drupal_set_message(t('LORNA The ENTITY type... ') . $type);
       if($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation'){
         variable_set('dwca_export_rebuild', TRUE);
       }
@@ -292,7 +289,6 @@ function dwca_export_entity_delete($entity, $type){
 }
 
 function dwca_export_entity_update($entity, $type){
-  drupal_set_message(t('LORNA Updating entity of type... ') . $type);
   dwca_export_entity_insert($entity, $type);
 }
 //hook_file_insert
