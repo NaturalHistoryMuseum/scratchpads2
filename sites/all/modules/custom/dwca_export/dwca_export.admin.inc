@@ -4,10 +4,10 @@
  * menu callback
  */
 function dwca_export_deliver_archive(){
-  if(variable_get('dwca_export_latest', FALSE)){
-    file_transfer(variable_get('dwca_export_latest', array(
+  if(file_exists('public://dwca.zip')){
+    file_transfer('public://dwca.zip', array(
       'Content-Type' => 'application/zip'
-    )));
+    ));
   }
 }
 
