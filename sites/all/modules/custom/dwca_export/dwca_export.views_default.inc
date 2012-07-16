@@ -42,25 +42,9 @@ function dwca_export_views_default_views(){
     'uses'
   );
   $views = array();
-  foreach(dwca_export_view_names_array() as $function_postfix){
-    $function = '_view_' . $function_postfix;
-    $view = $function();
-    $views[$view->name] = $view;
-    watchdog("dwca_export", "hook_views_default_views() : view '" . $view->name . "'");
-  }
-  foreach($view_description_names as $desc_type){
-    $function = '_view_description';
-    $view = $function($desc_type);
-    $views[$view->name] = $view;
-    watchdog("dwca_export", "hook_views_default_views() : view '" . $view->name . "'");
-  }
-  return $views;
-}
-
-/**
- * Classification Export View - exported from views module
- */
-function _view_classification(){
+  //----------------------------------------------------------------------------
+  // DESCRIPTION
+  //----------------------------------------------------------------------------
   $view = new view();
   $view->name = 'dwca_export_classification';
   $view->description = 'DwC-A core data for a Taxon';
@@ -69,7 +53,7 @@ function _view_classification(){
   $view->human_name = 'DwC-A Export Classification';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Classification Export View';
@@ -451,10 +435,10 @@ function _view_classification(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca_export/classification/csv';
-  return $view;
-}
-
-function _view_reference(){
+  $views[$view->name] = $view;
+  //----------------------------------------------------------------------------
+  // REFERENCE
+  //----------------------------------------------------------------------------
   $view = new view();
   $view->name = 'dwca_export_reference';
   $view->description = 'DwC-A reference extension for a Taxon';
@@ -463,7 +447,7 @@ function _view_reference(){
   $view->human_name = 'DwC-A Export Reference';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Reference Export';
@@ -934,10 +918,10 @@ function _view_reference(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/reference/csv';
-  return $view;
-}
-
-function _view_image(){
+  $views[$view->name] = $view;
+  //----------------------------------------------------------------------------
+  // IMAGE
+  //----------------------------------------------------------------------------
   $view = new view();
   $view->name = 'dwca_export_image';
   $view->description = 'DwC-A image extension for a Taxon';
@@ -946,7 +930,7 @@ function _view_image(){
   $view->human_name = 'DwC-A Export Image';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'image_test';
@@ -1139,10 +1123,10 @@ function _view_image(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/image/csv';
-  return $view;
-}
-
-function _view_specimen(){
+  $views[$view->name] = $view;
+  //----------------------------------------------------------------------------
+  // SPECIMEN
+  //----------------------------------------------------------------------------
   $view = new view();
   $view->name = 'dwca_export_specimen';
   $view->description = 'DwC-A specimen extension for a Taxon';
@@ -1151,7 +1135,7 @@ function _view_specimen(){
   $view->human_name = 'DwC-A Export Specimen';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'test_specimen';
@@ -1313,10 +1297,10 @@ function _view_specimen(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca_export/specimen/csv';
-  return $view;
-}
-
-function _view_distribution(){
+  $views[$view->name] = $view;
+  //----------------------------------------------------------------------------
+  // DISTRIBUTION
+  //----------------------------------------------------------------------------
   $view = new view();
   $view->name = 'dwca_export_distribution';
   $view->description = '';
@@ -1325,7 +1309,7 @@ function _view_distribution(){
   $view->human_name = 'DwC-A Distribution';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'DwC-A Distribution';
@@ -1438,7 +1422,15 @@ function _view_distribution(){
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['path'] = 'dwca-export/distribution/csv';
-  return $view;
+  $views[$view->name] = $view;
+  //----------------------------------------------------------------------------
+  // DESCRIPTION VIEWS
+  //----------------------------------------------------------------------------
+  foreach($view_description_names as $desc_type){
+    $view = _view_description($desc_type);
+    $views[$view->name] = $view;
+  }
+  return $views;
 }
 
 function _view_description($desc_type){
@@ -1450,7 +1442,7 @@ function _view_description($desc_type){
   $view->human_name = 'DwC-A Description ' . $desc_type;
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = FALSE;
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'DwC-A Description ' . $desc_type;
@@ -1586,7 +1578,3 @@ function _view_description($desc_type){
   $handler->display->display_options['path'] = t('dwca-export/description-' . $desc_type . '/csv');
   return $view;
 }
-
-
-
-
