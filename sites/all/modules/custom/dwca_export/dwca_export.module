@@ -1,8 +1,5 @@
 <?php
-// at the moment we are using a static meta.xml file
-define("METADATA_FILE_NAME", "meta.xml");
-define("STATIC_DIR", DIRECTORY_SEPARATOR . 'static' . DIRECTORY_SEPARATOR);
-define('FILE_MAP', 'dwca_export_archive_descriptor_file_map');
+// File extension for the CSV files in the DwC-A file.
 define('FILE_EXTENSION', ".txt");
 
 /**
@@ -32,18 +29,6 @@ function dwca_export_menu(){
       'type' => MENU_CALLBACK
     )
   );
-}
-
-function dwca_export_view_names_array(){
-  $view_names = array(
-    'classification',
-    'specimen',
-    'reference',
-    'image',
-    'distribution'
-  );
-  drupal_alter('dwca_export_views', $view_names);
-  return $view_names;
 }
 
 /**
@@ -116,7 +101,7 @@ function dwca_export_cron(){
     $zip = new ZipArchive();
     if(!$zip->open($tmp_archive_file_name, ZipArchive::CREATE)){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
     // add metadata
-    $zip->addFile(drupal_get_path('module', 'dwca_export') . STATIC_DIR . METADATA_FILE_NAME, METADATA_FILE_NAME);
+    $zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'meta.xml');
     // We need to close after each file is added.  Fuck knows why PHP requires
     // this.
     $zip->close();
