@@ -57,65 +57,13 @@ function dwca_export_ctools_plugin_api(){
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  if(variable_get('dwca_export_rebuild', FALSE) && variable_get('dwca_export_zip_build_time', 0) < time() + 86400){
-    // Get a list of views on which we operate.  FIXME - This should perhaps be
-    // "altered" using a drupal_alter call.
-    module_load_include('views_default.inc', 'dwca_export');
-    $views = dwca_export_views_default_views();
-    // Array of files to add to the zip.
-    $files_to_add = array();
-    foreach($views as $view){
-      // Filename based on the name of the view.
-      $filename = 'public://' . substr($view->name, 12) . FILE_EXTENSION;
-      // Get the view and render it.
-      $view = views_get_view($view->name);
-      $data = $view->render('views_data_export_1');
-      $data_saved = FALSE;
-      $files_to_add[$filename] = $filename;
-      // the description.txt file is made up from lots of views.  We do special
-      // things for the dwca_export_description* views
-      if(substr($filename, 9, 11) == 'description'){
-        // Unset the description_*.txt filename, and instead set description.txt
-        unset($files_to_add[$filename]);
-        $filename = 'public://description' . FILE_EXTENSION;
-        $files_to_add[$filename] = $filename;
-        // Append if it already exists
-        if(file_exists($filename)){
-          file_unmanaged_save_data(file_get_contents($filename) . $data, $filename, FILE_EXISTS_REPLACE);
-          $data_saved = TRUE;
-        }
-      }
-      if(!$data_saved){
-        // Save the data.
-        file_unmanaged_save_data($data, $filename, FILE_EXISTS_REPLACE);
-      }
-    }
-    // If we have reached here, then we have all the files we require, and can
-    // therefore build the zip file and delete the files.
-    variable_set('dwca_export_zip_build_time', time());
-    $tmp_archive_file_name = drupal_realpath(drupal_tempnam("temporary://", "dwca_export_archive_"));
-    // Unfortunately we cannot use drupals ArchiverZip because there ís
-    // no way to pass in ZipArchive::CREATE to the constructor to create the archive
-    // TODO test if zip functionality is available (i.e. if(function_exists('zip_open'))
-    // but I don't know where the proper location for such a check would be
-    $zip = new ZipArchive();
-    if(!$zip->open($tmp_archive_file_name, ZipArchive::CREATE)){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
-    // add metadata
-    $zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'meta.xml');
-    // We need to close after each file is added.  Fuck knows why PHP requires
-    // this.
-    $zip->close();
-    // add the csv data files
-    foreach($files_to_add as $filename){
-      $result = $zip->open($tmp_archive_file_name);
-      $zip->addFile(drupal_realpath($filename), substr($filename, 9));
-      $zip->close();
-      file_unmanaged_delete($filename);
-    }
-    if(!file_unmanaged_move($tmp_archive_file_name, 'public://dwca.zip', FILE_EXISTS_REPLACE)){throw new Exception(t('Unable to move the DwC-A'));}
-  }
+  module_load_include('cron.inc', 'dwca_export');
+  _dwca_export_cron();
 }
 
+/**
+ * Implements hook_entity_insert()
+ */
 function dwca_export_entity_insert($entity, $type){
   switch($type){
     case 'taxonomy_term':
@@ -131,47 +79,23 @@ function dwca_export_entity_insert($entity, $type){
   }
 }
 
+/**
+ * Implements hook_entity_delete()
+ */
 function dwca_export_entity_delete($entity, $type){
   dwca_export_entity_insert($entity, $type);
 }
 
+/**
+ * Implements hook_entity_update()
+ */
 function dwca_export_entity_update($entity, $type){
   dwca_export_entity_insert($entity, $type);
 }
 
 /**
- * 
- * Combines multiple Description Views for different description types into a single text file
- * @param $view_data The inner array containing the view data for the different description types
- * @param $zip The zip file for the files making up the DwC-A.
+ * Implements hook_permission()
  */
-function _dwca_export_concatenate_description_files($view_data, $zip){
-  $desc_file_name = drupal_tempnam("temporary://", "description.tmp");
-  $desc_file = fopen(drupal_realpath($desc_file_name), "w");
-  foreach($view_data as $type => $view_data_inner){
-    $view_temp_file = $view_data_inner['out_file_url'];
-    $descTypeFile = fopen($view_temp_file, "r");
-    while(!feof($descTypeFile)){
-      $lineOfText = fgets($descTypeFile, 4096);
-      $items = explode(',', $lineOfText);
-      //don't include empty descriptions or lines at the end of the view which start with the field name id
-      //some lines just contain a single " if there is a carriage return within the description text so remove these too
-      if(isset($items[0]) && isset($items[2])){
-        if($items[0] !== "\"id\"" && trim($items[2]) !== "\"\""){
-          // fix conflict with files that have an EOL that differs from the server EOL
-          $lineOfText = rtrim($lineOfText, "\r\n") . PHP_EOL;
-          fwrite($desc_file, $lineOfText);
-        }
-      }else{
-        fgets($descTypeFile, 4096);
-      }
-    }
-    fclose($descTypeFile);
-  }
-  fclose($desc_file);
-  _dwca_export_add_files_to_zip($desc_file_name, 'description', $zip);
-}
-
 function dwca_export_permission(){
   return array(
     'administer dwca-export' => array(
