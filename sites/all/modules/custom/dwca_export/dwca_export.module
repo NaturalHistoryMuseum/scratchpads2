@@ -72,20 +72,32 @@ function dwca_export_ctools_plugin_api(){
  * Implements hook_cron().
  */
 function dwca_export_cron(){
-  if(function_exists('drush_get_context') && variable_get('dwca_export_zip_built', 0) < time() + 86400 && variable_set('dwca_export_rebuild', FALSE)){
+  if(TRUE){ //function_exists('drush_get_context') && variable_get('dwca_export_zip_built', 0) < time() + 86400 && variable_set('dwca_export_rebuild', FALSE)){
     $drush_oldcwd = drush_get_context('DRUSH_OLDCWD', getcwd());
     module_load_include('drush.inc', 'views_data_export');
     $view_names = dwca_export_view_names_array();
-    $i = 0;
-    foreach($view_names as $name){
-      if(!file_exists('public://' . $name . FILE_EXTENSION)){
-        drush_set_context('DRUSH_OLDCWD', drupal_realpath('public://'));
-        drush_views_data_export("dwca_export_$name", 'views_data_export_1', $name . FILE_EXTENSION);
-        drush_set_context('DRUSH_OLDCWD', $drush_oldcwd);
-        // We're only able to create one file at once, so we return here.
-        return;
+    module_load_include('views_default.inc', 'dwca_export');
+    $views = dwca_export_views_default_views();
+    foreach($views as $view){
+      if(!file_exists('public://' . $view->name . FILE_EXTENSION)){
+        $view = views_get_view($view->name);
+        $data = $view->render('views_data_export_1');
+        $filename = substr($view->name, 12) . FILE_EXTENSION;
+        $data_saved = FALSE;
+        if(substr($filename, 0, 11) == 'description'){
+          $filename = 'description' . FILE_EXTENSION;
+          if(file_exists('public://' . $filename)){
+            file_unmanaged_save_data(file_get_contents(drupal_realpath('public://' . $filename)) . $data, 'public://' . $filename, FILE_EXISTS_REPLACE);
+            $data_saved = TRUE;
+          }
+        }
+        if(!$data_saved){
+          drupal_set_message('Saving to: ' . $filename);
+          file_unmanaged_save_data($data, 'public://' . $filename . FILE_EXTENSION, FILE_EXISTS_REPLACE);
+        }
       }
     }
+    return;
     // If we have reached here, then we have all the files we require, and can
     // therefore build the zip file and delete the files.
     variable_set('dwca_export_zip_built', time());
