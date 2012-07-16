@@ -7,7 +7,7 @@ define('FILE_EXTENSION', ".txt");
  */
 function dwca_export_menu(){
   return array(
-    'admin/config/system/dwca_export' => array(
+    /*'admin/config/system/dwca_export' => array(
       'title' => 'Darwin Core Archive export',
       'description' => t('Create a DarwinCore Archive of this scratchpad.'),
       'page callback' => 'drupal_get_form',
@@ -19,7 +19,7 @@ function dwca_export_menu(){
       ),
       'file' => 'dwca_export.admin.inc',
       'type' => MENU_NORMAL_ITEM
-    ),
+    ),*/
     'dwca.zip' => array(
       'page callback' => 'dwca_export_deliver_archive',
       'access arguments' => array(

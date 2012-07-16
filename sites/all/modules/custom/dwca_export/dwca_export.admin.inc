@@ -21,10 +21,10 @@ function dwca_export_config_form($form, &$form_state){
     '#markup' => '<p>For general information on the DarwinCore Archive format please refer to  ' . l('GBIF - Standards and Tools - Darwin Core Archives', 'http://www.gbif.org/informatics/standards-and-tools/publishing-data/data-standards/darwin-core-archives/') . '</p>'
   );
   $form['dwca_export_execute'] = array(
-    '#markup' => '<p>The DarwinCore Archive export is available at ' . l('dwca_export', 'dwca_export') . '</p>'
-  ); //'#type' => 'button',
-  //'#value' => t('Export Scratchpad to DarwinCore Archive'),
-  //'#weight' => 19,
+    '#markup' => '<p>The DarwinCore Archive export can be downloaded from ' . l(url('dwca.zip', array(
+      'absolute' => TRUE
+    )), 'dwca.zip') . '</p>'
+  );
   $form['dwca_export_view_mapping'] = dwca_export_select_view_form();
   $form['#submit'][] = 'dwca_export_config_form_submit';
   return system_settings_form($form);
@@ -88,7 +88,6 @@ function dwca_export_config_form_submit($form, &$form_state){
         //get the inner array containing the different description data types
         $description_map = $dwca_export_archive_descriptor_file_map[$description_key];
         if(array_key_exists($key, $description_map)){
-          drupal_set_message(t('The ooKEY is... ') . $key . t('The ooVALUE is... ') . $value);
           $dwca_export_archive_descriptor_file_map[$description_key][$key]['view_name'] = $value;
         }
       }
@@ -96,7 +95,6 @@ function dwca_export_config_form_submit($form, &$form_state){
   }
   variable_del(FILE_MAP);
   variable_set(FILE_MAP, $dwca_export_archive_descriptor_file_map);
-  //drupal_set_message(t('The classification view is ') . $save_variables);// . '<pre>' . print_r($form_state,true) . '</pre>');//$save_variables);
 }
 
 /**
