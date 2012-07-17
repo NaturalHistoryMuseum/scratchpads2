@@ -78,7 +78,7 @@ function silver_feeds_importer_default(){
       'process_in_background' => 0
     );
     $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
-    _silver_feeds_importer_default_helper($field_info, &$feeds_importer);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
     $export['taxonomy_importer_' . $vocabulary->machine_name] = $feeds_importer;
   }
   // Get a list of the content types.
@@ -139,7 +139,7 @@ function silver_feeds_importer_default(){
       );
     }
     $field_info = field_info_instances('node', $node_type);
-    _silver_feeds_importer_default_helper($field_info, &$feeds_importer);
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer);
     $export['node_importer_' . $node_type] = $feeds_importer;
   }
   return $export;
