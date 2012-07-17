@@ -1301,31 +1301,29 @@ function _view_description($desc_type){
     'imaging_technique' => 0,
     'preparation_technique' => 0
   );
-  /* Field: Taxonomy term: Term ID */
-  $handler->display->display_options['fields']['tid']['id'] = 'tid';
-  $handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['fields']['tid']['field'] = 'tid';
-  $handler->display->display_options['fields']['tid']['relationship'] = 'term_node_tid';
-  $handler->display->display_options['fields']['tid']['label'] = 'id';
-  $handler->display->display_options['fields']['tid']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['tid']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['tid']['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['tid']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['tid']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['tid']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['tid']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['tid']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['tid']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['tid']['format_plural'] = 0;
+  /* Field: Taxonomy term: Taxonomy term UUID */
+  $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
+  $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
+  $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid']['relationship'] = 'term_node_tid';
+  $handler->display->display_options['fields']['uuid']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['uuid']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['uuid']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['uuid']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['uuid']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['uuid']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['uuid']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['uuid']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['uuid']['hide_alter_empty'] = 1;
   /* Field: Content: description */
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['id'] = t('field_' . $desc_type);
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['table'] = t('field_data_field_' . $desc_type);
