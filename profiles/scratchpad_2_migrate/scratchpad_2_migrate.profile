@@ -5,7 +5,7 @@
  *
  * Allows the profile to alter the site configuration form.
  */
-function scratchpad_migrate_form_install_configure_form_alter(&$form, $form_state){
+function scratchpad_2_migrate_form_install_configure_form_alter(&$form, $form_state){
   // Pre-populate the site name with the server name.
   $form['update_notifications']['update_status_module']['#default_value'] = array();
 }
