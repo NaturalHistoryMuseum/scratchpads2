@@ -14,7 +14,7 @@
   </core>
   <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
     <files>
-      <location>specimens.txt</location>
+      <location>specimen.txt</location>
     </files>
     <coreid index="0" />
     <field index="1" term="http://rs.tdwg.org/dwc/terms/typeStatus" />
