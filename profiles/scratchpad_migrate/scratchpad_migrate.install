@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implement hook_install().
+ */
+function scratchpads_migrate_install(){
+  // Delete all existing terms. We'll just use the old ones
+  db_delete('taxonomy_term_data')->execute();
+
+  
+}

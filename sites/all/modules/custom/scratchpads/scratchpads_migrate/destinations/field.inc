@@ -1,59 +1,12 @@
 <?php
 
-/*
- * Class for content type migrations.
- */
-abstract class DrupalFieldMigration extends DrupalMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    // Create our three main objects - source, destination, and map
-    $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-  }
-
-  /**
-   * Implementation of Migration::prepareRow().
-   */
-  public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){
-      watchdog('scratchpads_migrate', 'nope');
-      return FALSE;
-    }
-    // Check if this field has a different destination entity type / bundle
-    $mapping = scratchpads_migrate_type_mappings($row->type_name);
-    if($mapping && is_array($mapping)){
-      $row->entity_type = $mapping['entity_type'];
-      $row->type_name = $mapping['bundle'];
-      if(isset($mapping['fields']) && isset($mapping['fields'][$row->field_name])){
-        $row->field_name = $mapping['fields'][$row->field_name];
-      }
-    }else{
-      $row->entity_type = 'node';
-    }
-    // We want all image fields to use the media field
-    if($row->type == 'image' || $row->type == 'filefield'){
-      $row->field_name = 'field_media';
-    }
-    // Does an instance of this field already exists?
-    if(field_read_instance($row->entity_type, $row->field_name, $row->type_name)){
-      watchdog('scratchpads_migrate', t('Skipped field %name - already exists %entity_type:%bundle'), array(
-        '%name' => $row->field_name,
-        '%entity_type' => $row->entity_type,
-        '%bundle' => $row->type_name
-      ), WATCHDOG_NOTICE);
-      return false; // Instance already exists, so skip it
-    }
-  }
-
-  /**
-   * @abstract
-   * Version-specific classes must implement contentTypeQuery, returning a query
-   * that provides all the basic fields for each node type.
-   */
-  abstract protected function sourceQuery();
-}
-
 class MigrateDestinationField extends MigrateDestination{
+
+  protected $fieldsCreated = array();
+
+  public function getFieldsCreated(){
+    return $this->fieldsCreated;
+  }
 
   public function __construct(){
     // No options.
@@ -73,18 +26,16 @@ class MigrateDestinationField extends MigrateDestination{
   }
 
   public function import(stdClass $object, stdClass $row){
-    // Entity type has been set in prepareRow()
-    $object->entity_type = $row->entity_type;
     $field_instance = (array)$object;
     $field_instance['widget'] = array(
-      'active' => $row->active,
-      'weight' => $row->weight,
-      'type' => $row->widget_type,
-      'module' => $row->widget_module,
-      'settings' => unserialize($row->widget_settings),
-      'description' => $row->description
+      'active' => $object->active,
+      'weight' => $object->weight,
+      'type' => $object->widget_type,
+      'module' => $object->widget_module,
+      'settings' => $object->widget_settings,
+      'description' => $object->description
     );
-    $field_instance['display'] = unserialize($row->display_settings);
+    $field_instance['display'] = $object->display_settings;
     if(is_array($field_instance['display'])){
       foreach(array_keys($field_instance['display']) as $display){
         // Ensure it's an array
@@ -102,17 +53,17 @@ class MigrateDestinationField extends MigrateDestination{
     if(empty($field)){
       // Create the field if it doesn't exist
       $field_config = array(
-        'active' => $row->active,
-        'cardinality' => ($row->multiple == 0 ? 1 : -1),
+        'active' => $object->active,
+        'cardinality' => (isset($object->multiple) && $object->multiple == 0 ? 1 : -1),
         'deleted' => '0',
         'entity_types' => array(
           $object->entity_type
         ),
         'field_name' => $object->field_name,
-        'module' => $row->module,
-        'settings' => unserialize($row->global_settings),
+        'module' => $object->module,
+        'settings' => $object->global_settings,
         'translatable' => '1',
-        'type' => $row->type
+        'type' => $object->type
       );
       // Instance alterations
       drupal_alter('content_migrate_instance', $field_instance, $field_config);
@@ -147,6 +98,16 @@ class MigrateDestinationField extends MigrateDestination{
             }
           }
           break;
+        case 'content_taxonomy_autocomplete':
+          $field_config['module'] = 'taxonomy';
+          $field_config['type'] = 'taxonomy_term_reference';
+          $field_instance['widget']['type'] = 'taxonomy_autocomplete';
+          $field_instance['widget']['module'] = 'taxonomy';
+          $settings = array(
+            'autocomplete_path' => 'taxonomy/autocomplete',
+            'size' => 60
+          );
+          break;
       }
       // Check the widget exists
       if(!field_info_widget_types($field_instance['widget']['type'])){
@@ -164,6 +125,7 @@ class MigrateDestinationField extends MigrateDestination{
       }
       try{
         field_create_field($field_config);
+        $this->fieldsCreated[] = $field_config['field_name'];
       }
       catch(FieldException $e){
         throw new MigrateException($e->getMessage());
@@ -209,7 +171,17 @@ class MigrateDestinationField extends MigrateDestination{
       'entity_type' => t('Entity type'),
       'label' => t('Label'),
       'description' => t('Description'),
-      'required' => t('Required')
+      'required' => t('Required'),
+      // New
+      'active' => t('Active'),
+      'widget_settings' => t('Widget settings'),
+      'display_settings' => t('Display settings'),
+      'global_settings' => t('Global settings'),
+      'widget_type' => t('Widget type'),
+      'module' => t('Module'),
+      'widget_module' => t('Widget module'),
+      'weight' => t('Weight'),
+      'type' => t('Type')
     );
   }
 

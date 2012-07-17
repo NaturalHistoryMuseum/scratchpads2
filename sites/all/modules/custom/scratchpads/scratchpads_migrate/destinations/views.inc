@@ -1,24 +1,5 @@
 <?php
 
-/*
- * Class for content type migrations.
- */
-abstract class DrupalViewsMigration extends DrupalMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    // Create our three main objects - source, destination, and map
-    $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-  }
-
-  /**
-   * @abstract
-   * Version-specific classes must implement sourceQuery, returning a query
-   * that provides all the basic fields for each node type.
-   */
-  abstract protected function sourceQuery();
-}
-
 class MigrateDestinationViews extends MigrateDestination{
 
   static public function getKeySchema(){
@@ -61,7 +42,7 @@ class MigrateDestinationViews extends MigrateDestination{
       if(isset($display_options['filters']['type'])){
         foreach(array_keys($display_options['filters']['type']['value']) as $node_type){
           // Has this node type name been changed?
-          $mapping = scratchpads_migrate_type_mappings($node_type);
+          $mapping = DrupalContentTypeMigration::getContentTypeMappings($node_type);
           if($mapping && isset($mapping['bundle'])){
             unset($display_options['filters']['type']['value'][$node_type]);
             $display_options['filters']['type']['value'][$mapping['bundle']] = $mapping['bundle'];

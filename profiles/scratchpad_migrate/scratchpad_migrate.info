@@ -1,0 +1,12 @@
+name = Scratchpad migrate
+description = Scratchpad 2 migration site
+core = 7.x
+dependencies[] = scratchpads_tweaks
+dependencies[] = forum
+dependencies[] = blog
+dependencies[] = og
+dependencies[] = migrate
+dependencies[] = migrate_ui
+dependencies[] = scratchpads_migrate
+dependencies[] = devel
+files[] = scratchpad_migrate.profile

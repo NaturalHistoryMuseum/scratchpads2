@@ -1,6 +1,6 @@
 <?php
 
-class DrupalFile6Migration extends DrupalMigration{
+class DrupalFileMigration extends DrupalMigration{
 
   /**
    * @param array $arguments

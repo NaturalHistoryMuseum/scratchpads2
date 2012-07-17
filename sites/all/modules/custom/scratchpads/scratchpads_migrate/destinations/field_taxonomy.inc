@@ -1,58 +1,6 @@
 <?php
 
-/*
- * Class for content type migrations.
- */
-abstract class DrupalFieldTaxonomyMigration extends DrupalMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    // Create our three main objects - source, destination, and map    
-    $this->source = new MigrateSourceSQL($this->fieldQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-  }
-
-  /**
-   * Implementation of Migration::prepareRow().
-   */
-  public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
-    // Is this a taxa field?
-    if(!empty($row->classification_type)){
-      $row->field_name = 'field_taxonomic_name';
-      $row->label = 'Classification';
-    }else{
-      $row->field_name = $this->getFieldName($row->name);
-      $row->label = $row->name;
-    }
-    if(field_read_instance('node', $row->field_name, $row->type)){ // Instance already exists, so skip it
-      watchdog('scratchpads_migrate', t('Field %name already exists for %type'), array(
-        '%name' => $row->field_name,
-        '%type' => $row->type
-      ), WATCHDOG_NOTICE);
-      return false;
-    }
-  }
-
-  /**
-   * @abstract
-   * Version-specific classes must implement contentTypeQuery, returning a query
-   * that provides all the basic fields for each node type.
-   */
-  abstract protected function fieldQuery();
-
-  /**
-   * Generate a field name from the vocabulary name
-   */
-  static public function getFieldName($name){
-    return 'field_' . ereg_replace('[^a-z0-9]', '_', strtolower($name));
-  }
-}
-
 class MigrateDestinationFieldTaxonomy extends MigrateDestination{
-
-  public function __construct(){
-    // No options.
-  }
 
   static public function getKeySchema(){
     return array(

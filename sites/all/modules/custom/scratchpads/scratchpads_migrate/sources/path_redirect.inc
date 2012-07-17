@@ -1,12 +1,14 @@
 <?php
 
-class PathRedirect6Migration extends PathRedirectMigration{
+class PathRedirectMigration extends DrupalMigration{
 
   /**
    * @param array $arguments
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    // Create our three main objects - source, destination, and map
+    $this->source = new MigrateSourceSQL($this->pathQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
       'source' => array(
         'type' => 'varchar',
