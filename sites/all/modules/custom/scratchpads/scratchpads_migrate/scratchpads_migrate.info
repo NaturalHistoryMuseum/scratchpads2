@@ -10,25 +10,36 @@ dependencies[] = migrate_extras
 dependencies[] = darwincore
 
 ; Base classes
-files[] = content_type.inc
-files[] = field.inc
-files[] = field_body.inc
-files[] = field_group.inc
-files[] = field_taxonomy.inc
-files[] = path_redirect.inc
 files[] = vocabulary.inc
-
 ; D6 implementations
-files[] = d6/content_type.inc
-files[] = d6/field.inc
-files[] = d6/field_body.inc
-files[] = d6/field_group.inc
-files[] = d6/field_taxonomy.inc
-files[] = d6/forum.inc
-files[] = d6/file.inc
-files[] = d6/node.inc
-files[] = d6/og.inc
-files[] = d6/path_redirect.inc
-files[] = d6/taxonomy.inc
-files[] = d6/user.inc
-files[] = d6/vocabulary.inc
+
+
+; Source classes
+files[] = sources/content_type.inc
+files[] = sources/field.inc
+files[] = sources/field_body.inc
+files[] = sources/field_content_profile.inc
+files[] = sources/field_profile.inc
+files[] = sources/field_group.inc
+files[] = sources/field_taxonomy.inc
+files[] = sources/field_vocabulary.inc
+files[] = sources/field_vocabulary_itis.inc
+files[] = sources/file.inc
+files[] = sources/forum.inc
+files[] = sources/node.inc
+files[] = sources/og.inc
+files[] = sources/path_redirect.inc
+files[] = sources/taxonomy.inc
+files[] = sources/user.inc
+files[] = sources/vocabulary.inc
+
+; Destination classes
+files[] = destinations/content_type.inc
+files[] = destinations/field.inc
+files[] = destinations/field_body.inc
+files[] = destinations/field_group.inc
+files[] = destinations/field_taxonomy.inc
+files[] = destinations/path_redirect.inc
+files[] = destinations/user.inc
+files[] = destinations/vocabulary.inc
+

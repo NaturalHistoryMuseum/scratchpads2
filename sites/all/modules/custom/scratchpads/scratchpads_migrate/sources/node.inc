@@ -17,7 +17,7 @@
  * default_uid - Drupal 7 (destination) uid of the user account to use as
  * the default.
  */
-class ScratchpadsNode6Migration extends DrupalNode6Migration{
+class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   public function __construct(array $arguments){
     parent::__construct($arguments);
