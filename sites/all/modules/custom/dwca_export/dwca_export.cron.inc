@@ -48,14 +48,14 @@ function _dwca_export_cron(){
     $zip = new ZipArchive();
     if(!$zip->open($tmp_archive_file_name, ZipArchive::CREATE)){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
     // add metadata
-    $zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'meta.xml');
+    $zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'dwca/meta.xml');
     // We need to close after each file is added.  Fuck knows why PHP requires
     // this.
     $zip->close();
     // add the csv data files
     foreach($files_to_add as $filename){
       $result = $zip->open($tmp_archive_file_name);
-      $zip->addFile(drupal_realpath($filename), substr($filename, 9));
+      $zip->addFile(drupal_realpath($filename), 'dwca/' . substr($filename, 9));
       $zip->close();
       file_unmanaged_delete($filename);
     }
