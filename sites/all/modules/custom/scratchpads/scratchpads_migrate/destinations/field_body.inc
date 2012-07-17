@@ -1,43 +1,5 @@
 <?php
 
-/*
- * Class for content type migrations.
- */
-abstract class DrupalFieldBodyMigration extends DrupalMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    // Create our three main objects - source, destination, and map
-    $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-  }
-
-  /**
-   * Implementation of Migration::prepareRow().
-   */
-  public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
-    // Check if this field has a different destination entity type / bundle
-    $mapping = scratchpads_migrate_type_mappings($row->type);
-    if($mapping && is_array($mapping) && isset($mapping['bundle'])){
-      $row->type = $mapping['bundle'];
-    }
-    // Does an instance of this field already exists?
-    if(field_read_instance('node', 'body', $row->type)){ // Instance already exists, so skip it
-      watchdog('scratchpads_migrate', t('Body field already exists for %type'), array(
-        '%type' => $row->type
-      ), WATCHDOG_NOTICE);
-      return false;
-    }
-  }
-
-  /**
-   * @abstract
-   * Version-specific classes must implement sourceQuery, returning a query
-   * that provides all the basic fields for each node type.
-   */
-  abstract protected function sourceQuery();
-}
-
 class MigrateDestinationFieldBody extends MigrateDestination{
 
   public function __construct(){

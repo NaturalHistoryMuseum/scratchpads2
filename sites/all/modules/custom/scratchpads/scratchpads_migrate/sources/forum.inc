@@ -17,30 +17,13 @@
  * default_uid - Drupal 7 (destination) uid of the user account to use as
  * the default.
  */
-class ScratchpadsNodeOrganicGroup6Migration extends DrupalNode6Migration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    $this->addFieldMapping('group_group')->defaultValue(true);
-    $this->removeFieldMapping('body');
-    $this->addFieldMapping('body', 'og_description')->defaultValue(true);
-    $this->addUnmigratedSources(array(
-      'body'
-    ));
-  }
+class ScratchpadsNodeForumMigration extends ScratchpadsNodeMigration{
 
   protected function nodeQuery(){
     // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
-    $query->innerJoin('og', 'og', 'og.nid = n.nid');
-    $query->fields('og', array(
-      'og_description'
-    ));
+    $query->innerJoin('forum', 'f', 'f.vid = n.vid');
     return $query;
   }
 
-  public function prepareRow($row){
-    parent::prepareRow($row);
-     // Doesn't seem to use the default value, unless it's unset
-  }
 }

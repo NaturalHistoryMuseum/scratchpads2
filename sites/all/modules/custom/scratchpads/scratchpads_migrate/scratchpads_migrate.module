@@ -23,24 +23,7 @@ Database::addConnectionInfo('scratchpad_1', 'default', array(
 ));
 //----------
  */
-
 require_once (conf_path() . '/files/scratchpad_1_database.php');
-
-function scratchpads_migrate_menu(){
-  $items['mig'] = array(
-    'title' => 'Migrate',
-    'page callback' => 'scratchpads_migrate_page',
-    'access arguments' => array(
-      'access content'
-    ),
-    'type' => MENU_SUGGESTED_ITEM
-  );
-  return $items;
-}
-
-function scratchpads_migrate_page(){
-  return $x;
-}
 
 /**
  * Implements hook_flush_caches().
@@ -74,7 +57,7 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of content types from Drupal 6'),
     'machine_name' => 'ContentType'
   );
-  Migration::registerMigration('DrupalContentType6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalContentTypeMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Vocabularies
    ********************************************************************************************/
@@ -82,7 +65,33 @@ function scratchpads_migrate_register_migrations(){
     'description' => t('Migration of vocabularies from Drupal 6'),
     'machine_name' => 'Vocabulary'
   );
-  Migration::registerMigration('DrupalVocabulary6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalVocabularyMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Vocabulary fields
+   ********************************************************************************************/
+  $term_dependencies = array(
+    'Vocabulary'
+  );
+  foreach(scratchpads_migrate_get_term_vocabularies() as $vid => $term_node_type){
+    $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $term_node_type);
+    // Allow bespokes classes for different term nodes (with different fields)
+    // We override the ITIS term class with our own as we know the field mappings
+    $class_name = scratchpads_migrate_get_class_name($machine_name);
+    if(!class_exists($class_name)){
+      $class_name = 'DrupalFieldVocabularyMigration';
+    }
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of vocabulary fields from Drupal 6'),
+      'machine_name' => $machine_name,
+      'content_type' => $term_node_type,
+      'vid' => $vid,
+      'dependencies' => array(
+        'Vocabulary'
+      )
+    );
+    $term_dependencies[] = $machine_name;
+    Migration::registerMigration($class_name, $arguments['machine_name'], $arguments);
+  }
   /*********************************************************************************************
    * Fields
    ********************************************************************************************/
@@ -96,7 +105,7 @@ function scratchpads_migrate_register_migrations(){
     )
   );
   // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalField6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalFieldMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Body fields
    ********************************************************************************************/
@@ -108,7 +117,7 @@ function scratchpads_migrate_register_migrations(){
     )
   );
   // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldBody6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalFieldBodyMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Taxonomy fields
    ********************************************************************************************/
@@ -120,8 +129,31 @@ function scratchpads_migrate_register_migrations(){
       'Vocabulary'
     )
   );
+  Migration::registerMigration('DrupalFieldTaxonomyMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Profile fields
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of profile fields from Drupal 6'),
+    'machine_name' => 'FieldProfile',
+    'dependencies' => array(
+      'ContentType'
+    )
+  );
   // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldTaxonomy6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalFieldProfileMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
+   * Profile CCK fields
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of profile CCK fields from Drupal 6'),
+    'machine_name' => 'FieldContentProfile',
+    'dependencies' => array(
+      'ContentType'
+    )
+  );
+  // We just use the migrate_d2d D6 migration class as-is.
+  Migration::registerMigration('DrupalFieldContentProfileMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Field groups
    ********************************************************************************************/
@@ -135,15 +167,19 @@ function scratchpads_migrate_register_migrations(){
     )
   );
   // We just use the migrate_d2d D6 migration class as-is.
-  Migration::registerMigration('DrupalFieldGroup6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalFieldGroupMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * User
    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of users from Drupal 6'),
-    'machine_name' => 'User'
+    'machine_name' => 'User',
+    'dependencies' => array(
+      'FieldProfile',
+      'FieldContentProfile'
+    )
   );
-  Migration::registerMigration('ScratchpadsUser6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('ScratchpadsUserMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
    * Files
    ********************************************************************************************/
@@ -154,7 +190,7 @@ function scratchpads_migrate_register_migrations(){
       'User'
     )
   );
-  Migration::registerMigration('DrupalFile6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('DrupalFileMigration', $arguments['machine_name'], $arguments);
   // Define node arguments here so all term migrations can be added as depenencies
   $common_node_arguments = $common_arguments + array(
     'user_migration' => 'User',
@@ -172,9 +208,7 @@ function scratchpads_migrate_register_migrations(){
    * Terms
    ********************************************************************************************/
   $common_term_arguments = $common_arguments + array(
-    'dependencies' => array( // Content types & fields must be migrated first 
-      'Vocabulary'
-    )
+    'dependencies' => $term_dependencies
   );
   // Get vocabularies to register the term migrations
   $query = Database::getConnection('default', 'scratchpad_1')->select('vocabulary', 'v');
@@ -191,7 +225,7 @@ function scratchpads_migrate_register_migrations(){
   $vocabularies = $query->execute();
   foreach($vocabularies as $vocabulary){
     $arguments = array(
-      'class_name' => ScratchpadTerm6Migration,
+      'class_name' => ScratchpadTermMigration,
       'description' => t('Migration of %name terms from Drupal 6', array(
         '%name' => $vocabulary->name
       )),
@@ -212,7 +246,7 @@ function scratchpads_migrate_register_migrations(){
    ********************************************************************************************/
   // Create the organic groups migration class seperately so other nodes can be made dependent
   $arguments = array(
-    'class_name' => 'ScratchpadsNodeOrganicGroup6Migration',
+    'class_name' => 'ScratchpadsNodeOrganicGroupMigration',
     'description' => t('Migration of %type nodes from Drupal 6', array(
       '%type' => 'group'
     )),
@@ -223,7 +257,7 @@ function scratchpads_migrate_register_migrations(){
   $arguments = array_merge_recursive($arguments, $common_node_arguments);
   Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
   $common_node_arguments['dependencies'][] = 'OrganicGroup';
-  $mappings = scratchpads_migrate_type_mappings();
+  $mappings = DrupalContentTypeMigration::getContentTypeMappings();
   // Get unmapped node types (custom content types on site)
   $query = Database::getConnection('default', 'scratchpad_1')->select('node_type', 'nt');
   $query->addField('nt', 'type');
@@ -249,9 +283,9 @@ function scratchpads_migrate_register_migrations(){
       $destination_type = $type;
     }
     // Allow individual node type handlers
-    $class_name = 'ScratchpadsNode' . ucfirst($type) . '6Migration';
+    $class_name = 'ScratchpadsNode' . ucfirst($type) . 'Migration';
     if(!class_exists($class_name)){
-      $class_name = 'ScratchpadsNode6Migration';
+      $class_name = 'ScratchpadsNodeMigration';
     }
     // Create the arguments array from the mapping
     $arguments = array(
@@ -275,79 +309,34 @@ function scratchpads_migrate_register_migrations(){
     'machine_name' => 'PathRedirect',
     'dependencies' => $path_dependencies
   );
-  Migration::registerMigration('PathRedirect6Migration', $arguments['machine_name'], $arguments);
+  Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
 }
 
 function scratchpads_migrate_term_machine_name($name){
   return 'Term' . str_replace(' ', '', ucwords($name));
 }
 
-/**
- * Mapping old node types to new entity / bundle types
- * @param string $type
- */
-function scratchpads_migrate_type_mappings($type = null){
-  // NB: Any node type not in this array will be created
-  $mappings = array(
-    'biblio' => MIGRATE_CONTENT, // migrate content only
-    'blog' => MIGRATE_CONTENT, // migrate content only
-    'nexus_project' => MIGRATE_NONE, // do not migrate
-    'countriesmap' => MIGRATE_NONE, // do not migrate
-    'forum' => MIGRATE_ALL, // migrate content only
-    'glossary' => MIGRATE_NONE, // Migrate everything
-    'group' => MIGRATE_NONE, // Handle groups elsewhere
-    'itis_term' => MIGRATE_NONE, // do not migrate
-    'image' => MIGRATE_NONE, // do not migrate
-    'ispecies' => MIGRATE_NONE, // do not migrate
-    'darwincorelocation' => array(
-      'entity_type' => 'node',
-      'bundle' => 'location'
-    ),
-    'simplenews' => MIGRATE_NONE, // do not migrate
-    'nexus_controlled_state' => MIGRATE_NONE, // do not migrate
-    'nexus_free_state' => MIGRATE_NONE, // do not migrate
-    'nexus_note' => MIGRATE_NONE, // do not migrate
-    'page' => MIGRATE_ALL, // migrate using the same entity & bundle type
-    'tree' => MIGRATE_CONTENT, // migrate using the same entity / bundle
-    'poll' => MIGRATE_NONE, // migrate using the same entity & bundle type
-    'publication' => MIGRATE_NONE,
-    'publication_image_caption' => MIGRATE_NONE,
-    'publication_section' => MIGRATE_NONE,
-    'publication_taxon_description' => MIGRATE_NONE,
-    'publication_taxon_section' => MIGRATE_NONE,
-    'profile' => array(
-      'entity_type' => 'user',
-      'bundle' => 'user',
-      'fields' => array( // If fields have been renamed, map them here
-        'field_title' => 'field_user_title',
-        'field_givennames' => 'field_user_given_names',
-        'field_familyname' => 'field_user_family_name',
-        'field_institution' => 'field_user_institution',
-        'field_taxonomicinterest' => 'field_user_taxonomic_interest'
-      )
-    ),
-    'darwincore' => array(
-      'entity_type' => 'node',
-      'bundle' => 'specimen_observation'
-    ),
-    'story' => MIGRATE_NONE, // Not in use
-    'spm' => MIGRATE_ALL, // migrate using the same entity & bundle type
-    'webform' => MIGRATE_NONE // TODO - Webforms!!!
-  );
-  if($type){
-    if(isset($mappings[$type])){
-      return $mappings[$type];
-    }else{
-      return false;
-    }
-    return $mappings[$type];
-  }else{
-    return $mappings;
-  }
+function scratchpads_migrate_get_term_vocabularies(){
+  $query = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v');
+  $query->addField('v', 'value');
+  $query->condition('name', 'term_node_vocabularies-contenttypes');
+  return array_filter(unserialize($query->execute()->fetchField()));
 }
 
-function scratchpads_migrate_form_alter(&$form, &$form_state, $form_id){
-  //	dd($form_id);
+function scratchpads_migrate_get_class_name($machine_name){
+  return 'Drupal' . $machine_name . 'Migration';
 }
+
+function scratchpads_migrate_get_machine_name($type, $name){
+  // Make sure the type is uppercase
+  $type = ucwords($type);
+  // Format the name
+  $name = str_replace('_', ' ', $name);
+  $name = ucwords($name);
+  $name = str_replace(' ', '', $name);
+  return $type . $name;
+}
+
+
 
 

@@ -1,44 +1,5 @@
 <?php
 
-/*
- * Class for content type migrations.
- */
-abstract class DrupalFieldGroupMigration extends DrupalMigration{
-
-  public function __construct(array $arguments){
-    parent::__construct($arguments);
-    // Create our three main objects - source, destination, and map
-    $this->source = new MigrateSourceSQL($this->fieldQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-  }
-
-  /**
-   * Implementation of Migration::prepareRow().
-   */
-  public function prepareRow($row){
-    if(parent::prepareRow($row) === FALSE){return FALSE;}
-    $row->children = explode(',', $row->children);
-    // We only want to migrate groups of content types created by migration
-    // Existing types have changed so much the field groups are not useful
-    $destid = Migration::getInstance('ContentType')->getMap()->lookupDestinationID(array(
-      array(
-        $row->type_name
-      )
-    ));
-    if($destid){
-      return TRUE;
-    }else{
-      return false;
-    }
-  }
-
-  /**
-   * @abstract
-   * Version-specific classes must implement contentTypeQuery, returning a query
-   * that provides all the basic fields for each node type.
-   */
-  abstract protected function fieldQuery();
-}
-
 class MigrateDestinationFieldGroup extends MigrateDestination{
 
   public function __construct(){
