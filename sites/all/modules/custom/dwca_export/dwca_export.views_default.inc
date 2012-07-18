@@ -1284,13 +1284,13 @@ function dwca_export_views_default_views(){
   // DESCRIPTION VIEWS
   //----------------------------------------------------------------------------
   foreach($view_description_names as $desc_type){
-    $view = _view_description($desc_type);
+    $view = _dwca_export_view_description($desc_type);
     $views[$view->name] = $view;
   }
   return $views;
 }
 
-function _view_description($desc_type){
+function _dwca_export_view_description($desc_type){
   $view = new view();
   $view->name = 'dwca_export_description_' . substr($desc_type, 0, 6);
   $view->description = '';
