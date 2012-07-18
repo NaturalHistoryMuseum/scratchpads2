@@ -43,6 +43,13 @@ function dwca_export_views_api(){
 }
 
 /**
+ * Implements hook_dwca_export_module()
+ */
+function dwca_export_dwca_export(){
+  return TRUE;
+}
+
+/**
  * 
  * Implements hook_cron().
  */

@@ -8,7 +8,14 @@ function _dwca_export_cron(){
     // Get a list of views on which we operate.  FIXME - This should perhaps be
     // "altered" using a drupal_alter call.
     module_load_include('views_default.inc', 'dwca_export');
-    $views = dwca_export_views_default_views();
+    //$views = dwca_export_views_default_views();
+    $views = array();
+    foreach(module_implements('dwca_export') as $module){
+      if(function_exists($module . '_views_default_views')){
+        $func = $module . '_views_default_views';
+        $views = array_merge($views, $func());
+      }
+    }
     // Array of files to add to the zip.
     $files_to_add = array();
     foreach($views as $view){
@@ -48,7 +55,10 @@ function _dwca_export_cron(){
     $zip = new ZipArchive();
     if(!$zip->open($tmp_archive_file_name, ZipArchive::CREATE)){throw new Exception(t('Could not create temporary zip_archive for DwC-A'));}
     // add metadata
-    $zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'dwca/meta.xml');
+    //$zip->addFile(drupal_get_path('module', 'dwca_export') . '/static/meta.xml', 'dwca/meta.xml');
+    $meta_string = file_get_contents(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
+    drupal_alter('dwca_export_meta_file', $meta_string);
+    $zip->addFromString('dwca/meta.xml', $meta_string);
     // We need to close after each file is added.  Fuck knows why PHP requires
     // this.
     $zip->close();
