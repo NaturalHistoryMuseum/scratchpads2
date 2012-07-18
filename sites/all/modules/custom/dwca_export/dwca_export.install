@@ -7,6 +7,8 @@ function dwca_export_install(){
   // Garbage collect all vde views that are older than two hours.  This will
   // greatly reduce the chance of us getting a huge site database like what
   // happened on the zingi site.
+  // FIXME - This may no longer be required as we are no longer using the batch
+  // functions to create the views data.
   variable_set('views_data_export_gc_expires', 7200);
   variable_set('views_data_export_gc_chunk', -1);
 }
