@@ -30,6 +30,25 @@ function silver_feeds_presave(FeedsSource $source, $entity){
 }
 
 /**
+ * Implements hook_feeds_plugins
+ */
+function silver_feeds_plugins(){
+  return array(
+    'FeedsNodeProcessorValidate' => array(
+      'name' => 'Node processor with validation',
+      'description' => 'Create and update nodes.',
+      'help' => 'Create and update nodes from parsed content.',
+      'handler' => array(
+        'parent' => 'FeedsNodeProcessor',
+        'class' => 'FeedsNodeProcessorValidate',
+        'file' => 'FeedsNodeProcessorValidate.inc',
+        'path' => drupal_get_path('module', 'silver') . '/includes'
+      )
+    )
+  );
+}
+
+/**
  * hook_form_FORM_ID_alter().
  */
 function silver_form_feeds_import_form_alter(&$form, &$form_state){

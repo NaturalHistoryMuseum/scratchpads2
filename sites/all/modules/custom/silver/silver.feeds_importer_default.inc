@@ -108,7 +108,7 @@ function silver_feeds_importer_default(){
         )
       ),
       'processor' => array(
-        'plugin_key' => 'FeedsNodeProcessor',
+        'plugin_key' => 'FeedsNodeProcessorValidate',
         'config' => array(
           'content_type' => $node_type,
           'expire' => '-1',
