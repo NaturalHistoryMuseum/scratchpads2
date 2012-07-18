@@ -39,7 +39,9 @@
         var region_ids = new Array();
         var region_ids_index = -1;
         for( var i in region_ids_copy) {
-          if(i % 10 == 0) {
+          // FIXME - Remove reset this once the "valid data" GM3 issue is fixed.
+          // if(i % 10 == 0) {
+          if(i % 1 == 0) {
             region_ids_index++;
             region_ids[region_ids_index] = new Array();
           }
@@ -68,7 +70,8 @@
               }
             }
           }
-          if(typeof autofit != 'undefined' && autofit) {// Change this to be an autozoom option
+          if(typeof autofit != 'undefined' && autofit) {// Change this to be an
+                                                        // autozoom option
             if(self.GM3.max_lat) {
               self.GM3.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(self.GM3.min_lat, self.GM3.min_lng), new google.maps.LatLng(self.GM3.max_lat, self.GM3.max_lng)));
             }
@@ -84,8 +87,8 @@
     this.countries[region_id] = undefined;
     // Clean up this.countries
     var new_countries = new Object();
-    for(i in this.countries){
-      if(typeof this.countries[i] != 'undefined'){
+    for(i in this.countries) {
+      if(typeof this.countries[i] != 'undefined') {
         new_countries[i] = this.countries[i];
       }
     }
