@@ -4,7 +4,7 @@
  * Helper for the hook_cron().
  */
 function _dwca_export_cron(){
-  if(variable_get('dwca_export_rebuild', FALSE) && variable_get('dwca_export_zip_build_time', 0) < time() + 86400){
+  if(variable_get('dwca_export_rebuild', TRUE) && variable_get('dwca_export_zip_build_time', 0) < time() + 86400){
     // Get a list of views on which we operate.  FIXME - This should perhaps be
     // "altered" using a drupal_alter call.
     module_load_include('views_default.inc', 'dwca_export');
@@ -70,5 +70,6 @@ function _dwca_export_cron(){
       file_unmanaged_delete($filename);
     }
     if(!file_unmanaged_move($tmp_archive_file_name, 'public://dwca.zip', FILE_EXISTS_REPLACE)){throw new Exception(t('Unable to move the DwC-A'));}
+    variable_set('dwca_export_rebuild', FALSE);
   }
 }
