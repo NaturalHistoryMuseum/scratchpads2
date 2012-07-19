@@ -16,6 +16,5 @@ class FeedsNodeProcessorValidate extends FeedsNodeProcessor{
     node_validate($node, $form, $form_state);
     entity_form_field_validate('node', $form, $form_state);
     $errors = form_get_errors();
-    drupal_set_message('Validated');
   }
 }
