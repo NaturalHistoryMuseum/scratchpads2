@@ -20,3 +20,10 @@ function dwca_export_update_7001(){
   variable_set('views_data_export_gc_expires', 7200);
   variable_set('views_data_export_gc_chunk', -1);
 }
+
+/**
+ * Delete the variables.
+ */
+  function dwca_export_update_7002(){
+    db_delete('variable')->condition('name', 'dwca_%', 'LIKE')->execute();
+  }
