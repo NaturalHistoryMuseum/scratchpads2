@@ -24,6 +24,6 @@ function dwca_export_update_7001(){
 /**
  * Delete the variables.
  */
-  function dwca_export_update_7002(){
-    db_delete('variable')->condition('name', 'dwca_%', 'LIKE')->execute();
-  }
+function dwca_export_update_7002(){
+  db_delete('variable')->condition('name', 'dwca_%', 'LIKE')->execute();
+}
