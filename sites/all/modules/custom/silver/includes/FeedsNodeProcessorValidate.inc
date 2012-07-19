@@ -6,6 +6,7 @@
 class FeedsNodeProcessorValidate extends FeedsNodeProcessor{
 
   protected function entityValidate($node){
+    module_load_include('pages.inc', 'node');
     $form = drupal_get_form($node->type . '_node_form', $node);
     $form_state = array(
       'values' => array()
