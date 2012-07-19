@@ -142,17 +142,14 @@ function sofapi_context_load_alter(&$context){
   }
 }
 
-
-
 function sofapi_footer_logos_alter(&$links){
-	 $options = array(
+  $options = array(
     'html' => true,
     'absolute' => true
   );
-	$links[] = l(theme('image', array(
-      'path' => drupal_get_path('module', 'sofapi') . '/images/sof_logo_crop.gif',
-      'alt' => 'Swiss Orchid Foundation logo',
-      'title' => 'Swiss Orchid Foundation'
-    )), 'http://orchid.unibas.ch', $options);
-
+  $links[] = l(theme('image', array(
+    'path' => drupal_get_path('module', 'sofapi') . '/images/sof_logo.gif',
+    'alt' => 'Swiss Orchid Foundation logo',
+    'title' => 'Swiss Orchid Foundation'
+  )), 'http://orchid.unibas.ch', $options);
 }
