@@ -28,15 +28,8 @@ if(file_exists(conf_path() . '/files/scratchpad_1_database.php')){
 }else{
   // We add a dummy connection just to keep the Migrate module happy.  Any
   // migrations attempted using this connection WILL fail.
-  Database::addConnectionInfo('scratchpad_1', 'default', array(
-    'database' => 'scratchpad_1_database',
-    'username' => 'scratchpad_1_user',
-    'password' => 'scratchpad_1_database_password',
-    'host' => 'localhost',
-    'port' => '',
-    'driver' => 'mysql',
-    'prefix' => ''
-  ));
+  $connection_info = Database::getConnectionInfo();
+  Database::addConnectionInfo('scratchpad_1', 'default', $connection_info['default']);
 }
 
 /**
