@@ -519,6 +519,30 @@ function gm3_polygon_items_validate($items, $field_name, &$errors){
   }
 }
 
+function gm3_combination_items_validate($items, $field_name, &$errors){
+  foreach($items as $item){
+    if(is_string($item)){
+      $lines = preg_split("/[\n\r]+/", $item);
+      foreach($lines as $line){
+        $first_colon_pos = strpos($line, ':');
+        $type = substr($line, 0, $first_colon_pos);
+        $rest = substr($line, $first_colon_pos + 1);
+        $func = false;
+        if(function_exists($type . '_items_validate')){
+          $func = $type . '_items_validate';
+        }else if(function_exists("gm3_{$type}_items_validate")){
+          $func = "gm3_{$type}_items_validate";
+        }
+        if($func){
+          $func(array(
+            $rest
+          ), $field_name, $errors);
+        }
+      }
+    }
+  }
+}
+
 /**
  * Ensure the text for a single polygon is valid
  */
@@ -529,9 +553,7 @@ function gm3_is_valid_polygon($polygon){
   return $wkt_reader->read($polygon, TRUE);
 }
 
-function gm3_point_items_validate($items, $field_name, &$errors){
-  
-}
+function gm3_point_items_validate($items, $field_name, &$errors){}
 
 /**
  * Implements hook_field_is_empty().
@@ -544,14 +566,19 @@ function gm3_field_field_is_empty($item, $field){
     case 'gm3_rectangle':
       return !strlen(trim($item['map']));
     case 'gm3_combination':
-      foreach($item['map']['children'] as $type => $value){
-        if(is_array($value)){
-          if(count($value)){return FALSE;}
-        }else if(is_string($value)){
-          if(strlen(trim($value))){return FALSE;}
+      if(is_array($item)){
+        foreach($item['map']['children'] as $type => $value){
+          if(is_array($value)){
+            if(count($value)){return FALSE;}
+          }else if(is_string($value)){
+            if(strlen(trim($value))){return FALSE;}
+          }
         }
+        return TRUE;
+      }else{
+        // This is for the benefit of the Feeds module.
+        return !strlen(trim($item));
       }
-      return TRUE;
   }
 }
 

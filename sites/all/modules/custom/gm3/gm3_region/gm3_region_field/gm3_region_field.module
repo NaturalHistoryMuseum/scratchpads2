@@ -20,6 +20,60 @@ function gm3_region_field_field_info(){
 }
 
 /**
+ * Callback to validate an item
+ * 
+ * NOTE, this function is NOT gm3_region_field_items_validate to enable users
+ * to enter REGION: REGION-ID rather than REGION_FIELD: REGION-ID
+ */
+function gm3_region_items_validate($items, $field_name, &$errors){
+  foreach($items as $item){
+    if(is_string($item)){
+      $item = trim($item);
+      switch(strlen($item)){
+        case '1':
+          // We have a continent code
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_1_code = :l1c', array(
+            ':l1c' => $item
+          ));
+          break;
+        case '2':
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_2_code = :l2c', array(
+            ':l2c' => $item
+          ));
+          // We have a sub-continent code
+          break;
+        case '3':
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c', array(
+            ':l3c' => $item
+          ));
+          // We have a level-3 code
+          break;
+        case '6':
+          $item_part = explode('-', $item);
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c AND level_4_code = :l4c', array(
+            ':l3c' => $item_part[0],
+            ':l4c' => $item_part[1]
+          ));
+          // We have  a level-4 code
+          break;
+        default:
+          // Definitely an error here!
+          $result = db_query('SELECT 0 AS item_count');
+          break;
+      }
+      foreach($result as $row){
+        if(!$row->item_count){
+          $errors[] = array(
+            'error' => 'gm3_invalid_data',
+            'message' => t('Invalid map data has been entered. Please reload this page before resubmitting.')
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_field_insert().
  */
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
