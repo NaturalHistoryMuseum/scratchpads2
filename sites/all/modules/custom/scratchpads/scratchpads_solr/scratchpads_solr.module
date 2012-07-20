@@ -213,7 +213,6 @@ function scratchpads_solr_node_type_insert($info){
   }
   catch(Exception $e){
     // This is thrown on install.  We don't do anything though!
-    $transaction->rollback();
   }
 }
 
