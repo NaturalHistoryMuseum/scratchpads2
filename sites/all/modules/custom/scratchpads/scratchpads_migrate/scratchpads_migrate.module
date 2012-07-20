@@ -58,6 +58,14 @@ function scratchpads_migrate_register_migrations(){
     'source_version' => 6
   );
   /*********************************************************************************************
+   * Variables
+   ********************************************************************************************/
+  $arguments = $common_arguments + array(
+    'description' => t('Migration of variables from Drupal 6'),
+    'machine_name' => 'Variable'
+  );
+  Migration::registerMigration('VariableMigration', $arguments['machine_name'], $arguments);
+  /*********************************************************************************************
    * ContentTypes
    ********************************************************************************************/
   $arguments = $common_arguments + array(

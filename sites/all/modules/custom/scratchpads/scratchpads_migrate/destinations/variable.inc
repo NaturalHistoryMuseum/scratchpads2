@@ -20,6 +20,7 @@ class MigrateDestinationVariable extends MigrateDestination{
   }
 
   public function import(stdClass $object, stdClass $row){
+    variable_set($row->name, unserialize($row->value));
     $this->numCreated++;
   }
 

@@ -34,6 +34,7 @@ files[] = sources/og.inc
 files[] = sources/path_redirect.inc
 files[] = sources/taxonomy.inc
 files[] = sources/user.inc
+files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
 
 ; Destination classes
@@ -44,4 +45,5 @@ files[] = destinations/field_group.inc
 files[] = destinations/field_taxonomy.inc
 files[] = destinations/path_redirect.inc
 files[] = destinations/user.inc
+files[] = destinations/variable.inc
 files[] = destinations/vocabulary.inc
