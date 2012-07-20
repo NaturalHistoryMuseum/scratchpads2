@@ -301,9 +301,9 @@ class ProtologueNodeProcessor extends FeedsProcessor{
    */
   protected function existingEntityId(FeedsSource $source, FeedsParserResult $result){
     if($nid = parent::existingEntityId($source, $result)){return $nid;}
-    $protologue_string = $result->current_item['Author'] . ', ' . $result->current_item['Protologue'] . ' (' . $result->current_item['Year'] . ')';
+    $protologue_string = $result->current_item['Author'] . ', ' . $result->current_item['FullRef'] . ' (' . $result->current_item['Year'] . ')';
     $db_result = db_query("SELECT r.field_reference_nid AS nid FROM taxonomy_term_data t INNER JOIN field_data_field_itis_em_other_ref w ON t.tid = w.entity_id INNER JOIN field_data_field_reference r ON r.entity_id = t.tid WHERE t.name = :species AND w.field_itis_em_other_ref_value = :protologue", array(
-      ':species' => $result->current_item['Species'],
+      ':species' => $result->current_item['Taxon_name'],
       ':protologue' => $protologue_string
     ));
     $nids = $db_result->fetchCol();

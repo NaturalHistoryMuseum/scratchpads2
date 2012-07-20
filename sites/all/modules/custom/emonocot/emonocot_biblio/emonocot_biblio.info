@@ -7,3 +7,5 @@ dependencies[] = biblio
 dependencies[] = ctools
 
 files[] = ProtologueNodeProcessor.inc
+
+tool=true
