@@ -23,6 +23,9 @@ class MigrateDestinationVariable extends MigrateDestination{
     $map = VariableMigration::variableNames();
     variable_set($map[$row->name], unserialize($row->value));
     $this->numCreated++;
+    return array(
+      $object->name
+    );
   }
 
   public function fields(){
