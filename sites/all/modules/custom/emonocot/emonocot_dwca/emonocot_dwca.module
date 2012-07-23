@@ -5,8 +5,11 @@ function emonocot_dwca_views_default_views_alter(&$views){
     if(substr($view->name, 0, 11) == 'dwca_export'){
 
       if(isset($view->display['default']->display_options['fields']['uuid'])){
-        unset($view->display['default']->display_options['fields']['uuid']);
+        $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
         emonocot_dwca_add_field($view);
+        if (isset($view->display['default']->display_options['fields']['uuid']['relationship'])){
+        	$view->display['default']->display_options['fields']['wcm_id']['relationship'] = $view->display['default']->display_options['fields']['uuid']['relationship'];
+        }
       }
 
       if(isset($view->display['default']->display_options['fields']['uuid_1'])){
@@ -15,12 +18,12 @@ function emonocot_dwca_views_default_views_alter(&$views){
         if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
           $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
         }
-        unset($view->display['default']->display_options['fields']['uuid_1']);
+        $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
         emonocot_dwca_add_parent_field($view);
         if(!is_null($relationship)){
-          $view->display['default']->display_options['fields']['uuid_1']['relationship'] = $relationship;
+          $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
         }
-        $view->display['default']->display_options['fields']['uuid_1']['label'] = 'Parent ID';
+        $view->display['default']->display_options['fields']['wcm_id_1']['label'] = 'Parent ID';
       }
     }
   }
@@ -28,7 +31,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
 
 function emonocot_dwca_add_field(&$view){
   $new_field = array();
-  $new_field['id'] = 'uuid';
+  $new_field['id'] = 'wcm_id';
   $new_field['field'] = 'field_id';
   $new_field['table'] = 'field_data_field_id';
   $new_field['label'] = 'id';
@@ -54,13 +57,13 @@ function emonocot_dwca_add_field(&$view){
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
-  $view->display['default']->display_options['fields']['uuid'] = $new_field;
+  $view->display['default']->display_options['fields']['wcm_id'] = $new_field;
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
 }
 
 function emonocot_dwca_add_parent_field(&$view){
   $new_field = array();
-  $new_field['id'] = 'uuid_1';
+  $new_field['id'] = 'wcm_id_1';
   $new_field['field'] = 'field_id';
   $new_field['table'] = 'field_data_field_id';
   $new_field['label'] = 'id';
@@ -85,5 +88,5 @@ function emonocot_dwca_add_parent_field(&$view){
   $new_field['format_plural'] = 0;
   $new_field['field_api_classes'] = 0;
   //array_unshift($view->display['default']->display_options['fields'], $new_field);
-  $view->display['default']->display_options['fields']['uuid_1'] = $new_field;
+  $view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
 }
