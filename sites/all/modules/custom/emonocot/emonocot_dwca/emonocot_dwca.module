@@ -1,12 +1,21 @@
 <?php
 
+/**
+ * Implements hook_views_default_views_alter().
+ * 
+ * Replace uuid fields with wcm identifiers
+ * 
+ * @param $views
+ */
 function emonocot_dwca_views_default_views_alter(&$views){
   foreach($views as $view){
+  	//Is this a dwca_export view?
     if(substr($view->name, 0, 11) == 'dwca_export'){
-
       if(isset($view->display['default']->display_options['fields']['uuid'])){
+      	//Hide uuid field
         $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
         emonocot_dwca_add_field($view);
+        //If a relationship is set on uuid field make same relatinship on wcm field
         if (isset($view->display['default']->display_options['fields']['uuid']['relationship'])){
         	$view->display['default']->display_options['fields']['wcm_id']['relationship'] = $view->display['default']->display_options['fields']['uuid']['relationship'];
         }
