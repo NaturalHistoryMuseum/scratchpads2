@@ -319,7 +319,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['relationships']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['required'] = 0;
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['required'] = 1;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
