@@ -8,6 +8,9 @@ function dwca_export_deliver_archive(){
     file_transfer('public://dwca.zip', array(
       'Content-Type' => 'application/zip'
     ));
+  }else{
+    drupal_set_message('The Darwincore Arhive for this site has not yet been created');
+    drupal_goto('/');
   }
 }
 
@@ -55,8 +58,8 @@ function dwca_export_select_view_form(){
           '#size' => 60,
           '#description' => t('specify view for ' . $dwca_filename_inner)
         ); //'#prefix' => '<tr>',
-      //'#suffix' => '</tr>',
-      //TODO: Change collaped discription form to table, layout using <td> and <tr> e.g. try 3 description types per row
+        //'#suffix' => '</tr>',
+        //TODO: Change collaped discription form to table, layout using <td> and <tr> e.g. try 3 description types per row
       }
     }else{
       $views[$dwca_filename] = array(
@@ -81,7 +84,7 @@ function dwca_export_config_form_submit($form, &$form_state){
   foreach($variables as $key => $value){
     if(array_key_exists($key, $dwca_export_archive_descriptor_file_map)){
       $dwca_export_archive_descriptor_file_map[$key]['view_name'] = $value;
-       //$save_variables .= '<p>' . $key . ' ' . $value . '</p>';
+      //$save_variables .= '<p>' . $key . ' ' . $value . '</p>';
     }else{
       $description_key = 'description';
       if(array_key_exists($description_key, $dwca_export_archive_descriptor_file_map)){
