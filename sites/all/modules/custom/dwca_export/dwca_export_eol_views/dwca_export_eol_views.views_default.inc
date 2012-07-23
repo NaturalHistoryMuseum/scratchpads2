@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * dwca_export_eol_views.views_default.inc
  */
-
 /**
  * Implements hook_views_default_views().
  */
-function dwca_export_eol_views_views_default_views() {
+function dwca_export_eol_views_views_default_views(){
   $export = array();
-
-  $view = new view;
+  $view = new view();
   $view->name = 'dwc_a_export_agent_eol';
   $view->description = '';
   $view->tag = 'default';
@@ -19,7 +18,6 @@ function dwca_export_eol_views_views_default_views() {
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'DwC-A Export Agent Eol';
@@ -34,7 +32,7 @@ function dwca_export_eol_views_views_default_views() {
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
     'name' => 'name',
-    'uuid' => 'uuid',
+    'uuid' => 'uuid'
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -43,15 +41,15 @@ function dwca_export_eol_views_views_default_views() {
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
+      'empty_column' => 0
     ),
     'uuid' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
@@ -203,19 +201,16 @@ function dwca_export_eol_views_views_default_views() {
   $handler->display->display_options['filters']['status']['value'] = '1';
   $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'dwca-export/agent-eol/page';
-
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'dwca-export/agent-eol/csv';
   $export['dwc_a_export_agent_eol'] = $view;
-
-  $view = new view;
+  $view = new view();
   $view->name = 'dwc_a_export_media_eol';
   $view->description = '';
   $view->tag = 'default';
@@ -224,7 +219,6 @@ function dwca_export_eol_views_views_default_views() {
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'DwC-A Export Media Eol';
@@ -237,7 +231,7 @@ function dwca_export_eol_views_views_default_views() {
   $handler->display->display_options['pager']['options']['items_per_page'] = '10';
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
-    'filename' => 'filename',
+    'filename' => 'filename'
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -246,8 +240,8 @@ function dwca_export_eol_views_views_default_views() {
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0
+    )
   );
   $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['sticky'] = 0;
@@ -523,7 +517,7 @@ function dwca_export_eol_views_views_default_views() {
     'audio' => 'audio',
     'image' => 'image',
     'text' => 'text',
-    'video' => 'video',
+    'video' => 'video'
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
   /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
@@ -534,19 +528,16 @@ function dwca_export_eol_views_views_default_views() {
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['reduce_duplicates'] = 0;
   $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'plants';
-
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'dwca-export/media-eol/page';
-
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'dwca-export/media-eol/csv';
   $export['dwc_a_export_media_eol'] = $view;
-
-  $view = new view;
+  $view = new view();
   $view->name = 'dwc_a_export_reference_eol';
   $view->description = '';
   $view->tag = 'default';
@@ -555,7 +546,6 @@ function dwca_export_eol_views_views_default_views() {
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'DwC-A Export Reference EoL';
@@ -999,19 +989,16 @@ function dwca_export_eol_views_views_default_views() {
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'biblio' => 'biblio',
+    'biblio' => 'biblio'
   );
-
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
   $handler->display->display_options['path'] = 'dwca-export/reference-eol/page';
-
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'dwca-export/reference-eol/csv';
   $export['dwc_a_export_reference_eol'] = $view;
-
   return $export;
 }

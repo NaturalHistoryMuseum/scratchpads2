@@ -298,7 +298,7 @@ function dwca_export_views_default_views(){
   $view->name = 'dwca_export_reference';
   $view->description = 'DwC-A reference extension for a Taxon';
   $view->tag = 'default';
-  $view->base_table = 'taxonomy_term_data';
+  $view->base_table = 'node';
   $view->human_name = 'DwC-A Export Reference';
   $view->core = 7;
   $view->api_version = '3.0';
@@ -313,33 +313,18 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
   $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'name' => 'name'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'name' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  $handler->display->display_options['style_options']['override'] = 1;
-  $handler->display->display_options['style_options']['sticky'] = 0;
-  $handler->display->display_options['style_options']['empty_table'] = 0;
-  /* Relationship: Taxonomy term: Reference (field_reference) */
-  $handler->display->display_options['relationships']['field_reference_nid']['id'] = 'field_reference_nid';
-  $handler->display->display_options['relationships']['field_reference_nid']['table'] = 'field_data_field_reference';
-  $handler->display->display_options['relationships']['field_reference_nid']['field'] = 'field_reference_nid';
-  $handler->display->display_options['relationships']['field_reference_nid']['required'] = 1;
-  $handler->display->display_options['relationships']['field_reference_nid']['delta'] = '-1';
+  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['row_plugin'] = 'node';
+  /* Relationship: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['required'] = 0;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
   $handler->display->display_options['fields']['uuid']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid']['relationship'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['fields']['uuid']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['uuid']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['uuid']['alter']['absolute'] = 0;
@@ -362,7 +347,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_accession_number']['id'] = 'biblio_accession_number';
   $handler->display->display_options['fields']['biblio_accession_number']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_accession_number']['field'] = 'biblio_accession_number';
-  $handler->display->display_options['fields']['biblio_accession_number']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_accession_number']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_accession_number']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_accession_number']['alter']['absolute'] = 0;
@@ -386,7 +370,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_call_number']['id'] = 'biblio_call_number';
   $handler->display->display_options['fields']['biblio_call_number']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_call_number']['field'] = 'biblio_call_number';
-  $handler->display->display_options['fields']['biblio_call_number']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_call_number']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_call_number']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_call_number']['alter']['absolute'] = 0;
@@ -410,7 +393,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_citekey']['id'] = 'biblio_citekey';
   $handler->display->display_options['fields']['biblio_citekey']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_citekey']['field'] = 'biblio_citekey';
-  $handler->display->display_options['fields']['biblio_citekey']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_citekey']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_citekey']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_citekey']['alter']['absolute'] = 0;
@@ -434,7 +416,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_doi']['id'] = 'biblio_doi';
   $handler->display->display_options['fields']['biblio_doi']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_doi']['field'] = 'biblio_doi';
-  $handler->display->display_options['fields']['biblio_doi']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_doi']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_doi']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_doi']['alter']['absolute'] = 0;
@@ -458,7 +439,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_isbn']['id'] = 'biblio_isbn';
   $handler->display->display_options['fields']['biblio_isbn']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_isbn']['field'] = 'biblio_isbn';
-  $handler->display->display_options['fields']['biblio_isbn']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_isbn']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_isbn']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_isbn']['alter']['absolute'] = 0;
@@ -482,7 +462,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_issn']['id'] = 'biblio_issn';
   $handler->display->display_options['fields']['biblio_issn']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_issn']['field'] = 'biblio_issn';
-  $handler->display->display_options['fields']['biblio_issn']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_issn']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_issn']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_issn']['alter']['absolute'] = 0;
@@ -506,7 +485,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_other_number']['id'] = 'biblio_other_number';
   $handler->display->display_options['fields']['biblio_other_number']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_other_number']['field'] = 'biblio_other_number';
-  $handler->display->display_options['fields']['biblio_other_number']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_other_number']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_other_number']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_other_number']['alter']['absolute'] = 0;
@@ -530,7 +508,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['citation']['id'] = 'citation';
   $handler->display->display_options['fields']['citation']['table'] = 'biblio';
   $handler->display->display_options['fields']['citation']['field'] = 'citation';
-  $handler->display->display_options['fields']['citation']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['citation']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['citation']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['citation']['alter']['absolute'] = 0;
@@ -553,31 +530,22 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'field_reference_nid';
+  $handler->display->display_options['fields']['title']['label'] = '';
   $handler->display->display_options['fields']['title']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['title']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['title']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = 0;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = 0;
   $handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['title']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['title']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['title']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['title']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['title']['hide_empty'] = 0;
   $handler->display->display_options['fields']['title']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['title']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Field: Biblio: Authors */
   $handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
   $handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_authors']['field'] = 'biblio_authors';
-  $handler->display->display_options['fields']['biblio_authors']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_authors']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_authors']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_authors']['alter']['absolute'] = 0;
@@ -603,7 +571,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_secondary_title']['id'] = 'biblio_secondary_title';
   $handler->display->display_options['fields']['biblio_secondary_title']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_secondary_title']['field'] = 'biblio_secondary_title';
-  $handler->display->display_options['fields']['biblio_secondary_title']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_secondary_title']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_secondary_title']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_secondary_title']['alter']['absolute'] = 0;
@@ -627,7 +594,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_notes']['id'] = 'biblio_notes';
   $handler->display->display_options['fields']['biblio_notes']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_notes']['field'] = 'biblio_notes';
-  $handler->display->display_options['fields']['biblio_notes']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_notes']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_notes']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_notes']['alter']['absolute'] = 0;
@@ -650,7 +616,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['word']['id'] = 'word';
   $handler->display->display_options['fields']['word']['table'] = 'biblio_keyword_data';
   $handler->display->display_options['fields']['word']['field'] = 'word';
-  $handler->display->display_options['fields']['word']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['word']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['word']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['word']['alter']['absolute'] = 0;
@@ -674,7 +639,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_lang']['id'] = 'biblio_lang';
   $handler->display->display_options['fields']['biblio_lang']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_lang']['field'] = 'biblio_lang';
-  $handler->display->display_options['fields']['biblio_lang']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_lang']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_lang']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_lang']['alter']['absolute'] = 0;
@@ -698,7 +662,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'biblio_types';
   $handler->display->display_options['fields']['name']['field'] = 'name';
-  $handler->display->display_options['fields']['name']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
@@ -721,7 +684,6 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_date']['id'] = 'biblio_date';
   $handler->display->display_options['fields']['biblio_date']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_date']['field'] = 'biblio_date';
-  $handler->display->display_options['fields']['biblio_date']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['fields']['biblio_date']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['biblio_date']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_date']['alter']['absolute'] = 0;
@@ -741,26 +703,32 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_date']['empty_zero'] = 0;
   $handler->display->display_options['fields']['biblio_date']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['biblio_date']['biblio_label'] = 1;
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['relationship'] = 'field_reference_nid';
-  $handler->display->display_options['filters']['status']['value'] = '1';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
   /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['relationship'] = 'field_reference_nid';
   $handler->display->display_options['filters']['type']['value'] = array(
     'biblio' => 'biblio'
   );
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'dwca-export/reference/page';
+  $handler->display->display_options['path'] = 'dwc-biblio-new';
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
-  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['style_options']['provide_file'] = 0;
@@ -771,7 +739,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['style_options']['newline_replacement'] = '\\r';
   $handler->display->display_options['style_options']['header'] = 0;
   $handler->display->display_options['path'] = 'dwca-export/reference/csv';
-  $handler->display->display_options['use_batch'] = '0';
+  $handler->display->display_options['sitename_title'] = 0;
   $views[$view->name] = $view;
   //----------------------------------------------------------------------------
   // IMAGE
