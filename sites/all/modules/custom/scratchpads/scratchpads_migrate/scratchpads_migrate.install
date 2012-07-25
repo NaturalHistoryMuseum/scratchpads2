@@ -1,0 +1,177 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_migrate_install(){
+  // We delete the field_collector and field_identified_by fields to be plain
+  // text fields.  These will be converted to proper "people" fields at a later
+  // date.
+  // Exported field: 'node-specimen_observation-field_collector'
+  $fields = array(
+    array(
+      'field_config' => array(
+        'active' => '1',
+        'cardinality' => '1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'field_collector',
+        'foreign keys' => array(
+          'format' => array(
+            'columns' => array(
+              'format' => 'format'
+            ),
+            'table' => 'filter_format'
+          )
+        ),
+        'indexes' => array(
+          'format' => array(
+            0 => 'format'
+          )
+        ),
+        'module' => 'text',
+        'settings' => array(
+          'max_length' => '255'
+        ),
+        'translatable' => '0',
+        'type' => 'text'
+      ),
+      'field_instance' => array(
+        'bundle' => 'specimen_observation',
+        'default_value' => NULL,
+        'deleted' => '0',
+        'description' => '',
+        'display' => array(
+          'default' => array(
+            'label' => 'above',
+            'module' => 'text',
+            'settings' => array(),
+            'type' => 'text_default',
+            'weight' => '5'
+          ),
+          'linked_node' => array(
+            'label' => 'above',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => 0
+          ),
+          'teaser' => array(
+            'label' => 'above',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => 0
+          )
+        ),
+        'entity_type' => 'node',
+        'field_name' => 'field_collector',
+        'label' => 'Collector',
+        'required' => 0,
+        'settings' => array(
+          'linkit' => array(
+            'enable' => 0,
+            'insert_plugin' => ''
+          ),
+          'text_processing' => '0',
+          'user_register_form' => FALSE
+        ),
+        'widget' => array(
+          'active' => 1,
+          'module' => 'text',
+          'settings' => array(
+            'size' => '255'
+          ),
+          'type' => 'text_textfield',
+          'weight' => '9'
+        )
+      )
+    ),
+    array(
+      'field_config' => array(
+        'active' => '1',
+        'cardinality' => '1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'field_identified_by',
+        'foreign keys' => array(
+          'format' => array(
+            'columns' => array(
+              'format' => 'format'
+            ),
+            'table' => 'filter_format'
+          )
+        ),
+        'indexes' => array(
+          'format' => array(
+            0 => 'format'
+          )
+        ),
+        'module' => 'text',
+        'settings' => array(
+          'max_length' => '255'
+        ),
+        'translatable' => '0',
+        'type' => 'text'
+      ),
+      'field_instance' => array(
+        'bundle' => 'specimen_observation',
+        'default_value' => NULL,
+        'deleted' => '0',
+        'description' => '',
+        'display' => array(
+          'default' => array(
+            'label' => 'above',
+            'module' => 'text',
+            'settings' => array(),
+            'type' => 'text_default',
+            'weight' => '5'
+          ),
+          'linked_node' => array(
+            'label' => 'above',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => 0
+          ),
+          'teaser' => array(
+            'label' => 'above',
+            'settings' => array(),
+            'type' => 'hidden',
+            'weight' => 0
+          )
+        ),
+        'entity_type' => 'node',
+        'field_name' => 'field_identified_by',
+        'label' => 'Identified by',
+        'required' => 0,
+        'settings' => array(
+          'linkit' => array(
+            'enable' => 0,
+            'insert_plugin' => ''
+          ),
+          'text_processing' => '0',
+          'user_register_form' => FALSE
+        ),
+        'widget' => array(
+          'active' => 1,
+          'module' => 'text',
+          'settings' => array(
+            'size' => '255'
+          ),
+          'type' => 'text_textfield',
+          'weight' => '9'
+        )
+      )
+    )
+  );
+  foreach($fields as $field){
+    field_delete_field($field['field_config']['field_name']);
+    field_create_field($field['field_config']);
+    field_create_instance($field['field_instance']);
+  }
+}
+
+/**
+ * Update the fields.
+ */
+function scratchpads_migrate_update_7001(){
+  scratchpads_migrate_install();
+}
