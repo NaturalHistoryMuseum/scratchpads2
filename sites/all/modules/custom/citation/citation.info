@@ -1,0 +1,3 @@
+name = Citation
+description = "Users can cite a page and retrieve a snapshot of the page at a later date.  This module is currently only providing access to Scratchpad 1 citations."
+core = 7.x

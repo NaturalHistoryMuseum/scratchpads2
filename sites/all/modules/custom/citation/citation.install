@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function citation_schema(){
+  return array(
+    'citation' => array(
+      'fields' => array(
+        'cid' => array(
+          'type' => 'serial',
+          'not null' => true,
+          'unsigned' => true
+        ),
+        'created' => array(
+          'type' => 'int'
+        ),
+        'reference' => array(
+          'type' => 'text'
+        ),
+        'url' => array(
+          'type' => 'text'
+        )
+      ),
+      'primary key' => array(
+        'cid'
+      )
+    ),
+    'citation_store' => array(
+      'fields' => array(
+        'url' => array(
+          'type' => 'text'
+        ),
+        'data' => array(
+          'type' => 'text'
+        )
+      ),
+      'indexes' => array(
+        'citation_store_url_index' => array(
+          array(
+            'url',
+            255
+          )
+        )
+      )
+    )
+  );
+}
