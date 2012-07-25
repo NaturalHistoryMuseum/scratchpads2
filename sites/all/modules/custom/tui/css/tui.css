@@ -88,6 +88,9 @@
  display:none;
  margin-right:2px;
 }
+#tui-tree a.edit-term-link.view{
+ margin-right:10px;
+}
 #tui-tree-subcontainer li {
  margin: 3px 0 0 0;
  padding: 0;

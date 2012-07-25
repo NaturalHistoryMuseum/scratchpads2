@@ -181,6 +181,10 @@ function theme_tui_term_name($variables){
         'data-tui-this-term' => $variables['term']->tid
       ),
       'query' => $query
+    )) . ' ' . l('view', 'taxonomy/term/' . $variables['term']->tid, array(
+      'attributes' => array(
+        'class' => 'edit-term-link view'
+      )
     )) . '</div>';
   }
 }
