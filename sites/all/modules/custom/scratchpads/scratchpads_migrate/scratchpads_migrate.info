@@ -18,6 +18,7 @@ files[] = vocabulary.inc
 
 
 ; Source classes
+files[] = sources/citation.inc
 files[] = sources/content_type.inc
 files[] = sources/field.inc
 files[] = sources/field_body.inc
@@ -38,6 +39,7 @@ files[] = sources/variable.inc
 files[] = sources/vocabulary.inc
 
 ; Destination classes
+files[] = destinations/citation.inc
 files[] = destinations/content_type.inc
 files[] = destinations/field.inc
 files[] = destinations/field_body.inc
