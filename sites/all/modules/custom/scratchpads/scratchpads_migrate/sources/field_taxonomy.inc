@@ -38,7 +38,7 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    */
   protected function sourceQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('vocabulary_node_types', 'vnt');
-    $query->fields('v', array(
+    $query->fields('vnt', array(
       'type'
     ));
     $query->innerJoin('vocabulary', 'v', 'v.vid = vnt.vid');

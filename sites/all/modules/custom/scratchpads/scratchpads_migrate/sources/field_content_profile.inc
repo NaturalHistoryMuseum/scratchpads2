@@ -12,7 +12,7 @@ class DrupalFieldContentProfileMigration extends DrupalFieldMigration{
       'field_familyname' => 'field_user_family_name',
       'field_institution' => 'field_user_institution',
       'field_taxonomicinterest' => 'field_user_taxonomic_interest',
-//      'field_homepage' => 'field_user_homepage',
+      'field_homepage' => 'field_homepage',
       'field_email' => 'mail'
     );
   }

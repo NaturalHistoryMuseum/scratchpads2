@@ -7,13 +7,13 @@ class DrupalContentTypeMigration extends DrupalMigration{
    */
   public static function getContentTypeMappings($type = null){
     $mappings = array(
-      'biblio' => MIGRATE_CONTENT, // migrate content only
-      'blog' => MIGRATE_CONTENT, // migrate content only
+      'biblio' => MIGRATE_ALL, // migrate content only
+      'blog' => MIGRATE_ALL, // migrate content only
       'nexus_project' => MIGRATE_NONE, // do not migrate
       'countriesmap' => MIGRATE_NONE, // do not migrate
       'forum' => MIGRATE_ALL, // migrate content only
       'glossary' => MIGRATE_NONE, // Migrate everything
-      'group' => MIGRATE_NONE, // Handle groups elsewhere
+      'group' => MIGRATE_FIELD, // Handle groups elsewhere, but still migrate any fields
       'image' => MIGRATE_NONE, // do not migrate
       'ispecies' => MIGRATE_NONE, // do not migrate
       'darwincorelocation' => array(
@@ -25,7 +25,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
       'nexus_free_state' => MIGRATE_NONE, // do not migrate
       'nexus_note' => MIGRATE_NONE, // do not migrate
       'page' => MIGRATE_ALL, // migrate using the same entity & bundle type
-      'tree' => MIGRATE_CONTENT, // migrate using the same entity / bundle
+      'tree' => MIGRATE_NONE, // migrate using the same entity / bundle
       'poll' => MIGRATE_NONE, // migrate using the same entity & bundle type
       'publication' => MIGRATE_NONE,
       'publication_image_caption' => MIGRATE_NONE,

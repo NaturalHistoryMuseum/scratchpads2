@@ -12,7 +12,7 @@ class MigrateDestinationScratchpadsUser extends MigrateDestinationUser{
 
   public function import(stdClass $account, stdClass $row){
     // Map some of the duplicate fields
-    // Content profile fields always take precedence so ovverwite existing content 
+    // Content profile fields always take precedence so overwite existing content 
     foreach(DrupalFieldContentProfileMigration::getFieldNameMappings() as $d6_field => $d7_field){
       if(!empty($row->{$d6_field})){
         $account->{$d7_field} = $row->{$d6_field};

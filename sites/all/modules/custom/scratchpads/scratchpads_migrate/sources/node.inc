@@ -19,18 +19,43 @@
  */
 class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
+  protected $longTextFields = array();
+
+  public function getLongTextFields(){
+    return $this->longTextFields;
+  }
+
+  protected $manualFieldMapping = array();
+
+  public function getManualFieldMapping($field_name = null){
+    if($field_name){
+      if(isset($this->manualFieldMapping[$field_name])){
+        return $this->manualFieldMapping[$field_name];
+      }else{
+        return false;
+      }
+    }else{
+      return $this->manualFieldMapping;
+    }
+  }
+
+  public function sourceFieldList(){
+    $fields = parent::sourceFieldList();
+    $fields['file_attachment'] = t('Attached files');
+    return $fields;
+  }
+
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
+    $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
+    $fields += $this->getManualFieldMapping();
     foreach($fields as $delta => $field){
       // Numeric keys are vocabulary fields
       if(is_numeric($delta)){
         $vocabulary = taxonomy_vocabulary_load($delta);
-        $vids = variable_get('biological_vids', array());
-        // TODO - REMOVE
-        $vids = array(
-          3
-        );
+        $vids = array_keys(variable_get('biological_vids', array()));
         if($vocabulary){
           if($vocabulary->module != 'forum'){
             // Is this a biological classification
@@ -48,23 +73,77 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           $this->addFieldMapping($field_name, $delta)->sourceMigration($sourceMigration);
           $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
           $this->addFieldMapping($field_name . ':create_term')->defaultValue(false);
-          
         }else{
           // Do nothing with Image Galleries vocab
           $this->addFieldMapping(NULL, $delta);
         }
+      }elseif($delta == 'file_attachment'){
+        // Does this node type have a file_field?
+        if(array_key_exists('field_file', $destination_fields)){
+          // Does have field file mapping so add a simple mapping. 
+          // We'll get the files in prepareRow
+          $this->addFieldMapping('field_file', $delta)->sourceMigration('File');
+          $this->addFieldMapping('field_file:file_class')->defaultValue('MigrateFileFid');
+          $this->addFieldMapping('field_file:file_replace')->defaultValue(FILE_EXISTS_REPLACE);
+          $this->addUnmigratedDestinations(array(
+            'field_file:language',
+            'field_file:description',
+            'field_file:display',
+            'field_file:destination_dir',
+            'field_file:destination_file',
+            'field_file:preserve_files',
+            'field_file:source_dir'
+          ));
+        }else{
+          $this->addUnmigratedSources(array(
+            'file_attachment'
+          ));
+        }
       }else{ // Other field types
         // Load the field
         $field = field_info_field($delta);
+        // If we don't have a field with the same name, check if it's a media field
         if($field){
-          switch($field['type']){
+          $type = $field['type'];
+        }else{
+          $type = $this->getFieldType($delta);
+        }
+        if(isset($type)){
+          switch($type){
             case 'image':
             case 'file':
+            case 'filefield':
               $this->addFieldMapping('field_media', $delta)->sourceMigration('File');
               $this->addFieldMapping('field_media:file_class')->defaultValue('MigrateFileFid');
+              $this->addUnmigratedDestinations(array(
+                'field_media:language',
+                'field_media:description',
+                'field_media:display'
+              ));
               break;
             default:
-              $this->addFieldMapping($delta, $delta);
+              if($type == 'text_long'){
+                // Keep a record of long text fields, as we need to extract files
+                $this->longTextFields[] = $delta;
+              }
+              if(!$destination_field = $this->getManualFieldMapping($delta)){
+                $destination_field = $delta;
+              }
+              $delta = strtolower($delta);
+              $this->addFieldMapping($destination_field, $delta);
+              foreach(array(
+                'format',
+                'language'
+              ) as $subfield_type){
+                $subfield = $destination_field . ':' . $subfield_type;
+                if(array_key_exists($subfield, $this->destination->fields())){
+                  if($subfield_type == 'format'){
+                    $this->addFieldMapping($subfield)->defaultValue('filtered_html');
+                  }else{
+                    $this->addFieldMapping($subfield, NULL);
+                  }
+                }
+              }
               break;
           }
         }
@@ -77,19 +156,20 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
     $this->addFieldMapping('group_content_access', 'og_public')->defaultValue(0);
-    $this->addUnmigratedDestinations(array(
-      'body:summary',
-      'body:format',
-      'body:language',
-      'field_media:language',
-      'field_media:description',
-      'field_media:display'
-    ));
-     // TODO - Turn back on
-  //    $this->addSimpleMappings(array(
-  //      'nid',
-  //      'vid'
-  //    ));
+    // Does this node have a body field?
+    if(field_read_instance('node', 'body', $this->destinationType)){
+      $this->longTextFields[] = 'body';
+      $this->addUnmigratedDestinations(array(
+        'body:summary',
+        'body:format',
+        'body:language'
+      ));
+    }else{
+      $this->removeFieldMapping('body');
+      $this->addUnmigratedSources(array(
+        'body'
+      ));
+    }
   }
 
   protected function nodeQuery(){
@@ -99,7 +179,14 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->addField('oga', 'group_nid', 'group_nid');
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
+    $query->condition('n.title', 'Taskguide', '!=');
     return $query;
+  }
+
+  protected function getFieldType($field_name){
+    return Database::getConnection('default', $this->sourceConnection)->select('content_node_field', 'cnf')->fields('cnf', array(
+      'type'
+    ))->condition('field_name', $field_name)->execute()->fetchField();
   }
 
   public function prepareRow($row){
@@ -121,15 +208,34 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         ), WATCHDOG_ERROR);
       }
     }
-    switch($row->og_public){
-      case 0:
-        $row->og_public = 2; // Private
-        break;
-      case 1:
-        break;
-      default:
-        $row->og_public = 0; // Group defaults
-        break;
+    if(isset($row->og_public)){
+      switch($row->og_public){
+        case 0:
+          $row->og_public = 2; // Private
+          break;
+        case 1:
+          break;
+        default:
+          $row->og_public = 0; // Group defaults
+          break;
+      }
+    }
+    // Add the url alias
+    $query = Database::getConnection('default', $this->sourceConnection)->select('url_alias', 'a');
+    $query->addField('a', 'dst');
+    $query->condition('a.src', 'node/' . $row->nid);
+    $row->path = $query->execute()->fetchField();
+    // Does this node have files attached?
+    $query = Database::getConnection('default', $this->sourceConnection)->select('upload', 'u');
+    $query->addField('u', 'fid');
+    $query->condition('u.vid', $row->vid);
+    $row->file_attachment = $query->execute()->fetchField();
+    // Unset null rows, necessary for dwc location
+    $properties = array_keys((array)$row);
+    foreach($properties as $property){
+      if(empty($row->{$property})){
+        unset($row->{$property});
+      }
     }
   }
 

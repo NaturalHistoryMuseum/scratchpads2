@@ -8,9 +8,7 @@ dependencies[] = content_migrate
 dependencies[] = migrate_ui
 dependencies[] = migrate_extras
 dependencies[] = darwincore
-dependencies[] = scratchpads_group
-dependencies[] = forum
-dependencies[] = blog
+dependencies[] = date
 
 ; Base classes
 files[] = vocabulary.inc
@@ -31,6 +29,10 @@ files[] = sources/field_vocabulary_itis.inc
 files[] = sources/file.inc
 files[] = sources/forum.inc
 files[] = sources/node.inc
+files[] = sources/node_darwincore.inc
+files[] = sources/node_darwincorelocation.inc
+files[] = sources/node_spm.inc
+files[] = sources/node_biblio.inc
 files[] = sources/og.inc
 files[] = sources/path_redirect.inc
 files[] = sources/taxonomy.inc
@@ -40,12 +42,17 @@ files[] = sources/vocabulary.inc
 
 ; Destination classes
 files[] = destinations/citation.inc
+files[] = destinations/date.migrate.inc
 files[] = destinations/content_type.inc
 files[] = destinations/field.inc
 files[] = destinations/field_body.inc
 files[] = destinations/field_group.inc
 files[] = destinations/field_taxonomy.inc
+files[] = destinations/gm3_point.migrate.inc
+files[] = destinations/node.inc
+files[] = destinations/node_biblio.inc
 files[] = destinations/path_redirect.inc
+files[] = destinations/term.inc
 files[] = destinations/user.inc
 files[] = destinations/variable.inc
 files[] = destinations/vocabulary.inc

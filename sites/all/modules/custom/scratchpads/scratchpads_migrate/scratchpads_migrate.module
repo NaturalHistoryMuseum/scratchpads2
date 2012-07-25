@@ -2,6 +2,7 @@
 define("MIGRATE_NONE", 0);
 define("MIGRATE_ALL", 1);
 define("MIGRATE_CONTENT", 2);
+define("MIGRATE_FIELD", 3);
 /**
  * Add the database connection.
  * 
@@ -83,7 +84,10 @@ function scratchpads_migrate_register_migrations(){
    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of content types from Drupal 6'),
-    'machine_name' => 'ContentType'
+    'machine_name' => 'ContentType',
+    'dependencies' => array(
+      'Vocabulary' // Vocabulary throws an error if not run first, so make content type dependent on it
+    )
   );
   Migration::registerMigration('DrupalContentTypeMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************
@@ -253,7 +257,7 @@ function scratchpads_migrate_register_migrations(){
   $vocabularies = $query->execute();
   foreach($vocabularies as $vocabulary){
     $arguments = array(
-      'class_name' => ScratchpadTermMigration,
+      'class_name' => 'ScratchpadTermMigration',
       'description' => t('Migration of %name terms from Drupal 6', array(
         '%name' => $vocabulary->name
       )),
@@ -327,6 +331,9 @@ function scratchpads_migrate_register_migrations(){
     );
     $path_dependencies[] = $arguments['machine_name'];
     $arguments = array_merge_recursive($arguments, $common_node_arguments);
+    if($type == 'darwincore'){
+      $arguments['dependencies'][] = 'Darwincorelocation';
+    }
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
   }
   /*********************************************************************************************
@@ -340,6 +347,7 @@ function scratchpads_migrate_register_migrations(){
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
 }
 
+// TODO - change this
 function scratchpads_migrate_term_machine_name($name){
   return 'Term' . str_replace(' ', '', ucwords($name));
 }
@@ -364,7 +372,3 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = str_replace(' ', '', $name);
   return $type . $name;
 }
-
-
-
-
