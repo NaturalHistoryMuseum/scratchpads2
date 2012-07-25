@@ -21,7 +21,7 @@ function citation_menu(){
       'page callback' => 'citation_get_files',
       'type' => MENU_CALLBACK,
       'access arguments' => array(
-        'create citations'
+        'access content'
       )
     )
   );

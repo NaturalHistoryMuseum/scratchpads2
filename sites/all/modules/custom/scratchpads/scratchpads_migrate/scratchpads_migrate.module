@@ -63,11 +63,11 @@ function scratchpads_migrate_register_migrations(){
     'source_version' => 6
   );
   /*********************************************************************************************
-   * Citations
+   * Citation
    ********************************************************************************************/
   $arguments = $common_arguments + array(
     'description' => t('Migration of citations from Drupal 6'),
-    'machine_name' => 'Citation'
+    'machine_name' => 'Citations'
   );
   Migration::registerMigration('CitationMigration', $arguments['machine_name'], $arguments);
   /*********************************************************************************************

@@ -10,9 +10,8 @@ class CitationMigration extends DrupalMigration{
     // Create our three main objects - source, destination, and map
     $this->source = new MigrateSourceSQL($this->citationQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
-      'name' => array(
-        'type' => 'varchar',
-        'length' => 255
+      'cid' => array(
+        'type' => 'int'
       )
     ), MigrateDestinationCitation::getKeySchema());
     $this->destination = new MigrateDestinationCitation();
