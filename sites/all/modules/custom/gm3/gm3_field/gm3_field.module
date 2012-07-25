@@ -161,7 +161,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
   switch($field['type']){
     case 'gm3_point':
       $new_items = array();
-      if(is_string($items[0])){
+      if(isset($items[0]) && is_string($items[0])){
         // Strip point: from the string first.
         $items[0] = str_replace('point:', '', strtolower($items[0]));
         _gm3_field_get_array_from_points_string($items[0], $new_items);
