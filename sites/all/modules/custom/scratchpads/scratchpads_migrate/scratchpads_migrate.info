@@ -29,6 +29,7 @@ files[] = sources/field_vocabulary_itis.inc
 files[] = sources/file.inc
 files[] = sources/forum.inc
 files[] = sources/node.inc
+files[] = sources/node_countriesmap.inc
 files[] = sources/node_darwincore.inc
 files[] = sources/node_darwincorelocation.inc
 files[] = sources/node_spm.inc
