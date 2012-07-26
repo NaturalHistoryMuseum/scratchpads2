@@ -43,7 +43,7 @@ if(file_exists($filename)){
  * 
  * Yes, this is a darwincore module hook.
  */
-function darwincore_field_default_fields_alter($fields){
+function darwincore_field_default_fields_alter(&$fields){
   unset($fields['node-specimen_observation-field_collector']);
   unset($fields['node-specimen_observation-field_identified_by']);
 }
