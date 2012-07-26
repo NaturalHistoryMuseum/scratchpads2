@@ -4,6 +4,13 @@
  * Implements hook_install().
  */
 function scratchpads_migrate_install(){
+  scratchpads_migrate_update_7001();
+}
+
+/**
+ * Update the fields.
+ */
+function scratchpads_migrate_update_7001(){
   // We delete the field_collector and field_identified_by fields to be plain
   // text fields.  These will be converted to proper "people" fields at a later
   // date.
@@ -165,16 +172,10 @@ function scratchpads_migrate_install(){
   foreach($fields as $field){
     field_delete_field($field['field_config']['field_name']);
   }
+  field_sync_field_status();
   field_purge_batch(count($fields));
   foreach($fields as $field){
     field_create_field($field['field_config']);
     field_create_instance($field['field_instance']);
   }
-}
-
-/**
- * Update the fields.
- */
-function scratchpads_migrate_update_7001(){
-  scratchpads_migrate_install();
 }
