@@ -153,7 +153,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
         }
       }
     }
-    if(!empty($row->dateidentifiedyear)){
+    if(isset($row->dateidentifiedyear) && isset($row->dateidentifiedmonth) && isset($row->dateidentifiedday)){
       $row->dateidentifiedyear = drupal_json_encode(array(
         'from' => $row->dateidentifiedyear . '/' . $row->dateidentifiedmonth . '/' . $row->dateidentifiedday
       ));
