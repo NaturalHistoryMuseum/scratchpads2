@@ -115,10 +115,15 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             case 'filefield':
               $this->addFieldMapping('field_media', $delta)->sourceMigration('File');
               $this->addFieldMapping('field_media:file_class')->defaultValue('MigrateFileFid');
+              $this->addFieldMapping('field_media:file_replace')->defaultValue(FILE_EXISTS_REPLACE);
               $this->addUnmigratedDestinations(array(
                 'field_media:language',
                 'field_media:description',
-                'field_media:display'
+                'field_media:display',
+                'field_media:destination_dir',
+                'field_media:destination_file',
+                'field_media:preserve_files',
+                'field_media:source_dir'
               ));
               break;
             default:
@@ -152,6 +157,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
+    // TODO - Add this back in
+//    $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
