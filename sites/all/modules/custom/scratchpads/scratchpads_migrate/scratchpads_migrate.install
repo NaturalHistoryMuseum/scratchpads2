@@ -173,7 +173,7 @@ function scratchpads_migrate_update_7001(){
     field_delete_field($field['field_config']['field_name']);
   }
   field_sync_field_status();
-  field_purge_batch(count($fields));
+  field_purge_batch(10);
   foreach($fields as $field){
     field_create_field($field['field_config']);
     field_create_instance($field['field_instance']);
