@@ -164,6 +164,9 @@ function scratchpads_migrate_install(){
   );
   foreach($fields as $field){
     field_delete_field($field['field_config']['field_name']);
+  }
+  field_purge_batch(count($fields));
+  foreach($fields as $field){
     field_create_field($field['field_config']);
     field_create_instance($field['field_instance']);
   }
