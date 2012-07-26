@@ -46,6 +46,18 @@ function scratchpads_migrate_flush_caches(){
 }
 
 /**
+ * Implements hook_system_info_alter().
+ * 
+ * FIXME - Once we are ready to alter the field_collector and field_identified_by
+ * fields to "people" fields, this should be removed.
+ */
+function scratchpads_migrate_system_info_alter(&$info, $file, $type){
+  if($file->name == 'darwincore'){
+    unset($info['features']);
+  }
+}
+
+/**
  * Implements hook_migrate_api().
  */
 function scratchpads_migrate_migrate_api(){
@@ -346,7 +358,6 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
 }
-
 // TODO - change this
 function scratchpads_migrate_term_machine_name($name){
   return 'Term' . str_replace(' ', '', ucwords($name));
