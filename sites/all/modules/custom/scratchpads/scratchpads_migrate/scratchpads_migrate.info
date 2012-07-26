@@ -9,6 +9,7 @@ dependencies[] = migrate_ui
 dependencies[] = migrate_extras
 dependencies[] = darwincore
 dependencies[] = date
+dependencies[] = forum
 
 ; Base classes
 files[] = vocabulary.inc
