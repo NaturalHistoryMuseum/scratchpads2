@@ -39,7 +39,6 @@ class DrupalFieldBodyMigration extends DrupalMigration{
     $excluded_node_types[] = 'darwincorelocation';
     $excluded_node_types[] = 'page';
     $excluded_node_types[] = 'forum';
-    $excluded_node_types[] = 'links';
     $query->condition('nt.type', $excluded_node_types, 'NOT IN');
     $query->condition('nt.has_body', 1);
     return $query;

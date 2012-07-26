@@ -158,9 +158,14 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
         'from' => $row->dateidentifiedyear . '/' . $row->dateidentifiedmonth . '/' . $row->dateidentifiedday
       ));
     }
-    $row->earliestdatecollected = drupal_json_encode(array(
-      'from' => str_replace('-', '/', $row->earliestdatecollected),
-      'to' => str_replace('-', '/', $row->latestdatecollected)
-    ));
+    if(isset($row->earliestdatecollected)){
+      $collected_date = array(
+        'from' => str_replace('-', '/', $row->earliestdatecollected)
+      );
+      if(isset($row->latestdatecollected)){
+        $collected_date['to'] = str_replace('-', '/', $row->latestdatecollected);
+      }
+      $row->earliestdatecollected = drupal_json_encode($collected_date);
+    }
   }
 }

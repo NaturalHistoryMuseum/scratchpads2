@@ -47,6 +47,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    
+		$this->fieldSuffixes['link'] = 'url';
+    
     $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
     $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
