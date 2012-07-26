@@ -300,7 +300,7 @@ function scratchpads_migrate_register_migrations(){
   }
   foreach($mappings as $type => $mapping){
     // Skip if we don't want to migrate this content type
-    if($mapping == MIGRATE_NONE){
+    if($mapping == MIGRATE_NONE || $mapping == MIGRATE_FIELD){
       continue;
     }
     if(is_array($mapping)){

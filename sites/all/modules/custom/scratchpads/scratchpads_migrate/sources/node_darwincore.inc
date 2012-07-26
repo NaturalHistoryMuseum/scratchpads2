@@ -20,10 +20,6 @@
 class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
 
   public function __construct(array $arguments){
-  	//$this->dependencies = array('ScratchpadsNodeDarwincorelocationMigration');
-  	
-  	dd($this->dependencies);
-  	
     // Add manual field mappingss
     $this->manualFieldMapping = array(
       'sex' => 'field_sex',
@@ -33,12 +29,11 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'collectioncode' => 'field_collection_code',
       'cataloguenumbertext' => 'field_catalogue_number',
       'identificationqualifier' => 'field_identification_qualifier',
-      //      'identifiedby' => 'field_identified_by',
+      'identifiedby' => 'field_identified_by',
       'collectornumber' => 'field_collector_number',
       'fieldnumber' => 'field_number',
-      //      'collector' => 'field_collector',
+      'collector' => 'field_collector',
       'fieldnotes' => 'field_notes',
-    	'locationnode' => 'field_location',
       'othercataloguenum' => 'field_other_catalogue_numbers',
       'lifestage' => 'field_lifestage',
       'count' => 'field_count',
@@ -51,6 +46,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
     parent::__construct($arguments);
     $this->addFieldMapping('field_taxonomic_name:source_type')->defaultValue('tid');
     $this->addFieldMapping('field_taxonomic_name:create_term')->defaultValue(false);
+    $this->addFieldMapping('field_location', 'locationnode')->sourceMigration('Darwincorelocation');
     // There isn't a media field
     $this->addUnmigratedDestinations(array(
       'field_media',
@@ -62,7 +58,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'field_media:preserve_files',
       'field_media:source_dir',
       'field_media:description',
-      'field_media:display',
+      'field_media:display'
     ));
     // Handled in prepare row
     $this->addUnmigratedSources(array(
@@ -76,12 +72,32 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
     // Only import nodes which are in the forum vocab
     $query = parent::nodeQuery();
     $query->innerJoin('darwincore', 'd', 'd.vid = n.vid');
-    foreach(array_keys($this->manualFieldMapping) as $field){
-      $query->addField('d', $field, strtolower($field));
-    }
-    $query->addField('d', 'dateidentifiedmonth');
-    $query->addField('d', 'dateidentifiedday');
-    $query->addField('d', 'latestdatecollected');
+    $query->fields('d', array(
+      'sex',
+      'basisofrecord',
+      'typestatus',
+      'institutioncode',
+      'collectioncode',
+      'cataloguenumbertext',
+      'identificationqualifier',
+      'identifiedby',
+      'collectornumber',
+      'fieldnumber',
+      'collector',
+      'fieldnotes',
+      'othercataloguenum',
+      'lifestage',
+      'count',
+      'genbanknum',
+      'remarks',
+      'taxonomicname',
+      'dateidentifiedyear',
+      'earliestdatecollected',
+      'dateidentifiedmonth',
+      'dateidentifiedday',
+      'latestdatecollected',
+      'locationnode'
+    ));
     return $query;
   }
 
@@ -122,16 +138,18 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       )
     );
     foreach($term_mappings as $delta => $term_mapping){
-      if($row->{$delta} == 0){
-        unset($row->{$delta});
-      }else if(isset($row->{$delta})){
-        if(array_key_exists($row->{$delta}, $term_mapping)){
-          $row->{$delta} = $term_mapping[$row->{$delta}];
+      if(isset($row->{$delta})){
+        if($row->{$delta} == 0){
+          unset($row->{$delta});
         }else{
-          watchdog('scratchpads_migrate', 'Error, %delta term %term doesn\'t exist', array(
-            '%delta' => $delta,
-            '%term' => $row->{$delta}
-          ));
+          if(array_key_exists($row->{$delta}, $term_mapping)){
+            $row->{$delta} = $term_mapping[$row->{$delta}];
+          }else{
+            watchdog('scratchpads_migrate', 'Error, %delta term %term doesn\'t exist', array(
+              '%delta' => $delta,
+              '%term' => $row->{$delta}
+            ));
+          }
         }
       }
     }
