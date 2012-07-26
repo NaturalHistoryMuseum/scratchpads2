@@ -39,22 +39,20 @@ if(file_exists($filename)){
 }
 
 /**
+ * Implements hook_field_default_fields_alter().
+ * 
+ * Yes, this is a darwincore module hook.
+ */
+function darwincore_field_default_fields_alter($fields){
+  unset($fields['node-specimen_observation-field_collector']);
+  unset($fields['node-specimen_observation-field_identified_by']);
+}
+
+/**
  * Implements hook_flush_caches().
  */
 function scratchpads_migrate_flush_caches(){
   scratchpads_migrate_register_migrations();
-}
-
-/**
- * Implements hook_system_info_alter().
- * 
- * FIXME - Once we are ready to alter the field_collector and field_identified_by
- * fields to "people" fields, this should be removed.
- */
-function scratchpads_migrate_system_info_alter(&$info, $file, $type){
-  if($file->name == 'darwincore'){
-    unset($info['features']);
-  }
 }
 
 /**
