@@ -1305,6 +1305,11 @@ function dwca_export_views_default_views(){
 }
 
 function _dwca_export_view_description($desc_type){
+  $desc_type_std = $desc_type;
+  if ($desc_type == 'general_description'){
+  	$desc_type_std = 'general';
+  }
+  
   $view = new view();
   $view->name = 'dwca_export_description_' . substr($desc_type, 0, 6);
   $view->description = '';
@@ -1366,7 +1371,7 @@ function _dwca_export_view_description($desc_type){
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['field'] = t('field_' . $desc_type);
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['label'] = 'type';
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['text'] = $desc_type;
+  $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['text'] = $desc_type_std;
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['make_link'] = 0;
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['absolute'] = 0;
   $handler->display->display_options['fields'][t('field_' . $desc_type)]['alter']['external'] = 0;
