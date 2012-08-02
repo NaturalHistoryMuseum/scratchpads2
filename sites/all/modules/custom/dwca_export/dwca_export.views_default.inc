@@ -551,6 +551,10 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['citation']['hide_empty'] = 0;
   $handler->display->display_options['fields']['citation']['empty_zero'] = 0;
   $handler->display->display_options['fields']['citation']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
+  $handler->display->display_options['fields']['citation']['export_links'] = 0;
+  $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
+  $handler->display->display_options['fields']['citation']['open_url_link'] = 0;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
