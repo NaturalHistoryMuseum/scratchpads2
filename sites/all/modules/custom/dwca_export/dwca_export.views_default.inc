@@ -441,7 +441,8 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_doi']['id'] = 'biblio_doi';
   $handler->display->display_options['fields']['biblio_doi']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_doi']['field'] = 'biblio_doi';
-  $handler->display->display_options['fields']['biblio_doi']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['biblio_doi']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['biblio_doi']['alter']['text'] = 'doi:[biblio_doi]';
   $handler->display->display_options['fields']['biblio_doi']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_doi']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['biblio_doi']['alter']['external'] = 0;
@@ -464,7 +465,8 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_isbn']['id'] = 'biblio_isbn';
   $handler->display->display_options['fields']['biblio_isbn']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_isbn']['field'] = 'biblio_isbn';
-  $handler->display->display_options['fields']['biblio_isbn']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['biblio_isbn']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['biblio_isbn']['alter']['text'] = 'urn:ISBN:[biblio_isbn]';
   $handler->display->display_options['fields']['biblio_isbn']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_isbn']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['biblio_isbn']['alter']['external'] = 0;
@@ -487,7 +489,8 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['biblio_issn']['id'] = 'biblio_issn';
   $handler->display->display_options['fields']['biblio_issn']['table'] = 'biblio';
   $handler->display->display_options['fields']['biblio_issn']['field'] = 'biblio_issn';
-  $handler->display->display_options['fields']['biblio_issn']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['biblio_issn']['alter']['alter_text'] = 1;
+  $handler->display->display_options['fields']['biblio_issn']['alter']['text'] = 'urn:ISSN:[biblio_issn]';
   $handler->display->display_options['fields']['biblio_issn']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['biblio_issn']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['biblio_issn']['alter']['external'] = 0;
