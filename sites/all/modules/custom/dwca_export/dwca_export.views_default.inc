@@ -70,6 +70,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['relationships']['parent']['table'] = 'taxonomy_term_hierarchy';
   $handler->display->display_options['relationships']['parent']['field'] = 'parent';
   $handler->display->display_options['relationships']['parent']['required'] = 0;
+  /* Relationship: Taxonomy term: Reference (field_reference) */
+  $handler->display->display_options['relationships']['field_reference_nid']['id'] = 'field_reference_nid';
+  $handler->display->display_options['relationships']['field_reference_nid']['table'] = 'field_data_field_reference';
+  $handler->display->display_options['relationships']['field_reference_nid']['field'] = 'field_reference_nid';
+  $handler->display->display_options['relationships']['field_reference_nid']['required'] = 0;
+  $handler->display->display_options['relationships']['field_reference_nid']['delta'] = '-1';
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
@@ -238,29 +244,33 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_authors']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_authors']['field_api_classes'] = 0;
   /* Field: Taxonomy term: Reference */
-  $handler->display->display_options['fields']['field_reference']['id'] = 'field_reference';
-  $handler->display->display_options['fields']['field_reference']['table'] = 'field_data_field_reference';
-  $handler->display->display_options['fields']['field_reference']['field'] = 'field_reference';
-  $handler->display->display_options['fields']['field_reference']['label'] = 'bibliographicCitation';
-  $handler->display->display_options['fields']['field_reference']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['trim_whitespace'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_reference']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_reference']['alter']['more_link'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_reference']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_reference']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['field_reference']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_reference']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_reference']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_reference']['hide_alter_empty'] = 1;
-  $handler->display->display_options['fields']['field_reference']['field_api_classes'] = 0;
+  /* Field: Biblio: Biblio Citation */
+  $handler->display->display_options['fields']['citation']['id'] = 'citation';
+  $handler->display->display_options['fields']['citation']['table'] = 'biblio';
+  $handler->display->display_options['fields']['citation']['field'] = 'citation';
+  $handler->display->display_options['fields']['citation']['relationship'] = 'field_reference_nid';
+  $handler->display->display_options['fields']['citation']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['citation']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['citation']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['citation']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['citation']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['citation']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['citation']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['citation']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['citation']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['citation']['style_name'] = 'chicago-author-date.csl';
+  $handler->display->display_options['fields']['citation']['export_links'] = 0;
+  $handler->display->display_options['fields']['citation']['file_attachments'] = 0;
+  $handler->display->display_options['fields']['citation']['open_url_link'] = 0;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
   $handler->display->display_options['fields']['uuid_1']['table'] = 'taxonomy_term_data';
