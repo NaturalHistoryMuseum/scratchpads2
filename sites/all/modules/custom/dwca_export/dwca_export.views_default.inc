@@ -142,6 +142,30 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_vernacular_names']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_vernacular_names']['delta_first_last'] = 0;
   $handler->display->display_options['fields']['field_vernacular_names']['field_api_classes'] = 0;
+  /* Field: Taxonomy term: Usage */
+  $handler->display->display_options['fields']['field_usage']['id'] = 'field_usage';
+  $handler->display->display_options['fields']['field_usage']['table'] = 'field_data_field_usage';
+  $handler->display->display_options['fields']['field_usage']['field'] = 'field_usage';
+  $handler->display->display_options['fields']['field_usage']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_usage']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_usage']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_usage']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_usage']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_usage']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['field_usage']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_usage']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_usage']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_usage']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['field_usage']['field_api_classes'] = 0;
   /* Field: Taxonomy term: Unacceptability Reason */
   $handler->display->display_options['fields']['field_unacceptability_reason']['id'] = 'field_unacceptability_reason';
   $handler->display->display_options['fields']['field_unacceptability_reason']['table'] = 'field_data_field_unacceptability_reason';
@@ -162,6 +186,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_unacceptability_reason']['alter']['html'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['element_label_colon'] = 1;
   $handler->display->display_options['fields']['field_unacceptability_reason']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_unacceptability_reason']['empty'] = '[field_usage]';
   $handler->display->display_options['fields']['field_unacceptability_reason']['hide_empty'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_unacceptability_reason']['hide_alter_empty'] = 1;
@@ -1306,10 +1331,9 @@ function dwca_export_views_default_views(){
 
 function _dwca_export_view_description($desc_type){
   $desc_type_std = $desc_type;
-  if ($desc_type == 'general_description'){
-  	$desc_type_std = 'general';
+  if($desc_type == 'general_description'){
+    $desc_type_std = 'general';
   }
-  
   $view = new view();
   $view->name = 'dwca_export_description_' . substr($desc_type, 0, 6);
   $view->description = '';
