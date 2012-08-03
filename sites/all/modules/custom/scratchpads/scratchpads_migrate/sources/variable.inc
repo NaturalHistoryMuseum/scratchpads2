@@ -30,10 +30,12 @@ class VariableMigration extends DrupalMigration{
    * D7 (just in case the name of the variable has changed).
    */
   public static function variableNames(){
+  	
+  	// TODO - add 'site_frontpage' => 'site_frontpage' based on settings
+  	
     return array(
       'site_name' => 'site_name',
       'site_mail' => 'site_mail',
-      'site_frontpage' => 'site_frontpage'
     );
   }
 
