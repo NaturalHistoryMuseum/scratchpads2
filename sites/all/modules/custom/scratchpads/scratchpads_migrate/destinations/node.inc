@@ -7,6 +7,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     $fields = parent::fields($migration);
     // Add any extra fields which won't be picked up by the scan of field elements
     $fields['path'] = t('Term path');
+    $fields['auto_nodetitle_applied'] = t('Auto node title');
     return $fields;
   }
 
@@ -28,13 +29,6 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
       );
       path_save($path);
     }
-    // Extract any files
-    foreach($migration->getLongTextFields() as $longTextField){
-      if(isset($row->{$longTextField})){
-        // TODO - file extraction
-      //    		dd($row);
-      }
-    }
     return $status;
   }
 
@@ -46,4 +40,5 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     ));
     return $status;
   }
+
 }

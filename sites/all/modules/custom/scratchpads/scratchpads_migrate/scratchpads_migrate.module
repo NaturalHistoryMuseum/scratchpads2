@@ -356,6 +356,7 @@ function scratchpads_migrate_register_migrations(){
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
 }
+
 // TODO - change this
 function scratchpads_migrate_term_machine_name($name){
   return 'Term' . str_replace(' ', '', ucwords($name));
@@ -381,3 +382,15 @@ function scratchpads_migrate_get_machine_name($type, $name){
   $name = str_replace(' ', '', $name);
   return $type . $name;
 }
+
+function scratchpads_migrate_menu(){
+  $items['scratchpads-migrate'] = array(
+    'title' => 'Test Page',
+    'page callback' => 'scratchpads_migrate_page',
+    'access arguments' => array(
+      'access content'
+    )
+  );
+  return $items;
+}
+

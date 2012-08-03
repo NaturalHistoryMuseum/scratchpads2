@@ -10,9 +10,11 @@ class DrupalContentTypeMigration extends DrupalMigration{
       'biblio' => MIGRATE_ALL, // migrate content only
       'blog' => MIGRATE_ALL, // migrate content only
       'nexus_project' => MIGRATE_NONE, // do not migrate
-      'countriesmap' => MIGRATE_NONE, // do not migrate
+      'countriesmap' => array(
+        'entity_type' => 'node',
+        'bundle' => 'spm'
+      ),
       'forum' => MIGRATE_ALL, // migrate content only
-      'glossary' => MIGRATE_NONE, // Migrate everything
       'group' => MIGRATE_FIELD, // Handle groups elsewhere, but still migrate any fields
       'image' => MIGRATE_NONE, // do not migrate
       'ispecies' => MIGRATE_NONE, // do not migrate
@@ -76,7 +78,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
       'name',
       'description',
       'title_label',
-    	'help'
+      'help'
     ));
   }
 
@@ -92,7 +94,7 @@ class DrupalContentTypeMigration extends DrupalMigration{
       'name',
       'description',
       'title_label',
-    	'help'
+      'help'
     ));
     $query->innerJoin('node', 'n', 'n.type = nt.type');
     $query->groupBy('nt.type');

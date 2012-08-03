@@ -7,7 +7,7 @@
 /**
  * Custom extended MigrateFieldHandler class.
  */
-class MigrateGM3FieldHandler extends MigrateFieldHandler{
+class MigrateGM3PointFieldHandler extends MigrateFieldHandler{
 
   public function __construct(){
     $this->registerTypes(array(
