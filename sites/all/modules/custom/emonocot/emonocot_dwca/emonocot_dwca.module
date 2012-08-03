@@ -14,21 +14,21 @@ function emonocot_dwca_views_default_views_alter(&$views){
       if(isset($view->display['default']->display_options['fields']['uuid'])){
       	//Hide uuid field
         $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
-        emonocot_dwca_add_field($view);
+        emonocot_dwca_add_wcm_field($view);
         //If a relationship is set on uuid field make same relatinship on wcm field
         if (isset($view->display['default']->display_options['fields']['uuid']['relationship'])){
         	$view->display['default']->display_options['fields']['wcm_id']['relationship'] = $view->display['default']->display_options['fields']['uuid']['relationship'];
         }
       }
-
+      //The classification dwca_export view has a parent taxonomy field, uuid_1
       if(isset($view->display['default']->display_options['fields']['uuid_1'])){
-        $relationship = NULL;
-        $label = isset($view->display['default']->display_options['fields']['uuid_1']['label']) ? $view->display['default']->display_options['fields']['uuid_1']['label'] : 'Term ID';
+        //Preserve the relationship
+      	$relationship = NULL;
         if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
           $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
         }
         $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
-        emonocot_dwca_add_parent_field($view);
+        emonocot_dwca_add_wcm_parent_field($view);
         if(!is_null($relationship)){
           $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
         }
@@ -38,7 +38,13 @@ function emonocot_dwca_views_default_views_alter(&$views){
   }
 }
 
-function emonocot_dwca_add_field(&$view){
+/**
+ * 
+ * Adds the WCM-ID field to the dwca_export view
+ * 
+ * @param $view
+ */
+function emonocot_dwca_add_wcm_field(&$view){
   $new_field = array();
   $new_field['id'] = 'wcm_id';
   $new_field['field'] = 'field_id';
@@ -70,7 +76,13 @@ function emonocot_dwca_add_field(&$view){
   $view->display['default']->display_options['fields'] = array_reverse($view->display['default']->display_options['fields'], true);
 }
 
-function emonocot_dwca_add_parent_field(&$view){
+/**
+ * 
+ * Adds the WCM-ID field of the parent term to the dwca_export view
+ * 
+ * @param $view
+ */
+function emonocot_dwca_add_wcm_parent_field(&$view){
   $new_field = array();
   $new_field['id'] = 'wcm_id_1';
   $new_field['field'] = 'field_id';
