@@ -108,11 +108,27 @@
 	    <field index="14" term="http://purl.org/dc/terms/language" />
 	</extension>
 	<extension encoding="UTF-8" linesTermiantedBy="\r\n"
-	    fieldsTerimatedBy="," fieldsEnclosedBy="&quot;" ignoreHEaderLines="0"
+	    fieldsTerimatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
 	    rowType="http://eol.org/schema/media/Document">
+	    <files>
+	        <location>image.txt</location>
+	    </files>
 	    <coreid index="0" />
 	    <field index="1" term="http://purl.org/dc/terms/identifier" />
 	    <field index="2" term="http://purl.org/dc/terms/title" />
 	    <field index="3" term ="http://purl.org/dc/terms/format" />
+	</extension>
+	<extension encoding="UTF-8" linesTermiantedBy="\r\n"
+	    fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
+	    rowType="http://eol.org/schema/agent/Agent">
+	    <files>
+	        <location>eol_agents.txt</location>
+	    </files>
+	    <field index="0" term="http://purl.org/dc/terms/identifier" />
+	    <field index="1" term="http://xmlns.com/foaf/spec/#term_familyName" />
+	    <field index="2" term="http://xmlns.com/foaf/spec/#term_firstName" />
+	    <field index="3" term="http://xmlns.com/foaf/spec/#term_name" />
+	    <field index="4" term="http://eol.org/schema/agent/organization" />
+	    <field index="5" term="http://xmlns.com/foaf/spec/#term_accountName" />
 	</extension>
 </archive>

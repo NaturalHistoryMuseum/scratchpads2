@@ -21,7 +21,7 @@ function emonocot_dwca_views_default_views_alter(&$views){
         }
       }
       //The classification dwca_export view has a parent taxonomy field, uuid_1
-      if(isset($view->display['default']->display_options['fields']['uuid_1'])){
+      if(isset($view->display['default']->display_options['fields']['uuid_1']) && $view->name == 'dwca_export_classification'){
         //Preserve the relationship
       	$relationship = NULL;
         if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
