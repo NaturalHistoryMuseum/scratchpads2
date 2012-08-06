@@ -47,9 +47,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    
-		$this->fieldSuffixes['link'] = 'url';
-    
+    $this->fieldSuffixes['link'] = 'url';
     $this->destination = new ScratchpadsMigrateDestinationNode($this->destinationType);
     $destination_fields = $this->destination->fields();
     $fields = $this->sourceFieldList();
@@ -160,8 +158,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
-    // TODO - Add this back in
-//    $this->addFieldMapping('nid', 'nid');
+    $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
@@ -180,6 +177,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         'body'
       ));
     }
+    // Overide auto node title - we want to use the old titles
+    $this->addFieldMapping('auto_nodetitle_applied')->defaultValue(true);
   }
 
   protected function nodeQuery(){
@@ -247,6 +246,58 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         unset($row->{$property});
       }
     }
+    // Extract any files
+    foreach($this->getLongTextFields() as $longTextField){
+      if(isset($row->{$longTextField})){
+        $row->{$longTextField} = $this->parseImages($row->{$longTextField});
+      }
+    }
+  }
+
+  protected function parseImages($html){
+    $dom = new DOMDocument();
+    $dom->loadHTML($html);
+    $dom->normalizeDocument();
+    $items = $dom->getElementsByTagName('img');
+    for($i = 0; $i < $items->length; $i++){
+      // Does this img have a parent anchor tag
+      $parent_node = $items->item($i)->parentNode;
+      if($parent_node->tagName == 'a'){
+        $href = $parent_node->getAttribute('href');
+        if(strpos($href, 'files') !== false){
+          if($new_href = scratchpads_migrate_save_file($href)){
+            $new_href .= '?width=600&height=600';
+            $parent_node->removeAttribute('href');
+            $parent_node->setAttribute('href', $new_href);
+            $parent_node->setAttribute('class', 'colorbox-inline');
+          }
+        }
+      }
+      $src = $items->item($i)->getAttribute('src');
+      if($new_href = $this->saveFile($src)){
+        $items->item($i)->removeAttribute('src');
+        $items->item($i)->setAttribute('src', $new_href);
+      }
+    }
+    return $dom->saveHTML();
+  }
+
+  protected function saveFile($src){
+    $s1_domain = 'http://milichiidae.info/';
+    $parsed_url = parse_url($src);
+    // If this is an external file, leave it alone
+    if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
+    $file_name = basename($parsed_url['path']);
+    $source = $s1_domain . $parsed_url['path'];
+    $destination = file_default_scheme() . '://' . $file_name;
+    if(file_exists($destination)){
+      $new_src = $file_name;
+    }else if($file_contents = @file_get_contents($source)){
+      if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
+        $new_src = $file_name;
+      }
+    }
+    if(isset($new_src)){return '/sites/default/files/' . $new_src;}
   }
 
   /**

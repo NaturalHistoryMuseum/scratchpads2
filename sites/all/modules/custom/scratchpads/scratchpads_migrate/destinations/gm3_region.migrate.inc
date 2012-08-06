@@ -7,11 +7,11 @@
 /**
  * Custom extended MigrateFieldHandler class.
  */
-class MigrateGM3PointFieldHandler extends MigrateFieldHandler{
+class MigrateGM3CombinationFieldHandler extends MigrateFieldHandler{
 
   public function __construct(){
     $this->registerTypes(array(
-      'gm3_point'
+      'gm3_combination'
     ));
   }
 
@@ -20,8 +20,7 @@ class MigrateGM3PointFieldHandler extends MigrateFieldHandler{
     $language = $this->getFieldLanguage($entity, $field_info, $arguments);
     $delta = 0;
     foreach($values as $value){
-      $return[$language][$delta]['map'] = $value;
-      $delta++;
+      $return[$language][$delta]['map']['children']['gm3_region'][$value] = $value;
     }
     return isset($return) ? $return : NULL;
   }
