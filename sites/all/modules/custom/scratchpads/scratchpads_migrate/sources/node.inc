@@ -260,6 +260,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     if(strpos($html, '<img') !== false){
       $dom = new DOMDocument();
       $dom->loadHTML($html);
+      dd($dom);
       $dom->normalizeDocument();
       $items = $dom->getElementsByTagName('img');
       for($i = 0; $i < $items->length; $i++){
@@ -283,7 +284,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         }
       }
       $html = $dom->saveHTML();
-      dd($html);
     }
     return $html;
   }
