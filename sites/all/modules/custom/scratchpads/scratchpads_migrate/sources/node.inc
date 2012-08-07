@@ -190,6 +190,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
+    $query->condition('n.nid', 86);
     return $query;
   }
 
@@ -256,32 +257,35 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   protected function parseImages($html){
-  	dd($html);
-    $dom = new DOMDocument();
-    $dom->loadHTML($html);
-    $dom->normalizeDocument();
-    $items = $dom->getElementsByTagName('img');
-    for($i = 0; $i < $items->length; $i++){
-      // Does this img have a parent anchor tag
-      $parent_node = $items->item($i)->parentNode;
-      if($parent_node->tagName == 'a'){
-        $href = $parent_node->getAttribute('href');
-        if(strpos($href, 'files') !== false){
-          if($new_href = $this->saveFile($href)){
-            $new_href .= '?width=600&height=600';
-            $parent_node->removeAttribute('href');
-            $parent_node->setAttribute('href', $new_href);
-            $parent_node->setAttribute('class', 'colorbox-inline');
+    if(strpos($html, '<img') !== false){
+      $dom = new DOMDocument();
+      $dom->loadHTML($html);
+      $dom->normalizeDocument();
+      $items = $dom->getElementsByTagName('img');
+      for($i = 0; $i < $items->length; $i++){
+        // Does this img have a parent anchor tag
+        $parent_node = $items->item($i)->parentNode;
+        if($parent_node->tagName == 'a'){
+          $href = $parent_node->getAttribute('href');
+          if(strpos($href, 'files') !== false){
+            if($new_href = $this->saveFile($href)){
+              $new_href .= '?width=600&height=600';
+              $parent_node->removeAttribute('href');
+              $parent_node->setAttribute('href', $new_href);
+              $parent_node->setAttribute('class', 'colorbox-inline');
+            }
           }
         }
+        $src = $items->item($i)->getAttribute('src');
+        if($new_href = $this->saveFile($src)){
+          $items->item($i)->removeAttribute('src');
+          $items->item($i)->setAttribute('src', $new_href);
+        }
       }
-      $src = $items->item($i)->getAttribute('src');
-      if($new_href = $this->saveFile($src)){
-        $items->item($i)->removeAttribute('src');
-        $items->item($i)->setAttribute('src', $new_href);
-      }
+      $html = $dom->saveHTML();
+      dd($html);
     }
-    return $dom->saveHTML();
+    return $html;
   }
 
   /**
@@ -317,7 +321,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   protected function fileCreateUrl($file){
     $wrapper = file_stream_wrapper_get_instance_by_uri($file);
-    $url = $GLOBALS['base_url'] . $wrapper->getDirectoryPath() . $file;
+    $url = base_path() . $wrapper->getDirectoryPath() . '/' . basename($file);
     return $url;
   }
 
