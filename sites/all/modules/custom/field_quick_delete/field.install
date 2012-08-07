@@ -22,9 +22,10 @@ if(function_exists('db_table_exists') && !db_table_exists('field_quick_delete'))
           'description' => 'The entity type of the entity to delete fields for.'
         ),
         'entity' => array(
-          'type' => 'text',
+          'type' => 'blob',
           'not null' => TRUE,
-          'serialize' => TRUE
+          'serialize' => TRUE,
+          'size' => 'big'
         )
       ),
       'primary key' => array(
