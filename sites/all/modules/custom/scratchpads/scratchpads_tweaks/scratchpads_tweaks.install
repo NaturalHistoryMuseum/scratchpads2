@@ -890,7 +890,7 @@ function scratchpads_tweaks_update_7020(){
 /**
  * Update field_quick_delete field to long blob 
  */
-function scratchpads_tweaks_update_7022(){
+function scratchpads_tweaks_update_7021(){
   db_change_field('field_quick_delete', 'entity', 'entity', array(
     'type' => 'blob',
     'not null' => TRUE,
