@@ -190,7 +190,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
-    $query->condition('n.nid', 86);
     return $query;
   }
 
@@ -300,7 +299,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
-    }else if($file_contents = file_get_contents($source)){
+    }else if($file_contents = @file_get_contents($source)){
       if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
         $html_img_src = $destination;
       }
