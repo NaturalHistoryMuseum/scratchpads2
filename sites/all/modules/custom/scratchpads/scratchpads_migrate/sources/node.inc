@@ -301,8 +301,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
-    }else if($file_contents = @file_get_contents($source)){
-    	dd($destination);
+    }else if($file_contents = file_get_contents($source)){
       if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
         $html_img_src = $destination;
       }
