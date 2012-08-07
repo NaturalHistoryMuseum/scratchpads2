@@ -158,8 +158,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
-    // TODO - temp
-    //    $this->addFieldMapping('nid', 'nid');
+    $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
