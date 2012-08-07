@@ -256,6 +256,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   }
 
   protected function parseImages($html){
+  	dd($html);
     $dom = new DOMDocument();
     $dom->loadHTML($html);
     $dom->normalizeDocument();
