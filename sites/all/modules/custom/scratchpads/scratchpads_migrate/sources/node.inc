@@ -158,7 +158,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // Use english as the default language
     $this->removeFieldMapping('language');
     $this->addFieldMapping('language', 'language')->defaultValue('en');
-    $this->addFieldMapping('nid', 'nid');
+    // TODO - temp
+    //    $this->addFieldMapping('nid', 'nid');
     $this->removeFieldMapping('is_new');
     $this->addFieldMapping('is_new', NULL)->defaultValue(true);
     $this->addFieldMapping('group_audience', 'group_nid'); // Remap this in prepare row - needs to use OG id
@@ -287,12 +288,11 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   protected function saveFile($src){
     global $s1_domain;
-    dd($s1_domain);
     $parsed_url = parse_url($src);
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
     $file_name = basename($parsed_url['path']);
-    $source = $s1_domain . $parsed_url['path'];
+    $source = $s1_domain . '/' . $parsed_url['path'];
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
@@ -301,7 +301,13 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         $html_img_src = $destination;
       }
     }
-    if(isset($html_img_src)){return $this->fileCreateUrl($html_img_src);}
+    if(isset($html_img_src)){
+      return $this->fileCreateUrl($html_img_src);
+    }else{
+      watchdog('scratchpads_migrate', t('Could not save file for %source'), array(
+        '%source' => $source
+      ), WATCHDOG_ERROR);
+    }
   }
 
   /**
@@ -310,7 +316,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
    */
   protected function fileCreateUrl($file){
     $wrapper = file_stream_wrapper_get_instance_by_uri($file);
-    return $GLOBALS['base_url'] . $wrapper->getDirectoryPath() . $file;
+    $url = $GLOBALS['base_url'] . $wrapper->getDirectoryPath() . $file;
+    return $url;
   }
 
   /**
