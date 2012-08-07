@@ -292,7 +292,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
     $file_name = basename($parsed_url['path']);
-    $source = $s1_domain . '/' . $parsed_url['path'];
+    $source = $s1_domain . '/' . ltrim($parsed_url['path'], '/');
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
       $html_img_src = $destination;
