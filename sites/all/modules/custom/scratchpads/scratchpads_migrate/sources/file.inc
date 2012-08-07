@@ -18,9 +18,6 @@ class DrupalFileMigration extends DrupalMigration{
     ), MigrateDestinationFile::getKeySchema());
     // Create our three main objects - source, destination, and map
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
-    //    $options = array(
-    //      'copy_file' => TRUE
-    //    );
     $this->destination = new MigrateDestinationFile();
     // Basic fields
     $this->addFieldMapping('uid', 'uid')->sourceMigration('User')->defaultValue(1);
@@ -57,8 +54,8 @@ class DrupalFileMigration extends DrupalMigration{
   }
 
   public function prepareRow($row){
-    // Update to use remote file
-    // FIXME - Change this for live migrations
-    $row->filepath = str_replace('sites/', 'http://', $row->filepath);
+    // Update to use remote file (so copies from http://milichiidae.info/file...
+    // Replace spaces with %20 so the file copy works
+    $row->filepath = str_replace('sites/', 'http://', str_replace(" ", "%20", $row->filepath));
   }
 }
