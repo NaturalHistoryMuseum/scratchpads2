@@ -265,7 +265,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if($parent_node->tagName == 'a'){
         $href = $parent_node->getAttribute('href');
         if(strpos($href, 'files') !== false){
-          if($new_href = scratchpads_migrate_save_file($href)){
+          if($new_href = $this->saveFile($href)){
             $new_href .= '?width=600&height=600';
             $parent_node->removeAttribute('href');
             $parent_node->setAttribute('href', $new_href);
@@ -282,8 +282,12 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     return $dom->saveHTML();
   }
 
+  /**
+   * Copy across a file
+   */
   protected function saveFile($src){
-    $s1_domain = 'http://milichiidae.info/';
+    global $s1_domain;
+    dd($s1_domain);
     $parsed_url = parse_url($src);
     // If this is an external file, leave it alone
     if(isset($parsed_url['host']) && $parsed_url['host'] != $s1_domain){return;}
@@ -291,13 +295,22 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $source = $s1_domain . $parsed_url['path'];
     $destination = file_default_scheme() . '://' . $file_name;
     if(file_exists($destination)){
-      $new_src = $file_name;
+      $html_img_src = $destination;
     }else if($file_contents = @file_get_contents($source)){
       if($file = file_save_data($file_contents, $destination, FILE_EXISTS_REPLACE)){
-        $new_src = $file_name;
+        $html_img_src = $destination;
       }
     }
-    if(isset($new_src)){return '/sites/default/files/' . $new_src;}
+    if(isset($html_img_src)){return $this->fileCreateUrl($html_img_src);}
+  }
+
+  /**
+   * Create a full path URL for a file (rewrite public:// etc.,)
+   * Suitable for an html img src
+   */
+  protected function fileCreateUrl($file){
+    $wrapper = file_stream_wrapper_get_instance_by_uri($file);
+    return $GLOBALS['base_url'] . $wrapper->getDirectoryPath() . $file;
   }
 
   /**
