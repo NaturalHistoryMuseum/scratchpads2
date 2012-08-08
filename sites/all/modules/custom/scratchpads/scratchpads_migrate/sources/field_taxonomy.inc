@@ -86,6 +86,6 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    * Generate a field name from the vocabulary name
    */
   static public function getFieldName($name){
-    return 'field_' . ereg_replace('[^a-z0-9]', '_', strtolower($name));
+    return 'field_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
   }
 }

@@ -12,6 +12,7 @@ dependencies[] = date
 dependencies[] = forum
 dependencies[] = blog
 dependencies[] = scratchpads_group
+dependencies[] = path
 
 ; Base classes
 files[] = vocabulary.inc

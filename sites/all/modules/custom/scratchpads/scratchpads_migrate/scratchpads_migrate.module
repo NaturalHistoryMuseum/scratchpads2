@@ -25,6 +25,7 @@ Database::addConnectionInfo('scratchpad_1', 'default', array(
 //----------
  */
 global $base_url;
+global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
@@ -392,5 +393,12 @@ function scratchpads_migrate_menu(){
     )
   );
   return $items;
+}
+
+function scratchpads_migrate_page(){
+  $f = 'public://332033476_dLTqC-L2.jpg';
+  $wrapper = file_stream_wrapper_get_instance_by_uri($f);
+  dd($wrapper->getDirectoryPath());
+  return '';
 }
 

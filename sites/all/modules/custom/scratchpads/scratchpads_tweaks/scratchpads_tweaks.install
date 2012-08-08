@@ -886,3 +886,15 @@ function scratchpads_tweaks_update_7020(){
     'settings' => serialize($settings)
   ))->condition('module', 'filter')->condition('name', 'filter_html')->condition('format', 'plain_text', '!=')->execute();
 }
+
+/**
+ * Update field_quick_delete field to long blob 
+ */
+function scratchpads_tweaks_update_7021(){
+  db_change_field('field_quick_delete', 'entity', 'entity', array(
+    'type' => 'blob',
+    'not null' => TRUE,
+    'serialize' => TRUE,
+  	'size' => 'big'
+  ));
+}
