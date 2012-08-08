@@ -23,6 +23,8 @@ dependencies[] = "list"
 dependencies[] = "options"
 dependencies[] = "taxonomy"
 dependencies[] = "scratchpads_pages"
+dependencies[] = "scratchpads_solr"
+dependencies[] = "scratchpads_taxonomic_name_field"
 dependencies[] = "facetapi"
 
 features[field][] = "file-audio-field_media_galleries"
