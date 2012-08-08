@@ -53,13 +53,32 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     $this->destination = new ScratchpadsMigrateDestinationTerm($this->destinationVocabulary);
     // Add field mappings
     if(isset($source_fields) && count($source_fields)){
-      foreach(array_keys($source_fields) as $source_field){
+      foreach($source_fields as $source_field => $source_field_type){
         if(isset($field_mappings) && array_key_exists($source_field, $field_mappings)){
           $d7_field = $field_mappings[$source_field];
         }else{
           $d7_field = $source_field;
         }
-        $this->addFieldMapping($d7_field, $source_field);
+        // If this is a node reference field add a source migration to use for stubs
+        if($source_field_type == 'nodereference'){
+          switch($source_field){
+            case 'field_reference':
+              $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
+                'Biblio'
+              ));
+              break;
+            case 'field_type_specimen':
+              $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
+                'Darwincore'
+              ));
+              break;
+            default:
+              drupal_set_message('Unknown node reference field.', 'error');
+              break;
+          }
+        }else{
+          $this->addFieldMapping($d7_field, $source_field);
+        }
         foreach(array(
           'format',
           'language'
@@ -138,9 +157,9 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
             }
           }
         }
-      // If there isn't a term node associated with a term, set unit name 1 to default to the term name  
+         // If there isn't a term node associated with a term, set unit name 1 to default to the term name  
       }elseif($this->termNode == 'itis_term'){
-      	$row->field_unit_name1 = $row->name;
+        $row->field_unit_name1 = $row->name;
       }
     }
     // Add the url alias
@@ -148,6 +167,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     $query->addField('a', 'dst');
     $query->condition('a.src', 'taxonomy/term/' . $row->tid);
     $row->path = $query->execute()->fetchField();
+    scratchpads_migrate_unset_empty_fields($row);    
   }
 
   protected function postImport(){
