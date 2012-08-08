@@ -36,12 +36,9 @@
 		</files>
 		<coreid index="0" />
 		<field index="1" term="http://purl.org/dc/terms/identifier" />
-		<field index="2" term="http://purl.org/dc/terms/identifier" />
-		<field index="3" term="http://purl.org/dc/terms/identifier" />
-		<field index="4" term="http://purl.org/dc/terms/identifier" />
-		<field index="5" term="http://purl.org/dc/terms/identifier" />
-		<field index="6" term="http://purl.org/dc/terms/identifier" />
-		<field index="7" term="http://purl.org/dc/terms/identifier" />
+		<field index="3" term="http://purl.org/ontology/bibo/doi" />
+		<field index="4" term="http://purl.org/ontology/bibo/isbn" />
+		<field index="5" term="http://purl.org/ontology/bibo/issn" />
 		<field index="8" term="http://purl.org/dc/terms/bibliographicCitation" />
 		<field index="9" term="http://purl.org/dc/terms/title" />
 		<field index="10" term="http://purl.org/dc/terms/creator" />
@@ -118,6 +115,7 @@
 		<field index="2" term="http://purl.org/dc/terms/title" />
 		<field index="3" term="http://purl.org/dc/terms/format" />
 		<field index="4" term="http://eol.org/schema/agent/agentID" />
+		<field index="5" term="http://purl.org/dc/terms/type" />
 	</extension>
 	<extension encoding="UTF-8" linesTerminatedBy="\r\n"
 		fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
