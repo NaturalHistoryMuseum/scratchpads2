@@ -102,7 +102,7 @@ class DrupalFieldMigration extends DrupalMigration{
    * Get a list of node types not to migrate fields for
    *
    */
-  public function excludedNodeTypes(){
+  static public function excludedNodeTypes(){
     $node_types = array();
     foreach(DrupalContentTypeMigration::getContentTypeMappings() as $node_type => $mapping){
       if($mapping === MIGRATE_NONE || $mapping === MIGRATE_CONTENT){
