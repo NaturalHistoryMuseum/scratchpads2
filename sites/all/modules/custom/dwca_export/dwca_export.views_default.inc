@@ -863,6 +863,12 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['relationships']['node_to_file']['table'] = 'file_usage';
   $handler->display->display_options['relationships']['node_to_file']['field'] = 'node_to_file';
   $handler->display->display_options['relationships']['node_to_file']['required'] = 1;
+  /* Relationship: Content: Author */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'node';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['label'] = 'contributor';
+  $handler->display->display_options['relationships']['uid']['required'] = 0;
   /* Field: Taxonomy term: Taxonomy term UUID */
   $handler->display->display_options['fields']['uuid']['id'] = 'uuid';
   $handler->display->display_options['fields']['uuid']['table'] = 'taxonomy_term_data';
@@ -1009,6 +1015,29 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_cc_licence']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_cc_licence']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['field_cc_licence']['field_api_classes'] = 0;
+  /* Field: User: User UUID */
+  $handler->display->display_options['fields']['uuid_1']['id'] = 'uuid_1';
+  $handler->display->display_options['fields']['uuid_1']['table'] = 'users';
+  $handler->display->display_options['fields']['uuid_1']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid_1']['relationship'] = 'uid';
+  $handler->display->display_options['fields']['uuid_1']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['uuid_1']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['uuid_1']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['uuid_1']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['uuid_1']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['uuid_1']['hide_alter_empty'] = 1;
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
