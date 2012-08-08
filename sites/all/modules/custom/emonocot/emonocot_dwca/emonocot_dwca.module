@@ -10,7 +10,7 @@
 function emonocot_dwca_views_default_views_alter(&$views){
   foreach($views as $view){
     //Is this a dwca_export view?
-    if(substr($view->name, 0, 11) == 'dwca_export' && $view->name != 'dwca_export_vernacular_names'){
+    if(substr($view->name, 0, 11) == 'dwca_export' && $view->name != 'dwca_export_eol_agents'){
       if(isset($view->display['default']->display_options['fields']['uuid'])){
         //Hide uuid field
         $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
