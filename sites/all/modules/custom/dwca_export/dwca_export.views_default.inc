@@ -1313,7 +1313,7 @@ function dwca_export_views_default_views(){
   $handler->display->display_options['fields']['field_user_given_names_1']['field'] = 'field_user_given_names';
   $handler->display->display_options['fields']['field_user_given_names_1']['label'] = 'Full Name';
   $handler->display->display_options['fields']['field_user_given_names_1']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['field_user_given_names_1']['alter']['text'] = '[field_user_given_names_1] [field_uuser_family_name]';
+  $handler->display->display_options['fields']['field_user_given_names_1']['alter']['text'] = '[field_user_given_names_1] [field_user_family_name]';
   $handler->display->display_options['fields']['field_user_given_names_1']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_user_given_names_1']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['field_user_given_names_1']['alter']['external'] = 0;
