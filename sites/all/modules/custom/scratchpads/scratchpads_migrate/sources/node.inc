@@ -329,4 +329,55 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   public function handle_type_filefield($fid){
     return $fid;
   }
+
+  /**
+   * Build a basic stub node
+   */
+  protected function buildStubNode($migration, $nid){
+    $node = new stdClass();
+    $node->title = t('Stub for %source_id', array(
+      '%source_id' => $nid
+    ));
+    $node->type = $this->destination->getBundle();
+    $node->uid = 1;
+    $node->status = 0;
+    $node->nid = $nid;
+    $node->vid = $nid;
+    $node->is_new = true;
+    // Crap OG requires the original uid
+    $node->original->uid = $node->uid;
+    return $node;
+  }
+
+  /**
+   * Create stubs (for node reference fields)
+   */
+  protected function createStub($migration){
+    // Get source_id from args
+    $args = func_get_args();
+    $nid = $args[1][0];
+    // Check the node doesn't already exist - otherwise as we're passing in nid and create new, we'll get integrity constraint violations
+    if($this->nodeExists($nid)){
+      return array(
+        $nid
+      );
+    }else{
+      $node = $this->buildStubNode($migration, $nid);
+      node_save($node);
+      if(isset($node->nid)){
+        return array(
+          $node->nid
+        );
+      }else{
+        return FALSE;
+      }
+    }
+  }
+
+  protected function nodeExists($nid){
+    $result = db_query('SELECT COUNT(*) FROM {node} n WHERE n.nid = :nid', array(
+      ':nid' => $nid
+    ));
+    return $result->fetchField() > 0;
+  }
 }

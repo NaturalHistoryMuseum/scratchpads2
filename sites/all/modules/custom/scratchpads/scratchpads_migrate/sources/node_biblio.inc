@@ -57,4 +57,10 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     $query->condition('bk.nid', $row->nid);
     $row->biblio_keywords = $query->execute()->fetchCol();
   }
+
+  protected function buildStubNode($migration, $nid){
+  	$node = parent::buildStubNode($migration, $nid);
+  	$node->biblio_type = 100;
+  	return $node;
+  }
 }

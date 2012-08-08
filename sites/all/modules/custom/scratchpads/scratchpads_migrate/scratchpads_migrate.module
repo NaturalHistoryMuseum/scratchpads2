@@ -244,7 +244,8 @@ function scratchpads_migrate_register_migrations(){
       'FieldTaxonomy',
       'FieldGroup',
       'User',
-      'Vocabulary'
+      'Vocabulary',
+      'File'
     )
   );
   /*********************************************************************************************
@@ -374,6 +375,16 @@ function scratchpads_migrate_get_class_name($machine_name){
   return 'Drupal' . $machine_name . 'Migration';
 }
 
+function scratchpads_migrate_unset_empty_fields($object){
+  // Loop through and unset NULL fields, otherwise they are populated with empty values
+  $properties = array_keys((array)$object);
+  foreach($properties as $property){
+    if((is_array($object->{$property}) && empty($object->{$property}[0])) || empty($object->{$property})){
+      unset($object->{$property});
+    }
+  }
+}
+
 function scratchpads_migrate_get_machine_name($type, $name){
   // Make sure the type is uppercase
   $type = ucwords($type);
@@ -396,9 +407,6 @@ function scratchpads_migrate_menu(){
 }
 
 function scratchpads_migrate_page(){
-  $f = 'public://332033476_dLTqC-L2.jpg';
-  $wrapper = file_stream_wrapper_get_instance_by_uri($f);
-  dd($wrapper->getDirectoryPath());
-  return '';
+
 }
 

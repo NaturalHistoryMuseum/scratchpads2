@@ -13,13 +13,7 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
 
   public function import(stdClass $node, stdClass $row){
     $migration = Migration::currentMigration();
-    // Loop through and unset NULL fields, otherwise they are populated with empty values
-    $properties = array_keys((array)$node);
-    foreach($properties as $property){
-      if((is_array($node->{$property}) && empty($node->{$property}[0])) || empty($node->{$property})){
-        unset($node->{$property});
-      }
-    }
+    scratchpads_migrate_unset_empty_fields($node);
     $status = parent::import($node, $row);
     // If the term has a path, save it
     if(isset($node->path) && !empty($node->path)){
@@ -40,5 +34,4 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     ));
     return $status;
   }
-
 }
