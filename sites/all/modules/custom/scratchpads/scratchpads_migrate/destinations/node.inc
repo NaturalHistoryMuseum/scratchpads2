@@ -15,14 +15,6 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     $migration = Migration::currentMigration();
     scratchpads_migrate_unset_empty_fields($node);
     $status = parent::import($node, $row);
-    // If the term has a path, save it
-    if(isset($node->path) && !empty($node->path)){
-      $path = array(
-        'source' => 'node/' . $node->nid,
-        'alias' => $node->path
-      );
-      path_save($path);
-    }
     return $status;
   }
 

@@ -9,19 +9,6 @@ class ScratchpadsMigrateDestinationTerm extends MigrateDestinationTerm{
     return $fields;
   }
 
-  public function import(stdClass $term, stdClass $row){
-    $status = parent::import($term, $row);
-    // If the term has a path, save it
-    if(isset($term->path)){
-      $path = array(
-        'source' => 'taxonomy/term/' . $term->tid,
-        'alias' => $term->path
-      );
-      path_save($path);
-    }
-    return $status;
-  }
-
   public function rollback(array $key){
     $status = parent::rollback($key);
     // Delete any paths
