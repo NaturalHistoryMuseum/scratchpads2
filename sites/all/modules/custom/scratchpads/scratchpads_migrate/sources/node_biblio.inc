@@ -36,6 +36,7 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
     ));
     $fields += $query->execute()->fetchAllKeyed();
     $fields['biblio_type'] = 'integer';
+    $fields['biblio_contributors'] = 'text';
     return $fields;
   }
 
@@ -54,13 +55,28 @@ class ScratchpadsNodeBiblioMigration extends ScratchpadsNodeMigration{
       'word'
     ));
     $query->innerJoin('biblio_keyword', 'bk', 'bk.kid=bkd.kid');
-    $query->condition('bk.nid', $row->nid);
+    $query->condition('bk.vid', $row->vid);
     $row->biblio_keywords = $query->execute()->fetchCol();
+    // Add the authors
+    $query = Database::getConnection('default', $this->sourceConnection)->select('biblio_contributor_data', 'bcd')->fields('bcd', array(
+      'name',
+    ));
+    $query->innerJoin('biblio_contributor', 'bc', 'bc.cid=bcd.cid');
+    $query->fields('bc', array(
+      'auth_category',
+      'auth_type',
+      'rank'
+    ));
+    $query->condition('bc.vid', $row->vid);
+    $result = $query->execute();
+    while($record = $result->fetchAssoc()){
+    	$row->biblio_contributors[] = $record;
+    }
   }
 
   protected function buildStubNode($migration, $nid){
-  	$node = parent::buildStubNode($migration, $nid);
-  	$node->biblio_type = 100;
-  	return $node;
+    $node = parent::buildStubNode($migration, $nid);
+    $node->biblio_type = 100;
+    return $node;
   }
 }

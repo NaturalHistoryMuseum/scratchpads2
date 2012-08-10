@@ -68,7 +68,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           }else{
             $field_name = 'taxonomy_forums';
           }
-          $sourceMigration = scratchpads_migrate_term_machine_name($vocabulary->name);
+          $sourceMigration = scratchpads_migrate_get_machine_name('Term', $vocabulary->name);
           // Remove any existing mapping
           $this->removeFieldMapping($field_name);
           $this->addFieldMapping($field_name, $delta)->sourceMigration($sourceMigration);
@@ -76,7 +76,9 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           $this->addFieldMapping($field_name . ':create_term')->defaultValue(false);
         }else{
           // Do nothing with Image Galleries vocab
-          $this->addFieldMapping(NULL, $delta);
+          $this->addUnmigratedSources(array(
+            $delta
+          ));
         }
       }elseif($delta == 'file_attachment'){
         // Does this node type have a file_field?

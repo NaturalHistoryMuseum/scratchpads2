@@ -273,7 +273,7 @@ function scratchpads_migrate_register_migrations(){
       'description' => t('Migration of %name terms from Drupal 6', array(
         '%name' => $vocabulary->name
       )),
-      'machine_name' => scratchpads_migrate_term_machine_name($vocabulary->name),
+      'machine_name' => scratchpads_migrate_get_machine_name('Term', $vocabulary->name),
       'source_vocabulary' => $vocabulary->vid,
       'destination_vocabulary' => $vocabulary->vid
     );
@@ -331,13 +331,14 @@ function scratchpads_migrate_register_migrations(){
     if(!class_exists($class_name)){
       $class_name = 'ScratchpadsNodeMigration';
     }
+    $node_migration = ucfirst($type);
     // Create the arguments array from the mapping
     $arguments = array(
       'class_name' => $class_name,
       'description' => t('Migration of %type nodes from Drupal 6', array(
         '%type' => $type
       )),
-      'machine_name' => ucfirst($type),
+      'machine_name' => $node_migration,
       'source_type' => $type,
       'destination_type' => $destination_type
     );
@@ -347,6 +348,19 @@ function scratchpads_migrate_register_migrations(){
       $arguments['dependencies'][] = 'Darwincorelocation';
     }
     Migration::registerMigration($arguments['class_name'], $arguments['machine_name'], $arguments);
+    /*********************************************************************************************
+     * Comments
+     ********************************************************************************************/
+    // Comments are registered per node
+    $arguments = $common_arguments + array(
+      'description' => t('Migration of comments from Drupal 6'),
+      'machine_name' => $node_migration . 'Comments',
+      'node_migration' => $node_migration,
+      'user_migration' => 'User',
+      'destination_type' => $destination_type,
+      'source_type' => $type
+    );
+    Migration::registerMigration('ScratchpadsCommentMigration', $arguments['machine_name'], $arguments);
   }
   /*********************************************************************************************
    * PathRedirect
@@ -357,11 +371,6 @@ function scratchpads_migrate_register_migrations(){
     'dependencies' => $path_dependencies
   );
   Migration::registerMigration('PathRedirectMigration', $arguments['machine_name'], $arguments);
-}
-
-// TODO - change this
-function scratchpads_migrate_term_machine_name($name){
-  return 'Term' . str_replace(' ', '', ucwords($name));
 }
 
 function scratchpads_migrate_get_term_vocabularies(){
@@ -406,7 +415,5 @@ function scratchpads_migrate_menu(){
   return $items;
 }
 
-function scratchpads_migrate_page(){
-
-}
+function scratchpads_migrate_page(){}
 

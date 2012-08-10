@@ -21,6 +21,7 @@ files[] = vocabulary.inc
 
 ; Source classes
 files[] = sources/citation.inc
+files[] = sources/comment.inc
 files[] = sources/content_type.inc
 files[] = sources/field.inc
 files[] = sources/field_body.inc
@@ -55,6 +56,7 @@ files[] = destinations/field_group.inc
 files[] = destinations/field_taxonomy.inc
 files[] = destinations/gm3_point.migrate.inc
 files[] = destinations/gm3_region.migrate.inc
+files[] = destinations/link.migrate.inc
 files[] = destinations/node.inc
 files[] = destinations/node_biblio.inc
 files[] = destinations/path_redirect.inc
