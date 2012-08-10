@@ -48,67 +48,68 @@ class MigrateDestinationField extends MigrateDestination{
         }
       }
     }
+    // Alter field and widget settings
+    $field_config = array(
+      'active' => $object->active,
+      'cardinality' => (isset($object->multiple) && $object->multiple == 0 ? 1 : -1),
+      'deleted' => '0',
+      'entity_types' => array(
+        $object->entity_type
+      ),
+      'field_name' => $object->field_name,
+      'module' => $object->module,
+      'settings' => $object->global_settings,
+      'translatable' => '1',
+      'type' => $object->type
+    );
+    // Instance alterations
+    drupal_alter('content_migrate_instance', $field_instance, $field_config);
+    // Let content migrate module change all the field settings for D7 
+    drupal_alter('content_migrate_field', $field_config, $field_instance);
+    // Merge settings
+    $field_instance['settings'] = array_merge_recursive($field_config['settings'], $field_instance['widget']['settings']);
+    // Make my own alterations
+    switch($field_config['type']){
+      case 'filefield':
+        $field_config['module'] = 'image';
+        $field_config['type'] = 'image';
+        break;
+    }
+    switch($field_instance['widget']['type']){
+      case 'image':
+        $field_instance['widget']['type'] = 'media_generic';
+        $field_instance['widget']['module'] = 'media';
+        $settings = array(
+          'file_extensions' => 'file_path',
+          'max_filesize' => 'max_filesize_per_file',
+          'file_directory' => 'file_path',
+          'description_field' => 'file_path',
+          'max_resolution' => 'max_resolution',
+          'min_resolution' => 'min_resolution',
+          'alt_field' => 'custom_alt',
+          'title_field' => 'custom_title'
+        );
+        foreach($settings as $new_setting => $old_setting){
+          if(isset($field_instance['widget']['settings'][$old_setting])){
+            $field_instance['widget']['settings'][$new_setting] = $field_instance['widget']['settings'][$old_setting];
+          }
+        }
+        break;
+      case 'content_taxonomy_autocomplete':
+        $field_config['module'] = 'taxonomy';
+        $field_config['type'] = 'taxonomy_term_reference';
+        $field_instance['widget']['type'] = 'taxonomy_autocomplete';
+        $field_instance['widget']['module'] = 'taxonomy';
+        $settings = array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60
+        );
+        break;
+    }
     // Only create if the field does not already exist
     $field = field_info_field($object->field_name);
     if(empty($field)){
       // Create the field if it doesn't exist
-      $field_config = array(
-        'active' => $object->active,
-        'cardinality' => (isset($object->multiple) && $object->multiple == 0 ? 1 : -1),
-        'deleted' => '0',
-        'entity_types' => array(
-          $object->entity_type
-        ),
-        'field_name' => $object->field_name,
-        'module' => $object->module,
-        'settings' => $object->global_settings,
-        'translatable' => '1',
-        'type' => $object->type
-      );
-      // Instance alterations
-      drupal_alter('content_migrate_instance', $field_instance, $field_config);
-      // Let content migrate module change all the field settings for D7 
-      drupal_alter('content_migrate_field', $field_config, $field_instance);
-      // Merge settings
-      $field_instance['settings'] = array_merge_recursive($field_config['settings'], $field_instance['widget']['settings']);
-      // Make my own alterations
-      switch($field_config['type']){
-        case 'filefield':
-          $field_config['module'] = 'image';
-          $field_config['type'] = 'image';
-          break;
-      }
-      switch($field_instance['widget']['type']){
-        case 'image':
-          $field_instance['widget']['type'] = 'media_generic';
-          $field_instance['widget']['module'] = 'media';
-          $settings = array(
-            'file_extensions' => 'file_path',
-            'max_filesize' => 'max_filesize_per_file',
-            'file_directory' => 'file_path',
-            'description_field' => 'file_path',
-            'max_resolution' => 'max_resolution',
-            'min_resolution' => 'min_resolution',
-            'alt_field' => 'custom_alt',
-            'title_field' => 'custom_title'
-          );
-          foreach($settings as $new_setting => $old_setting){
-            if(isset($field_instance['widget']['settings'][$old_setting])){
-              $field_instance['widget']['settings'][$new_setting] = $field_instance['widget']['settings'][$old_setting];
-            }
-          }
-          break;
-        case 'content_taxonomy_autocomplete':
-          $field_config['module'] = 'taxonomy';
-          $field_config['type'] = 'taxonomy_term_reference';
-          $field_instance['widget']['type'] = 'taxonomy_autocomplete';
-          $field_instance['widget']['module'] = 'taxonomy';
-          $settings = array(
-            'autocomplete_path' => 'taxonomy/autocomplete',
-            'size' => 60
-          );
-          break;
-      }
       // Check the widget exists
       if(!field_info_widget_types($field_instance['widget']['type'])){
         throw new MigrateException(t('Field widget %widget does not exist', array(
