@@ -404,16 +404,17 @@ function scratchpads_pages_variable_default($name = NULL){
 function scratchpads_pages_pluralise_node_name($name){
   switch($name){
     case 'image_gallery':
-      $plural = 'image_galleries';
+      return 'image_galleries';
       break;
     case 'Blog entry':
-      $plural = 'blog';
+      return 'blog';
       break;
     default:
-      $plural = $name . 's';
+      $last_char = substr($name, -1);
+      if($last_char != 's' || $last_char != 'y'){return $name . 's';}
       break;
   }
-  return $plural;
+  return $name;
 }
 
 function scratchpads_pages_get_node_types(){
