@@ -20,8 +20,29 @@ class MigrateDestinationVariable extends MigrateDestination{
   }
 
   public function import(stdClass $object, stdClass $row){
+    global $s1_domain;
     $map = VariableMigration::variableNames();
-    variable_set($map[$row->name], unserialize($row->value));
+    // Is this a theme setting?
+    if(strpos($row->name, 'theme') !== false){
+      $theme_settings = unserialize($row->value);
+      // Is there a logo?
+      if(isset($theme_settings['logo_path'])){
+        $destination = 'public://' . basename($theme_settings['logo_path']);
+        $source = 'http://' . $s1_domain . '/' . ltrim($theme_settings['logo_path'], '/');
+        if($data = @file_get_contents($source)){
+          $file = file_unmanaged_save_data($data, $destination);
+          // Update the theme settings variable
+          if($file){
+            $theme_default = variable_get('theme_default', null);
+            $theme_settings = variable_get('theme_' . $theme_default . '_settings', array());
+            $theme_settings['logo_path'] = $file;
+            variable_set('theme_' . $theme_default . '_settings', $theme_settings);
+          }
+        }
+      }
+    }else{
+      variable_set($map[$row->name], unserialize($row->value));
+    }
     $this->numCreated++;
     return array(
       $object->name
@@ -37,7 +58,7 @@ class MigrateDestinationVariable extends MigrateDestination{
 
   public function rollback(array $ids){
     // We don't do anything here.  Once variables are set, they're set and have
-    // overridden the previous value that may or may not have been set.  We can
-    // not simply delete the variable.
+  // overridden the previous value that may or may not have been set.  We can
+  // not simply delete the variable.
   }
 }

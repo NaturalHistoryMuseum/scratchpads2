@@ -42,6 +42,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   public function sourceFieldList(){
     $fields = parent::sourceFieldList();
     $fields['file_attachment'] = t('Attached files');
+    //    $fields['menu'] = t('Menu');
     return $fields;
   }
 
@@ -181,6 +182,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Overide auto node title - we want to use the old titles
     $this->addFieldMapping('auto_nodetitle_applied')->defaultValue(true);
+    $this->addFieldMapping('menu', 'menu')->defaultValue(1);
   }
 
   protected function nodeQuery(){
@@ -191,6 +193,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
+    $query->condition('n.nid', 83);
     return $query;
   }
 
@@ -235,7 +238,8 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('url_alias', 'a');
     $query->addField('a', 'dst');
     $query->condition('a.src', 'node/' . $row->nid);
-    $row->path = $query->execute()->fetchField();
+    // We're not using path, as SP1 nodes have multiple aliases
+    $row->url_alias = $query->execute()->fetchCol();
     // Does this node have files attached?
     $query = Database::getConnection('default', $this->sourceConnection)->select('upload', 'u');
     $query->addField('u', 'fid');
@@ -253,6 +257,23 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
       if(isset($row->{$longTextField})){
         $row->{$longTextField} = $this->parseImages($row->{$longTextField});
       }
+    }
+    // Is there a menu item for this node?
+    $query = Database::getConnection('default', $this->sourceConnection)->select('menu_links', 'ml');
+    $query->addField('ml', 'link_title');
+    $query->condition('link_path', 'node/' . $row->nid);
+    $menu_title = $query->execute()->fetchField();
+    // All we want to get is the menu title
+    // We'll add this to the top level main menu and re-organise by hand afterwards
+    if($menu_title){
+      $row->menu = array(
+        'menu_name' => PRIMARY_MENU_NAME,
+        'module' => 'menu',
+        'link_title' => $menu_title,
+        'weight' => 1,
+        'parent' => PRIMARY_MENU_NAME . ':0',
+      	'parent_depth_limit' => 0
+      );
     }
   }
 

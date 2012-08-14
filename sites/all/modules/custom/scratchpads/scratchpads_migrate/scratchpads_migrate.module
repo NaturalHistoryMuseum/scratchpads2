@@ -29,6 +29,9 @@ global $s1_domain;
 // The domain of this site should be s2.blah-blah, so we remove the first three
 // characters.
 $s1_domain = substr(parse_url($base_url, PHP_URL_HOST), 3);
+
+$s1_domain = 'milichiidae.info';
+
 $filename = '/var/aegir/scratchpad_1_db_settings/' . $s1_domain . '.scratchpad_1.php';
 if(file_exists($filename)){
   require_once ($filename);
@@ -388,7 +391,7 @@ function scratchpads_migrate_unset_empty_fields($object){
   // Loop through and unset NULL fields, otherwise they are populated with empty values
   $properties = array_keys((array)$object);
   foreach($properties as $property){
-    if((is_array($object->{$property}) && empty($object->{$property}[0])) || empty($object->{$property})){
+    if((is_array($object->{$property}) && array_key_exists(0, $object->{$property}) && empty($object->{$property}[0])) || empty($object->{$property})){
       unset($object->{$property});
     }
   }

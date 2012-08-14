@@ -29,14 +29,20 @@ class VariableMigration extends DrupalMigration{
    * The key is the name of the variable in D6, with the value being the name in
    * D7 (just in case the name of the variable has changed).
    */
-  public static function variableNames(){
-  	
-  	// TODO - add 'site_frontpage' => 'site_frontpage' based on settings
-  	
-    return array(
+  public function variableNames(){
+    // TODO - add 'site_frontpage' => 'site_frontpage' based on settings
+    $variable_names = array(
       'site_name' => 'site_name',
-      'site_mail' => 'site_mail',
+      'site_mail' => 'site_mail'
     );
+    $default_theme = Database::getConnection('default', 'scratchpad_1')->select('variable', 'v')->fields('v', array(
+      'value'
+    ))->condition('name', 'theme_default')->execute()->fetchField();
+    if($default_theme){
+      $theme_var = 'theme_' . unserialize($default_theme) . '_settings';
+      $variable_names[$theme_var] = $theme_var;
+    }
+    return $variable_names;
   }
 
   /**
@@ -48,6 +54,6 @@ class VariableMigration extends DrupalMigration{
     return Database::getConnection('default', $this->sourceConnection)->select('variable', 'v')->fields('v', array(
       'name',
       'value'
-    ))->condition('name', VariableMigration::variableNames());
+    ))->condition('name', $this->variableNames());
   }
 }
