@@ -68,6 +68,11 @@
   margin: 5px 0;
 }
 
+.view-front-page-blocks li h1, 
+.view-front-page-blocks li h2{
+  display: none;
+}
+
 /* Responsive */
 .responsive-layout-normal .views_slideshow_cycle_main img,
 .responsive-layout-normal .views-slideshow-cycle-main-frame,
