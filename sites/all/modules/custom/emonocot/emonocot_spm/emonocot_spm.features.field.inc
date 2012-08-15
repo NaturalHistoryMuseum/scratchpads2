@@ -650,7 +650,7 @@ function emonocot_spm_field_default_fields(){
       ),
       'entity_type' => 'node',
       'field_name' => 'field_spm_em_cult_ref',
-      'label' => 'Conservation status Reference',
+      'label' => 'Cultivation Reference',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE
