@@ -593,22 +593,34 @@ function emonocot_spm_field_default_fields(){
       'entity_types' => array(),
       'field_name' => 'field_spm_em_cult_ref',
       'foreign keys' => array(
-        'format' => array(
+        'nid' => array(
           'columns' => array(
-            'format' => 'format'
+            'nid' => 'nid'
           ),
-          'table' => 'filter_format'
+          'table' => 'node'
         )
       ),
       'indexes' => array(
-        'format' => array(
-          0 => 'format'
+        'nid' => array(
+          0 => 'nid'
         )
       ),
-      'module' => 'text',
-      'settings' => array(),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
       'translatable' => '0',
-      'type' => 'text_long'
+      'type' => 'node_reference'
     ),
     'field_instance' => array(
       'bundle' => 'spm',
@@ -618,10 +630,10 @@ function emonocot_spm_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'text',
+          'module' => 'node_reference',
           'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 76
+          'type' => 'node_reference_default',
+          'weight' => 41
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -638,20 +650,21 @@ function emonocot_spm_field_default_fields(){
       ),
       'entity_type' => 'node',
       'field_name' => 'field_spm_em_cult_ref',
-      'label' => 'Cultivation Reference',
+      'label' => 'Conservation status Reference',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
         'user_register_form' => FALSE
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'text',
+        'module' => 'node_reference',
         'settings' => array(
-          'rows' => '5'
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
         ),
-        'type' => 'text_textarea',
-        'weight' => '83'
+        'type' => 'node_reference_autocomplete',
+        'weight' => '7'
       )
     )
   );

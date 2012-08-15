@@ -105,6 +105,7 @@ function emonocot_blocks_block_view_footer(){
       'title' => 'Scratchpads'
     )), 'http://scratchpads.eu/', $options)
   );
+  drupal_alter('footer_logos', $links);
   $block['content'] = array(
     '#theme' => 'item_list',
     '#items' => $links
