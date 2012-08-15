@@ -12,5 +12,5 @@ dependencies[] = emonocot_itis
 dependencies[] = emonocot_media
 dependencies[] = emonocot_spm
 dependencies[] = emonocot_views
-dependencies[] = emoncoot_dwca
+dependencies[] = emonocot_dwca
 dependencies[] = emonocot_tcs
