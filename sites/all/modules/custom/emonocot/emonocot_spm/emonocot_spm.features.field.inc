@@ -58,7 +58,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 55
+          'weight' => 33
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -89,7 +89,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '29'
+        'weight' => '33'
       )
     )
   );
@@ -130,7 +130,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 81
+          'weight' => 80
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -160,7 +160,7 @@ function emonocot_spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '88'
+        'weight' => '80'
       )
     )
   );
@@ -213,7 +213,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 82
+          'weight' => 81
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -244,7 +244,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '89'
+        'weight' => '81'
       )
     )
   );
@@ -297,7 +297,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 60
+          'weight' => 43
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -328,7 +328,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '26'
+        'weight' => '43'
       )
     )
   );
@@ -381,7 +381,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 47
+          'weight' => 19
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -412,7 +412,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '13'
+        'weight' => '19'
       )
     )
   );
@@ -465,7 +465,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 40
+          'weight' => 5
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -549,7 +549,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 41
+          'weight' => 7
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -633,7 +633,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 41
+          'weight' => 73
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -664,7 +664,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '7'
+        'weight' => '73'
       )
     )
   );
@@ -705,7 +705,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 75
+          'weight' => 72
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -735,7 +735,7 @@ function emonocot_spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '82'
+        'weight' => '72'
       )
     )
   );
@@ -788,7 +788,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 61
+          'weight' => 45
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -819,7 +819,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '28'
+        'weight' => '45'
       )
     )
   );
@@ -872,7 +872,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 48
+          'weight' => 21
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -903,7 +903,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '15'
+        'weight' => '21'
       )
     )
   );
@@ -956,7 +956,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 49
+          'weight' => 17
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1040,7 +1040,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 72
+          'weight' => 67
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1071,7 +1071,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '75'
+        'weight' => '67'
       )
     )
   );
@@ -1124,7 +1124,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 62
+          'weight' => 23
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1155,7 +1155,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '30'
+        'weight' => '23'
       )
     )
   );
@@ -1208,7 +1208,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 63
+          'weight' => 49
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1239,7 +1239,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '32'
+        'weight' => '49'
       )
     )
   );
@@ -1292,7 +1292,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 64
+          'weight' => 51
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1323,7 +1323,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '34'
+        'weight' => '51'
       )
     )
   );
@@ -1376,7 +1376,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 59
+          'weight' => 39
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1407,7 +1407,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '38'
+        'weight' => '39'
       )
     )
   );
@@ -1460,7 +1460,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 39
+          'weight' => 3
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1544,7 +1544,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 50
+          'weight' => 23
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1575,7 +1575,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '19'
+        'weight' => '23'
       )
     )
   );
@@ -1628,7 +1628,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 51
+          'weight' => 25
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -1659,7 +1659,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '21'
+        'weight' => '25'
       )
     )
   );
@@ -1671,510 +1671,6 @@ function emonocot_spm_field_default_fields(){
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_spm_em_habitat_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 65
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_habitat_ref',
-      'label' => 'Habitat Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '36'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_la_ref'
-  $fields['node-spm-field_spm_em_la_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_la_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 52
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_la_ref',
-      'label' => 'Look alikes Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '23'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_lc_ref'
-  $fields['node-spm-field_spm_em_lc_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_lc_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 66
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_lc_ref',
-      'label' => 'Life cycle Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '38'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_le_ref'
-  $fields['node-spm-field_spm_em_le_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_le_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 67
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_le_ref',
-      'label' => 'Life expectancy Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '40'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_leg_ref'
-  $fields['node-spm-field_spm_em_leg_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_leg_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 42
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_leg_ref',
-      'label' => 'Legislation Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '9'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_manage_ref'
-  $fields['node-spm-field_spm_em_manage_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_manage_ref',
-      'foreign keys' => array(
-        'nid' => array(
-          'columns' => array(
-            'nid' => 'nid'
-          ),
-          'table' => 'node'
-        )
-      ),
-      'indexes' => array(
-        'nid' => array(
-          0 => 'nid'
-        )
-      ),
-      'module' => 'node_reference',
-      'settings' => array(
-        'referenceable_types' => array(
-          'biblio' => 'biblio',
-          'media_gallery' => 0,
-          'page' => 0,
-          'spm' => 0
-        ),
-        'view' => array(
-          'args' => array(),
-          'display_name' => 'references_1',
-          'view_name' => 'biblio_citation'
-        )
-      ),
-      'translatable' => '0',
-      'type' => 'node_reference'
-    ),
-    'field_instance' => array(
-      'bundle' => 'spm',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 43
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0
-        )
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_spm_em_manage_ref',
-      'label' => 'Management Reference',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'node_reference',
-        'settings' => array(
-          'autocomplete_match' => 'contains',
-          'autocomplete_path' => 'node_reference/autocomplete',
-          'size' => '60'
-        ),
-        'type' => 'node_reference_autocomplete',
-        'weight' => '11'
-      )
-    )
-  );
-  // Exported field: 'node-spm-field_spm_em_mb_ref'
-  $fields['node-spm-field_spm_em_mb_ref'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_spm_em_mb_ref',
       'foreign keys' => array(
         'nid' => array(
           'columns' => array(
@@ -2232,6 +1728,510 @@ function emonocot_spm_field_default_fields(){
         )
       ),
       'entity_type' => 'node',
+      'field_name' => 'field_spm_em_habitat_ref',
+      'label' => 'Habitat Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '53'
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_la_ref'
+  $fields['node-spm-field_spm_em_la_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_la_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 27
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_em_la_ref',
+      'label' => 'Look alikes Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '27'
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_lc_ref'
+  $fields['node-spm-field_spm_em_lc_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_lc_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 55
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_em_lc_ref',
+      'label' => 'Life cycle Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '55'
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_le_ref'
+  $fields['node-spm-field_spm_em_le_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_le_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 57
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_em_le_ref',
+      'label' => 'Life expectancy Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => '57'
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_leg_ref'
+  $fields['node-spm-field_spm_em_leg_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_leg_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 9
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_em_leg_ref',
+      'label' => 'Legislation Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => 9
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_manage_ref'
+  $fields['node-spm-field_spm_em_manage_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_manage_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 11
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_spm_em_manage_ref',
+      'label' => 'Management Reference',
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'node_reference',
+        'settings' => array(
+          'autocomplete_match' => 'contains',
+          'autocomplete_path' => 'node_reference/autocomplete',
+          'size' => '60'
+        ),
+        'type' => 'node_reference_autocomplete',
+        'weight' => 11
+      )
+    )
+  );
+  // Exported field: 'node-spm-field_spm_em_mb_ref'
+  $fields['node-spm-field_spm_em_mb_ref'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_spm_em_mb_ref',
+      'foreign keys' => array(
+        'nid' => array(
+          'columns' => array(
+            'nid' => 'nid'
+          ),
+          'table' => 'node'
+        )
+      ),
+      'indexes' => array(
+        'nid' => array(
+          0 => 'nid'
+        )
+      ),
+      'module' => 'node_reference',
+      'settings' => array(
+        'referenceable_types' => array(
+          'biblio' => 'biblio',
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'view' => array(
+          'args' => array(),
+          'display_name' => 'references_1',
+          'view_name' => 'biblio_citation'
+        )
+      ),
+      'translatable' => '0',
+      'type' => 'node_reference'
+    ),
+    'field_instance' => array(
+      'bundle' => 'spm',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'node_reference',
+          'settings' => array(),
+          'type' => 'node_reference_default',
+          'weight' => 29
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
       'field_name' => 'field_spm_em_mb_ref',
       'label' => 'Molecular Biology Reference',
       'required' => 0,
@@ -2247,7 +2247,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '25'
+        'weight' => '29'
       )
     )
   );
@@ -2300,7 +2300,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 68
+          'weight' => 59
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2331,7 +2331,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '42'
+        'weight' => '59'
       )
     )
   );
@@ -2384,7 +2384,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 54
+          'weight' => 31
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2415,7 +2415,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '27'
+        'weight' => '31'
       )
     )
   );
@@ -2468,7 +2468,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 78
+          'weight' => 75
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2499,7 +2499,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '85'
+        'weight' => '75'
       )
     )
   );
@@ -2540,7 +2540,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 77
+          'weight' => 74
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2570,7 +2570,7 @@ function emonocot_spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '84'
+        'weight' => '74'
       )
     )
   );
@@ -2623,7 +2623,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 58
+          'weight' => 41
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2654,7 +2654,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '40'
+        'weight' => '41'
       )
     )
   );
@@ -2707,7 +2707,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 80
+          'weight' => 79
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2738,7 +2738,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '87'
+        'weight' => '79'
       )
     )
   );
@@ -2779,7 +2779,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 79
+          'weight' => 78
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2809,7 +2809,7 @@ function emonocot_spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '86'
+        'weight' => '78'
       )
     )
   );
@@ -2862,7 +2862,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 70
+          'weight' => 63
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -2893,7 +2893,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '46'
+        'weight' => '63'
       )
     )
   );
@@ -2946,7 +2946,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 44
+          'weight' => 13
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3030,7 +3030,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 71
+          'weight' => 65
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3061,7 +3061,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '48'
+        'weight' => '65'
       )
     )
   );
@@ -3114,7 +3114,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 73
+          'weight' => 69
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3145,7 +3145,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '77'
+        'weight' => '69'
       )
     )
   );
@@ -3198,7 +3198,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 56
+          'weight' => 35
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3229,7 +3229,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '31'
+        'weight' => '35'
       )
     )
   );
@@ -3270,7 +3270,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 37
+          'weight' => 82
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3300,7 +3300,7 @@ function emonocot_spm_field_default_fields(){
           'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '42'
+        'weight' => '82'
       )
     )
   );
@@ -3353,7 +3353,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 57
+          'weight' => 37
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3384,7 +3384,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '33'
+        'weight' => '37'
       )
     )
   );
@@ -3437,7 +3437,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 45
+          'weight' => 15
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3521,7 +3521,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 38
+          'weight' => 83
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3552,7 +3552,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '43'
+        'weight' => '83'
       )
     )
   );
@@ -3605,7 +3605,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 46
+          'weight' => 17
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3689,7 +3689,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 69
+          'weight' => 61
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3720,7 +3720,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '44'
+        'weight' => '61'
       )
     )
   );
@@ -3773,7 +3773,7 @@ function emonocot_spm_field_default_fields(){
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 74
+          'weight' => 71
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -3804,7 +3804,7 @@ function emonocot_spm_field_default_fields(){
           'size' => '60'
         ),
         'type' => 'node_reference_autocomplete',
-        'weight' => '79'
+        'weight' => '71'
       )
     )
   );

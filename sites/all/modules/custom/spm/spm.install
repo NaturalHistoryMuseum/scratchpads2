@@ -28,3 +28,17 @@ function spm_update_7003(){
     'base' => ''
   ))->condition('module', 'spm')->execute();
 }
+
+/**
+ * Change weight of fields to allow eMonocot fields to fit in nicely
+ */
+function spm_update_7004(){
+  module_load_include('features.field.inc', 'spm');
+  $spm_fields = spm_field_default_fields();
+  foreach ($spm_fields as $spm_field){
+  	$instance = field_read_instance('node', $spm_field['field_config']['field_name'], 'spm');
+  	$instance['widget']['weight'] = $spm_field['field_instance']['widget']['weight'];
+  	$instance['display']['default']['weight'] = $spm_field['field_instance']['display']['default']['weight'];
+  	field_update_instance($instance);
+  }
+}
