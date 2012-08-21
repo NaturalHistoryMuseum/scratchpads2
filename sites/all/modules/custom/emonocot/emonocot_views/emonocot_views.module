@@ -63,7 +63,14 @@ function emonocot_views_field_formatter_info(){
       'field types' => array(
         'node_reference'
       )
-    )
+    ),
+    'biblio_ref' => array(
+      'label' => t('Bibliographic reference'),
+      'description' => t('Properly formatted biblio entry'),
+      'field types' => array(
+        'node_reference'
+      )
+    ),
   );
 }
 
@@ -78,6 +85,21 @@ function emonocot_views_field_formatter_info(){
 function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   GLOBAL $base_url;
   switch($display['type']){
+  	case 'biblio_ref':
+  	  $element = array();
+      $settings = $display['settings'];
+      $formatter = $display['type'];
+      foreach($items as $delta => $item){
+        $node = node_load($item['nid'], NULL, FALSE);
+        if ($node->type == 'biblio'){
+        	$authors = '';
+        	foreach ($node->biblio_contributors as $author){
+        	  $authors .= $author['name'].', ';
+        	}
+        	$element[] = array('#markup' => l($authors.' '.$node->biblio_year.'. '.$node->title, 'node/'.$node->nid));
+        }
+      }
+      return $element;
     case 'url_icon':
       $element = array();
       $settings = $display['settings'];

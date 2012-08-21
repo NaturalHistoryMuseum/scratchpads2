@@ -62,3 +62,15 @@ function emonocot_spm_update_7003(){
     field_update_instance($instance);
   }
 }
+
+function emonocot_spm_update_7004(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'node_reference_default'){
+      $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['display']['default']['type'] = 'biblio_ref';
+      field_update_instance($instance);
+  	}
+  }
+}
