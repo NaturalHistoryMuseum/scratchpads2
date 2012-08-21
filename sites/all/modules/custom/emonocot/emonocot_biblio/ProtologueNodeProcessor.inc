@@ -4,7 +4,6 @@
  * @file
  * Class definition of ProtologueNodeProcessor.
  */
-
 /**
  * Updates Biblio nodes with URLS from Excel files.
  * Unique to the eMonocot project.
@@ -314,7 +313,7 @@ class ProtologueNodeProcessor extends FeedsProcessor{
       $nid = $nids[0];
     }
     if($nid){// Return with the first nid found.
-      return $nid;}
+return $nid;}
     return 0;
   }
 
