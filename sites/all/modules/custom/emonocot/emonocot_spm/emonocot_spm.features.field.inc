@@ -150,7 +150,7 @@ function emonocot_spm_field_default_fields(){
       'label' => 'Anatomy',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -725,7 +725,7 @@ function emonocot_spm_field_default_fields(){
       'label' => 'Cultivation',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -2560,7 +2560,7 @@ function emonocot_spm_field_default_fields(){
       'label' => 'Phenology',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -2799,7 +2799,7 @@ function emonocot_spm_field_default_fields(){
       'label' => 'Pollination',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
@@ -3290,7 +3290,7 @@ function emonocot_spm_field_default_fields(){
       'label' => 'Taxonomic Notes',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE
       ),
       'widget' => array(
