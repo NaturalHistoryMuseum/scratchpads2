@@ -2,6 +2,8 @@ core = "7.x"
 description = "Provides citation instructions"
 name = "eMonocot Citation"
 package = "eMonocot"
-
-tool=true
+dependencies[] = "features"
+dependencies[] = "field_sql_storage"
+dependencies[] = "text"
+features[field][] = "node-biblio-field_emonocot_acknowledgement"
 
