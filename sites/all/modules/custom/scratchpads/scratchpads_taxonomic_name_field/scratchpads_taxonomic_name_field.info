@@ -4,3 +4,4 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = biblio
 dependencies[] = facetapi
+dependencies[] = taxonomy_formatter

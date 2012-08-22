@@ -336,7 +336,6 @@ function eolapi_taxonomy_term_delete($term = FALSE){
 function eolapi_cron(){
   eolapi_taxonomy_term_delete();
 }
-
 //---- VIEW -------------------------------------------------------------------
 /**
  * Implementation of hook_theme().
@@ -381,13 +380,25 @@ function eolapi_entity_view($entity, $type, $view_mode, $langcode){
     );
   }
 }
-
 //---- SAVE -------------------------------------------------------------------
 /**
  * Save the entity.
  */
 function eolapi_save($entity){
+  // We only save the entity if the source is NOT this site.  This is a total
+  // kludge, but currently the easiest way of doing this.
   $transaction = db_transaction();
+  $data = unserialize($entity->data);
+  if(isset($data->source)){
+    $this_site = url('', array(
+      'asbolute' => TRUE
+    ));
+    $strlen_this_site = strlen($this_site);
+    if(substr($data->source, 0, $strlen_this_site) == $this_site){
+      // We don't save this, as this site and the other are one and the same.
+      return FALSE;
+    }
+  }
   try{
     if(!empty($entity->eid) && !isset($entity->original)){
       $entity->original = entity_load_unchanged('eolapi', $entity->eid);
