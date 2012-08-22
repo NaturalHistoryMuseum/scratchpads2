@@ -72,5 +72,10 @@ function emonocot_spm_update_7004(){
       $instance['display']['default']['type'] = 'biblio_ref';
       field_update_instance($instance);
   	}
+  	if (isset($em_field['field_instance']['settings']['text_processing'])){
+  	  $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['settings']['text_processing'] = $em_field['field_instance']['settings']['text_processing'];
+      field_update_instance($instance);
+  	}
   }
 }
