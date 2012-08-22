@@ -1,0 +1,12 @@
+name = Taxonomy Formatter
+description = "Add a formatter to taxonomy terms that allows selection of element type, wrapper type, and separators."
+package = Fields
+core = 7.x
+files[] = taxonomy_formatter.module
+dependencies[] = taxonomy
+; Information added by drupal.org packaging script on 2011-12-23
+version = "7.x-1.3"
+core = "7.x"
+project = "taxonomy_formatter"
+datestamp = "1324675847"
+

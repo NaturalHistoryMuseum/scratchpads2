@@ -1,5 +1,6 @@
-name = Google Maps Javascript API V3 :: Input filter
-description = Google Maps Javascript API V3
+name = Google Maps :: Input filter
+description = Google Maps Javascript API V3 input filter. This allows users to add custom one off maps to text.<br/><span class="error">This tool should only be enabled/used by experienced users. No support is currently offered for this tool.</span>
 core = 7.x
 package = Google maps
 dependencies[] = gm3
+tool = yes

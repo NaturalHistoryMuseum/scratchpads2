@@ -21,8 +21,21 @@ function gm3_filter_menu(){
       'page arguments' => array(
         'gm3_filter_helper_form'
       ),
-      'access callback' => 'gm3_filter_helper_form_access',
+      'access arguments' => array(
+        'access gm3_filter form'
+      ),
       'file' => 'gm3_filter.form.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function gm3_filter_permission(){
+  return array(
+    'access gm3_filter form' => array(
+      'title' => 'Access GM3 filter form'
     )
   );
 }
@@ -92,14 +105,6 @@ function gm3_filter_library(){
 }
 
 /**
- * Access callback for the gm3_filter form.
- */
-function gm3_filter_helper_form_access(){
-  global $user;
-  return TRUE;
-}
-
-/**
  * Implementation of hook_filter_info().
  */
 function gm3_filter_filter_info(){
@@ -120,7 +125,7 @@ function gm3_filter_filter_info(){
  */
 function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
   // Search for [google_map]...[/google_map]
-  preg_match_all('|\[google_map\]([^\[]*)\[/google_map\]|i', $text, $matches);
+  preg_match_all('|\[google_map\](.*)\[/google_map\]|i', $text, $matches);
   foreach($matches[0] as $key => $match_text){
     // Decode middle!
     if($map = json_decode(trim($matches[1][$key]), TRUE)){
