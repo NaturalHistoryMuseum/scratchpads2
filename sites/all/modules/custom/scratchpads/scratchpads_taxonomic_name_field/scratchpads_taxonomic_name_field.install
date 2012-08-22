@@ -64,10 +64,17 @@ function scratchpads_taxonomic_name_field_install(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
-          'weight' => 1
+          'module' => 'taxonomy_formatter',
+          'settings' => array(
+            'element_class' => '',
+            'element_option' => '- None -',
+            'links_option' => 1,
+            'separator_option' => ', ',
+            'wrapper_class' => '',
+            'wrapper_option' => '- None -'
+          ),
+          'type' => 'taxonomy_term_reference_csv',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -190,4 +197,36 @@ function scratchpads_taxonomic_name_field_update_7010(){
   $field = field_info_field('field_taxonomic_name');
   $field['cardinality'] = '-1';
   field_update_field($field);
+}
+
+/**
+ * - Enable the taxonomy_formatter module.
+ * - Update all instances of the taxonomic_name_field field to use the
+ * taxonomy_formatter display type.
+ */
+function scratchpads_taxonomic_name_field_update_7011(){
+  module_enable(array(
+    'taxonomy_formatter'
+  ));
+  $field = field_info_field('field_taxonomic_name');
+  foreach($field['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle){
+      $field_instance = field_info_instance($entity_type, 'field_taxonomic_name', $bundle);
+      $field_instance['display']['default'] = array(
+        'label' => 'above',
+        'module' => 'taxonomy_formatter',
+        'settings' => array(
+          'element_class' => '',
+          'element_option' => '- None -',
+          'links_option' => 1,
+          'separator_option' => ', ',
+          'wrapper_class' => '',
+          'wrapper_option' => '- None -'
+        ),
+        'type' => 'taxonomy_term_reference_csv',
+        'weight' => '1'
+      );
+      field_update_instance($field_instance);
+    }
+  }
 }

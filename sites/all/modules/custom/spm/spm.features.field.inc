@@ -20,10 +20,17 @@ function spm_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
-          'weight' => '2'
+          'module' => 'taxonomy_formatter',
+          'settings' => array(
+            'element_class' => '',
+            'element_option' => '- None -',
+            'links_option' => 1,
+            'separator_option' => ', ',
+            'wrapper_class' => '',
+            'wrapper_option' => '- None -',
+          ),
+          'type' => 'taxonomy_term_reference_csv',
+          'weight' => '1',
         ),
         'linked_node' => array(
           'label' => 'above',
