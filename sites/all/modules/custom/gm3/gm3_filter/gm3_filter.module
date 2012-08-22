@@ -125,7 +125,7 @@ function gm3_filter_filter_info(){
  */
 function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
   // Search for [google_map]...[/google_map]
-  preg_match_all('|\[google_map\]([^\[]*)\[/google_map\]|i', $text, $matches);
+  preg_match_all('|\[google_map\](.*)\[/google_map\]|i', $text, $matches);
   foreach($matches[0] as $key => $match_text){
     // Decode middle!
     if($map = json_decode(trim($matches[1][$key]), TRUE)){
