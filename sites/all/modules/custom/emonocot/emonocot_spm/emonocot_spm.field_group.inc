@@ -35,7 +35,7 @@ function emonocot_spm_field_group_info(){
       10 => 'field_spm_em_threats_ref',
       11 => 'field_spm_em_trends_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
@@ -80,7 +80,7 @@ function emonocot_spm_field_group_info(){
       20 => 'field_spm_em_size_ref',
       21 => 'field_spm_em_tb_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
@@ -127,7 +127,7 @@ function emonocot_spm_field_group_info(){
       22 => 'field_spm_em_popbio_ref',
       23 => 'field_spm_em_repro_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
@@ -154,7 +154,7 @@ function emonocot_spm_field_group_info(){
       2 => 'field_spm_em_phylo_ref',
       3 => 'field_spm_em_evo_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'open',
       'instance_settings' => array(
@@ -241,7 +241,7 @@ function emonocot_spm_field_group_info(){
       6 => 'field_spm_em_anatomy',
       7 => 'field_spm_em_anatomy_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'closed',
       'instance_settings' => array(
@@ -268,7 +268,7 @@ function emonocot_spm_field_group_info(){
       0 => 'field_spm_em_taxonomic_notes',
       1 => 'field_spm_em_tn_ref'
     ),
-    'format_type' => 'tab',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => 'closed',
       'instance_settings' => array(
@@ -301,7 +301,7 @@ function emonocot_spm_field_group_info(){
       6 => 'group_relevance',
       7 => 'group_spm_em_taxonomy'
     ),
-    'format_type' => 'tabs',
+    'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
       'formatter' => '',
       'instance_settings' => array(
@@ -336,7 +336,7 @@ function emonocot_spm_field_group_info(){
       10 => 'field_spm_em_threats_ref',
       11 => 'field_spm_em_trends_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'open',
       'instance_settings' => array(
@@ -345,51 +345,6 @@ function emonocot_spm_field_group_info(){
     )
   );
   $export['group_conservation|node|spm|default'] = $field_group;
-  $field_group = new stdClass();
-  $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
-  $field_group->api_version = 1;
-  $field_group->identifier = 'group_description|node|spm|default';
-  $field_group->group_name = 'group_description';
-  $field_group->entity_type = 'node';
-  $field_group->bundle = 'spm';
-  $field_group->mode = 'default';
-  $field_group->parent_name = 'group_vertical_tabs';
-  $field_group->data = array(
-    'label' => 'Description',
-    'weight' => '1',
-    'children' => array(
-      0 => 'field_behavious',
-      1 => 'field_cytology',
-      2 => 'field_diagnostic_description',
-      3 => 'field_genetics',
-      4 => 'field_growth',
-      5 => 'field_look_alikes',
-      6 => 'field_molecular_biology',
-      7 => 'field_morphology',
-      8 => 'field_physiology',
-      9 => 'field_size',
-      10 => 'field_taxon_biology',
-      11 => 'field_spm_em_beha_ref',
-      12 => 'field_spm_em_cytol_ref',
-      13 => 'field_spm_em_dd_ref',
-      14 => 'field_spm_em_genetics_ref',
-      15 => 'field_spm_em_growth_ref',
-      16 => 'field_spm_em_la_ref',
-      17 => 'field_spm_em_mb_ref',
-      18 => 'field_spm_em_morph_ref',
-      19 => 'field_sm_em_phys_ref',
-      20 => 'field_spm_em_size_ref',
-      21 => 'field_spm_em_tb_ref'
-    ),
-    'defaultat_type' => 'tab',
-    'defaultat_settings' => array(
-      'defaultatter' => 'open',
-      'instance_settings' => array(
-        'classes' => ''
-      )
-    )
-  );
-  $export['group_description|node|spm|default'] = $field_group;
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
@@ -428,7 +383,7 @@ function emonocot_spm_field_group_info(){
       22 => 'field_spm_em_popbio_ref',
       23 => 'field_spm_em_repro_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'open',
       'instance_settings' => array(
@@ -455,7 +410,7 @@ function emonocot_spm_field_group_info(){
       2 => 'field_spm_em_phylo_ref',
       3 => 'field_spm_em_evo_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'open',
       'instance_settings' => array(
@@ -482,7 +437,7 @@ function emonocot_spm_field_group_info(){
       2 => 'field_spm_em_gd_ref',
       3 => 'field_spm_em_bio_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'open',
       'instance_settings' => array(
@@ -511,7 +466,7 @@ function emonocot_spm_field_group_info(){
       4 => 'field_spm_em_rs_ref',
       5 => 'field_spm_em_uses_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'open',
       'instance_settings' => array(
@@ -542,7 +497,7 @@ function emonocot_spm_field_group_info(){
       6 => 'field_spm_em_anatomy',
       7 => 'field_spm_em_anatomy_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'closed',
       'instance_settings' => array(
@@ -569,7 +524,7 @@ function emonocot_spm_field_group_info(){
       0 => 'field_spm_em_taxonomic_notes',
       1 => 'field_spm_em_tn_ref'
     ),
-    'defaultat_type' => 'tab',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => 'closed',
       'instance_settings' => array(
@@ -602,7 +557,7 @@ function emonocot_spm_field_group_info(){
       6 => 'group_relevance',
       7 => 'group_spm_em_taxonomy'
     ),
-    'defaultat_type' => 'tabs',
+    'defaultat_type' => 'field_group_stripy_div',
     'defaultat_settings' => array(
       'defaultatter' => '',
       'instance_settings' => array(

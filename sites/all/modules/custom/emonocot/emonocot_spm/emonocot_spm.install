@@ -96,3 +96,13 @@ function emonocot_spm_update_7005(){
   $insatnce['display']['default']['weight'] = 1000;
   field_update_instance($instance);
 }
+
+function emonocot_spm_update_7800(){
+	module_load_include('field_group.inc', 'emonocot_spm');
+	$em_spm_groups = emonocot_spm_field_group_info();
+	foreach ($em_spm_groups as $em_group){
+		$group = field_group_load_field_group($em_group->group_name, 'node', 'spm', $em_group->mode);
+		$group->format_type = $em_group->data['defaultat_type'];
+		field_group_group_save($group);
+	}
+}
