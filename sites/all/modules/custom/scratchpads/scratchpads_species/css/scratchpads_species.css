@@ -70,6 +70,9 @@ body{position:static !important;}
 #block-views-species-specimens-overview-block .attachment-after{
   text-align: right;
 }
+#block-views-species-specimens-overview-block .attachment-after .item-list{
+	text-align: justify;
+}
 
 /* Show fiew filter links and hide form if javascript is enabled */
 
