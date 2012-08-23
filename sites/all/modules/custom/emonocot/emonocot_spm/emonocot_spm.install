@@ -22,7 +22,7 @@ function emonocot_spm_install(){
       }
     }
   }
-  $group = field_group_load_field_group('group_vertical_tabs', 'node', 'spm', $mode);
+  $group = field_group_load_field_group('group_vertical_tabs', 'node', 'spm', 'form');
   $group->children[] = 'group_spm_em_misc';
   $group->children[] = 'group_spm_em_taxonomy';
   field_group_group_save($group);
@@ -75,6 +75,18 @@ function emonocot_spm_update_7004(){
   	if (isset($em_field['field_instance']['settings']['text_processing'])){
   	  $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
       $instance['settings']['text_processing'] = $em_field['field_instance']['settings']['text_processing'];
+      field_update_instance($instance);
+  	}
+  }
+}
+
+function emonocot_spm_update_7005(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'biblio_ref'){
+      $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['display']['default']['type'] = 'biblio_ref';
       field_update_instance($instance);
   	}
   }
