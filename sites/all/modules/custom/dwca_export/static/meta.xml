@@ -38,7 +38,7 @@
 		<field index="1" term="http://purl.org/dc/terms/identifier" />
 		<field index="3" term="http://purl.org/ontology/bibo/doi" />
 		<field index="4" term="http://purl.org/ontology/bibo/isbn" />
-		<field index="5" term="http://purl.org/ontology/bibo/issn" />    ,mmmn                                                                             
+		<field index="5" term="http://purl.org/ontology/bibo/issn" />                                                                     
 		<field index="8" term="http://purl.org/dc/terms/bibliographicCitation" />
 		<field index="9" term="http://purl.org/dc/terms/title" />
 		<field index="10" term="http://purl.org/dc/terms/creator" />

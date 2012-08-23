@@ -97,7 +97,7 @@ function emonocot_spm_update_7005(){
   field_update_instance($instance);
 }
 
-function emonocot_spm_update_7800(){
+function emonocot_spm_update_7006(){
 	module_load_include('field_group.inc', 'emonocot_spm');
 	$em_spm_groups = emonocot_spm_field_group_info();
 	foreach ($em_spm_groups as $em_group){
