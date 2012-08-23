@@ -171,7 +171,9 @@ function theme_options_tree($variables){
     $root_terms = taxonomy_get_tree($term->vid, $variables['tid'], 1);
   }elseif(!isset($variables['vid'])){
     $vocabularies = array();
+    $num_vocabularies = 0;
     foreach($variables['element']['#vocabularies'] as $voc_name){
+      $num_vocabularies++;
       $vocabulary = taxonomy_vocabulary_machine_name_load($voc_name);
       if($vocabulary){
         $root_terms = array_merge($root_terms, taxonomy_get_tree($vocabulary->vid, 0, 1));
@@ -182,7 +184,13 @@ function theme_options_tree($variables){
   $output = '<ul class="tree_widget">';
   // Get the terms that need to be displayed
   $variables['ancestors'] = _tree_widget_get_ancestors_and_siblings($variables['element']['#default_value']);
+  $titles_set = array();
   foreach($root_terms as $term){
+    if($num_vocabularies > 1 && !$term->parents[0] && !isset($titles_set[$term->vid])){
+      $titles_set[$term->vid] = TRUE;
+      $vocabulary = taxonomy_vocabulary_load($term->vid);
+      $output .= "<label>" . check_plain($vocabulary->name) . "</label>";
+    }
     // Missing variables for:
     // vid, tid
     $variables['term'] = $term;
