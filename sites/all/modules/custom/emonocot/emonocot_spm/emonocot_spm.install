@@ -87,6 +87,8 @@ function emonocot_spm_update_7005(){
   	if ($em_field['field_instance']['display']['default']['type'] == 'biblio_ref'){
       $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
       $instance['display']['default']['type'] = 'biblio_ref';
+      $instance['widget']['weight'] = $em_field['field_instance']['widget']['weight'];
+      $instance['display']['default']['weight'] = $em_field['field_instance']['display']['default']['weight'];
       field_update_instance($instance);
   	}
   }
