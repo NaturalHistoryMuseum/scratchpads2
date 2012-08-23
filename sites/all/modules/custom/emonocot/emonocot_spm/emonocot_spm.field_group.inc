@@ -557,7 +557,7 @@ function emonocot_spm_field_group_info(){
       6 => 'group_relevance',
       7 => 'group_spm_em_taxonomy'
     ),
-    'defaultat_type' => 'field_group_stripy_div',
+    'defaultat_type' => 'tabs',
     'defaultat_settings' => array(
       'defaultatter' => '',
       'instance_settings' => array(

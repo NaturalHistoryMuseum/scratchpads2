@@ -106,3 +106,8 @@ function emonocot_spm_update_7006(){
 		field_group_group_save($group);
 	}
 }
+
+function emonocot_spm_update_7007(){
+  //Run again to fix vertical tabs
+  emonocot_spm_update_7006();
+}
