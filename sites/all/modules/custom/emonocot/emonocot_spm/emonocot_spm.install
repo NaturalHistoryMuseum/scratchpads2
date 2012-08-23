@@ -93,6 +93,6 @@ function emonocot_spm_update_7005(){
   	}
   }
   $instance = field_read_instance('node', 'field_taxonomic_name', 'spm');
-  $insatnce['display']['defualt']['weight'] = 1000;
+  $insatnce['display']['default']['weight'] = 1000;
   field_update_instance($instance);
 }
