@@ -96,7 +96,13 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
         	foreach ($node->biblio_contributors as $author){
         	  $authors .= $author['name'].', ';
         	}
-        	$element[] = array('#markup' => l($authors.' '.$node->biblio_year.'. '.$node->title, 'node/'.$node->nid));
+        	if (isset($node->field_emonocot_acknowledgement)){
+        		$closing = '<br/>'.$node->field_emonocot_acknowledgement['und'][0]['value'];
+        	}
+        	else{
+        		$closing = '';
+        	}
+        	$element[] = array('#markup' => l($authors.' '.$node->biblio_year.'. '.$node->title, 'node/'.$node->nid).$closing);
         }
       }
       return $element;
