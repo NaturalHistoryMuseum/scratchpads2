@@ -833,7 +833,19 @@ width: 300px;
   color: #3E3E3E;
   padding: 0;
 }
-
+article.comment h3{
+	margin:0 0 5px !important;
+}
+article.comment{
+	margin:5px !important;
+	padding:10px !important;
+}
+article.comment.odd{
+  background-color: #EDEDED;
+}
+#comments h2{
+	margin-top:20px;
+}
 /************************ FORUMS *********************/
 #forum table{
 	width:100%;
