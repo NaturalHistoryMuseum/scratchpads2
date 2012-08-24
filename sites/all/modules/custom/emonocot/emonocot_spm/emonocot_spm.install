@@ -97,7 +97,7 @@ function emonocot_spm_update_7005(){
   field_update_instance($instance);
 }
 
-function emonocot_spm_update_7800(){
+function emonocot_spm_update_7006(){
 	module_load_include('field_group.inc', 'emonocot_spm');
 	$em_spm_groups = emonocot_spm_field_group_info();
 	foreach ($em_spm_groups as $em_group){
@@ -105,4 +105,9 @@ function emonocot_spm_update_7800(){
 		$group->format_type = $em_group->data['defaultat_type'];
 		field_group_group_save($group);
 	}
+}
+
+function emonocot_spm_update_7007(){
+  //Run again to fix vertical tabs
+  emonocot_spm_update_7006();
 }
