@@ -846,6 +846,14 @@ article.comment.odd{
 #comments h2{
 	margin-top:20px;
 }
+
+/****************** NODE LINKS *****************/
+.node-links{
+	padding-top:30px;
+}
+.node-links ul.links, .node-links ul.links li{	
+	padding-left:0 !important;
+}
 /************************ FORUMS *********************/
 #forum table{
 	width:100%;
