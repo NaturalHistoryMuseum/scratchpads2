@@ -668,7 +668,17 @@ table.biblio th{
 table.biblio td{
   min-width: 100px;
 }
-
+/****************** BLOG ****************/
+.view-blog-page .views-row-odd,
+.view-blog-page .views-row-even{
+  padding:2px 10px;	
+}
+.view-blog-page h3{
+	margin-top:4px !important;
+}
+.view-blog-page .views-row-odd{
+	background-color:#EDEDED;
+}
 /****************** SPM *****************/
 .node-spm .field-name-field-spm-map{
   margin-top: 10px;
