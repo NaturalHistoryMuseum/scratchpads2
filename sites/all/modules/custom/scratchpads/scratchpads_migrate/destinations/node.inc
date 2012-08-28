@@ -9,7 +9,6 @@ class ScratchpadsMigrateDestinationNode extends MigrateDestinationNode{
     $fields['path'] = t('Term path');
     $fields['auto_nodetitle_applied'] = t('Auto node title');
     $fields['menu'] = t('Menu');
-    $fields['something'] = t('Menu');
     return $fields;
   }
 

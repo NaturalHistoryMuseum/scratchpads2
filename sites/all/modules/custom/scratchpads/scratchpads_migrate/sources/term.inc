@@ -24,13 +24,6 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
       // See if we have a migration class with field mappings?
       $machine_name = scratchpads_migrate_get_machine_name('FieldVocabulary', $this->termNode);
       $class_name = scratchpads_migrate_get_class_name($machine_name);
-      if($this->termNode == 'itis_term'){
-        // Add the field_aan_x field
-        $aan_field = 'field_aan_' . $vocabulary->vid;
-        $this->addFieldMapping($aan_field, 'field_accepted_name');
-        $this->addFieldMapping($aan_field . ':source_type')->defaultValue('tid');
-        $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
-      }
       if(class_exists($class_name) && method_exists($class_name, 'getFieldNameMappings')){
         $field_mappings = $class_name::getFieldNameMappings();
       }
@@ -48,6 +41,14 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
       foreach($source_fields as $source_field => $source_field_type){
         $this->sourceFields[$source_field] = $source_field_type;
       }
+      if($this->termNode == 'itis_term'){
+        // Add the field_aan_x field
+        $aan_field = 'field_aan_' . $vocabulary->vid;
+        $this->addFieldMapping($aan_field, 'field_accepted_name');
+        $this->addFieldMapping($aan_field . ':source_type')->defaultValue('tid');
+        $this->addFieldMapping($aan_field . ':create_term')->defaultValue(false);
+        unset($source_fields['field_accepted_name']);
+      }
     }
     parent::__construct($arguments);
     $this->destination = new ScratchpadsMigrateDestinationTerm($this->destinationVocabulary);
@@ -63,6 +64,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
         if($source_field_type == 'nodereference'){
           switch($source_field){
             case 'field_reference':
+            case 'field_type_references':
               $this->addFieldMapping($d7_field, $source_field)->sourceMigration(array(
                 'Biblio'
               ));
@@ -73,9 +75,15 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
               ));
               break;
             default:
-              drupal_set_message('Unknown node reference field.', 'error');
+              drupal_set_message(t('Unknown node reference field %source_field in vocabulary %vocabulary.', array(
+                '%source_field' => $source_field,
+                '%vocabulary' => $this->destinationVocabulary
+              )), 'error');
               break;
           }
+        }elseif($source_field_type == 'content_taxonomy'){
+          // TODO - Check handling of interlinking reference fields is working!
+          $this->addFieldMapping($d7_field, $source_field);
         }else{
           $this->addFieldMapping($d7_field, $source_field);
         }
@@ -94,11 +102,11 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     // So a parent term is lost if it hasn't been previously imported
     $this->removeFieldMapping('parent');
     $this->addFieldMapping('parent', 'parent');
-    // Keep the TID
-    $this->addFieldMapping('tid', 'tid');
     // Path had a NULL source - remap it & we'll set it in the prepareRow()
     $this->removeFieldMapping('path');
     $this->addFieldMapping('path', 'path');
+    // Keep TIDs
+    $this->addFieldMapping('tid', 'tid');
     // Basic CCK field suffixes
     $this->fieldSuffixes = array(
       'computed' => 'value',
@@ -167,7 +175,7 @@ class ScratchpadTermMigration extends DrupalTerm6Migration{
     $query->addField('a', 'dst');
     $query->condition('a.src', 'taxonomy/term/' . $row->tid);
     $row->path = $query->execute()->fetchField();
-    scratchpads_migrate_unset_empty_fields($row);    
+    scratchpads_migrate_unset_empty_fields($row);
   }
 
   protected function postImport(){

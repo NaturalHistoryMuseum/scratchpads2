@@ -79,8 +79,8 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
             '%name' => $vocabulary->machine_name
           )));}
         // Is this a biological classifcation?
-        if(!empty($row->classification_type)){
-          itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $row->classification_type);
+        if(!empty($vocabulary->biological_classification)){
+          itis_term_taxonomy_vocabulary_biological_classification($vocabulary);
         }
         // We need to insert a dummy row in to the taxonomy_vocabulary table first
         // as we are specifying the VID of the taxonomy.
@@ -88,6 +88,15 @@ class MigrateDestinationVocabulary extends MigrateDestinationEntity{
         drupal_write_record('taxonomy_vocabulary', $vocabulary_array);
         if(taxonomy_vocabulary_save($vocabulary)){
           $status = SAVED_NEW;
+          // Update the taxonomy field - scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert() won't be called as we're updating
+          scratchpads_taxonomic_name_field_update_field($vocabulary);
+        }
+        // Is this a biological classifcation?
+        if(!empty($vocabulary->biological_classification)){
+          // Do the same for emonocot classifications
+          if(function_exists('emonocot_itis_create_vocabulary')){
+            emonocot_itis_create_vocabulary($vocabulary);
+          }
         }
         break;
     }

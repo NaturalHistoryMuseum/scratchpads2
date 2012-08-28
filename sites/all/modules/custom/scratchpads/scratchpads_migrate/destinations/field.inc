@@ -51,7 +51,7 @@ class MigrateDestinationField extends MigrateDestination{
     // Alter field and widget settings
     $field_config = array(
       'active' => $object->active,
-      'cardinality' => (isset($object->multiple) && $object->multiple == 0 ? 1 : -1),
+      'cardinality' => (isset($row->multiple) && $row->multiple == 0 ? 1 : -1),
       'deleted' => '0',
       'entity_types' => array(
         $object->entity_type
@@ -60,7 +60,8 @@ class MigrateDestinationField extends MigrateDestination{
       'module' => $object->module,
       'settings' => $object->global_settings,
       'translatable' => '1',
-      'type' => $object->type
+      'type' => $object->type,
+      'required' => $object->required
     );
     // Instance alterations
     drupal_alter('content_migrate_instance', $field_instance, $field_config);
@@ -105,6 +106,21 @@ class MigrateDestinationField extends MigrateDestination{
           'size' => 60
         );
         break;
+      case 'options_select':
+        $field_config['module'] = 'list';
+        $field_config['type'] = 'list_text';
+        $field_instance['widget']['type'] = 'options_select';
+        $field_instance['widget']['module'] = 'options';
+        // Parse allowed values into
+        if(isset($field_config['settings']['allowed_values'])){
+          $allowed_values = explode(PHP_EOL, $field_config['settings']['allowed_values']);
+          $field_config['settings']['allowed_values'] = array_combine($allowed_values, $allowed_values);
+        }
+        break;
+    }
+    // Fix missing max length bug
+    if(isset($field_config['settings']['max_length']) && empty($field_config['settings']['max_length'])){
+      $field_config['settings']['max_length'] = 256;
     }
     // Only create if the field does not already exist
     $field = field_info_field($object->field_name);

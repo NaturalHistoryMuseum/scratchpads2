@@ -23,7 +23,7 @@ class DrupalFileMigration extends DrupalMigration{
     $this->addFieldMapping('uid', 'uid')->sourceMigration('User')->defaultValue(1);
     // Just map the incoming URL to the destination's 'uri'
     $this->addFieldMapping('value', 'filepath');
-    $this->addFieldMapping('file_replace')->defaultValue(FILE_EXISTS_ERROR);
+    $this->addFieldMapping('file_replace')->defaultValue(FILE_EXISTS_REPLACE);
     $this->addFieldMapping('preserve_files')->defaultValue(true);
     $this->addSimpleMappings(array(
       'timestamp'
@@ -50,6 +50,7 @@ class DrupalFileMigration extends DrupalMigration{
     $query = Database::getConnection('default', $this->sourceConnection)->select('files', 'f');
     $query->fields('f');
     $query->orderBy('fid');
+    $query->condition('filemime', DrupalImageMigration::imageFileMime(), 'NOT IN');
     return $query;
   }
 

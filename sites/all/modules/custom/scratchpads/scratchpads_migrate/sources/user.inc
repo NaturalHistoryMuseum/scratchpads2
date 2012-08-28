@@ -143,14 +143,16 @@ class ScratchpadsUserMigration extends DrupalUser6Migration{
     $query->range(0, 1);
     $row->location_country = $query->execute()->fetchField();
     // Get the core profile fields
-    $query = Database::getConnection('default', $this->sourceConnection)->select('profile_values', 'pv');
-    $query->addField('pv', 'value');
-    $query->innerJoin('profile_fields', 'pf', 'pf.fid = pv.fid');
-    $query->addField('pf', 'name');
-    $query->condition('pv.uid', $row->uid);
-    $profile_fields = $query->execute();
-    foreach($profile_fields as $profile_field){
-      $row->{$profile_field->name} = $profile_field->value;
+    if(Database::getConnection('default', $this->sourceConnection)->schema()->tableExists('profile_values')){
+      $query = Database::getConnection('default', $this->sourceConnection)->select('profile_values', 'pv');
+      $query->addField('pv', 'value');
+      $query->innerJoin('profile_fields', 'pf', 'pf.fid = pv.fid');
+      $query->addField('pf', 'name');
+      $query->condition('pv.uid', $row->uid);
+      $profile_fields = $query->execute();
+      foreach($profile_fields as $profile_field){
+        $row->{$profile_field->name} = $profile_field->value;
+      }
     }
     // Get the user roles
     $query = Database::getConnection('default', $this->sourceConnection)->select('users_roles', 'ur');

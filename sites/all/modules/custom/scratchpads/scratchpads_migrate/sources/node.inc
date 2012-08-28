@@ -19,6 +19,22 @@
  */
 class ScratchpadsNodeMigration extends DrupalNode6Migration{
 
+  /**
+   * Allow for multiple biological classifications which need to be merged into the taxon name field
+   *
+   * @var array
+   */
+  protected $biologicalClassifications = array();
+
+  public function getBiologicalClassifications(){
+    return $this->biologicalClassifications;
+  }
+
+  /**
+   * Long text fields we'll need to parse files etc.,
+   *
+   * @var array
+   */
   protected $longTextFields = array();
 
   public function getLongTextFields(){
@@ -42,7 +58,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
   public function sourceFieldList(){
     $fields = parent::sourceFieldList();
     $fields['file_attachment'] = t('Attached files');
-    //    $fields['menu'] = t('Menu');
+    $fields['menu'] = t('Menu');
     return $fields;
   }
 
@@ -70,9 +86,22 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
             $field_name = 'taxonomy_forums';
           }
           $sourceMigration = scratchpads_migrate_get_machine_name('Term', $vocabulary->name);
+          // Handle multiple biological classifications
+          if($field_name == 'field_taxonomic_name'){
+            $this->biologicalClassifications[] = $delta;
+            // If we already have a mapped biological classification, add as unmapped source, we'll merge in perpareRow
+            if(count($this->biologicalClassifications) > 1){
+              $this->addUnmigratedSources(array(
+                $delta
+              ));
+              continue;
+            }
+          }
           // Remove any existing mapping
           $this->removeFieldMapping($field_name);
-          $this->addFieldMapping($field_name, $delta)->sourceMigration($sourceMigration);
+          $this->removeFieldMapping($field_name . ':source_type');
+          $this->removeFieldMapping($field_name . ':create_term');
+          $this->addFieldMapping($field_name, $delta);
           $this->addFieldMapping($field_name . ':source_type')->defaultValue('tid');
           $this->addFieldMapping($field_name . ':create_term')->defaultValue(false);
         }else{
@@ -182,7 +211,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     }
     // Overide auto node title - we want to use the old titles
     $this->addFieldMapping('auto_nodetitle_applied')->defaultValue(true);
-    $this->addFieldMapping('menu', 'menu')->defaultValue(1);
   }
 
   protected function nodeQuery(){
@@ -193,7 +221,6 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
     $query->leftJoin('og_access_post', 'ogap', 'ogap.nid = n.nid');
     $query->addField('ogap', 'og_public', 'og_public');
     $query->condition('n.title', 'Taskguide', '!=');
-    $query->condition('n.nid', 83);
     return $query;
   }
 
@@ -272,8 +299,20 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
         'link_title' => $menu_title,
         'weight' => 1,
         'parent' => PRIMARY_MENU_NAME . ':0',
-      	'parent_depth_limit' => 0
+        'parent_depth_limit' => 0
       );
+    }
+    // Are there multiple biological classifcations?
+    if(count($this->biologicalClassifications) > 1){
+      $mapped_classification = array_shift($this->biologicalClassifications);
+      if(!isset($row->{$mapped_classification})){
+        $row->{$mapped_classification} = array();
+      }
+      foreach($this->biologicalClassifications as $unmapped_classifcation){
+        if(isset($row->{$unmapped_classifcation})){
+          $row->{$mapped_classification} = array_merge($row->{$mapped_classification}, $row->{$unmapped_classifcation});
+        }
+      }
     }
   }
 
@@ -303,6 +342,7 @@ class ScratchpadsNodeMigration extends DrupalNode6Migration{
           $items->item($i)->setAttribute('src', $new_href);
         }
       }
+      $dom->encoding = 'UTF-8';
       $html = $dom->saveHTML();
     }
     return $html;
