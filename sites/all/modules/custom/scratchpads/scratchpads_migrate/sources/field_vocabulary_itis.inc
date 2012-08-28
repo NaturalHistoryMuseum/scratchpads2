@@ -23,7 +23,14 @@ class DrupalFieldVocabularyItisTermMigration extends DrupalFieldVocabularyMigrat
       'field_unit_name4' => 'field_unit_name4',
       'field_unit_name4' => 'field_unit_name4',
       'field_vernacular_name' => 'field_vernacular_names',
-      'field_accepted_name' => NULL // Special use case: maps to field_aan_{vid}
+      'field_accepted_name' => NULL, // Special use case: maps to field_aan_{vid}
+      // TODO - Emonocot only - remove
+      'field_type_references' => 'field_type_ref',
+      'field_type_taxon' => NULL,
+      'field_id' => 'field_id',
+      'field_itis_em_etymology' => 'field_itis_em_etymology',
+      'field_itis_em_other_ref' => 'field_itis_em_other_ref',
+      'field_itis_em_url' => 'field_itis_em_url'
     );
     return $fieldMappings;
   }

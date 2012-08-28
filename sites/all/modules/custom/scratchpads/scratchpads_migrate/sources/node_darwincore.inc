@@ -19,6 +19,13 @@
  */
 class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
 
+  /**
+   * Mapping fixed term IDs to new field values
+   *
+   * @var array
+   */
+  protected $termMappings = array();
+
   public function __construct(array $arguments){
     // Add manual field mappingss
     $this->manualFieldMapping = array(
@@ -66,6 +73,15 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
       'dateidentifiedday',
       'latestdatecollected'
     ));
+    // Load term mappings
+    $this->termMappings = array();
+    foreach(array(
+      'sex' => 'Sex',
+      'typestatus' => 'Type Status',
+      'basisofrecord' => 'Basis of record'
+    ) as $delta => $vocabulary_name){
+      $this->termMappings[$delta] = scratchpads_migrate_get_terms($vocabulary_name);
+    }
   }
 
   protected function nodeQuery(){
@@ -103,41 +119,7 @@ class ScratchpadsNodeDarwincoreMigration extends ScratchpadsNodeMigration{
 
   public function prepareRow($row){
     parent::prepareRow($row);
-    $term_mappings = array(
-      'sex' => array(
-        1161 => 'Female',
-        1162 => 'Hermaphrodite',
-        1164 => 'Indeterminate',
-        1160 => 'Male',
-        1167 => 'Multiple',
-        1165 => 'Transitional',
-        1166 => 'Undetermined',
-        1163 => 'Unknown'
-      ),
-      'typestatus' => array(
-        1168 => 'Holotype',
-        1169 => 'Isotype',
-        1170 => 'Lectotype',
-        1171 => 'Neotype',
-        1172 => 'Nontype',
-        1173 => 'Not Provided',
-        1174 => 'Paralectotype',
-        1175 => 'Paratype',
-        1176 => 'Syntype'
-      ),
-      'basisofrecord' => array(
-        1152 => 'Fossil Specimen',
-        1154 => 'Human Observation',
-        1153 => 'Living Specimen',
-        1155 => 'Machine Observation',
-        1157 => 'Moving Image',
-        1159 => 'Other Specimen',
-        1151 => 'Preserved Specimen',
-        1158 => 'Sound Recording',
-        1156 => 'Still Image'
-      )
-    );
-    foreach($term_mappings as $delta => $term_mapping){
+    foreach($this->termMappings as $delta => $term_mapping){
       if(isset($row->{$delta})){
         if($row->{$delta} == 0){
           unset($row->{$delta});

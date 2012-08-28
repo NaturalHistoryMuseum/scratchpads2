@@ -7,6 +7,7 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    $this->sourceFields['entity_type'] = t('Entity type');
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
       'type' => array(
@@ -26,6 +27,7 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
       'required',
       'tags'
     ));
+    $this->addFieldMapping('entity_type', 'entity_type')->defaultValue('node');
     $this->addFieldMapping('bundle', 'type');
     $this->addFieldMapping('vid', 'vid')->sourceMigration('Vocabulary');
     $this->addFieldMapping(NULL, 'classification_type');
@@ -37,6 +39,14 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
    * @return QueryConditionInterface
    */
   protected function sourceQuery(){
+    $query = $this->baseQuery();
+    $query->condition('vnt.type', array(
+      DrupalFieldMigration::excludedNodeTypes()
+    ), 'NOT IN');
+    return $query;
+  }
+
+  protected function baseQuery(){
     $query = Database::getConnection('default', $this->sourceConnection)->select('vocabulary_node_types', 'vnt');
     $query->fields('vnt', array(
       'type'
@@ -49,14 +59,11 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
       'required',
       'tags'
     ));
-    $query->condition('v.module', 'forum', '!=');
+    $query->condition('v.module', 'taxonomy');
     $query->leftJoin('scratchpads_migrate_biological_classification', 'mbc', 'v.vid = mbc.vid');
     $query->addField('mbc', 'type', 'classification_type');
     // We're not migrating image galleries vocabulary
     $query->condition('name', 'Image Galleries', '!=');
-    $query->condition('vnt.type', array(
-      DrupalFieldMigration::excludedNodeTypes()
-    ), 'NOT IN');
     return $query;
   }
 
@@ -73,7 +80,10 @@ class DrupalFieldTaxonomyMigration extends DrupalMigration{
       $row->field_name = $this->getFieldName($row->name);
       $row->label = $row->name;
     }
-    if(field_read_instance('node', $row->field_name, $row->type)){ // Instance already exists, so skip it
+    if(!isset($row->entity_type)){
+      $row->entity_type = 'node';
+    }
+    if(field_read_instance($row->entity_type, $row->field_name, $row->type)){ // Instance already exists, so skip it
       watchdog('scratchpads_migrate', t('Field %name already exists for %type'), array(
         '%name' => $row->field_name,
         '%type' => $row->type
