@@ -102,6 +102,7 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
   }
   drupal_json_output($term_matches);
 }
+
 // -- Update the field functions ----------------------------------------------
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
@@ -109,27 +110,34 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
 function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
   if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
     // We have a biological classification. We need to update the field.
-    field_cache_clear(TRUE);
-    $field = field_info_field('field_taxonomic_name');
-    $bio_vids = variable_get('biological_vids', array());
-    $i = 0;
-    $field['settings']['allowed_values'] = array();
-    foreach($bio_vids as $vid => $value){
-      $voc = taxonomy_vocabulary_load($vid);
-      if($voc){
-        $field['settings']['allowed_values'][$i] = array(
-          'parent' => 0,
-          'vocabulary' => $voc->machine_name
-        );
-        $i++;
-      }
-    }
-    $field['settings']['allowed_values'][] = array(
-      'parent' => 0,
-      'vocabulary' => $vocabulary->machine_name
-    );
-    field_update_field($field);
+    scratchpads_taxonomic_name_field_update_field($vocabulary);
   }
+}
+
+/**
+ * Update the taxonomy name field
+ */
+function scratchpads_taxonomic_name_field_update_field($vocabulary){
+  field_cache_clear(TRUE);
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  $field['settings']['allowed_values'][] = array(
+    'parent' => 0,
+    'vocabulary' => $vocabulary->machine_name
+  );
+  field_update_field($field);
 }
 
 /**
@@ -188,6 +196,7 @@ function scratchpads_taxonomic_name_field_cron(){
   }
   field_update_field($field);
 }
+
 // -- End of Update the field functions-----------------------------------------
 /**
  * Implements hook_form_alter()
@@ -375,10 +384,10 @@ function scratchpads_taxonomic_name_field_feeds_processor_targets_alter(&$target
  * new term if it does not exist.
  *
  * @param $name A
- *        term name.
+ * term name.
  * @param $vid A
- *        vocabulary id.
- *        
+ * vocabulary id.
+ * 
  * @return A term id.
  */
 function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_term = FALSE){
