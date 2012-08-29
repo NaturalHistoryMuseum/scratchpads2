@@ -1,0 +1,5 @@
+name = "DwC-A export mapping module"
+description = "Allow a user to select view for the DwC-A and modify it"
+core = "7.x"
+package = "Specimens"
+dependencies[] = dwca_export
