@@ -6,5 +6,6 @@ dependencies[] = itis_term
 dependencies[] = tinytax
 dependencies[] = context
 dependencies[] = scratchpads_blocks
+dependencies[] = imagecache_coloractions
 
 files[] = views/scratchpads_species_views_handler_field_taxonomy.inc
