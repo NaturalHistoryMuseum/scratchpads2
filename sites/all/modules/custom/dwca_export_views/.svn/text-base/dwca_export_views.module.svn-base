@@ -1,0 +1,394 @@
+<?php
+
+
+function dwca_export_views_menu() {
+	
+	$items = array();	
+
+	$items['admin/config/system/views_dwca_export'] = array(
+		'title' => 'DarwinCore Archive (DwC-A) export mapping module',
+		'description' => t('Allow a use to select views for DwC-A and map terms to those views to create the metadata file meta.xml for the DwC-A archive.'),
+		'page callback' => 'drupal_get_form',
+		//'page arguments' => array('dwca_export_views_config_form'),
+		'page arguments' => array('dwca_export_views_wizard'),
+		'access arguments' => array('access DwC-A export settings'),
+		'type' => MENU_NORMAL_ITEM,
+	//'file' => 'dwca_export.admin.inc'
+	);	
+	
+	return $items;
+}
+
+/**
+* Form function, called by drupal_get_form()
+* in dwca_export_menu().
+*/
+function dwca_export_views_config_form($form, &$form_state) {
+
+	global $base_url;
+
+	$form['dwca_export_info'] = array(
+		'#markup' => '<p>Select the views to map to dwca terms.'
+.'</p>'
+	);
+
+	$form['dwca_export_view_mapping'] = dwca_export_views_select_view_form();
+	//$form['dwca_export_view_mapping'] = views_get_all_views();
+
+	$form['#submit'][] = 'dwca_export_views_config_form_submit';
+	//lorna remove we don't want the save configuration button
+	//return system_settings_form($form);	
+	return $form;
+}
+function dwca_export_views_select_view_form() {
+
+	$allviews = views_get_all_views();
+
+	//LORNA - DO I NEED THIS FIELDSET ARRAY!!!
+	$views = array(
+	    		'#type' => 'fieldset',
+	    		'#title' => t('DwC-A views'),
+	//'#tree' => TRUE,
+	);
+
+	foreach($allviews as $view){
+		if(substr($view->name, 0, 11) == 'dwca_export' && substr($view->name, 0, 23) != 'dwca_export_description'){
+				
+			$dwca_filename = $view->name;
+			$views[$dwca_filename] = array(
+			//$form[$dwca_filename] = array(
+								  	'#type' => 'checkbox',
+								  	'#title' => t($dwca_filename),
+								  	'#description' => t('select view for ' . $dwca_filename),
+				
+			);
+				
+		}
+	}
+
+	$savedvariables = variable_get('VIEWS_MAP');
+
+	/*foreach ($savedvariables as $key => $value) {
+
+		echo "VALUE saved" . $value;
+		echo $savedvariables[$key];
+		print_r(t('key ') . $key . t('key ') . $value);
+	}*/
+	//$meta_string = file_get_contents('http://www.google.com/');
+	//drupal_set_message(t('The meta xml is ') . $meta_string);
+	//print_r($meta_string);
+	return $views;
+}
+
+function _dwca_export_views_steps() {
+  return array(
+      1 => array(
+        'form' => 'dwca_export_views_config_form',
+      ),
+      2 => array(
+        'form' => 'dwca_export_views_fields_form',
+      ),
+    );
+}
+/**
+* Returns form elements for the 'location info' page of the wizard. This is the
+* second step of the wizard. This step asks for a textfield value: a City. This
+* step also includes a validation declared later.
+*
+* @ingroup form_example
+*/
+function dwca_export_views_fields_form($form, &$form_state) {
+	
+	$form = array(
+	    		'#type' => 'fieldset',
+	    		'#title' => t('Field to DwC-A term mapping'),
+	);
+	
+	//TODO create an array containing the terms for the core and each extension
+
+	
+
+	//create a 2D array so that each extension or view name points to an array of terms
+	$meta_string = simplexml_load_file(drupal_get_path('module', 'dwca_export') . '/static/meta.xml');
+	//simplexml_load_string()
+	//archive
+	/////////////////////////echo $meta_string->getName() . "<br />";
+	
+	$core_string = $meta_string->core->files->location[0];
+	$classification_view_name = "dwca_export_" . substr($core_string, 0, -4);
+	echo $classification_view_name;
+
+	$views = array();
+	//the first postion in the dwca is always the id and this doesn't point to a term so use the empty string
+	$views[$classification_view_name][0] = '';
+	
+	foreach($meta_string->core->field as $field)
+	{
+		$term = (string)$field[@term];
+		
+		//$views[$classification_view_name][$term_array] = array($term);
+		$views[$classification_view_name][] = $term;
+		
+		
+		
+	}
+	print_r(t('TEH VIEWS ARRAY') . $views["dwca_export_classification"][1] . t('end'));
+
+	foreach($meta_string->extension as $extension)
+	{
+		//echo $extension->files->location[0] . "\n";
+		$extension_string = $extension->files->location[0] . "\n";
+		
+		$extension_view_name = "dwca_export_" . substr($extension_string, 0, -5);
+		echo "The ext view name is:" . $extension_view_name . "\n";
+		$views[$extension_view_name][0] = '';
+		
+		foreach($extension->field as $field)
+		{
+			$term = (string)$field[@term];
+			$views[$extension_view_name][] = $term;
+			//echo $field[@term] . "\n";
+		}
+	}
+
+	foreach($meta_string->children() as $child)
+	{
+		// core or extension
+		//echo $child->getName() . ": " . $child . "<br />";
+
+		//foreach($child->children() as $child2)
+		//{
+		// core or extension
+		//echo $child2->getName() . ": " . $child2 . "<br />";
+		//}
+
+
+	}
+	//$result = $meta_string->xpath("//archive/core/files/location");
+	//foreach ($result_array as )
+
+	$count = 0;
+	$savedvariables = variable_get('VIEWS_MAP');
+	
+	//lorna TODO create a collapsable form for each view
+	// A FORM OF FORMS
+	foreach ($savedvariables as $key => $value) {
+	
+		//print_r(t('key') . $key . t(' value') . $value);
+		
+		$view = views_get_view($value);
+		//////////////////print_r(t('key') . $key . t(' value') . $value);
+		
+		$collapsed = 1;
+		if($count == 0) {
+			$collapsed = 0;
+		}
+		$form[$value] = array(
+			    		'#type' => 'fieldset',
+			    		'#title' => $value,
+		'#size' => 30,
+						//'#weight' => 3,
+						//'#collapsible' => $collapsed,
+						//'#collapsed' => $collapsed,
+						//'#tree' => $collapsed,
+		);
+		// check whether there is a view named with this value
+		//if($view) {
+			//$fields = $view->display_handler->get_field_labels();
+			$fields =$view->display['default']->display_options['fields'];
+			
+			$field_index = 0;
+			foreach ($fields as $field_key => $field_label) {
+				
+				//display the field_keys as the names of each text box in this form
+				//print_r($field_key . t(' FIELD LABEL') . $field_label);
+				//drupal_set_message($field_key . t(' COUNT IS ZERO') . $field_label);
+					
+				$form[$value][$field_key] = array(
+				    '#type' => 'textfield',
+				    '#title' => $field_key,
+				    '#description' => t('Enter the DwC-A term for the field - ' . $field_key),
+				    //'#default_value' => !empty($form_state['values']['city']) ? $form_state['values']['city'] : '',
+				//'#default_value' => $views["dwca_export_classification"][$field_index],
+				'#default_value' => $views[$value][$field_index],
+				'#size' => 30,
+				//'#tree' => TRUE,
+				);
+																				
+			$field_index++;	
+		}
+		
+	}
+	$count++;
+	
+	return $form;
+}
+
+function dwca_export_views_wizard($form, &$form_state) {
+	
+		// Initialize a description of the steps for the wizard.
+		if (empty($form_state['step'])) {
+			$form_state['step'] = 1;
+	
+			// This array contains the function to be called at each step to get the
+			// relevant form elements. It will also store state information for each
+			// step.
+			$form_state['step_information'] = _dwca_export_views_steps();
+		}
+		$step = &$form_state['step'];
+		drupal_set_title(t('DwC-A to views mapping: Step @step', array('@step' => $step)));
+		//lorna
+		//drupal_set_message(t('Extensible Wizard: Step @step', array('@step' => $step)));
+	
+		// Call the function named in $form_state['step_information'] to get the
+		// form elements to display for this step.
+		$form = $form_state['step_information'][$step]['form']($form, $form_state);
+	
+		// Show the 'previous' button if appropriate. Note that #submit is set to
+		// a special submit handler, and that we use #limit_validation_errors to
+		// skip all complaints about validation when using the back button. The
+		// values entered will be discarded, but they will not be validated, which
+		// would be annoying in a "back" button.
+		if ($step > 1) {
+			$form['prev'] = array(
+	      '#type' => 'submit',
+	      '#value' => t('Previous'),
+	      '#name' => 'prev',
+	      '#submit' => array('dwca_export_views_wizard_previous_submit'),
+	      '#limit_validation_errors' => array(),
+			);
+		}
+	
+		// Show the Next button only if there are more steps defined.
+		if ($step < count($form_state['step_information'])) {
+			// The Next button should be included on every step
+			$form['next'] = array(
+	      '#type' => 'submit',
+	      '#value' => t('Next'),
+	      '#name' => 'next',
+	      '#submit' => array('dwca_export_views_wizard_next_submit'),
+			);
+		}
+		else {
+			// Just in case there are no more steps, we use the default submit handler
+			// of the form wizard. Call this button Finish, Submit, or whatever you
+			// want to show. When this button is clicked, the
+			// dwca_export_views_wizard_submit handler will be called.
+			$form['finish'] = array(
+	      '#type' => 'submit',
+	      '#value' => t('Finish'),
+			);
+		}
+	
+		// Include each validation function defined for the different steps.
+		if (function_exists($form_state['step_information'][$step]['form'] . '_validate')) {
+			$form['next']['#validate'] = array($form_state['step_information'][$step]['form'] . '_validate');
+		}
+	
+		return $form;
+	}
+function dwca_export_views_wizard_next_submit($form, &$form_state) {
+	$current_step = &$form_state['step'];
+	$form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+
+	if ($current_step < count($form_state['step_information'])) {
+		
+		// lorna save the values for the first step
+		if ($current_step == 1) {
+			_dwca_export_views_step1_submit($form, &$form_state);
+		}
+		$current_step++;
+		if (!empty($form_state['step_information'][$current_step]['stored_values'])) {
+			$form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+			
+			
+		}
+		else {
+			$form_state['values'] = array();
+		}
+		$form_state['rebuild'] = TRUE;  // Force rebuild with next step.
+		return;
+	}
+}
+function dwca_export_views_wizard_previous_submit($form, &$form_state) {
+	$current_step = &$form_state['step'];
+	$form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+	if ($current_step > 1) {
+		$current_step--;
+		$form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+	}
+	$form_state['rebuild'] = TRUE;
+}
+
+
+function _dwca_export_views_step1_submit($form, &$form_state) {
+	//function dwca_export_views_wizard_submit($form, &$form_state) {
+
+	$variables = $form_state['input'];
+	$save_variables = '';
+	$views_map = variable_get('VIEWS_MAP');
+	$views_to_map = array();	
+
+	foreach ($variables as $key => $value) {
+
+		if(substr($key, 0, 11) == 'dwca_export'){
+			
+			if ($value == 1) {
+				$views_to_map[] = $key;
+				//drupal_set_message(t('MAPPING VALUE ') . $value);
+			}
+					
+		}
+	}
+
+	//save a map of the views the user want to change in the database
+	variable_del('VIEWS_MAP');
+	variable_set('VIEWS_MAP', $views_to_map);
+	
+	$savedvariables = variable_get('VIEWS_MAP');
+	
+	//foreach ($variables as $key => $value) {	
+		
+		//echo $key . ": " . $value . "...";
+		//print_r(t('keys ') . $key . t('values ') . $value);
+	//}
+	//drupal_set_message(t('The classification view is ') . $save_variables);// . '<pre>' . print_r($form_state,true) . '</pre>');//$save_variables);
+}
+
+// And now comes the magic of the wizard, the function that should handle all the
+// inputs from the user on each different step.
+/**
+ * Wizard form submit handler.
+ * - Saves away $form_state['values']
+ * - Process all the form values.
+ *
+ * This demonstration handler just do a drupal_set_message() with the information
+ * collected on each different step of the wizard.
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @ingroup form_example
+ */
+function dwca_export_views_wizard_submit($form, &$form_state) {
+	$current_step = &$form_state['step'];
+	$form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+
+	// In this case we've completed the final page of the wizard, so process the
+	// submitted information.
+	drupal_set_message(t('This information was collected by this wizard:'));
+	foreach ($form_state['step_information'] as $index => $value) {
+		// Remove FAPI fields included in the values (form_token, form_id and form_build_id
+		// This is not required, you may access the values using $value['stored_values']
+		// but I'm removing them to make a more clear representation of the collected
+		// information as the complete array will be passed through drupal_set_message().
+		unset($value['stored_values']['form_id']);
+		unset($value['stored_values']['form_build_id']);
+		unset($value['stored_values']['form_token']);
+
+		// Now show all the values.
+		drupal_set_message(t('Step @num collected the following values: <pre>@result</pre>', array('@num' => $index, '@result' => print_r($value['stored_values'], TRUE))));
+	}
+}
+
+

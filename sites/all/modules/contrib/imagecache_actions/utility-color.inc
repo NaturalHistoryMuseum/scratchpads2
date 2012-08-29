@@ -24,9 +24,26 @@ function imagecache_rgb_form($action) {
     '#title' => t('HEX'),
     '#default_value' => $action['HEX'],
     '#size' => 7,
+    '#element_validate' => array('imagecache_rgb_validate'),
   );
 
   return $form;
+}
+
+/**
+ * Element validate handler to ensure a hexadecimal color value.
+ * 
+ * The core image_effect_color_validate() was not intelligent enough. 
+ * Actually parse the value in order to see if it is parsable.
+ */
+function imagecache_rgb_validate($element, &$form_state) {
+  if ($element['#value'] != '') {
+    $rgba_value = imagecache_actions_hex2rgba($element['#value']);
+    if (!$rgba_value) {
+      // Returning NULL means a parse error
+      form_error($element, t('!name must be a hexadecimal color value.', array('!name' => $element['#title'])));
+    }
+  }
 }
 
 /**

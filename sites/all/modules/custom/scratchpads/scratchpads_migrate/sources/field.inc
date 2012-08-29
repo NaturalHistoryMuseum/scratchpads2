@@ -7,6 +7,9 @@ class DrupalFieldMigration extends DrupalMigration{
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
+    
+    $this->sourceFields['entity_type'] = t('Entity type');
+    
     $this->source = new MigrateSourceSQL($this->sourceQuery(), $this->sourceFields, NULL, $this->sourceOptions);
     $this->map = new MigrateSQLMap($this->machineName, array(
       'field_name' => array(
@@ -28,7 +31,7 @@ class DrupalFieldMigration extends DrupalMigration{
     ));
     $this->addFieldMapping('bundle', 'type_name');
     // These are all node entity types
-    $this->addFieldMapping('entity_type')->defaultValue('node');
+    $this->addFieldMapping('entity_type', 'entity_type')->defaultValue('node');
     $this->addFieldMapping('active', 'active'); // Used to create field
     $this->addFieldMapping('widget_settings', 'widget_settings'); // Merge into field_config_instance.data
     $this->addFieldMapping('global_settings', 'global_settings'); // Merge into field_config.data

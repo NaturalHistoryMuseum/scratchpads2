@@ -30,6 +30,7 @@ function imagecache_autorotate_image_effect_info() {
     'label' => t('Autorotate'),
     'help' => t('Add autorotate image based on EXIF Orientation.'),
     'effect callback' => 'imagecache_autorotate_image',
+    'dimensions callback' => 'imagecache_autorotate_dimensions',
   );
 
   return $effects;
@@ -88,32 +89,56 @@ EXIF Reference</a>
  */
 function imagecache_autorotate_image($image, $data) {
   // Test to see if EXIF is supported for image type (e.g. not PNG).
-  // @todo: Add mimetype for TIFF also
-  $realpath = drupal_realpath($image->source);
-
   if ($image->info['mime_type'] == 'image/jpeg') {
+    if (!function_exists('exif_read_data')) {
+      watchdog('image', 'The image %file could not be auto-rotated because the exif_read_data() function is not available in this PHP installation. You probably will have to enable the exif extension.', array('%file' => $image->source));
+      return FALSE;
+    }
     $exif = exif_read_data(drupal_realpath($image->source));
-    //debug(__FUNCTION__ .': exif[Orientation]='. print_r($exif['Orientation'], TRUE));
-    if (! isset($exif['Orientation'])) {
-      return TRUE;
-    }
-    switch ($exif['Orientation']) {
-      case 3:
-        $degrees = 180;
-        break;
-      case 6:
-        $degrees = 90; // Rotate 90 CW
-        break;
-      case 8:
-        $degrees = 270; // Rotate 270 CW
-        break;
-      default:
-        $degrees = 0;
-    }
-    if ($degrees) {
-      //debug(__FUNCTION__ .': rotating degrees='. $degrees);
-      image_rotate_effect($image, array('degrees' => $degrees));
+    if (isset($exif['Orientation'])) {
+      switch ($exif['Orientation']) {
+        case 3:
+          $degrees = 180;
+          break;
+        case 6:
+          $degrees = 90;
+          break;
+        case 8:
+          $degrees = 270;
+          break;
+        default:
+          $degrees = 0;
+      }
+      if ($degrees != 0) {
+        $org_width = $image->info['width'];
+        $org_height = $image->info['height'];
+        image_rotate($image, $degrees);
+        if (($degrees === 90 || $degrees === 270) && $image->info['width'] === $org_width) {
+          // The toolkit failed to alter the dimensions (imagemagick currently
+          // fails to do so). So we do it ourselves.
+          $image->info['width'] = $org_height;
+          $image->info['height'] = $org_width;
+        }
+      }
     }
   }
   return TRUE;
+}
+
+/**
+* Image dimensions callback; Auto-rotate.
+*
+* @param $dimensions
+*   Dimensions to be modified - an array with components width and height, in
+*   pixels.
+* @param $data
+*   An array of attributes to use when performing the rotate effect containing
+*   the following items:
+*   - "degrees": The number of (clockwise) degrees to rotate the image.
+*   - "random": A boolean indicating that a random rotation angle should be
+*     used for this image. The angle specified in "degrees" is used as a
+*     positive and negative maximum.
+*/
+function imagecache_autorotate_dimensions(array &$dimensions, array $data) {
+  $dimensions['width'] = $dimensions['height'] = NULL;
 }

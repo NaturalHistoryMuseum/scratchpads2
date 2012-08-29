@@ -19,3 +19,18 @@ function imagecache_actions_theme() {
     ),
   );
 }
+
+/**
+* Implements hook_stream_wrappers().
+*/
+function imagecache_actions_stream_wrappers() {
+  $wrappers = array(
+    'module' => array(
+      'name' => t('Module files (read-only)'),
+      'class' => 'ImageCacheActionsModuleStreamWrapper',
+      'description' => t('Module files (read-only).'),
+      'type' => STREAM_WRAPPERS_LOCAL | STREAM_WRAPPERS_READ_VISIBLE,
+    ),
+  );
+  return $wrappers;
+}

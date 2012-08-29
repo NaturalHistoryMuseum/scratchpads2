@@ -49,6 +49,7 @@ function imagecache_customactions_image_effect_info() {
     'label' => t('Custom action'),
     'help' => t('Runs custom PHP code.'),
     'effect callback' => 'imagecache_customactions_image',
+    'dimensions callback' => 'imagecache_customactions_dimensions',
     'form callback' => 'imagecache_customactions_form',
   );
 
@@ -56,7 +57,8 @@ function imagecache_customactions_image_effect_info() {
     'label' => t('Subroutine'),
     'help' => t('Runs another defined preset on the image.'),
     'effect callback' => 'imagecache_subroutine_image',
-    'form callback' => 'imagecache_subroutine_form',
+    'dimensions callback' => 'imagecache_subroutine_dimensions',
+     'form callback' => 'imagecache_subroutine_form',
   );
 
   return $effects;
@@ -80,48 +82,29 @@ function imagecache_customactions_theme() {
  * @param $action array of settings for this action
  * @return a form definition
  */
-function imagecache_customactions_form($action) {
-  if ( empty($action) ) {
-    $action = array('text' => 'return $image;');
-  }
+function imagecache_customactions_form($data) {
+  // Add defaults.
+  $data += array('php' => 'return TRUE;');
+
+  // Note: we also need to check for the existence of the module: admin has
+  //   all rights, so user_acccess(...) returns TRUE even if the module is not
+  //   enabled and the permission does not exist.
+  $allow_dynamic = user_access('use PHP for settings') && module_exists('php');
+
+  // @todo: for imagemagick, the PHP code should add a set of commands to the
+  // ops aray of $image. Document this in description.
   $form = array(
-    'text' => array(
+    'php' => array(
       '#type' => 'textarea',
       '#rows' => 10,
-      '#title' => t('Code'),
-      '#default_value' => $action['text'],
-      '#description' => t('
-      <p>Enter PHP code for your custom action. Source image is available in the $image object
-      which contains an <code>$image->info</code> array,
-      and a <code>$image->resource</code> which is the php toolkit object itself.
-      Your code must <b>return</b> an image object of the same structure (see ImageAPI).
-      For convenience, the images current <code>$image->info</code> variables
-      - <code>$width</code>, <code>$height</code> are available in the current scope.
-      <br/>Do not use %php tags. </p>
-      <p>If possible, the owning $node object may also be available.</p>
-      <p>Note that executing incorrect PHP-code can break your Drupal site.</p>
-      <p>If you are using a WYSIWYG, you must disable it for this edit area.</p>
-<h3>example:</h3>
-<pre style="overflow:auto; background-color:#EEEEEE;padding:0.3em; font-size:0.8em; line-height:1em;">
-// Wave an image
-  $amplitude = 10; $period = 10;
-  $x=0; $y=0;
-// Make a copy of the image twice the size
-  $height2 = $height * 2; $width2 = $width * 2;
-  $img2 = imagecreatetruecolor($width2, $height2);
-  imagecopyresampled($img2, $image->resource, 0, 0, $x, $y, $width2, $height2, $width, $height);
-// Wave it
-  for($i = 0; $i < ($width2); $i += 2)
-    imagecopy($img2, $img2, $x+$i-2, $y+sin($i/$period)*$amplitude, $x+$i, $y, 2, $height2);
-// Resample it down again
-  imagecopyresampled($image->resource, $img2, $x, $y, 0, 0, $width, $height, $width2, $height2);
-  imagedestroy($img2);
-return $image;
-
-# code modified from bokehman at http://www.sitepoint.com/forums/showpost.php?p=3655457
-</pre>
-      ',
-      array('%php' => '<?php ?>')),
+      '#title' => t('PHP code'),
+      '#default_value' => $data['php'],
+      '#disabled' => !$allow_dynamic,
+      '#description' => t("<p>A piece of PHP code that modifies the image.
+It should return a boolean indicating success or failure.
+You will need the '%use_php' permission, defined by the 'PHP filter' module.
+See the help for an extensive explanation of the possibilities.</p>",
+        array('%use_php' => t('Use PHP for settings'))),
       '#wysiwyg' => FALSE,
     ),
   );
@@ -132,22 +115,46 @@ return $image;
  * Implements hook_image().
  *
  * @param $image
- * @param $action
+ * @param $data
  */
-function imagecache_customactions_image($image, $action) {
-  // Pull the images $width and $height out to play
-  @extract($image->info);
-  // And maybe the owner node data could be useful
-  if (function_exists('imagecache_actions_node_from_filepath')) {
-    $node = imagecache_actions_node_from_filepath($image->source);
-  }
-  // To get clever and do things post-process, let the process know what the final filename will be.
-  // It seems we cannot see what $dst or even our onwing presetname is.
-  // But we do know what the URL was the invoked this action! that's out filename-to-be!
-  $dst = $_REQUEST['q'];
+function imagecache_customactions_image($image, $data) {
+  // Check that the PHP filter module is enabled.
+  $result = module_exists('php');
+  if ($result) {
+    // Get context about the image.
+    $GLOBALS['image_context'] = imagecache_actions_get_image_context($image, $data);
+    $GLOBALS['image'] = $image;
 
-  $result = eval($action['text']);
+    $result = php_eval('<'.'?php global $image, $image_context; ' . $data['php'] . ' ?'.'>');
+    // php_eval returns '1' if the snippet returns true.
+    $result = $result === '1';
+
+    unset($GLOBALS['image']);
+    unset($GLOBALS['image_context']);
+  }
+
+  if ($result && $image->toolkit == 'GD') {
+    $image->info['width'] = imagesx($image->resource);
+    $image->info['height'] = imagesy($image->resource);
+  }
+
   return $result;
+}
+
+/**
+ * Image dimensions callback; Custom action.
+ *
+ * @param array $dimensions
+ *   Dimensions to be modified - an array with components width and height, in
+ *   pixels.
+ * @param array $data
+ *   An array with the effect options.
+ */
+function imagecache_customactions_dimensions(array &$dimensions, array $data) {
+  // @todo: add form field asking if dimensions stay the same (or if they know
+  // the new dimesions).
+  $dimensions['width'] = NULL;
+  $dimensions['height'] = NULL;
 }
 
 /**
@@ -158,9 +165,6 @@ function theme_imagecache_customactions($element) {
   $data = $element['#value'];
   return "<em><strong>" . $data['text'] . "</strong></em>";
 }
-
-
-
 
 /**
  * Subroutine - an imagecache action that just calls another one.
@@ -185,8 +189,8 @@ function imagecache_subroutine_form($action) {
 
   // List available presets
   $presets = array();
-  foreach (imagecache_presets(TRUE) as $preset) {
-    $presets[$preset['presetname']] = $preset['presetname'];
+  foreach (image_styles(TRUE) as $preset) {
+    $presets[$preset['name']] = $preset['name'];
   }
 
   $form['subroutine_presetname'] = array(
@@ -210,14 +214,29 @@ function imagecache_subroutine_form($action) {
  * @param $action
  */
 function imagecache_subroutine_image($image, $data) {
-  if ($preset = imagecache_preset_by_name($data['subroutine_presetname'])) {
-    foreach ($preset['actions'] as $sub_action) {
-      _imagecache_apply_action($sub_action, $image);
+  if ($preset = image_style_load($data['subroutine_presetname'])) {
+    foreach ($preset['effects'] as $effect) {
+      image_effect_apply($image, $effect);
     }
   }
   return TRUE;
 }
 
+/**
+ * Image dimensions callback; Subroutine.
+ *
+ * @param array $dimensions
+ *   Dimensions to be modified - an array with components width and height, in
+ *   pixels.
+ * @param array $data
+ *   An array with the effect options.
+ */
+function imagecache_subroutine_dimensions(array &$dimensions, array $data) {
+  // @todo: dimensions
+  // @todo: call dimensions callback on subroutine style.
+  $dimensions['width'] = NULL;
+  $dimensions['height'] = NULL;
+}
 
 /**
  * This lets the user see what parameters were selected for the action

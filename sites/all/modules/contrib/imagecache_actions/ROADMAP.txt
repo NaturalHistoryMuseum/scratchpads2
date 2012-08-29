@@ -1,0 +1,81 @@
+Imagecache Actions roadmap
+--------------------------
+
+This is a non-contractual roadmap for the D7 branch of the imagecache actions
+module. Actual release dates and completed features will largely depend on
+available time. So support is always welcome. Furthermore, critical bugs may
+make us release more often, but that should only change the release number in
+which certain features are planned, not the timeline.
+
+
+Imagecache Actions 7.x-1.0
+--------------------------
+Targeted release date: may 2012
+
+- Clean up D7 issue queue
+- Commit posted patches from the issue queue
+- Solve easy to solve bug reports
+- Do some basic testing
+- Reintroduce the text action, currently living in a sandbox project at
+  http://drupal.org/node/1090312
+- Update README.txt
+- Introduce CHANGELOG.txt
+- Add this ROADMAP.txt
+
+
+Imagecache Actions 7.x-1.1
+--------------------------
+Targeted release date: summer 2012
+
+- Check hook_help
+- Solve remaining outstanding bug reports
+- Keep D7 issue queue clean
+- Improve Imagemagick support
+- Check that all effects implement all of the effects API (especially the
+  dimensions passthrough or not)
+- Add testing. The idea is to create a set of image styles that cover all
+  effects and can be used to visually check for regressions.
+
+  Automated testing would be nice, but I am not sure that we can guarantee that
+  jpeg or png files are binary identical on each run across different computers.
+  But if the number of false positives is small, it would certainly be a useful
+  addition.
+
+
+Imagecache Actions 7.x-1.2
+--------------------------
+Targeted release date: end of 2012
+
+- Look at outstanding feature requests
+- Continue to keep the D7 issue queue clean
+- Keep improving Imagemagick support, a.o:
+  - Try to get insight into what version of imagemagick is required by what
+    effect.
+  - Document which effects might produce different results.
+- Refactor code
+  - Extract common form fields
+  - Extract common error handling
+  - Clean up comments, todo's, etc.
+  - Doxygen code documentation according to latest standards
+  - Increase the amount of lazy loaded code
+
+
+Imagecache Actions 7.x-2.x
+--------------------------
+Targeted release date: ...
+
+- Can we refactor effects into auto loading class based plugins? What does CTools
+  offer in these?
+- If so, will it make implementing new effects much simpler? Because that is
+  what we should strive for.
+- Should we rename the module to image_effects?
+- If we manage to provide an easy to use plugin system, we should strive to merge
+  with other modules that provide effects:
+  - FiltersIE module (http://drupal.org/project/filtersie)
+  - Imagecache Effects: http://drupal.org/project/imagecache_effects (D6 only, but
+    are their effects more advanced then our counterparts or do they add new
+    effects?)
+  - Image watermark: http://drupal.org/project/watermark (D5 only, but is their
+    watermark effect more advanced?)
+  - ImageCache Scale-9 Actions: http://drupal.org/project/imagecache_scale9actions
+  - etc.

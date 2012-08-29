@@ -1,0 +1,27 @@
+Imagecache Actions
+------------------
+
+Imagecache Actions 7.x-1.0 2012-05-19
+-------------------------------------
+Incompatabilities:
+- Effects that operate on the transparency layer, do not automatically change
+  the format anymore to png. You will have to add this as a separate effect.
+- File handling: the way that files (e.g. fonts, watermarks, backgrounds) are
+  searched for has been aligned over all effects that work with an additional
+  file. This may cause current styles to not being able to find specified files
+  anymore.
+
+No changelog exists from before this 7.x-1.0 version. So the changelog starts
+from here. 7.x-1.0 is the first reasonably well working D7 version. The 7.x-0.0
+version was based on posted patches in the D7 port request issue and has never
+been tested well. This 7.x-1.0 version is also not extensively tested by the
+maintainers, but has been used in many (live) sites - currently (may 2012) over
+5.000 reported 7.x-1.x-dev installs - so has received fairly good "test
+coverage".
+
+
+Current and past maintainers for Imagecache Actions
+---------------------------------------------------
+- dman (http://drupal.org/user/33240)
+- sidneyshan (http://drupal.org/user/652426)
+- fietserwin (http://drupal.org/user/750928)

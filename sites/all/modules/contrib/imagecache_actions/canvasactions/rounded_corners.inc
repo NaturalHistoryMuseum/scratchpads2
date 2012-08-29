@@ -14,9 +14,8 @@
  */
 function canvasactions_roundedcorners_form($action) {
   if (image_get_toolkit() != 'gd') {
-    drupal_set_message('Rounded corners are not currently supported by using imagemagick. This effect requires GD image toolkit only.', 'warning');
+    drupal_set_message('Rounded corners are not currently supported on all versions of imagemagick. This effect works best with GD image toolkit only.', 'warning');
   }
-
   drupal_add_js(drupal_get_path('module', 'imagecache_actions') . '/imagecache_actions.jquery.js');
   $defaults = array(
     'radius' => '16',
@@ -162,25 +161,32 @@ function image_gd_roundedcorners($image, $action = array()) {
         $ix = floor($is_right ? $width -$dx : $dx);
         $iy = floor($is_bottom ? $height -$dy : $dy);
 
-        $opacity = _canvasactions_roundedcorners_pixel_opacity($dx, $dy, $r);
-        if ($opacity >= 1) {
-          // we can finish this row,
-          // all following pixels will be fully opaque.
-          break;
-        }
-
         // Color lookup at ($ix, $iy).
         $color_ix = imagecolorat($im, $ix, $iy);
         $color = imagecolorsforindex($im, $color_ix);
 
-        if (isset($rgba['alpha'])) {
-          $color['alpha'] = 127 - round($opacity * (127 - $color['alpha']));
+
+        // Do not process opacity if transparency is 100%. Just jump...
+        // Opacity is always 0 on a transparent source pixel.
+        if ($color['alpha'] != 127) {
+          $opacity = _canvasactions_roundedcorners_pixel_opacity($dx, $dy, $r);
+          if ($opacity >= 1) {
+            // we can finish this row,
+            // all following pixels will be fully opaque.
+            break;
+          }
+
+
+          if (isset($color['alpha'])) {
+            $color['alpha'] = 127 - round($opacity * (127 - $color['alpha']));
+          }
+          else {
+            $color['alpha'] = 127 - round($opacity * 127);
+          }
+          // Value should not be more than 127, and not less than 0.
+          $color['alpha'] = ($color['alpha'] > 127) ? 127 : (($color['alpha'] < 0) ? 0 : $color['alpha']);
         }
-        else {
-          $color['alpha'] = 127 - round($opacity * 127);
-        }
-        // Value should not be more than 127, and not less than 0.
-        $color['alpha'] = ($color['alpha'] > 127) ? 127 : (($color['alpha'] < 0) ? 0 : $color['alpha']);
+
         $color_ix = imagecolorallocatealpha($im, $color['red'], $color['green'], $color['blue'], $color['alpha']);
         imagesetpixel($im, $ix, $iy, $color_ix);
       }
@@ -275,30 +281,30 @@ function image_imagemagick_roundedcorners($image, $action = array()) {
   $bl = $radii['bl'];
   $br = $radii['br'];
 
-  $drawmask = " -draw '";
+  $drawmask = '';
   if ($tl) {
-    $drawmask .= " fill black polygon 0,0 0,{$tl} {$tl},0 ";
-    $drawmask .= " fill white circle {$tl},{$tl} {$tl},0 ";
+    $drawmask .= " fill black polygon 0,0 0,{$tl} {$tl},0";
+    $drawmask .= " fill white circle {$tl},{$tl} {$tl},0";
   }
   if ($tr) {
     $right = $width -$tr;
-    $drawmask .= " fill black polygon {$right},0 {$width},0 {$width},{$tr} ";
-    $drawmask .= " fill white circle {$right},{$tr} {$right},0 ";
+    $drawmask .= " fill black polygon {$right},0 {$width},0 {$width},{$tr}";
+    $drawmask .= " fill white circle {$right},{$tr} {$right},0";
   }
   if ($bl) {
     $bottom = $height -$bl;
-    $drawmask .= " fill black polygon 0,{$bottom} 0,{$height} {$bl},{$height} ";
-    $drawmask .= " fill white circle {$bl},{$bottom} 0,{$bottom} ";
+    $drawmask .= " fill black polygon 0,{$bottom} 0,{$height} {$bl},{$height}";
+    $drawmask .= " fill white circle {$bl},{$bottom} 0,{$bottom}";
   }
   if ($br) {
     $bottom = $height -$br;
     $right = $width -$br;
-    $drawmask .= " fill black polygon {$right},{$height} {$width},{$bottom} {$width},{$height} ";
-    $drawmask .= " fill white circle {$right},{$bottom} {$width},{$bottom} ";
+    $drawmask .= " fill black polygon {$right},{$height} {$width},{$bottom} {$width},{$height}";
+    $drawmask .= " fill white circle {$right},{$bottom} {$width},{$bottom}";
   }
-  $drawmask .= " ' ";
+  $draw = ' -draw ' . escapeshellarg($drawmask);
 
-  $compose = " \\( +clone  -threshold -1 {$drawmask} \\) +matte -compose CopyOpacity -composite ";
+  $compose = ' ' . escapeshellcmd('(') . " +clone  -threshold -1 $draw " . escapeshellcmd(')') . ' +matte -compose CopyOpacity -composite ';
   $image->ops[] = $compose;
   return TRUE;
 }

@@ -2,14 +2,13 @@
 
 class DrupalFieldVocabularyMigration extends DrupalFieldMigration{
 
-	protected $vocabulary;
+  protected $vocabulary;
+
   /**
    * @param array $arguments
    */
   public function __construct(array $arguments){
     parent::__construct($arguments);
-    $this->removeFieldMapping('entity_type');
-    $this->addFieldMapping('entity_type')->defaultValue('taxonomy_term');
     // What bundle was created for this vocabulary 
     $this->removeFieldMapping('bundle');
     // Load the vocabulary to get the classifcation name to use as bundle
@@ -30,5 +29,16 @@ class DrupalFieldVocabularyMigration extends DrupalFieldMigration{
     $query->condition('i.widget_active', 1);
     $query->condition('i.type_name', $this->arguments['content_type']);
     return $query;
+  }
+
+  public function prepareRow($row){
+    if(parent::prepareRow($row) === FALSE){return FALSE;}
+    $row->entity_type = 'taxonomy_term';
+  }
+
+  protected function postImport(){
+    if(method_exists($this->destination, 'postImport')){
+      $this->destination->postImport();
+    }
   }
 }

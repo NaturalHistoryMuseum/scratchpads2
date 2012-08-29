@@ -390,7 +390,6 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
     }
   }
 }
-
 //function scratchpads_species_preprocess_views_view_fields(&$vars){
 //  if($vars['view']->name == 'species_nomenclature'){
 //    $invalid_fields = array(
@@ -405,7 +404,6 @@ function scratchpads_species_preprocess_views_view_field(&$vars){
 //    $vars['fields'] = $func($vars['fields'], $invalid_fields);
 //  }
 //}
-
 function theme_scratchpads_species_name($vars){
   $term = $vars['term'];
   // Give the default name as the term name, we will try and overwite this below
@@ -745,50 +743,48 @@ function scratchpads_species_styles_default_presets_alter(&$presets){
  * Implementation of hook_image_default_styles().
  */
 function scratchpads_species_image_default_styles(){
-  $styles = array();
-  // Exported image style: species_slideshow_large
-  $styles['species_slideshow_large'] = array(
-    'name' => 'species_slideshow_large',
-    'effects' => array(
-      2 => array(
-        'label' => 'Scale and crop',
-        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
-        'effect callback' => 'image_scale_and_crop_effect',
-        'dimensions callback' => 'image_resize_dimensions',
-        'form callback' => 'image_resize_form',
-        'summary theme' => 'image_resize_summary',
-        'module' => 'image',
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => '284',
-          'height' => '211'
+  return array(
+    'species_slideshow_large' => array(
+      'name' => 'species_slideshow_large',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '284',
+            'height' => '211'
+          ),
+          'weight' => '1'
         ),
-        'weight' => '1'
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'species_slideshow_thumbnail' => array(
+      'name' => 'species_slideshow_thumbnail',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '92',
+            'height' => '69'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
       )
     )
   );
-  // Exported image style: species_slideshow_thumbnail
-  $styles['species_slideshow_thumbnail'] = array(
-    'name' => 'species_slideshow_thumbnail',
-    'effects' => array(
-      1 => array(
-        'label' => 'Scale and crop',
-        'help' => 'Scale and crop will maintain the aspect-ratio of the original image, then crop the larger dimension. This is most useful for creating perfectly square thumbnails without stretching the image.',
-        'effect callback' => 'image_scale_and_crop_effect',
-        'dimensions callback' => 'image_resize_dimensions',
-        'form callback' => 'image_resize_form',
-        'summary theme' => 'image_resize_summary',
-        'module' => 'image',
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => '92',
-          'height' => '69'
-        ),
-        'weight' => '1'
-      )
-    )
-  );
-  return $styles;
 }
-
-

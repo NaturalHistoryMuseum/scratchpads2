@@ -32,7 +32,7 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
 function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
   if(!isset($form_state['confirm_delete'])){
     if($form_state['values']['biological_classification']){
-      itis_term_taxonomy_vocabulary_biological_classification($form_state['vocabulary'], $form_state['values']['biological_classification']);
+      itis_term_taxonomy_vocabulary_biological_classification($form_state['vocabulary']);
     }
   }
 }
@@ -40,10 +40,10 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
 /**
  * Make a vocabulary a biological classification, adding fields etc.,
  */
-function itis_term_taxonomy_vocabulary_biological_classification($vocabulary, $classifcation_type){
+function itis_term_taxonomy_vocabulary_biological_classification($vocabulary){
   $vids = variable_get('biological_vids', array());
   if(!isset($vids[$vocabulary->vid])){
-    $vids[$vocabulary->vid] = $classifcation_type;
+    $vids[$vocabulary->vid] = $vocabulary->biological_classification;
     variable_set('biological_vids', $vids);
     // Add all the required fields to this vocabulary.
     module_load_include('fields.inc', 'itis_term');

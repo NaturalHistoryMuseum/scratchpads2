@@ -51,7 +51,7 @@ if (! function_exists('imagecache_actions_calculate_relative_position') ) {
 module_load_include('inc', 'imagecache_canvasactions', 'canvasactions');
 module_load_include('inc', 'imagecache_canvasactions', 'rounded_corners');
 // imageapi extensions
-module_load_include('inc', 'imagcache_actions', 'imageapi_image_overlay.inc');
+module_load_include('inc', 'imagcache_actions', 'image_overlay.inc');
 
 
 function imagecache_canvasactions_image_effect_info() {
@@ -60,15 +60,26 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_definecanvas'] = array(
     'label' => t('Define canvas'),
     'help' => t('Define the size of the working canvas and background color, this controls the dimensions of the output image.'),
-    'effect callback' => 'canvasactions_definecanvas_image',
+    'effect callback' => 'canvasactions_definecanvas_effect',
+    'dimensions callback' => 'canvasactions_definecanvas_dimensions',
     'form callback' => 'canvasactions_definecanvas_form',
     'summary theme' => 'canvasactions_definecanvas_summary',
+  );
+
+  $effects['canvasactions_imagemask'] = array(
+    'label' => t('Image mask'),
+    'help' => t(' Choose the file image you wish to use as a mask, and apply it to the canvas.'),
+    'effect callback' => 'canvasactions_imagemask_image',
+    'dimensions passthrough' => TRUE,
+    'form callback' => 'canvasactions_imagemask_form',
+    'summary theme' => 'canvasactions_imagemask_summary',
   );
 
   $effects['canvasactions_file2canvas'] = array(
     'label' => t('Overlay (watermark)'),
     'help' => t('Choose the file image you wish to use as an overlay, and position it in a layer on top of the canvas.'),
     'effect callback' => 'canvasactions_file2canvas_image',
+    'dimensions passthrough' => TRUE,
     'form callback' => 'canvasactions_file2canvas_form',
     'summary theme' => 'canvasactions_file2canvas_summary',
   );
@@ -77,6 +88,7 @@ function imagecache_canvasactions_image_effect_info() {
     'label' => t('Underlay (background)'),
     'help' => t('Choose the file image you wish to use as an background, and position the processed image on it.'),
     'effect callback' => 'canvasactions_canvas2file_image',
+    'dimensions callback' => 'canvasactions_canvas2file_dimensions',
     'form callback' => 'canvasactions_canvas2file_form',
     'summary theme' => 'canvasactions_canvas2file_summary',
   );
@@ -85,6 +97,7 @@ function imagecache_canvasactions_image_effect_info() {
     'label' => t('Overlay: source image to canvas'),
     'help' => t('Places the source image onto the canvas for compositing.'),
     'effect callback' => 'canvasactions_source2canvas_image',
+    'dimensions passthrough' => TRUE,
     'form callback' => 'canvasactions_source2canvas_form',
     'summary theme' => 'canvasactions_source2canvas_summary',
   );
@@ -93,6 +106,7 @@ function imagecache_canvasactions_image_effect_info() {
     'label' => t('Rounded Corners'),
     'help' => t('This is true cropping, not overlays, so the result <em>can</em> be transparent.'),
     'effect callback' => 'canvasactions_roundedcorners_image',
+    'dimensions passthrough' => TRUE,
     'form callback' => 'canvasactions_roundedcorners_form',
     'summary theme' => 'canvasactions_roundedcorners_summary',
   );
@@ -101,6 +115,7 @@ function imagecache_canvasactions_image_effect_info() {
     'label' => t('Aspect switcher'),
     'help' => t('Use different effects depending on whether the image is landscape of portrait shaped. This re-uses other preset definitions, and just chooses between them based on the rule.'),
     'effect callback' => 'canvasactions_aspect_image',
+    'dimensions callback' => 'canvasactions_aspect_dimensions',
     'form callback' => 'canvasactions_aspect_form',
     'summary theme' => 'canvasactions_aspect_summary',
   );
@@ -118,6 +133,10 @@ function imagecache_canvasactions_theme() {
     'canvasactions_definecanvas_summary' => array(
       'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+    ),
+    'canvasactions_imagemask_summary' => array(
+      'file'      => 'canvasactions.inc',
+      'arguments' => array('element' => NULL),
     ),
     'canvasactions_file2canvas_summary' => array(
       'file' => 'canvasactions.inc',

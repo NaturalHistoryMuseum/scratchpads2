@@ -1,21 +1,16 @@
 name = Imagecache Actions
-description = Base for imagecache utilities used by the individual imagecache actions
-dependencies[] = image
-package = Image
+description = Provides a number of additional image effects.
+package = Media
 core = 7.x
 
+dependencies[] = image
 
-files[] = imageapi_image_overlay.inc
-files[] = imagecache_actions.module
-files[] = imagefilter.inc
-files[] = utility-color.inc
-files[] = utility-form.inc
-files[] = utility.inc
-files[] = watermark.inc
+; files with classes
+files[] = ImageCacheActionsModuleStreamWrapper.php
 
-; Information added by drupal.org packaging script on 2011-05-31
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-05-19
+version = "7.x-1.0"
 core = "7.x"
 project = "imagecache_actions"
-datestamp = "1306801365"
+datestamp = "1337423199"
 

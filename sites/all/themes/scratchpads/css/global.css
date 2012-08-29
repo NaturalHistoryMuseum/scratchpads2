@@ -668,7 +668,17 @@ table.biblio th{
 table.biblio td{
   min-width: 100px;
 }
-
+/****************** BLOG ****************/
+.view-blog-page .views-row-odd,
+.view-blog-page .views-row-even{
+  padding:2px 10px;	
+}
+.view-blog-page h3{
+	margin-top:4px !important;
+}
+.view-blog-page .views-row-odd{
+	background-color:#EDEDED;
+}
 /****************** SPM *****************/
 .node-spm .field-name-field-spm-map{
   margin-top: 10px;
@@ -823,7 +833,27 @@ width: 300px;
   color: #3E3E3E;
   padding: 0;
 }
+article.comment h3{
+	margin:0 0 5px !important;
+}
+article.comment{
+	margin:5px !important;
+	padding:10px !important;
+}
+article.comment.odd{
+  background-color: #EDEDED;
+}
+#comments h2{
+	margin-top:20px;
+}
 
+/****************** NODE LINKS *****************/
+.node-links{
+	padding-top:30px;
+}
+.node-links ul.links, .node-links ul.links li{	
+	padding-left:0 !important;
+}
 /************************ FORUMS *********************/
 #forum table{
 	width:100%;

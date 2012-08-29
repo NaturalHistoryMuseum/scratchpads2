@@ -1,10 +1,10 @@
 name = Imagecache Canvas Actions
 description = Actions for manipulating image canvases layers, including watermark and background effect. Also an aspect switcher (portrait/landscape)
-dependencies[] = imagecache_actions
-dependencies[] = image
-package = Image
+package = Media
 core = 7.x
 
+dependencies[] = imagecache_actions
+dependencies[] = image
 
 files[] = canvasactions.inc
 files[] = imagecache_canvasactions.install
@@ -23,9 +23,9 @@ files[] = tests/rounded_flattened.imagecache_preset.inc
 files[] = tests/watermark_100.imagecache_preset.inc
 files[] = tests/watermark_50.imagecache_preset.inc
 
-; Information added by drupal.org packaging script on 2011-05-31
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-05-19
+version = "7.x-1.0"
 core = "7.x"
 project = "imagecache_actions"
-datestamp = "1306801365"
+datestamp = "1337423199"
 

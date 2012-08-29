@@ -19,6 +19,13 @@
  */
 class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigration{
 
+  /**
+   * Mapping fixed term IDs to new field values
+   *
+   * @var array
+   */
+  protected $termMappings = array();
+
   public function __construct(array $arguments){
     // Add manual field mappingss
     $this->manualFieldMapping = array(
@@ -41,6 +48,10 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
       'location_latlong' => 'field_map'
     );
     parent::__construct($arguments);
+    // Load term mappings
+    $this->termMappings = array(
+      'continentocean' => scratchpads_migrate_get_terms('Continent/BodyOfWater')
+    );
   }
 
   public function sourceFieldList(){
@@ -76,28 +87,7 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
 
   public function prepareRow($row){
     parent::prepareRow($row);
-    $term_mappings = array(
-      'continentocean' => array(
-        1178 => 'Africa',
-        1185 => 'Antarctic',
-        1179 => 'Asia-Temperate',
-        1180 => 'Asia-Tropical',
-        1188 => 'Atlantic Ocean',
-        1181 => 'Australasia',
-        1187 => 'BodyOfWater',
-        1177 => 'Continent',
-        1186 => 'Europe',
-        1189 => 'Indian Ocean',
-        1193 => 'North-Central Pacific',
-        1183 => 'Northern America',
-        1192 => 'Northwestern Pacific',
-        1182 => 'Pacific',
-        1191 => 'South-Central Pacific',
-        1184 => 'Southern America',
-        1190 => 'Southwestern Pacific'
-      )
-    );
-    foreach($term_mappings as $delta => $term_mapping){
+    foreach($this->termMappings as $delta => $term_mapping){
       if(isset($row->{$delta})){
         if($row->{$delta} == 0){
           unset($row->{$delta});
@@ -107,7 +97,7 @@ class ScratchpadsNodeDarwincorelocationMigration extends ScratchpadsNodeMigratio
           }else{
             watchdog('scratchpads_migrate', 'Error, %delta term %term doesn\'t exist', array(
               '%delta' => $delta,
-              '%term' => $row->{$delta}
+              '%term' => $term_mapping[$row->{$delta}]
             ));
           }
         }
