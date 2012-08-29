@@ -10,14 +10,14 @@
  */
 
 $presets['scale_rotate'] = array (
-  'presetname' => 'scale_rotate',
+  'name' => 'scale_rotate',
   '#weight' => 1.3,
 
-  'actions' => array (
+  'effects' => array (
     1 => array (
       'weight' => '1',
-      'module' => 'imagecache',
-      'action' => 'imagecache_scale',
+      'module' => 'image',
+      'name' => 'image_scale',
       'data' => array (
         'width' => '',
         'height' => '150',
@@ -26,8 +26,8 @@ $presets['scale_rotate'] = array (
     ),
     2 => array (
       'weight' => '2',
-      'module' => 'imagecache',
-      'action' => 'imagecache_rotate',
+      'module' => 'image',
+      'name' => 'image_rotate',
       'data' => array (        
         'degrees' => '15',
         'random' => 0,

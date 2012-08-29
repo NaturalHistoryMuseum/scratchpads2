@@ -1,0 +1,84 @@
+<?php
+/**
+ * @file Provide text manipulation effects for image styles.
+ *
+ * Ported by dman
+ * from http://drupal.org/node/264862#comment-865490 by patrickharris
+ *
+ * Ported to D7 by fietserwin
+ * from imagecache_textactions 6.x-1.8.
+ * - The module has been renamed to follow D7 terminology:
+ *   * imagecache -> image
+ *   * action(s) -> effect(s)
+ *   resulting in image_effects_text.
+ * - The .module file is kept as small as possible. The real work is done in the
+ *   .inc file.
+ * - Function and parameter naming has been changed to match the image effects
+ *   in the core image module.
+ */
+
+/**
+ * Implements hook_image_effect_info().
+ *
+ * Defines information about the supported effects.
+ */
+function image_effects_text_image_effect_info() {
+  $effects = array();
+
+  $effects['image_effects_text'] = array(
+    'label' => t('Text'),
+    'help' => t('Add static or dynamic (coded) text to an image.'),
+    'dimensions passthrough' => TRUE,
+    'form callback' => 'image_effects_text_form',
+    'effect callback' => 'image_effects_text_effect',
+    'summary theme' => 'image_effects_text_summary',
+  );
+
+  return $effects;
+}
+
+/**
+ * Implements hook_help().
+ */
+function image_effects_text_help($path, $arg) {
+  if ($path === 'admin/advanced_help' && count($arg) >= 3 && $arg[2] === 'image_effects_text'
+      || $path === 'admin/help/image_effects_text') {
+    module_load_include('inc', 'image_effects_text', 'image_effects_text');
+    return image_effects_text_help_inc($path, $arg);
+  }
+  else if ($path === 'admin/help#image_effects_text') {
+    // This path just checks if there is (non-empty) help, so it can place a
+    // link to it.
+    return ' ';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * We register theme functions for the effect summaries.
+ */
+function image_effects_text_theme() {
+  return array(
+    'image_effects_text_summary' => array(
+      'variables' => array('data' => NULL),
+      'file' => 'image_effects_text.inc'
+    ),
+  );
+}
+
+/**
+ * Builds the form structure for the overlay text image effect.
+ */
+function image_effects_text_form($data) {
+  module_load_include('inc', 'image_effects_text', 'image_effects_text');
+  return image_effects_text_form_inc($data);
+}
+
+/**
+ * Callback to perform the image effect on the given image.
+ */
+function image_effects_text_effect($image, $data) {
+  module_load_include('inc', 'image_effects_text', 'image_effects_text');
+  return image_effects_text_effect_inc($image, $data);
+}

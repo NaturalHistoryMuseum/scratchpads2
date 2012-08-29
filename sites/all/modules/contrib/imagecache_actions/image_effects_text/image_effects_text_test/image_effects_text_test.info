@@ -1,0 +1,17 @@
+name = "Image Effects Text test"
+description = "Image effects that test the text effect"
+core = "7.x"
+package = "Features"
+version = "7.x-1.0-dev"
+project = "image_effects_text_test"
+dependencies[] = "image"
+dependencies[] = "image_effects_text"
+features[image][] = "text-rotate-test"
+features[image][] = "text-test"
+
+; Information added by drupal.org packaging script on 2012-05-19
+version = "7.x-1.0"
+core = "7.x"
+project = "imagecache_actions"
+datestamp = "1337423199"
+

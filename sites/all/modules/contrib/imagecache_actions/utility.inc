@@ -1,7 +1,152 @@
 <?php
 /**
- * Utility form, conversion and rendering functions for image processes
+ * @file utility.inc: uitility form, conversion and rendering functions for
+ * image processing.
  */
+
+/*
+ * File field handling.
+ */
+/**
+ *
+ * @param unknown_type $element
+ * @param unknown_type $form_status
+ */
+function imagecache_actions_file_field_description() {
+  return t('File is either a file with one of the valid schemes (e.g. private://, public://, module://{module}/{component}, temporary://), or an absolute or relative path (relative to the current directory, probably the Drupal site root).');
+}
+
+/**
+ *
+ * Enter description here ...
+ * @param unknown_type $element
+ * @param unknown_type $form_status
+ */
+function imagecache_actions_validate_file(&$element, &$form_status) {
+  if (!imagecache_actions_find_file($element['#value'])) {
+    form_error($element, t("Unable to find the file '%file'. Please check the path.", array('%file' => $element['#value'])) );
+  }
+}
+
+
+/**
+ * Looks up and returns the full path of the given file.
+ *
+ * We accept files with the following schemes:
+ * - private://
+ * - public://
+ * - temporary://
+ * - module://{module}/{component}
+ *
+ * Files without a scheme are looked up as are:
+ * - relative: relative to the current directory (probably $drupal_root).
+ * - absolute: as is.
+ *
+ * @param string $file
+ *   A file name, with a scheme, relative, or absolute.
+ *
+ * @return string|false
+ *   The full file path of the file, so the image toolkit knows exactly where it
+ *   is.
+ */
+function imagecache_actions_find_file($file) {
+  $result = FALSE;
+  if (is_readable($file)) {
+    $result = drupal_realpath($file);
+  }
+  return $result;
+}
+
+/**
+ * Loads the given file as an image object.
+ *
+ * @param string $file
+ *   A file name, with a scheme, relative, or absolute.
+ *
+ * @return object|null
+ *   The image object.
+ *
+ * @see imagecache_actions_find_file()
+ * @see image_load()
+ */
+function imagecache_actions_image_load($file, $toolkit = FALSE) {
+  $full_path = imagecache_actions_find_file($file);
+  if (!$full_path) {
+    trigger_error("Failed to find file $file.", E_USER_ERROR);
+    return FALSE;
+  }
+
+  $image = image_load($full_path, $toolkit);
+  if (!$image) {
+    trigger_error("Failed to open file '$file' as an image resource.", E_USER_ERROR);
+  }
+
+  return $image;
+}
+
+
+/**
+ * Return an array with context information about the image.
+ *
+ * This information can e.g. be used by effects that allow custom PHP like
+ * - Custom action.
+ * - Text from PHP code.
+ * - Text from alt or title.
+ *
+ * @param object $image
+ *   The image object.
+ * @param array $data
+ *   An associative array with the effect options.
+ *
+ * @return array
+ *   An associative array with context information about the image.
+ */
+function imagecache_actions_get_image_context($image, $data) {
+  // Store context about the image.
+  $image_context = array(
+        'effect_data' => $data,
+        'managed_file' => NULL,
+        'referring_entities' => array(),
+        'entity' => NULL,
+        'image_field' => NULL,
+  );
+
+  // Find the managed file object (at most 1 object as 'uri' is a unique index).
+  $managed_file = reset(file_load_multiple(array(), array('uri' => $image->source)));
+  if ($managed_file !== FALSE) {
+    $image_context['managed_file'] = $managed_file;
+    // And find the entities referring to this managed file.
+    $references = file_get_file_references($managed_file, NULL, FIELD_LOAD_CURRENT, 'image');
+    if ($references) {
+      // Load referring entities.
+      foreach ($references as $field_name => $field_references) {
+        foreach ($field_references as $entity_type => $entity_stubs) {
+          $image_context['referring_entities'][$field_name][$entity_type] = entity_load($entity_type, array_keys($entity_stubs));
+        }
+      }
+
+      // Make it easy to access the '1st' entity and its referring image field.
+      reset($image_context['referring_entities']);
+      list($field_name, $field_references) = each($image_context['referring_entities']);
+      reset($field_references);
+      list($entity_type, $entities) = each($field_references);
+      reset($entities);
+      list($entity_id, $image_context['entity']) = each($entities);
+      $image_field = field_get_items($entity_type, $image_context['entity'], $field_name);
+      if ($image_field !== FALSE) {
+        // Get referring item
+        foreach ($image_field as $image_field_value) {
+          if ($image_field_value['fid'] === $managed_file->fid) {
+            $image_context['image_field'] = $image_field_value;
+          }
+        }
+      }
+    }
+  }
+
+  // @todo: support for media module, or is that based upon managed files?
+  return $image_context;
+}
 
 /**
  * Given two imageapi objects with dimensions, and some positioning values,
@@ -184,6 +329,10 @@ function imagecache_actions_hex2rgba($hex) {
   $g = hexdec($g);
   $b = hexdec($b);
   $a = hexdec($a);
+  // alpha over 127 is illegal. assume they meant half that.
+  if ($a > 127) {
+    $a = (int)$a/2;
+  }
   return array('red' => $r, 'green' => $g, 'blue' => $b, 'alpha' => $a);
 }
 
@@ -232,133 +381,78 @@ function imagecache_include_standard_actions() {
   //include_once DRUPAL_ROOT . '/' . $cropaction['file'];
 }
 
-
-
 /**
- * Given only a file filename, track back to see if we can detect the parent
- * node and provide some context info.
+ * Given a file path relative the default file scheme, tries to locate it and,
+ * is successful, finds all fields that use it.
  *
- * This will be different in different cases.
- * Supported :
- * image.module image nodes
- * imagefield cck fields (may be multiple)
- * upload.module attachments
+ * @param $filepath Actually a Drupal file URI, probably.
  *
- * TODO: image_attach attachments
- *
- * @param $filepath
- * @param $file_data MAY get some details filled in on it by reference if data
- * was found.
- *
- * @return a loaded $node object
+ * @return
+ *   A nested array of basic entity data, grouped by entity type and field name.
  */
-function imagecache_actions_node_from_filepath($filepath, &$file_data = NULL) {
-
-  // lookup upload.module attachments
-  if (module_exists('upload')) {
-    $sql = "SELECT nid, f.fid FROM {upload} AS u INNER JOIN {files} AS f ON u.fid = f.fid WHERE f.filepath = '%s'";
-    $results = db_query_range("SELECT nid, f.fid FROM {upload} AS u INNER JOIN {files} AS f ON u.fid = f.fid WHERE f.filepath = :f.filepath", array(':f.filepath' => $filepath), 0, 1);
-    if ( $row = db_fetch_array($results)) {
-      // Return immediately
-      $node = node_load($row['nid']);
-      // also include the file description
-      $file_data = $node->files[$row['fid']];
-      return $node;
-    }
+function imagecache_actions_fields_from_filepath($filepath, $load_entity = TRUE) {
+  if (!module_exists('file')) {
+    return;
   }
 
-  // Lookup image.module nodes
-  if (module_exists('image')) {
-    $sql = "SELECT nid FROM {image} AS i INNER JOIN {files} AS f ON i.fid = f.fid WHERE f.filepath = '%s'";
-    if ( $nid = db_query_range("SELECT nid FROM {image} AS i INNER JOIN {files} AS f ON i.fid = f.fid WHERE f.filepath = :f.filepath", array(':f.filepath' => $filepath), 0, 1)->fetchField()) {
-      // Return immediately
-      return node_load($nid);
-    }
+  // Unsure if we are given a real filepath (the normal assumption) or a
+  // Drupal scheme URI. Resolve either.
+  if (! file_valid_uri($filepath)) {
+    $filepath = file_build_uri($filepath);
   }
 
+  $files = file_load_multiple(array(), array('uri' => $filepath));
 
-  // Lookup filefield imagefield CCK attachments.
-  //
-  // Drupal 6 version here based largely on work done by mikeytown2
-  // http://drupal.org/node/363434
-
-  // This is a terrible way to retrieve information, but CCK doesn't provide a way to reverse-lookup like this
-  // BAD CODE follows
-  // If someone could roll these DBlookups into a smaller ball, that would be fun.
-  // Due to CCKs use of dynamically created table names .. I don't know how.
-
-  // Multiple file ID's might have the same name, get all
-  // (but return just the first successful match)
-  $result = db_query("SELECT fid FROM {files} WHERE filepath = :filepath", array(':filepath' => $filepath));
-  $fids = array();
-  while ($row = db_fetch_array($result)) {
-    $fids[] = $row['fid'];
-  }
-
-  if (! empty($fids)) {
-    // Find out if any filefield contains this file, and if so, which field
-    // and node it belongs to. Required for later access checking.
-    // CCK field analysis is in the outer loop,
-    // fids are scanned in the inner loop for a little speed.
-
-    // Get A List Of ALL CCK Fields and look for them individually,
-    // it's the only way we can reverse the lookups
-    foreach (content_fields() as $field) {
-      // If Field is an Image (imagefield.module) or filefield then
-      if ($field['type'] == 'image' || $field['type'] == 'filefield') {
-        // Need to do lots of lookups to find out what the storage tables look like.
-        // Grab All DB Column Names for that CCK Field
-        $db_info = content_database_info($field);
-        // Get Content Type DB name - FROM statement
-        $tablename = $db_info['table'];
-        //Get File ID DB Column Name - WHERE statement
-        $fid_column = $db_info['columns']['fid']['column'];
-
-        // Construct a Query that looks for all known fids in one go.
-        // eg:
-        // SELECT nid FROM content_type_story
-        //   WHERE field_illustration_fid = 77
-        //   OR field_illustration_fid = 99;
-
-        $wheres = array();
-        $query_args = array();
-        foreach ($fids as $fid) {
-          $wheres[] = " %s = %d ";
-          $query_args[] = $fid_column;
-          $query_args[] = $fid;
-        }
-
-        // TODO Please convert this statement to the D7 database API syntax.
-        $result = db_query('SELECT nid FROM {' . $tablename . '} WHERE ' . join(' OR ', $wheres), $query_args);
-
-        while ($row = db_fetch_array($result)) {
-          // This while is a dummy loop - Just break out and return the first matching node.
-          // If more than one node owns this image then ???
-          $node = node_load($row['nid']);
-
-          // Add even more info - the description "data" that MAY have been added
-          // to this file on this node using filefield_meta and stuff.
-          // Return the data associated specifically with this file also;
-          // Do this via the handle on the file_data object we were passed in.
-          // Slightly mushed together - I want it to mostly resemble the traditional file attachment object.
-
-          // We have the node but lost track of the file in the process.
-          // Need to scan again to make sure we got the right one :-{
-          if ( $file_fields = $node->{$field['field_name']} ) {
-            foreach ($file_fields as $file_field) {
-              if ($file_field['fid'] == $fid) {
-                $actual_file = $file_field;
-              }
-            }
-            $file_data = (object) array_merge((array) $file_data, $actual_file['data'], $actual_file);
-
-          }
-          return $node;
-        }
-      }
+  if ($files) {
+    $fields = array();
+    foreach ($files as $fid => $file) {
+      $references = file_get_file_references($file, NULL, FIELD_LOAD_CURRENT, 'image');
+      $fields[$fid] = $references;
     }
+
+    if ($load_entity) {
+      // These references are pretty low on information. Load the actual nodes/entities too.
+      imagecache_actions_entities_from_references($fields);
+    }
+
+
+    return $fields;
   }
 }
+
+/**
+ * Load additional data - Fully load the entities that actually use the given file, with all their data.
+ *
+ * Replaces the full entity object in place of the placeholder object that file_get_file_references() gives us.
+ */
+function imagecache_actions_entities_from_references(&$fields) {
+  foreach ($fields as $fid => $field_ids) {
+    foreach ($field_ids as $field_id => $entity_types) {
+      foreach ($entity_types as $entity_type => $entity_instances) {
+        #$entities = entity_load($entity_type, array_keys($entity_instances));
+        foreach ($entity_instances as $entity_id => $entity) {
+          $entity = entity_load_single($entity_type, $entity_id);
+          // Add this extra data to the return info, replacing the lightweight version
+          $fields[$fid][$field_id][$entity_type][$entity_id] = $entity;
+
+          #// Also bubble up the field info so it's easier to get at? No, that's way too deep.
+          #// Still, it would be a common use-case to fetch the 'title' from that file.
+          #// Don't know WHICH of the files our target file is yet, so need to scan. Boring
+          #$entity_refs = $references[$fid][$field_id][$entity_type][$entity_id][$field_id][$entity->language];
+          #foreach ($entity_refs as $delta => $file_details) {
+          #  if ($file_details['fid'] == $fid) {
+          #    // Found it. This has the alt and title metadata we expect.
+            #    $file_info = $file_details;
+            #    // Now what?
+          #  }
+          #} // Scan actual field data to find the file again.
+
+        } // All actual entities
+      } // All types of entity that ref the file
+    } // All references to this file
+  } // All entries for this file found in the db (expected to be only 1)
+}
+
 
 function imagecache_actions_percent_filter($value, $current_pixels) {
   if (strpos($value, '%') !== false) {

@@ -1,0 +1,25 @@
+<?php
+/**
+ * @file Set up new text effects.
+ *
+ * @todo: is this cache we are clearing still in use?
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Need to flush the cache when this module is enabled or disabled.
+ */
+function image_effects_text_install() {
+  cache_clear_all('imagecache_actions', 'cache');
+  drupal_set_message(t('Additional image effects to add text should now be available in the effects list on !settings_link', array('!settings_link' => l(t('settings'), 'admin/config/media/image-styles'))));
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * This hook implementation clears the imagecache_actions cache.
+ */
+function image_effects_text_uninstall() {
+  cache_clear_all('imagecache_actions', 'cache');
+}
