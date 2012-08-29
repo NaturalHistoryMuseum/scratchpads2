@@ -61,13 +61,19 @@ function scratchpads_image_styles_image_styles_alter(&$styles){
   foreach($styles_to_change as $style_to_change){
     if($styles[$style_to_change]['storage'] == IMAGE_STORAGE_DEFAULT){
       $styles[$style_to_change]['effects'][] = array(
+        'label' => 'Change file format',
+        'help' => 'Choose to save the image as a different filetype.',
+        'effect callback' => 'coloractions_convert_image',
+        'dimensions passthrough' => TRUE,
+        'form callback' => 'coloractions_convert_form',
         'summary theme' => 'coloractions_convert_summary',
+        'module' => 'imagecache_coloractions',
         'name' => 'coloractions_convert',
         'data' => array(
           'format' => 'image/jpeg',
-          'quality' => '80'
+          'quality' => '80',
         ),
-        'weight' => '1'
+        'weight' => '100',
       );
     }
   }
