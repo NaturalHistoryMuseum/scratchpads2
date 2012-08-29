@@ -8,6 +8,7 @@ dependencies[] = views_slideshow_cycle
 dependencies[] = context
 dependencies[] = styles
 dependencies[] = file_styles
+dependencies[] = imagecache_coloractions
 dependencies[] = entity
 dependencies[] = media
 dependencies[] = scratchpads_blocks
