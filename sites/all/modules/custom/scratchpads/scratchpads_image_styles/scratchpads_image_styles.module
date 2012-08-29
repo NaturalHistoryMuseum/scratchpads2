@@ -4,32 +4,48 @@
  * Implements hook_image_default_styles().
  */
 function scratchpads_image_styles_image_default_styles(){
-  $styles = array();
-  $styles['square_thumbnail'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => 85,
-          'height' => 85
+  return array(
+    'square_thumbnail' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 85,
+            'height' => 85
+          ),
+          'weight' => 0
         ),
-        'weight' => 0
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'square_thumbnail_large' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 200,
+            'height' => 200
+          ),
+          'weight' => 0
+        ),
+        array(
+          'name' => 'coloractions_convert',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
       )
     )
   );
-  $styles['square_thumbnail_large'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => 200,
-          'height' => 200
-        ),
-        'weight' => 0
-      )
-    )
-  );
-  return $styles;
 }
 
 /**
