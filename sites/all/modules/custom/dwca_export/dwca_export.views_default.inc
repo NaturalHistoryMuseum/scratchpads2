@@ -1689,9 +1689,20 @@ function dwca_export_views_default_views(){
 }
 
 function _dwca_export_view_description($desc_type){
+  //Array to translate our field names into DwC/SPM accepted terms
+  $replacements = array(
+    'general_description' => 'general',
+    'behaviours' => 'behaviour',
+    'conservation_status' => 'conservation',
+    'diagnostic_description' => 'diagnostic',
+    'life_cycle' => 'lifecycle',
+    'life_expectancy' => 'lifespan',
+    'population_biology' => 'population',
+    'uses' => 'use',
+  );
   $desc_type_std = $desc_type;
-  if($desc_type == 'general_description'){
-    $desc_type_std = 'general';
+  if(isset($replacements[$desc_type])){
+    $desc_type_std = $replacements[$desc_type];
   }
   $view = new view();
   $view->name = 'dwca_export_description_' . substr($desc_type, 0, 6);
