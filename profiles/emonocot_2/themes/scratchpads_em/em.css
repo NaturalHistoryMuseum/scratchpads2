@@ -1,0 +1,10 @@
+@CHARSET "UTF-8";
+
+h1.site-name, h2.site-name {
+    font-size: 40px;
+    margin: 8px 0px 0px 0px !important;
+}
+
+.views-label{
+	font-weight:bold;
+}
