@@ -45,7 +45,10 @@ function character_editor_views_plugins(){
         'additional themes base' => 'views_data_export_sdd',
         'path' => drupal_get_path('module', 'views_data_export') . '/plugins',
         'parent' => 'views_data_export',
-        'theme' => 'views_data_export',
+        // FIXME - This needs reinstating to allow the SDD export function to
+        // work.  This has been removed to allow the dwca_export drush/cron
+        // command to work when this module is enabled.
+        //'theme' => 'views_data_export',
         'theme path' => $path . '/theme',
         'theme file' => 'theme.inc',
         'uses row plugin' => FALSE,
