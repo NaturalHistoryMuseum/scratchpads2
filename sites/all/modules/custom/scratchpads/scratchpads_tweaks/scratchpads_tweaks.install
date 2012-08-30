@@ -329,6 +329,7 @@ function scratchpads_tweaks_install(){
   menu_delete_links('shortcut-set-1');
   // Set the image toolkit as imagemagick.
   variable_set('image_toolkit', 'imagemagick');
+  variable_set('imagemagick_convert', 'convert');
   // Set the logging level
   variable_set('error_level', ERROR_REPORTING_HIDE);
   if($_SERVER['SERVER_ADDR'] == '157.140.127.10' || $_SERVER['SERVER_ADDR'] == '157.140.127.252'){
@@ -903,4 +904,11 @@ function scratchpads_tweaks_update_7021(){
  */
 function scratchpads_tweaks_update_7022(){
   variable_set('image_toolkit', 'imagemagick');
+}
+
+/**
+ * Set the convert path because the imagemagick module wants us to (WTF!)
+ */
+function scratchpads_tweaks_update_7023(){
+  variable_set('imagemagick_convert', 'convert');
 }
