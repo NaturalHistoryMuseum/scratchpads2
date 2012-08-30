@@ -509,7 +509,7 @@ function gm3_polygon_items_validate($items, $field_name, &$errors){
   if(isset($items['map']['map']) && is_string($items['map']['map'])){
     $polygons = preg_split('/[\r\n]+/', $items['map']['map']);
     foreach($polygons as $polygon){
-      if(!gm3_is_valid_polygon($polygon)){
+      if($polygon && !gm3_is_valid_polygon($polygon)){
         $errors[$field_name][LANGUAGE_NONE][0][] = array(
           'error' => 'gm3_invalid_data',
           'message' => t('Invalid map data has been entered. Please reload this page before resubmitting.')
