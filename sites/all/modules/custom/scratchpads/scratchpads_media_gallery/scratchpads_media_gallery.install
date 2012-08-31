@@ -176,7 +176,6 @@ function scratchpads_media_gallery_uninstall(){
   db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
 }
 
-
 /**
  * Page media field should not be required
  */
@@ -194,4 +193,35 @@ function scratchpads_media_gallery_update_7002(){
   db_update('node_type')->fields(array(
     'base' => ''
   ))->condition('module', 'scratchpads_media_gallery')->execute();
+}
+
+/**
+ * Update the page instance of the field_media field to alter its display. 
+ */
+function scratchpads_media_gallery_update_7003(){
+  $field_instance = field_info_instance('node', 'field_media', 'page');
+  $field_instance['display'] = array(
+    'default' => array(
+      'label' => 'above',
+      'module' => 'file_entity',
+      'settings' => array(
+        'file_view_mode' => 'file_styles_square_thumbnail'
+      ),
+      'type' => 'file_rendered',
+      'weight' => '12'
+    ),
+    'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 1
+    ),
+    'teaser' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0
+    )
+  );
+  field_update_instance($field_instance);
 }

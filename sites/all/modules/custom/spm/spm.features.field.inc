@@ -27,10 +27,10 @@ function spm_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -183,9 +183,11 @@ function spm_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'styles',
-          'settings' => array(),
-          'type' => 'styles_file_scratchpads_media_gallery_thumbnail',
+          'module' => 'file_entity',
+          'settings' => array(
+            'file_view_mode' => 'file_styles_square_thumbnail'
+          ),
+          'type' => 'file_rendered',
           'weight' => '100'
         ),
         'linked_node' => array(

@@ -46,9 +46,11 @@ function darwincore_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'styles',
-          'settings' => array(),
-          'type' => 'styles_file_square_thumbnail',
+          'module' => 'file_entity',
+          'settings' => array(
+            'file_view_mode' => 'file_styles_square_thumbnail'
+          ),
+          'type' => 'file_rendered',
           'weight' => '1'
         ),
         'linked_node' => array(

@@ -42,3 +42,34 @@ function spm_update_7004(){
   	field_update_instance($instance);
   }
 }
+
+/**
+ * Update the spm instance of the field_media field to alter its display. 
+ */
+function spm_update_7005(){
+  $field_instance = field_info_instance('node', 'field_media', 'spm');
+  $field_instance['display'] = array(
+    'default' => array(
+      'label' => 'above',
+      'module' => 'file_entity',
+      'settings' => array(
+        'file_view_mode' => 'file_styles_square_thumbnail'
+      ),
+      'type' => 'file_rendered',
+      'weight' => '12'
+    ),
+    'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 1
+    ),
+    'teaser' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0
+    )
+  );
+  field_update_instance($field_instance);
+}

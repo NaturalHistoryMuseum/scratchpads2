@@ -171,9 +171,17 @@ function scratchpads_media_gallery_field_default_fields(){
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'file',
+          'module' => 'file_entity',
+          'settings' => array(
+            'file_view_mode' => 'file_styles_square_thumbnail'
+          ),
+          'type' => 'file_rendered',
+          'weight' => '12'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
           'settings' => array(),
-          'type' => 'file_default',
+          'type' => 'hidden',
           'weight' => 1
         ),
         'teaser' => array(
@@ -445,10 +453,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -500,10 +508,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'none',
@@ -555,10 +563,10 @@ function scratchpads_media_gallery_field_default_fields(){
             'links_option' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -',
+            'wrapper_option' => '- None -'
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1',
+          'weight' => '1'
         ),
         'linked_node' => array(
           'label' => 'none',
