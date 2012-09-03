@@ -35,13 +35,13 @@ function spm_update_7003(){
 function spm_update_7004(){
   module_load_include('features.field.inc', 'spm');
   $spm_fields = spm_field_default_fields();
-  foreach ($spm_fields as $spm_field){
-  	$instance = field_read_instance('node', $spm_field['field_config']['field_name'], 'spm');
-  	if($instance){
-    	$instance['widget']['weight'] = $spm_field['field_instance']['widget']['weight'];
-    	$instance['display']['default']['weight'] = $spm_field['field_instance']['display']['default']['weight'];
-    	field_update_instance($instance);
-  	}
+  foreach($spm_fields as $spm_field){
+    $instance = field_read_instance('node', $spm_field['field_config']['field_name'], 'spm');
+    if($instance){
+      $instance['widget']['weight'] = $spm_field['field_instance']['widget']['weight'];
+      $instance['display']['default']['weight'] = $spm_field['field_instance']['display']['default']['weight'];
+      field_update_instance($instance);
+    }
   }
 }
 
