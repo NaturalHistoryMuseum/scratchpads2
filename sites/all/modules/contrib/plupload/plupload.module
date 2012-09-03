@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function plupload_menu() {
   $items['plupload-handle-uploads'] = array(
@@ -26,7 +26,7 @@ function plupload_menu() {
  * Verifies the token for this request.
  */
 function plupload_upload_access() {
-  foreach(func_get_args() as $permission) {
+  foreach (func_get_args() as $permission) {
     if (!user_access($permission)) {
       return FALSE;
     }
@@ -63,7 +63,7 @@ function plupload_test_submit($form, &$form_state) {
       // Note - not using file_move here because if we call file_get_mime
       // (in file_uri_to_object) while it has a .tmp extension, it horks.
       $destination = file_unmanaged_move($source, $destination, FILE_EXISTS_RENAME);
-      $file = file_uri_to_object($destination);
+      $file = plupload_file_uri_to_object($destination);
       file_save($file);
       $saved_files[] = $file;
     }
@@ -150,16 +150,34 @@ function plupload_element_value(&$element, $input = FALSE, $form_state = NULL) {
         // don't want an attacker to be able to get them back into the top
         // level of public:// in that case).
         $value = rtrim(basename($value), '.');
+
+
+        // Based on the same feture from file_save_upload().
+        if (!variable_get('allow_insecure_uploads', 0) && preg_match('/\.(php|pl|py|cgi|asp|js)(\.|$)/i', $value) && (substr($value, -4) != '.txt')) {
+          $value .= '.txt';
+
+          // The .txt extension may not be in the allowed list of extensions. We have
+          // to add it here or else the file upload will fail.
+          if (!empty($extensions)) {
+            $element['#upload_validators']['file_validate_extensions'][0] .= ' txt';
+            drupal_set_message(t('For security reasons, your upload has been renamed to %filename.', array('%filename' => $value)));
+          }
+        }
       }
 
       // The temporary file name has to be processed further so it matches what
       // was used when the file was written; see plupload_handle_uploads().
       if ($key == 'tmpname') {
-        $value = plupload_fix_temporary_filename($value);
+        $value = _plupload_fix_temporary_filename($value);
         // We also define an extra key 'tmppath' which is useful so that submit
         // handlers do not need to know which directory plupload stored the
         // temporary files in before trying to copy them.
         $files[$i]['tmppath'] = variable_get('plupload_temporary_uri', 'temporary://') . $value;
+      }
+      elseif ($key == 'name') {
+        if (module_exists('transliteration')) {
+          $value = transliteration_clean_filename($value);
+        }
       }
 
       // Store the final value in the array we will return.
@@ -173,6 +191,12 @@ function plupload_element_value(&$element, $input = FALSE, $form_state = NULL) {
  * #process callback.
  */
 function plupload_element_process($element) {
+  // Start session if not there yet. We need session if we want security
+  // tokens to work properly
+  if (!drupal_session_started()) {
+    drupal_session_start();
+  }
+
   if (!isset($element['#upload_validators'])) {
     $element['#upload_validators'] = array();
   }
@@ -193,7 +217,7 @@ function plupload_element_validate($element, &$form_state) {
     //   now, we can at least rely on file_validate_extensions() running
     //   successfully.
     $destination = variable_get('file_default_scheme', 'public') . '://' . $file_info['name'];
-    $file = file_uri_to_object($destination);
+    $file = plupload_file_uri_to_object($destination);
     foreach (file_validate($file, $element['#upload_validators']) as $error_message) {
       form_error($element, $error_message);
     }
@@ -234,14 +258,21 @@ function plupload_element_pre_render($element) {
 }
 
 /**
+ * Returns the path to the plupload library.
+ */
+function _plupload_library_path() {
+  return variable_get('plupload_library_path', module_exists('libraries') ? libraries_get_path('plupload') : 'sites/all/libraries/plupload');
+}
+
+/**
  * Implements hook_library().
  */
 function plupload_library() {
-  $library_path = variable_get('plupload_library_path', module_exists('libraries') ? libraries_get_path('plupload') : 'sites/all/libraries/plupload');
+  $library_path = _plupload_library_path();
   $libraries['plupload'] = array(
     'title' => 'Plupload',
     'website' => 'http://www.plupload.com',
-    'version' => '1.4.3.2',
+    'version' => '1.5.1.1',
     'js' => array(
       // @todo - only add gears JS if gears is an enabled runtime.
       // $library_path . '/js/gears_init.js' => array(),
@@ -256,7 +287,7 @@ function plupload_library() {
           // @todo Provide a settings page for configuring these.
           'runtimes' => 'html5,flash,html4',
           'url' => url('plupload-handle-uploads', array('query' => array('plupload_token' => drupal_get_token('plupload-handle-uploads')))),
-          'max_file_size' => '10mb',
+          'max_file_size' => file_upload_max_size() . 'b',
           'chunk_size' => '1mb',
           'unique_names' => TRUE,
           'flash_swf_url' => file_create_url($library_path . '/js/plupload.flash.swf'),
@@ -278,6 +309,12 @@ function plupload_library() {
       ))),
     ),
   );
+
+  if (module_exists('locale')) {
+    $module_path = drupal_get_path('module', 'plupload');
+    $libraries['plupload']['js'][$module_path . '/js/i18n.js'] = array('scope' => 'footer');
+  }
+
   return $libraries;
 }
 
@@ -300,7 +337,7 @@ function plupload_handle_uploads() {
 
   // Get and clean the filename.
   $file_name = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
-  $file_name = plupload_fix_temporary_filename($file_name);
+  $file_name = _plupload_fix_temporary_filename($file_name);
 
   // Check the file name for security reasons; it must contain letters, numbers
   // and underscores followed by a (single) ".tmp" extension. Since this check
@@ -322,7 +359,7 @@ function plupload_handle_uploads() {
   }
 
   // Is this a multipart upload?
-  if (strpos($content_type, "multipart") !== false) {
+  if (strpos($content_type, "multipart") !== FALSE) {
     if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
       // Open temp file
       $out = fopen($temp_directory . $file_name, $chunk == 0 ? "wb" : "ab");
@@ -334,13 +371,14 @@ function plupload_handle_uploads() {
           while ($buff = fread($in, 4096)) {
             fwrite($out, $buff);
           }
+          fclose($in);
         }
         else {
           die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
         }
 
         fclose($out);
-        unlink($_FILES['file']['tmp_name']);
+        drupal_unlink($_FILES['file']['tmp_name']);
       }
       else {
         die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
@@ -361,6 +399,7 @@ function plupload_handle_uploads() {
         while ($buff = fread($in, 4096)) {
           fwrite($out, $buff);
         }
+        fclose($in);
       }
       else {
         die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
@@ -377,32 +416,31 @@ function plupload_handle_uploads() {
   die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');
 }
 
-if (!function_exists('file_uri_to_object')) {
-  // @todo: get this committed http://drupal.org/node/685818
-
-  /**
-   * Returns a file object which can be passed to file_save().
-   *
-   * @param $uri
-   *  A string containing the URI, path, or filename.
-   * @return
-   *  A file object, or FALSE on error.
-   */
-  function file_uri_to_object($uri) {
-    global $user;
-    $uri = file_stream_wrapper_uri_normalize($uri);
-    $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
-    $file = new StdClass;
-    $file->uid = $user->uid;
-    $file->filename = basename($uri);
-    $file->uri = $uri;
-    $file->filemime = file_get_mimetype($uri);
-    // This is gagged because some uris will not support it.
-    $file->filesize = @filesize($uri);
-    $file->timestamp = REQUEST_TIME;
-    $file->status = FILE_STATUS_PERMANENT;
-    return $file;
-  }
+/**
+ * Returns a file object which can be passed to file_save().
+ *
+ * @param $uri
+ *  A string containing the URI, path, or filename.
+ * @return
+ *  A file object, or FALSE on error.
+ *
+ * @todo Replace with calls to this function with file_uri_to_object() when
+ * http://drupal.org/node/685818 is fixed in core.
+ */
+function plupload_file_uri_to_object($uri) {
+  global $user;
+  $uri = file_stream_wrapper_uri_normalize($uri);
+  $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
+  $file = new StdClass;
+  $file->uid = $user->uid;
+  $file->filename = basename($uri);
+  $file->uri = $uri;
+  $file->filemime = file_get_mimetype($uri);
+  // This is gagged because some uris will not support it.
+  $file->filesize = @filesize($uri);
+  $file->timestamp = REQUEST_TIME;
+  $file->status = FILE_STATUS_PERMANENT;
+  return $file;
 }
 
 /**
@@ -429,7 +467,7 @@ if (!function_exists('file_uri_to_object')) {
  *   The corrected temporary filename, with a ".tmp" extension replacing the
  *   original one.
  */
-function plupload_fix_temporary_filename($filename) {
+function _plupload_fix_temporary_filename($filename) {
   $pos = strpos($filename, '.');
   if ($pos !== FALSE) {
     $filename = substr_replace($filename, '.tmp', $pos);
