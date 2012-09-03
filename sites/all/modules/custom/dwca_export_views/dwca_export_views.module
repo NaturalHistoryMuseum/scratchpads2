@@ -146,25 +146,41 @@ function dwca_export_views_fields_form($form, &$form_state) {
 			//$fields = $view->display_handler->get_field_labels();
 			$fields =$view->display['default']->display_options['fields'];
 			
+			$handler->display->display_options['fields']['title']['exclude'] = TRUE;
+			
 			$field_index = 0;
+			$exclude_hidden_field = FALSE;
+			
 			foreach ($fields as $field_key => $field_label) {
 				
 				//display the field_keys as the names of each text box in this form
-				
-				//drupal_set_message(t('value') . $value . t('value and field_index ') . $field_index);
+								
+				/////drupal_set_message(t('value') . $field_key . t('value and field_index ') . $field_index . $value);
+				// the label is an array
+				foreach ($field_label as $key => $label) {				
 					
+					// if there is a key exclude and the value = TRUE exclude this field
+					if($key == 'exclude' && $label == TRUE){
+						$exclude_hidden_field = TRUE;
+					}
+					
+				}
+				
+				if ($exclude_hidden_field == FALSE) {	
 				$form[$value][$field_key] = array(
 				    '#type' => 'textfield',
 				    '#title' => $field_key,
 				    '#description' => t('Enter the DwC-A term for the field - ' . $field_key),
 					'#default_value' => $views[$value][$field_index],
-					'#size' => 30,
+					'#size' => 60,
 					'#collapsible' => 1,
 					'#collapsed' => 1,
 					'#tree' => 1,
 				);
-																				
-			$field_index++;	
+				$field_index++;
+				}
+
+				$exclude_hidden_field = FALSE;
 		}		
 	}
 	$count++;	
