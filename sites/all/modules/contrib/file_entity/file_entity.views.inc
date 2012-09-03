@@ -9,7 +9,7 @@
  * Implements hook_views_data().
  */
 function file_entity_views_data() {
-  // File type
+  // File type.
   $data['file_managed']['type'] = array(
     'title' => t('Type'),
     'help' => t('The type of the file (for example, "audio", "image", "video", etc).'),
@@ -25,6 +25,19 @@ function file_entity_views_data() {
     ),
     'argument' => array(
       'handler' => 'views_handler_argument_file_type',
+    ),
+  );
+  // Rendered file.
+  $data['file_managed']['rendered'] = array(
+    'title' => t('Rendered'),
+    'help' => t('Display the file in a specific view mode.'),
+    'field' => array(
+      'handler' => 'views_handler_field_file_rendered',
+      'click sortable' => TRUE,
+      'real field' => 'fid',
+      'additional fields' => array(
+        'fid',
+      ),
     ),
   );
 

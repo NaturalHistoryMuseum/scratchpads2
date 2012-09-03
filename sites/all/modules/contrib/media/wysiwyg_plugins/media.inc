@@ -17,11 +17,11 @@ function media_media_plugin() {
 
   // Plugin definition
   $plugins['media'] = array(
-    'title' => t(media_variable_get('wysiwyg_title')),
+    'title' => media_variable_get('wysiwyg_title'),
     'vendor url' => 'http://drupal.org/project/media',
     'icon path' => drupal_get_path('module', 'media') . '/images',
     'icon file' => 'wysiwyg-media.gif',
-    'icon title' => t(media_variable_get('wysiwyg_icon_title')),
+    'icon title' => media_variable_get('wysiwyg_icon_title'),
     // @todo: move this to the plugin directory for the wysiwyg plugin.
     'js path' => drupal_get_path('module', 'media') . '/js',
     'js file' => 'wysiwyg-media.js',
@@ -29,6 +29,7 @@ function media_media_plugin() {
     'css path' => NULL,
     'settings' => array(
       'global' => array(
+        'enabledPlugins' => media_variable_get('wysiwyg_browser_plugins'),
         'types' => media_variable_get('wysiwyg_allowed_types'),
         'id' => 'media_wysiwyg',
       ),
@@ -64,4 +65,22 @@ function media_include_browser_js() {
   // Add wysiwyg-specific settings.
   $settings = array('blacklist' => array('src', 'fid', 'view_mode', 'format'));
   drupal_add_js(array('media' => $settings), 'setting');
+}
+
+/**
+ * Element validate callback for the media WYSIWYG button.
+ */
+function media_wysiwyg_button_element_validate($element, &$form_state) {
+  if (!empty($element['#value'])) {
+    $format = filter_format_load($form_state['build_info']['args'][0]->format);
+    $filters = filter_list_format($format->format);
+    if (empty($filters['media_filter']->status)) {
+      form_error($element, t('The <em>Convert Media tags to markup</em> filter must be enabled for the <a href="@format-link">@format format</a> in order to use the Media browser WYSIWYG button.', array(
+        '@format-link' => url('admin/config/content/formats/' . $format->format, array('query' => array('destination' => $_GET['q']))),
+        '@format' => $format->name,
+      )));
+    }
+  }
+
+  return $element;
 }

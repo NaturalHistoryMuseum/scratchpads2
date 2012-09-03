@@ -28,7 +28,9 @@ Drupal.behaviors.mediaElement = {
 
       // Hide the edit and remove buttons if there is no file data yet.
       if (fidField.val() == 0) {
-        editButton.hide();
+        if (editButton.length) {
+          editButton.hide();
+        }
         removeButton.hide();
       }
 
@@ -63,19 +65,21 @@ Drupal.behaviors.mediaElement = {
       // Show or hide the edit/remove buttons if the field has a file or not.
       $('.fid', this).bind('change', function() {
         if (fidField.val() == 0) {
-          editButton.hide();
+          if (editButton.length) {
+            editButton.hide();
+          }
           removeButton.hide();
         }
         else {
-          editButton.attr('href', editButton.attr('href').replace(/media\/\d+\/edit/, 'media/' + fidField.val() + '/edit'));
-
-          // Re-process the edit link through CTools modal behaviors.
-          editButton.unbind('click');
-          editButton.removeClass('ctools-use-modal-processed');
-          // @todo Maybe add support for Drupal.detachBehaviors in Drupal.behaviors.ZZCToolsModal?
-          Drupal.attachBehaviors(editButton.parent(), Drupal.settings);
-
-          editButton.show();
+          if (editButton.length) {
+            editButton.attr('href', editButton.attr('href').replace(/media\/\d+\/edit/, 'media/' + fidField.val() + '/edit'));
+            // Re-process the edit link through CTools modal behaviors.
+            editButton.unbind('click');
+            editButton.removeClass('ctools-use-modal-processed');
+            // @todo Maybe add support for Drupal.detachBehaviors in Drupal.behaviors.ZZCToolsModal?
+            Drupal.attachBehaviors(editButton.parent(), Drupal.settings);
+            editButton.show();
+          }
           removeButton.show();
         }
       });

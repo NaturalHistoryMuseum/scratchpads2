@@ -291,10 +291,32 @@ function media_admin_config_browser($form, &$form_state) {
 
   $form[media_variable_name('file_extensions')] = array(
     '#type' => 'textfield',
-    '#title' => 'Allowed file extensions',
+    '#title' => t('Allowed file extensions'),
     '#default_value' => media_variable_get('file_extensions'),
     '#description' => t('File extensions which are accepted in the media browser.  Use spaces to separate (e.g. "jpg gif pdf doc"). <br/><em>Note that this can be overriden on a per-field basis when creating multimedia asset fields and files of certain extensions cannot be embedded at this time.</em>'),
+    '#maxlength' => 255,
   );
+
+  // Additional configuration if the WYSIWYG module is enabled.
+  $form['wysiwyg'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('WYSIWYG configuration'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#access' => module_exists('wysiwyg'),
+  );
+  $plugins = media_get_browser_plugin_info();
+  $form['wysiwyg'][media_variable_name('wysiwyg_browser_plugins')] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Enabled browser plugins'),
+    '#options' => array(),
+    '#required' => FALSE,
+    '#default_value' => media_variable_get('wysiwyg_browser_plugins'),
+    '#description' => t('If no plugins are selected, they will all be available.'),
+  );
+  foreach ($plugins as $key => $plugin) {
+    $form['wysiwyg'][media_variable_name('wysiwyg_browser_plugins')]['#options'][$key] = !empty($plugin['title']) ? $plugin['title'] : $key;
+  }
 
   $form['#submit'][] = 'media_admin_config_browser_pre_submit';
   return system_settings_form($form);
@@ -304,5 +326,10 @@ function media_admin_config_browser_pre_submit(&$form, &$form_state) {
   if (!$form_state['values'][media_variable_name('dialog_theme')]) {
     media_variable_del('dialog_theme');
     unset($form_state['values'][media_variable_name('dialog_theme')]);
+  }
+  $wysiwyg_browser_plugins = array_unique(array_values($form_state['values'][media_variable_name('wysiwyg_browser_plugins')]));
+  if (empty($wysiwyg_browser_plugins[0])) {
+    media_variable_del('wysiwyg_browser_plugins');
+    unset($form_state['values'][media_variable_name('wysiwyg_browser_plugins')]);
   }
 }

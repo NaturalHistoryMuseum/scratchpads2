@@ -10,7 +10,7 @@
 ?>
 
 <?php print $wrapper_prefix; ?>
-  <div id="scrollbox">
+  <div id="scrollbox" class="clearfix">
     <?php print $list_type_prefix; ?>
       <?php foreach ($rows as $id => $row): ?>
         <li id="media-item-<?php print $row->fid; ?>" class="<?php print $classes_array[$id]; ?>">

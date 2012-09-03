@@ -93,36 +93,24 @@ function theme_media_admin_thumbnail($variables) {
     return '';
   }
   $output = '';
-  if (module_exists('styles')) {
-    $thumbnail = theme('styles',
+  // Display a thumbnail for images.
+  if (strstr($file->filemime, 'image')) {
+    $thumbnail = theme('image_style',
       array(
-        'field_type' => 'file',
-        'style_name' => $style_name,
-        'uri' => $file->uri,
-        'description' => t('Thumbnail for !filename.', array('!filename' => $file->filename)),
-        'object' => $variables['file'],
-    ));
+        'style_name' => 'thumbnail',
+        'path' => $file->uri,
+        'alt' => t('Thumbnail for !filename.', array('!filename' => $file->filename)),
+      )
+    );
   }
+  // Display the 'unknown' icon for other file types.
   else {
-    // Display a thumbnail for images.
-    if (strstr($file->filemime, 'image')) {
-      $thumbnail = theme('image_style',
-        array(
-          'style_name' => 'thumbnail',
-          'path' => $file->uri,
-          'alt' => t('Thumbnail for !filename.', array('!filename' => $file->filename)),
-        )
-      );
-    }
-    // Display the 'unknown' icon for other file types.
-    else {
-      $thumbnail = theme('image',
-        array(
-          'path' => $path . '/images/file-unknown.png',
-          'alt' => t('Thumbnail for !filename.', array('!filename' => $file->filename)),
-          'attributes' => array('class' => 'file-unknown'),
-        ));
-    }
+    $thumbnail = theme('image',
+      array(
+        'path' => $path . '/images/file-unknown.png',
+        'alt' => t('Thumbnail for !filename.', array('!filename' => $file->filename)),
+        'attributes' => array('class' => 'file-unknown'),
+      ));
   }
   $output .= l($thumbnail,
     $file_url,

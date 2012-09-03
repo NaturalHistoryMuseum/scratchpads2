@@ -34,6 +34,8 @@ function file_entity_file_insert($file) {
   cache_clear_all();
 
   // Get and store image dimensions.
+  // @todo We should fetch image dimensions in file_entity_file_presave and
+  // then save them in this hook.
   file_entity_image_dimensions($file, TRUE);
 }
 
@@ -50,8 +52,21 @@ function file_entity_file_update($file) {
   // Clear the page and block caches.
   cache_clear_all();
 
-  // Get and store image dimensions.
+  // Reset the image dimensions for a file.
+  // @todo We should fetch image dimensions in file_entity_file_presave and
+  // then save them in this hook.
   file_entity_image_dimensions($file, TRUE);
+
+  if ($file->type == 'image' && module_exists('image')) {
+    // If the image dimensions have changed, update any image field references
+    // to this file and flush image style derivatives.
+    if ($file->image_dimensions != $file->original->image_dimensions) {
+      _file_entity_update_image_field_dimensions($file);
+    }
+
+    // Flush image style derivatives whenever an image is updated.
+    image_path_flush($file->uri);
+  }
 }
 
 /**
@@ -157,7 +172,7 @@ function file_entity_file_load($files) {
 function file_entity_image_dimensions($file, $force = FALSE) {
   // Prevent PHP notices when trying to read empty files.
   // @see http://drupal.org/node/681042
-  if (!filesize($file->uri)) {
+  if (!$file->filesize) {
     return;
   }
 
@@ -192,5 +207,47 @@ function file_entity_image_dimensions($file, $force = FALSE) {
       'width' => NULL,
       'height' => NULL,
     );
+  }
+}
+
+/**
+ * Update the image dimensions stored in any image fields for a file.
+ *
+ * @param object $file
+ *   A file object that is an image.
+ *
+ * @see http://drupal.org/node/1448124
+ */
+function _file_entity_update_image_field_dimensions($file) {
+  // Find all image field enabled on the site.
+  $image_fields = array();
+  foreach (field_info_fields() as $field) {
+    if ($field['type'] == 'image') {
+      $image_fields[] = $field['field_name'];
+    }
+  }
+
+  foreach ($image_fields as $image_field) {
+    $query = new EntityFieldQuery();
+    $query->fieldCondition($image_field, 'fid', $file->fid);
+    $results = $query->execute();
+
+    foreach ($results as $entity_type => $entities) {
+      $entities = entity_load($entity_type, array_keys($entities));
+      foreach ($entities as $entity) {
+        foreach ($entity->{$image_field} as $langcode => $items) {
+          foreach ($items as $delta => $item) {
+            if ($item['fid'] == $file->fid) {
+              $entity->{$image_field}[$langcode][$delta]['width'] = $file->image_dimensions['width'];
+              $entity->{$image_field}[$langcode][$delta]['height'] = $file->image_dimensions['height'];
+            }
+          }
+        }
+
+        // Ensure that file_field_update() will not trigger additional usage.
+        unset($entity->revision);
+        field_attach_update($entity_type, $entity);
+      }
+    }
   }
 }

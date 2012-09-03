@@ -395,12 +395,7 @@ function file_displays_load($file_type, $view_mode, $key_by_formatter_name = FAL
     $display_names[] = $prefix . $formatter_name;
   }
   $displays = ctools_export_load_object('file_display', 'names', $display_names);
-  
-  $results = db_select('file_display', 'f')->fields('f')->execute();
-  foreach($results as $row){
-    $displays[$row->name] = $row;
-  }
-  
+
   if ($key_by_formatter_name) {
     $prefix_length = strlen($prefix);
     $rekeyed_displays = array();
