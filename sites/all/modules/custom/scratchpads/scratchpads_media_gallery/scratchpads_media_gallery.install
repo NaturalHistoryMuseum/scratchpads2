@@ -225,3 +225,19 @@ function scratchpads_media_gallery_update_7003(){
   );
   field_update_instance($field_instance);
 }
+
+/**
+ * Update the field_description field so that it uses formatted text.
+ */
+function scratchpads_media_gallery_update_7004(){
+  $bundles = array(
+    'audio',
+    'image',
+    'video'
+  );
+  foreach($bundles as $bundle){
+    $field_instance = field_info_instance('file', 'field_description', $bundle);
+    $field_instance['settings']['text_processing'] = 1;
+    field_update_instance($field_instance);
+  }
+}
