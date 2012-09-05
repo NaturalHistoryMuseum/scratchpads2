@@ -38,6 +38,8 @@ dependencies[] = globalredirect
 dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit
+dependencies[] = media_multiselect
+dependencies[] = plupload
 dependencies[] = role_delegation
 dependencies[] = uuid
 

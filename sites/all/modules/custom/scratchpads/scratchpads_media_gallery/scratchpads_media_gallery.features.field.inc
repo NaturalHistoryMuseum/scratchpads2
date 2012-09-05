@@ -111,9 +111,10 @@ function scratchpads_media_gallery_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'media',
+        'module' => 'media_multiselect',
         'settings' => array(
           'allowed_schemes' => array(
+            'module' => 0,
             'public' => 'public'
           ),
           'allowed_types' => array(
@@ -123,13 +124,13 @@ function scratchpads_media_gallery_field_default_fields(){
             'video' => 'video'
           ),
           'browser_plugins' => array(
-            'library' => 0,
             'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
             'upload' => 0
           ),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'media_generic',
+        'type' => 'media_multiselect',
         'weight' => '-3'
       )
     )
@@ -204,9 +205,10 @@ function scratchpads_media_gallery_field_default_fields(){
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'media',
+        'module' => 'media_multiselect',
         'settings' => array(
           'allowed_schemes' => array(
+            'module' => 0,
             'public' => 'public'
           ),
           'allowed_types' => array(
@@ -216,13 +218,13 @@ function scratchpads_media_gallery_field_default_fields(){
             'video' => 'video'
           ),
           'browser_plugins' => array(
-            'library' => 0,
             'media_default--media_browser_1' => 0,
+            'media_default--media_browser_my_files' => 0,
             'upload' => 0
           ),
           'progress_indicator' => 'throbber'
         ),
-        'type' => 'media_generic',
+        'type' => 'media_multiselect',
         'weight' => '-3'
       )
     )
