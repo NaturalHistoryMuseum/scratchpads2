@@ -9,6 +9,10 @@ body{
 
 blockquote{
 	padding-left:10px;
+	font-style:italic;
+}
+blockquote em, blockquote i{
+	font-style:normal;
 }
 
 #page{
