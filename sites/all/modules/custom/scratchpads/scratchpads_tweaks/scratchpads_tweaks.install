@@ -1,4 +1,7 @@
 <?php
+// List of tags that are allowed to be entered by our users.  If this list is
+// changed, an update must be written to actually change the input format.
+define('SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS', '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>');
 
 function scratchpads_tweaks_install(){
   // Add text formats.
@@ -17,7 +20,7 @@ function scratchpads_tweaks_install(){
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>',
+          'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -518,10 +521,10 @@ function scratchpads_tweaks_update_7009(){
  */
 function scratchpads_tweaks_update_7012(){
   $filtered_html_format = filter_format_load('filtered_html');
-  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>';
+  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS;
   filter_format_save($filtered_html_format);
   $filtered_html_format = filter_format_load('comment_filtered_html');
-  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = '<hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>';
+  $filtered_html_format->filters['filter_html']['settings']['allowed_html'] = SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS;
   filter_format_save($filtered_html_format);
 }
 
@@ -828,7 +831,7 @@ function scratchpads_tweaks_update_7018(){
       'weight' => 1,
       'status' => 1,
       'settings' => array(
-        'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6>',
+        'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
         'filter_html_help' => 0,
         'filter_html_nofollow' => 0
       )
@@ -878,7 +881,7 @@ function scratchpads_tweaks_update_7019(){
  */
 function scratchpads_tweaks_update_7020(){
   $settings = array(
-    'allowed_html' => '<iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h3> <h4> <h5> <h6> <u>',
+    'allowed_html' => SCRATCHPADS_TWEAKS_ALLOWED_HTML_TAGS,
     'filter_html_help' => 0,
     'filter_html_nofollow' => 0
   );
