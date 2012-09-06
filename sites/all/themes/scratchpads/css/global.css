@@ -7,6 +7,10 @@ body{
 	height:100%;
 }
 
+blockquote{
+	padding-left:10px;
+}
+
 #page{
   min-height: 100%;
   position: relative;
